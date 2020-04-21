@@ -26,8 +26,30 @@ before_script:
 test:
   script:
     - python setup.py test
-    - pip install tox flake8  # you can also use tox
-    - tox
+    - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+
+  artifacts:
+    paths:
+      - htmlcov
+      - coverage.xml
+
+test-3.7:
+  extends: "test"
+  image: "python:3.7"
+
+
+test-3.8:
+  extends: "test"
+  image: "python:3.8"
+
+
+test-flake8:
+  extends: "test"
+  image: python:latest
+  script:
+    - flake8 quantify --format=html --htmldir=flake-report
+  artifacts:
+    flake-report/
 
 run:
   script:

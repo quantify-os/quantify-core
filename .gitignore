@@ -46,21 +46,11 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+flake-report/
 
 # Translations
 *.mo
 *.pot
-
-# Django stuff:
-*.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -74,8 +64,6 @@ target/
 # pyenv
 .python-version
 
-# celery beat schedule file
-celerybeat-schedule
 
 # SageMath parsed files
 *.sage.py
@@ -107,3 +95,5 @@ ENV/
 
 # System files
 *.DS_Store
+
+
