@@ -32,13 +32,13 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/adriaanrol/quantify
+    $ git clone git://gitlab.com/qblox/packages/software/quantify
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl -OJL https://github.com/adriaanrol/quantify/tarball/master
+    $ curl -OJL https://gitlab.com/qblox/packages/software/quantify/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -47,5 +47,5 @@ Once you have a copy of the source, you can install it with:
     $ python setup.py install
 
 
-.. _Github repo: https://github.com/adriaanrol/quantify
-.. _tarball: https://github.com/adriaanrol/quantify/tarball/master
+.. _Github repo: https://gitlab.com/qblox/packages/software/quantify
+.. _tarball: https://gitlab.com/qblox/packages/software/quantify/tarball/master
