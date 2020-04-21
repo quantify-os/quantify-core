@@ -1,3 +1,0 @@
-# quantify
-
-Quantify
