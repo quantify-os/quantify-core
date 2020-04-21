@@ -25,7 +25,9 @@ before_script:
 
 test:
   script:
-    - python setup.py test
+
+    - pip install -e .
+    - pip install -r requirements_dev.txt
     - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
   artifacts:
