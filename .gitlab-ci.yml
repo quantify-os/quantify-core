@@ -55,6 +55,8 @@ test-flake8:
   artifacts:
     paths:
       - flake-report/*
+    when: on_failure
+    reports:
 
 run:
   script:
