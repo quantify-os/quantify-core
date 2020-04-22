@@ -6,8 +6,12 @@ quantify
 .. image:: https://img.shields.io/pypi/v/quantify.svg
         :target: https://pypi.python.org/pypi/quantify
 
-.. image:: https://img.shields.io/travis/adriaanrol/quantify.svg
-        :target: https://travis-ci.com/adriaanrol/quantify
+.. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/pipeline.svg
+    :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
+
+.. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/coverage.svg)
+    :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
+
 
 .. image:: https://readthedocs.org/projects/quantify/badge/?version=latest
         :target: https://quantify.readthedocs.io/en/latest/?badge=latest
@@ -35,7 +39,4 @@ Features
 Credits
 -------
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+* To be added
