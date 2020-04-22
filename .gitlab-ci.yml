@@ -35,6 +35,8 @@ test:
       - htmlcov
       - coverage.xml
 
+    when: always
+
 test-3.7:
   extends: "test"
   image: "python:3.7"
@@ -50,13 +52,11 @@ test-flake8:
   image: python:latest
   script:
     - pip install -r requirements_dev.txt
-    - flake8 quantify
     - flake8 quantify --format=html --htmldir=flake-report
   artifacts:
     paths:
-      - flake-report/*
+      - flake-report
     when: on_failure
-    reports:
 
 run:
   script:
