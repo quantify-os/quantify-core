@@ -54,9 +54,8 @@ test-flake8:
     - flake8 quantify --format=html --htmldir=flake-report
   artifacts:
     paths:
-      - flake-report/*
+      - flake-report
     when: on_failure
-    reports:
 
 run:
   script:
