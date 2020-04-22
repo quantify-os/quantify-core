@@ -9,8 +9,9 @@ quantify
 .. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/pipeline.svg
     :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
 
-.. image:: https://img.shields.io/travis/adriaanrol/quantify.svg
-        :target: https://travis-ci.com/adriaanrol/quantify
+.. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/coverage.svg)
+    :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
+
 
 .. image:: https://readthedocs.org/projects/quantify/badge/?version=latest
         :target: https://quantify.readthedocs.io/en/latest/?badge=latest
