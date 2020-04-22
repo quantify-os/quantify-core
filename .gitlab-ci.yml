@@ -35,6 +35,8 @@ test:
       - htmlcov
       - coverage.xml
 
+    when: always
+
 test-3.7:
   extends: "test"
   image: "python:3.7"
