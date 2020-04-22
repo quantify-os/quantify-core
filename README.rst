@@ -9,7 +9,7 @@ quantify
 .. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/pipeline.svg
     :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
 
-.. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/coverage.svg)
+.. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/coverage.svg
     :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
 
 
@@ -28,7 +28,8 @@ Python Boilerplate contains all the boilerplate you need to create a Python pack
 
 
 * Free software: MIT license
-* Documentation: https://quantify.readthedocs.io.
+* Documentation (future): https://quantify.readthedocs.io.
+* Documentation: https://qblox.gitlab.io/packages/software/quantify/
 
 
 Features
