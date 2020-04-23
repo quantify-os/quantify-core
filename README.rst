@@ -21,7 +21,7 @@ quantify
 
 * Free software: MIT license
 * Documentation (future): https://quantify.readthedocs.io.
-* Documentation: https://qblox.gitlab.io/packages/software/quantify/
+* Documentation (last commit to master only): https://qblox.gitlab.io/packages/software/quantify/
 
 
 Features

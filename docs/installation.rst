@@ -26,7 +26,7 @@ you through the process.
 From sources
 ------------
 
-The sources for quantify can be downloaded from the `Github repo`_.
+The sources for quantify can be downloaded from the `GitLab repo`_.
 
 You can either clone the public repository:
 
@@ -34,18 +34,11 @@ You can either clone the public repository:
 
     $ git clone git://gitlab.com/qblox/packages/software/quantify
 
-Or download the `tarball`_:
-
-.. code-block:: console
-
-    $ curl -OJL https://gitlab.com/qblox/packages/software/quantify/tarball/master
-
 Once you have a copy of the source, you can install it with:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ pip install .
 
 
-.. _Github repo: https://gitlab.com/qblox/packages/software/quantify
-.. _tarball: https://gitlab.com/qblox/packages/software/quantify/tarball/master
+.. _GitLab repo: https://gitlab.com/qblox/packages/software/quantify

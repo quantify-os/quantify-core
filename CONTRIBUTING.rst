@@ -52,8 +52,8 @@ If you are proposing a feature:
 * Explain in detail how it would work.
 * Keep the scope as narrow as possible, to make it easier to implement.
 
-Get Started!
-------------
+Setting up quantify for local development
+------------------------------------------------
 
 Ready to contribute? Here's how to set up `quantify` for local development.
 
@@ -80,13 +80,15 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ flake8 quantify tests
     $ pytest --cov
 
-   If you have worked on documentation instead of code you may want to preview how your docs look locally.
-   You can build the docs locally using
+  If you have worked on documentation instead of code you may want to preview how your docs look locally.
+  You can build the docs locally using:
 
-    $ cd docs
-    $ make html
+  .. code-block:: shell
 
-    The docs will be located in `quantify/docs/_build`.
+      $ cd docs
+      $ make html
+
+  The docs will be located in `quantify/docs/_build`.
 
 6. Commit your changes and push your branch to GitLab::
 
@@ -96,36 +98,54 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
 7. Submit a pull request through the GitLab website.
 
-Pull Request Guidelines
+Merge Request Guidelines
 -----------------------
 
-Before you submit a pull request, check that it meets these guidelines:
+Before you submit a merge request, check that it meets these guidelines:
 
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. The pull request should work for Python 3.5, 3.6, 3.7 and 3.8, and for PyPy. Check
-   https://travis-ci.com/adriaanrol/quantify/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+1. The merge request should include tests.
+2. If the merge request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring.
+3. The pipelines should pass for all merge requests.
+
+   - Check the status of the pipelines https://gitlab.com/qblox/packages/software/quantify/pipelines, the status is also reported in the merge request.
+   - Tests should pass for all versions of python.
+   - flake8 linter should pass.
+   - Documentation should build.
+   - Pipeline should work for PyPy (TODO)
 
 Tips
 ----
 
-To run a subset of tests::
+- Ensure you have installed the `requirements_dev.txt`
 
-$ pytest tests.test_quantify
+- To run a subset of tests::
+
+  $ pytest tests.test_quantify
+
+- To auto rebuild docs when editing::
+
+  $ pip install sphinx-autobuild
+  $ sphinx-autobuild docs docs/_build/html
+
+  The docs will now be served on http://localhost:8000/
+
 
 
 Deploying
 ---------
+
+.. note::
+
+  TODO Work out how to tag versions using gitlab and deploy to PyPy
 
 A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
 Then run::
 
 $ bump2version patch # possible: major / minor / patch
-$ git push
+- $ git push
 $ git push --tags
 
 Travis will then deploy to PyPI if tests pass.
+
+
