@@ -23,7 +23,14 @@ before_script:
   - virtualenv venv
   - source venv/bin/activate
 
+
+stages:
+  - Static Analysis
+  - Test
+  - Deploy
+
 test:
+  stage: Test
   script:
 
     - pip install -e .
@@ -48,12 +55,13 @@ test-3.8:
 
 
 flake8:
-  stage: Code_quality
-  extends: "test"
   image: python:latest
+  stage: Static Analysis
+  allow_failure: true
   script:
     - pip install -r requirements_dev.txt
     - flake8 quantify tests --format=html --htmldir=flake-report
+
   artifacts:
     paths:
       - flake-report
@@ -70,6 +78,7 @@ run:
       - dist/*.whl
 
 pages:
+  stage: Deploy
   script:
     - pip install sphinx sphinx-rtd-theme
     - cd docs ; make html
