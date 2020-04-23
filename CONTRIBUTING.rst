@@ -26,13 +26,13 @@ If you are reporting a bug, please include:
 Fix Bugs
 ~~~~~~~~
 
-Look through the GitHub issues for bugs. Anything tagged with "bug" and "help
+Look through the GitLab issues for bugs. Anything tagged with "bug" and "help
 wanted" is open to whoever wants to implement it.
 
 Implement Features
 ~~~~~~~~~~~~~~~~~~
 
-Look through the GitHub issues for features. Anything tagged with "enhancement"
+Look through the GitLab issues for features. Anything tagged with "enhancement"
 and "help wanted" is open to whoever wants to implement it.
 
 Write Documentation
@@ -57,16 +57,17 @@ Get Started!
 
 Ready to contribute? Here's how to set up `quantify` for local development.
 
-1. Fork the `quantify` repo on GitHub.
+1. Fork the `quantify` repo on GitLab.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/quantify.git
+    $ git clone git@gitlab.com:your_name_here/quantify.git
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
     $ mkvirtualenv quantify
     $ cd quantify/
-    $ python setup.py develop
+    $ pip install -e .
+    $ pip install -r requirements_dev.txt
 
 4. Create a branch for local development::
 
@@ -74,22 +75,26 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
-   tests, including testing other Python versions with tox::
+5. When you're done making changes, check that your changes pass flake8 the tests and have test coverage::
 
     $ flake8 quantify tests
-    $ python setup.py test or pytest
-    $ tox
+    $ pytest --cov
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   If you have worked on documentation instead of code you may want to preview how your docs look locally.
+   You can build the docs locally using
 
-6. Commit your changes and push your branch to GitHub::
+    $ cd docs
+    $ make html
+
+    The docs will be located in `quantify/docs/_build`.
+
+6. Commit your changes and push your branch to GitLab::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+7. Submit a pull request through the GitLab website.
 
 Pull Request Guidelines
 -----------------------

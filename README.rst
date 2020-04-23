@@ -18,14 +18,6 @@ quantify
         :alt: Documentation Status
 
 
-.. image:: https://pyup.io/repos/github/adriaanrol/quantify/shield.svg
-     :target: https://pyup.io/repos/github/adriaanrol/quantify/
-     :alt: Updates
-
-
-
-Python Boilerplate contains all the boilerplate you need to create a Python package.
-
 
 * Free software: MIT license
 * Documentation (future): https://quantify.readthedocs.io.

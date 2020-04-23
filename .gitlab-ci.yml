@@ -52,7 +52,7 @@ test-flake8:
   image: python:latest
   script:
     - pip install -r requirements_dev.txt
-    - flake8 quantify --format=html --htmldir=flake-report
+    - flake8 quantify tests --format=html --htmldir=flake-report
   artifacts:
     paths:
       - flake-report
