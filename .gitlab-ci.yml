@@ -68,6 +68,7 @@ flake8:
     when: on_failure
 
 run:
+  stage: Test
   script:
     - python setup.py bdist_wheel
     # an alternative approach is to install and run:
