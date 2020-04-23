@@ -13,7 +13,11 @@ with open('HISTORY.rst') as history_file:
 with open('requirements_dev.txt') as test_reqs:
     test_requirements = test_reqs.read().splitlines()
 
-requirements = [ ]
+requirements = [
+    'qcodes',
+    'numpy',
+    'scipy',
+    'matplotlib']
 
 setup_requirements = ['pytest-runner', ]
 
