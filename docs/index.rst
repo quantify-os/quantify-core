@@ -1,12 +1,16 @@
 Welcome to quantify's documentation!
 ======================================
 
+
+Hello I am reloading
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    readme
    installation
+   core_concepts
    usage
    modules
    contributing

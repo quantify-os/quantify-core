@@ -19,7 +19,9 @@ quantify
 
 
 
-* Free software: MIT license
+Quantify is a python platform to control Quantum Computing and solid-state physics experiments.
+It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spiritual successor of `PycQED <https://github.com/DiCarloLab-Delft/PycQED_py3>`_.
+
 * Documentation (future): https://quantify.readthedocs.io.
 * Documentation (last commit to master only): https://qblox.gitlab.io/packages/software/quantify/
 
@@ -27,7 +29,21 @@ quantify
 Features
 --------
 
-* TODO
+Quantify contains all basic functionality to control experiments. This includes:
+
+* A framework for to control instruments + a library of common instruments.
+* A measurement loop.
+* A framework for data storage and analysis.
+* Parameter monitoring and live visualization.
+* Pulse sequencer (todo)
+* A library of standard experiments and analysis
+
+Take a look at our `Transmock demo <http://>`_ to see quantify in action!
+
+
+.. note::
+
+    Features are WIP. All features listed should be added before a v1.0 release.
 
 Credits
 -------
