@@ -48,6 +48,7 @@ test-3.8:
 
 
 flake8:
+  stage: Code_quality
   extends: "test"
   image: python:latest
   script:
