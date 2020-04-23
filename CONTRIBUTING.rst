@@ -99,7 +99,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 7. Submit a pull request through the GitLab website.
 
 Merge Request Guidelines
------------------------
+--------------------------
 
 Before you submit a merge request, check that it meets these guidelines:
 
@@ -142,9 +142,9 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
 Then run::
 
-$ bump2version patch # possible: major / minor / patch
-- $ git push
-$ git push --tags
+  $ bump2version patch # possible: major / minor / patch
+  - $ git push
+  $ git push --tags
 
 Travis will then deploy to PyPI if tests pass.
 

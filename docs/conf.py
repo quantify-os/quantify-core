@@ -131,7 +131,7 @@ latex_elements = {
 latex_documents = [
     (master_doc, 'quantify.tex',
      'quantify Documentation',
-     'Adriaan Rol ', 'manual'),
+     'Qblox ', 'manual'),
 ]
 
 

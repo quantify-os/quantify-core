@@ -3,7 +3,17 @@ Getting started
 ====================
 
 
+Core concepts
+====================
 
-To use quantify in a project::
+- Parameter
+- Instrument
+- Measurement Control
+- Data storage & Analysis
 
-    import quantify
+
+
+Folder structure
+====================
+
+
