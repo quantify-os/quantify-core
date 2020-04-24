@@ -8,7 +8,10 @@ Utility functions include
 - Finding a dataset
 -
 """
+
 import xarray as xr
+from datetime import datetime
+from uuid import uuid4
 
 
 def is_valid_dset(dset):
@@ -24,12 +27,22 @@ def is_valid_dset(dset):
     if not isinstance(dset, xr.Dataset):
         raise TypeError
 
-
     return True
 
-def gen_time_uid():
+
+def gen_tuid(ts=None):
     """
     Generates a human readable unique identifier based on the current time.
-    """
 
-    return
+    Args:
+        ts (datetime) : optional datetime object can be passed to ensure the
+            tuid is based on a specific timestamp.
+
+    Returns:
+        tuid (str): timestamp based uid formatted as YYMMDD-HHMMSS-****
+    """
+    ts = datetime.now()
+    tuid = ts.strftime('%Y%m%d-%H%M%S-')+str(uuid4())[:4]
+
+    return tuid
+

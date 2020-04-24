@@ -17,6 +17,7 @@ requirements = [
     'qcodes',
     'numpy',
     'scipy',
+    'xarray',
     'matplotlib']
 
 setup_requirements = ['pytest-runner', ]
