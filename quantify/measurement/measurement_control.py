@@ -10,8 +10,8 @@ class MeasurementControl(Instrument):
     MeasurementControl (MC) is based on the notion that every experiment
     consists of the following step.
 
-        1. Set some parameter(s)
-        2. Measure some other parameter(s)
+        1. Set some parameter(s)            (setables)
+        2. Measure some other parameter(s)  (getables)
         3. Store the data.
 
     MC exists to enforce structure on experiments.
@@ -48,6 +48,11 @@ class MeasurementControl(Instrument):
             parameter_class=ManualParameter,
         )
 
+        # variables
+        self._setables = []
+        self._setpoints = []
+        self._getables = []
+
     def run(self, name: str = '',
             exp_metadata: dict = None,
             mode: str = '1D'):
@@ -65,3 +70,57 @@ class MeasurementControl(Instrument):
             dataset : an xarray Dataset object.
         """
         pass
+
+    def set_setables(self, *setables):
+        """
+        Define the setables for the acquisition loop.
+
+        Args:
+            setables: something to be set in the data-acquisition loop.
+                a valid setable has a "set" method and the
+                an example of a setable is a qcodes Parameter.
+        """
+        self._setables = []
+        for i, setable in enumerate(setables):
+            if is_setable(setable):
+                self._setables.append(setable)
+
+    def set_setpoints():
+        pass
+
+    def set_setpoints_2D():
+        pass
+
+    def set_getable():
+        pass
+
+    def _initialize_dataset():
+        """
+        Initializeempty dataset based on mode, setables, getables and setpoints
+        """
+
+        pass
+
+
+def is_setable(setable):
+    """Test if object is a valid setable."""
+    if not hasattr('set', setable):
+        raise AttributeError
+    if not hasattr('name', setable):
+        raise AttributeError
+    if not hasattr('unit', setable):
+        raise AttributeError
+
+    return True
+
+
+def is_getable(setable):
+    """Test if object is a valid getable."""
+    if not hasattr('get', setable):
+        raise AttributeError
+    if not hasattr('name', setable):
+        raise AttributeError
+    if not hasattr('unit', setable):
+        raise AttributeError
+
+    return True

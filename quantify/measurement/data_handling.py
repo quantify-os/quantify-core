@@ -4,6 +4,8 @@ Module for handling data.
 This module contains a specification for the dataset as well as utilities to
 handle the data.
 
+quantify datasets are based on the xarray Dataset.
+
 Utility functions include
 - Finding a dataset
 -
@@ -39,10 +41,14 @@ def gen_tuid(ts=None):
             tuid is based on a specific timestamp.
 
     Returns:
-        tuid (str): timestamp based uid formatted as YYMMDD-HHMMSS-****
+        tuid (str): timestamp based uid formatted as YYMMDD-HHMMSS-******
     """
     ts = datetime.now()
-    tuid = ts.strftime('%Y%m%d-%H%M%S-')+str(uuid4())[:4]
+    tuid = ts.strftime('%Y%m%d-%H%M%S-')+str(uuid4())[:6]
 
     return tuid
 
+
+
+def append_to_Xarr():
+    pass

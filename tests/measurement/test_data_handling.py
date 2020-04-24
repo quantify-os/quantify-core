@@ -18,4 +18,4 @@ def test_gen_tuid():
     readable_ts = ts.strftime('%Y%m%d-%H%M%S')
 
     assert tuid[:15] == readable_ts
-    assert len(tuid) == 20  # 4 random characters added at the end of tuid
+    assert len(tuid) == 22  # 6 random characters added at the end of tuid
