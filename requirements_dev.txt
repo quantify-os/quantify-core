@@ -11,3 +11,6 @@ pytest
 pytest-runner
 pytest-cov
 flake8-html
+
+pylint
+pylint-json2.html
