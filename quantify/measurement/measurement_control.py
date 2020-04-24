@@ -30,8 +30,7 @@ class MeasurementControl(Instrument):
 
     def __init__(
             self,
-            name: str,
-            datadir: str = ''):  # verbose: bool = True
+            name: str):  # verbose: bool = True
         """
         Creates an instance of the Measurement Control.
 
@@ -43,10 +42,22 @@ class MeasurementControl(Instrument):
 
         self.add_parameter(
             "datadir",
-            initial_value=datadir,
+            initial_value='',
             vals=vals.Strings(),
             parameter_class=ManualParameter,
         )
+
+        self.add_parameter(
+            "setables",
+            docstring='Object to be set in data acquisition loop',
+            set_cmd=self._set_setables,
+            get_cmd=self._get_setables,
+            )
+        self.add_parameter(
+            "getables",
+            docstring='Object to be set in data acquisition loop',
+            set_cmd=self._set_getable,
+            get_cmd=self._get_getable)
 
         # variables
         self._setables = []
@@ -71,7 +82,7 @@ class MeasurementControl(Instrument):
         """
         pass
 
-    def set_setables(self, *setables):
+    def _set_setables(self, *setables):
         """
         Define the setables for the acquisition loop.
 
@@ -85,16 +96,24 @@ class MeasurementControl(Instrument):
             if is_setable(setable):
                 self._setables.append(setable)
 
-    def set_setpoints():
+    def _get_setables(self):
+        return self._setables
+
+
+    def set_setpoints(self):
         pass
 
-    def set_setpoints_2D():
+    def set_setpoints_2D(self):
         pass
 
-    def set_getable():
+    def _set_getable(self, getable):
+        if is_getable(getable):
+            self._getable = getable
+
+    def _get_getable(self):
         pass
 
-    def _initialize_dataset():
+    def _initialize_dataset(self):
         """
         Initializeempty dataset based on mode, setables, getables and setpoints
         """
@@ -104,23 +123,23 @@ class MeasurementControl(Instrument):
 
 def is_setable(setable):
     """Test if object is a valid setable."""
-    if not hasattr('set', setable):
+    if not hasattr(setable, 'set'):
         raise AttributeError
-    if not hasattr('name', setable):
+    if not hasattr(setable, 'name'):
         raise AttributeError
-    if not hasattr('unit', setable):
+    if not hasattr(setable, 'unit'):
         raise AttributeError
 
     return True
 
 
-def is_getable(setable):
+def is_getable(getable):
     """Test if object is a valid getable."""
-    if not hasattr('get', setable):
+    if not hasattr(getable, 'get'):
         raise AttributeError
-    if not hasattr('name', setable):
+    if not hasattr(getable, 'name'):
         raise AttributeError
-    if not hasattr('unit', setable):
+    if not hasattr(getable, 'unit'):
         raise AttributeError
 
     return True
