@@ -1,3 +1,4 @@
+
 from qcodes import Instrument
 from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
@@ -28,9 +29,7 @@ class MeasurementControl(Instrument):
     def __init__(
             self,
             name: str,
-            plotting_interval: float = 3,
-            datadir: str = '',
-            verbose: bool = True):
+            datadir: str = ''):  # verbose: bool = True
         super().__init__(name=name)
 
         self.add_parameter(
