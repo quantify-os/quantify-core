@@ -13,4 +13,4 @@ pytest-cov
 flake8-html
 
 pylint
-pylint-json2.html
+pylint-json2html
