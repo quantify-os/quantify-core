@@ -8,7 +8,6 @@ Welcome to quantify's documentation!
 
    readme
    installation
-   core_concepts
    usage
    modules
    contributing

@@ -7,5 +7,5 @@ Modules
 
 
 
-.. automodule:: quantify.measurement.measurement_control
+.. automodule:: quantify.measurement
    :members:
