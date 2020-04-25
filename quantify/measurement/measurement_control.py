@@ -1,3 +1,5 @@
+import numpy as np
+import xarray as xr
 from qcodes import Instrument
 from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
@@ -10,8 +12,8 @@ class MeasurementControl(Instrument):
     MeasurementControl (MC) is based on the notion that every experiment
     consists of the following step.
 
-        1. Set some parameter(s)            (setables)
-        2. Measure some other parameter(s)  (getables)
+        1. Set some parameter(s)            (setable_pars)
+        2. Measure some other parameter(s)  (getable_pars)
         3. Store the data.
 
     MC exists to enforce structure on experiments.
@@ -47,22 +49,14 @@ class MeasurementControl(Instrument):
             parameter_class=ManualParameter,
         )
 
-        self.add_parameter(
-            "setables",
-            docstring='Object to be set in data acquisition loop',
-            set_cmd=self._set_setables,
-            get_cmd=self._get_setables,
-            )
-        self.add_parameter(
-            "getables",
-            docstring='Object to be set in data acquisition loop',
-            set_cmd=self._set_getable,
-            get_cmd=self._get_getable)
-
         # variables
-        self._setables = []
+        self._setable_pars = []
         self._setpoints = []
-        self._getables = []
+        self._getable_pars = []
+
+    ############################################
+    # Methods used to control the measurements #
+    ############################################
 
     def run(self, name: str = '',
             exp_metadata: dict = None,
@@ -82,53 +76,87 @@ class MeasurementControl(Instrument):
         """
         pass
 
-    def _set_setables(self, *setables):
+    ############################################
+    # Methods used to control the measurements #
+    ############################################
+
+    def set_setpars(self, setable_pars):
         """
-        Define the setables for the acquisition loop.
+        Define the setable_pars for the acquisition loop.
 
         Args:
-            setables: something to be set in the data-acquisition loop.
+            setable_pars: something to be set in the data-acquisition loop.
                 a valid setable has a "set" method and the
                 an example of a setable is a qcodes Parameter.
         """
-        self._setables = []
-        for i, setable in enumerate(setables):
+        self._setable_pars = []
+        for i, setable in enumerate(setable_pars):
             if is_setable(setable):
-                self._setables.append(setable)
+                self._setable_pars.append(setable)
 
-    def _get_setables(self):
-        return self._setables
+    def _initialize_dataset(self):
+        """
+        Initialize an empty dataset based on
+            mode, setables, getable_pars and _setable_pars
 
+        """
+        darrs = []
+        for i, setpar in enumerate(self._setable_pars):
+            darrs.append(xr.DataArray(
+                data=self._setpoints[:, i],
+                name='x{}'.format(i),
+                attrs={'name': setpar.name, 'long_name': setpar.label,
+                       'unit': setpar.unit}))
 
-    def set_setpoints(self):
-        pass
+        numpoints = len(self._setpoints[:, 0])
+        for j, getpar in enumerate(self._getable_pars):
+            darrs.append(xr.DataArray(
+                data=np.zeros(numpoints),
+                name='y{}'.format(i),
+                attrs={'name': getpar.name, 'long_name': getpar.label,
+                       'unit': getpar.unit}))
+
+        self._dataset = xr.merge(darrs)
+
+    ####################################
+    # Non-parameter get/set functions  #
+    ####################################
+
+    def set_setpoints(self, setpoints):
+        """
+        Set setpoints that determine values to be set in acquisition loop.
+
+        Args:
+            setpoints (np.array) : An array that defines the values to loop
+                over in the experiment. The shape of the the array has to be
+                either (N,) (N,1) for a 1D loop or (N, M) in the case of
+                an MD loop.
+
+        The setpoints are internally reshaped to (N, M) to be natively
+        compatible with M-dimensional loops.
+
+        """
+        sp_shape = np.shape(setpoints)
+        if len(sp_shape) == 1:
+            setpoints = setpoints.reshape((len(setpoints), 1))
+        self._setpoints = setpoints
 
     def set_setpoints_2D(self):
         pass
 
-    def _set_getable(self, getable):
-        if is_getable(getable):
-            self._getable = getable
-
-    def _get_getable(self):
-        pass
-
-    def _initialize_dataset(self):
-        """
-        Initializeempty dataset based on mode, setables, getables and setpoints
-        """
-
-        pass
+    def set_getpars(self, getable_par):
+        if is_getable(getable_par):
+            self._getable_pars = [getable_par]
 
 
 def is_setable(setable):
     """Test if object is a valid setable."""
     if not hasattr(setable, 'set'):
-        raise AttributeError
+        raise AttributeError("{} does not have 'set'.".format(setable))
     if not hasattr(setable, 'name'):
-        raise AttributeError
+        raise AttributeError("{} does not have 'name'.".format(setable))
     if not hasattr(setable, 'unit'):
-        raise AttributeError
+        raise AttributeError("{} does not have 'unit'.".format(setable))
 
     return True
 
@@ -136,10 +164,10 @@ def is_setable(setable):
 def is_getable(getable):
     """Test if object is a valid getable."""
     if not hasattr(getable, 'get'):
-        raise AttributeError
+        raise AttributeError("{} does not have 'get'.".format(getable))
     if not hasattr(getable, 'name'):
-        raise AttributeError
+        raise AttributeError("{} does not have 'name'.".format(getable))
     if not hasattr(getable, 'unit'):
-        raise AttributeError
+        raise AttributeError("{} does not have 'unit'.".format(getable))
 
     return True

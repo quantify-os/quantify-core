@@ -9,6 +9,7 @@ Welcome to quantify's documentation!
    readme
    installation
    usage
+   dataset_spec
    modules
    contributing
    authors

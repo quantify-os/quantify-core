@@ -29,4 +29,3 @@ Core concepts
 
 Folder structure
 ====================
-
