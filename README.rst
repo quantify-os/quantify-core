@@ -25,7 +25,7 @@ It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spir
 It differs from QCoDeS in that it not only provides a framework of instruments, parameters and data but also pulse sequencing and a library of standard experiments including analysis.
 
 * Documentation (future): https://quantify.readthedocs.io.
-* Documentation (last commit to master only): https://qblox.gitlab.io/packages/software/quantify/
+* Documentation (last commit to develop only): https://qblox.gitlab.io/packages/software/quantify/
 
 
 Features
