@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 from qcodes import Instrument
+from quantify.measurement.data_handling import gen_tuid
 from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
 
@@ -110,13 +111,16 @@ class MeasurementControl(Instrument):
 
         numpoints = len(self._setpoints[:, 0])
         for j, getpar in enumerate(self._getable_pars):
+            empty_arr = np.empty(numpoints)
+            empty_arr[:] = np.nan
             darrs.append(xr.DataArray(
-                data=np.zeros(numpoints),
+                data=empty_arr,
                 name='y{}'.format(i),
                 attrs={'name': getpar.name, 'long_name': getpar.label,
                        'unit': getpar.unit}))
 
         self._dataset = xr.merge(darrs)
+        self._dataset.attrs['tuid'] = gen_tuid()
 
     ####################################
     # Non-parameter get/set functions  #
