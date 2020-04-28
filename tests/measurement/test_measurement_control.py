@@ -1,7 +1,9 @@
+import pytest
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter, Parameter
-from quantify.measurement.measurement_control import MeasurementControl
+from quantify.measurement.measurement_control import MeasurementControl, \
+    is_setable, is_getable
 
 
 # Define some helpers that are used in the tests
@@ -65,3 +67,51 @@ class TestMeasurementControl:
 
         assert dset['y0'].attrs == {
             'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+
+def test_is_setable():
+    x = 5
+    with pytest.raises(AttributeError):
+        is_setable(x)
+
+    def test_func(x):
+        return 5
+    with pytest.raises(AttributeError):
+        is_setable(test_func)
+
+    manpar = ManualParameter('x')
+    assert is_setable(manpar)
+
+    del manpar.unit
+    with pytest.raises(AttributeError, match="does not have 'unit'"):
+        is_setable(manpar)
+
+    std_par = Parameter('x', set_cmd=test_func)
+    assert is_setable(std_par)
+
+    # Add test with another object that has no name attribute.
+    # because removing it from a parameter breaks the object.
+    # del std_par.name
+    # with pytest.raises(AttributeError, match="does not have 'name'"):
+    #     is_setable(std_par)
+
+
+def test_is_getable():
+    x = 5
+    with pytest.raises(AttributeError):
+        is_getable(x)
+
+    def test_func():
+        return 5
+    with pytest.raises(AttributeError):
+        is_getable(test_func)
+
+    manpar = ManualParameter('x')
+    assert is_getable(manpar)
+
+    del manpar.unit
+    with pytest.raises(AttributeError, match="does not have 'unit'"):
+        is_getable(manpar)
+
+    std_par = Parameter('x', get_cmd=test_func)
+    assert is_getable(std_par)

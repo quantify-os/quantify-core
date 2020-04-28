@@ -81,30 +81,6 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    def set_setpars(self, setable_pars):
-        """
-        Define the setable_pars for the acquisition loop.
-
-        Args:
-            setable_pars: parameter(s) to be set during the acquisition loop.
-                accepts:
-                - list or tuple of multiple setable objects
-                - a setable object.
-            A setable object is an object that has at least
-                - unit (str) attribute
-                - set method
-                See also `is_setable`
-        """
-        # for native nD compatibility we treat this like a list of
-        # setables.
-        if not isinstance(setable_pars, (list, tuple)):
-            setable_pars = [setable_pars]
-
-        self._setable_pars = []
-        for i, setable in enumerate(setable_pars):
-            if is_setable(setable):
-                self._setable_pars.append(setable)
-
     def _initialize_dataset(self):
         """
         Initialize an empty dataset based on
@@ -136,6 +112,31 @@ class MeasurementControl(Instrument):
     # Non-parameter get/set functions  #
     ####################################
 
+    def set_setpars(self, setable_pars):
+        """
+        Define the setable parameters for the acquisition loop.
+
+        Args:
+            setable_pars: parameter(s) to be set during the acquisition loop.
+                accepts:
+                - list or tuple of multiple setable objects
+                - a single setable object.
+            A setable object is an object that has at least
+                - unit (str) attribute
+                - name (str) attribute
+                - set method
+                See also `is_getable`
+        """
+        # for native nD compatibility we treat this like a list of
+        # setables.
+        if not isinstance(setable_pars, (list, tuple)):
+            setable_pars = [setable_pars]
+
+        self._setable_pars = []
+        for i, setable in enumerate(setable_pars):
+            if is_setable(setable):
+                self._setable_pars.append(setable)
+
     def set_setpoints(self, setpoints):
         """
         Set setpoints that determine values to be set in acquisition loop.
@@ -159,12 +160,41 @@ class MeasurementControl(Instrument):
         pass
 
     def set_getpars(self, getable_par):
+        """
+        Define the parameters to be acquired during the acquisition loop.
+
+        Args:
+            getable_pars: parameter(s) to be get during the acquisition loop.
+                accepts:
+                - list or tuple of multiple getable objects
+                - a single getable object.
+            A getable object is an object that has at least
+                - unit (str) attribute
+                - name (str) attribute
+                - get method
+                See also `is_getable`
+
+        TODO: support fancier getables, i.e. ones that return
+            - more than one quantity
+            - multiple points at once (hard loop)
+
+        """
         if is_getable(getable_par):
             self._getable_pars = [getable_par]
 
 
 def is_setable(setable):
-    """Test if object is a valid setable."""
+    """
+    Test if an object is a valid setable.
+
+    Args:
+        setable (object)
+
+    Return:
+        is_setable (bool)
+
+    TODO: Add desicription of what a valid setable is. (unit, get etc.)
+    """
     if not hasattr(setable, 'set'):
         raise AttributeError("{} does not have 'set'.".format(setable))
     if not hasattr(setable, 'name'):
@@ -176,7 +206,17 @@ def is_setable(setable):
 
 
 def is_getable(getable):
-    """Test if object is a valid getable."""
+    """
+    Test if an object is a valid getable.
+
+    Args:
+        getable (object)
+
+    Return:
+        is_getable (bool)
+
+    TODO: Add desicription of what a valid getable is. (unit, get etc.)
+    """
     if not hasattr(getable, 'get'):
         raise AttributeError("{} does not have 'get'.".format(getable))
     if not hasattr(getable, 'name'):

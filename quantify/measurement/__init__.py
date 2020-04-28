@@ -1,3 +1,3 @@
-from .measurement_control import MeasurementControl
+from .measurement_control import MeasurementControl, is_setable, is_getable
 
-__all__ = ['MeasurementControl']
+__all__ = ['MeasurementControl', 'is_setable', 'is_getable']
