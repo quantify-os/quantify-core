@@ -10,11 +10,21 @@ Welcome to quantify's documentation!
    installation
    usage
    dataset_spec
-   modules
    contributing
    authors
    history
 
+
+
+API Reference
+===================
+
+Contents:
+
+.. toctree::
+   :maxdepth: 2
+
+   modules
 
 
 Indices and tables

@@ -86,10 +86,20 @@ class MeasurementControl(Instrument):
         Define the setable_pars for the acquisition loop.
 
         Args:
-            setable_pars: something to be set in the data-acquisition loop.
-                a valid setable has a "set" method and the
-                an example of a setable is a qcodes Parameter.
+            setable_pars: parameter(s) to be set during the acquisition loop.
+                accepts:
+                - list or tuple of multiple setable objects
+                - a setable object.
+            A setable object is an object that has at least
+                - unit (str) attribute
+                - set method
+                See also `is_setable`
         """
+        # for native nD compatibility we treat this like a list of
+        # setables.
+        if not isinstance(setable_pars, (list, tuple)):
+            setable_pars = [setable_pars]
+
         self._setable_pars = []
         for i, setable in enumerate(setable_pars):
             if is_setable(setable):

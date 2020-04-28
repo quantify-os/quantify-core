@@ -20,7 +20,7 @@ The core of quantify can be understood by understanding the following concepts:
 
 - Instrument_
 - Parameter_
-- MeasurementControl_
+- `Measurement Control <#Measurement Control>`_
 - `Data storage & Analysis <#data-storage-analysis>`_
 
 Parameter
@@ -51,10 +51,10 @@ Instruments provide the following functionality.
 
 
 
-MeasurementControl
+Measurement Control
 ----------------------
 
-The MeasurementControl is in charge of the data-acquisition loop and is based on the notion that every experiment exists of the following three steps:
+The `MeasurementControl </modules.html#quantify.measurement.MeasurementControl>`_ is in charge of the data-acquisition loop and is based on the notion that every experiment exists of the following three steps:
 
 1. Set some parameter(s),
 2. Measure (get) some parameter(s),

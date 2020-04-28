@@ -1,11 +1,21 @@
-=========
-Modules
-=========
+===========================
+API reference
+===========================
 
 .. automodule:: quantify
    :members:
 
 
 
+measurement
+=============
+
 .. automodule:: quantify.measurement
-   :members:
+    :members:
+    :undoc-members:
+    :special-members:
+
+
+
+    .. :inherited-members:
+    .. :show-inheritance:

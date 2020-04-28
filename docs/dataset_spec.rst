@@ -1,7 +1,7 @@
 
-=====================
-DataSet Specification
-=====================
+==========================
+DataStorage specification
+==========================
 
 The quantify dataset is based on ideas from PycQED, QCoDeS and xarray.
 
