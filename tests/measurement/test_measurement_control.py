@@ -57,8 +57,7 @@ class TestMeasurementControl:
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
 
-        self.MC._initialize_dataset()
-        dset = self.MC._dataset
+        dset = self.MC.run()
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'y0'}
         assert (dset['x0'] == xvals).all()

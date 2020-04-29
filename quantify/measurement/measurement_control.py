@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 from qcodes import Instrument
-from quantify.measurement.data_handling import gen_tuid
+from quantify.measurement.data_handling import initialize_dataset
 from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
 
@@ -60,53 +60,32 @@ class MeasurementControl(Instrument):
     ############################################
 
     def run(self, name: str = '',
-            exp_metadata: dict = None,
             mode: str = '1D'):
         """
         Starts a data acquisition loop.
 
         Args:
             name (string):
-                    Name of the measurement. This name is included in the
-                    name of the data files.
+                Name of the measurement. This name is included in the
+                name of the data files.
             mode (str):
-                    Measurement mode. Can '1D', '2D', or 'adaptive'.
+                Measurement mode. Can '1D', '2D', or 'adaptive'.
 
         Returns:
             dataset : an xarray Dataset object.
         """
-        pass
+
+        dataset = initialize_dataset(self._setable_pars,
+                                     self._setpoints,
+                                     self._getable_pars)
+
+        return dataset
 
     ############################################
     # Methods used to control the measurements #
     ############################################
 
-    def _initialize_dataset(self):
-        """
-        Initialize an empty dataset based on
-            mode, setables, getable_pars and _setable_pars
 
-        """
-        darrs = []
-        for i, setpar in enumerate(self._setable_pars):
-            darrs.append(xr.DataArray(
-                data=self._setpoints[:, i],
-                name='x{}'.format(i),
-                attrs={'name': setpar.name, 'long_name': setpar.label,
-                       'unit': setpar.unit}))
-
-        numpoints = len(self._setpoints[:, 0])
-        for j, getpar in enumerate(self._getable_pars):
-            empty_arr = np.empty(numpoints)
-            empty_arr[:] = np.nan
-            darrs.append(xr.DataArray(
-                data=empty_arr,
-                name='y{}'.format(i),
-                attrs={'name': getpar.name, 'long_name': getpar.label,
-                       'unit': getpar.unit}))
-
-        self._dataset = xr.merge(darrs)
-        self._dataset.attrs['tuid'] = gen_tuid()
 
     ####################################
     # Non-parameter get/set functions  #

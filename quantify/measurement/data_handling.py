@@ -11,6 +11,7 @@ Utility functions include
 -
 """
 
+import numpy as np
 import xarray as xr
 from datetime import datetime
 from uuid import uuid4
@@ -52,3 +53,40 @@ def gen_tuid(ts=None):
 
 def append_to_Xarr():
     pass
+
+
+def initialize_dataset(setable_pars, setpoints, getable_pars):
+    """
+    Initialize an empty dataset based on
+        setable_pars, setpoints and getable_pars
+
+    Args:
+        setable_pars (list):    a list of M setables
+        setpoints (np.array):   an (N*M) array
+        getable_pars (list):    a list of getables
+
+    Returns:
+        Dataset
+
+    """
+    darrs = []
+    for i, setpar in enumerate(setable_pars):
+        darrs.append(xr.DataArray(
+            data=setpoints[:, i],
+            name='x{}'.format(i),
+            attrs={'name': setpar.name, 'long_name': setpar.label,
+                   'unit': setpar.unit}))
+
+    numpoints = len(setpoints[:, 0])
+    for j, getpar in enumerate(getable_pars):
+        empty_arr = np.empty(numpoints)
+        empty_arr[:] = np.nan
+        darrs.append(xr.DataArray(
+            data=empty_arr,
+            name='y{}'.format(i),
+            attrs={'name': getpar.name, 'long_name': getpar.label,
+                   'unit': getpar.unit}))
+
+    dataset = xr.merge(darrs)
+    dataset.attrs['tuid'] = gen_tuid()
+    return dataset
