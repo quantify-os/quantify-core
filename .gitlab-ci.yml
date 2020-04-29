@@ -37,10 +37,13 @@ test:
     - pip install -r requirements_dev.txt
     - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
+  coverage: '^TOTAL.+?(\d+\%)$'
   artifacts:
     paths:
       - htmlcov
       - coverage.xml
+    reports:
+      cobertura: coverage.xml
 
     when: always
 
