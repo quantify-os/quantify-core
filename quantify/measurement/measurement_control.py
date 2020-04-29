@@ -79,6 +79,17 @@ class MeasurementControl(Instrument):
                                      self._setpoints,
                                      self._getable_pars)
 
+        # Iterate over all points to set
+        for idx, spts in enumerate(self._setpoints):
+            # set all individual setparams
+            for spar, spt in zip(self._setable_pars, spts):
+                # TODO add smartness to avoid setting if unchanged
+                spar.set(spt)
+            # acquire all data points
+            for j, gpar in enumerate(self._getable_pars):
+                val = gpar.get()
+                dataset['y{}'.format(j)].values[idx] = val
+
         return dataset
 
     ############################################

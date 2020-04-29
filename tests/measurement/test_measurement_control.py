@@ -17,7 +17,7 @@ t = ManualParameter('t', initial_value=1, unit='s', label='Time')
 
 
 def cosine_model():
-    return CosFunc(t, amp=1, frequency=1, phase=0, offset=0)
+    return CosFunc(t(), amplitude=1, frequency=1, phase=0)
 
 
 # We wrap our function in a Parameter to be able to give
@@ -49,15 +49,22 @@ class TestMeasurementControl:
         self.MC.set_setpoints(x)
         self.MC._setpoints == x
 
-    def test_initialize_dataset(self):
+    def test_soft_sweep_1D(self):
 
         xvals = np.linspace(0, 2*np.pi, 31)
 
-        self.MC.set_setpars([t])
+        self.MC.set_setpars(t)
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
 
+        expected_vals = CosFunc(
+            t=xvals, amplitude=1, frequency=1, phase=0)
+
         dset = self.MC.run()
+        assert (dset['x0'].values == xvals).all()
+        assert (dset['y0'].values == expected_vals).all()
+
+        # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'y0'}
         assert (dset['x0'] == xvals).all()
@@ -66,6 +73,8 @@ class TestMeasurementControl:
 
         assert dset['y0'].attrs == {
             'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+        # Test values
 
 
 def test_is_setable():
