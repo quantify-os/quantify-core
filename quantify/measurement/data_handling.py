@@ -10,11 +10,49 @@ Utility functions include
 - Finding a dataset
 -
 """
-
+import os
 import numpy as np
 import xarray as xr
 from datetime import datetime
 from uuid import uuid4
+
+
+def get_datadir():
+    """Returns the current data directory."""
+
+    # TODO: make configurable, currently hardcoded to
+    # TODO: make configurable.
+    # quantify/data
+
+    datadir = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'data'))
+
+    return datadir
+
+
+def create_exp_folder(tuid,  name='', datadir=None):
+    """
+    Creates an empty folder to store an experiment container.
+
+    Args:
+        tuid (str) : a timestamp based human-readable unique identifier.
+        name (str) : optional name to identify the folder
+        datadir (str):
+            path of the data directory. If `None`, uses `get_datadir()` to
+            determine the data directory.
+
+    Returns:
+        exp_folder (str):
+            the full path of the experiment folder following the following
+            convention: /datadir/YYMMDD/HHMMSS-******-name/
+    """
+    if datadir is None:
+        datadir = get_datadir()
+    exp_folder = os.path.join(datadir, tuid[:8], tuid[9:])
+    if name != '':
+        exp_folder += '-'+name
+
+    os.makedirs(exp_folder, exist_ok=True)
+    return exp_folder
 
 
 def is_valid_dset(dset):

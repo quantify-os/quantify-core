@@ -1,8 +1,9 @@
 import numpy as np
 import time
-import xarray as xr
+from os.path import join
 from qcodes import Instrument
-from quantify.measurement.data_handling import initialize_dataset
+from quantify.measurement.data_handling import initialize_dataset, \
+    create_exp_folder
 from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
 
@@ -40,18 +41,11 @@ class MeasurementControl(Instrument):
 
         Args:
             name (str): name
-            datadir (str): directory where datafiles are stored.
         """
         super().__init__(name=name)
 
         # Paramaters are attributes that we include in logging
         # and intend the user to change.
-        self.add_parameter(
-            "datadir",
-            initial_value='',
-            vals=vals.Strings(),
-            parameter_class=ManualParameter,
-        )
 
         self.add_parameter(
             "verbose",
@@ -113,10 +107,13 @@ class MeasurementControl(Instrument):
         self._begintime = time.time()
 
         # initialize an empty dataset
+
         dataset = initialize_dataset(self._setable_pars,
                                      self._setpoints,
                                      self._getable_pars)
 
+        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'],
+                                       name=name)
         # TODO: Prepare statements
 
         # TODO percdone
@@ -136,6 +133,10 @@ class MeasurementControl(Instrument):
 
             # Here we do saving, plotting, checking for interupts etc.
             self.print_progress()
+
+        # Wrap up experiment and store data
+        # FIXME: this needs to happen in the loop.
+        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
 
         return dataset
 
@@ -172,7 +173,6 @@ class MeasurementControl(Instrument):
             end_char = "\n"
         if self.verbose():
             print("\r", progress_message, end=end_char)
-
 
     ####################################
     # Non-parameter get/set functions  #
