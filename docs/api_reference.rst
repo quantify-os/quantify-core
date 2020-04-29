@@ -16,5 +16,14 @@ measurement
     :special-members:
 
 
+data_handling
+=============
+
+.. automodule:: quantify.measurement.data_handling
+    :members:
+    :undoc-members:
+    :special-members:
+
+
     .. :inherited-members:
     .. :show-inheritance:
