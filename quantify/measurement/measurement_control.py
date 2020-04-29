@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import xarray as xr
 from qcodes import Instrument
 from quantify.measurement.data_handling import initialize_dataset
@@ -43,6 +44,8 @@ class MeasurementControl(Instrument):
         """
         super().__init__(name=name)
 
+        # Paramaters are attributes that we include in logging
+        # and intend the user to change.
         self.add_parameter(
             "datadir",
             initial_value='',
@@ -50,10 +53,40 @@ class MeasurementControl(Instrument):
             parameter_class=ManualParameter,
         )
 
-        # variables
+        self.add_parameter(
+            "verbose",
+            docstring="If set to True, prints to std_out during experiments.",
+            parameter_class=ManualParameter,
+            vals=vals.Bool(),
+            initial_value=True,
+        )
+
+        self.add_parameter(
+            "on_progress_callback",
+            vals=vals.Callable(),
+            docstring="A callback to communicate progress. This should be a "
+            "Callable accepting ints between 0 and 100 indicating percdone.",
+            parameter_class=ManualParameter,
+            initial_value=None,
+        )
+
+        self.add_parameter(
+            "soft_avg",
+            label="Number of soft averages",
+            parameter_class=ManualParameter,
+            vals=vals.Ints(1, int(1e8)),
+            initial_value=1,
+        )
+
+        # variables that are set before the start
+        # of any experiment.
         self._setable_pars = []
         self._setpoints = []
         self._getable_pars = []
+
+        # Variables used for book keeping during acquisition loop.
+        self._nr_acquired_values = 0
+        self._begintime = time.time()
 
     ############################################
     # Methods used to control the measurements #
@@ -75,9 +108,18 @@ class MeasurementControl(Instrument):
             dataset : an xarray Dataset object.
         """
 
+        # Reset all variables that change during acquisition
+        self._nr_acquired_values = 0
+        self._begintime = time.time()
+
+        # initialize an empty dataset
         dataset = initialize_dataset(self._setable_pars,
                                      self._setpoints,
                                      self._getable_pars)
+
+        # TODO: Prepare statements
+
+        # TODO percdone
 
         # Iterate over all points to set
         for idx, spts in enumerate(self._setpoints):
@@ -90,12 +132,46 @@ class MeasurementControl(Instrument):
                 val = gpar.get()
                 dataset['y{}'.format(j)].values[idx] = val
 
+            self._nr_acquired_values += 1
+
+            # Here we do saving, plotting, checking for interupts etc.
+            self.print_progress()
+
         return dataset
 
     ############################################
     # Methods used to control the measurements #
     ############################################
 
+    def _get_fracdone(self):
+        """
+        Returns the fraction of the experiment that is completed.
+        """
+        fracdone = self._nr_acquired_values / (
+            len(self._setpoints)*self.soft_avg())
+        return fracdone
+
+    def print_progress(self):
+        percdone = self._get_fracdone()*100
+        elapsed_time = time.time() - self._begintime
+        progress_message = (
+            "\r {percdone}% completed \telapsed time: "
+            "{t_elapsed}s \ttime left: {t_left}s".format(
+                percdone=int(percdone),
+                t_elapsed=round(elapsed_time, 1),
+                t_left=round((100.0 - percdone) / (percdone) * elapsed_time, 1)
+                if percdone != 0
+                else "",
+            )
+        )
+        if self.on_progress_callback() is not None:
+            self.on_progress_callback()(percdone)
+        if percdone != 100:
+            end_char = ""
+        else:
+            end_char = "\n"
+        if self.verbose():
+            print("\r", progress_message, end=end_char)
 
 
     ####################################

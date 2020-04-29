@@ -56,11 +56,11 @@ class TestMeasurementControl:
         self.MC.set_setpars(t)
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
+        dset = self.MC.run()
 
         expected_vals = CosFunc(
             t=xvals, amplitude=1, frequency=1, phase=0)
 
-        dset = self.MC.run()
         assert (dset['x0'].values == xvals).all()
         assert (dset['y0'].values == expected_vals).all()
 
@@ -75,6 +75,25 @@ class TestMeasurementControl:
             'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
         # Test values
+
+    def test_progress_callback(self):
+
+        progress_param = ManualParameter("progress", initial_value=0)
+
+        def set_progress_param_callable(progress):
+            progress_param(progress)
+
+        self.MC.on_progress_callback(set_progress_param_callable)
+
+        assert progress_param() == 0
+
+        xvals = np.linspace(0, 2*np.pi, 31)
+        self.MC.set_setpars(t)
+        self.MC.set_setpoints(xvals)
+        self.MC.set_getpars(sig)
+        dset = self.MC.run()
+
+        assert progress_param() == 100
 
 
 def test_is_setable():
