@@ -117,20 +117,28 @@ Before you submit a merge request, check that it meets these guidelines:
 Tips
 ----
 
-- Ensure you have installed the `requirements_dev.txt`
+.. tip::
 
-- To run a subset of tests::
+  Ensure you have installed the `requirements_dev.txt`
 
-  $ pytest tests.test_quantify
+.. tip::
 
-- To auto rebuild docs when editing::
+  To run a subset of tests::
 
-  $ pip install sphinx-autobuild
-  $ sphinx-autobuild docs docs/_build/html
+    $ pytest tests.test_quantify
 
-  The docs will now be served on http://localhost:8000/
+.. tip::
 
-- To learn more about writing documentation using sphinx. Take a look at the `matplotlib sampledoc tutorial <https://matplotlib.org/sampledoc/>`_ or the `sphinx doumentation <https://www.sphinx-doc.org/en/master/>`_.
+  To auto rebuild docs when editing::
+
+    $ pip install sphinx-autobuild
+    $ sphinx-autobuild docs docs/_build/html
+
+    The docs will now be served on http://localhost:8000/
+
+.. tip::
+
+  To learn more about writing documentation using sphinx. Take a look at the `matplotlib sampledoc tutorial <https://matplotlib.org/sampledoc/>`_ or the `sphinx doumentation <https://www.sphinx-doc.org/en/master/>`_.
 
 
 Deploying

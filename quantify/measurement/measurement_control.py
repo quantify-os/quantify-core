@@ -19,17 +19,27 @@ class MeasurementControl(Instrument):
         2. Measure some other parameter(s)  (getable_pars)
         3. Store the data.
 
+    Example:
+
+        .. code-block:: python
+
+            MC.set_setpars(mw_source1.freq)
+            MC.set_setpoints(np.arange(5e9, 5.2e9, 100e3))
+            MC.set_getpars(pulsar_AQM.signal)
+            dataset = MC.run(name='Frequency sweep')
+
+
     MC exists to enforce structure on experiments.
     Enforcing this structure allows
+
         - Standardization of data storage.
         - Providing basic real-time visualization.
 
     MC imposes minimal constraints and allows
+
     - Soft loops, experiments in which MC controlled acquisition loop.
     - Hard loops, experiments in which MC is not in control of acquisition.
-    - Adaptive loops, experiments in which data points to sample are based
-        on the previously measured results through a function provided by
-        the user.
+    - Adaptive loops, setpoints are determined based on measured values.
 
     """
 
