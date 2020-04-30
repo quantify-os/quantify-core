@@ -44,7 +44,7 @@ def set_datadir(datadir):
 
     Args:
         datadir (str):
-            path of the datadirectory. If set to None, resets
+            path of the data directory. If set to None, resets
             the datadir to the default datadir (quantify/data).
     """
     this._datadir = datadir
@@ -63,6 +63,11 @@ def load_dataset(tuid, datadir=None):
     Returns:
         dataset
 
+    .. tip::
+
+        This method also works when specifying only the timestamp part of the
+        tuid.
+
     .. note::
 
         This method uses :func:`xarray.load_dataset` to ensure the file is
@@ -77,9 +82,10 @@ def load_dataset(tuid, datadir=None):
 
     # This will raise a file not found error if no data exists on the specified
     # date
-    os.listdir(daydir)
-    exp_folders = list(filter(lambda x: tuid[:8] in x, daydir))
+    exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
     if len(exp_folders) == 0:
+
+        print(os.listdir(daydir))
         raise FileNotFoundError(
             "File with tuid: {} was not found.".format(tuid))
 
@@ -188,3 +194,6 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     dataset = xr.merge(darrs)
     dataset.attrs['tuid'] = gen_tuid()
     return dataset
+
+
+

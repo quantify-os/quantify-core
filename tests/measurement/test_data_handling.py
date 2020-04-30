@@ -1,9 +1,14 @@
 import os
+import pytest
 import xarray as xr
 import numpy as np
 import quantify.measurement.data_handling as dh
 from datetime import datetime
 from qcodes import ManualParameter
+import quantify
+
+test_datadir = os.path.join(os.path.split(
+    quantify.__file__)[0], '..', 'tests', 'data')
 
 
 def test_is_valid_dset():
@@ -54,6 +59,8 @@ def test_initialize_dataset():
 
 
 def test_getset_datadir():
+    # here to ensure we always start with default datadir
+    dh.set_datadir(None)
 
     default_datadir = dh.get_datadir()
     dd = os.path.split(default_datadir)
@@ -66,3 +73,23 @@ def test_getset_datadir():
     # Test resetting to default
     dh.set_datadir(None)
     assert dh.get_datadir() == default_datadir
+
+
+def test_load_dataset():
+    dh.set_datadir(test_datadir)
+    tuid = '20200430-170837-315f36'
+    dataset = dh.load_dataset(tuid=tuid)
+    assert dataset.attrs['tuid'] == tuid
+
+    tuid_short = '20200430-170837'
+    dataset = dh.load_dataset(tuid=tuid_short)
+    assert dataset.attrs['tuid'] == tuid
+
+    with pytest.raises(FileNotFoundError):
+        tuid = '20200430-170837-3b5f36'
+        dh.load_dataset(tuid=tuid)
+
+    with pytest.raises(FileNotFoundError):
+        tuid = '20200230-170837'
+        dh.load_dataset(tuid=tuid)
+

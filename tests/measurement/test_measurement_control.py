@@ -4,9 +4,11 @@ import numpy as np
 from qcodes import ManualParameter, Parameter
 from quantify.measurement.measurement_control import MeasurementControl, \
     is_setable, is_getable
-
+from quantify import set_datadir
 
 # Define some helpers that are used in the tests
+
+
 def CosFunc(t, amplitude, frequency, phase):
     """A simple cosine function"""
     return amplitude * np.cos(2 * np.pi * frequency * t + phase)
@@ -30,6 +32,8 @@ class TestMeasurementControl:
     @classmethod
     def setup_class(cls):
         cls.MC = MeasurementControl(name='MC')
+        # ensures the default datadir is used which is excluded from git
+        set_datadir(None)
 
     def test_MeasurementControl_name(self):
         assert self.MC.name == 'MC'
