@@ -130,6 +130,7 @@ Tips
 
   The docs will now be served on http://localhost:8000/
 
+- To learn more about writing documentation using sphinx. Take a look at the `matplotlib sampledoc tutorial <https://matplotlib.org/sampledoc/>`_ or the `sphinx doumentation <https://www.sphinx-doc.org/en/master/>`_.
 
 
 Deploying
