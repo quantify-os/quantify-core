@@ -42,7 +42,8 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-intersphinx_mapping = {'qcodes': ('https://qcodes.github.io/Qcodes/', None)}
+intersphinx_mapping = {'qcodes': ('https://qcodes.github.io/Qcodes/', None),
+                       'xarray': ('https://xarray.pydata.org/en/stable/', None), }
 
 
 # The suffix(es) of source filenames.

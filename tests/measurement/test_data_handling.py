@@ -1,8 +1,10 @@
+import os
 import xarray as xr
 import numpy as np
 import quantify.measurement.data_handling as dh
 from datetime import datetime
 from qcodes import ManualParameter
+
 
 def test_is_valid_dset():
 
@@ -49,3 +51,18 @@ def test_initialize_dataset():
     assert y0.attrs['unit'] == 'V'
     assert y0.attrs['name'] == 'y'
     assert y0.attrs['long_name'] == 'Signal amplitude'
+
+
+def test_getset_datadir():
+
+    default_datadir = dh.get_datadir()
+    dd = os.path.split(default_datadir)
+    assert dd[-1] == 'data'
+    assert os.path.split(dd[-2])[-1] == 'quantify'
+
+    dh.set_datadir('my_ddir')
+    assert dh.get_datadir() == 'my_ddir'
+
+    # Test resetting to default
+    dh.set_datadir(None)
+    assert dh.get_datadir() == default_datadir
