@@ -93,3 +93,31 @@ def test_load_dataset():
         tuid = '20200230-170837'
         dh.load_dataset(tuid=tuid)
 
+
+def test_get_latest_tuid_invalid_datadir():
+    dh.set_datadir('some_invalid_datadir')
+    with pytest.raises(FileNotFoundError):
+        dh.get_latest_tuid()
+
+
+def test_get_latest_tuid_empty_datadir():
+    valid_dir_but_no_data = os.path.join(os.path.split(
+        quantify.__file__)[0], '..', 'tests', 'measurement')
+    dh.set_datadir(valid_dir_but_no_data)
+    with pytest.raises(FileNotFoundError) as excinfo:
+        dh.get_latest_tuid()
+    assert "There are no valid day directories" in str(excinfo.value)
+
+
+def test_get_latest_tuid_no_match():
+    dh.set_datadir(test_datadir)
+    with pytest.raises(FileNotFoundError) as excinfo:
+        dh.get_latest_tuid(contains='nonexisting_label')
+    assert "No experiment found containing" in str(excinfo.value)
+
+
+def test_get_latest_tuid_correct_tuid():
+    dh.set_datadir(test_datadir)
+    tuid = dh.get_latest_tuid(contains='36-Cosine')
+    exp_tuid = '20200430-170837-315f36'
+    assert tuid == exp_tuid

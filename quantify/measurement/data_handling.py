@@ -196,4 +196,49 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     return dataset
 
 
+########################################################################
 
+
+def get_latest_tuid(contains=''):
+    """
+    Returns the most recent tuid.
+
+    Args:
+        contains (str): an optional string that is
+
+    .. note::
+
+        this function is similar to :func:`~get_tuids_containing` but is
+        preferred if one is only interested in the most recent tuid due to
+        performace reasons.
+
+    """
+
+
+    datadir = get_datadir()
+    # Create a sorted list of
+    daydirs = list(filter(
+        lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
+    daydirs.sort(reverse=True)
+    if len(daydirs)==0:
+        raise FileNotFoundError('There are no valid day directories in '
+                                'the data folder "{}".'.format(datadir))
+    else:
+        for dd in daydirs:
+            expdirs = list(filter(lambda x:
+                (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and
+                 contains in x), os.listdir(os.path.join(datadir, dd))))
+            expdirs.sort(reverse=True)
+            if len(expdirs) > 0:
+                # convert to tuid
+                tuid = '{}-{}'.format(dd, expdirs[0][:13])
+                return tuid
+
+                expdirs[0]
+        raise FileNotFoundError('No experiment found containing "{}"'.format(
+            contains))
+
+
+
+def get_tuids_containing(contains=''):
+    pass
