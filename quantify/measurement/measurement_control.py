@@ -4,7 +4,7 @@ from os.path import join
 from qcodes import Instrument
 from quantify.measurement.data_handling import initialize_dataset, \
     create_exp_folder
-from qcodes.instrument.parameter import ManualParameter
+from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals
 
 
@@ -82,6 +82,11 @@ class MeasurementControl(Instrument):
             initial_value=1,
         )
 
+        self.add_parameter(
+            'instr_plotmon',
+            docstring='Instrument responsible for live plotting',
+            parameter_class=InstrumentRefParameter)
+
         # variables that are set before the start
         # of any experiment.
         self._setable_pars = []
@@ -124,7 +129,14 @@ class MeasurementControl(Instrument):
 
         exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'],
                                        name=name)
+        # Write the empty dataset
+        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
         # TODO: Prepare statements
+        if self.instr_plotmon() is not None:
+            self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
+            # if the timestamp has changed, this will initialize the monitor
+            self.instr_plotmon.get_instr().update_plotmon()
+
 
         # TODO percdone
 
@@ -143,6 +155,10 @@ class MeasurementControl(Instrument):
 
             # Here we do saving, plotting, checking for interupts etc.
             self.print_progress()
+            # Update the
+            dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+            if self.instr_plotmon() is not None:
+                self.instr_plotmon.get_instr().update_plotmon()
 
         # Wrap up experiment and store data
         # FIXME: this needs to happen in the loop.

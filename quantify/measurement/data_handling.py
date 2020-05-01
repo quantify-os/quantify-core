@@ -206,9 +206,9 @@ def get_latest_tuid(contains=''):
     Args:
         contains (str): an optional string that is
 
-    .. note::
+    .. tip::
 
-        this function is similar to :func:`~get_tuids_containing` but is
+        This function is similar to :func:`~get_tuids_containing` but is
         preferred if one is only interested in the most recent tuid due to
         performace reasons.
 

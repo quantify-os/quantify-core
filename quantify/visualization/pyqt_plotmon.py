@@ -9,7 +9,7 @@ from qcodes.plots.colors import color_cycle
 from qcodes.instrument.base import Instrument
 
 
-from quantify.measurement.data_handling import load_dataset
+from quantify.measurement.data_handling import load_dataset, get_latest_tuid
 
 # Importing of pyqtgraph (sometimes problematic....)
 import PyQt5
@@ -122,7 +122,7 @@ class PlotMonitor_pyqt(Instrument):
     def update_plotmon(self):
         if self.tuid() == 'latest':
             # this should automatically set tuid to the most recent tuid.
-            raise NotImplementedError
+            tuid = get_latest_tuid()
         else:
             tuid = self.tuid()
 
