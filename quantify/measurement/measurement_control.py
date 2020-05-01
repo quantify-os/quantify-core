@@ -84,8 +84,16 @@ class MeasurementControl(Instrument):
 
         self.add_parameter(
             'instr_plotmon',
-            docstring='Instrument responsible for live plotting',
+            docstring='Instrument responsible for live plotting. '
+            'Can be set to str(None) to disable live plotting.',
             parameter_class=InstrumentRefParameter)
+
+        # TODO add update interval functionality.
+        self.add_parameter(
+            'update_interval',
+            parameter_class=ManualParameter,
+            vals=vals.Numbers()
+        )
 
         # variables that are set before the start
         # of any experiment.
@@ -132,13 +140,11 @@ class MeasurementControl(Instrument):
         # Write the empty dataset
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
         # TODO: Prepare statements
-        if self.instr_plotmon() is not None:
+        plotmon_name = self.instr_plotmon()
+        if plotmon_name is not None and plotmon_name != '':
             self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update_plotmon()
-
-
-        # TODO percdone
 
         # Iterate over all points to set
         for idx, spts in enumerate(self._setpoints):
@@ -153,15 +159,15 @@ class MeasurementControl(Instrument):
 
             self._nr_acquired_values += 1
 
+            # Saving and live plotting happens here
             # Here we do saving, plotting, checking for interupts etc.
             self.print_progress()
             # Update the
             dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-            if self.instr_plotmon() is not None:
+            if plotmon_name is not None and plotmon_name != '':
                 self.instr_plotmon.get_instr().update_plotmon()
 
         # Wrap up experiment and store data
-        # FIXME: this needs to happen in the loop.
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
 
         return dataset
