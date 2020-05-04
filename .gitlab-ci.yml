@@ -22,6 +22,7 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
+  - apt update
   - apt install xvfb # Sets up a headless display
 
 stages:
