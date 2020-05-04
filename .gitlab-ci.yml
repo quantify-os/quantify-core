@@ -26,6 +26,7 @@ before_script:
   - apt install -y xvfb # Sets up a headless display
   - xvfb :99 & export DISPLAY=:99
   - apt install -y libxkbcommon-x11-0
+  - apt install libxcb-xinerama0
   - sleep 3
 
 stages:
