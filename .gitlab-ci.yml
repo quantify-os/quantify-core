@@ -22,7 +22,7 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - apt-get -y install xvfb # Sets up a headless display
+  - apt install xvfb # Sets up a headless display
 
 stages:
   - Static Analysis
@@ -33,7 +33,6 @@ test:
   stage: Test
   script:
     - xvfb-run python render.py
-
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
