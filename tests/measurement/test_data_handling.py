@@ -3,6 +3,7 @@ import pytest
 import xarray as xr
 import numpy as np
 import quantify.measurement.data_handling as dh
+from quantify.measurement.measurement_control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
 import quantify
@@ -121,3 +122,16 @@ def test_get_latest_tuid_correct_tuid():
     tuid = dh.get_latest_tuid(contains='36-Cosine')
     exp_tuid = '20200430-170837-315f36'
     assert tuid == exp_tuid
+
+
+def test_snapshot():
+    empty_snap = dh.snapshot()
+    assert empty_snap == {'instruments': {}, 'parameters': {}}
+    test_MC = MeasurementControl(name='MC')
+
+    test_MC.soft_avg(5)
+    snap = dh.snapshot()
+    assert snap['instruments'].keys() == {'MC'}
+    assert snap['instruments']['MC']['parameters']['soft_avg']['value'] == 5
+
+    test_MC.close()

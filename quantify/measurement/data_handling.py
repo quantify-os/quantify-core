@@ -13,6 +13,8 @@ Utility functions include
 import os
 import numpy as np
 import xarray as xr
+from qcodes import Instrument
+from quantify.utilities.general import delete_keys_from_dict
 from datetime import datetime
 from uuid import uuid4
 import sys
@@ -214,20 +216,20 @@ def get_latest_tuid(contains=''):
 
     """
 
-
     datadir = get_datadir()
     # Create a sorted list of
     daydirs = list(filter(
         lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
     daydirs.sort(reverse=True)
-    if len(daydirs)==0:
+    if len(daydirs) == 0:
         raise FileNotFoundError('There are no valid day directories in '
                                 'the data folder "{}".'.format(datadir))
     else:
         for dd in daydirs:
-            expdirs = list(filter(lambda x:
-                (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and
-                 contains in x), os.listdir(os.path.join(datadir, dd))))
+            expdirs = list(
+                filter(lambda x:
+                       (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and
+                        contains in x), os.listdir(os.path.join(datadir, dd))))
             expdirs.sort(reverse=True)
             if len(expdirs) > 0:
                 # convert to tuid
@@ -239,6 +241,47 @@ def get_latest_tuid(contains=''):
             contains))
 
 
-
 def get_tuids_containing(contains=''):
     pass
+
+
+def snapshot(update: bool = False, clean: bool = True) -> dict:
+    """
+    State of all instruments setup as a JSON-compatible dictionary (everything
+        that the custom JSON encoder class
+        :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
+
+    Args:
+        update (bool) : if True, first gets all values before filling the
+            snapshot.
+        clean (bool)  : if True, removes certain keys from the snapshot to
+            create a more readible and compact snapshot.
+
+    """
+
+    snap = {
+        'instruments': {},
+        'parameters': {},
+    }
+    for ins_name, ins_ref in Instrument._all_instruments.items():
+        print(ins_name, ins_ref)
+        snap['instruments'][ins_name] = ins_ref().snapshot(update=update)
+
+    if clean:
+        exclude_keys = {
+            "inter_delay",
+            "post_delay",
+            "vals",
+            "instrument",
+            "submodules",
+            "functions",
+            "__class__",
+            "raw_value",
+            "instrument_name",
+            "full_name",
+            "val_mapping",
+        }
+        snap = delete_keys_from_dict(snap, exclude_keys)
+
+    return snap
+
