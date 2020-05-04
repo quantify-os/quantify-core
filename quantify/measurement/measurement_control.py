@@ -1,11 +1,13 @@
 import numpy as np
 import time
+import json
 from os.path import join
 from qcodes import Instrument
 from quantify.measurement.data_handling import initialize_dataset, \
-    create_exp_folder
+    create_exp_folder, snapshot
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals
+from qcodes.utils.helpers import NumpyJSONEncoder
 
 
 class MeasurementControl(Instrument):
@@ -91,8 +93,14 @@ class MeasurementControl(Instrument):
         # TODO add update interval functionality.
         self.add_parameter(
             'update_interval',
+            initial_value=0.1,
+            docstring=(
+                'Interval for updates during the data acquisition loop,' +
+                ' everytime more than `update_interval` time has elapsed ' +
+                'when acquiring new data points, data is written to file ' +
+                'and the live monitoring is updated.'),
             parameter_class=ManualParameter,
-            vals=vals.Numbers()
+            vals=vals.Numbers(min_value=0)
         )
 
         # variables that are set before the start
@@ -104,6 +112,7 @@ class MeasurementControl(Instrument):
         # Variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
         self._begintime = time.time()
+        self._last_upd = time.time()
 
     ############################################
     # Methods used to control the measurements #
@@ -125,6 +134,7 @@ class MeasurementControl(Instrument):
             dataset : an xarray Dataset object.
         """
 
+        #######################################################
         # Reset all variables that change during acquisition
         self._nr_acquired_values = 0
         self._begintime = time.time()
@@ -139,6 +149,11 @@ class MeasurementControl(Instrument):
                                        name=name)
         # Write the empty dataset
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+        # Save a snapshot of all
+        snap = snapshot(update=False, clean=True)
+        with open(join(exp_folder, 'snapshot.json'), 'w') as file:
+            json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
+
         # TODO: Prepare statements
         plotmon_name = self.instr_plotmon()
         if plotmon_name is not None and plotmon_name != '':
@@ -146,6 +161,7 @@ class MeasurementControl(Instrument):
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
 
+        ##################################################################
         # Iterate over all points to set
         for idx, spts in enumerate(self._setpoints):
             # set all individual setparams
@@ -161,15 +177,19 @@ class MeasurementControl(Instrument):
 
             # Saving and live plotting happens here
             # Here we do saving, plotting, checking for interupts etc.
-            self.print_progress()
-            # Update the
-            dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-            if plotmon_name is not None and plotmon_name != '':
-                self.instr_plotmon.get_instr().update()
+            update = ((time.time()-self._last_upd > self.update_interval()) or
+                      (idx+1 == len(self._setpoints)))
+            if update:
+                self.print_progress()
+                # Update the
+                dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+                if plotmon_name is not None and plotmon_name != '':
+                    self.instr_plotmon.get_instr().update()
+
+                self._last_upd = time.time()
 
         # Wrap up experiment and store data
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-
         return dataset
 
     ############################################

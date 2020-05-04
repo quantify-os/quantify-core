@@ -264,7 +264,6 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         'parameters': {},
     }
     for ins_name, ins_ref in Instrument._all_instruments.items():
-        print(ins_name, ins_ref)
         snap['instruments'][ins_name] = ins_ref().snapshot(update=update)
 
     if clean:

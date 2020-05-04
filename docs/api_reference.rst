@@ -37,5 +37,3 @@ visualization
 
     .. :inherited-members:
     .. :show-inheritance:
-
-
