@@ -33,7 +33,7 @@ stages:
 test:
   stage: Test
   script:
-    - xvfb-run python render.py
+    - xvfb-run -a
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
