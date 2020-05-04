@@ -12,7 +12,7 @@ from qcodes.instrument.base import Instrument
 from quantify.measurement.data_handling import load_dataset, get_latest_tuid
 
 # Importing of pyqtgraph (sometimes problematic....)
-import PyQt5
+# import PyQt5
 # For reference:
 # from pycqed.measurement import qcodes_QtPlot_monkey_patching
 # The line above was (and still is but keep rading) necessary
