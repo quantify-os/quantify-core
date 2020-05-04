@@ -26,6 +26,16 @@ from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 
 class PlotMonitor_pyqt(Instrument):
+    """
+    Pyqtgraph based plot monitor.
+
+    A plot monitor is intended to provide a real-time visualization of a
+    dataset.
+    A plotmon should implement two methods
+
+    The interface of a plot monitor is based on the tuid.
+
+    """
 
     def __init__(
             self,
@@ -119,7 +129,7 @@ class PlotMonitor_pyqt(Instrument):
                 self.curves.append(self.main_QtPlot.traces[-1])
             self.main_QtPlot.win.nextRow()
 
-    def update_plotmon(self):
+    def update(self):
         if self.tuid() == 'latest':
             # this should automatically set tuid to the most recent tuid.
             tuid = get_latest_tuid()

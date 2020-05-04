@@ -35,6 +35,11 @@ class TestMeasurementControl:
         # ensures the default datadir is used which is excluded from git
         set_datadir(None)
 
+    @classmethod
+    def teardown_class(cls):
+        cls.MC.close()
+        set_datadir(None)
+
     def test_MeasurementControl_name(self):
         assert self.MC.name == 'MC'
 

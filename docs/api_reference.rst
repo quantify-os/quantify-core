@@ -6,7 +6,6 @@ API reference
    :members:
 
 
-
 measurement
 =============
 
@@ -23,6 +22,17 @@ data_handling
     :members:
     :undoc-members:
     :special-members:
+
+
+visualization
+=============
+
+
+.. automodule:: quantify.visualization
+    :members:
+    :undoc-members:
+    :special-members:
+
 
 
     .. :inherited-members:

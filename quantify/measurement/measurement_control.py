@@ -144,7 +144,7 @@ class MeasurementControl(Instrument):
         if plotmon_name is not None and plotmon_name != '':
             self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
             # if the timestamp has changed, this will initialize the monitor
-            self.instr_plotmon.get_instr().update_plotmon()
+            self.instr_plotmon.get_instr().update()
 
         # Iterate over all points to set
         for idx, spts in enumerate(self._setpoints):
@@ -165,7 +165,7 @@ class MeasurementControl(Instrument):
             # Update the
             dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
             if plotmon_name is not None and plotmon_name != '':
-                self.instr_plotmon.get_instr().update_plotmon()
+                self.instr_plotmon.get_instr().update()
 
         # Wrap up experiment and store data
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
