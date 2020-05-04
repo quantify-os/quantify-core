@@ -25,7 +25,6 @@ before_script:
   - apt update
   - apt install -y xvfb # Sets up a headless display
   - xvfb :99 & export DISPLAY=:99
-  - "sh -e /etc/init.d/xvfb start"
   - sleep 3
 
 stages:
@@ -38,7 +37,7 @@ test:
   script:
     - pip install -e .
     - pip install -r requirements_dev.txt
-    - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - xvfb-run py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
 
   artifacts:
