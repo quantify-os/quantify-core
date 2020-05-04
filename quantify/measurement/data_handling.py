@@ -189,7 +189,7 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
         empty_arr[:] = np.nan
         darrs.append(xr.DataArray(
             data=empty_arr,
-            name='y{}'.format(i),
+            name='y{}'.format(j),
             attrs={'name': getpar.name, 'long_name': getpar.label,
                    'unit': getpar.unit}))
 

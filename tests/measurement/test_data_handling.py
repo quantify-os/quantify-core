@@ -58,6 +58,25 @@ def test_initialize_dataset():
     assert y0.attrs['name'] == 'y'
     assert y0.attrs['long_name'] == 'Signal amplitude'
 
+def test_initialize_dataset_2D():
+    xpar = ManualParameter('x', unit='m', label='X position')
+    ypar = ManualParameter('y', unit='m', label='Y position')
+    getpar = ManualParameter('z', unit='V', label='Signal amplitude')
+    setable_pars = [xpar, ypar]
+    setpoints = np.arange(0, 100, 32)
+    setpoints = setpoints.reshape((len(setpoints)//2, 2))
+    getable_pars = [getpar]
+
+    dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
+
+
+    assert isinstance(dataset, xr.Dataset)
+    assert len(dataset.data_vars) == 3
+    assert dataset.attrs.keys() == {'tuid'}
+    assert set(dataset.variables.keys()) == {'x0', 'x1', 'y0'}
+
+
+
 
 def test_getset_datadir():
     # here to ensure we always start with default datadir
