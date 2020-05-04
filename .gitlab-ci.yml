@@ -22,7 +22,7 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - get install xvfb # Sets up a headless display
+  - apt-get -y install xvfb # Sets up a headless display
 
 stages:
   - Static Analysis
