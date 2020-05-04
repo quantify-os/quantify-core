@@ -274,8 +274,29 @@ class MeasurementControl(Instrument):
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
 
-    def set_setpoints_2D(self):
-        pass
+    def set_setpoints_2D(self, setpoints_2D):
+        """
+        A convenience function to quickly set up a 2D grid measurement.
+
+        Args:
+            setpoints_2D (np.array): an array of M y-values.
+
+
+        Updates the setpoints in a grid by repeating the setpoints M times
+        and filling the second column with tiled values.
+
+        .. Example
+
+            .. code-block:: python
+
+                MC.set_setpars([t, amp])
+                MC.set_setpoints(times)
+                MC.set_setpoints_2D(amps) # beware! order matters here
+                MC.set_getpars(sig)
+                dataset = MC.run('2D grid test')
+
+        """
+        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_2D)
 
     def set_getpars(self, getable_par):
         """
@@ -343,3 +364,32 @@ def is_getable(getable):
         raise AttributeError("{} does not have 'unit'.".format(getable))
 
     return True
+
+
+def tile_setpoints_grid(setpoints, setpoints_2D):
+    """
+    Tile setpoints into a 2D grid.
+
+    Args:
+        setpoints    (np.array): an (N,1) array corresponding to x-values.
+        setpoints_2D (np.array): a length M array corresponding to y-values.
+
+    Returns:
+        setpoints (np.array): an ((N*M),2) array with repeated x-values and
+        tiled y-values.
+
+    .. warning ::
+
+        using this method typecasts all values into the same type. This may
+        lead to validator errors when setting e.g., a float instead of an int.
+    """
+
+    assert np.shape(setpoints)[1] == 1
+
+    xl = len(setpoints)
+    yl = len(setpoints_2D)
+    x_tiled = np.tile(setpoints[:, 0], yl)
+    y_rep = np.repeat(setpoints_2D, xl)
+    setpoints = np.column_stack([x_tiled, y_rep])
+
+    return setpoints

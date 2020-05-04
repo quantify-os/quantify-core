@@ -3,7 +3,7 @@ import xarray as xr
 import numpy as np
 from qcodes import ManualParameter, Parameter
 from quantify.measurement.measurement_control import MeasurementControl, \
-    is_setable, is_getable
+    is_setable, is_getable, tile_setpoints_grid
 from quantify import set_datadir
 
 # Define some helpers that are used in the tests
@@ -151,3 +151,15 @@ def test_is_getable():
 
     std_par = Parameter('x', get_cmd=test_func)
     assert is_getable(std_par)
+
+
+
+
+def test_tile_setpoints_grid():
+    x = np.arange(5)
+    x = x.reshape((len(x), 1))
+    y = np.linspace(-1, 1, 3)
+
+    sp = tile_setpoints_grid(x, y)
+    sp[:,0] = np.tile(np.arange(5), 3)
+    sp[:,1] = np.repeat(y, 5)
