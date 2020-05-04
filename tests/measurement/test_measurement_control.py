@@ -5,6 +5,8 @@ from qcodes import ManualParameter, Parameter
 from quantify.measurement.measurement_control import MeasurementControl, \
     is_setable, is_getable, tile_setpoints_grid
 from quantify import set_datadir
+from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+
 
 # Define some helpers that are used in the tests
 
@@ -16,10 +18,10 @@ def CosFunc(t, amplitude, frequency, phase):
 
 # Parameters are created to emulate a system being measured
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
-
+amp = ManualParameter('amp', initial_value=1, unit='V', label='Time')
 
 def cosine_model():
-    return CosFunc(t(), amplitude=1, frequency=1, phase=0)
+    return CosFunc(t(), amplitude=amp(), frequency=1, phase=0)
 
 
 # We wrap our function in a Parameter to be able to give
@@ -103,6 +105,29 @@ class TestMeasurementControl:
         dset = self.MC.run()
 
         assert progress_param() == 100
+
+
+    def test_MC_plotmon_integration(self):
+        plotmon = PlotMonitor_pyqt('plotmon_MC')
+
+        self.MC.instr_plotmon(plotmon.name)
+
+        assert plotmon.tuid() == 'latest'
+
+        times = np.linspace(0, 5, 18)
+        amps = np.linspace(-1, 1, 5)
+
+        self.MC.set_setpars([t, amp])
+        self.MC.set_setpoints(times)
+        self.MC.set_setpoints_2D(amps)
+        self.MC.set_getpars(sig)
+        dset = self.MC.run('2D Cosine test')
+
+        # Test that the
+        assert plotmon.tuid() != 'latest'
+
+        plotmon.close()
+        self.MC.instr_plotmon('')
 
 
 def test_is_setable():

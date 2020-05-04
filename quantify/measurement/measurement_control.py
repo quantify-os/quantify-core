@@ -114,6 +114,8 @@ class MeasurementControl(Instrument):
         self._begintime = time.time()
         self._last_upd = time.time()
 
+        self._plot_info = {}
+
     ############################################
     # Methods used to control the measurements #
     ############################################
@@ -144,6 +146,9 @@ class MeasurementControl(Instrument):
         dataset = initialize_dataset(self._setable_pars,
                                      self._setpoints,
                                      self._getable_pars)
+
+        # cannot add it as a separte (nested) dict so make it flat.
+        dataset.attrs.update(self._plot_info)
 
         exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'],
                                        name=name)
@@ -190,6 +195,9 @@ class MeasurementControl(Instrument):
 
         # Wrap up experiment and store data
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+
+        # reset the plot info for the next experiment.
+        self._plot_info = {'2D-grid': False}
         return dataset
 
     ############################################
@@ -274,6 +282,10 @@ class MeasurementControl(Instrument):
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
 
+        # set to False whenever new setpoints are defined.
+        # this gets updated after calling set_setpoints_2D.
+        self._plot_info['2D-grid'] = False
+
     def set_setpoints_2D(self, setpoints_2D):
         """
         A convenience function to quickly set up a 2D grid measurement.
@@ -284,8 +296,10 @@ class MeasurementControl(Instrument):
 
         Updates the setpoints in a grid by repeating the setpoints M times
         and filling the second column with tiled values.
+        Additionally updates self._plot_info meta data.
 
-        .. Example
+
+        Example:
 
             .. code-block:: python
 
@@ -295,7 +309,16 @@ class MeasurementControl(Instrument):
                 MC.set_getpars(sig)
                 dataset = MC.run('2D grid test')
 
+        .. warning ::
+
+            Beware that you need to specify the setpoints before specifying
+            the setpoints 2D when using this method.
         """
+
+        self._plot_info['2D-grid'] = True
+        self._plot_info['xlen'] = len(self._setpoints)
+        self._plot_info['ylen'] = len(setpoints_2D)
+
         self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_2D)
 
     def set_getpars(self, getable_par):

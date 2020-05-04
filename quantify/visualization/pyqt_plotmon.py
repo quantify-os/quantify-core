@@ -1,7 +1,7 @@
 """
 Module containing the pyqtgraph based plotting monitor.
 """
-
+import numpy as np
 
 from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
@@ -11,17 +11,6 @@ from qcodes.instrument.base import Instrument
 
 from quantify.measurement.data_handling import load_dataset, get_latest_tuid
 
-# Importing of pyqtgraph (sometimes problematic....)
-# import PyQt5
-# For reference:
-# from pycqed.measurement import qcodes_QtPlot_monkey_patching
-# The line above was (and still is but keep rading) necessary
-# for the plotmon_2D to be able to set colorscales from
-# `qcodes_QtPlot_colors_override.py` and be able to set the
-# colorbar range when the plots are created
-# See also `MC.plotmon_2D_cmaps`, `MC.plotmon_2D_zranges` below
-# That line was moved into the `__init__.py` of pycqed so that
-# `QtPlot` can be imported from qcodes with all the modifications
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 
@@ -103,13 +92,6 @@ class PlotMonitor_pyqt(Instrument):
         set_parnames = list(filter(lambda k: 'x' in k, dset.keys()))
         get_parnames = list(filter(lambda k: 'y' in k, dset.keys()))
 
-        if len(set_parnames) == 1:
-            pass
-        elif len(set_parnames) == 2:
-            raise NotImplementedError
-        else:
-            raise NotImplementedError
-
         plot_idx = 1
         for yi in get_parnames:
             for xi in set_parnames:
@@ -129,7 +111,38 @@ class PlotMonitor_pyqt(Instrument):
                 self.curves.append(self.main_QtPlot.traces[-1])
             self.main_QtPlot.win.nextRow()
 
+        # Add a square heatmap
+        if dset.attrs['2D-grid']:
+            plot_idx = 1
+            for yi in get_parnames:
+
+                cmap = 'viridis'
+                zrange = None
+
+                x = dset['x0'].values[:dset.attrs['xlen']]
+                y = dset['x1'].values[::dset.attrs['xlen']]
+                Z = np.reshape(dset[yi].values,
+                               (len(x), len(y)), order='F').T
+                config_dict = {
+                    "x": x,
+                    "y": y,
+                    "z": Z,
+                    "xlabel": dset['x0'].attrs['long_name'],
+                    "xunit": dset['x0'].attrs['unit'],
+                    "ylabel": dset['x1'].attrs['long_name'],
+                    "yunit": dset['x1'].attrs['unit'],
+                    "zlabel": dset[yi].attrs['long_name'],
+                    "zunit": dset[yi].attrs['unit'],
+                    "subplot": plot_idx,
+                    "cmap": cmap,
+                }
+                if zrange is not None:
+                    config_dict["zrange"] = zrange
+                self.secondary_QtPlot.add(**config_dict)
+                plot_idx += 1
+
     def update(self):
+
         if self.tuid() == 'latest':
             # this should automatically set tuid to the most recent tuid.
             tuid = get_latest_tuid()
@@ -155,3 +168,12 @@ class PlotMonitor_pyqt(Instrument):
                     self.curves[i]["config"]["y"] = dset[yi].values
                     i += 1
             self.main_QtPlot.update_plot()
+
+            # Add a square heatmap
+            if dset.attrs['2D-grid']:
+                for yidx, yi in enumerate(get_parnames):
+                    Z = np.reshape(dset[yi].values,
+                                   (dset.attrs['xlen'], dset.attrs['ylen']),
+                                   order='F').T
+                    self.secondary_QtPlot.traces[yidx]['config']['z'] = Z
+                self.secondary_QtPlot.update_plot()
