@@ -19,7 +19,6 @@ requirements = [
     'scipy',
     'xarray',
     'matplotlib',
-    'pyqt5',
     'pyqtgraph']
 
 setup_requirements = ['pytest-runner', ]
