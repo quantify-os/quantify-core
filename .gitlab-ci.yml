@@ -18,6 +18,7 @@ cache:
     - venv/
 
 before_script:
+  - QT_QPA_PLATFORM="offscreen"
   - python -V  # Print out python version for debugging
   - pip install virtualenv
   - virtualenv venv
