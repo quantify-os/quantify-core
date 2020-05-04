@@ -33,7 +33,7 @@ stages:
 test:
   stage: Test
   script:
-    - xvfb-run -a
+    - xvfb :99 & export DISPLAY=:99
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
