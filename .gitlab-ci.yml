@@ -24,6 +24,9 @@ before_script:
   - source venv/bin/activate
   - apt update
   - apt install -y xvfb # Sets up a headless display
+  - xvfb :99 & export DISPLAY=:99
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3
 
 stages:
   - Static Analysis
@@ -33,7 +36,6 @@ stages:
 test:
   stage: Test
   script:
-    - xvfb :99 & export DISPLAY=:99
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
