@@ -28,6 +28,7 @@ before_script:
   - xvfb :99 & export DISPLAY=:99
   - apt install -y libxkbcommon-x11-0
   - apt install libxcb-xinerama0
+  - apk add py3-qt5
   - sleep 3
 
 stages:
