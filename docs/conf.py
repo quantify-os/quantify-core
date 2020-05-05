@@ -37,7 +37,8 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.napoleon', # autodoc understands numpy docstrings
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx',
-              'sphinx_rtd_theme']
+              'sphinx_rtd_theme',
+              'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -5,6 +5,7 @@ Welcome to quantify's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :glob:
 
    readme
    installation
@@ -15,6 +16,16 @@ Welcome to quantify's documentation!
    history
 
 
+Tutorials
+==============
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   example_notebooks/T1_MeasurementControl.ipynb
+
+
 
 API Reference
 ===================
@@ -23,6 +34,7 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: API reference
 
    api_reference
 
