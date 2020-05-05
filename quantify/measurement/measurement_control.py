@@ -148,6 +148,7 @@ class MeasurementControl(Instrument):
                                      self._getable_pars)
 
         # cannot add it as a separte (nested) dict so make it flat.
+        dataset.attrs['name'] = name
         dataset.attrs.update(self._plot_info)
 
         exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'],

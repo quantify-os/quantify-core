@@ -102,6 +102,9 @@ def create_exp_folder(tuid,  name='', datadir=None):
     """
     Creates an empty folder to store an experiment container.
 
+    If the folder already exists, simple return the experiment folder
+    corresponding to the tuid.
+
     Args:
         tuid (str) : a timestamp based human-readable unique identifier.
         name (str) : optional name to identify the folder
