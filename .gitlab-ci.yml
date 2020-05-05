@@ -99,7 +99,7 @@ pages:
   stage: Deploy
   script:
     - apt install -y pandoc # required for nbsphinx plugin
-    - pip install sphinx sphinx-rtd-theme
+    - pip install sphinx
     - pip install -r requirements_dev.txt
     - cd docs ; make html
     - mv _build/html/ ../public/
