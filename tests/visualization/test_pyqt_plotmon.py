@@ -8,7 +8,7 @@ import quantify
 from quantify import set_datadir
 
 test_datadir = os.path.join(os.path.split(
-    quantify.__file__)[0], '..', 'tests', 'data')
+    quantify.__file__)[0], '..', 'tests', 'test_data')
 
 
 class TestPlotMonitor_pyqt:
