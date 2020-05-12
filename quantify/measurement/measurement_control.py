@@ -3,7 +3,7 @@ import time
 import json
 from os.path import join
 from qcodes import Instrument
-from quantify.measurement.data_handling import initialize_dataset, \
+from quantify.data.data_handling import initialize_dataset, \
     create_exp_folder, snapshot
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals

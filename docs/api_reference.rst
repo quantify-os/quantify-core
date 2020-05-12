@@ -18,7 +18,7 @@ measurement
 data_handling
 =============
 
-.. automodule:: quantify.measurement.data_handling
+.. automodule:: quantify.data.data_handling
     :members:
     :undoc-members:
     :special-members:
