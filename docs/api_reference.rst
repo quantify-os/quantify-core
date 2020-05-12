@@ -14,9 +14,22 @@ measurement
     :undoc-members:
     :special-members:
 
+data
+=============
+
+core_data
+-------------
+
+
+.. automodule:: quantify.data.core_data
+    :members:
+    :undoc-members:
+
+
 
 data_handling
-=============
+----------------
+
 
 .. automodule:: quantify.data.data_handling
     :members:

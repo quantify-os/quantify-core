@@ -152,7 +152,7 @@ class MeasurementControl(Instrument):
         dataset.attrs.update(self._plot_info)
 
         exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'],
-                                       name=name)
+                                       name=dataset.attrs['name'])
         # Write the empty dataset
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
         # Save a snapshot of all

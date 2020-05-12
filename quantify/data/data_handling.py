@@ -1,18 +1,13 @@
 """
 Module for handling data.
 
-This module contains a specification for the dataset as well as utilities to
-handle the data.
+This module contains  utilities to handle the data files in quantify.
 
-quantify datasets are based on the :class:`xarray.Dataset`.
-
-Utility functions include
-- Finding a dataset
--
 """
 import os
 import numpy as np
 import xarray as xr
+from quantify.data.core_data import TUID
 from qcodes import Instrument
 from quantify.utilities.general import delete_keys_from_dict
 from datetime import datetime
@@ -31,31 +26,31 @@ this._datadir = None
 
 def gen_tuid(ts=None):
     """
-    Generates a human readable unique identifier based on the current time.
+    Generates a :class:`~quantify.data.core_data.TUID` based on current time.
 
     Args:
-        ts (datetime) : optional datetime object can be passed to ensure the
-            tuid is based on a specific timestamp.
+        ts (datetime) : optional :class:`~python:datetime.datetime`  can be
+            passed to ensure the tuid is based on a specific time.
 
     Returns:
-        tuid (str): timestamp based uid formatted as YYYYMMDD-HHMMSS-fff-******
+        tuid (:class:`~quantify.data.core_data.TUID`): timestamp based uid.
     """
-    ts = datetime.now()
+    if ts is None:
+        ts = datetime.now()
     # ts gives microsecs by default
     (dt, micro) = ts.strftime('%Y%m%d-%H%M%S-.%f').split('.')
     # this ensures the string is formatted correctly as some systems return 0
     # for micro
     dt = "%s%03d-" % (dt, int(micro) / 1000)
     # the tuid is composed of the timestamp and a 6 character uuid.
-    tuid = dt + str(uuid4())[:6]
+    tuid = TUID(dt + str(uuid4())[:6])
+
     return tuid
 
 
 def get_datadir():
     """Returns the current data directory."""
 
-    # TODO: make configurable, currently hardcoded to quantify/data
-    # quantify/data
     if this._datadir is None:
         this._datadir = this._default_datadir
 
@@ -79,7 +74,9 @@ def load_dataset(tuid, datadir=None):
     Loads a dataset specified by a tuid.
 
     Args:
-        tuid (str): a timestamp based human-readable unique identifier.
+        tuid (str): a :class:`~quantify.data.core_data.TUID` string.
+            it is also possible to specify only the first part of a tuid.
+
         datadir (str):
             path of the data directory. If `None`, uses `get_datadir()` to
             determine the data directory.
@@ -89,8 +86,8 @@ def load_dataset(tuid, datadir=None):
 
     .. tip::
 
-        This method also works when specifying only the timestamp part of the
-        tuid.
+        This method also works when specifying only the first part of a
+        :class:`~quantify.data.core_data.TUID`.
 
     .. note::
 
@@ -125,10 +122,11 @@ def create_exp_folder(tuid,  name='', datadir=None):
     Creates an empty folder to store an experiment container.
 
     If the folder already exists, simple return the experiment folder
-    corresponding to the tuid.
+    corresponding to the :class:`~quantify.data.core_data.TUID`.
 
     Args:
-        tuid (str) : a timestamp based human-readable unique identifier.
+        tuid (:class:`~quantify.data.core_data.TUID`) :
+            a timestamp based human-readable unique identifier.
         name (str) : optional name to identify the folder
         datadir (str):
             path of the data directory. If `None`, uses `get_datadir()` to
@@ -139,6 +137,8 @@ def create_exp_folder(tuid,  name='', datadir=None):
             the full path of the experiment folder following the following
             convention: /datadir/YYMMDD/HHMMSS-******-name/
     """
+    assert TUID.is_valid(tuid)
+
     if datadir is None:
         datadir = get_datadir()
     exp_folder = os.path.join(datadir, tuid[:8], tuid[9:])
@@ -161,14 +161,13 @@ def is_valid_dset(dset):
     """
     if not isinstance(dset, xr.Dataset):
         raise TypeError
+    assert TUID.is_valid(dset.attrs['tuid'])
 
     return True
 
 
-
-
 def append_to_Xarr():
-    pass
+    raise NotImplementedError()
 
 
 def initialize_dataset(setable_pars, setpoints, getable_pars):
@@ -216,13 +215,14 @@ def get_latest_tuid(contains=''):
     Returns the most recent tuid.
 
     Args:
-        contains (str): an optional string that is
+        contains (str): an optional string that is contained in the experiment
+            name
 
     .. tip::
 
         This function is similar to :func:`~get_tuids_containing` but is
-        preferred if one is only interested in the most recent tuid due to
-        performace reasons.
+        preferred if one is only interested in the most recent
+        :class:`~quantify.data.core_data.TUID` for performace reasons.
 
     """
 
@@ -243,7 +243,8 @@ def get_latest_tuid(contains=''):
             expdirs.sort(reverse=True)
             if len(expdirs) > 0:
                 # convert to tuid
-                tuid = '{}-{}'.format(dd, expdirs[0][:13])
+                tuid = TUID('{}-{}'.format(dd, expdirs[0][:17]))
+
                 return tuid
 
                 expdirs[0]
@@ -293,4 +294,3 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         snap = delete_keys_from_dict(snap, exclude_keys)
 
     return snap
-

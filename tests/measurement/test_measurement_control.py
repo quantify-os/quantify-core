@@ -5,6 +5,7 @@ from qcodes import ManualParameter, Parameter
 from quantify.measurement.measurement_control import MeasurementControl, \
     is_setable, is_getable, tile_setpoints_grid
 from quantify import set_datadir
+from quantify.data.core_data import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
@@ -68,6 +69,8 @@ class TestMeasurementControl:
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
         dset = self.MC.run()
+
+        assert TUID.is_valid(dset.attrs['tuid'])
 
         expected_vals = CosFunc(
             t=xvals, amplitude=1, frequency=1, phase=0)

@@ -5,6 +5,7 @@ from quantify.visualization import PlotMonitor_pyqt
 
 import os
 import quantify
+from quantify.data.core_data import TUID
 from quantify import set_datadir
 
 test_datadir = os.path.join(os.path.split(
@@ -28,10 +29,12 @@ class TestPlotMonitor_pyqt:
         hasattr(self.plotmon, 'main_QtPlot')
         hasattr(self.plotmon, 'secondary_QtPlot')
 
+    def test_validator_accepts_TUID_objects(self):
+        self.plotmon.tuid(TUID('20200430-170837-001-315f36'))
 
     def test_basic_1D_plot(self):
         # Test 1D plotting using an example dataset
-        self.plotmon.tuid('20200430-170837-315f36')
+        self.plotmon.tuid('20200430-170837-001-315f36')
         self.plotmon.update()
 
         x = self.plotmon.curves[0]['config']['x']
@@ -42,10 +45,9 @@ class TestPlotMonitor_pyqt:
         np.testing.assert_allclose(x, x_exp)
         np.testing.assert_allclose(y, y_exp)
 
-
     def test_basic_2D_plot(self):
         # Test 1D plotting using an example dataset
-        self.plotmon.tuid('20200504-191556-4209ee')
+        self.plotmon.tuid('20200504-191556-002-4209ee')
         self.plotmon.update()
 
         x = self.plotmon.curves[0]['config']['x']
@@ -64,4 +66,3 @@ class TestPlotMonitor_pyqt:
         assert cfg['yunit'] == 'V'
         assert cfg['zlabel'] == 'Signal level'
         assert cfg['zunit'] == 'V'
-
