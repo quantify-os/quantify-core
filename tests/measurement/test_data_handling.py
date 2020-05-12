@@ -24,10 +24,10 @@ def test_gen_tuid():
 
     tuid = dh.gen_tuid(ts)
 
-    readable_ts = ts.strftime('%Y%m%d-%H%M%S')
+    readable_ts = ts.strftime('%Y%m%d-%H%M%S-%f')[:-3]
 
-    assert tuid[:15] == readable_ts
-    assert len(tuid) == 22  # 6 random characters added at the end of tuid
+    assert tuid[:19] == readable_ts
+    assert len(tuid) == 26  # 6 random characters added at the end of tuid
 
 
 def test_initialize_dataset():

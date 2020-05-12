@@ -26,7 +26,7 @@ As long as a DataSet is used for data storage, users can freely select the QCoDe
 Terminology
 ================
 
-.. note::
+.. warning::
 
     Below is copied from the QCoDeS data spec. it needs to be updated for quantify.
 

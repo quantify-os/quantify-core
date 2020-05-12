@@ -152,11 +152,16 @@ def gen_tuid(ts=None):
             tuid is based on a specific timestamp.
 
     Returns:
-        tuid (str): timestamp based uid formatted as YYMMDD-HHMMSS-******
+        tuid (str): timestamp based uid formatted as YYMMDD-HHMMSS-fff-******
     """
     ts = datetime.now()
-    tuid = ts.strftime('%Y%m%d-%H%M%S-')+str(uuid4())[:6]
-
+    # ts gives microsecs by default
+    (dt, micro) = ts.strftime('%Y%m%d-%H%M%S-.%f').split('.')
+    # this ensures the string is formatted correctly as some systems return 0
+    # for micro
+    dt = "%s%03d-" % (dt, int(micro) / 1000)
+    # the tuid is composed of the timestamp and a 6 character uuid.
+    tuid = dt + str(uuid4())[:6]
     return tuid
 
 
