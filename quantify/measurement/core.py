@@ -1,7 +1,9 @@
 
-def check_attribute(obj, attr):
+def check_attribute(obj, attr, t):
     if not hasattr(obj, attr):
         raise AttributeError("{} does not have '{}'".format(obj, attr))
+    if t and not isinstance(getattr(obj, attr), t):
+        raise AttributeError("{} has attribute {} which should be of type str but is {}".format(obj, attr, t))
 
 
 class Settable(type):
@@ -10,13 +12,13 @@ class Settable(type):
     given type satisfies the following:
 
     contains attributes
-        - set
-        - name
-        - unit
+        - set(float)
+        - name: str
+        - unit: str
     """
     def __new__(mcs, obj):
-        for attr in ['set', 'name', 'unit']:
-            check_attribute(obj, attr)
+        for attr, t in {'name': str, 'unit': str, 'set': None}.items():
+            check_attribute(obj, attr, t)
         return obj
 
 
@@ -26,11 +28,11 @@ class Gettable(type):
     given type satisfies the following:
 
     contains attributes
-        - get
-        - name
-        - unit
+        - get()
+        - name: str
+        - unit: str
     """
     def __new__(mcs, obj):
-        for attr in ['get', 'name', 'unit']:
-            check_attribute(obj, attr)
+        for attr, t in {'name': str, 'unit': str, 'get': None}.items():
+            check_attribute(obj, attr, t)
         return obj
