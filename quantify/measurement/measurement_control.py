@@ -5,6 +5,7 @@ from os.path import join
 from qcodes import Instrument
 from quantify.data.data_handling import initialize_dataset, \
     create_exp_folder, snapshot
+from quantify.measurement.core import Settable, Gettable
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals
 from qcodes.utils.helpers import NumpyJSONEncoder
@@ -261,8 +262,7 @@ class MeasurementControl(Instrument):
 
         self._setable_pars = []
         for i, setable in enumerate(setable_pars):
-            if is_setable(setable):
-                self._setable_pars.append(setable)
+            self._setable_pars.append(Settable(setable))
 
     def set_setpoints(self, setpoints):
         """
@@ -342,52 +342,7 @@ class MeasurementControl(Instrument):
             - multiple points at once (hard loop)
 
         """
-        if is_getable(getable_par):
-            self._getable_pars = [getable_par]
-
-
-def is_setable(setable):
-    """
-    Test if an object is a valid setable.
-
-    Args:
-        setable (object)
-
-    Return:
-        is_setable (bool)
-
-    TODO: Add desicription of what a valid setable is. (unit, get etc.)
-    """
-    if not hasattr(setable, 'set'):
-        raise AttributeError("{} does not have 'set'.".format(setable))
-    if not hasattr(setable, 'name'):
-        raise AttributeError("{} does not have 'name'.".format(setable))
-    if not hasattr(setable, 'unit'):
-        raise AttributeError("{} does not have 'unit'.".format(setable))
-
-    return True
-
-
-def is_getable(getable):
-    """
-    Test if an object is a valid getable.
-
-    Args:
-        getable (object)
-
-    Return:
-        is_getable (bool)
-
-    TODO: Add desicription of what a valid getable is. (unit, get etc.)
-    """
-    if not hasattr(getable, 'get'):
-        raise AttributeError("{} does not have 'get'.".format(getable))
-    if not hasattr(getable, 'name'):
-        raise AttributeError("{} does not have 'name'.".format(getable))
-    if not hasattr(getable, 'unit'):
-        raise AttributeError("{} does not have 'unit'.".format(getable))
-
-    return True
+        self._getable_pars = [Gettable(getable_par)]
 
 
 def tile_setpoints_grid(setpoints, setpoints_2D):
