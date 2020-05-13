@@ -21,6 +21,7 @@ def CosFunc(t, amplitude, frequency, phase):
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
 amp = ManualParameter('amp', initial_value=1, unit='V', label='Time')
 
+
 def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=1, phase=0)
 
@@ -90,6 +91,74 @@ class TestMeasurementControl:
 
         # Test values
 
+    def test_soft_sweep_2D_grid(self):
+
+        times = np.linspace(0, 5, 20)
+        amps = np.linspace(-1, 1, 5)
+
+        self.MC.set_setpars([t, amp])
+        self.MC.set_setpoints_2D(times, amps)
+
+        exp_sp = tile_setpoints_grid(amps, times)
+        assert (self.MC._setpoints == exp_sp).all()
+
+        self.MC.set_getpars(sig)
+        dset = self.MC.run()
+
+        assert TUID.is_valid(dset.attrs['tuid'])
+
+        expected_vals = CosFunc(
+            t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0)
+
+        assert (dset['x0'].values == exp_sp[:, 0]).all()
+        assert (dset['x1'].values == exp_sp[:, 1]).all()
+        assert (dset['y0'].values == expected_vals).all()
+
+        # Test properties of the dataset
+        assert isinstance(dset, xr.Dataset)
+        assert dset.keys() == {'x0', 'x1', 'y0'}
+        assert (dset['x0'] == times).all()
+        assert (dset['x1'] == amps).all()
+
+        assert dset['x0'].attrs == {
+            'name': 't', 'long_name': 'Time', 'unit': 's'}
+
+        assert dset['y0'].attrs == {
+            'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+    def test_soft_sweep_2D_arbitrary(self):
+
+        r = np.linspace(0, 1.5, 50)
+        dt = np.linspace(0, 1, 50)
+
+        f = 10
+
+        # create a fancy polar coordinates loop
+        theta = np.cos(2*np.pi*f*dt)
+
+        def polar_coords(r, theta):
+
+            x = r*np.cos(2*np.pi*theta)
+            y = r*np.sin(2*np.pi*theta)
+            return x, y
+
+        x, y = polar_coords(r, theta)
+        setpoints = np.column_stack([x, y])
+
+        self.MC.set_setpars([t, amp])
+        self.MC.set_setpoints(setpoints)
+        self.MC.set_getpars(sig)
+        dset = self.MC.run()
+
+        assert TUID.is_valid(dset.attrs['tuid'])
+
+        expected_vals = CosFunc(
+            t=x, amplitude=y, frequency=1, phase=0)
+
+        assert (dset['x0'].values == x).all()
+        assert (dset['x1'].values == y).all()
+        assert (dset['y0'].values == expected_vals).all()
+
     def test_progress_callback(self):
 
         progress_param = ManualParameter("progress", initial_value=0)
@@ -109,7 +178,6 @@ class TestMeasurementControl:
 
         assert progress_param() == 100
 
-
     def test_MC_plotmon_integration(self):
         plotmon = PlotMonitor_pyqt('plotmon_MC')
 
@@ -121,8 +189,7 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints(times)
-        self.MC.set_setpoints_2D(amps)
+        self.MC.set_setpoints_2D(times, amps)
         self.MC.set_getpars(sig)
         dset = self.MC.run('2D Cosine test')
 
@@ -181,13 +248,11 @@ def test_is_getable():
     assert is_getable(std_par)
 
 
-
-
 def test_tile_setpoints_grid():
     x = np.arange(5)
     x = x.reshape((len(x), 1))
     y = np.linspace(-1, 1, 3)
 
     sp = tile_setpoints_grid(x, y)
-    sp[:,0] = np.tile(np.arange(5), 3)
-    sp[:,1] = np.repeat(y, 5)
+    assert sp[:, 0] == np.tile(np.arange(5), 3)
+    assert sp[:, 1] == np.repeat(y, 5)

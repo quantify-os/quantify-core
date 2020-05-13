@@ -277,6 +277,10 @@ class MeasurementControl(Instrument):
         The setpoints are internally reshaped to (N, M) to be natively
         compatible with M-dimensional loops.
 
+        .. tip::
+
+            Use :code:`np.colstack((x0, x1))` to reshape multiple
+            1D arrays when setting multiple setables.
         """
         sp_shape = np.shape(setpoints)
         if len(sp_shape) == 1:
@@ -287,40 +291,33 @@ class MeasurementControl(Instrument):
         # this gets updated after calling set_setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_2D(self, setpoints_2D):
+    def set_setpoints_2D(self, setpoints_x0, setpoints_x1):
         """
         A convenience function to quickly set up a 2D grid measurement.
 
         Args:
-            setpoints_2D (np.array): an array of M y-values.
+            setpoints_x0 (np.array): an array of N x0-values.
+            setpoints_x1 (np.array): an array of M x1-values.
 
-
-        Updates the setpoints in a grid by repeating the setpoints M times
-        and filling the second column with tiled values.
+        Updates the setpoints in a grid by repeating the x0 setpoints M times
+        and filling the second column with tiled values of x1.
         Additionally updates self._plot_info meta data.
-
 
         Example:
 
             .. code-block:: python
 
                 MC.set_setpars([t, amp])
-                MC.set_setpoints(times)
-                MC.set_setpoints_2D(amps) # beware! order matters here
+                MC.set_setpoints_2D(times, amps)
                 MC.set_getpars(sig)
                 dataset = MC.run('2D grid test')
-
-        .. warning ::
-
-            Beware that you need to specify the setpoints before specifying
-            the setpoints 2D when using this method.
         """
 
         self._plot_info['2D-grid'] = True
-        self._plot_info['xlen'] = len(self._setpoints)
-        self._plot_info['ylen'] = len(setpoints_2D)
+        self._plot_info['xlen'] = len(setpoints_x0)
+        self._plot_info['ylen'] = len(setpoints_x1)
 
-        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_2D)
+        self._setpoints = tile_setpoints_grid(setpoints_x0, setpoints_x1)
 
     def set_getpars(self, getable_par):
         """
