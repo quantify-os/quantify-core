@@ -387,6 +387,19 @@ def is_getable(getable):
     return True
 
 
+"""
+def tile_setpoints_grid(setpoints_curr, additional_setpoints):
+    assert np.shape(setpoints_curr)[1] == 1
+    for setpoints_n in [additional_setpoints]:
+        x0_l = len(setpoints_curr)
+        x1_l = len(setpoints_n)
+        x0_tiled = np.tile(setpoints_curr[:, 0], x1_l)
+        x1_rep = np.repeat(setpoints_n, x0_l)
+        setpoints_curr = np.column_stack([x0_tiled, x1_rep])
+    return setpoints_curr
+"""
+
+
 def tile_setpoints_grid(setpoints, setpoints_2D):
     """
     Tile setpoints into a 2D grid.

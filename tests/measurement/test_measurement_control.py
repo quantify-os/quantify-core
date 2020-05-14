@@ -254,5 +254,5 @@ def test_tile_setpoints_grid():
     y = np.linspace(-1, 1, 3)
 
     sp = tile_setpoints_grid(x, y)
-    assert sp[:, 0] == np.tile(np.arange(5), 3)
-    assert sp[:, 1] == np.repeat(y, 5)
+    assert sp[:, 0].all() == np.tile(np.arange(5), 3).all()
+    assert sp[:, 1].all() == np.repeat(y, 5).all()
