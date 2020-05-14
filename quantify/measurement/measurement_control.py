@@ -293,6 +293,8 @@ class MeasurementControl(Instrument):
     def set_setpoints_nD(self, setpoints_x0, setpoints_xn):
         """
         Set a setpoint grid that determine values to be set in acquisition loop.
+        Updates the setpoints in a grid by repeating the setpoints M times
+        and filling the second column with tiled values.
 
         Args:
             setpoints_x0 (np.array) : An array that defines the values to loop
@@ -302,6 +304,15 @@ class MeasurementControl(Instrument):
                 against in order
         The setpoints are internally reshaped to (N, M) to be natively
         compatible with M-dimensional loops.
+
+        Example
+
+            .. code-block:: python
+
+                MC.set_setpars([t, amp])
+                MC.set_setpoints_nD(t, [amp]) # beware! order matters
+                MC.set_getpars(sig)
+                dataset = MC.run('2D grid test')
         """
         self.set_setpoints(setpoints_x0)
         if len(setpoints_xn) == 1:
@@ -379,6 +390,22 @@ def is_getable(getable):
 
 
 def tile_setpoints_grid(setpoints_curr, additional_setpoints):
+    """
+    Tile setpoints into an n-dimensional grid, where n is the len of additional_setpoints.
+
+    Args:
+        setpoints (np.array):                   an (N,1) array corresponding to x-values.
+        additional_setpoints (list(np.array)):  an array of additional values for each axis.
+
+    Returns:
+        setpoints (np.array): an array with repeated x-values and
+        tiled xn-values.
+
+    .. warning ::
+
+        using this method typecasts all values into the same type. This may
+        lead to validator errors when setting e.g., a float instead of an int.
+    """
     assert np.shape(setpoints_curr)[1] == 1
     for setpoints_n in additional_setpoints:
         curr_l = len(setpoints_curr)
