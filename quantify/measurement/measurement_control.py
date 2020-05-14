@@ -18,8 +18,8 @@ class MeasurementControl(Instrument):
     MeasurementControl (MC) is based on the notion that every experiment
     consists of the following step.
 
-        1. Set some parameter(s)            (setable_pars)
-        2. Measure some other parameter(s)  (getable_pars)
+        1. Set some parameter(s)            (settable_pars)
+        2. Measure some other parameter(s)  (gettable_pars)
         3. Store the data.
 
     Example:
@@ -106,9 +106,9 @@ class MeasurementControl(Instrument):
 
         # variables that are set before the start
         # of any experiment.
-        self._setable_pars = []
+        self._settable_pars = []
         self._setpoints = []
-        self._getable_pars = []
+        self._gettable_pars = []
 
         # Variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
@@ -144,9 +144,9 @@ class MeasurementControl(Instrument):
 
         # initialize an empty dataset
 
-        dataset = initialize_dataset(self._setable_pars,
+        dataset = initialize_dataset(self._settable_pars,
                                      self._setpoints,
-                                     self._getable_pars)
+                                     self._gettable_pars)
 
         # cannot add it as a separte (nested) dict so make it flat.
         dataset.attrs['name'] = name
@@ -172,11 +172,11 @@ class MeasurementControl(Instrument):
         # Iterate over all points to set
         for idx, spts in enumerate(self._setpoints):
             # set all individual setparams
-            for spar, spt in zip(self._setable_pars, spts):
+            for spar, spt in zip(self._settable_pars, spts):
                 # TODO add smartness to avoid setting if unchanged
                 spar.set(spt)
             # acquire all data points
-            for j, gpar in enumerate(self._getable_pars):
+            for j, gpar in enumerate(self._gettable_pars):
                 val = gpar.get()
                 dataset['y{}'.format(j)].values[idx] = val
 
@@ -240,29 +240,26 @@ class MeasurementControl(Instrument):
     # Non-parameter get/set functions  #
     ####################################
 
-    def set_setpars(self, setable_pars):
+    def set_setpars(self, settable_pars):
         """
-        Define the setable parameters for the acquisition loop.
+        Define the settable parameters for the acquisition loop.
 
         Args:
-            setable_pars: parameter(s) to be set during the acquisition loop.
+            settable_pars: parameter(s) to be set during the acquisition loop.
                 accepts:
-                - list or tuple of multiple setable objects
-                - a single setable object.
-            A setable object is an object that has at least
-                - unit (str) attribute
-                - name (str) attribute
-                - set method
-                See also `is_getable`
+                    - list or tuple of multiple Settable objects
+                    - a single Settable object.
+
+        The :class:`~quantify.measurement.Settable` helper class defines the requirements for a Settable object.
         """
         # for native nD compatibility we treat this like a list of
-        # setables.
-        if not isinstance(setable_pars, (list, tuple)):
-            setable_pars = [setable_pars]
+        # settables.
+        if not isinstance(settable_pars, (list, tuple)):
+            settable_pars = [settable_pars]
 
-        self._setable_pars = []
-        for i, setable in enumerate(setable_pars):
-            self._setable_pars.append(Settable(setable))
+        self._settable_pars = []
+        for i, settable in enumerate(settable_pars):
+            self._settable_pars.append(Settable(settable))
 
     def set_setpoints(self, setpoints):
         """
@@ -322,27 +319,24 @@ class MeasurementControl(Instrument):
 
         self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_2D)
 
-    def set_getpars(self, getable_par):
+    def set_getpars(self, gettable_par):
         """
         Define the parameters to be acquired during the acquisition loop.
 
         Args:
-            getable_pars: parameter(s) to be get during the acquisition loop.
+            gettable_pars: parameter(s) to be get during the acquisition loop.
                 accepts:
-                - list or tuple of multiple getable objects
-                - a single getable object.
-            A getable object is an object that has at least
-                - unit (str) attribute
-                - name (str) attribute
-                - get method
-                See also `is_getable`
+                    - list or tuple of multiple Gettable objects
+                    - a single Gettable object.
+
+        The :class:`~quantify.measurement.Gettable` helper class defines the requirements for a Gettable object.
 
         TODO: support fancier getables, i.e. ones that return
             - more than one quantity
             - multiple points at once (hard loop)
 
         """
-        self._getable_pars = [Gettable(getable_par)]
+        self._gettable_pars = [Gettable(gettable_par)]
 
 
 def tile_setpoints_grid(setpoints, setpoints_2D):
