@@ -106,7 +106,7 @@ class MeasurementControl(Instrument):
         # variables that are set before the start
         # of any experiment.
         self._setable_pars = []
-        self._setpoints = []
+        self._setpoints: np.array
         self._getable_pars = []
 
         # Variables used for book keeping during acquisition loop.
@@ -295,8 +295,11 @@ class MeasurementControl(Instrument):
         self._plot_info['2D-grid'] = False
 
     def set_setpoints_nD(self, setpoints_x0, setpoints_n):
-        if not isinstance(setpoints_n[0], list):
-            setpoints_n = [setpoints_n]
+        """
+        :param setpoints_x0:
+        :param setpoints_n: MUST BE AN ARR
+        :return:
+        """
         if len(setpoints_n) == 1:
             self._plot_info['xlen'] = len(setpoints_x0)
             self._plot_info['ylen'] = len(setpoints_n[0])
@@ -374,9 +377,11 @@ def is_getable(getable):
 def tile_setpoints_grid(setpoints_curr, additional_setpoints):
     assert np.shape(setpoints_curr)[1] == 1
     for setpoints_n in additional_setpoints:
-        x0_l = len(setpoints_curr)
-        x1_l = len(setpoints_n)
-        x0_tiled = np.tile(setpoints_curr[:, 0], x1_l)
-        x1_rep = np.repeat(setpoints_n, x0_l)
-        setpoints_curr = np.column_stack([x0_tiled, x1_rep])
+        curr_l = len(setpoints_curr)
+        new_l = len(setpoints_n)
+        col_stack = []
+        for i in range(0, np.size(setpoints_curr, 1)):
+            col_stack.append(np.tile(setpoints_curr[:, i], new_l))
+        col_stack.append(np.repeat(setpoints_n, curr_l))
+        setpoints_curr = np.column_stack(col_stack)
     return setpoints_curr

@@ -20,10 +20,11 @@ def CosFunc(t, amplitude, frequency, phase):
 # Parameters are created to emulate a system being measured
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
 amp = ManualParameter('amp', initial_value=1, unit='V', label='Time')
+freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Time')
 
 
 def cosine_model():
-    return CosFunc(t(), amplitude=amp(), frequency=1, phase=0)
+    return CosFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
 
 # We wrap our function in a Parameter to be able to give
@@ -97,8 +98,9 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints_nD(times, amps)
+        self.MC.set_setpoints_nD(times, [amps])
 
+        # todo is this assert working correctly?
         exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(amps), [times])
         assert (self.MC._setpoints.all() == exp_sp.all())
 
@@ -159,6 +161,43 @@ class TestMeasurementControl:
         assert (dset['x1'].values == y).all()
         assert (dset['y0'].values == expected_vals).all()
 
+    def test_soft_sweep_3D(self):
+
+        times = np.linspace(0, 5, 2)
+        amps = np.linspace(-1, 1, 3)
+        freqs = np.linspace(41000, 82000, 2)
+
+        self.MC.set_setpars([t, amp, freq])
+        self.MC.set_setpoints_nD(times, [amps, freqs])
+
+        exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(times), [amps, freqs])
+        assert (self.MC._setpoints.all() == exp_sp.all())
+
+        self.MC.set_getpars(sig)
+        dset = self.MC.run()
+
+        assert TUID.is_valid(dset.attrs['tuid'])
+
+        expected_vals = CosFunc(
+            t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
+
+        assert (dset['x0'].values.all() == exp_sp[:, 0].all())
+        assert (dset['x1'].values.all() == exp_sp[:, 1].all())
+        assert (dset['x2'].values.all() == exp_sp[:, 2].all())
+        assert (dset['y0'].values.all() == expected_vals.all())
+
+        # Test properties of the dataset
+        assert isinstance(dset, xr.Dataset)
+        assert dset.keys() == {'x0', 'x1', 'x2', 'y0'}
+        assert (dset['x0'].values.all() == times.all())
+        assert (dset['x1'].values.all() == amps.all())
+        assert (dset['x2'].values.all() == freqs.all())
+
+        assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
+        assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Time', 'unit': 'Hz'}
+
+        assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
     def test_progress_callback(self):
 
         progress_param = ManualParameter("progress", initial_value=0)
@@ -189,7 +228,7 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints_nD(times, amps)
+        self.MC.set_setpoints_nD(times, [amps])
         self.MC.set_getpars(sig)
         dset = self.MC.run('2D Cosine test')
 
