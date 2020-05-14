@@ -97,9 +97,9 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints_2D(times, amps)
+        self.MC.set_setpoints_nD(times, amps)
 
-        exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(amps), times)
+        exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(amps), [times])
         assert (self.MC._setpoints.all() == exp_sp.all())
 
         self.MC.set_getpars(sig)
@@ -189,7 +189,7 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints_2D(times, amps)
+        self.MC.set_setpoints_nD(times, amps)
         self.MC.set_getpars(sig)
         dset = self.MC.run('2D Cosine test')
 
@@ -253,6 +253,6 @@ def test_tile_setpoints_grid():
     x = x.reshape((len(x), 1))
     y = np.linspace(-1, 1, 3)
 
-    sp = tile_setpoints_grid(x, y)
+    sp = tile_setpoints_grid(x, [y])
     assert sp[:, 0].all() == np.tile(np.arange(5), 3).all()
     assert sp[:, 1].all() == np.repeat(y, 5).all()

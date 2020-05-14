@@ -294,33 +294,14 @@ class MeasurementControl(Instrument):
         # this gets updated after calling set_setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_2D(self, setpoints_x0, setpoints_x1):
-        """
-        A convenience function to quickly set up a 2D grid measurement.
-
-        Args:
-            setpoints_x0 (np.array): an array of N x0-values.
-            setpoints_x1 (np.array): an array of M x1-values.
-
-        Updates the setpoints in a grid by repeating the x0 setpoints M times
-        and filling the second column with tiled values of x1.
-        Additionally updates self._plot_info meta data.
-
-        Example:
-
-            .. code-block:: python
-
-                MC.set_setpars([t, amp])
-                MC.set_setpoints_2D(times, amps)
-                MC.set_getpars(sig)
-                dataset = MC.run('2D grid test')
-        """
-
-        self._plot_info['2D-grid'] = True
-        self._plot_info['xlen'] = len(setpoints_x0)
-        self._plot_info['ylen'] = len(setpoints_x1)
-
-        self._setpoints = tile_setpoints_grid(self.verify_x0_shape(setpoints_x0), setpoints_x1)
+    def set_setpoints_nD(self, setpoints_x0, setpoints_n):
+        if not isinstance(setpoints_n[0], list):
+            setpoints_n = [setpoints_n]
+        if len(setpoints_n) == 1:
+            self._plot_info['xlen'] = len(setpoints_x0)
+            self._plot_info['ylen'] = len(setpoints_n[0])
+            self._plot_info['2D-grid'] = True
+        self._setpoints = tile_setpoints_grid(self.verify_x0_shape(setpoints_x0), setpoints_n)
 
     def set_getpars(self, getable_par):
         """
@@ -390,43 +371,12 @@ def is_getable(getable):
     return True
 
 
-"""
 def tile_setpoints_grid(setpoints_curr, additional_setpoints):
     assert np.shape(setpoints_curr)[1] == 1
-    for setpoints_n in [additional_setpoints]:
+    for setpoints_n in additional_setpoints:
         x0_l = len(setpoints_curr)
         x1_l = len(setpoints_n)
         x0_tiled = np.tile(setpoints_curr[:, 0], x1_l)
         x1_rep = np.repeat(setpoints_n, x0_l)
         setpoints_curr = np.column_stack([x0_tiled, x1_rep])
     return setpoints_curr
-"""
-
-
-def tile_setpoints_grid(setpoints, setpoints_2D):
-    """
-    Tile setpoints into a 2D grid.
-
-    Args:
-        setpoints    (np.array): an (N,1) array corresponding to x-values.
-        setpoints_2D (np.array): a length M array corresponding to y-values.
-
-    Returns:
-        setpoints (np.array): an ((N*M),2) array with repeated x-values and
-        tiled y-values.
-
-    .. warning ::
-
-        using this method typecasts all values into the same type. This may
-        lead to validator errors when setting e.g., a float instead of an int.
-    """
-
-    assert np.shape(setpoints)[1] == 1
-
-    xl = len(setpoints)
-    yl = len(setpoints_2D)
-    x_tiled = np.tile(setpoints[:, 0], yl)
-    y_rep = np.repeat(setpoints_2D, xl)
-    setpoints = np.column_stack([x_tiled, y_rep])
-
-    return setpoints
