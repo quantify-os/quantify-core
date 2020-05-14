@@ -106,7 +106,7 @@ class MeasurementControl(Instrument):
         # variables that are set before the start
         # of any experiment.
         self._setable_pars = []
-        self._setpoints: np.array
+        self._setpoints = []
         self._getable_pars = []
 
         # Variables used for book keeping during acquisition loop.
@@ -264,12 +264,6 @@ class MeasurementControl(Instrument):
             if is_setable(setable):
                 self._setable_pars.append(setable)
 
-    def verify_x0_shape(self, setpoints):
-        sp_shape = np.shape(setpoints)
-        if len(sp_shape) == 1:
-            setpoints = setpoints.reshape((len(setpoints), 1))
-        return setpoints
-
     def set_setpoints(self, setpoints):
         """
         Set setpoints that determine values to be set in acquisition loop.
@@ -288,23 +282,33 @@ class MeasurementControl(Instrument):
             Use :code:`np.colstack((x0, x1))` to reshape multiple
             1D arrays when setting multiple setables.
         """
-        self._setpoints = self.verify_x0_shape(setpoints)
+        if len(np.shape(setpoints)) == 1:
+            setpoints = setpoints.reshape((len(setpoints), 1))
+        self._setpoints = setpoints
 
         # set to False whenever new setpoints are defined.
         # this gets updated after calling set_setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_nD(self, setpoints_x0, setpoints_n):
+    def set_setpoints_nD(self, setpoints_x0, setpoints_xn):
         """
-        :param setpoints_x0:
-        :param setpoints_n: MUST BE AN ARR
-        :return:
+        Set a setpoint grid that determine values to be set in acquisition loop.
+
+        Args:
+            setpoints_x0 (np.array) : An array that defines the values to loop
+                over in the experiment. The shape of the the array has to be
+                either (N,) (N,1) for a 1D loop
+            setpoints_xn (list(np.array)) : An array of additional values to loop
+                against in order
+        The setpoints are internally reshaped to (N, M) to be natively
+        compatible with M-dimensional loops.
         """
-        if len(setpoints_n) == 1:
+        self.set_setpoints(setpoints_x0)
+        if len(setpoints_xn) == 1:
             self._plot_info['xlen'] = len(setpoints_x0)
-            self._plot_info['ylen'] = len(setpoints_n[0])
+            self._plot_info['ylen'] = len(setpoints_xn[0])
             self._plot_info['2D-grid'] = True
-        self._setpoints = tile_setpoints_grid(self.verify_x0_shape(setpoints_x0), setpoints_n)
+        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_xn)
 
     def set_getpars(self, getable_par):
         """

@@ -19,8 +19,8 @@ def CosFunc(t, amplitude, frequency, phase):
 
 # Parameters are created to emulate a system being measured
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
-amp = ManualParameter('amp', initial_value=1, unit='V', label='Time')
-freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Time')
+amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
+freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Frequency')
 
 
 def cosine_model():
@@ -74,23 +74,16 @@ class TestMeasurementControl:
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
-        expected_vals = CosFunc(
-            t=xvals, amplitude=1, frequency=1, phase=0)
+        expected_vals = CosFunc(t=xvals, amplitude=1, frequency=1, phase=0)
 
-        assert (dset['x0'].values == xvals).all()
-        assert (dset['y0'].values == expected_vals).all()
+        assert (np.array_equal(dset['x0'].values, xvals))
+        assert (np.array_equal(dset['y0'].values, expected_vals))
 
-        # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'y0'}
-        assert (dset['x0'] == xvals).all()
-        assert dset['x0'].attrs == {
-            'name': 't', 'long_name': 'Time', 'unit': 's'}
-
-        assert dset['y0'].attrs == {
-            'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
-
-        # Test values
+        assert (np.array_equal(dset['x0'], xvals))
+        assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
+        assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
     def test_soft_sweep_2D_grid(self):
 
@@ -100,33 +93,30 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp])
         self.MC.set_setpoints_nD(times, [amps])
 
-        # todo is this assert working correctly?
-        exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(amps), [times])
-        assert (self.MC._setpoints.all() == exp_sp.all())
+        exp_sp = tile_setpoints_grid(times.reshape(len(times), 1), [amps])
+        assert (np.array_equal(self.MC._setpoints, exp_sp))
 
         self.MC.set_getpars(sig)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
-        expected_vals = CosFunc(
-            t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0)
+        expected_vals = CosFunc(t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0)
 
-        assert (dset['x0'].values.all() == exp_sp[:, 0].all())
-        assert (dset['x1'].values.all() == exp_sp[:, 1].all())
-        assert (dset['y0'].values.all() == expected_vals.all())
+        assert (np.array_equal(dset['x0'].values, exp_sp[:, 0]))
+        assert (np.array_equal(dset['x1'].values, exp_sp[:, 1]))
+        assert (np.array_equal(dset['y0'].values, expected_vals))
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'x1', 'y0'}
-        assert (dset['x0'].values.all() == times.all())
-        assert (dset['x1'].values.all() == amps.all())
 
-        assert dset['x0'].attrs == {
-            'name': 't', 'long_name': 'Time', 'unit': 's'}
+        assert (all(e in dset['x0'].values for e in times))
+        assert (all(e in dset['x1'].values for e in amps))
 
-        assert dset['y0'].attrs == {
-            'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+        assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
+        assert dset['x1'].attrs == {'name': 'amp', 'long_name': 'Amplitude', 'unit': 'V'}
+        assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
     def test_soft_sweep_2D_arbitrary(self):
 
@@ -154,12 +144,11 @@ class TestMeasurementControl:
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
-        expected_vals = CosFunc(
-            t=x, amplitude=y, frequency=1, phase=0)
+        expected_vals = CosFunc(t=x, amplitude=y, frequency=1, phase=0)
 
-        assert (dset['x0'].values == x).all()
-        assert (dset['x1'].values == y).all()
-        assert (dset['y0'].values == expected_vals).all()
+        assert (np.array_equal(dset['x0'].values, x))
+        assert (np.array_equal(dset['x1'].values, y))
+        assert (np.array_equal(dset['y0'].values, expected_vals))
 
     def test_soft_sweep_3D(self):
 
@@ -170,32 +159,30 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp, freq])
         self.MC.set_setpoints_nD(times, [amps, freqs])
 
-        exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(times), [amps, freqs])
-        assert (self.MC._setpoints.all() == exp_sp.all())
+        exp_sp = tile_setpoints_grid(times.reshape(len(times), 1), [amps, freqs])
+        assert (np.array_equal(self.MC._setpoints, exp_sp))
 
         self.MC.set_getpars(sig)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
-        expected_vals = CosFunc(
-            t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
+        expected_vals = CosFunc(t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
 
-        assert (dset['x0'].values.all() == exp_sp[:, 0].all())
-        assert (dset['x1'].values.all() == exp_sp[:, 1].all())
-        assert (dset['x2'].values.all() == exp_sp[:, 2].all())
-        assert (dset['y0'].values.all() == expected_vals.all())
+        assert (np.array_equal(dset['x0'].values, exp_sp[:, 0]))
+        assert (np.array_equal(dset['x1'].values, exp_sp[:, 1]))
+        assert (np.array_equal(dset['x2'].values, exp_sp[:, 2]))
+        assert (np.array_equal(dset['y0'].values, expected_vals))
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'x1', 'x2', 'y0'}
-        assert (dset['x0'].values.all() == times.all())
-        assert (dset['x1'].values.all() == amps.all())
-        assert (dset['x2'].values.all() == freqs.all())
+        assert (all(e in dset['x0'] for e in times))
+        assert (all(e in dset['x1'] for e in amps))
+        assert (all(e in dset['x2'] for e in freqs))
 
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
-        assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Time', 'unit': 'Hz'}
-
+        assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
     def test_progress_callback(self):
@@ -295,3 +282,9 @@ def test_tile_setpoints_grid():
     sp = tile_setpoints_grid(x, [y])
     assert sp[:, 0].all() == np.tile(np.arange(5), 3).all()
     assert sp[:, 1].all() == np.repeat(y, 5).all()
+
+    z = np.linspace(100, 200, 2)
+    sp = tile_setpoints_grid(x, [y, z])
+    assert (all(e in sp[:, 0] for e in x))
+    assert (all(e in sp[:, 1] for e in y))
+    assert (all(e in sp[:, 2] for e in z))
