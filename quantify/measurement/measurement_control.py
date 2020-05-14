@@ -264,6 +264,12 @@ class MeasurementControl(Instrument):
             if is_setable(setable):
                 self._setable_pars.append(setable)
 
+    def verify_x0_shape(self, setpoints):
+        sp_shape = np.shape(setpoints)
+        if len(sp_shape) == 1:
+            setpoints = setpoints.reshape((len(setpoints), 1))
+        return setpoints
+
     def set_setpoints(self, setpoints):
         """
         Set setpoints that determine values to be set in acquisition loop.
@@ -282,10 +288,7 @@ class MeasurementControl(Instrument):
             Use :code:`np.colstack((x0, x1))` to reshape multiple
             1D arrays when setting multiple setables.
         """
-        sp_shape = np.shape(setpoints)
-        if len(sp_shape) == 1:
-            setpoints = setpoints.reshape((len(setpoints), 1))
-        self._setpoints = setpoints
+        self._setpoints = self.verify_x0_shape(setpoints)
 
         # set to False whenever new setpoints are defined.
         # this gets updated after calling set_setpoints_2D.
@@ -317,7 +320,7 @@ class MeasurementControl(Instrument):
         self._plot_info['xlen'] = len(setpoints_x0)
         self._plot_info['ylen'] = len(setpoints_x1)
 
-        self._setpoints = tile_setpoints_grid(setpoints_x0, setpoints_x1)
+        self._setpoints = tile_setpoints_grid(self.verify_x0_shape(setpoints_x0), setpoints_x1)
 
     def set_getpars(self, getable_par):
         """

@@ -99,8 +99,8 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp])
         self.MC.set_setpoints_2D(times, amps)
 
-        exp_sp = tile_setpoints_grid(amps, times)
-        assert (self.MC._setpoints == exp_sp).all()
+        exp_sp = tile_setpoints_grid(self.MC.verify_x0_shape(amps), times)
+        assert (self.MC._setpoints.all() == exp_sp.all())
 
         self.MC.set_getpars(sig)
         dset = self.MC.run()
@@ -110,15 +110,15 @@ class TestMeasurementControl:
         expected_vals = CosFunc(
             t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0)
 
-        assert (dset['x0'].values == exp_sp[:, 0]).all()
-        assert (dset['x1'].values == exp_sp[:, 1]).all()
-        assert (dset['y0'].values == expected_vals).all()
+        assert (dset['x0'].values.all() == exp_sp[:, 0].all())
+        assert (dset['x1'].values.all() == exp_sp[:, 1].all())
+        assert (dset['y0'].values.all() == expected_vals.all())
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'x1', 'y0'}
-        assert (dset['x0'] == times).all()
-        assert (dset['x1'] == amps).all()
+        assert (dset['x0'].values.all() == times.all())
+        assert (dset['x1'].values.all() == amps.all())
 
         assert dset['x0'].attrs == {
             'name': 't', 'long_name': 'Time', 'unit': 's'}
