@@ -11,7 +11,7 @@ from qcodes.plots.colors import color_cycle
 from qcodes.instrument.base import Instrument
 
 
-from quantify.data.data_handling import load_dataset, get_latest_tuid
+from quantify.data.handling import load_dataset, get_latest_tuid
 
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 

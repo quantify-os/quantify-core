@@ -5,7 +5,7 @@ from quantify.visualization import PlotMonitor_pyqt
 
 import os
 import quantify
-from quantify.data.core_data import TUID
+from quantify.data.types import TUID
 from quantify import set_datadir
 
 test_datadir = os.path.join(os.path.split(
