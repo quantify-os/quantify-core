@@ -1,18 +1,10 @@
-===========================
-API reference
-===========================
+
+quantify
+=============
 
 .. automodule:: quantify
    :members:
 
-
-measurement
-=============
-
-.. automodule:: quantify.measurement
-    :members:
-    :undoc-members:
-    :special-members:
 
 data
 =============
@@ -23,9 +15,6 @@ core_data
 
 .. automodule:: quantify.data.core_data
     :members:
-    :undoc-members:
-
-
 
 data_handling
 ----------------
@@ -33,9 +22,19 @@ data_handling
 
 .. automodule:: quantify.data.data_handling
     :members:
-    :undoc-members:
-    :special-members:
 
+measurement
+=============
+
+.. automodule:: quantify.measurement
+    :members:
+
+
+sequencer
+============
+
+.. automodule:: quantify.sequencer
+    :members:
 
 visualization
 =============
@@ -43,8 +42,6 @@ visualization
 
 .. automodule:: quantify.visualization
     :members:
-    :undoc-members:
-    :special-members:
 
     .. :inherited-members:
     .. :show-inheritance:

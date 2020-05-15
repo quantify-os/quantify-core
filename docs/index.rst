@@ -11,6 +11,7 @@ Welcome to quantify's documentation!
    installation
    usage
    dataset_spec
+   sequencer
    contributing
    authors
    history
