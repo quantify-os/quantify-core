@@ -313,7 +313,7 @@ class MeasurementControl(Instrument):
             self._plot_info['xlen'] = len(setpoints[0])
             self._plot_info['ylen'] = len(setpoints[1])
             self._plot_info['2D-grid'] = True
-        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints[1:])
+        self.set_setpoints(tile_setpoints_grid(self._setpoints, setpoints[1:]))
 
     def set_getpars(self, getable_par):
         """
