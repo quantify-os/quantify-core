@@ -290,36 +290,30 @@ class MeasurementControl(Instrument):
         # this gets updated after calling set_setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_nD(self, setpoints_x0, setpoints_xn):
+    def set_setpoints_grid(self, setpoints):
         """
         Set a setpoint grid that determine values to be set in acquisition loop.
         Updates the setpoints in a grid by repeating the setpoints M times
         and filling the second column with tiled values.
 
         Args:
-            setpoints_x0 (np.array) : An array that defines the values to loop
-                over in the experiment. The shape of the the array has to be
-                either (N,) (N,1) for a 1D loop
-            setpoints_xn (list(np.array)) : An array of additional values to loop
-                against in order
-        The setpoints are internally reshaped to (N, M) to be natively
-        compatible with M-dimensional loops.
+            setpoints (list(np.array)) : A list of arrays that defines the values to loop
+                over in the experiment. The grid is reshaped in this order.
 
         Example
 
             .. code-block:: python
-
                 MC.set_setpars([t, amp])
-                MC.set_setpoints_nD(t, [amp]) # beware! order matters
+                MC.set_setpoints_grid([times, amplitudes]) # beware! order matters
                 MC.set_getpars(sig)
-                dataset = MC.run('2D grid test')
+                dataset = MC.run('2D grid')
         """
-        self.set_setpoints(setpoints_x0)
-        if len(setpoints_xn) == 1:
-            self._plot_info['xlen'] = len(setpoints_x0)
-            self._plot_info['ylen'] = len(setpoints_xn[0])
+        self.set_setpoints(setpoints[0])
+        if len(setpoints) == 2:
+            self._plot_info['xlen'] = len(setpoints[0])
+            self._plot_info['ylen'] = len(setpoints[1])
             self._plot_info['2D-grid'] = True
-        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_xn)
+        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints[1:])
 
     def set_getpars(self, getable_par):
         """

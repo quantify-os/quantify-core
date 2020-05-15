@@ -91,7 +91,7 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints_nD(times, [amps])
+        self.MC.set_setpoints_grid([times, amps])
 
         exp_sp = tile_setpoints_grid(times.reshape(len(times), 1), [amps])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
@@ -150,14 +150,14 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x1'].values, y))
         assert (np.array_equal(dset['y0'].values, expected_vals))
 
-    def test_soft_sweep_3D(self):
+    def test_soft_sweep_3D_grid(self):
 
         times = np.linspace(0, 5, 2)
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
 
         self.MC.set_setpars([t, amp, freq])
-        self.MC.set_setpoints_nD(times, [amps, freqs])
+        self.MC.set_setpoints_grid([times, amps, freqs])
 
         exp_sp = tile_setpoints_grid(times.reshape(len(times), 1), [amps, freqs])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
@@ -215,7 +215,7 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 5)
 
         self.MC.set_setpars([t, amp])
-        self.MC.set_setpoints_nD(times, [amps])
+        self.MC.set_setpoints_grid([times, amps])
         self.MC.set_getpars(sig)
         dset = self.MC.run('2D Cosine test')
 
