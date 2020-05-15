@@ -23,6 +23,7 @@ freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Frequency')
 
 
 
+
 def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
