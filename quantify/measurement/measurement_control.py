@@ -304,7 +304,7 @@ class MeasurementControl(Instrument):
 
             .. code-block:: python
                 MC.set_setpars([t, amp])
-                MC.set_setpoints_grid([times, amplitudes]) # beware! order matters
+                MC.set_setpoints_grid([times, amplitudes])
                 MC.set_getpars(sig)
                 dataset = MC.run('2D grid')
         """
