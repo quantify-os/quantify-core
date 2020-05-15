@@ -308,12 +308,11 @@ class MeasurementControl(Instrument):
                 MC.set_getpars(sig)
                 dataset = MC.run('2D grid')
         """
-        self.set_setpoints(setpoints[0])
         if len(setpoints) == 2:
             self._plot_info['xlen'] = len(setpoints[0])
             self._plot_info['ylen'] = len(setpoints[1])
             self._plot_info['2D-grid'] = True
-        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints[1:])
+        self._setpoints = tile_setpoints_grid(setpoints)
 
     def set_getpars(self, getable_par):
         """
@@ -383,16 +382,16 @@ def is_getable(getable):
     return True
 
 
-def tile_setpoints_grid(setpoints_curr, additional_setpoints):
+def tile_setpoints_grid(setpoints):
     """
-    Tile setpoints into an n-dimensional grid, where n is the len of additional_setpoints.
+    Tile setpoints into an n-dimensional grid.
 
     Args:
-        setpoints (np.array):                   an (N,1) array corresponding to x-values.
-        additional_setpoints (list(np.array)):  an array of additional values for each axis.
+        setpoints (list(np.array)) : A list of arrays that defines the values to loop
+        over in the experiment. The grid is reshaped in this order.
 
     Returns:
-        setpoints (np.array): an array with repeated x-values and
+        xn (np.array): an array with repeated x-values and
         tiled xn-values.
 
     .. warning ::
@@ -400,13 +399,13 @@ def tile_setpoints_grid(setpoints_curr, additional_setpoints):
         using this method typecasts all values into the same type. This may
         lead to validator errors when setting e.g., a float instead of an int.
     """
-    assert np.shape(setpoints_curr)[1] == 1
-    for setpoints_n in additional_setpoints:
-        curr_l = len(setpoints_curr)
+    xn = setpoints[0].reshape((len(setpoints[0]), 1))
+    for setpoints_n in setpoints[1:]:
+        curr_l = len(xn)
         new_l = len(setpoints_n)
         col_stack = []
-        for i in range(0, np.size(setpoints_curr, 1)):
-            col_stack.append(np.tile(setpoints_curr[:, i], new_l))
+        for i in range(0, np.size(xn, 1)):
+            col_stack.append(np.tile(xn[:, i], new_l))
         col_stack.append(np.repeat(setpoints_n, curr_l))
-        setpoints_curr = np.column_stack(col_stack)
-    return setpoints_curr
+        xn = np.column_stack(col_stack)
+    return xn

@@ -93,7 +93,7 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp])
         self.MC.set_setpoints_grid([times, amps])
 
-        exp_sp = tile_setpoints_grid(times.reshape(len(times), 1), [amps])
+        exp_sp = tile_setpoints_grid([times, amps])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
         self.MC.set_getpars(sig)
@@ -159,7 +159,7 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp, freq])
         self.MC.set_setpoints_grid([times, amps, freqs])
 
-        exp_sp = tile_setpoints_grid(times.reshape(len(times), 1), [amps, freqs])
+        exp_sp = tile_setpoints_grid([times, amps, freqs])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
         self.MC.set_getpars(sig)
@@ -279,12 +279,12 @@ def test_tile_setpoints_grid():
     x = x.reshape((len(x), 1))
     y = np.linspace(-1, 1, 3)
 
-    sp = tile_setpoints_grid(x, [y])
+    sp = tile_setpoints_grid([x, y])
     assert sp[:, 0].all() == np.tile(np.arange(5), 3).all()
     assert sp[:, 1].all() == np.repeat(y, 5).all()
 
     z = np.linspace(100, 200, 2)
-    sp = tile_setpoints_grid(x, [y, z])
+    sp = tile_setpoints_grid([x, y, z])
     assert (all(e in sp[:, 0] for e in x))
     assert (all(e in sp[:, 1] for e in y))
     assert (all(e in sp[:, 2] for e in z))
