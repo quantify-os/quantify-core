@@ -8,25 +8,25 @@ from quantify.visualization.SI_utilities import SI_val_to_msg_str
 def test_non_SI():
     unit = 'arb.unit.'
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5, unit=unit)
-    scale_factor == 1
-    unit == post_unit
+    assert scale_factor == 1
+    assert unit == post_unit
 
 
 def test_SI_scale_factors():
     unit = 'V'
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5, unit=unit)
-    scale_factor == 1
-    ''+unit == post_unit
+    assert scale_factor == 1
+    assert ''+unit == post_unit
 
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000,
                                                          unit=unit)
-    scale_factor, 1 == 1000
-    'k'+unit == post_unit
+    assert scale_factor, 1 == 1000
+    assert 'k'+unit == post_unit
 
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=0.05,
                                                          unit=unit)
-    scale_factor == 1000
-    'm'+unit == post_unit
+    assert scale_factor == 1000
+    assert 'm'+unit == post_unit
 
 
 def test_label_scaling():
@@ -52,7 +52,6 @@ def test_SI_val_to_msg_str():
     val, unit = SI_val_to_msg_str(1030, 'm')
     assert val == str(1.03)
     assert unit == 'km'
-
 
 
 # class test_plot_lmfit_res(unittest.TestCase):

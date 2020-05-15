@@ -1,5 +1,3 @@
-import pytest
-import xarray as xr
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
 

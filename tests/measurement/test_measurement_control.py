@@ -1,4 +1,3 @@
-import pytest
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter, Parameter
@@ -20,6 +19,7 @@ def CosFunc(t, amplitude, frequency, phase):
 # Parameters are created to emulate a system being measured
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
 amp = ManualParameter('amp', initial_value=1, unit='V', label='Time')
+
 
 def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=1, phase=0)
@@ -49,17 +49,17 @@ class TestMeasurementControl:
     def test_set_setpoints(self):
         x = np.linspace(0, 10, 11)
         self.MC.set_setpoints(x)
-        self.MC._setpoints[:, 0] == x
+        assert self.MC._setpoints[:, 0] == x
 
         x = np.linspace(0, 10, 11)
 
         x = np.random.rand(15, 2)
         self.MC.set_setpoints(x)
-        self.MC._setpoints == x
+        assert self.MC._setpoints == x
 
         x = np.random.rand(15, 4)
         self.MC.set_setpoints(x)
-        self.MC._setpoints == x
+        assert self.MC._setpoints == x
 
     def test_soft_sweep_1D(self):
 
