@@ -57,11 +57,13 @@ The :class:`~quantify.measurement.MeasurementControl` is in charge of the data-a
 2. Measure (get) some parameter(s),
 3. Store the data.
 
+The interfaces for settable and gettable parameters are encapsulated in the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes respectively.
+
 :class:`~quantify.measurement.MeasurementControl` provides the following functionality
 
 - Enforce standardization of experiments
 - Standardized data storage
-- live plotting of the expermiment.
+- Live plotting of the experiment.
 - Support *advanced* experiments
 
     + Software controlled
@@ -79,9 +81,9 @@ In the example below we want to set frequencies on a microwave source and acquir
 
 .. code-block:: python
 
-    MC.set_setpars(mw_source1.freq)                 # We want to set the frequency of a microwave source
+    MC.set_setpars(Settable(mw_source1.freq))       # We want to set the frequency of a microwave source
     MC.set_setpoints(np.arange(5e9, 5.2e9, 100e3))  # Scan around 5.1 GHz
-    MC.set_getpars(pulsar_AQM.signal)               # acquire the signal from the pulsar AQM
+    MC.set_getpars(Gettable(pulsar_AQM.signal))     # acquire the signal from the pulsar AQM
     dataset = MC.run(name='Frequency sweep')        # Start the experiment
 
 

@@ -1,3 +1,4 @@
-from .measurement_control import MeasurementControl, is_setable, is_getable
+from .measurement_control import MeasurementControl
+from .core import Settable, Gettable
 
-__all__ = ['MeasurementControl', 'is_setable', 'is_getable']
+__all__ = ['MeasurementControl', 'Settable', 'Gettable']
