@@ -92,8 +92,8 @@ SI_PREFIXES = dict(zip(range(-24, 25, 3), 'yzafpnμm kMGTPEZY'))
 SI_PREFIXES[0] = ""
 
 # N.B. not all of these are SI units, however, all of these support SI prefixes
-SI_UNITS = 'm,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s'.split(
-    ',')
+SI_UNITS = 'm,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,' \
+           'Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s'.split(',')
 
 
 def SI_prefix_and_scale_factor(val, unit=None):
@@ -124,7 +124,7 @@ def SI_prefix_and_scale_factor(val, unit=None):
     return 1, unit if unit is not None else ""
 
 
-def SI_val_to_msg_str(val: float, unit: str=None, return_type=str):
+def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
     """
     Takes in a value  with optional unit and returns a string tuple consisting
     of (value_str, unit) where the value and unit are rescaled according to

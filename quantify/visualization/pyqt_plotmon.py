@@ -71,11 +71,11 @@ class PlotMonitor_pyqt(Instrument):
             del self.secondary_QtPlot
 
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.name), figsize=(600, 400)
-        )
+            window_title="Main plotmon of {}".format(self.name),
+            figsize=(600, 400))
         self.secondary_QtPlot = QtPlot(
-            window_title="Secondary plotmon of {}".format(self.name), figsize=(600, 400)
-        )
+            window_title="Secondary plotmon of {}".format(self.name),
+            figsize=(600, 400))
 
     def _initialize_plot_monitor(self, tuid):
         """
@@ -84,11 +84,12 @@ class PlotMonitor_pyqt(Instrument):
         """
 
         # Clear the plot monitors if required.
-        if self.main_QtPlot.traces != []:
+        if self.main_QtPlot.traces:
             self.main_QtPlot.clear()
 
-        if self.secondary_QtPlot.traces != []:
+        if self.secondary_QtPlot.traces:
             self.secondary_QtPlot.clear()
+
         self.curves = []
         self._im_curves = []
         self._im_scatters = []
@@ -131,12 +132,12 @@ class PlotMonitor_pyqt(Instrument):
 
                 x = dset['x0'].values[:dset.attrs['xlen']]
                 y = dset['x1'].values[::dset.attrs['xlen']]
-                Z = np.reshape(dset[yi].values,
+                z = np.reshape(dset[yi].values,
                                (len(x), len(y)), order='F').T
                 config_dict = {
                     "x": x,
                     "y": y,
-                    "z": Z,
+                    "z": z,
                     "xlabel": dset['x0'].attrs['long_name'],
                     "xunit": dset['x0'].attrs['unit'],
                     "ylabel": dset['x1'].attrs['long_name'],
