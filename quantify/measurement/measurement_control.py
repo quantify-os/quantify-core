@@ -274,9 +274,12 @@ class MeasurementControl(Instrument):
         The setpoints are internally reshaped to (N, M) to be natively
         compatible with M-dimensional loops.
 
+        .. tip::
+
+            Use :code:`np.colstack((x0, x1))` to reshape multiple
+            1D arrays when setting multiple setables.
         """
-        sp_shape = np.shape(setpoints)
-        if len(sp_shape) == 1:
+        if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
 
@@ -284,40 +287,29 @@ class MeasurementControl(Instrument):
         # this gets updated after calling set_setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_2D(self, setpoints_2D):
+    def set_setpoints_grid(self, setpoints):
         """
-        A convenience function to quickly set up a 2D grid measurement.
-
-        Args:
-            setpoints_2D (np.array): an array of M y-values.
-
-
+        Set a setpoint grid that determine values to be set in acquisition loop.
         Updates the setpoints in a grid by repeating the setpoints M times
         and filling the second column with tiled values.
-        Additionally updates self._plot_info meta data.
 
+        Args:
+            setpoints (list(np.array)) : A list of arrays that defines the values to loop
+                over in the experiment. The grid is reshaped in this order.
 
-        Example:
+        Example
 
             .. code-block:: python
-
                 MC.set_setpars([t, amp])
-                MC.set_setpoints(times)
-                MC.set_setpoints_2D(amps) # beware! order matters here
+                MC.set_setpoints_grid([times, amplitudes])
                 MC.set_getpars(sig)
-                dataset = MC.run('2D grid test')
-
-        .. warning ::
-
-            Beware that you need to specify the setpoints before specifying
-            the setpoints 2D when using this method.
+                dataset = MC.run('2D grid')
         """
-
-        self._plot_info['2D-grid'] = True
-        self._plot_info['xlen'] = len(self._setpoints)
-        self._plot_info['ylen'] = len(setpoints_2D)
-
-        self._setpoints = tile_setpoints_grid(self._setpoints, setpoints_2D)
+        if len(setpoints) == 2:
+            self._plot_info['xlen'] = len(setpoints[0])
+            self._plot_info['ylen'] = len(setpoints[1])
+            self._plot_info['2D-grid'] = True
+        self._setpoints = tile_setpoints_grid(setpoints)
 
     def set_getpars(self, gettable_par):
         """
@@ -339,30 +331,30 @@ class MeasurementControl(Instrument):
         self._gettable_pars = [Gettable(gettable_par)]
 
 
-def tile_setpoints_grid(setpoints, setpoints_2D):
+def tile_setpoints_grid(setpoints):
     """
-    Tile setpoints into a 2D grid.
+    Tile setpoints into an n-dimensional grid.
 
     Args:
-        setpoints    (np.array): an (N,1) array corresponding to x-values.
-        setpoints_2D (np.array): a length M array corresponding to y-values.
+        setpoints (list(np.array)) : A list of arrays that defines the values to loop
+        over in the experiment. The grid is reshaped in this order.
 
     Returns:
-        setpoints (np.array): an ((N*M),2) array with repeated x-values and
-        tiled y-values.
+        xn (np.array): an array with repeated x-values and
+        tiled xn-values.
 
     .. warning ::
 
         using this method typecasts all values into the same type. This may
         lead to validator errors when setting e.g., a float instead of an int.
     """
-
-    assert np.shape(setpoints)[1] == 1
-
-    xl = len(setpoints)
-    yl = len(setpoints_2D)
-    x_tiled = np.tile(setpoints[:, 0], yl)
-    y_rep = np.repeat(setpoints_2D, xl)
-    setpoints = np.column_stack([x_tiled, y_rep])
-
-    return setpoints
+    xn = setpoints[0].reshape((len(setpoints[0]), 1))
+    for setpoints_n in setpoints[1:]:
+        curr_l = len(xn)
+        new_l = len(setpoints_n)
+        col_stack = []
+        for i in range(0, np.size(xn, 1)):
+            col_stack.append(np.tile(xn[:, i], new_l))
+        col_stack.append(np.repeat(setpoints_n, curr_l))
+        xn = np.column_stack(col_stack)
+    return xn
