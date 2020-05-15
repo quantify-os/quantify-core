@@ -1,4 +1,4 @@
-from .measurement_control import MeasurementControl
-from .core import Settable, Gettable
+from .control import MeasurementControl
+from .types import Settable, Gettable
 
 __all__ = ['MeasurementControl', 'Settable', 'Gettable']

@@ -2,10 +2,10 @@ import pytest
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter, Parameter
-from quantify.measurement.measurement_control import MeasurementControl, \
+from quantify.measurement.control import MeasurementControl, \
     tile_setpoints_grid
 from quantify import set_datadir
-from quantify.data.core_data import TUID
+from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 

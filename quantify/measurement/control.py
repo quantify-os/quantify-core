@@ -3,9 +3,9 @@ import time
 import json
 from os.path import join
 from qcodes import Instrument
-from quantify.data.data_handling import initialize_dataset, \
+from quantify.data.handling import initialize_dataset, \
     create_exp_folder, snapshot
-from quantify.measurement.core import Settable, Gettable
+from quantify.measurement.types import Settable, Gettable
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals
 from qcodes.utils.helpers import NumpyJSONEncoder

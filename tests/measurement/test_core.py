@@ -1,6 +1,6 @@
 import pytest
 from qcodes import ManualParameter, Parameter
-from quantify.measurement.core import Settable, Gettable
+from quantify.measurement.types import Settable, Gettable
 
 
 def test_settable():

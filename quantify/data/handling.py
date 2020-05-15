@@ -7,7 +7,7 @@ This module contains  utilities to handle the data files in quantify.
 import os
 import numpy as np
 import xarray as xr
-from quantify.data.core_data import TUID
+from quantify.data.types import TUID
 from qcodes import Instrument
 from quantify.utilities.general import delete_keys_from_dict
 from datetime import datetime
@@ -125,7 +125,7 @@ def create_exp_folder(tuid,  name='', datadir=None):
     corresponding to the :class:`~quantify.data.core_data.TUID`.
 
     Args:
-        tuid (:class:`~quantify.data.core_data.TUID`) :
+        tuid (:class:`~quantify.data.types.TUID`) :
             a timestamp based human-readable unique identifier.
         name (str) : optional name to identify the folder
         datadir (str):
