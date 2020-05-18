@@ -12,7 +12,6 @@ data
 core_data
 -------------
 
-
 .. automodule:: quantify.data.core_data
     :members:
 
