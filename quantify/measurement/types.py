@@ -15,7 +15,7 @@ class Settable(type):
         - name: str
         - unit: str
     """
-    def __new__(mcs, obj):
+    def __new__(cls, obj):
         for attr, t in {'name': str, 'unit': str, 'set': None}.items():
             check_attribute(obj, attr, t)
         return obj
@@ -30,7 +30,7 @@ class Gettable(type):
         - name: str
         - unit: str
     """
-    def __new__(mcs, obj):
+    def __new__(cls, obj):
         for attr, t in {'name': str, 'unit': str, 'get': None}.items():
             check_attribute(obj, attr, t)
         return obj

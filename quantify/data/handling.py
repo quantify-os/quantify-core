@@ -5,21 +5,20 @@ This module contains  utilities to handle the data files in quantify.
 
 """
 import os
-import numpy as np
-import xarray as xr
-from quantify.data.types import TUID
-from qcodes import Instrument
-from quantify.utilities.general import delete_keys_from_dict
+import sys
 from datetime import datetime
 from uuid import uuid4
-import sys
+import numpy as np
+import xarray as xr
+from qcodes import Instrument
+from quantify.data.types import TUID
+from quantify.utilities.general import delete_keys_from_dict
 
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
-_default_datadir = os.path.abspath(os.path.join(
-    __file__, '..', '..', '..', 'data'))
+_default_datadir = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'data'))
 
 this._datadir = None
 
@@ -75,11 +74,13 @@ def load_dataset(tuid, datadir=None):
         tuid (str): a :class:`~quantify.data.core_data.TUID` string.
             It is also possible to specify only the first part of a tuid.
 
-        datadir (str):
-            path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+        datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
 
     Returns:
-        dataset
+        dataset (xr.Dataset): The dataset
+
+    Raises:
+        FileNotFoundError: No data found for specified date
 
     .. tip::
 
@@ -96,8 +97,7 @@ def load_dataset(tuid, datadir=None):
 
     daydir = os.path.join(datadir, tuid[:8])
 
-    # This will raise a file not found error if no data exists on the specified
-    # date
+    # This will raise a file not found error if no data exists on the specified date
     exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
     if len(exp_folders) == 0:
         print(os.listdir(daydir))
@@ -110,7 +110,7 @@ def load_dataset(tuid, datadir=None):
     return dataset
 
 
-def create_exp_folder(tuid,  name='', datadir=None):
+def create_exp_folder(tuid, name='', datadir=None):
     """
     Creates an empty folder to store an experiment container.
 
@@ -122,8 +122,9 @@ def create_exp_folder(tuid,  name='', datadir=None):
         name (str) : optional name to identify the folder
         datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
 
-    Returns: exp_folder (str): the full path of the experiment folder following the convention:
-        /datadir/YYMMDD/HHMMSS-******-name/
+    Returns:
+        exp_folder (str): the full path of the experiment folder
+            following the convention: /datadir/YYMMDD/HHMMSS-******-name/
     """
     assert TUID.is_valid(tuid)
 
@@ -142,10 +143,13 @@ def is_valid_dset(dset):
     Asserts if dset adheres to quantify Dataset specification.
 
     Args:
-        dset: an xarray dset object
+        dset (xr.Dataset): the dataset
 
     Returns:
         is_valid (bool)
+
+    Raises:
+        TypeError: the dataset is not of type xarray.Dataset
     """
     if not isinstance(dset, xr.Dataset):
         raise TypeError
@@ -160,8 +164,7 @@ def append_to_Xarr():
 
 def initialize_dataset(setable_pars, setpoints, getable_pars):
     """
-    Initialize an empty dataset based on
-        setable_pars, setpoints and getable_pars
+    Initialize an empty dataset based on setable_pars, setpoints and getable_pars
 
     Args:
         setable_pars (list):    a list of M setables
@@ -169,7 +172,7 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
         getable_pars (list):    a list of getables
 
     Returns:
-        Dataset
+        Dataset (xr.Dataset): the dataset
 
     """
     darrs = []
@@ -204,6 +207,12 @@ def get_latest_tuid(contains=''):
 
     Args:
         contains (str): an optional string that is contained in the experiment name
+
+    Returns:
+        tuid (:class:`~quantify.data.core_data.TUID`): the latest TUID
+
+    Raises:
+        FileNotFoundError: No data found
 
     .. tip::
 

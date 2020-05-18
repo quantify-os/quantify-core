@@ -42,6 +42,9 @@ class TUID(str):
         Returns:
             True if the string is a valid TUID.
 
+        Raises:
+            ValueError: Invalid format
+
         A valid tuid is a string formatted like "YYYYMMDD-HHMMSS-fff-******".
         """
 

@@ -1,14 +1,14 @@
-import numpy as np
 import time
 import json
 from os.path import join
+
+import numpy as np
 from qcodes import Instrument
-from quantify.data.handling import initialize_dataset, \
-    create_exp_folder, snapshot
-from quantify.measurement.types import Settable, Gettable
-from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals
+from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
+from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
+from quantify.measurement.types import Settable, Gettable
 
 
 class MeasurementControl(Instrument):
@@ -44,7 +44,7 @@ class MeasurementControl(Instrument):
 
     """
 
-    def __init__(self, name: str):  # verbose: bool = True
+    def __init__(self, name: str):
         """
         Creates an instance of the Measurement Control.
 
@@ -123,7 +123,7 @@ class MeasurementControl(Instrument):
             name (string): Name of the measurement. This name is included in the name of the data files.
 
         Returns:
-            dataset : an xarray Dataset object.
+            dataset (xarray.DataArray) : an xarray Dataset object.
         """
 
         # reset all variables that change during acquisition
@@ -236,7 +236,7 @@ class MeasurementControl(Instrument):
             settable_pars = [settable_pars]
 
         self._settable_pars = []
-        for i, settable in enumerate(settable_pars):
+        for _, settable in enumerate(settable_pars):
             self._settable_pars.append(Settable(settable))
 
     def set_setpoints(self, setpoints):

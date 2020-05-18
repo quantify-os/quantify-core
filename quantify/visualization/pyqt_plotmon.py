@@ -3,17 +3,14 @@ Module containing the pyqtgraph based plotting monitor.
 """
 import numpy as np
 
-from .plot_interpolation import interpolate_heatmap
-
-from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
-from qcodes.plots.colors import color_cycle
 from qcodes.instrument.base import Instrument
-
+from qcodes.instrument.parameter import ManualParameter
+from qcodes.plots.colors import color_cycle
+from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 from quantify.data.handling import load_dataset, get_latest_tuid
-
-from qcodes.plots.pyqtgraph import QtPlot, TransformState
+from quantify.visualization.plot_interpolation import interpolate_heatmap
 
 
 class PlotMonitor_pyqt(Instrument):
@@ -29,9 +26,7 @@ class PlotMonitor_pyqt(Instrument):
 
     """
 
-    def __init__(
-            self,
-            name: str):  # verbose: bool = True
+    def __init__(self, name: str):  # verbose: bool = True
         """
         Creates an instance of the Measurement Control.
 
@@ -56,7 +51,7 @@ class PlotMonitor_pyqt(Instrument):
         self.create_plot_monitor()
 
         # convenient access to curve variable for updating
-        self._curves = []
+        self.curves = []
         self._im_curves = []
         self._im_scatters = []
         self._im_scatters_last = []
@@ -80,8 +75,7 @@ class PlotMonitor_pyqt(Instrument):
 
     def _initialize_plot_monitor(self, tuid):
         """
-        Clears data in plot monitors and sets it up with the data from the
-        dataset
+        Clears data in plot monitors and sets it up with the data from the dataset
         """
 
         # Clear the plot monitors if required.
