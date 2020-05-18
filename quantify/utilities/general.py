@@ -10,11 +10,9 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
         keys (set)  a set of keys to strip from the dictionary.
 
     Return:
-        modified_dict (dict) a new dictionary that does not included the
-        blacklisted keys.
+        modified_dict (dict) a new dictionary that does not included the blacklisted keys.
 
-    function based on "https://stackoverflow.com/questions/3405715/
-    elegant-way-to-remove-fields-from-nested-dictionaries"
+    function based on "https://stackoverflow.com/questions/3405715/"
     """
     keys_set = set(keys)  # optimization for the "if key in keys" lookup.
 

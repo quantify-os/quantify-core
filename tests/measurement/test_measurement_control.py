@@ -22,8 +22,6 @@ amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
 freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Frequency')
 
 
-
-
 def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
@@ -52,17 +50,15 @@ class TestMeasurementControl:
     def test_set_setpoints(self):
         x = np.linspace(0, 10, 11)
         self.MC.set_setpoints(x)
-        assert self.MC._setpoints[:, 0] == x
-
-        x = np.linspace(0, 10, 11)
+        assert np.array_equal(self.MC._setpoints[:, 0], x)
 
         x = np.random.rand(15, 2)
         self.MC.set_setpoints(x)
-        assert self.MC._setpoints == x
+        assert np.array_equal(self.MC._setpoints, x)
 
         x = np.random.rand(15, 4)
         self.MC.set_setpoints(x)
-        assert self.MC._setpoints == x
+        assert np.array_equal(self.MC._setpoints, x)
 
     def test_soft_sweep_1D(self):
 
@@ -201,7 +197,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(t)
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
-        dset = self.MC.run()
+        self.MC.run()
 
         assert progress_param() == 100
 
@@ -218,9 +214,8 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp])
         self.MC.set_setpoints_grid([times, amps])
         self.MC.set_getpars(sig)
-        dset = self.MC.run('2D Cosine test')
+        self.MC.run('2D Cosine test')
 
-        # Test that the
         assert plotmon.tuid() != 'latest'
 
         plotmon.close()
@@ -229,7 +224,6 @@ class TestMeasurementControl:
 
 def test_tile_setpoints_grid():
     x = np.arange(5)
-    x = x.reshape((len(x), 1))
     y = np.linspace(-1, 1, 3)
 
     sp = tile_setpoints_grid([x, y])

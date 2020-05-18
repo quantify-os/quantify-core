@@ -8,8 +8,7 @@ def check_attribute(obj, attr, t):
 
 class Settable(type):
     """
-    Defines the Settable concept, which is considered complete if the
-    given type satisfies the following:
+    Defines the Settable concept, which is considered complete if the given type satisfies the following:
 
     contains attributes
         - set(float)
@@ -24,8 +23,7 @@ class Settable(type):
 
 class Gettable(type):
     """
-    Defines the Gettable concept, which is considered complete if the
-    given type satisfies the following:
+    Defines the Gettable concept, which is considered complete if the given type satisfies the following:
 
     contains attributes
         - get()

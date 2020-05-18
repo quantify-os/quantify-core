@@ -20,11 +20,12 @@ class PlotMonitor_pyqt(Instrument):
     """
     Pyqtgraph based plot monitor.
 
-    A plot monitor is intended to provide a real-time visualization of a
-    dataset.
+    A plot monitor is intended to provide a real-time visualization of a dataset.
     A plotmon should implement two methods
+        // todo what are these methods?
 
     The interface of a plot monitor is based on the tuid.
+        // todo what does this mean?
 
     """
 
