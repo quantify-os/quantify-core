@@ -12,10 +12,9 @@ quantify
 .. image:: https://gitlab.com/qblox/packages/software/quantify/badges/master/coverage.svg
     :target: https://gitlab.com/qblox/packages/software/quantify/-/commits/master
 
-
-.. image:: https://readthedocs.org/projects/quantify/badge/?version=latest
-        :target: https://quantify.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+.. image:: https://readthedocs.com/projects/qblox-quantify/badge/?version=latest&token=6b610a5e7169add25dfd4ada7f570a2b5c4faea54bdb4efd853a30f77aa13f40
+:target: https://qblox-quantify.readthedocs-hosted.com/en/latest/?badge=latest
+:alt: Documentation Status
 
 
 
@@ -24,8 +23,7 @@ It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spir
 
 It differs from QCoDeS in that it not only provides a framework of instruments, parameters and data but also pulse sequencing and a library of standard experiments including analysis.
 
-* Documentation (future): https://quantify.readthedocs.io.
-* Documentation (last commit to develop only): https://qblox.gitlab.io/packages/software/quantify/
+* Documentation: https://qblox-quantify.readthedocs-hosted.com/en/latest/
 
 
 Features
