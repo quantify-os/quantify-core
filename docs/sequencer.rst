@@ -93,7 +93,7 @@ Bell circuit
 Below is the QASM code used to perform this experiment in the `Quantum Inspire <http://>`_  [quantum inspire](https://www.quantum-inspire.com/) and a circuit diagram representation.
 We will be creating this same experiment using the Quantify sequencer.
 
-::
+.. code-block:: python
 
     version 1.0
 
@@ -101,7 +101,7 @@ We will be creating this same experiment using the Quantify sequencer.
 
     qubits 2
 
-    .Init
+    .init
     prep_z q[0:1]
 
 
