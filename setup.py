@@ -18,6 +18,7 @@ requirements = [
     'numpy',
     'scipy',
     'xarray',
+    'xxhash',
     'matplotlib',
     'lmfit',
     'pyqtgraph']

@@ -1,4 +1,6 @@
 import copy
+import xxhash
+import numpy as np
 from collections.abc import MutableMapping
 
 
@@ -36,12 +38,19 @@ def make_hash(o):
     from: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
     """
 
+    h = xxhash.xxh64()
     if isinstance(o, (set, tuple, list)):
 
         return tuple([make_hash(e) for e in o])
 
-    elif not isinstance(o, dict):
+    elif isinstance(o, np.ndarray):
+        # numpy arrays behave funny for hashing
+        h.update(o)
+        val = h.intdigest()
+        h.reset()
+        return val
 
+    elif not isinstance(o, dict):
         return hash(o)
 
     new_o = copy.deepcopy(o)

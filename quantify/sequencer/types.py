@@ -41,7 +41,7 @@ class Schedule(UserDict):
             raise NotImplementedError
 
     def __repr__(self):
-        return 'Shedule "{}" containing ({}) {}  (unique) operations.'.format(
+        return 'Schedule "{}" containing ({}) {}  (unique) operations.'.format(
             self.data['name'],
             len(self.data['operation_dict']), len(self.data['timing_constraints']))
 
