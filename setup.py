@@ -21,6 +21,7 @@ requirements = [
     'xxhash',
     'matplotlib',
     'lmfit',
+    'pyqt5',
     'pyqtgraph']
 
 setup_requirements = ['pytest-runner', ]
