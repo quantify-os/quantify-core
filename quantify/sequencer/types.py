@@ -6,23 +6,24 @@ from quantify.utilities.general import make_hash
 
 
 class Schedule(UserDict):
+    """
+    A collection of :class:`Operation` objects and timing contraints
+    that define relations between the operations.
+
+    The Schedule data structure is based on a dictionary.
+    This dictionary contains:
+
+        operation_dict     :  a hash table containing the unique :class:`Operation` s added to the schedule.
+        timing_constraints : a list of all timing constraints added between operations.
+
+
+    """
 
     def __init__(self, name: str, data: dict = None):
         """
-        A collection of :class:`Operation` objects and timing contraints
-        that define relations between the operations.
-
         Args:
             name (str) : name of the schedule
             data (dict): a dictionary containing a pre-existing schedule.
-
-        The Schedule data structure is based on a dictionary.
-        This dictionary contains:
-
-            operation_dict     :  a hash table containing the unique :class:`Operation` s added to the schedule.
-            timing_constraints : a list of all timing constraints added between operations.
-
-
         """
 
         # valiate the input data to ensure it is valid schedule data
@@ -31,12 +32,17 @@ class Schedule(UserDict):
         # ensure keys exist
         self.data['operation_dict'] = {}
         self.data['timing_constraints'] = {}
+        self.data['name'] = 'nameless'
 
         if name is not None:
             self.data['name'] = name
 
+        if data is not None:
+            raise NotImplementedError
+
     def __repr__(self):
-        return 'Shedule containing ({}) {}  (unique) operations.'.format(
+        return 'Shedule "{}" containing ({}) {}  (unique) operations.'.format(
+            self.data['name'],
             len(self.data['operation_dict']), len(self.data['timing_constraints']))
 
     @classmethod
@@ -45,9 +51,22 @@ class Schedule(UserDict):
 
         return True
 
-    def add_operation(operation, time=0,
-                      ref_op='last', ref_pt='end', label='auto') -> str:
+    def add_operation(operation, time: float = 0,
+                      ref_op: str = 'last', ref_pt: str = 'end',
+                      label: str = 'auto') -> str:
         """
+        Add an Operation to the schedule and specify timing constraints.
+
+        Args:
+            operation (:class:`Operation`): The operation to add to the schedule
+            time (float) : time between the the reference operation and added operation.
+            ref_op (str) : specifies the reference operation.
+            ref_op (str) : specifies the point of the ref_op to use as reference can be {'start', 'center', 'end'}
+            label  (str) : a label that can be used as an identifier when adding more operations.
+
+        Returns:
+            label (str): returns the unique identifier of the last added operation.
+
         """
         assert isinstance(operation, Operation)
 
@@ -56,7 +75,6 @@ class Schedule(UserDict):
         return label
 
     pass
-
 
 
 class Operation(UserDict):
@@ -118,6 +136,8 @@ class Operation(UserDict):
 
         if name is not None:
             self.data['name'] = name
+        if data is not None:
+            self.data.update(data)
 
     @property
     def hash(self):

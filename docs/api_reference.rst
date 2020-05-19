@@ -32,6 +32,10 @@ measurement
 sequencer
 ============
 
+top-level module
+-------------------
+
+
 .. automodule:: quantify.sequencer
     :members:
 

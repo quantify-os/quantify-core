@@ -40,7 +40,8 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx_rtd_theme',
               'sphinx.ext.mathjax',
               'nbsphinx',
-              'sphinxcontrib.blockdiag'
+              'sphinxcontrib.blockdiag',
+              'jupyter_sphinx'
               ]
 
 # Add any paths that contain templates here, relative to this directory.

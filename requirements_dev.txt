@@ -8,6 +8,7 @@ Sphinx
 nbsphinx
 sphinx-rtd-theme
 sphinxcontrib-blockdiag
+jupyter_sphinx
 twine==1.14.0
 
 pytest

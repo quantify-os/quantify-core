@@ -65,8 +65,105 @@ Example circuit diagram -> a visual representation of a schedule using the gate-
 Pulse sequence -> a visual representation of a schedule using the pulse-type information.
 Key idea is to provide access at highest level
 
-Examples
------------
+Example the Bell experiment
+----------------------------------------
+
+As the first example, we want to perform the  `Bell experiment <https://en.wikipedia.org/wiki/Bell%27s_theorem>`_ .
+In this example, we will go quite deep into the internals of the sequencer to show how the data strutures work.
+
+The goal of the Bell experiment is to create a Bell state :math:`|\Phi ^+\rangle=\frac{1}{2}(|00\rangle+|11\rangle)` followed by a measurement and observe violations of the CSHS inequality.
+
+By changing the basis in one which one of the detectors measures, we can observe an oscillation which should result in a violation of Bell's inequality.
+If everything is done properly, one should observe this oscillation:
+
+.. figure:: https://upload.wikimedia.org/wikipedia/commons/e/e2/Bell.svg
+  :figwidth: 50%
+
+
+
+
+
+Bell circuit
+~~~~~~~~~~~~~~~~
+Below is the QASM code used to perform this experiment in the `Quantum Inspire <http://>`_  [quantum inspire](https://www.quantum-inspire.com/) and a circuit diagram representation.
+We will be creating this same experiment using the Quantify sequencer.
+
+.. code::
+
+    version 1.0
+
+    # Bell experiment
+
+    qubits 2
+
+    .Init
+    prep_z q[0:1]
+
+
+    .Entangle
+    X90 q[0]
+    cnot q[0],q[1]
+
+    .Rotate
+    # change the value to change the basis of the detector
+    Rx q[0], 0.15
+
+    .Measurement
+    Measure_all
+
+
+.. figure:: /figures/bell_circuit_QI.png
+  :figwidth: 50%
+
+
+Creating the experiment using the quantify sequencer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We start by initializing an empty :class:`~quantify.sequencer.Schedule`
+
+.. jupyter-execute::
+
+  from quantify.sequencer import Schedule
+  sched = Schedule('Bell experiment')
+  sched
+
+Under the hood, the :class:`~quantify.sequencer.Schedule` is based on a dictionary that can be serialized
+
+.. jupyter-execute::
+
+  sched.data
+
+We also need to define the resources. For now these are just strings because I have not implemented them properly yet.
+
+.. jupyter-execute::
+
+  # define the resources
+  # q0, q1 = Qubits(n=2) # assumes all to all connectivity
+  q0, q1 = ('q0', 'q1') # we use strings because Resources have not been implemented yet
+
+
+We will now add some operations to the schedule.
+Because this experiment is most conveniently described on the gate level, we use operations defined in the :mod:`quantify.sequencer.gate_library` .
+
+
+.. jupyter-execute::
+
+  import quantify.sequencer.gate_library as gl
+  # Define the operations, these will be added to the circuit
+  init_all = gl.Reset(q0, q1)
+  x90_0 = gl.X90(q0)
+  cnot = gl.CNOT(qC=q0, qT= q1)
+  Rxy_theta = gl.Rxy(theta=23, phi=0, qubit=q0) # this will be replaced in our loop
+
+Similar to the schedule, :class:`~quantify.sequencer.Operation` are also based on dicts.
+
+
+.. jupyter-execute::
+    # Rxy_theta  # produces the same output
+    Rxy_theta.data
+
+
+Now we create the Bell experiment, including observing the oscillation in a simple for loop.
 
 
 

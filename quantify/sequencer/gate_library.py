@@ -33,7 +33,7 @@ class Rxy(Operation):
 
         # data =
 
-        name = super('Rxy({:.2f}, {:.2f}) {}'.format(theta, phi, qubit))
+        name = ('Rxy({:.2f}, {:.2f}) {}'.format(theta, phi, qubit))
 
         theta_r = np.deg2rad(theta)
         phi_r = np.deg2rad(phi)
