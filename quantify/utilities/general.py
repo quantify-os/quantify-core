@@ -1,3 +1,4 @@
+import copy
 from collections.abc import MutableMapping
 
 
@@ -24,3 +25,27 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
             else:
                 modified_dict[key] = value
     return modified_dict
+
+
+def make_hash(o):
+    """
+    Makes a hash from a dictionary, list, tuple or set to any level, that contains
+    only other hashable types (including any lists, tuples, sets, and
+    dictionaries).
+
+    from: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
+    """
+
+    if isinstance(o, (set, tuple, list)):
+
+        return tuple([make_hash(e) for e in o])
+
+    elif not isinstance(o, dict):
+
+        return hash(o)
+
+    new_o = copy.deepcopy(o)
+    for k, v in new_o.items():
+        new_o[k] = make_hash(v)
+
+    return hash(tuple(frozenset(sorted(new_o.items()))))
