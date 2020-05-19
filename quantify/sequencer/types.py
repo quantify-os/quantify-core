@@ -1,14 +1,33 @@
 """
 Module containing the core concepts of the sequencer.
 """
+from collections import UserDict
 
 
 class Schedule():
     """
     A collection of :class:`Operation` objects and timing contraints
     that define relations between the operations.
+
+    Contains:
+        a set of the operations used.
+        a schedule
     """
-    pass
+
+    def __init__(self, name=''):
+        self.name = name
+
+    def add_operation(operation, time=0,
+                      ref_op='last', ref_pt='end', label='auto') -> str:
+        """
+        Add an operation to the schedule.
+
+        """
+        if label == 'auto':
+
+
+
+        return label
 
 
 class Operation():
