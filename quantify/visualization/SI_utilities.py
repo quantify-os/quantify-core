@@ -1,13 +1,8 @@
-'''
-Contain the plotting tools portion of the analysis toolbox
-Note: There is an equivalent file for analysis v2, include your new code there,
-unless it is only inteded for analysis v1
-'''
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 
-golden_mean = (np.sqrt(5)-1.0)/2.0    # Aesthetic ratio
+golden_mean = (np.sqrt(5)-1.0)/2.0  # Aesthetic ratio
 single_col_figsize = (3.39, golden_mean*3.39)
 double_col_figsize = (6.9, golden_mean*6.9)
 thesis_col_figsize = (12.2/2.54, golden_mean*12.2/2.54)
@@ -92,14 +87,13 @@ SI_PREFIXES = dict(zip(range(-24, 25, 3), 'yzafpnμm kMGTPEZY'))
 SI_PREFIXES[0] = ""
 
 # N.B. not all of these are SI units, however, all of these support SI prefixes
-SI_UNITS = 'm,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s'.split(
-    ',')
+SI_UNITS = 'm,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,' \
+           'Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s'.split(',')  # noqa: W605
 
 
 def SI_prefix_and_scale_factor(val, unit=None):
     """
-    Takes in a value and unit and if applicable returns the proper
-    scale factor and SI prefix.
+    Takes in a value and unit and if applicable returns the proper scale factor and SI prefix.
     Args:
         val (float) : the value
         unit (str)  : the unit of the value
@@ -124,12 +118,11 @@ def SI_prefix_and_scale_factor(val, unit=None):
     return 1, unit if unit is not None else ""
 
 
-def SI_val_to_msg_str(val: float, unit: str=None, return_type=str):
+def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
     """
-    Takes in a value  with optional unit and returns a string tuple consisting
-    of (value_str, unit) where the value and unit are rescaled according to
-    SI prefixes, IF the unit is an SI unit (according to the comprehensive list
-    of SI units in this file ;).
+    Takes in a value  with optional unit and returns a string tuple consisting of (value_str, unit) where the value
+    and unit are rescaled according to SI prefixes, IF the unit is an SI unit (according to the comprehensive list of
+    SI units in this file ;).
 
     the value_str is of the type specified in return_type (str) by default.
     """

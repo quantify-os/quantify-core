@@ -3,34 +3,30 @@ Module containing the pyqtgraph based plotting monitor.
 """
 import numpy as np
 
-from .plot_interpolation import interpolate_heatmap
-
-from qcodes.instrument.parameter import ManualParameter
 from qcodes import validators as vals
-from qcodes.plots.colors import color_cycle
 from qcodes.instrument.base import Instrument
-
-
-from quantify.data.data_handling import load_dataset, get_latest_tuid
-
+from qcodes.instrument.parameter import ManualParameter
+from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
+
+from quantify.data.handling import load_dataset, get_latest_tuid
+from quantify.visualization.plot_interpolation import interpolate_heatmap
 
 
 class PlotMonitor_pyqt(Instrument):
     """
     Pyqtgraph based plot monitor.
 
-    A plot monitor is intended to provide a real-time visualization of a
-    dataset.
+    A plot monitor is intended to provide a real-time visualization of a dataset.
     A plotmon should implement two methods
+        // todo what are these methods?
 
     The interface of a plot monitor is based on the tuid.
+        // todo what does this mean?
 
     """
 
-    def __init__(
-            self,
-            name: str):  # verbose: bool = True
+    def __init__(self, name: str):  # verbose: bool = True
         """
         Creates an instance of the Measurement Control.
 
@@ -55,7 +51,7 @@ class PlotMonitor_pyqt(Instrument):
         self.create_plot_monitor()
 
         # convenient access to curve variable for updating
-        self._curves = []
+        self.curves = []
         self._im_curves = []
         self._im_scatters = []
         self._im_scatters_last = []
@@ -71,24 +67,24 @@ class PlotMonitor_pyqt(Instrument):
             del self.secondary_QtPlot
 
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.name), figsize=(600, 400)
-        )
+            window_title="Main plotmon of {}".format(self.name),
+            figsize=(600, 400))
         self.secondary_QtPlot = QtPlot(
-            window_title="Secondary plotmon of {}".format(self.name), figsize=(600, 400)
-        )
+            window_title="Secondary plotmon of {}".format(self.name),
+            figsize=(600, 400))
 
     def _initialize_plot_monitor(self, tuid):
         """
-        Clears data in plot monitors and sets it up with the data from the
-        dataset
+        Clears data in plot monitors and sets it up with the data from the dataset
         """
 
         # Clear the plot monitors if required.
-        if self.main_QtPlot.traces != []:
+        if self.main_QtPlot.traces:
             self.main_QtPlot.clear()
 
-        if self.secondary_QtPlot.traces != []:
+        if self.secondary_QtPlot.traces:
             self.secondary_QtPlot.clear()
+
         self.curves = []
         self._im_curves = []
         self._im_scatters = []
@@ -131,12 +127,12 @@ class PlotMonitor_pyqt(Instrument):
 
                 x = dset['x0'].values[:dset.attrs['xlen']]
                 y = dset['x1'].values[::dset.attrs['xlen']]
-                Z = np.reshape(dset[yi].values,
+                z = np.reshape(dset[yi].values,
                                (len(x), len(y)), order='F').T
                 config_dict = {
                     "x": x,
                     "y": y,
-                    "z": Z,
+                    "z": z,
                     "xlabel": dset['x0'].attrs['long_name'],
                     "xunit": dset['x0'].attrs['unit'],
                     "ylabel": dset['x1'].attrs['long_name'],

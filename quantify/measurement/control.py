@@ -1,22 +1,21 @@
-import numpy as np
 import time
 import json
 from os.path import join
+
+import numpy as np
 from qcodes import Instrument
-from quantify.data.data_handling import initialize_dataset, \
-    create_exp_folder, snapshot
-from quantify.measurement.core import Settable, Gettable
-from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes import validators as vals
+from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
+from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
+from quantify.measurement.types import Settable, Gettable
 
 
 class MeasurementControl(Instrument):
     """
     Instrument responsible for controling the data acquisition loop.
 
-    MeasurementControl (MC) is based on the notion that every experiment
-    consists of the following step.
+    MeasurementControl (MC) is based on the notion that every experiment consists of the following step:
 
         1. Set some parameter(s)            (settable_pars)
         2. Measure some other parameter(s)  (gettable_pars)
@@ -32,13 +31,12 @@ class MeasurementControl(Instrument):
             dataset = MC.run(name='Frequency sweep')
 
 
-    MC exists to enforce structure on experiments.
-    Enforcing this structure allows
+    MC exists to enforce structure on experiments. Enforcing this structure allows:
 
         - Standardization of data storage.
         - Providing basic real-time visualization.
 
-    MC imposes minimal constraints and allows
+    MC imposes minimal constraints and allows:
 
     - Soft loops, experiments in which MC controlled acquisition loop.
     - Hard loops, experiments in which MC is not in control of acquisition.
@@ -46,9 +44,7 @@ class MeasurementControl(Instrument):
 
     """
 
-    def __init__(
-            self,
-            name: str):  # verbose: bool = True
+    def __init__(self, name: str):
         """
         Creates an instance of the Measurement Control.
 
@@ -57,8 +53,7 @@ class MeasurementControl(Instrument):
         """
         super().__init__(name=name)
 
-        # Paramaters are attributes that we include in logging
-        # and intend the user to change.
+        # Parameters are attributes that we include in logging and intend the user to change.
 
         self.add_parameter(
             "verbose",
@@ -104,13 +99,12 @@ class MeasurementControl(Instrument):
             vals=vals.Numbers(min_value=0)
         )
 
-        # variables that are set before the start
-        # of any experiment.
+        # variables that are set before the start of any experiment.
         self._settable_pars = []
         self._setpoints = []
         self._gettable_pars = []
 
-        # Variables used for book keeping during acquisition loop.
+        # variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
         self._begintime = time.time()
         self._last_upd = time.time()
@@ -121,39 +115,30 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    def run(self, name: str = '',
-            mode: str = '1D'):
+    def run(self, name: str = ''):
         """
         Starts a data acquisition loop.
 
         Args:
-            name (string):
-                Name of the measurement. This name is included in the
-                name of the data files.
-            mode (str):
-                Measurement mode. Can '1D', '2D', or 'adaptive'.
+            name (string): Name of the measurement. This name is included in the name of the data files.
 
         Returns:
-            dataset : an xarray Dataset object.
+            dataset (xarray.DataArray) : an xarray Dataset object.
         """
 
-        #######################################################
-        # Reset all variables that change during acquisition
+        # reset all variables that change during acquisition
         self._nr_acquired_values = 0
         self._begintime = time.time()
 
         # initialize an empty dataset
 
-        dataset = initialize_dataset(self._settable_pars,
-                                     self._setpoints,
-                                     self._gettable_pars)
+        dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
 
-        # cannot add it as a separte (nested) dict so make it flat.
+        # cannot add it as a separate (nested) dict so make it flat.
         dataset.attrs['name'] = name
         dataset.attrs.update(self._plot_info)
 
-        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'],
-                                       name=dataset.attrs['name'])
+        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'], name=dataset.attrs['name'])
         # Write the empty dataset
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
         # Save a snapshot of all
@@ -168,8 +153,6 @@ class MeasurementControl(Instrument):
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
 
-        ##################################################################
-        # Iterate over all points to set
         for idx, spts in enumerate(self._setpoints):
             # set all individual setparams
             for spar, spt in zip(self._settable_pars, spts):
@@ -182,13 +165,11 @@ class MeasurementControl(Instrument):
 
             self._nr_acquired_values += 1
 
-            # Saving and live plotting happens here
             # Here we do saving, plotting, checking for interupts etc.
-            update = ((time.time()-self._last_upd > self.update_interval()) or
-                      (idx+1 == len(self._setpoints)))
+            update = ((time.time()-self._last_upd > self.update_interval()) or (idx+1 == len(self._setpoints)))
             if update:
                 self.print_progress()
-                # Update the
+                # Update the dataset
                 dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
                 if plotmon_name is not None and plotmon_name != '':
                     self.instr_plotmon.get_instr().update()
@@ -210,9 +191,7 @@ class MeasurementControl(Instrument):
         """
         Returns the fraction of the experiment that is completed.
         """
-        fracdone = self._nr_acquired_values / (
-            len(self._setpoints)*self.soft_avg())
-        return fracdone
+        return self._nr_acquired_values / (len(self._setpoints) * self.soft_avg())
 
     def print_progress(self):
         percdone = self._get_fracdone()*100
@@ -222,7 +201,7 @@ class MeasurementControl(Instrument):
             "{t_elapsed}s \ttime left: {t_left}s".format(
                 percdone=int(percdone),
                 t_elapsed=round(elapsed_time, 1),
-                t_left=round((100.0 - percdone) / (percdone) * elapsed_time, 1)
+                t_left=round((100.0 - percdone) / percdone * elapsed_time, 1)
                 if percdone != 0
                 else "",
             )
@@ -252,13 +231,12 @@ class MeasurementControl(Instrument):
 
         The :class:`~quantify.measurement.Settable` helper class defines the requirements for a Settable object.
         """
-        # for native nD compatibility we treat this like a list of
-        # settables.
+        # for native nD compatibility we treat this like a list of settables.
         if not isinstance(settable_pars, (list, tuple)):
             settable_pars = [settable_pars]
 
         self._settable_pars = []
-        for i, settable in enumerate(settable_pars):
+        for _, settable in enumerate(settable_pars):
             self._settable_pars.append(Settable(settable))
 
     def set_setpoints(self, setpoints):
@@ -266,13 +244,10 @@ class MeasurementControl(Instrument):
         Set setpoints that determine values to be set in acquisition loop.
 
         Args:
-            setpoints (np.array) : An array that defines the values to loop
-                over in the experiment. The shape of the the array has to be
-                either (N,) (N,1) for a 1D loop or (N, M) in the case of
-                an MD loop.
+            setpoints (np.array) : An array that defines the values to loop over in the experiment. The shape of the
+                array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
 
-        The setpoints are internally reshaped to (N, M) to be natively
-        compatible with M-dimensional loops.
+        The setpoints are internally reshaped to (N, M) to be natively compatible with M-dimensional loops.
 
         .. tip::
 
@@ -289,13 +264,11 @@ class MeasurementControl(Instrument):
 
     def set_setpoints_grid(self, setpoints):
         """
-        Set a setpoint grid that determine values to be set in acquisition loop.
-        Updates the setpoints in a grid by repeating the setpoints M times
-        and filling the second column with tiled values.
+        Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
+        by repeating the setpoints M times and filling the second column with tiled values.
 
         Args:
-            setpoints (list(np.array)) : A list of arrays that defines the values to loop
-                over in the experiment. The grid is reshaped in this order.
+            setpoints (list(np.array)) : The values to loop over in the experiment. The grid is reshaped in this order.
 
         Example
 
@@ -336,17 +309,16 @@ def tile_setpoints_grid(setpoints):
     Tile setpoints into an n-dimensional grid.
 
     Args:
-        setpoints (list(np.array)) : A list of arrays that defines the values to loop
-        over in the experiment. The grid is reshaped in this order.
+        setpoints (list(np.array)) : A list of arrays that defines the values to loop over in the experiment.
+            The grid is reshaped in this order.
 
     Returns:
-        xn (np.array): an array with repeated x-values and
-        tiled xn-values.
+        xn (np.array): an array with repeated x-values and tiled xn-values.
 
     .. warning ::
 
-        using this method typecasts all values into the same type. This may
-        lead to validator errors when setting e.g., a float instead of an int.
+        using this method typecasts all values into the same type. This may lead to validator errors when setting
+        e.g., a float instead of an int.
     """
     xn = setpoints[0].reshape((len(setpoints[0]), 1))
     for setpoints_n in setpoints[1:]:
