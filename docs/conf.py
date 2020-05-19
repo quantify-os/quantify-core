@@ -38,6 +38,7 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx',
               'sphinx_rtd_theme',
+              'sphinx.ext.mathjax',
               'nbsphinx',
               'sphinxcontrib.blockdiag'
               ]

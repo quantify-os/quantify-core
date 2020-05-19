@@ -9,18 +9,18 @@ quantify
 data
 =============
 
-core_data
+types
 -------------
 
-.. automodule:: quantify.data.core_data
+.. automodule:: quantify.data.types
     :members:
 
-data_handling
-----------------
+handling
+---------
 
-
-.. automodule:: quantify.data.data_handling
+.. automodule:: quantify.data.handling
     :members:
+
 
 measurement
 =============
@@ -34,6 +34,21 @@ sequencer
 
 .. automodule:: quantify.sequencer
     :members:
+
+
+gate_library
+---------------
+
+.. automodule:: quantify.sequencer.gate_library
+    :members:
+    :special-members:
+
+pulse_library
+---------------
+
+.. automodule:: quantify.sequencer.pulse_library
+    :members:
+
 
 visualization
 =============

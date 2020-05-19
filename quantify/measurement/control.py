@@ -273,6 +273,7 @@ class MeasurementControl(Instrument):
         Example
 
             .. code-block:: python
+
                 MC.set_setpars([t, amp])
                 MC.set_setpoints_grid([times, amplitudes])
                 MC.set_getpars(sig)

@@ -2,39 +2,68 @@
 Module containing the core concepts of the sequencer.
 """
 from collections import UserDict
+from quantify.utilities.general import make_hash
 
 
-class Schedule():
-    """
-    A collection of :class:`Operation` objects and timing contraints
-    that define relations between the operations.
+class Schedule(UserDict):
 
-    Contains:
-        a set of the operations used.
-        a schedule
-    """
+    def __init__(self, name: str, data: dict = None):
+        """
+        A collection of :class:`Operation` objects and timing contraints
+        that define relations between the operations.
 
-    def __init__(self, name=''):
-        self.name = name
+        Args:
+            name (str) : name of the schedule
+            data (dict): a dictionary containing a pre-existing schedule.
+
+        The Schedule data structure is based on a dictionary.
+        This dictionary contains:
+
+            operation_dict     :  a hash table containing the unique :class:`Operation` s added to the schedule.
+            timing_constraints : a list of all timing constraints added between operations.
+
+
+        """
+
+        # valiate the input data to ensure it is valid schedule data
+        super().__init__()
+
+        # ensure keys exist
+        self.data['operation_dict'] = {}
+        self.data['timing_constraints'] = {}
+
+        if name is not None:
+            self.data['name'] = name
+
+    def __repr__(self):
+        return 'Shedule containing ({}) {}  (unique) operations.'.format(
+            len(self.data['operation_dict']), len(self.data['timing_constraints']))
+
+    @classmethod
+    def is_valid(cls, schedule)->bool:
+        # NOT IMPLEMENTED
+
+        return True
 
     def add_operation(operation, time=0,
                       ref_op='last', ref_pt='end', label='auto') -> str:
         """
-        Add an operation to the schedule.
-
         """
-        if label == 'auto':
+        assert isinstance(operation, Operation)
 
-
+        #
 
         return label
 
+    pass
 
-class Operation():
+
+
+class Operation(UserDict):
     """
-    A is a JSON compatible data structure that contains information on
+    A JSON compatible data structure that contains information on
     how to represent the operation on the Gate, Pulse and/or Logical level.
-    It also contains information on the :class:`Resource`s used.
+    It also contains information on the :class:`Resource` s used.
 
     An operation always has the following attributes
 
@@ -42,14 +71,19 @@ class Operation():
     - hash      (str)   : an auto generated unique identifier.
     - name      (str)   : a readable identifer, does not have to be unique
 
-    An operation can contain
+    An Operation can contain information  on several levels of abstraction.
+    This information is used when different representations. Note that when
+    initializing an operation  not all of this information needs to be available
+    as operations are typically modified during the compilation steps.
 
-    - Gate information (dict): This typically contains:
+
+    TODO: converge on exactly what information is required in these specs
+    - gate_info (dict): This typically contains:
             - A unitary matrix describing the operation.
             - The target qubit(s), [the resource(s)].
             - Optional Latex code?
 
-    - Pulse information (dict): This typically contains:
+    - pulse_info (dict): This typically contains:
             - A function to generate the waveform
             - the arguments for that function
             - Numerical waveforms?
@@ -58,7 +92,7 @@ class Operation():
             from the qiskit OpenPulse spec, QuPulse and some spefic
             ideas discussed with Martin.
 
-    - Logical information (dict): This typically contains:
+    - logic_info (dict): This typically contains:
 
             .. warning::
 
@@ -73,7 +107,24 @@ class Operation():
 
 
     """
-    pass
+
+    def __init__(self, name: str, data: dict = None):
+        super().__init__()
+
+        # ensure keys exist
+        self.data['gate_info'] = {}
+        self.data['pulse_info'] = {}
+        self.data['logic_info'] = {}
+
+        if name is not None:
+            self.data['name'] = name
+
+    @property
+    def hash(self):
+        """
+        A hash based on the contents of the Operation.
+        """
+        return make_hash(self.data)
 
 
 class Resource():
