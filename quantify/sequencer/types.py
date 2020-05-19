@@ -1,6 +1,7 @@
 """
 Module containing the core concepts of the sequencer.
 """
+from uuid import uuid4
 from collections import UserDict
 from quantify.utilities.general import make_hash
 
@@ -13,7 +14,7 @@ class Schedule(UserDict):
     The Schedule data structure is based on a dictionary.
     This dictionary contains:
 
-        operation_dict     :  a hash table containing the unique :class:`Operation` s added to the schedule.
+        operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
 
 
@@ -31,7 +32,7 @@ class Schedule(UserDict):
 
         # ensure keys exist
         self.data['operation_dict'] = {}
-        self.data['timing_constraints'] = {}
+        self.data['timing_constraints'] = []
         self.data['name'] = 'nameless'
 
         if name is not None:
@@ -52,8 +53,10 @@ class Schedule(UserDict):
         return True
 
     def add(self, operation, time: float = 0,
-            ref_op: str = 'last', ref_pt: str = 'end',
-            label: str = 'auto') -> str:
+            ref_op: str = 'last',
+            ref_pt: str = 'end',
+            ref_pt_new: str = 'start',
+            label: str = None) -> str:
         """
         Add an Operation to the schedule and specify timing constraints.
 
@@ -61,7 +64,8 @@ class Schedule(UserDict):
             operation (:class:`Operation`): The operation to add to the schedule
             time (float) : time between the the reference operation and added operation.
             ref_op (str) : specifies the reference operation.
-            ref_op (str) : specifies the point of the ref_op to use as reference can be {'start', 'center', 'end'}
+            ref_pt ('start', 'center', 'end') : reference point in reference operation.
+            ref_pt_new ('start', 'center', 'end') : reference point in added operation.
             label  (str) : a label that can be used as an identifier when adding more operations.
 
         Returns:
@@ -70,7 +74,21 @@ class Schedule(UserDict):
         """
         assert isinstance(operation, Operation)
 
-        #
+        operation_hash = operation.hash
+
+        self.data['operation_dict'][operation_hash] = operation
+
+        if label is None:
+            label = str(uuid4())
+
+        timing_constr = {'label': label,
+                         'time': time,
+                         'ref_op': ref_op,
+                         'ref_pt_new': ref_pt_new,
+                         'ref_pt': ref_pt,
+                         'operation_hash': operation_hash}
+
+        self.data['timing_constraints'].append(timing_constr)
 
         return label
 

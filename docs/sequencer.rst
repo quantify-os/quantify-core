@@ -1,6 +1,11 @@
 Sequencer
 ===============
 
+.. warning::
+
+  Under active development!
+
+
 The :mod:`quantify.sequencer` can be used to schedule operations on the control hardware.
 
 The quantify seqeuncer is designed to allow access to low-level (hardware) functionally at the highest level of abstraction if required, while simultaneously allowing the user to ignore these aspects when this level of detail is not required.
@@ -182,19 +187,65 @@ Now we create the Bell experiment, including observing the oscillation in a simp
         sched.add(Measure(q0, q1), label='M {:.2f} deg'.format(theta))
 
 
-Note that this experiment should also be wrapped in a Qloop with a symbolic variable to set the loop counter to determine the number of averages.
-It depends a bit on how this would work in the hardware (using a register to set the number of loops) how we want to represent this in the sequencer.
+.. note::
+
+  This experiment should also be wrapped in a "Quantum loop" with a symbolic variable to set the loop counter and determine the number of averages. (not implemented yet).
+  Making that variable hardware controllable is interesting to include in our high level description in an elegant way.
+  It depends a bit on how this would work in the hardware (using a register to set the number of loops) how we want to represent this in the sequencer.
+  Intuitively this feels like a concept that would allow super awesome variational algorithms.
 
 
+Let's take a look at the internals of the :class:`~quantify.sequencer.Schedule`.
+
+.. jupyter-execute::
+
+    sched
+
+We can see that the number of unique operations is 24 corresponding to 4 operations that occur in every loop and 21 unique rotations for the different theta angles. (21+4 = 25 so we are missing something.
+
+
+
+
+
+.. jupyter-execute::
+
+    sched.data.keys()
+
+
+The schedule consists of a hash table containing all the operations.
+This allows effecient loading of pulses or gates to memory and also enables efficient adding of pulse type information as a compilation step.
+
+.. jupyter-execute::
+
+    from itertools import islice
+    # showing the first 5 elements of the operation dict
+    dict(islice(sched.data['operation_dict'].items(), 5))
+
+The timing constraints are stored as a list of pulses.
+Because
+
+.. jupyter-execute::
+
+  sched.data['timing_constraints'][:6]
+
+Turning the constraints into a timed experiment, would require iterating over all elements in the timing constraints list.
+This is identical to how the pycqed pulsar works.
+Compilation efficiency is not an issue for "small" experiments but will be something we encounter in the future.
+
+.. note::
+
+  This is it for now! Let's discuss.
 
 
 
 Bell violation circuit (change angle)
-    - Show input how to create
-    - Visualization circuit diagram
-    - Visualization pulse sequence (waveforms per channel)
-    - Visualization combined
-    - Show underlying data structures
+
+    - [x] Show input how to create
+    - [ ] Visualization circuit diagram
+    - [ ] Visualization pulse sequence (waveforms per channel)
+    - [ ] Visualization combined
+    - [ ] Show underlying data structures
 
 Chevron experiment
+
     - Show input how to create
