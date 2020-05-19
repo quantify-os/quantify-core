@@ -10,6 +10,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
+with open('AUTHORS.rst') as authors_file:
+    authors = authors_file.read()
+
 with open('requirements_dev.txt') as test_reqs:
     test_requirements = test_reqs.read().splitlines()
 
@@ -20,13 +23,13 @@ requirements = [
     'xarray',
     'matplotlib',
     'lmfit',
-    'pyqtgraph']
+    'pyqtgraph',
+]
 
 setup_requirements = ['pytest-runner', ]
 
 setup(
-    author="Adriaan Rol ",
-    author_email='adriaan.rol@gmail.com',
+    author="QBlox BV",
     python_requires='>=3.5',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
@@ -37,10 +40,10 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    description="Python Boilerplate contains all the boilerplate you need to create a Python package.",
+    description="Unified quantum computing, solid-state and pulse sequencing physical experimentation framework.",
     install_requires=requirements,
     license="MIT license",
-    long_description=readme + '\n\n' + history,
+    long_description=readme + '\n\n' + authors + '\n\n' + history,
     include_package_data=True,
     keywords='quantify',
     name='quantify',

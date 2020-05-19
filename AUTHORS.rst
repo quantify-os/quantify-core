@@ -2,10 +2,11 @@
 Credits
 =======
 
-Development Lead
+Developers
 ----------------
 
-* Adriaan Rol  <adriaan.rol@gmail.com>
+* Adriaan Rol <adriaan.rol@gmail.com>
+* Callum Attryde <cattryde@qblox.com>
 
 Contributors
 ------------
