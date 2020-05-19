@@ -46,14 +46,14 @@ class Schedule(UserDict):
             len(self.data['operation_dict']), len(self.data['timing_constraints']))
 
     @classmethod
-    def is_valid(cls, schedule)->bool:
+    def is_valid(cls, schedule) -> bool:
         # NOT IMPLEMENTED
 
         return True
 
-    def add_operation(operation, time: float = 0,
-                      ref_op: str = 'last', ref_pt: str = 'end',
-                      label: str = 'auto') -> str:
+    def add(self, operation, time: float = 0,
+            ref_op: str = 'last', ref_pt: str = 'end',
+            label: str = 'auto') -> str:
         """
         Add an Operation to the schedule and specify timing constraints.
 

@@ -44,7 +44,7 @@ class Rxy(Operation):
             [np.cos(theta_r/2), -1j*np.exp(-1j*phi_r)*np.sin(theta_r/2)],
             [-1j*np.exp(-1j*phi_r)*np.sin(theta_r/2), np.cos(theta_r/2)]])
 
-        tex = r'$R_{xy}'+'({:.2f}, {:.2f})$'.format(theta, phi)
+        tex = r'$R_{xy}'+'({:.1f}, {:.1f})$'.format(theta, phi)
         data = {}
         data['name'] = name
         data['gate_info'] = {'unitary': unitary,
@@ -116,7 +116,7 @@ class CNOT(Operation):
     """
 
     def __init__(self, qC, qT):
-        pass
+        super().__init__('CNOT ({}, {})'.format(qC, qT), data=None)
 
 
 class Reset(Operation):
@@ -125,4 +125,16 @@ class Reset(Operation):
     """
 
     def __init__(self, *qubits):
-        pass
+        super().__init__('Reset {}'.format(qubits), data=None)
+
+
+class Measure(Operation):
+    """
+    A projective measurement in the Z-basis.
+
+    N.B. strictly speaking this is not a gate type operation.
+    """
+
+    def __init__(self, *qubits):
+        super().__init__('Measure {}'.format(qubits), data=None)
+

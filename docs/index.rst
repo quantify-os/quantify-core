@@ -25,9 +25,6 @@ Tutorials
    :caption: Tutorials
 
    example_notebooks/T1_MeasurementControl.ipynb
-   example_notebooks/T3_sequencer.ipynb
-
-
 
 API Reference
 ===================

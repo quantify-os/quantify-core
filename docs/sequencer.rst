@@ -148,22 +148,44 @@ Because this experiment is most conveniently described on the gate level, we use
 
 .. jupyter-execute::
 
-  import quantify.sequencer.gate_library as gl
-  # Define the operations, these will be added to the circuit
-  init_all = gl.Reset(q0, q1)
-  x90_0 = gl.X90(q0)
-  cnot = gl.CNOT(qC=q0, qT= q1)
-  Rxy_theta = gl.Rxy(theta=23, phi=0, qubit=q0) # this will be replaced in our loop
+    from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, X90
+
+    # Define the operations, these will be added to the circuit
+    init_all = Reset(q0, q1) # instantiates
+    x90_q0 = Rxy(theta=90, phi=0, qubit=q0)
+    cnot = CNOT(qC=q0, qT= q1)
+    Rxy_theta = Rxy(theta=23, phi=0, qubit=q0) # will be not be used in the experiment loop.
+    meass_all = Measure(q0, q1)
+
 
 Similar to the schedule, :class:`~quantify.sequencer.Operation` are also based on dicts.
 
 
 .. jupyter-execute::
+
     # Rxy_theta  # produces the same output
     Rxy_theta.data
 
 
 Now we create the Bell experiment, including observing the oscillation in a simple for loop.
+
+.. jupyter-execute::
+
+    import numpy as np
+
+    # we use a regular for loop as we have to unroll the changing theta variable here
+    for theta in np.linspace(0, 360, 21):
+        sched.add(init_all)
+        sched.add(x90_q0)
+        sched.add(operation=CNOT(qC=q0, qT= q1))
+        sched.add(Rxy(theta=theta, phi=0, qubit=q0))
+        sched.add(Measure(q0, q1), label='M {:.2f} deg'.format(theta))
+
+
+Note that this experiment should also be wrapped in a Qloop with a symbolic variable to set the loop counter to determine the number of averages.
+It depends a bit on how this would work in the hardware (using a register to set the number of loops) how we want to represent this in the sequencer.
+
+
 
 
 
