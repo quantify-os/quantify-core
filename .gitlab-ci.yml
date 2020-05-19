@@ -108,3 +108,14 @@ pages:
       - public
   only:
     - develop
+
+pypi:
+  image: python:latest
+  stage: Deploy
+  script:
+    - pip install -U twine
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
+  only:
+    - master
+
