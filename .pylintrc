@@ -61,6 +61,7 @@ confidence=
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable=C0114, # missing-module-docstring
+		C0103, # snake-case
         abstract-method,
         print-statement,
         parameter-unpacking,
@@ -311,6 +312,7 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 
 
 [FORMAT]
+max-line-length=120
 
 # Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
 expected-line-ending-format=
@@ -324,9 +326,6 @@ indent-after-paren=4
 # String used as indentation unit. This is usually "    " (4 spaces) or "\t" (1
 # tab).
 indent-string='    '
-
-# Maximum number of characters on a single line.
-max-line-length=100
 
 # Maximum number of lines in a module.
 max-module-lines=1000

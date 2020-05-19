@@ -15,8 +15,7 @@ class TUID(str):
     A human readable unique identifier based on the timestamp.
 
     A tuid is a string formatted as YYYYMMDD-HHMMSS-fff-******.
-    The tuid serves as a unique identifier for experiments in quantify see
-    also :mod:`~quantify.data.core_data`.
+    The tuid serves as a unique identifier for experiments in quantify see also :mod:`~quantify.data.core_data`.
     """
 
     def __init__(self, value):
@@ -24,8 +23,7 @@ class TUID(str):
 
     def datetime(self):
         """
-        Returns a :class:`~python:datetime.datetime` object corresponding
-        to the TUID.
+        Returns a :class:`~python:datetime.datetime` object corresponding to the TUID.
         """
         return datetime.datetime.strptime(self[:18], '%Y%m%d-%H%M%S-%f')
 
@@ -43,6 +41,9 @@ class TUID(str):
 
         Returns:
             True if the string is a valid TUID.
+
+        Raises:
+            ValueError: Invalid format
 
         A valid tuid is a string formatted like "YYYYMMDD-HHMMSS-fff-******".
         """
