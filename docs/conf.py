@@ -41,7 +41,7 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.mathjax',
               'nbsphinx',
               'sphinxcontrib.blockdiag',
-              'jupyter_sphinx'
+              'jupyter_sphinx.execute' # to be replaced with jupyter_sphinx in 0.2.4+
               ]
 
 # Add any paths that contain templates here, relative to this directory.
