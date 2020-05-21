@@ -49,7 +49,9 @@ class Rxy(Operation):
         data['name'] = name
         data['gate_info'] = {'unitary': unitary,
                              'tex': tex,
-                             'qubits': [qubit]}
+                             'qubits': [qubit],
+                             'theta': theta,
+                             'phi': phi}
 
         super().__init__(name, data=data)
 
@@ -58,6 +60,7 @@ class X(Rxy):
     """
     A single qubit rotation of 180 degrees around the X-axis.
     """
+
     def __init__(self, qubit: str):
         """
         Args:
@@ -72,6 +75,7 @@ class X90(Rxy):
     """
     A single qubit rotation of 90 degrees around the X-axis.
     """
+
     def __init__(self, qubit: str):
         """
         Args:
@@ -86,6 +90,7 @@ class Y(Rxy):
     """
     A single qubit rotation of 180 degrees around the Y-axis.
     """
+
     def __init__(self, qubit: str):
         """
         Args:
@@ -100,6 +105,7 @@ class Y90(Rxy):
     """
     A single qubit rotation of 90 degrees around the Y-axis.
     """
+
     def __init__(self, qubit: str):
         """
         Args:
@@ -132,9 +138,9 @@ class Measure(Operation):
     """
     A projective measurement in the Z-basis.
 
-    N.B. strictly speaking this is not a gate type operation.
+    N.B. strictly speaking this is not a gate type operation as it can not
+    be described by a unitary.
     """
 
     def __init__(self, *qubits):
         super().__init__('Measure {}'.format(qubits), data=None)
-
