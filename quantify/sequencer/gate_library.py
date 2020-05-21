@@ -40,7 +40,7 @@ class Rxy(Operation):
 
         # not all operations have a valid unitary description
         # (e.g., measure and init)
-        unitary = np.matrix([
+        unitary = np.array([
             [np.cos(theta_r/2), -1j*np.exp(-1j*phi_r)*np.sin(theta_r/2)],
             [-1j*np.exp(-1j*phi_r)*np.sin(theta_r/2), np.cos(theta_r/2)]])
 
@@ -68,7 +68,7 @@ class X(Rxy):
         """
         super().__init__(theta=180, phi=0, qubit=qubit)
         self.data['name'] = 'X {}'.format(qubit)
-        self.data['gate_info']['tex'] = '$X_{\pi}$'
+        self.data['gate_info']['tex'] = r'$X_{\pi}$'
 
 
 class X90(Rxy):
@@ -83,7 +83,7 @@ class X90(Rxy):
         """
         super().__init__(theta=90, phi=0, qubit=qubit)
         self.data['name'] = 'X {}'.format(qubit)
-        self.data['gate_info']['tex'] = '$X_{\pi/2}$'
+        self.data['gate_info']['tex'] = r'$X_{\pi/2}$'
 
 
 class Y(Rxy):
@@ -98,7 +98,7 @@ class Y(Rxy):
         """
         super().__init__(theta=180, phi=90, qubit=qubit)
         self.data['name'] = 'Y_{90} {}'.format(qubit)
-        self.data['gate_info']['tex'] = '$Y_{\pi/2}$'
+        self.data['gate_info']['tex'] = r'$Y_{\pi/2}$'
 
 
 class Y90(Rxy):
@@ -113,7 +113,7 @@ class Y90(Rxy):
         """
         super().__init__(theta=90, phi=90, qubit=qubit)
         self.data['name'] = 'Y_{90} {}'.format(qubit)
-        self.data['gate_info']['tex'] = '$Y_{\pi/2}$'
+        self.data['gate_info']['tex'] = r'$Y_{\pi/2}$'
 
 
 class CNOT(Operation):
