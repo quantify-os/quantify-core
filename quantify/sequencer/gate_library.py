@@ -157,10 +157,10 @@ class CNOT(Operation):
 
     def __init__(self, qC, qT):
         data = {}
-        data['gate_info'] = {'unitary': np.array([1, 0, 0, 0],
-                                                 [0, 1, 0, 0]
-                                                 [0, 0, 0, 1]
-                                                 [0, 0, 1, 0]),
+        data['gate_info'] = {'unitary': np.array([[1, 0, 0, 0],
+                                                 [0, 1, 0, 0],
+                                                 [0, 0, 0, 1],
+                                                 [0, 0, 1, 0]]),
                              'tex': r'CNOT',
                              'qubits': [qC, qT]}
         super().__init__('CNOT ({}, {})'.format(qC, qT), data=data)
@@ -187,10 +187,10 @@ class CZ(Operation):
 
     def __init__(self, qC, qT):
         data = {}
-        data['gate_info'] = {'unitary': np.array([1, 0, 0, 0],
-                                                 [0, 1, 0, 0]
-                                                 [0, 0, 1, 0]
-                                                 [0, 0, 0, -1]),
+        data['gate_info'] = {'unitary': np.array([[1, 0, 0, 0],
+                                                 [0, 1, 0, 0],
+                                                 [0, 0, 1, 0],
+                                                 [0, 0, 0, -1]]),
                              'tex': r'CZ',
                              'qubits': [qC, qT]}
         super().__init__('CNOT ({}, {})'.format(qC, qT), data=data)

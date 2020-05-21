@@ -16,6 +16,7 @@ class Schedule(UserDict):
 
         operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
+        resource_dict      : a dictionary containing the relevant :class:Resource` s
 
     """
 
@@ -32,6 +33,7 @@ class Schedule(UserDict):
         # ensure keys exist
         self.data['operation_dict'] = {}
         self.data['timing_constraints'] = []
+        self.data['resource_dict'] = {}
         self.data['name'] = 'nameless'
 
         if name is not None:
@@ -52,7 +54,7 @@ class Schedule(UserDict):
         return True
 
     def add(self, operation, time: float = 0,
-            ref_op: str = 'last',
+            ref_op: str = None,
             ref_pt: str = 'end',
             ref_pt_new: str = 'start',
             label: str = None) -> str:
