@@ -232,6 +232,37 @@ Turning the constraints into a timed experiment, would require iterating over al
 This is identical to how the pycqed pulsar works.
 Compilation efficiency is not an issue for "small" experiments but will be something we encounter in the future.
 
+
+Creating a circuit diagram
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+So far we have only defined timing constraints.
+Duration of pulses not known, but can create circuit diagram.
+
+For this purpose we do our first compilation step.
+
+.. jupyter-execute::
+
+  from quantify.sequencer.compilation import determine_absolute_timing
+  # We modify the schedule in place adding timing information
+  # setting clock_unit='ideal' ignores the duration of operations and sets it to 1.
+  determine_absolute_timing(sched, clock_unit='ideal')
+
+And we can use this to create a default visualizaton.
+
+.. jupyter-execute::
+
+  %matplotlib inline
+
+  from quantify.sequencer import backends
+  f, ax = backends.circuit_diagram_matplotlib(sched)
+  # all gates are plotted, but it doesn't all fit in a matplotlib figure
+  ax.set_xlim(-.5, 9.5)
+
+
+
+
+
 .. note::
 
   This is it for now! Let's discuss.
@@ -241,7 +272,7 @@ Compilation efficiency is not an issue for "small" experiments but will be somet
 Bell violation circuit (change angle)
 
     - [x] Show input how to create
-    - [ ] Visualization circuit diagram
+    - [x] Visualization circuit diagram
     - [ ] Visualization pulse sequence (waveforms per channel)
     - [ ] Visualization combined
     - [ ] Show underlying data structures

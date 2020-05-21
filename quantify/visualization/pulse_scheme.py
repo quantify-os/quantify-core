@@ -160,4 +160,4 @@ def box_text(ax, x0, y0, text='', w=1.1, h=.8,
         fill=fill, zorder=5)
     ax.add_patch(p1)
 
-    ax.text(x0, y0, text, ha='center', va='center', zorder=6, size=fontsize)
+    ax.text(x0, y0, text, ha='center', va='center', zorder=6, size=fontsize).set_clip_on(True)
