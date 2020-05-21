@@ -53,7 +53,7 @@ class Schedule(UserDict):
 
         return True
 
-    def add(self, operation, time: float = 0,
+    def add(self, operation, rel_time: float = 0,
             ref_op: str = None,
             ref_pt: str = 'end',
             ref_pt_new: str = 'start',
@@ -63,7 +63,7 @@ class Schedule(UserDict):
 
         Args:
             operation (:class:`Operation`): The operation to add to the schedule
-            time (float) : time between the the reference operation and added operation.
+            rel_time (float) : relative time between the the reference operation and added operation.
             ref_op (str) : specifies the reference operation.
             ref_pt ('start', 'center', 'end') : reference point in reference operation.
             ref_pt_new ('start', 'center', 'end') : reference point in added operation.
@@ -77,13 +77,27 @@ class Schedule(UserDict):
 
         operation_hash = operation.hash
 
-        self.data['operation_dict'][operation_hash] = operation
-
         if label is None:
             label = str(uuid4())
 
+        # assert that the label of the operation does not exists in the
+        # timing constraints.
+        label_is_unique = len([item for item in self.data['timing_constraints']
+                               if item['label'] == label]) == 0
+        if not label_is_unique:
+            raise ValueError('label "{}" must be unique'.format(label))
+
+        # assert that the reference operation exists
+        if ref_op is not None:
+            ref_exists = len([item for item in self.data['timing_constraints']
+                              if item['label'] == ref_op]) == 1
+            if not ref_exists:
+                raise ValueError(
+                    'Reference "{}" does not exist in schedule.'.format(ref_op))
+
+        self.data['operation_dict'][operation_hash] = operation
         timing_constr = {'label': label,
-                         'time': time,
+                         'rel_time': rel_time,
                          'ref_op': ref_op,
                          'ref_pt_new': ref_pt_new,
                          'ref_pt': ref_pt,
@@ -170,10 +184,10 @@ class Operation(UserDict):
         return make_hash(self.data)
 
 
-class Resource():
+class Resource(UserDict):
     """
     A resource corresponds to a physical resource such as an AWG channel,
-    a qubit, or a classical processor for e.g., feedback as a function of time.
+    a qubit, or a classical register.
 
     .. warning::
 

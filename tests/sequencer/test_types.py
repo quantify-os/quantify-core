@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from quantify.sequencer import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
@@ -28,3 +29,31 @@ def test_schedule_Bell():
 
     assert len(sched.data['operation_dict']) == 24
     assert len(sched.data['timing_constraints']) == 105
+
+
+def test_schedule_add_timing_constraints():
+
+    sched = Schedule('my exp')
+    test_lab = 'test label'
+    x90_label = sched.add(Rxy(theta=90, phi=0, qubit='q0'), label=test_lab)
+
+    assert x90_label == test_lab
+
+    with pytest.raises(ValueError):
+        x90_label = sched.add(Rxy(theta=90, phi=0, qubit='q0'), label=test_lab)
+
+    uuid_label = sched.add(Rxy(theta=90, phi=0, qubit='q0'))
+
+    assert uuid_label != x90_label
+
+    # not specifying a label should work
+    sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op=None)
+
+
+    # specifying existing label should work
+    sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op=x90_label)
+
+    # specifying non-existing label should raise an error
+    with pytest.raises(ValueError):
+        sched.add(Rxy(theta=90, phi=0, qubit='q0'),
+            ref_op='non-existing-operation')
