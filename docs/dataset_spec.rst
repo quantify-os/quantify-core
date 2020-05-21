@@ -9,6 +9,7 @@ xarray dataset
 
 - Dataset -> arrays + attrs
 - metadata -> snapshot etc.
+
 .. _dataset-spec:
 
 Introduction

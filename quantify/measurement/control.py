@@ -120,10 +120,10 @@ class MeasurementControl(Instrument):
         Starts a data acquisition loop.
 
         Args:
-            name (string): Name of the measurement. This name is included in the name of the data files.
+            name (str): Name of the measurement. This name is included in the name of the data files.
 
         Returns:
-            dataset (xarray.DataArray) : an xarray Dataset object.
+            :class:`xarray.Dataset`: the dataset
         """
 
         # reset all variables that change during acquisition
@@ -224,10 +224,9 @@ class MeasurementControl(Instrument):
         Define the settable parameters for the acquisition loop.
 
         Args:
-            settable_pars: parameter(s) to be set during the acquisition loop.
-                accepts:
-                    - list or tuple of multiple Settable objects
-                    - a single Settable object.
+            settable_pars: parameter(s) to be set during the acquisition loop, accepts:
+                - list or tuple of multiple Settable objects
+                - a single Settable object.
 
         The :class:`~quantify.measurement.Settable` helper class defines the requirements for a Settable object.
         """
@@ -243,9 +242,8 @@ class MeasurementControl(Instrument):
         """
         Set setpoints that determine values to be set in acquisition loop.
 
-        Args:
-            setpoints (np.array) : An array that defines the values to loop over in the experiment. The shape of the
-                array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
+        Args: setpoints (:class:`numpy.ndarray`) : An array that defines the values to loop over in the experiment.
+        The shape of the array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
 
         The setpoints are internally reshaped to (N, M) to be natively compatible with M-dimensional loops.
 
@@ -267,12 +265,13 @@ class MeasurementControl(Instrument):
         Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
         by repeating the setpoints M times and filling the second column with tiled values.
 
-        Args:
-            setpoints (list(np.array)) : The values to loop over in the experiment. The grid is reshaped in this order.
+        Args: setpoints (list(:class:`numpy.ndarray`)) : The values to loop over in the experiment. The grid is
+        reshaped in this order.
 
         Example
 
             .. code-block:: python
+
                 MC.set_setpars([t, amp])
                 MC.set_setpoints_grid([times, amplitudes])
                 MC.set_getpars(sig)
@@ -289,10 +288,9 @@ class MeasurementControl(Instrument):
         Define the parameters to be acquired during the acquisition loop.
 
         Args:
-            gettable_pars: parameter(s) to be get during the acquisition loop.
-                accepts:
-                    - list or tuple of multiple Gettable objects
-                    - a single Gettable object.
+            gettable_pars: parameter(s) to be get during the acquisition loop, accepts:
+                 - list or tuple of multiple Gettable objects
+                 - a single Gettable object
 
         The :class:`~quantify.measurement.Gettable` helper class defines the requirements for a Gettable object.
 
@@ -308,12 +306,11 @@ def tile_setpoints_grid(setpoints):
     """
     Tile setpoints into an n-dimensional grid.
 
-    Args:
-        setpoints (list(np.array)) : A list of arrays that defines the values to loop over in the experiment.
-            The grid is reshaped in this order.
+    Args: setpoints (list(:class:`numpy.ndarray`)): A list of arrays that defines the values to loop over in the
+    experiment. The grid is reshaped in this order.
 
     Returns:
-        xn (np.array): an array with repeated x-values and tiled xn-values.
+        :class:`numpy.ndarray`: an array with repeated x-values and tiled xn-values.
 
     .. warning ::
 
