@@ -77,13 +77,13 @@ Basic example, a 1D soft-loop
 Running an experiment is simple!
 Simply define what parameters to set, and get, and what points to loop over.
 
-In the example below we want to set frequencies on a microwave source and acquire the signal from the pulsar acquisition module.
+In the example below we want to set frequencies on a microwave source and acquire the signal from the pulsar readout module.
 
 .. code-block:: python
 
     MC.set_setpars(Settable(mw_source1.freq))       # We want to set the frequency of a microwave source
     MC.set_setpoints(np.arange(5e9, 5.2e9, 100e3))  # Scan around 5.1 GHz
-    MC.set_getpars(Gettable(pulsar_AQM.signal))     # acquire the signal from the pulsar AQM
+    MC.set_getpars(Gettable(pulsar_QRM.signal))     # acquire the signal from the pulsar AQM
     dataset = MC.run(name='Frequency sweep')        # Start the experiment
 
 

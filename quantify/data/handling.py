@@ -25,14 +25,13 @@ this._datadir = None
 
 def gen_tuid(ts=None):
     """
-    Generates a :class:`~quantify.data.core_data.TUID` based on current time.
+    Generates a :class:`~quantify.data.types.TUID` based on current time.
 
     Args:
-        ts (datetime) : optional :class:`~python:datetime.datetime`  can be passed to ensure the tuid is based on a
-            specific time.
+        ts (:class:`datetime.datetime`) : optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns:
-        tuid (:class:`~quantify.data.core_data.TUID`): timestamp based uid.
+        :class:`~quantify.data.types.TUID`: timestamp based uid.
     """
     if ts is None:
         ts = datetime.now()
@@ -71,20 +70,20 @@ def load_dataset(tuid, datadir=None):
     Loads a dataset specified by a tuid.
 
     Args:
-        tuid (str): a :class:`~quantify.data.core_data.TUID` string.
+        tuid (str): a :class:`~quantify.data.types.TUID` string.
             It is also possible to specify only the first part of a tuid.
 
         datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
 
     Returns:
-        dataset (xr.Dataset): The dataset
+        :class:`xarray.Dataset`: The dataset.
 
     Raises:
-        FileNotFoundError: No data found for specified date
+        FileNotFoundError: No data found for specified date.
 
     .. tip::
 
-        This method also works when specifying only the first part of a :class:`~quantify.data.core_data.TUID`.
+        This method also works when specifying only the first part of a :class:`~quantify.data.types.TUID`.
 
     .. note::
 
@@ -115,16 +114,15 @@ def create_exp_folder(tuid, name='', datadir=None):
     Creates an empty folder to store an experiment container.
 
     If the folder already exists, simple return the experiment folder corresponding to the
-    :class:`~quantify.data.core_data.TUID`.
+    :class:`~quantify.data.types.TUID`.
 
     Args:
         tuid (:class:`~quantify.data.types.TUID`) : a timestamp based human-readable unique identifier.
         name (str) : optional name to identify the folder
-        datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+        datadir (str) : path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
 
     Returns:
-        exp_folder (str): the full path of the experiment folder
-            following the convention: /datadir/YYMMDD/HHMMSS-******-name/
+        str: full path of the experiment folder following format: /datadir/YYMMDD/HHMMSS-******-name/.
     """
     assert TUID.is_valid(tuid)
 
@@ -143,13 +141,13 @@ def is_valid_dset(dset):
     Asserts if dset adheres to quantify Dataset specification.
 
     Args:
-        dset (xr.Dataset): the dataset
+        dset (:class:`xarray.Dataset`): the dataset
 
     Returns:
-        is_valid (bool)
+        bool
 
     Raises:
-        TypeError: the dataset is not of type xarray.Dataset
+        TypeError: the dataset is not of type :class:`xarray.Dataset`
     """
     if not isinstance(dset, xr.Dataset):
         raise TypeError
@@ -168,11 +166,11 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
 
     Args:
         setable_pars (list):    a list of M setables
-        setpoints (np.array):   an (N*M) array
+        setpoints (:class:`numpy.ndarray`):   an (N*M) array
         getable_pars (list):    a list of getables
 
     Returns:
-        Dataset (xr.Dataset): the dataset
+        :class:`xarray.Dataset`: the dataset
 
     """
     darrs = []
@@ -209,7 +207,7 @@ def get_latest_tuid(contains=''):
         contains (str): an optional string that is contained in the experiment name
 
     Returns:
-        tuid (:class:`~quantify.data.core_data.TUID`): the latest TUID
+        :class:`~quantify.data.types.TUID`: the latest TUID
 
     Raises:
         FileNotFoundError: No data found
@@ -217,7 +215,7 @@ def get_latest_tuid(contains=''):
     .. tip::
 
         This function is similar to :func:`~get_tuids_containing` but is preferred if one is only interested in the
-        most recent :class:`~quantify.data.core_data.TUID` for performace reasons.
+        most recent :class:`~quantify.data.types.TUID` for performance reasons.
 
     """
 
@@ -245,7 +243,7 @@ def get_tuids_containing(contains=''):
 def snapshot(update: bool = False, clean: bool = True) -> dict:
     """
     State of all instruments setup as a JSON-compatible dictionary (everything that the custom JSON encoder class
-        :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
+    :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
 
     Args:
         update (bool) : if True, first gets all values before filling the snapshot.

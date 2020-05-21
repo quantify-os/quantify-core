@@ -28,7 +28,6 @@ measurement
 .. automodule:: quantify.measurement
     :members:
 
-
 sequencer
 ============
 
@@ -45,7 +44,6 @@ gate_library
 
 .. automodule:: quantify.sequencer.gate_library
     :members:
-    :special-members:
 
 pulse_library
 ---------------
@@ -57,9 +55,6 @@ pulse_library
 visualization
 =============
 
-
 .. automodule:: quantify.visualization
     :members:
 
-    .. :inherited-members:
-    .. :show-inheritance:
