@@ -27,8 +27,8 @@ def test_schedule_Bell():
         sched.add(Rxy(theta=theta, phi=0, qubit=q0))
         sched.add(Measure(q0, q1), label='M {:.2f} deg'.format(theta))
 
-    assert len(sched.data['operation_dict']) == 24
-    assert len(sched.data['timing_constraints']) == 105
+    assert len(sched.operations) == 24
+    assert len(sched.timing_constraints) == 105
 
 
 def test_schedule_add_timing_constraints():
@@ -49,11 +49,10 @@ def test_schedule_add_timing_constraints():
     # not specifying a label should work
     sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op=None)
 
-
     # specifying existing label should work
     sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op=x90_label)
 
     # specifying non-existing label should raise an error
     with pytest.raises(ValueError):
         sched.add(Rxy(theta=90, phi=0, qubit='q0'),
-            ref_op='non-existing-operation')
+                  ref_op='non-existing-operation')

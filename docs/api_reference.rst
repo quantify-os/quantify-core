@@ -51,6 +51,13 @@ pulse_library
 .. automodule:: quantify.sequencer.pulse_library
     :members:
 
+compilation
+---------------
+
+.. automodule:: quantify.sequencer.compilation
+    :members:
+
+
 
 visualization
 =============

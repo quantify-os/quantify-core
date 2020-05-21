@@ -42,6 +42,20 @@ class Schedule(UserDict):
         if data is not None:
             raise NotImplementedError
 
+    @property
+    def operations(self):
+        """
+        Operation dictionary
+        """
+        return self.data['operation_dict']
+
+    @property
+    def timing_constraints(self):
+        """
+        Timing constraints
+        """
+        return self.data['timing_constraints']
+
     def __repr__(self):
         return 'Schedule "{}" containing ({}) {}  (unique) operations.'.format(
             self.data['name'],
