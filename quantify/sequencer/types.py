@@ -145,11 +145,19 @@ class Operation(UserDict):
     TODO: converge on exactly what information is required in these specs
 
 
-    - gate_info (dict): This typically contains:
+    - gate_info (dict): This can contain the following items:
 
-            - A unitary matrix describing the operation.
-            - The target qubit(s), [the resource(s)].
-            - Optional Latex code?
+            - unitary (np.array) : A unitary matrix describing the operation.
+            - qubits (list) : A list of string specifying the qubit names.
+            - tex (str) : latex snippet for plotting
+            - plot_func (str): reference to a function for plotting this operation
+              in a circuit diagram. plot_func must accept the following arguments:
+                - ax
+                - time (float)
+                - qubit_idxs (list)
+                - tex (str)
+              if not specified, default to using
+
 
     - pulse_info (dict): This typically contains:
 
@@ -158,8 +166,8 @@ class Operation(UserDict):
             - Numerical waveforms?
             - The AWG channels used [the resource(s)].
             - TODO: -> this spec needs to be defined, will take inspiration
-                from the qiskit OpenPulse spec, QuPulse and some spefic
-                ideas discussed with Martin.
+              from the qiskit OpenPulse spec, QuPulse and some spefic
+              ideas discussed with Martin.
 
     - logic_info (dict): This typically contains:
 
@@ -181,7 +189,11 @@ class Operation(UserDict):
         super().__init__()
 
         # ensure keys exist
-        self.data['gate_info'] = {}
+        self.data['gate_info'] = {
+            'unitary': None,
+            'tex': None,
+            'plot_func': None,
+            'qubits': None}
         self.data['pulse_info'] = {}
         self.data['logic_info'] = {}
 

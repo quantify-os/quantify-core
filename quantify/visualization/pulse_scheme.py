@@ -14,6 +14,7 @@ def new_pulse_fig(figsize=None):
     '''
     fig, ax = plt.subplots(1, 1, figsize=figsize, frameon=False)
     ax.axis('off')
+    fig.patch.set_alpha(0)
     fig.subplots_adjust(bottom=0, top=1, left=0, right=1)
     ax.axhline(0, color='0.75')
 
@@ -120,7 +121,7 @@ def interval(ax, start, stop, y_offs=0, height=1.5, label=None, labelHeight=None
 
     if label is not None:
         ax.text((start + stop) / 2, labelHeight+y_offs, label, color=color,
-                horizontalalignment='center')
+                horizonxtalalignment='center')
 
 
 def meter(ax, x0, y0, y_offs=0,  w=1.1, h=.8, color='black', fillcolor=None):
@@ -136,14 +137,15 @@ def meter(ax, x0, y0, y_offs=0,  w=1.1, h=.8, color='black', fillcolor=None):
         fill=fill, zorder=5)
     ax.add_patch(p1)
     p0 = matplotlib.patches.Wedge(
-        (x0, y0-h/3+y_offs), .4, theta1=40, theta2=180-40, color=color, lw=2,
+        (x0, y0-h/1.75+y_offs), .4, theta1=40, theta2=180-40, color=color, lw=2,
         width=.01, zorder=5)
     ax.add_patch(p0)
-    ax.arrow(x0, y0-h/5+y_offs, dx=.425*np.cos(np.deg2rad(70)),
-             dy=.425*np.sin(np.deg2rad(60)), width=.03, color=color, zorder=5)
+    r0 = h/2.2
+    ax.arrow(x0, y0-h/5+y_offs, dx=r0*np.cos(np.deg2rad(70)),
+             dy=r0*np.sin(np.deg2rad(70)), width=.03, color=color, zorder=5)
 
 
-def box_text(ax, x0, y0,text='', w=1.1, h=.8,
+def box_text(ax, x0, y0, text='', w=1.1, h=.8,
              color='black',
              fillcolor=None, textcolor='black', fontsize=None):
     """

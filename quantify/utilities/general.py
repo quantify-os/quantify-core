@@ -1,3 +1,4 @@
+import importlib
 import copy
 import xxhash
 import numpy as np
@@ -58,3 +59,13 @@ def make_hash(o):
         new_o[k] = make_hash(v)
 
     return hash(tuple(frozenset(sorted(new_o.items()))))
+
+
+def import_func_from_string(function_string):
+    """
+    Based on https://stackoverflow.com/questions/3061/calling-a-function-of-a-module-by-using-its-name-a-string
+    """
+    mod_name, func_name = function_string.rsplit('.', 1)
+    mod = importlib.import_module(mod_name)
+    func = getattr(mod, func_name)
+    return func
