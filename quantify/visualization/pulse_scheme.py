@@ -98,7 +98,8 @@ def ramZPulse(ax, pos, y_offs=0, width=2.5, s=0.1, amp=1.5, sep=1.5, color='C1')
 
     return pos + width
 
-def interval(ax, start, stop, y_offs = 0, height=1.5, label=None, labelHeight=None,
+
+def interval(ax, start, stop, y_offs=0, height=1.5, label=None, labelHeight=None,
              vlines=True, color='k', arrowstyle='<|-|>', **plot_kws):
     '''
     Draw an arrow to indicate an interval.
@@ -112,8 +113,10 @@ def interval(ax, start, stop, y_offs = 0, height=1.5, label=None, labelHeight=No
     ax.add_patch(arrow)
 
     if vlines:
-        ax.plot([start, start], [0+y_offs, height+y_offs], '--', color=color, **plot_kws)
-        ax.plot([stop, stop], [0+y_offs, height+y_offs], '--', color=color, **plot_kws)
+        ax.plot([start, start], [0+y_offs, height+y_offs],
+                '--', color=color, **plot_kws)
+        ax.plot([stop, stop], [0+y_offs, height+y_offs],
+                '--', color=color, **plot_kws)
 
     if label is not None:
         ax.text((start + stop) / 2, labelHeight+y_offs, label, color=color,
@@ -124,7 +127,7 @@ def meter(ax, x0, y0, y_offs=0,  w=1.1, h=.8, color='black', fillcolor=None):
     """
     Draws a measurement meter on the specified position.
     """
-    if fillcolor == None:
+    if fillcolor is None:
         fill = False
     else:
         fill = True
@@ -133,8 +136,26 @@ def meter(ax, x0, y0, y_offs=0,  w=1.1, h=.8, color='black', fillcolor=None):
         fill=fill, zorder=5)
     ax.add_patch(p1)
     p0 = matplotlib.patches.Wedge(
-        (x0, y0-h/4+y_offs), .4, theta1=40, theta2=180-40, color=color, lw=2,
+        (x0, y0-h/3+y_offs), .4, theta1=40, theta2=180-40, color=color, lw=2,
         width=.01, zorder=5)
     ax.add_patch(p0)
-    ax.arrow(x0, y0-h/4+y_offs, dx=.5*np.cos(np.deg2rad(70)),
-             dy=.5*np.sin(np.deg2rad(60)), width=.03, color=color, zorder=5)
+    ax.arrow(x0, y0-h/5+y_offs, dx=.425*np.cos(np.deg2rad(70)),
+             dy=.425*np.sin(np.deg2rad(60)), width=.03, color=color, zorder=5)
+
+
+def box_text(ax, x0, y0,text='', w=1.1, h=.8,
+             color='black',
+             fillcolor=None, textcolor='black', fontsize=None):
+    """
+    Draws a box filled with text at the specified position.
+    """
+    if fillcolor is None:
+        fill = False
+    else:
+        fill = True
+    p1 = matplotlib.patches.Rectangle(
+        (x0-w/2, y0-h/2), w, h, facecolor=fillcolor, edgecolor=color,
+        fill=fill, zorder=5)
+    ax.add_patch(p1)
+
+    ax.text(x0, y0, text, ha='center', va='center', zorder=6, size=fontsize)

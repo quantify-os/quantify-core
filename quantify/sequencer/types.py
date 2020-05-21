@@ -17,7 +17,6 @@ class Schedule(UserDict):
         operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
 
-
     """
 
     def __init__(self, name: str, data: dict = None):
@@ -114,19 +113,23 @@ class Operation(UserDict):
 
 
     TODO: converge on exactly what information is required in these specs
+
+
     - gate_info (dict): This typically contains:
+
             - A unitary matrix describing the operation.
             - The target qubit(s), [the resource(s)].
             - Optional Latex code?
 
     - pulse_info (dict): This typically contains:
+
             - A function to generate the waveform
             - the arguments for that function
             - Numerical waveforms?
             - The AWG channels used [the resource(s)].
             - TODO: -> this spec needs to be defined, will take inspiration
-            from the qiskit OpenPulse spec, QuPulse and some spefic
-            ideas discussed with Martin.
+                from the qiskit OpenPulse spec, QuPulse and some spefic
+                ideas discussed with Martin.
 
     - logic_info (dict): This typically contains:
 
@@ -173,6 +176,7 @@ class Resource():
     .. warning::
 
         The data types and interface of a Resource are not defined yet.
+
     """
 
     pass

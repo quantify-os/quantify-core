@@ -15,7 +15,9 @@ class Rxy(Operation):
 
     .. math::
 
-        \\mathsf {R}_{xy} \\left(\\theta, \\varphi\\right) = \\begin{bmatrix}\\textrm {cos}(\\theta /2) & -ie^{-i\\varphi }\\textrm {sin}(\\theta /2) \\\\ -ie^{i\\varphi }\\textrm {sin}(\\theta /2) & \\textrm {cos}(\\theta /2) \\end{bmatrix}
+        \\mathsf {R}_{xy} \\left(\\theta, \\varphi\\right) = \\begin{bmatrix}
+        \\textrm {cos}(\\theta /2) & -ie^{-i\\varphi }\\textrm {sin}(\\theta /2)
+        \\\\ -ie^{i\\varphi }\\textrm {sin}(\\theta /2) & \\textrm {cos}(\\theta /2) \\end{bmatrix}
 
     """
 
@@ -59,6 +61,16 @@ class Rxy(Operation):
 class X(Rxy):
     """
     A single qubit rotation of 180 degrees around the X-axis.
+
+
+    This operation can be represented by the following unitary:
+
+    .. math::
+
+        X = \\sigma_x = \\begin{bmatrix}
+             0 & 1 \\\\
+             1 & 0 \\ \\end{bmatrix}
+
     """
 
     def __init__(self, qubit: str):
@@ -89,6 +101,14 @@ class X90(Rxy):
 class Y(Rxy):
     """
     A single qubit rotation of 180 degrees around the Y-axis.
+
+
+    .. math::
+
+        \\mathsf Y = \\sigma_y = \\begin{bmatrix}
+             0 & -i \\\\
+             i & 0 \\end{bmatrix}
+
     """
 
     def __init__(self, qubit: str):
@@ -118,29 +138,96 @@ class Y90(Rxy):
 
 class CNOT(Operation):
     """
-    CNOT
+    Conditional-NOT gate, a common entangling gate.
+
+    Performs an X gate on the target qubit qT conditional on the state
+    of the control qubit qC.
+
+    This operation can be represented by the following unitary:
+
+    .. math::
+
+        \\mathrm{CNOT}  = \\begin{bmatrix}
+            1 & 0 & 0 & 0 \\\\
+            0 & 1 & 0 & 0 \\\\
+            0 & 0 & 0 & 1 \\\\
+            0 & 0 & 1 & 0 \\ \\end{bmatrix}
+
     """
 
     def __init__(self, qC, qT):
-        super().__init__('CNOT ({}, {})'.format(qC, qT), data=None)
+        data = {}
+        data['gate_info'] = {'unitary': np.array([1, 0, 0, 0],
+                                                 [0, 1, 0, 0]
+                                                 [0, 0, 0, 1]
+                                                 [0, 0, 1, 0]),
+                             'tex': r'CNOT',
+                             'qubits': [qC, qT]}
+        super().__init__('CNOT ({}, {})'.format(qC, qT), data=data)
+
+
+class CZ(Operation):
+    """
+    Conditional-phase gate, a common entangling gate.
+
+    Performs a Z gate on the target qubit qT conditional on the state
+    of the control qubit qC.
+
+    This operation can be represented by the following unitary:
+
+    .. math::
+
+        \\mathrm{CNOT}  = \\begin{bmatrix}
+            1 & 0 & 0 & 0 \\\\
+            0 & 1 & 0 & 0 \\\\
+            0 & 0 & 1 & 0 \\\\
+            0 & 0 & 0 & -1 \\ \\end{bmatrix}
+
+    """
+
+    def __init__(self, qC, qT):
+        data = {}
+        data['gate_info'] = {'unitary': np.array([1, 0, 0, 0],
+                                                 [0, 1, 0, 0]
+                                                 [0, 0, 1, 0]
+                                                 [0, 0, 0, -1]),
+                             'tex': r'CZ',
+                             'qubits': [qC, qT]}
+        super().__init__('CNOT ({}, {})'.format(qC, qT), data=data)
 
 
 class Reset(Operation):
     """
+    Reset a qubit to the :math:`|0\\rangle` state.
+
+    .. note::
+        strictly speaking this is not a gate as it can not
+        be described by a unitary.
 
     """
 
     def __init__(self, *qubits):
-        super().__init__('Reset {}'.format(qubits), data=None)
+        data = {}
+        data['gate_info'] = {'unitary': None,
+                             'tex': r'$|0\rangle$',
+                             'qubits': qubits}
+
+        super().__init__('Reset {}'.format(qubits), data=data)
 
 
 class Measure(Operation):
     """
     A projective measurement in the Z-basis.
 
-    N.B. strictly speaking this is not a gate type operation as it can not
-    be described by a unitary.
+    .. note::
+        strictly speaking this is not a gate as it can not
+        be described by a unitary.
     """
 
     def __init__(self, *qubits):
+        data = {}
+        data['gate_info'] = {'unitary': None,
+                             'tex': r'$\langle0|$',
+                             'qubits': qubits}
+
         super().__init__('Measure {}'.format(qubits), data=None)
