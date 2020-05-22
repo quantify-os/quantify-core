@@ -100,9 +100,11 @@ class MeasurementControl(Instrument):
         )
 
         # variables that are set before the start of any experiment.
-        self._settable_pars = []
-        self._setpoints = []
-        self._gettable_pars = []
+        self._settable_pars = []  # detector_function(s)?
+        self._setpoints = []  # sweep points?
+        self._gettable_pars = []  # sweep_function(s)?
+        # sweep_functions and detector_functions both have 'prepare'&'finish' in pyqed
+        # todo remove these notes
 
         # variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
@@ -146,7 +148,8 @@ class MeasurementControl(Instrument):
         with open(join(exp_folder, 'snapshot.json'), 'w') as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-        # TODO: Prepare statements
+        self._prepare()
+
         plotmon_name = self.instr_plotmon()
         if plotmon_name is not None and plotmon_name != '':
             self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
@@ -176,6 +179,8 @@ class MeasurementControl(Instrument):
 
                 self._last_upd = time.time()
 
+        self._finish()
+
         # Wrap up experiment and store data
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
 
@@ -186,6 +191,25 @@ class MeasurementControl(Instrument):
     ############################################
     # Methods used to control the measurements #
     ############################################
+
+    def _prepare(self):
+        for p in self._settable_pars:
+            try:
+                p.prepare(self._setpoints)
+            except AttributeError as e:
+                pass
+        for p in self._gettable_pars:
+            try:
+                p.prepare()
+            except AttributeError as e:
+                pass
+
+    def _finish(self):
+        for p in self._gettable_pars and self._settable_pars:
+            try:
+                p.finish()
+            except AttributeError as e:
+                pass
 
     def _get_fracdone(self):
         """
