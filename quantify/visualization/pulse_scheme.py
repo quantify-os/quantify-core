@@ -56,7 +56,7 @@ def mwPulse(ax, pos, y_offs=0, width=1.5, amp=1, label=None, phase=0, labelHeigh
 
     if label is not None:
         ax.text(pos + width / 2, labelHeight, label,
-                horizontalalignment='right', color=color)
+                horizontalalignment='right', color=color).set_clip_on(True)
 
     return pos + width
 
@@ -77,7 +77,7 @@ def fluxPulse(ax, pos, y_offs=0, width=2.5, s=.1, amp=1.5, label=None, labelHeig
 
     if label is not None:
         ax.text(pos + width / 2, labelHeight, label,
-                horizontalalignment='center', color=color)
+                horizontalalignment='center', color=color).set_clip_on(True)
 
     return pos + width
 
@@ -121,7 +121,7 @@ def interval(ax, start, stop, y_offs=0, height=1.5, label=None, labelHeight=None
 
     if label is not None:
         ax.text((start + stop) / 2, labelHeight+y_offs, label, color=color,
-                horizonxtalalignment='center')
+                ha='center').set_clip_on(True)
 
 
 def meter(ax, x0, y0, y_offs=0,  w=1.1, h=.8, color='black', fillcolor=None):
