@@ -99,7 +99,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 7. Submit a pull request through the GitLab website.
 
 Merge Request Guidelines
------------------------
+--------------------------
 
 Before you submit a merge request, check that it meets these guidelines:
 
@@ -110,25 +110,35 @@ Before you submit a merge request, check that it meets these guidelines:
    - Check the status of the pipelines https://gitlab.com/qblox/packages/software/quantify/pipelines, the status is also reported in the merge request.
    - Tests should pass for all versions of python.
    - flake8 linter should pass.
+   - pylint should not flag serious issues.
    - Documentation should build.
    - Pipeline should work for PyPy (TODO)
 
 Tips
 ----
 
-- Ensure you have installed the `requirements_dev.txt`
+.. tip::
 
-- To run a subset of tests::
+  Ensure you have installed the `requirements_dev.txt`
 
-  $ pytest tests.test_quantify
+.. tip::
 
-- To auto rebuild docs when editing::
+  To run a subset of tests::
 
-  $ pip install sphinx-autobuild
-  $ sphinx-autobuild docs docs/_build/html
+    $ pytest tests.test_quantify
 
-  The docs will now be served on http://localhost:8000/
+.. tip::
 
+  To auto rebuild docs when editing::
+
+    $ pip install sphinx-autobuild
+    $ sphinx-autobuild docs docs/_build/html
+
+    The docs will now be served on http://localhost:8000/
+
+.. tip::
+
+  To learn more about writing documentation using sphinx. Take a look at the `matplotlib sampledoc tutorial <https://matplotlib.org/sampledoc/>`_ or the `sphinx doumentation <https://www.sphinx-doc.org/en/master/>`_.
 
 
 Deploying
@@ -142,9 +152,9 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
 Then run::
 
-$ bump2version patch # possible: major / minor / patch
-- $ git push
-$ git push --tags
+  $ bump2version patch # possible: major / minor / patch
+  - $ git push
+  $ git push --tags
 
 Travis will then deploy to PyPI if tests pass.
 

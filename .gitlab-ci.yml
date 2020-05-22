@@ -18,47 +18,68 @@ cache:
     - venv/
 
 before_script:
+  - QT_QPA_PLATFORM=offscreen
   - python -V  # Print out python version for debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
+  - apt update
+  - apt install -y xvfb # Sets up a headless display
+  - xvfb :99 & export DISPLAY=:99
+  - sleep 3
+
+stages:
+  - Static Analysis
+  - Test
+  - Deploy
 
 test:
+  stage: Test
   script:
-
     - pip install -e .
     - pip install -r requirements_dev.txt
-    - py.test -sv --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
-
+    - apt install python3-pyqt5 -y  # install here manually due to issues
+    - xvfb-run py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
   artifacts:
     paths:
       - htmlcov
       - coverage.xml
-
+    reports:
+      cobertura: coverage.xml
     when: always
-
-test-3.7:
-  extends: "test"
-  image: "python:3.7"
-
 
 test-3.8:
   extends: "test"
   image: "python:3.8"
 
-
 flake8:
-  extends: "test"
   image: python:latest
+  stage: Static Analysis
+  allow_failure: true
   script:
     - pip install -r requirements_dev.txt
     - flake8 quantify tests --format=html --htmldir=flake-report
+
   artifacts:
     paths:
       - flake-report
     when: on_failure
 
+pylint:
+  image: python:latest
+  stage: Static Analysis
+  allow_failure: true
+  script:
+    - pip install -r requirements_dev.txt
+    - pylint quantify --rcfile=.pylintrc | pylint-json2html -o pylint.html
+
+  artifacts:
+    paths:
+      - pylint.html
+    when: on_failure
+
 run:
+  stage: Test
   script:
     - python setup.py bdist_wheel
     # an alternative approach is to install and run:
@@ -69,12 +90,24 @@ run:
       - dist/*.whl
 
 pages:
+  stage: Deploy
   script:
-    - pip install sphinx sphinx-rtd-theme
+    - apt install -y pandoc # required for nbsphinx plugin
+    - pip install sphinx
+    - pip install -r requirements_dev.txt
     - cd docs ; make html
     - mv _build/html/ ../public/
   artifacts:
     paths:
       - public
+
+pypi:
+  image: python:latest
+  stage: Deploy
+  script:
+    - pip install -U twine
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
   only:
     - master
+

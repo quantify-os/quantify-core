@@ -1,13 +1,18 @@
-pip==19.2.3
+pip
 bump2version==0.5.11
 wheel==0.33.6
 watchdog==0.9.0
 flake8
 coverage
 Sphinx
+nbsphinx
+sphinx-rtd-theme
 twine==1.14.0
 
 pytest
 pytest-runner
 pytest-cov
 flake8-html
+
+pylint
+pylint-json2html
