@@ -204,7 +204,7 @@ def get_latest_tuid(contains=''):
     Returns the most recent tuid.
 
     Args:
-        contains (str): an optional string that is contained in the experiment name
+        contains (str): an optional string contained in the experiment name.
 
     Returns:
         :class:`~quantify.data.types.TUID`: the latest TUID
@@ -236,8 +236,26 @@ def get_latest_tuid(contains=''):
         raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
 
 
-def get_tuids_containing(contains=''):
-    pass
+def get_tuids_containing(contains='') -> list:
+    """
+    Returns a list of tuids containing a specific label
+
+    Args:
+        contains (str): a string contained in the experiment name.
+
+    Returns:
+        A list of  :class:`~quantify.data.types.TUID`: objects
+
+    Raises:
+        FileNotFoundError: If no data is found containing the
+
+    .. tip::
+
+        If one is only interested in the most recent :class:`~quantify.data.types.TUID`,
+        :func:`~get_latest_tuid` is preferred for performance reasons.
+    """
+
+    raise NotImplementedError
 
 
 def snapshot(update: bool = False, clean: bool = True) -> dict:

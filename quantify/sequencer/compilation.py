@@ -12,7 +12,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
 
     Args:
         schedule (:class:`~quantify.sequencer.Schedule`):
-        clock_unit ('physical', 'ideal') : wheter to use physical units to determine the absolute time or ideal time.
+        clock_unit (str) : Must be ('physical', 'ideal') : wheter to use physical units to determine the absolute time or ideal time.
             When clock_unit == "physical" the duration attribute is used.
             When clock_unit == "ideal" the duration attribute is ignored and treated as if it is 1.
 

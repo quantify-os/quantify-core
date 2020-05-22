@@ -79,12 +79,13 @@ class Schedule(UserDict):
             operation (:class:`Operation`): The operation to add to the schedule
             rel_time (float) : relative time between the the reference operation and added operation.
             ref_op (str) : specifies the reference operation.
-            ref_pt ('start', 'center', 'end') : reference point in reference operation.
-            ref_pt_new ('start', 'center', 'end') : reference point in added operation.
+            ref_pt (str): reference point in reference operation must be one of ('start', 'center', 'end').
+            ref_pt_new (str) : reference point in added operation must be one of ('start', 'center', 'end').
             label  (str) : a label that can be used as an identifier when adding more operations.
 
         Returns:
-            label (str): returns the unique identifier of the last added operation.
+
+            (str) : returns the (unique) label of the last added operation.
 
         """
         assert isinstance(operation, Operation)
@@ -147,27 +148,28 @@ class Operation(UserDict):
 
     - gate_info (dict): This can contain the following items:
 
-            - unitary (np.array) : A unitary matrix describing the operation.
-            - qubits (list) : A list of string specifying the qubit names.
-            - tex (str) : latex snippet for plotting
-            - plot_func (str): reference to a function for plotting this operation
-              in a circuit diagram. plot_func must accept the following arguments:
-                - ax
-                - time (float)
-                - qubit_idxs (list)
-                - tex (str)
-              if not specified, default to using
+        - unitary (np.array) : A unitary matrix describing the operation.
+        - qubits (list) : A list of string specifying the qubit names.
+        - tex (str) : latex snippet for plotting
+        - plot_func (str): reference to a function for plotting this operation
+          in a circuit diagram. If not specified, defaults to using
+          :func:`quantify.visualization.circuit_diagram.gate_box`
+          A valid plot_func must accept the following arguments:
 
+            - ax
+            - time (float)
+            - qubit_idxs (list)
+            - tex (str)
 
     - pulse_info (dict): This typically contains:
 
-            - A function to generate the waveform
-            - the arguments for that function
-            - Numerical waveforms?
-            - The AWG channels used [the resource(s)].
-            - TODO: -> this spec needs to be defined, will take inspiration
-              from the qiskit OpenPulse spec, QuPulse and some spefic
-              ideas discussed with Martin.
+        - A function to generate the waveform
+        - the arguments for that function
+        - Numerical waveforms?
+        - The AWG channels used [the resource(s)].
+        - TODO: -> this spec needs to be defined, will take inspiration
+          from the qiskit OpenPulse spec, QuPulse and some spefic
+          ideas discussed with Martin.
 
     - logic_info (dict): This typically contains:
 

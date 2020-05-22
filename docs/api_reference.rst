@@ -31,13 +31,15 @@ measurement
 sequencer
 ============
 
-top-level module
--------------------
-
-
 .. automodule:: quantify.sequencer
     :members:
 
+
+types
+-------------------
+
+.. automodule:: quantify.sequencer.types
+    :members:
 
 gate_library
 ---------------
@@ -57,11 +59,52 @@ compilation
 .. automodule:: quantify.sequencer.compilation
     :members:
 
+backends
+---------------
+
+.. automodule:: quantify.sequencer.backends
+    :members:
+
 
 
 visualization
 =============
 
 .. automodule:: quantify.visualization
+    :members:
+
+
+circuit_diagram
+------------------
+
+.. automodule:: quantify.visualization.circuit_diagram
+    :members:
+
+pulse_scheme
+------------------
+
+.. automodule:: quantify.visualization.pulse_scheme
+    :members:
+
+SI_utilities
+------------------
+
+.. automodule:: quantify.visualization.SI_utilities
+    :members:
+
+
+plot_interpolation
+------------------
+
+
+
+.. automodule:: quantify.visualization.plot_interpolation
+    :members:
+
+pyqt_plotmon
+------------------
+
+
+.. automodule:: quantify.visualization.pyqt_plotmon
     :members:
 

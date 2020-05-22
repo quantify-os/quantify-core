@@ -10,6 +10,24 @@ from quantify.utilities.general import import_func_from_string
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):
+    """
+    Creates a circuit diagram visualization of a schedule using matplotlib.
+
+    Args:
+        schedule (:class:`~quantify.sequencer.types.Schedule`) : the schedule to render.
+        figsize (tuple) : matplotlib figsize.
+
+    Returns:
+        (tuple): tuple containing:
+
+            fig  matplotlib figure object.
+            ax  matplotlib axis object.
+
+    For this visualization backend to work, the schedule must contain
+    `gate_info` for each operation in the `operation_dict` as well as a value
+    for `abs_time` for each element in the timing_constraints.
+
+    """
     # qubit map should be obtained from the schedule object
     qubit_map = {'q0': 0, 'q1': 1}
 

@@ -24,7 +24,8 @@ def new_pulse_fig(figsize=None):
 def new_pulse_subplot(fig, *args, **kwargs):
     '''
     Add a new subplot configured for plotting pulse schemes to a figure.
-    All *args and **kwargs are passed to fig.add_subplot.
+
+    All `*args` and `**kwargs` are passed to fig.add_subplot.
     '''
     ax = fig.add_subplot(*args, **kwargs)
     ax.axis('off')
