@@ -4,8 +4,7 @@ __author__ = """Qblox"""
 __email__ = 'hello@qblox.com'
 __version__ = '0.1.0'
 
-
-from quantify.data.handling import get_datadir, set_datadir, \
-    snapshot
-
-__all__ = ['get_datadir', 'set_datadir', 'snapshot']
+import quantify.data
+import quantify.measurement
+import quantify.visualization
+import quantify.utilities
