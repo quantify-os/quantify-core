@@ -197,22 +197,13 @@ class MeasurementControl(Instrument):
 
     def _prepare(self):
         for par, points in zip(self._settable_pars, self._setpoints):
-            try:
-                par.prepare(points)
-            except AttributeError as e:
-                pass
+            par.prepare(points)
         for p in self._gettable_pars:
-            try:
-                p.prepare()
-            except AttributeError as e:
-                pass
+            p.prepare()
 
     def _finish(self):
         for p in self._gettable_pars and self._settable_pars:
-            try:
-                p.finish()
-            except AttributeError as e:
-                pass
+            p.finish()
 
     def _get_fracdone(self):
         """

@@ -1,3 +1,5 @@
+from enum import Enum
+
 
 def check_attribute(obj, attr, t):
     if not hasattr(obj, attr):
@@ -6,7 +8,12 @@ def check_attribute(obj, attr, t):
         raise AttributeError("{} has attribute {} which should be of type str but is {}".format(obj, attr, t))
 
 
-class Settable(type):
+class Datasource(Enum):
+    INTERNAL = 1
+    EXTERNAL = 2
+
+
+class Settable:
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
 
@@ -15,13 +22,19 @@ class Settable(type):
         - name: str
         - unit: str
     """
-    def __new__(cls, obj):
+    def __init__(self, obj):
         for attr, t in {'name': str, 'unit': str, 'set': None}.items():
             check_attribute(obj, attr, t)
-        return obj
+        self.__dict__.update(obj.__dict__)
+
+    def prepare(self, setpoints):
+        pass
+
+    def finish(self):
+        pass
 
 
-class Gettable(type):
+class Gettable:
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
 
@@ -30,7 +43,14 @@ class Gettable(type):
         - name: str
         - unit: str
     """
-    def __new__(cls, obj):
+
+    def __init__(self, obj):
         for attr, t in {'name': str, 'unit': str, 'get': None}.items():
             check_attribute(obj, attr, t)
-        return obj
+        self.__dict__.update(obj.__dict__)
+
+    def prepare(self):
+        pass
+
+    def finish(self):
+        pass
