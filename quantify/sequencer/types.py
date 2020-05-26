@@ -161,15 +161,11 @@ class Operation(UserDict):
             - qubit_idxs (list)
             - tex (str)
 
-    - pulse_info (dict): This typically contains:
+    - pulse_info (dict): This can contain:
 
-        - A function to generate the waveform
-        - the arguments for that function
-        - Numerical waveforms?
-        - The AWG channels used [the resource(s)].
-        - TODO: -> this spec needs to be defined, will take inspiration
-          from the qiskit OpenPulse spec, QuPulse and some spefic
-          ideas discussed with Martin.
+        - wf_func (str): reference to a function to generate the waveform.
+        - keyword arguments for wf_func
+        - channels (list) : a list of the channels used.
 
     - logic_info (dict): This typically contains:
 
@@ -198,6 +194,7 @@ class Operation(UserDict):
             'qubits': None}
         self.data['pulse_info'] = {}
         self.data['logic_info'] = {}
+        self.data['duration'] = None  # start as undefined
 
         if name is not None:
             self.data['name'] = name
@@ -210,6 +207,27 @@ class Operation(UserDict):
         A hash based on the contents of the Operation.
         """
         return make_hash(self.data)
+
+    def add_gate_info(self, gate_operation):
+        """
+        Updates self.data['gate_info'] with contents of gate_operation.
+
+        Args:
+            gate_operation (:class:`Operation`) : an operation containing gate_info.
+        """
+        self.data['gate_info'].update(gate_operation.data['gate_info'])
+
+    def add_pulse_info(self, pulse_operation):
+        """
+        Updates self.data['pulse_info'] with contents of pulse_operation.
+
+        Args:
+            pulse_operation (:class:`Operation`) : an operation containing pulse_info.
+        """
+        self.data['pulse_info'].update(pulse_operation.data['pulse_info'])
+
+        # pulse level duration information takes presedence
+        self.data['duration'] = pulse_operation.data['duration']
 
 
 class Resource(UserDict):

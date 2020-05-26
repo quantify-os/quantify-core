@@ -53,6 +53,13 @@ pulse_library
 .. automodule:: quantify.sequencer.pulse_library
     :members:
 
+
+waveforms
+---------------
+
+.. automodule:: quantify.sequencer.waveforms
+    :members:
+
 compilation
 ---------------
 

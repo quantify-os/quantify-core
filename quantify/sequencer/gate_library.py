@@ -53,6 +53,7 @@ class Rxy(Operation):
                              'tex': tex,
                              'plot_func': 'quantify.visualization.circuit_diagram.gate_box',
                              'qubits': [qubit],
+                             'operation_type': 'Rxy',
                              'theta': theta,
                              'phi': phi}
 
@@ -164,7 +165,8 @@ class CNOT(Operation):
                                                   [0, 0, 1, 0]]),
                              'tex': r'CNOT',
                              'plot_func': 'quantify.visualization.circuit_diagram.cnot',
-                             'qubits': [qC, qT]}
+                             'qubits': [qC, qT],
+                             'operation_type': 'CNOT'}
         super().__init__('CNOT ({}, {})'.format(qC, qT), data=data)
 
 
@@ -195,7 +197,8 @@ class CZ(Operation):
                                                   [0, 0, 0, -1]]),
                              'tex': r'CZ',
                              'plot_func': 'quantify.visualization.circuit_diagram.cz',
-                             'qubits': [qC, qT]}
+                             'qubits': [qC, qT],
+                             'operation_type': 'CZ'}
         super().__init__('CZ ({}, {})'.format(qC, qT), data=data)
 
 
@@ -214,7 +217,8 @@ class Reset(Operation):
         data['gate_info'] = {'unitary': None,
                              'tex': r'$|0\rangle$',
                              'plot_func': 'quantify.visualization.circuit_diagram.reset',
-                             'qubits': qubits}
+                             'qubits': qubits,
+                             'operation_type': 'reset'}
 
         super().__init__('Reset {}'.format(qubits), data=data)
 
@@ -233,6 +237,7 @@ class Measure(Operation):
         data['gate_info'] = {'unitary': None,
                              'plot_func': 'quantify.visualization.circuit_diagram.meter',
                              'tex': r'$\langle0|$',
-                             'qubits': qubits}
+                             'qubits': qubits,
+                             'operation_type': 'measure'}
 
         super().__init__('Measure {}'.format(qubits), data=data)
