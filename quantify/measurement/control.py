@@ -254,7 +254,7 @@ class MeasurementControl(Instrument):
 
         self._settable_pars = []
         for _, settable in enumerate(settable_pars):
-            self._settable_pars.append(settable)
+            self._settable_pars.append(Settable(settable))
 
     def set_setpoints(self, setpoints):
         """
@@ -317,7 +317,7 @@ class MeasurementControl(Instrument):
             - multiple points at once (hard loop)
 
         """
-        self._gettable_pars = [gettable_par]
+        self._gettable_pars = [Gettable(gettable_par)]
 
 
 def tile_setpoints_grid(setpoints):
