@@ -1,6 +1,3 @@
-from enum import Enum
-
-
 def check_attribute(obj, attr, t):
     if not hasattr(obj, attr):
         raise AttributeError("{} does not have '{}'".format(obj, attr))
@@ -8,9 +5,10 @@ def check_attribute(obj, attr, t):
         raise AttributeError("{} has attribute {} which should be of type str but is {}".format(obj, attr, t))
 
 
-class Datasource(Enum):
-    INTERNAL = 1
-    EXTERNAL = 2
+def check_control(obj):
+    if hasattr(obj, "internal"):
+        return obj.internal
+    return True
 
 
 class Settable:
@@ -21,11 +19,15 @@ class Settable:
         - set(float)
         - name: str
         - unit: str
+
+    optional attributes
+        - internal (str): whether this parameter is internally or externally driven
     """
     def __init__(self, obj):
         for attr, t in {'name': str, 'unit': str, 'set': None}.items():
             check_attribute(obj, attr, t)
         self.__dict__.update(obj.__dict__)
+        self.internal = check_control(obj)
 
     def prepare(self, setpoints):
         pass
@@ -42,12 +44,16 @@ class Gettable:
         - get()
         - name: str
         - unit: str
+
+    optional attributes
+        - internal (str): whether this parameter is internally or externally driven
     """
 
     def __init__(self, obj):
         for attr, t in {'name': str, 'unit': str, 'get': None}.items():
             check_attribute(obj, attr, t)
         self.__dict__.update(obj.__dict__)
+        self.internal = check_control(obj)
 
     def prepare(self):
         pass
