@@ -22,10 +22,11 @@ class Settable:
         - name: str
         - unit: str
     """
-    def __init__(self, obj):
+    def __init__(self, obj, datasource):
         for attr, t in {'name': str, 'unit': str, 'set': None}.items():
             check_attribute(obj, attr, t)
         self.__dict__.update(obj.__dict__)
+        self.datasource = datasource
 
     def prepare(self, setpoints):
         pass
@@ -44,10 +45,11 @@ class Gettable:
         - unit: str
     """
 
-    def __init__(self, obj):
+    def __init__(self, obj, datasource):
         for attr, t in {'name': str, 'unit': str, 'get': None}.items():
             check_attribute(obj, attr, t)
         self.__dict__.update(obj.__dict__)
+        self.datasource = datasource
 
     def prepare(self):
         pass

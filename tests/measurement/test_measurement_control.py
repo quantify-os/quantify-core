@@ -6,6 +6,7 @@ from quantify.measurement.control import MeasurementControl, \
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+from quantify.measurement.types import Settable, Gettable, Datasource
 
 
 # Define some helpers that are used in the tests
@@ -22,13 +23,19 @@ amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
 freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Frequency')
 
 
+t_par_int = Settable(t, Datasource.INTERNAL)
+amp_par_int = Settable(amp, Datasource.INTERNAL)
+freq_par_int = Settable(freq, Datasource.INTERNAL)
+
+
 def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
 
 # We wrap our function in a Parameter to be able to give
-sig = Parameter(name='sig', label='Signal level',
-                unit='V', get_cmd=cosine_model)
+sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
+
+sig_par_int = Gettable(sig, Datasource.INTERNAL)
 
 
 class TestMeasurementControl:
@@ -64,9 +71,9 @@ class TestMeasurementControl:
 
         xvals = np.linspace(0, 2*np.pi, 31)
 
-        self.MC.set_setpars(t)
+        self.MC.set_setpars(t_par_int)
         self.MC.set_setpoints(xvals)
-        self.MC.set_getpars(sig)
+        self.MC.set_getpars(sig_par_int)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -87,13 +94,13 @@ class TestMeasurementControl:
         times = np.linspace(0, 5, 20)
         amps = np.linspace(-1, 1, 5)
 
-        self.MC.set_setpars([t, amp])
+        self.MC.set_setpars([t_par_int, amp_par_int])
         self.MC.set_setpoints_grid([times, amps])
 
         exp_sp = tile_setpoints_grid([times, amps])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
-        self.MC.set_getpars(sig)
+        self.MC.set_getpars(sig_par_int)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -134,9 +141,9 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        self.MC.set_setpars([t, amp])
+        self.MC.set_setpars([t_par_int, amp_par_int])
         self.MC.set_setpoints(setpoints)
-        self.MC.set_getpars(sig)
+        self.MC.set_getpars(sig_par_int)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -153,13 +160,13 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
 
-        self.MC.set_setpars([t, amp, freq])
+        self.MC.set_setpars([t_par_int, amp_par_int, freq_par_int])
         self.MC.set_setpoints_grid([times, amps, freqs])
 
         exp_sp = tile_setpoints_grid([times, amps, freqs])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
-        self.MC.set_getpars(sig)
+        self.MC.set_getpars(sig_par_int)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -194,9 +201,9 @@ class TestMeasurementControl:
         assert progress_param() == 0
 
         xvals = np.linspace(0, 2*np.pi, 31)
-        self.MC.set_setpars(t)
+        self.MC.set_setpars(t_par_int)
         self.MC.set_setpoints(xvals)
-        self.MC.set_getpars(sig)
+        self.MC.set_getpars(sig_par_int)
         self.MC.run()
 
         assert progress_param() == 100
@@ -211,9 +218,9 @@ class TestMeasurementControl:
         times = np.linspace(0, 5, 18)
         amps = np.linspace(-1, 1, 5)
 
-        self.MC.set_setpars([t, amp])
+        self.MC.set_setpars([t_par_int, amp_par_int])
         self.MC.set_setpoints_grid([times, amps])
-        self.MC.set_getpars(sig)
+        self.MC.set_getpars(sig_par_int)
         self.MC.run('2D Cosine test')
 
         assert plotmon.tuid() != 'latest'
