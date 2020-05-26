@@ -100,6 +100,9 @@ class MeasurementControl(Instrument):
         )
 
         # variables that are set before the start of any experiment.
+
+        # todo remove these notes
+        # I feel like setpars and setpoints should be bound together in a tuple
         self._settable_pars = []  # detector_function(s)?
         self._setpoints = []  # sweep points?
         self._gettable_pars = []  # sweep_function(s)?
@@ -193,9 +196,9 @@ class MeasurementControl(Instrument):
     ############################################
 
     def _prepare(self):
-        for p in self._settable_pars:
+        for par, points in zip(self._settable_pars, self._setpoints):
             try:
-                p.prepare(self._setpoints)
+                par.prepare(points)
             except AttributeError as e:
                 pass
         for p in self._gettable_pars:
