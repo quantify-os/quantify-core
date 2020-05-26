@@ -135,8 +135,10 @@ class MeasurementControl(Instrument):
         self._nr_acquired_values = 0
         self._begintime = time.time()
 
-        # initialize an empty dataset
+        if not all(par.internal == self._settable_pars[0].internal for par in self._settable_pars):
+            raise RuntimeError("Data control type mismatch")  # todo change to trigger adaptive mode
 
+        # initialize an empty dataset
         dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
 
         # cannot add it as a separate (nested) dict so make it flat.

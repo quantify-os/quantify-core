@@ -1,3 +1,4 @@
+import time
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter, Parameter
@@ -27,8 +28,30 @@ def cosine_model():
 
 
 # We wrap our function in a Parameter to be able to give
-sig = Parameter(name='sig', label='Signal level',
-                unit='V', get_cmd=cosine_model)
+sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
+
+
+class DummyDetector:
+    def __init__(self):
+        self.name = 'Dummy'
+        self.unit = 'W'
+        self.label = 'Watts Per Dumb'
+        self.setpoints = []
+        self.noise = 0
+        self.delay = 0
+        self.internal = False
+
+    def prepare(self, setpoints):
+        self.setpoints = setpoints
+
+    def get(self):
+        x = self.setpoints
+        noise = self.noise * (np.random.rand(2, len(x)) - 0.5)
+        #data = np.array([np.sin(x / np.pi), np.cos(x / np.pi)])
+        data = x
+        data += noise
+        time.sleep(self.delay)
+        return data
 
 
 class TestMeasurementControl:
@@ -61,7 +84,6 @@ class TestMeasurementControl:
         assert np.array_equal(self.MC._setpoints, x)
 
     def test_soft_sweep_1D(self):
-
         xvals = np.linspace(0, 2*np.pi, 31)
 
         self.MC.set_setpars(t)
@@ -81,6 +103,13 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x0'], xvals))
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+    def test_hard_sweep_1D(self):
+        x = np.linspace(0, 10, 5)
+        self.MC.set_setpars(t)
+        self.MC.set_setpoints(x)
+        self.MC.set_getpars(DummyDetector())
+        dset = self.MC.run()
 
     def test_soft_sweep_2D_grid(self):
 

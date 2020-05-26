@@ -18,13 +18,14 @@ class Settable:
     contains attributes
         - set(float)
         - name: str
+        - label: str
         - unit: str
 
     optional attributes
         - internal (str): whether this parameter is internally or externally driven
     """
     def __init__(self, obj):
-        for attr, t in {'name': str, 'unit': str, 'set': None}.items():
+        for attr, t in {'name': str, 'unit': str, 'label': str, 'set': None}.items():
             check_attribute(obj, attr, t)
         self.__dict__.update(obj.__dict__)
         self.internal = check_control(obj)
@@ -43,6 +44,7 @@ class Gettable:
     contains attributes
         - get()
         - name: str
+        - label: str
         - unit: str
 
     optional attributes
@@ -50,7 +52,7 @@ class Gettable:
     """
 
     def __init__(self, obj):
-        for attr, t in {'name': str, 'unit': str, 'get': None}.items():
+        for attr, t in {'name': str, 'unit': str, 'label': str, 'get': None}.items():
             check_attribute(obj, attr, t)
         self.__dict__.update(obj.__dict__)
         self.internal = check_control(obj)
