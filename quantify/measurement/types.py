@@ -1,11 +1,26 @@
-def check_attribute(obj, attr, t):
-    if not hasattr(obj, attr):
-        raise AttributeError("{} does not have '{}'".format(obj, attr))
-    if t and not isinstance(getattr(obj, attr), t):
-        raise AttributeError("{} has attribute {} which should be of type str but is {}".format(obj, attr, t))
+import jsonschema
 
 
 class Settable:
+    attr_schema = {
+        "required": [
+            "name",
+            "label",
+            "unit",
+        ],
+        "properties": {
+            "name": {"type": "string"},
+            "label": {"type": "string"},
+            "unit": {"type": "string"},
+        },
+    }
+
+    method_schema = {
+        "required": [
+            "set",
+        ],
+    }
+
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
 
@@ -21,12 +36,31 @@ class Settable:
         - finish():
     """
     def __new__(cls, obj):
-        for attr, t in {'name': str, 'unit': str, 'label': str, 'set': None}.items():
-            check_attribute(obj, attr, t)
+        jsonschema.validate(vars(obj), Settable.attr_schema)
+        jsonschema.validate(dir(obj), Settable.method_schema)
         return obj
 
 
 class Gettable:
+    attr_schema = {
+        "required": [
+            "name",
+            "label",
+            "unit",
+        ],
+        "properties": {
+            "name": {"type": "string"},
+            "label": {"type": "string"},
+            "unit": {"type": "string"},
+        },
+    }
+
+    method_schema = {
+        "required": [
+            "get",
+        ],
+    }
+
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
 
@@ -43,8 +77,8 @@ class Gettable:
         - finish():
     """
     def __new__(cls, obj):
-        for attr, t in {'name': str, 'unit': str, 'label': str, 'get': None}.items():
-            check_attribute(obj, attr, t)
+        jsonschema.validate(vars(obj), Gettable.attr_schema)
+        jsonschema.validate(dir(obj), Gettable.method_schema)
         return obj
 
 
