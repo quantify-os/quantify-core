@@ -49,9 +49,18 @@ class Gettable:
             "unit",
         ],
         "properties": {
-            "name": {"type": "string"},
-            "label": {"type": "string"},
-            "unit": {"type": "string"},
+            "name": {"oneOf": [
+                {"type": "string"},
+                {"type": "array", "items": {"type": "string"}},
+            ]},
+            "label": {"oneOf": [
+                {"type": "string"},
+                {"type": "array", "items": {"type": "string"}},
+            ]},
+            "unit": {"oneOf": [
+                {"type": "string"},
+                {"type": "array", "items": {"type": "string"}},
+            ]}
         },
     }
 
@@ -72,7 +81,6 @@ class Gettable:
 
     optional attributes
         - internal (str): whether this parameter is internally or externally driven
-        - dimensions (int): dimensionality of returned data
         - prepare():
         - finish():
     """

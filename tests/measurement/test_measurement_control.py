@@ -33,13 +33,11 @@ sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model
 
 class DummyDetector:
     def __init__(self):
-        self.name = 'Dummy'
-        self.unit = 'W'
-        self.label = 'Watts Per Dumb'
-        self.noise = 0
+        self.name = ['dum', 'mud']
+        self.unit = ['W', 'M']
+        self.label = ['Watts', 'Matts']
         self.delay = 0
         self.internal = False
-        self.dimensions = 2
 
     def prepare(self, setpoints):
         self.setpoints = setpoints
@@ -112,6 +110,12 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x0'].values, x))
         assert (np.array_equal(dset['y0'].values, expected_vals[0]))
         assert (np.array_equal(dset['y1'].values, expected_vals[1]))
+
+        assert isinstance(dset, xr.Dataset)
+        assert dset.keys() == {'x0', 'y0', 'y1'}
+        assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
+        assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
+        assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
 
     def test_soft_sweep_2D_grid(self):
 
