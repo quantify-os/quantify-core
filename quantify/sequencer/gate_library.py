@@ -96,7 +96,7 @@ class X90(Rxy):
             qubit (str): the target qubit
         """
         super().__init__(theta=90, phi=0, qubit=qubit)
-        self.data['name'] = 'X {}'.format(qubit)
+        self.data['name'] = 'X_{90}'+' {}'.format(qubit)
         self.data['gate_info']['tex'] = r'$X_{\pi/2}$'
 
 
@@ -119,7 +119,7 @@ class Y(Rxy):
             qubit (str): the target qubit
         """
         super().__init__(theta=180, phi=90, qubit=qubit)
-        self.data['name'] = 'Y_{90} {}'.format(qubit)
+        self.data['name'] = 'Y {}'.format(qubit)
         self.data['gate_info']['tex'] = r'$Y_{\pi/2}$'
 
 
@@ -134,7 +134,7 @@ class Y90(Rxy):
             qubit (str): the target qubit
         """
         super().__init__(theta=90, phi=90, qubit=qubit)
-        self.data['name'] = 'Y_{90} {}'.format(qubit)
+        self.data['name'] = 'Y_{90}'+' {}'.format(qubit)
         self.data['gate_info']['tex'] = r'$Y_{\pi/2}$'
 
 
@@ -217,7 +217,7 @@ class Reset(Operation):
         data['gate_info'] = {'unitary': None,
                              'tex': r'$|0\rangle$',
                              'plot_func': 'quantify.visualization.circuit_diagram.reset',
-                             'qubits': qubits,
+                             'qubits': list(qubits),
                              'operation_type': 'reset'}
 
         super().__init__('Reset {}'.format(qubits), data=data)

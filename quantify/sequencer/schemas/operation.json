@@ -1,0 +1,55 @@
+{
+ "$schema": "http://json-schema.org/draft/2019-09/schema#",
+ "type": "object",
+ "description": "JSON schema for a quantify sequencer operation.",
+ "additionalProperties": false,
+ "required": [
+  "name",
+  "gate_info",
+  "pulse_info",
+  "logic_info",
+  "duration"
+ ],
+ "properties": {
+  "name": {
+   "type": "string"
+  },
+  "gate_info": {
+   "type": "object",
+   "additionalProperties": true,
+   "properties": {
+    "unitary": {
+     "type": ["array", "null"],
+     "description": "A unitary matrix describing the operation."
+    },
+    "qubits": {
+     "type": "array"
+    },
+    "tex": {
+     "type": "string",
+     "description": "latex snippet for plotting"
+    },
+    "plot_func": {
+     "type": "string",
+     "description": "reference to a function for plotting this operation. If not specified, defaults to using :func:`quantify.visualization.circuit_diagram.gate_box`."
+    }
+   }
+  },
+  "pulse_info": {
+   "type": "object",
+   "properties": {
+    "qubits": {
+     "type": "array"
+    }
+   }
+  },
+  "logic_info": {},
+  "duration": {
+   "type": [
+    "number",
+    "null"
+   ],
+   "description": "The duration of the operation in seconds."
+  }
+ }
+}

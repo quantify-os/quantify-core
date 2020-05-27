@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from quantify.sequencer import Schedule
-from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
+from quantify.sequencer import Schedule, Operation
+from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, X, X90, Y, Y90, CZ
 
 
 def test_schedule_Bell():
@@ -56,3 +56,28 @@ def test_schedule_add_timing_constraints():
     with pytest.raises(ValueError):
         sched.add(Rxy(theta=90, phi=0, qubit='q0'),
                   ref_op='non-existing-operation')
+
+
+def test_gates_valid():
+
+    init_all = Reset('q0', 'q1')  # instantiates
+    x90_q0 = Rxy(theta=124, phi=23.9, qubit='q5')
+    x = X('q0')
+    x90 = X90('q1')
+    y = Y('q0')
+    y90 = Y90('q1')
+
+    cz = CZ('q0', 'q1')
+    cnot = CNOT('q0', 'q6')
+
+    measure = Measure(['q0' 'q9'])
+
+    assert Operation.is_valid(init_all)
+    assert Operation.is_valid(x90_q0)
+    assert Operation.is_valid(x)
+    assert Operation.is_valid(x90)
+    assert Operation.is_valid(y)
+    assert Operation.is_valid(y90)
+    assert Operation.is_valid(cz)
+    assert Operation.is_valid(cnot)
+    assert Operation.is_valid(measure)

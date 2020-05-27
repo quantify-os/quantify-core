@@ -22,7 +22,8 @@ requirements = [
     'matplotlib',
     'lmfit',
     'pyqt5',
-    'pyqtgraph']
+    'pyqtgraph',
+    'jsonschema']
 
 setup_requirements = ['pytest-runner', ]
 

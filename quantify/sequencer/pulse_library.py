@@ -19,7 +19,7 @@ class SquarePulse(Operation):
             'channels': (ch_I, ch_Q)}
         # the duration
         data['duration'] = duration
-    super().__init__(name=data['name'], data=data)
+        super().__init__(name=data['name'], data=data)
 
 
 class DRAGPulse(Operation):

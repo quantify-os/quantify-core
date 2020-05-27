@@ -46,6 +46,10 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     for t_constr in schedule.timing_constraints:
         op = schedule.operations[t_constr['operation_hash']]
         plot_func = import_func_from_string(op['gate_info']['plot_func'])
+        """
+        A valid plot_func must accept the following arguments: ax,
+            time (float), qubit_idxs (list), tex (str)
+        """
         time = t_constr['abs_time']
         idxs = [qubit_map[q] for q in op['gate_info']['qubits']]
         plot_func(ax, time=time, qubit_idxs=idxs, tex=op['gate_info']['tex'])

@@ -1,8 +1,11 @@
 """
 Module containing the core concepts of the sequencer.
 """
+from os import path
 from uuid import uuid4
 from collections import UserDict
+import json
+import jsonschema
 from quantify.utilities.general import make_hash
 
 
@@ -142,37 +145,14 @@ class Operation(UserDict):
     initializing an operation  not all of this information needs to be available
     as operations are typically modified during the compilation steps.
 
+    .. jsonschema:: schemas/operation.json
 
-    TODO: converge on exactly what information is required in these specs
 
 
-    - gate_info (dict): This can contain the following items:
+        .. warning::
 
-        - unitary (np.array) : A unitary matrix describing the operation.
-        - qubits (list) : A list of string specifying the qubit names.
-        - tex (str) : latex snippet for plotting
-        - plot_func (str): reference to a function for plotting this operation
-          in a circuit diagram. If not specified, defaults to using
-          :func:`quantify.visualization.circuit_diagram.gate_box`
-          A valid plot_func must accept the following arguments:
-
-            - ax
-            - time (float)
-            - qubit_idxs (list)
-            - tex (str)
-
-    - pulse_info (dict): This can contain:
-
-        - wf_func (str): reference to a function to generate the waveform.
-        - keyword arguments for wf_func
-        - channels (list) : a list of the channels used.
-
-    - logic_info (dict): This typically contains:
-
-            .. warning::
-
-                The instruction/logical information level is not clearly
-                defined yet.
+            The instruction/logical information level is not clearly
+            defined yet.
 
 
     .. note::
@@ -228,6 +208,17 @@ class Operation(UserDict):
 
         # pulse level duration information takes presedence
         self.data['duration'] = pulse_operation.data['duration']
+
+    @classmethod
+    def is_valid(cls, operation):
+
+        basepath = path.dirname(__file__)
+        filepath = path.abspath(path.join(basepath,
+                                          "schemas", "operation.json"))
+        with open(filepath) as json_file:
+            scheme = json.load(json_file)
+        jsonschema.validate(operation.data, scheme)
+        return True  # if not exception was raised during validation
 
 
 class Resource(UserDict):
