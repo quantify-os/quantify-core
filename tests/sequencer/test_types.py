@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from quantify.sequencer import Schedule, Operation
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, X, X90, Y, Y90, CZ
+from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse
 
 
 def test_schedule_Bell():
@@ -81,3 +82,14 @@ def test_gates_valid():
     assert Operation.is_valid(cz)
     assert Operation.is_valid(cnot)
     assert Operation.is_valid(measure)
+
+
+
+def test_pulses_valid():
+
+    sqp = SquarePulse(amp=.5, duration=300e-9, ch_I='ch5', ch_Q='ch6')
+    dgp = DRAGPulse(G_amp = .8, D_amp=-.3, phase=24.3, duration=20e-9,
+        ch_I='ch1', ch_Q='ch2')
+
+    assert Operation.is_valid(sqp)
+    assert Operation.is_valid(dgp)

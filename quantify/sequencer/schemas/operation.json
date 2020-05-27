@@ -29,16 +29,20 @@
      "description": "latex snippet for plotting"
     },
     "plot_func": {
-     "type": "string",
+     "type": ["string","null"],
      "description": "reference to a function for plotting this operation. If not specified, defaults to using :func:`quantify.visualization.circuit_diagram.gate_box`."
     }
    }
   },
   "pulse_info": {
-   "type": "object",
-   "properties": {
-    "qubits": {
-     "type": "array"
+   "description": "A list containing the pulses that are part of the operation",
+   "type": "array",
+   "items": {
+    "type":"object",
+    "properties": {
+      "channels": {
+        "type": "array"
+      }
     }
    }
   },

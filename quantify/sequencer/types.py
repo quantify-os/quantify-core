@@ -169,10 +169,10 @@ class Operation(UserDict):
         # ensure keys exist
         self.data['gate_info'] = {
             'unitary': None,
-            'tex': None,
+            'tex': '',
             'plot_func': None,
-            'qubits': None}
-        self.data['pulse_info'] = {}
+            'qubits': []}
+        self.data['pulse_info'] = [{}]  # A list of pulses
         self.data['logic_info'] = {}
         self.data['duration'] = None  # start as undefined
 
