@@ -172,14 +172,31 @@ class Operation(UserDict):
             'tex': '',
             'plot_func': None,
             'qubits': []}
-        self.data['pulse_info'] = [{}]  # A list of pulses
+        self.data['pulse_info'] = []  # A list of pulses
         self.data['logic_info'] = {}
-        self.data['duration'] = None  # start as undefined
 
         if name is not None:
             self.data['name'] = name
         if data is not None:
             self.data.update(data)
+
+    @property
+    def duration(self):
+        """
+        Determine the duration of the operation based on the pulse info.
+
+        If the operation contains no pulse info, it is assumed to be ideal and
+        have zero duration.
+        """
+        duration = 0  # default to zero duration if no pulse content is specified.
+
+        # Iterate over all pulses and take longest duration
+        for p in self.data['pulse_info']:
+            d = p['duration']+p['t0']
+            if d > duration:
+                duration = d
+
+        return self._duration
 
     @property
     def hash(self):

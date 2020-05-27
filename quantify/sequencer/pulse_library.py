@@ -9,16 +9,15 @@ class SquarePulse(Operation):
     """
     """
 
-    def __init__(self, amp, duration, ch_I, ch_Q):
+    def __init__(self, amp: float, duration: float, ch_I: str, ch_Q: str, t0: float = 0):
 
         data = {}
         data['name'] = 'SquarePulse'
         data['pulse_info'] = [{
             'wf_func': 'quantify.sequencer.waveforms.drag',
             'amp': amp, 'duration': duration,
+            't0': t0,
             'channels': [ch_I, ch_Q]}]
-        # the duration
-        data['duration'] = duration
         super().__init__(name=data['name'], data=data)
 
 
@@ -51,7 +50,7 @@ class DRAGPulse(Operation):
     pass
 
     def __init__(self, G_amp: float, D_amp: float, phase: float,
-                 duration: float, ch_I: str, ch_Q: str):
+                 duration: float, ch_I: str, ch_Q: str, t0: float = 0):
         """
         Args:
             G_amp (float):
@@ -80,9 +79,7 @@ class DRAGPulse(Operation):
             'wf_func': 'quantify.sequencer.waveforms.drag',
             'G_amp': G_amp, 'D_amp': D_amp, 'duration': duration,
             'phase': phase, 'nr_sigma': 4,
-            'channels': [ch_I, ch_Q]}]
-        # the duration
-        data['duration'] = duration
+            'channels': [ch_I, ch_Q], 't0': t0}]
 
         super().__init__(name=data['name'], data=data)
 
