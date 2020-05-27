@@ -212,13 +212,13 @@ class MeasurementControl(Instrument):
 
     def _prepare(self):
         try:
-            for par, points in zip(self._settable_pars, self._setpoints):
+            for par in self._settable_pars:
                 par.prepare()
         except AttributeError as e:
             pass
         try:
-            for par, points in zip(self._gettable_pars, self._setpoints):
-                par.prepare(points)
+            for par in self._gettable_pars:
+                par.prepare(self._setpoints)
         except AttributeError as e:
             pass
 

@@ -160,6 +160,12 @@ def append_to_Xarr():
     raise NotImplementedError()
 
 
+def dimensionality(obj):
+    if hasattr(obj, 'dimensions'):
+        return obj.dimensions
+    return 1
+
+
 def initialize_dataset(setable_pars, setpoints, getable_pars):
     """
     Initialize an empty dataset based on setable_pars, setpoints and getable_pars
@@ -178,18 +184,22 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
         darrs.append(xr.DataArray(
             data=setpoints[:, i],
             name='x{}'.format(i),
-            attrs={'name': setpar.name, 'long_name': setpar.label,
-                   'unit': setpar.unit}))
+            attrs={'name': setpar.name, 'long_name': setpar.label, 'unit': setpar.unit})
+        )
 
     numpoints = len(setpoints[:, 0])
-    for j, getpar in enumerate(getable_pars):
-        empty_arr = np.empty(numpoints)
-        empty_arr[:] = np.nan
-        darrs.append(xr.DataArray(
-            data=empty_arr,
-            name='y{}'.format(j),
-            attrs={'name': getpar.name, 'long_name': getpar.label,
-                   'unit': getpar.unit}))
+    j = 0
+    for getpar in getable_pars:
+        dimensions = dimensionality(getpar)
+        for idx in range(dimensions):
+            empty_arr = np.empty(numpoints)
+            empty_arr[:] = np.nan
+            darrs.append(xr.DataArray(
+                data=empty_arr,
+                name='y{}'.format(j + idx),
+                attrs={'name': getpar.name, 'long_name': getpar.label, 'unit': getpar.unit})
+            )
+        j += dimensions
 
     dataset = xr.merge(darrs)
     dataset.attrs['tuid'] = gen_tuid()

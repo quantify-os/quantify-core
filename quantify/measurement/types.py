@@ -38,6 +38,7 @@ class Gettable:
 
     optional attributes
         - internal (str): whether this parameter is internally or externally driven
+        - dimensions (int): dimensionality of returned data
         - prepare():
         - finish():
     """
