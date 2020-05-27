@@ -8,7 +8,7 @@ from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
-from quantify.measurement.types import Settable, Gettable
+from quantify.measurement.types import Settable, Gettable, is_internally_controlled
 
 
 class MeasurementControl(Instrument):
@@ -135,8 +135,8 @@ class MeasurementControl(Instrument):
         self._nr_acquired_values = 0
         self._begintime = time.time()
 
-        if not all(par.internal == self._settable_pars[0].internal for par in self._settable_pars):
-            raise RuntimeError("Data control type mismatch")  # todo change to trigger adaptive mode
+        is_internal = is_internally_controlled(self._gettable_pars[0])
+        # todo, check for control mismatch
 
         # initialize an empty dataset
         dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
@@ -166,8 +166,10 @@ class MeasurementControl(Instrument):
             for spar, spt in zip(self._settable_pars, spts):
                 # TODO add smartness to avoid setting if unchanged
                 spar.set(spt)
+                # todo, this sets each input to its current value
             # acquire all data points
             for j, gpar in enumerate(self._gettable_pars):
+                # todo hardware returns multiple points at once (per setpoint?)
                 val = gpar.get()
                 dataset['y{}'.format(j)].values[idx] = val
 
@@ -198,14 +200,23 @@ class MeasurementControl(Instrument):
     ############################################
 
     def _prepare(self):
-        for par, points in zip(self._settable_pars, self._setpoints):
-            par.prepare(points)
-        for p in self._gettable_pars:
-            p.prepare()
+        try:
+            for par, points in zip(self._settable_pars, self._setpoints):
+                par.prepare(points)
+        except AttributeError as e:
+            pass
+        try:
+            for par, points in zip(self._gettable_pars, self._setpoints):
+                par.prepare(points)
+        except AttributeError as e:
+            pass
 
     def _finish(self):
-        for p in self._gettable_pars and self._settable_pars:
-            p.finish()
+        try:
+            for p in self._gettable_pars and self._settable_pars:
+                p.finish()
+        except AttributeError as e:
+            pass
 
     def _get_fracdone(self):
         """

@@ -47,8 +47,7 @@ class DummyDetector:
     def get(self):
         x = self.setpoints
         noise = self.noise * (np.random.rand(2, len(x)) - 0.5)
-        #data = np.array([np.sin(x / np.pi), np.cos(x / np.pi)])
-        data = x
+        data = np.array([np.sin(x / np.pi), np.cos(x / np.pi)])
         data += noise
         time.sleep(self.delay)
         return data

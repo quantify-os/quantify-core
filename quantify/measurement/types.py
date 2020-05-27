@@ -5,12 +5,6 @@ def check_attribute(obj, attr, t):
         raise AttributeError("{} has attribute {} which should be of type str but is {}".format(obj, attr, t))
 
 
-def check_control(obj):
-    if hasattr(obj, "internal"):
-        return obj.internal
-    return True
-
-
 class Settable:
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
@@ -23,18 +17,13 @@ class Settable:
 
     optional attributes
         - internal (str): whether this parameter is internally or externally driven
+        - prepare():
+        - finish():
     """
-    def __init__(self, obj):
+    def __new__(cls, obj):
         for attr, t in {'name': str, 'unit': str, 'label': str, 'set': None}.items():
             check_attribute(obj, attr, t)
-        self.__dict__.update(obj.__dict__)
-        self.internal = check_control(obj)
-
-    def prepare(self, setpoints):
-        pass
-
-    def finish(self):
-        pass
+        return obj
 
 
 class Gettable:
@@ -49,16 +38,16 @@ class Gettable:
 
     optional attributes
         - internal (str): whether this parameter is internally or externally driven
+        - prepare():
+        - finish():
     """
-
-    def __init__(self, obj):
+    def __new__(cls, obj):
         for attr, t in {'name': str, 'unit': str, 'label': str, 'get': None}.items():
             check_attribute(obj, attr, t)
-        self.__dict__.update(obj.__dict__)
-        self.internal = check_control(obj)
+        return obj
 
-    def prepare(self):
-        pass
 
-    def finish(self):
-        pass
+def is_internally_controlled(obj):
+    if hasattr(obj, 'internal'):
+        return obj.internal
+    return True
