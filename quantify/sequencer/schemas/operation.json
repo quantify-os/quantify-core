@@ -19,7 +19,6 @@
    "additionalProperties": true,
    "properties": {
     "unitary": {
-     "type": ["array", "null"],
      "description": "A unitary matrix describing the operation."
     },
     "qubits": {

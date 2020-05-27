@@ -237,7 +237,7 @@ class Measure(Operation):
         data['gate_info'] = {'unitary': None,
                              'plot_func': 'quantify.visualization.circuit_diagram.meter',
                              'tex': r'$\langle0|$',
-                             'qubits': qubits,
+                             'qubits': list(qubits),
                              'operation_type': 'measure'}
 
         super().__init__('Measure {}'.format(qubits), data=data)

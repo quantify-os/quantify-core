@@ -70,7 +70,7 @@ def test_gates_valid():
     cz = CZ('q0', 'q1')
     cnot = CNOT('q0', 'q6')
 
-    measure = Measure(['q0' 'q9'])
+    measure = Measure('q0', 'q9')
 
     assert Operation.is_valid(init_all)
     assert Operation.is_valid(x90_q0)
