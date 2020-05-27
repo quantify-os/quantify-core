@@ -139,6 +139,7 @@ class MeasurementControl(Instrument):
         # todo, check for control mismatch
 
         # initialize an empty dataset
+        # todo looks like this isnt taking into account multiple returns from hardware
         dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
 
         # cannot add it as a separate (nested) dict so make it flat.
@@ -161,30 +162,29 @@ class MeasurementControl(Instrument):
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
 
-        for idx, spts in enumerate(self._setpoints):
-            # set all individual setparams
-            for spar, spt in zip(self._settable_pars, spts):
-                # TODO add smartness to avoid setting if unchanged
-                spar.set(spt)
-                # todo, this sets each input to its current value
-            # acquire all data points
-            for j, gpar in enumerate(self._gettable_pars):
-                # todo hardware returns multiple points at once (per setpoint?)
-                val = gpar.get()
-                dataset['y{}'.format(j)].values[idx] = val
-
-            self._nr_acquired_values += 1
-
-            # Here we do saving, plotting, checking for interupts etc.
-            update = ((time.time()-self._last_upd > self.update_interval()) or (idx+1 == len(self._setpoints)))
-            if update:
-                self.print_progress()
-                # Update the dataset
-                dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-                if plotmon_name is not None and plotmon_name != '':
-                    self.instr_plotmon.get_instr().update()
-
-                self._last_upd = time.time()
+        if is_internal:
+            for idx, spts in enumerate(self._setpoints):
+                # set all individual setparams
+                for spar, spt in zip(self._settable_pars, spts):
+                    # TODO add smartness to avoid setting if unchanged
+                    spar.set(spt)
+                # acquire all data points
+                for j, gpar in enumerate(self._gettable_pars):
+                    val = gpar.get()
+                    dataset['y{}'.format(j)].values[idx] = val
+                self._nr_acquired_values += 1
+                self._update(dataset, plotmon_name, exp_folder)
+        else:
+            while self._get_fracdone() < 100:
+                # todo assume only 1 Gettable for now
+                new_data = self._gettable_pars[0].get()
+                points_gathered = 0
+                for i, row in enumerate(new_data):  # todo this guy can return an N,M array
+                    for j, dp in enumerate(row):
+                        dataset['y{}'.format(i)].values[j] = dp
+                    points_gathered = len(row)
+                self._nr_acquired_values += points_gathered
+                self._update(dataset, plotmon_name, exp_folder)
 
         self._finish()
 
@@ -199,10 +199,21 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
+    # Here we do saving, plotting, checking for interupts etc.
+    def _update(self, dataset, plotmon_name, exp_folder):
+        update = time.time() - self._last_upd > self.update_interval() or self._nr_acquired_values == len(self._setpoints)
+        if update:
+            self.print_progress()
+            # Update the dataset
+            dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+            if plotmon_name is not None and plotmon_name != '':
+                self.instr_plotmon.get_instr().update()
+            self._last_upd = time.time()
+
     def _prepare(self):
         try:
             for par, points in zip(self._settable_pars, self._setpoints):
-                par.prepare(points)
+                par.prepare()
         except AttributeError as e:
             pass
         try:

@@ -109,6 +109,16 @@ class TestMeasurementControl:
         self.MC.set_setpoints(x)
         self.MC.set_getpars(DummyDetector())
         dset = self.MC.run()
+        print("")
+        print(dset)
+        print("")
+
+        expected_vals = [np.sin(x / np.pi), np.cos(x / np.pi)]
+        """
+        assert (np.array_equal(dset['x0'].values, x))
+        assert (np.array_equal(dset['y0'].values, expected_vals[0]))
+        assert (np.array_equal(dset['y1'].values, expected_vals[1]))
+        """
 
     def test_soft_sweep_2D_grid(self):
 
