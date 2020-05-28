@@ -42,15 +42,32 @@ class NoneSweep:
         pass
 
 
-def hardware_mock_values(setpoints):
+def hardware_mock_values_1D(setpoints):
+    return np.array([np.tan(setpoints / np.pi)])
+
+
+def hardware_mock_values_2D(setpoints):
     return np.array([np.sin(setpoints / np.pi), np.cos(setpoints / np.pi)])
 
 
 class DummyDetector:
-    def __init__(self, **kwargs):
-        self.name = ['dum', 'mud']
-        self.unit = ['W', 'M']
-        self.label = ['Watts', 'Matts']
+    """
+    Args:
+        mode (str): Number of data rows to return, supports '1D' and '2D'
+    """
+    def __init__(self, mode: str):
+        if mode == '1D':
+            self.name = 'dum'
+            self.unit = 'W'
+            self.label = 'Watts'
+            self.mock_fn = hardware_mock_values_1D
+        elif mode == '2D':
+            self.name = ['dum', 'mud']
+            self.unit = ['W', 'M']
+            self.label = ['Watts', 'Matts']
+            self.mock_fn = hardware_mock_values_2D
+        else:
+            raise Exception('Unsupported mode: {}'.format(mode))
         self.delay = 0
         self.internal = False
 
@@ -59,7 +76,7 @@ class DummyDetector:
 
     def get(self):
         x = self.setpoints
-        data = hardware_mock_values(x)
+        data = self.mock_fn(x)
         time.sleep(self.delay)
         return data
 
@@ -118,10 +135,10 @@ class TestMeasurementControl:
         x = np.linspace(0, 10, 5)
         self.MC.set_setpars(NoneSweep(internal=False))
         self.MC.set_setpoints(x)
-        self.MC.set_getpars(DummyDetector())
+        self.MC.set_getpars(DummyDetector("2D"))
         dset = self.MC.run()
 
-        expected_vals = hardware_mock_values(x)
+        expected_vals = hardware_mock_values_2D(x)
         assert (np.array_equal(dset['x0'].values, x))
         assert (np.array_equal(dset['y0'].values, expected_vals[0]))
         assert (np.array_equal(dset['y1'].values, expected_vals[1]))
@@ -203,7 +220,7 @@ class TestMeasurementControl:
 
         self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
         self.MC.set_setpoints_grid([times, amps])
-        self.MC.set_getpars(DummyDetector())
+        self.MC.set_getpars(DummyDetector("2D"))
         dset = self.MC.run('2D Hard')
 
         exp_sp = tile_setpoints_grid([times, amps])
@@ -211,7 +228,7 @@ class TestMeasurementControl:
         assert np.array_equal(dset['x0'].values, exp_sp[:, 0])
         assert np.array_equal(dset['x1'].values, exp_sp[:, 1])
 
-        expected_vals = hardware_mock_values(dset['x0'].values)
+        expected_vals = hardware_mock_values_2D(dset['x0'].values)
         assert np.array_equal(dset['y0'].values, expected_vals[0])
         assert np.array_equal(dset['y1'].values, expected_vals[1])
 
@@ -222,6 +239,33 @@ class TestMeasurementControl:
         assert dset['x1'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
         assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
         assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+
+    def test_hard_sweep_2D_arbitrary(self):
+        r = np.linspace(0, 1.5, 5)
+        dt = np.linspace(0, 1, 5)
+        f = 10
+        theta = np.cos(2*np.pi*f*dt)
+
+        def polar_coords(r, theta):
+            x = r*np.cos(2*np.pi*theta)
+            y = r*np.sin(2*np.pi*theta)
+            return x, y
+
+        x, y = polar_coords(r, theta)
+        setpoints = np.column_stack([x, y])
+
+        self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
+        self.MC.set_setpoints(setpoints)
+        self.MC.set_getpars(DummyDetector("1D"))
+        dset = self.MC.run()
+
+        assert TUID.is_valid(dset.attrs['tuid'])
+
+        expected_vals = hardware_mock_values_1D(x)
+
+        assert np.array_equal(dset['x0'].values, x)
+        assert np.array_equal(dset['x1'].values, y)
+        assert np.array_equal(dset['y0'].values, expected_vals[0, :])
 
     def test_soft_sweep_3D_grid(self):
 
