@@ -31,8 +31,19 @@ def cosine_model():
 sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
 
 
+class NoneSweep:
+    def __init__(self, internal):
+        self.name = 'none'
+        self.unit = 'N'
+        self.label = 'None'
+        self.internal = internal
+
+    def set(self):
+        pass
+
+
 class DummyDetector:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.name = ['dum', 'mud']
         self.unit = ['W', 'M']
         self.label = ['Watts', 'Matts']
@@ -101,7 +112,7 @@ class TestMeasurementControl:
 
     def test_hard_sweep_1D(self):
         x = np.linspace(0, 10, 5)
-        self.MC.set_setpars(t)
+        self.MC.set_setpars(NoneSweep(internal=False))
         self.MC.set_setpoints(x)
         self.MC.set_getpars(DummyDetector())
         dset = self.MC.run()
@@ -113,7 +124,7 @@ class TestMeasurementControl:
 
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'y0', 'y1'}
-        assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
+        assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
         assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
         assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
 
@@ -181,6 +192,19 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x0'].values, x))
         assert (np.array_equal(dset['x1'].values, y))
         assert (np.array_equal(dset['y0'].values, expected_vals))
+
+    """
+    def test_hard_sweep_2D_grid(self):
+        times = np.linspace(10, 20, 3)
+        amps = np.linspace(0, 10, 5)
+
+        self.MC.set_setpars([t, amp])
+        self.MC.set_setpoints_grid([times, amps])
+        self.MC.set_getpars(DummyDetector())
+        dset = self.MC.run('2D Hard')
+        print(dset)
+        # here we expected a x0, x1, y0 and y1
+    """
 
     def test_soft_sweep_3D_grid(self):
 

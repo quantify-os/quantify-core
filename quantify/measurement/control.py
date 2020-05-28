@@ -135,7 +135,6 @@ class MeasurementControl(Instrument):
         self._nr_acquired_values = 0
         self._begintime = time.time()
 
-        is_internal = is_internally_controlled(self._gettable_pars[0])
         # todo, check for control mismatch
 
         # initialize an empty dataset
@@ -161,6 +160,13 @@ class MeasurementControl(Instrument):
             self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
+
+        if is_internally_controlled(self._settable_pars[0]) and is_internally_controlled(self._gettable_pars[0]):
+            is_internal = True
+        elif not is_internally_controlled(self._gettable_pars[0]):
+            is_internal = False
+        else:
+            raise Exception("Control mismatch")  # todo improve
 
         if is_internal:
             for idx, spts in enumerate(self._setpoints):
