@@ -181,13 +181,19 @@ class MeasurementControl(Instrument):
                 self._nr_acquired_values += 1
                 self._update(dataset, plotmon_name, exp_folder)
         else:
-            while self._get_fracdone() < 100:
+            while self._get_fracdone() < 1.0:
                 # todo assume only 1 Gettable for now
-                new_data = self._gettable_pars[0].get()
+                new_data = self._gettable_pars[0].get()  # can return (N, M)
+
+                # if we get a simple array, shape it to (1, M)
+                if len(np.shape(new_data)) == 1:
+                    new_data = new_data.reshape(1, (len(new_data)))
+
                 points_gathered = 0
-                for i, row in enumerate(new_data):  # todo this guy can return an N,M array
-                    for j, dp in enumerate(row):
-                        dataset['y{}'.format(i)].values[j] = dp
+                for i, row in enumerate(new_data):
+                    for y, dp in enumerate(row):
+                        # use _nr_acquired_values as a y_axes counter
+                        dataset['y{}'.format(i)].values[self._nr_acquired_values + y] = dp
                     points_gathered = len(row)
                 self._nr_acquired_values += points_gathered
                 self._update(dataset, plotmon_name, exp_folder)
@@ -205,7 +211,7 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    # Here we do saving, plotting, checking for interupts etc.
+    # Here we do saving, plotting, checking for interrupts etc.
     def _update(self, dataset, plotmon_name, exp_folder):
         update = time.time() - self._last_upd > self.update_interval() or self._nr_acquired_values == len(self._setpoints)
         if update:
