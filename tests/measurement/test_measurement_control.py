@@ -42,6 +42,10 @@ class NoneSweep:
         pass
 
 
+def hardware_mock_values(setpoints):
+    return np.array([np.sin(setpoints / np.pi), np.cos(setpoints / np.pi)])
+
+
 class DummyDetector:
     def __init__(self, **kwargs):
         self.name = ['dum', 'mud']
@@ -55,7 +59,7 @@ class DummyDetector:
 
     def get(self):
         x = self.setpoints
-        data = np.array([np.sin(x / np.pi), np.cos(x / np.pi)])
+        data = hardware_mock_values(x)
         time.sleep(self.delay)
         return data
 
@@ -117,7 +121,7 @@ class TestMeasurementControl:
         self.MC.set_getpars(DummyDetector())
         dset = self.MC.run()
 
-        expected_vals = [np.sin(x / np.pi), np.cos(x / np.pi)]
+        expected_vals = hardware_mock_values(x)
         assert (np.array_equal(dset['x0'].values, x))
         assert (np.array_equal(dset['y0'].values, expected_vals[0]))
         assert (np.array_equal(dset['y1'].values, expected_vals[1]))
@@ -193,18 +197,31 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x1'].values, y))
         assert (np.array_equal(dset['y0'].values, expected_vals))
 
-    """
     def test_hard_sweep_2D_grid(self):
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        self.MC.set_setpars([t, amp])
+        self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
         self.MC.set_setpoints_grid([times, amps])
         self.MC.set_getpars(DummyDetector())
         dset = self.MC.run('2D Hard')
-        print(dset)
-        # here we expected a x0, x1, y0 and y1
-    """
+
+        exp_sp = tile_setpoints_grid([times, amps])
+        assert np.array_equal(exp_sp, self.MC._setpoints)
+        assert np.array_equal(dset['x0'].values, exp_sp[:, 0])
+        assert np.array_equal(dset['x1'].values, exp_sp[:, 1])
+
+        expected_vals = hardware_mock_values(dset['x0'].values)
+        assert np.array_equal(dset['y0'].values, expected_vals[0])
+        assert np.array_equal(dset['y1'].values, expected_vals[1])
+
+        # Test properties of the dataset
+        assert isinstance(dset, xr.Dataset)
+
+        assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
+        assert dset['x1'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
+        assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
+        assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
 
     def test_soft_sweep_3D_grid(self):
 

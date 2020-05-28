@@ -223,8 +223,8 @@ class MeasurementControl(Instrument):
         except AttributeError as e:
             pass
         try:
-            for par in self._gettable_pars:
-                par.prepare(self._setpoints)
+            for i, par in enumerate(self._gettable_pars):
+                par.prepare(self._setpoints[:, i])
         except AttributeError as e:
             pass
 
