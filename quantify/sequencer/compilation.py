@@ -10,17 +10,22 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
     """
     Determines the absolute timing of a schedule based on the timing constraints.
 
-    Args:
-        schedule (:class:`~quantify.sequencer.Schedule`):
-        clock_unit (str) : Must be ('physical', 'ideal') : wheter to use physical units to determine the
+    Parameters
+    ----------
+    schedule : :class:`~quantify.sequencer.Schedule`
+        The schedule for which to determine timings.
+    clock_unit : str
+        Must be ('physical', 'ideal') : wheter to use physical units to determine the
         absolute time or ideal time.
-            When clock_unit == "physical" the duration attribute is used.
-            When clock_unit == "ideal" the duration attribute is ignored and treated as if it is 1.
+        When clock_unit == "physical" the duration attribute is used.
+        When clock_unit == "ideal" the duration attribute is ignored and treated as if it is 1.
 
 
-    Returns:
-        schedule (:class:`~quantify.sequencer.Schedule`): a new schedule object where the absolute time for each
-        operation has been determined.
+    Returns
+    ----------
+    schedule : :class:`~quantify.sequencer.Schedule`
+        a new schedule object where the absolute time for each operation has been determined.
+
 
     This function determines absolute timings for every operation in the
     :attr:`~quantify.sequencer.Schedule.timing_constraints`. It does this by:

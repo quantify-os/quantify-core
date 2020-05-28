@@ -25,7 +25,7 @@ def drag(t,
     phases are in degree.
 
     Args:
-        t (np.array): times at which to evaluate the function
+        t (:py:class:`numpy.ndarray`): times at which to evaluate the function
         G_amp (float):
             Amplitude of the Gaussian envelope.
         D_amp (float):
@@ -44,8 +44,10 @@ def drag(t,
             'last': subtract the value of the waveform at the last sample.
             'none', None: don't subtract any offset.
 
-    Returns:
-        pulse_I, pulse_Q: Two quadratures of the waveform.
+    :returns:
+        - pulse_I (:py:class:`numpy.ndarray`) - in phase component of waveform
+        - pulse_Q (:py:class:`numpy.ndarray`) - quadrature component of waveform
+
     '''
 
     mu = t[0] + duration/2
@@ -84,12 +86,15 @@ def drag(t,
 def rotate_wave(wave_I, wave_Q, phase: float):
     """
     Rotate a wave in the complex plane
-        wave_I (array) : real component
-        wave_Q (array) : imaginary component
+        wave_I (:py:class:`numpy.ndarray`) : real component
+        wave_Q (:py:class:`numpy.ndarray`) : imaginary component
         phase (float)  : desired rotation angle in degrees
 
-    returns:
-        (rot_I, rot_Q) : arrays containing the rotated waves
+    :returns:
+        - rot_I (:py:class:`numpy.ndarray`) - rotated in phase component of waveform
+        - rot_Q (:py:class:`numpy.ndarray`) - rotated  quadrature component of waveform
+
+
     """
 
     angle = np.deg2rad(phase)
