@@ -21,6 +21,10 @@ class Schedule(UserDict):
         timing_constraints : a list of all timing constraints added between operations.
         resource_dict      : a dictionary containing the relevant :class:Resource` s
 
+    .. warning::
+
+        JSON scheme definition and validation not implemented yet.
+
     """
 
     def __init__(self, name: str, data: dict = None):
@@ -183,7 +187,7 @@ class Operation(UserDict):
     @property
     def duration(self):
         """
-        Determine the duration of the operation based on the pulse info.
+        Determine the duration of the operation based on the pulses described in pulse_info.
 
         If the operation contains no pulse info, it is assumed to be ideal and
         have zero duration.
@@ -196,7 +200,7 @@ class Operation(UserDict):
             if d > duration:
                 duration = d
 
-        return self._duration
+        return duration
 
     @property
     def hash(self):
@@ -214,17 +218,14 @@ class Operation(UserDict):
         """
         self.data['gate_info'].update(gate_operation.data['gate_info'])
 
-    def add_pulse_info(self, pulse_operation):
+    def add_pulse(self, pulse_operation):
         """
-        Updates self.data['pulse_info'] with contents of pulse_operation.
+        Adds pulse_info of pulse_operation to self.
 
         Args:
             pulse_operation (:class:`Operation`) : an operation containing pulse_info.
         """
-        self.data['pulse_info'].update(pulse_operation.data['pulse_info'])
-
-        # pulse level duration information takes presedence
-        self.data['duration'] = pulse_operation.data['duration']
+        self.data['pulse_info'] += pulse_operation.data['pulse_info']
 
     @classmethod
     def is_valid(cls, operation):
