@@ -51,7 +51,7 @@
       },
       "wf_func": {
         "description": "reference to a function to generate the pulse of this operation. ",
-        "type": "string"
+        "type": ["string", "null"]
       },
       "t0":
       {

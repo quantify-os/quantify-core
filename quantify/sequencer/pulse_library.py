@@ -5,24 +5,106 @@ Library standard pulses for use with the quantify sequencer.
 from .types import Operation
 
 
-class SquareModPulse(Operation):
+class IdlePulse(Operation):
     """
+    An idle pulse performing no actions for a certain duration.
     """
 
-    def __init__(self, amp: float, duration: float,
-                 ch_I: str, ch_Q: str,
-                 t0: float = 0):
+    def __init__(self, duration):
+        """
+        An idle pulse performing no actions for a certain duration.
 
+        Parameters
+        ------------
+        duration : float
+            Duration of the idling in seconds.
+        """
         data = {}
-        data['name'] = 'SquareModPulse'
+        data['name'] = 'Idle'
         data['pulse_info'] = [{
-            'wf_func': 'quantify.sequencer.waveforms.drag',
-            'amp': amp, 'duration': duration,
-            't0': t0,
-            'channels': [ch_I, ch_Q]}]
+            'wf_func': None,
+            't0': 0,
+            'duration': duration,
+            'freq_mod': 0,
+            'channels': []}]
         super().__init__(name=data['name'], data=data)
 
 
+class NumericPulse(Operation):
+    """
+    """
+
+    def __init__(self, t0):
+
+        raise NotImplementedError
+
+
+class SquarePulse(Operation):
+
+    def __init__(self, amp: float, duration: float,
+                 ch,
+                 t0: float = 0):
+        """
+        A single-channel square pulse.
+
+        Parameters
+        ------------
+        amp : float
+            Amplitude of the Gaussian envelope.
+        duration : float
+            Duration of the pulse in seconds.
+        ch : str
+            channel for the in-phase component
+        """
+
+        data = {}
+        data['name'] = 'ModSquarePulse'
+        data['pulse_info'] = [{
+            'wf_func': 'quantify.sequencer.waveforms.square',
+            'amp': amp, 'duration': duration,
+            't0': t0,
+            'channels': [ch]}]
+        super().__init__(name=data['name'], data=data)
+
+
+class ModSquarePulse(Operation):
+
+    def __init__(self, amp: float, duration: float,
+                 ch_I: str, ch_Q: str,
+                 freq_mod: float = 0,
+                 t0: float = 0):
+        """
+        A two-channel square pulse.
+
+        Parameters
+        ------------
+        G_amp : float
+            Amplitude of the Gaussian envelope.
+        D_amp : float
+            Amplitude of the derivative component, the DRAG-pulse parameter.
+        duration : float
+            Duration of the pulse in seconds.
+        nr_sigma : int
+            After how many sigma the Gaussian is cut off.
+        phase : float
+            Phase of the pulse in degrees.
+        freq_mod :
+            Modulation frequency in Hz.
+        ch_I : str
+            channel for the in-phase component
+        ch_Q : str
+            channel for the quadrature component
+        """
+
+        data = {}
+        data['name'] = 'ModSquarePulse'
+        data['pulse_info'] = [{
+            'wf_func': 'quantify.sequencer.waveforms.square_IQ',
+            'amp': amp, 'duration': duration,
+            't0': t0,
+            'freq_mod': freq_mod,
+            'channels': [ch_I, ch_Q]}]
+        super().__init__(name=data['name'], data=data)
 
 
 class DRAGPulse(Operation):
@@ -53,28 +135,27 @@ class DRAGPulse(Operation):
     """
     pass
 
-    def __init__(self, G_amp: float, D_amp: float, phase: float,
+    def __init__(self, G_amp: float, D_amp: float, phase: float, freq_mod: float,
                  duration: float, ch_I: str, ch_Q: str, t0: float = 0):
         """
-        Args:
-            G_amp (float):
-                Amplitude of the Gaussian envelope.
-            D_amp (float):
-                Amplitude of the derivative component, the DRAG-pulse parameter.
-            duration (float):
-                Duration of the pulse in seconds.
-            nr_sigma (int):
-                After how many sigma the Gaussian is cut off.
-            phase (float):
-                Phase of the pulse in degrees.
-            ch_I (str): channel for the in-phase component
-            ch_Q (str): channel for the quadrature component
-
-        .. note::
-
-            For many hardware backends the I and Q channel have to be set
-            in a pair.
-
+        Parameters
+        ------------
+        G_amp : float
+            Amplitude of the Gaussian envelope.
+        D_amp : float
+            Amplitude of the derivative component, the DRAG-pulse parameter.
+        duration : float
+            Duration of the pulse in seconds.
+        nr_sigma : int
+            After how many sigma the Gaussian is cut off.
+        phase : float
+            Phase of the pulse in degrees.
+        freq_mod :
+            Modulation frequency in Hz.
+        ch_I : str
+            channel for the in-phase component
+        ch_Q : str
+            channel for the quadrature component
         """
 
         data = {}
@@ -86,8 +167,3 @@ class DRAGPulse(Operation):
             'channels': [ch_I, ch_Q], 't0': t0}]
 
         super().__init__(name=data['name'], data=data)
-
-    # amp: float, sigma_length: float, nr_sigma: int=4,
-    #             sampling_rate: float=2e8, axis: str='x', phase: float=0,
-    #             phase_unit: str='deg',
-    #             motzoi: float=0, delay: float=0,

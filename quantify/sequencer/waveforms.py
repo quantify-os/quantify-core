@@ -13,6 +13,20 @@ frequencies.
 import numpy as np
 
 
+def square(t, amp):
+    """
+    A square pulse.
+    """
+    return amp*np.ones(len(t))
+
+
+def square_IQ(t, amp):
+    """
+    A two-channel square pulse to serve as the base of an IQ modulated signal.
+    """
+    return [amp*np.ones(len(t)), np.zeros(len(t))]
+
+
 def drag(t,
          G_amp: float,
          D_amp: float,
@@ -45,8 +59,8 @@ def drag(t,
             'none', None: don't subtract any offset.
 
     :returns:
-        - pulse_I (:py:class:`numpy.ndarray`) - in phase component of waveform
-        - pulse_Q (:py:class:`numpy.ndarray`) - quadrature component of waveform
+        - pulse_I (:py:class:`numpy.ndarray`) - in phase component of the waveform.
+        - pulse_Q (:py:class:`numpy.ndarray`) - quadrature component of the waveform.
 
     '''
 
@@ -90,19 +104,19 @@ def rotate_wave(wave_I, wave_Q, phase: float):
 
     Parameters
     -------------
-    wave_I : (:py:class:`numpy.ndarray`)
-        in phase component of waveform
-    wave_Q : (:py:class:`numpy.ndarray`)
-        quadrature component of waveform
+    wave_I : :py:class:`numpy.ndarray`
+        in phase component of the waveform.
+    wave_Q : :py:class:`numpy.ndarray`
+        quadrature component of the waveform.
     phase : float
         rotation angle in degrees
 
     Returns
     -----------
     rot_I : :class:`numpy.ndarray`
-        rotated in phase component of waveform
+        rotated in phase component of the waveform.
     rot_Q : :class:`numpy.ndarray`
-        rotated quadrature component of waveform
+        rotated quadrature component of the waveform.
 
     """
 
@@ -123,20 +137,28 @@ def modulate_wave(t, wave_I, wave_Q, freq_mod):
 
     Parameters
     ------------
-    t : (:py:class:`numpy.ndarray`)
-        times at which to determine the modulation
-    wave_I : (:py:class:`numpy.ndarray`)
-        in phase component of waveform
-    wave_Q : (:py:class:`numpy.ndarray`)
-        quadrature component of waveform
+    t : :py:class:`numpy.ndarray`
+        times at which to determine the modulation.
+    wave_I : :py:class:`numpy.ndarray`
+        in phase component of the waveform.
+    wave_Q : :py:class:`numpy.ndarray`
+        quadrature component of the waveform.
     freq_mod: float
+        modulation frequency in Hz.
+
 
     Returns
     -----------
-    mod_I : (:py:class:`numpy.ndarray`)
-        modulated in phase component of waveform
-    mod_Q : (:py:class:`numpy.ndarray`)
-        modulated quadrature component of waveform
+    mod_I : :py:class:`numpy.ndarray`
+        modulated in phase component of the waveform.
+    mod_Q : :py:class:`numpy.ndarray`
+        modulated quadrature component of the waveform.
+
+
+    .. note::
+
+        Pulse modulation is generally not included when specifying waveform envelopes
+        as there are many hardware backends include this capability.
 
     """
     cos_mod = np.cos(2*np.pi*freq_mod*t)
@@ -145,5 +167,3 @@ def modulate_wave(t, wave_I, wave_Q, freq_mod):
     mod_Q = - sin_mod*wave_I + cos_mod*wave_Q
 
     return mod_I, mod_Q
-
-
