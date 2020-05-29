@@ -1,0 +1,18 @@
+{
+ "type": "object",
+ "description": "JSON schema for a transmon based device configuration.",
+ "additionalProperties": false,
+ "required": [
+  "qubits",
+  "edges"
+ ],
+ "properties": {
+  "qubits": {
+   "type": "object",
+   "description": "Single qubit configuration."
+  },
+  "edges": {
+   "type": "object",
+   "description": "Two qubit configuration."}
+ }
+}

@@ -1,9 +1,14 @@
 """
-This module contains compilation step for the quantify sequencer.
+This module contains compilation steps for the quantify sequencer.
 
 A compilation step is a function that takes a :class:`~quantify.sequencer.types.Schedule`
 and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
+
+from os import path
+import json
+import jsonschema
+from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse
 
 
 def determine_absolute_timing(schedule, clock_unit='physical'):
@@ -56,7 +61,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
             ref_op = schedule.operations[ref_constr['operation_hash']]
 
         # duration = 1 is useful when e.g., drawing a circuit diagram.
-        duration_ref_op = ref_op['duration'] if clock_unit == 'physical' else 1
+        duration_ref_op = ref_op.duration if clock_unit == 'physical' else 1
 
         # determine
         if t_constr['ref_pt'] == 'start':
@@ -66,7 +71,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         elif t_constr['ref_pt'] == 'end':
             t0 = ref_constr['abs_time'] + duration_ref_op
 
-        duration_new_op = curr_op['duration'] if clock_unit == 'physical' else 1
+        duration_new_op = curr_op.duration if clock_unit == 'physical' else 1
 
         if t_constr['ref_pt_new'] == 'start':
             t_constr['abs_time'] = t0 + t_constr['rel_time']
@@ -81,3 +86,138 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         last_op = curr_op
 
     return schedule
+
+
+def add_pulse_information_transmon(schedule, device_cfg: dict):
+    """
+    Adds pulse information specified in the device config to the schedule.
+
+    Parameters
+    ------------
+    schedule : :class:`~quantify.sequencer.Schedule`
+        The schedule for which to add pulse information.
+
+    device_cfg: dict
+        A dictionary specifying the required pulse information.
+        The device_cfg schema is specified in `sequencer/schemas/transmon_cfg.json` see also below.
+
+
+    Returns
+    ----------
+    schedule : :class:`~quantify.sequencer.Schedule`
+        a new schedule object where the pulse information has been added.
+
+
+    .. rubric:: Supported operations
+
+
+    The following gate type operations are supported by this compilation step.
+
+    - :class:`~quantify.sequencer.gate_library.Rxy`
+    - :class:`~quantify.sequencer.gate_library.Reset`
+    - :class:`~quantify.sequencer.gate_library.Measure`
+    - :class:`~quantify.sequencer.gate_library.CZ`
+
+
+
+    .. rubric:: Configuration specification
+
+
+    .. jsonschema:: schemas/transmon_cfg.json
+
+
+    .. note::
+
+        This function could be expanded to work support multiple platforms.
+
+
+    """
+    validate_config(device_cfg, scheme_fn='transmon_cfg.json')
+
+    for op in schedule.operations.values():
+
+        if op['gate_info']['operation_type'] == 'measure':
+
+            for q in op['gate_info']['qubits']:
+                q_cfg = device_cfg['qubits'][q]
+                # readout pulse
+                if q_cfg['ro_pulse_type'] == 'square':
+                    op.add_pulse(ModSquarePulse(amp=q_cfg['ro_pulse_amp'],
+                                                duration=q_cfg['ro_pulse_duration'],
+                                                ch_I=q_cfg['ro_pulse_ch_I'],
+                                                ch_Q=q_cfg['ro_pulse_ch_Q'],
+                                                freq_mod=q_cfg['ro_pulse_modulation_freq'],
+                                                t0=0))
+                    # acquisition integration window
+                    op.add_pulse(ModSquarePulse(amp=1,
+                                                duration=q_cfg['ro_acq_integration_time'],
+                                                ch_I=q_cfg['ro_acq_ch_I'],
+                                                ch_Q=q_cfg['ro_acq_ch_Q'],
+                                                freq_mod=-
+                                                q_cfg['ro_pulse_modulation_freq'],
+                                                t0=q_cfg['ro_acq_delay']))
+
+        elif op['gate_info']['operation_type'] == 'Rxy':
+            q = op['gate_info']['qubits'][0]
+
+            # read info from config
+            q_cfg = device_cfg['qubits'][q]
+            G_amp = q_cfg['mw_amp180']*op['gate_info']['theta']/180
+            D_amp = G_amp * q_cfg['mw_motzoi']
+            phase = op['gate_info']['phi']
+            ch_I = q_cfg['mw_ch_I']
+            ch_Q = q_cfg['mw_ch_Q']
+            freq_mod = q_cfg['mw_modulation_freq']
+            duration = q_cfg['mw_duration']
+            pulse = DRAGPulse(G_amp=G_amp, D_amp=D_amp, phase=phase, ch_I=ch_I, ch_Q=ch_Q, duration=duration,
+                              freq_mod=freq_mod)
+            op.add_pulse(pulse)
+
+        elif op['gate_info']['operation_type'] == 'CNOT':
+            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
+                op['gate_info']['operation_type']))
+
+        elif op['gate_info']['operation_type'] == 'CZ':
+            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
+                op['gate_info']['operation_type']))
+
+        elif op['gate_info']['operation_type'] == 'reset':
+
+            # Initialization through relaxation
+            qubits = op['gate_info']['qubits']
+            init_times = []
+            for q in qubits:
+                init_times.append(device_cfg['qubits'][q]['init_duration'])
+
+            op.add_pulse(IdlePulse(max(init_times)))
+
+        else:
+            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
+                op['gate_info']['operation_type']))
+
+    return schedule
+
+
+def validate_config(config: dict, scheme_fn: str):
+    """
+    Validate a configuration using a schema.
+
+    Parameters
+    ------------
+    config : dict
+        The configuration to validate
+    scheme_fn : str
+        The name of a json schema in the quantify.sequencer.schemas folder.
+
+    Returns
+    ----------
+        valid : bool
+
+    """
+    basepath = path.dirname(__file__)
+    filepath = path.abspath(path.join(basepath,
+                                      "schemas", scheme_fn))
+    with open(filepath) as json_file:
+        scheme = json.load(json_file)
+    jsonschema.validate(config, scheme)
+    return True

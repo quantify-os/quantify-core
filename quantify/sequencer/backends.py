@@ -5,8 +5,12 @@ A backend takes a :class:`~quantify.sequencer.types.Schedule` object as input
 and produces output in a different format.
 Examples of backends are a visualization, simulator input formats, or a hardware input format.
 """
+import inspect
+import matplotlib.pyplot as plt
+import numpy as np
 from quantify.visualization.pulse_scheme import new_pulse_fig
 from quantify.utilities.general import import_func_from_string
+from quantify.visualization.SI_utilities import set_xlabel
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):
@@ -56,4 +60,45 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
 
     ax.set_xlim(-.2, t_constr['abs_time']+1)
 
+    return f, ax
+
+
+def pulse_diagram_matplotlib(schedule, figsize=None,
+                             ch_map: dict = None,
+                             modulation: bool = True,
+                             sampling_rate: float = 2e9):
+
+    # WORK IN PROGRESS!
+
+    # TODO: add modulatin
+    # TODO: add channel config
+    # TODO: add sensible coloring and labeling
+
+    f, ax = plt.subplots()
+
+    for t_constr in schedule.timing_constraints:
+        op = schedule.operations[t_constr['operation_hash']]
+        for p in op['pulse_info']:
+            # times at which to evaluate waveform
+            t0 = t_constr['abs_time']+p['t0']
+            t = np.arange(t0, t0+p['duration'], 1/sampling_rate)
+
+            # function to generate waveform
+            if p['wf_func'] != None:
+                wf_func = import_func_from_string(p['wf_func'])
+
+                # select the arguments for the waveform function that are present in pulse info
+                par_map = inspect.signature(wf_func).parameters
+                wf_kwargs = {}
+                for kw in par_map.keys():
+                    if kw in p.keys():
+                        wf_kwargs[kw] = p[kw]
+
+                wfs = wf_func(t=t, **wf_kwargs)
+
+                for i, ch in enumerate(p['channels']):
+                    ax.plot(t, wfs[i])
+                # and add the pulse to the plot
+
+    set_xlabel(ax, 'Time', 's')
     return f, ax
