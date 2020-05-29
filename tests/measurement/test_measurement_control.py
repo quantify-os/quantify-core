@@ -69,6 +69,7 @@ class DummyDetector:
         else:
             raise Exception('Unsupported mode: {}'.format(return_dimensions))
         self.delay = 0
+        self.noise = 0
         self.internal = False
 
     def prepare(self, setpoints):
@@ -76,7 +77,9 @@ class DummyDetector:
 
     def get(self):
         x = self.setpoints
+        noise = self.noise * (np.random.rand(2, len(x)) - .5)
         data = self.mock_fn(x)
+        data += noise
         time.sleep(self.delay)
         return data
 
@@ -148,6 +151,34 @@ class TestMeasurementControl:
         assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
         assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
         assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+
+    def test_soft_averages_hard_sweep_1D(self):
+        setpoints = np.arange(50.0)
+        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpoints(setpoints)
+        d = DummyDetector('2D')
+        d.noise = 0.4
+        self.MC.set_getpars(d)
+        noisy_dset = self.MC.run('noisy')
+        xn_0 = noisy_dset['x0'].values
+        expected_vals = hardware_mock_values_2D(xn_0)
+        yn_0 = abs(noisy_dset['y0'].values - expected_vals[0])
+        yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
+
+        self.MC.soft_avg(5000)
+        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpoints(setpoints)
+        self.MC.set_getpars(d)
+        avg_dset = self.MC.run('averaged')
+        yavg_0 = abs(avg_dset['y0'].values - expected_vals[0])
+        yavg_1 = abs(avg_dset['y1'].values - expected_vals[1])
+
+        np.testing.assert_array_equal(xn_0, setpoints)
+        assert np.mean(yn_0) > np.mean(yavg_0)
+        assert np.mean(yn_1) > np.mean(yavg_1)
+
+        np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(xn_0)), decimal=2)
+        np.testing.assert_array_almost_equal(yavg_1, np.zeros(len(xn_0)), decimal=2)
 
     def test_soft_set_hard_get_1D(self):
         mock = ManualParameter('m', initial_value=1, unit='M', label='Mock')

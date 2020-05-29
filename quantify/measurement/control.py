@@ -111,6 +111,7 @@ class MeasurementControl(Instrument):
 
         # variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
+        self._soft_iterations = 0
         self._begintime = time.time()
         self._last_upd = time.time()
 
@@ -135,6 +136,7 @@ class MeasurementControl(Instrument):
 
         # reset all variables that change during acquisition
         self._nr_acquired_values = 0
+        self._soft_iterations = 0
         self._begintime = time.time()
 
         # todo, check for control mismatch
@@ -185,10 +187,11 @@ class MeasurementControl(Instrument):
                 self._update(dataset, plotmon_name, exp_folder)
         else:
             while self._get_fracdone() < 1.0:
+                setpoint_idx = self._curr_setpoint_idx()
                 for i, spar in enumerate(self._settable_pars):
                     swf_setpoints = self._setpoints[:, i]
-                    spar.set(swf_setpoints[self._nr_acquired_values])
-                self._prepare_gettable(self._setpoints[self._nr_acquired_values:, self.GETTABLE_IDX])
+                    spar.set(swf_setpoints[setpoint_idx])
+                self._prepare_gettable(self._setpoints[setpoint_idx:, self.GETTABLE_IDX])
 
                 new_data = self._gettable_pars[self.GETTABLE_IDX].get()  # can return (N, M)
                 # if we get a simple array, shape it to (1, M)
@@ -197,18 +200,18 @@ class MeasurementControl(Instrument):
 
                 points_gathered = 0
                 for i, row in enumerate(new_data):
-                    for y, dp in enumerate(row):
-                        # use _nr_acquired_values as a y_axes counter
-                        dataset['y{}'.format(i)].values[self._nr_acquired_values + y] = dp
+                    old_vals = dataset['y{}'.format(i)].values[setpoint_idx:]
+                    old_vals[np.isnan(old_vals)] = 0
+                    new_vals = (row + old_vals * self._soft_iterations) / (1 + self._soft_iterations)
+                    dataset['y{}'.format(i)].values = new_vals  # todo this might not be 'overwriting' what exists
                     points_gathered = len(row)
                 self._nr_acquired_values += points_gathered
                 self._update(dataset, plotmon_name, exp_folder)
 
-        self._finish()
-
         # Wrap up experiment and store data
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
 
+        self._finish()
         # reset the plot info for the next experiment.
         self._plot_info = {'2D-grid': False}
         return dataset
@@ -250,11 +253,28 @@ class MeasurementControl(Instrument):
         except AttributeError as e:
             pass
 
+    def _max_setpoints(self):
+        return len(self._setpoints) * self.soft_avg()
+
+    def _curr_setpoint_idx(self):
+        """
+        Returns the current position through the sweep
+        Updates the _soft_iterations counter as it may have rolled over
+
+        Returns:
+            int: setpoint_idx
+        """
+        max_sp = self._max_setpoints()
+        acquired = self._nr_acquired_values
+        setpoint_idx = acquired % len(self._setpoints)
+        self._soft_iterations = acquired // len(self._setpoints)
+        return setpoint_idx
+
     def _get_fracdone(self):
         """
         Returns the fraction of the experiment that is completed.
         """
-        return self._nr_acquired_values / (len(self._setpoints) * self.soft_avg())
+        return self._nr_acquired_values / self._max_setpoints()
 
     def print_progress(self):
         percdone = self._get_fracdone()*100
