@@ -116,6 +116,8 @@ class MeasurementControl(Instrument):
 
         self._plot_info = {}
 
+        self.GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
+
     ############################################
     # Methods used to control the measurements #
     ############################################
@@ -153,8 +155,6 @@ class MeasurementControl(Instrument):
         with open(join(exp_folder, 'snapshot.json'), 'w') as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-        self._prepare()
-
         plotmon_name = self.instr_plotmon()
         if plotmon_name is not None and plotmon_name != '':
             self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
@@ -168,7 +168,10 @@ class MeasurementControl(Instrument):
         else:
             raise Exception("Control mismatch")  # todo improve
 
+        self._prepare_settables()
+
         if is_internal:
+            self._prepare_gettable()
             for idx, spts in enumerate(self._setpoints):
                 # set all individual setparams
                 for spar, spt in zip(self._settable_pars, spts):
@@ -182,9 +185,12 @@ class MeasurementControl(Instrument):
                 self._update(dataset, plotmon_name, exp_folder)
         else:
             while self._get_fracdone() < 1.0:
-                # todo assume only 1 Gettable for now
-                new_data = self._gettable_pars[0].get()  # can return (N, M)
+                for i, spar in enumerate(self._settable_pars):
+                    swf_setpoints = self._setpoints[:, i]
+                    spar.set(swf_setpoints[self._nr_acquired_values])
+                self._prepare_gettable(self._setpoints[self._nr_acquired_values:, self.GETTABLE_IDX])
 
+                new_data = self._gettable_pars[self.GETTABLE_IDX].get()  # can return (N, M)
                 # if we get a simple array, shape it to (1, M)
                 if len(np.shape(new_data)) == 1:
                     new_data = new_data.reshape(1, (len(new_data)))
@@ -216,23 +222,26 @@ class MeasurementControl(Instrument):
         update = time.time() - self._last_upd > self.update_interval() or self._nr_acquired_values == len(self._setpoints)
         if update:
             self.print_progress()
-            # Update the dataset
             dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
             if plotmon_name is not None and plotmon_name != '':
                 self.instr_plotmon.get_instr().update()
             self._last_upd = time.time()
 
-    def _prepare(self):
+    def _prepare_gettable(self, setpoints=None):
         try:
-            for par in self._settable_pars:
-                par.prepare()
+            if setpoints is not None:
+                self._gettable_pars[self.GETTABLE_IDX].prepare(setpoints)
+            else:
+                self._gettable_pars[self.GETTABLE_IDX].prepare()
         except AttributeError as e:
             pass
-        try:
-            for i, par in enumerate(self._gettable_pars):
-                par.prepare(self._setpoints[:, i])
-        except AttributeError as e:
-            pass
+
+    def _prepare_settables(self):
+        for setpar in self._settable_pars:
+            try:
+                setpar.prepare()
+            except AttributeError as e:
+                pass
 
     def _finish(self):
         try:

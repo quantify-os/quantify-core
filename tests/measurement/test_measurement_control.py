@@ -38,7 +38,7 @@ class NoneSweep:
         self.label = 'None'
         self.internal = internal
 
-    def set(self):
+    def set(self, val):
         pass
 
 
@@ -148,6 +148,9 @@ class TestMeasurementControl:
         assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
         assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
         assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+
+    #  todo
+    #  def test_soft_set_hard_get_1D(self):
 
     def test_soft_sweep_2D_grid(self):
 
@@ -274,11 +277,11 @@ class TestMeasurementControl:
             idx = counter_param() % 3
             counter_param(counter_param() + 1)
             if idx == 0:
-                return 2 * setpoints[0:7]
+                return 2 * setpoints[:7]
             elif idx == 1:
-                return 2 * setpoints[7:11]
+                return 2 * setpoints[:4]
             elif idx == 2:
-                return 2 * setpoints[11:30]
+                return 2 * setpoints[:]
 
         setpoints = np.arange(30.0)
         d = DummyDetector('1D')
