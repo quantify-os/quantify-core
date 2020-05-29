@@ -5,20 +5,24 @@ Library standard pulses for use with the quantify sequencer.
 from .types import Operation
 
 
-class SquarePulse(Operation):
+class SquareModPulse(Operation):
     """
     """
 
-    def __init__(self, amp: float, duration: float, ch_I: str, ch_Q: str, t0: float = 0):
+    def __init__(self, amp: float, duration: float,
+                 ch_I: str, ch_Q: str,
+                 t0: float = 0):
 
         data = {}
-        data['name'] = 'SquarePulse'
+        data['name'] = 'SquareModPulse'
         data['pulse_info'] = [{
             'wf_func': 'quantify.sequencer.waveforms.drag',
             'amp': amp, 'duration': duration,
             't0': t0,
             'channels': [ch_I, ch_Q]}]
         super().__init__(name=data['name'], data=data)
+
+
 
 
 class DRAGPulse(Operation):

@@ -85,15 +85,24 @@ def drag(t,
 
 def rotate_wave(wave_I, wave_Q, phase: float):
     """
-    Rotate a wave in the complex plane
-        wave_I (:py:class:`numpy.ndarray`) : real component
-        wave_Q (:py:class:`numpy.ndarray`) : imaginary component
-        phase (float)  : desired rotation angle in degrees
+    Rotate a wave in the complex plane.
 
-    :returns:
-        - rot_I (:py:class:`numpy.ndarray`) - rotated in phase component of waveform
-        - rot_Q (:py:class:`numpy.ndarray`) - rotated  quadrature component of waveform
 
+    Parameters
+    -------------
+    wave_I : (:py:class:`numpy.ndarray`)
+        in phase component of waveform
+    wave_Q : (:py:class:`numpy.ndarray`)
+        quadrature component of waveform
+    phase : float
+        rotation angle in degrees
+
+    Returns
+    -----------
+    rot_I : :class:`numpy.ndarray`
+        rotated in phase component of waveform
+    rot_Q : :class:`numpy.ndarray`
+        rotated quadrature component of waveform
 
     """
 
@@ -102,3 +111,39 @@ def rotate_wave(wave_I, wave_Q, phase: float):
     rot_I = np.cos(angle)*wave_I - np.sin(angle)*wave_Q
     rot_Q = np.sin(angle)*wave_I + np.cos(angle)*wave_Q
     return rot_I, rot_Q
+
+
+def modulate_wave(t, wave_I, wave_Q, freq_mod):
+    """
+    Apply single sideband (SSB) modulation to a waveform.
+
+    The frequency convention we adhere to is:
+
+        freq_base + freq_mod = freq_signal
+
+    Parameters
+    ------------
+    t : (:py:class:`numpy.ndarray`)
+        times at which to determine the modulation
+    wave_I : (:py:class:`numpy.ndarray`)
+        in phase component of waveform
+    wave_Q : (:py:class:`numpy.ndarray`)
+        quadrature component of waveform
+    freq_mod: float
+
+    Returns
+    -----------
+    mod_I : (:py:class:`numpy.ndarray`)
+        modulated in phase component of waveform
+    mod_Q : (:py:class:`numpy.ndarray`)
+        modulated quadrature component of waveform
+
+    """
+    cos_mod = np.cos(2*np.pi*freq_mod*t)
+    sin_mod = np.sin(2*np.pi*freq_mod*t)
+    mod_I = cos_mod*wave_I + sin_mod*wave_Q
+    mod_Q = - sin_mod*wave_I + cos_mod*wave_Q
+
+    return mod_I, mod_Q
+
+
