@@ -55,19 +55,19 @@ class DummyDetector:
     Args:
         mode (str): Number of data rows to return, supports '1D' and '2D'
     """
-    def __init__(self, mode: str):
-        if mode == '1D':
+    def __init__(self, return_dimensions: str):
+        if return_dimensions == '1D':
             self.name = 'dum'
             self.unit = 'W'
             self.label = 'Watts'
             self.mock_fn = hardware_mock_values_1D
-        elif mode == '2D':
+        elif return_dimensions == '2D':
             self.name = ['dum', 'mud']
             self.unit = ['W', 'M']
             self.label = ['Watts', 'Matts']
             self.mock_fn = hardware_mock_values_2D
         else:
-            raise Exception('Unsupported mode: {}'.format(mode))
+            raise Exception('Unsupported mode: {}'.format(return_dimensions))
         self.delay = 0
         self.internal = False
 
@@ -149,8 +149,31 @@ class TestMeasurementControl:
         assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
         assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
 
-    #  todo
-    #  def test_soft_set_hard_get_1D(self):
+    def test_soft_set_hard_get_1D(self):
+        mock = ManualParameter('m', initial_value=1, unit='M', label='Mock')
+
+        def mock_func(none):
+            # to also test if the values are set correctly in the sweep
+            arr = np.zeros([2, 2])
+            arr[0, :] = np.array([mock()] * 2)
+            arr[1, :] = np.array([mock() + 2] * 2)
+            return arr
+
+        d = DummyDetector(return_dimensions='2D')
+        d.mock_fn = mock_func
+        setpoints = np.repeat(np.arange(5.0), 2)
+
+        self.MC.set_setpars(mock)
+        self.MC.set_setpoints(setpoints)
+        self.MC.set_getpars(d)
+        dset = self.MC.run("soft_sweep_hard_det")
+
+        x = dset['x0'].values
+        y0 = dset['y0'].values
+        y1 = dset['y1'].values
+        np.testing.assert_array_equal(x, setpoints)
+        np.testing.assert_array_equal(y0, setpoints)
+        np.testing.assert_array_equal(y1, setpoints + 2)
 
     def test_soft_sweep_2D_grid(self):
 
