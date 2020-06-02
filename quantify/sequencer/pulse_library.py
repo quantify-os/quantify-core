@@ -163,7 +163,7 @@ class DRAGPulse(Operation):
         data['pulse_info'] = [{
             'wf_func': 'quantify.sequencer.waveforms.drag',
             'G_amp': G_amp, 'D_amp': D_amp, 'duration': duration,
-            'phase': phase, 'nr_sigma': 4,
+            'phase': phase, 'nr_sigma': 4, 'freq_mod': freq_mod,
             'channels': [ch_I, ch_Q], 't0': t0}]
 
         super().__init__(name=data['name'], data=data)

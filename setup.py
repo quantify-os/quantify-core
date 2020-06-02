@@ -23,6 +23,7 @@ requirements = [
     'lmfit',
     'pyqt5',
     'pyqtgraph',
+    'plotly',
     'jsonschema']
 
 setup_requirements = ['pytest-runner', ]

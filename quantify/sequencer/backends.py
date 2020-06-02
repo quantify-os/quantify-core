@@ -11,6 +11,9 @@ import numpy as np
 from quantify.visualization.pulse_scheme import new_pulse_fig
 from quantify.utilities.general import import_func_from_string
 from quantify.visualization.SI_utilities import set_xlabel
+from quantify.sequencer.waveforms import modulate_wave
+
+from matplotlib.cm import get_cmap
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):
@@ -67,6 +70,9 @@ def pulse_diagram_matplotlib(schedule, figsize=None,
                              ch_map: dict = None,
                              modulation: bool = True,
                              sampling_rate: float = 2e9):
+    """
+    Produce a visualization of the pulses used.
+    """
 
     # WORK IN PROGRESS!
 
@@ -74,10 +80,24 @@ def pulse_diagram_matplotlib(schedule, figsize=None,
     # TODO: add channel config
     # TODO: add sensible coloring and labeling
 
-    f, ax = plt.subplots()
+    f, ax = plt.subplots(figsize=figsize)
+
+    if ch_map is None:
+        auto_map = True
+        offset_idx = 0
+        ch_map = {}
+    else:
+        auto_map = False
+
+    cmap = get_cmap('tab10')
+    colors = cmap.colors
+    c_idx = 0
 
     for t_constr in schedule.timing_constraints:
         op = schedule.operations[t_constr['operation_hash']]
+
+        # iterate through the colors in the color map
+        c_idx += 1
         for p in op['pulse_info']:
             # times at which to evaluate waveform
             t0 = t_constr['abs_time']+p['t0']
@@ -96,9 +116,27 @@ def pulse_diagram_matplotlib(schedule, figsize=None,
 
                 wfs = wf_func(t=t, **wf_kwargs)
 
+                if modulation and 'freq_mod' in p.keys():
+                    # apply modulation to the waveforms
+                    wfs = modulate_wave(
+                        t, wfs[0], wfs[1], p['freq_mod'])
+
                 for i, ch in enumerate(p['channels']):
-                    ax.plot(t, wfs[i])
-                # and add the pulse to the plot
+                    if ch not in ch_map.keys() and auto_map:
+                        ax.axhline(offset_idx, color='grey')
+                        ch_map[ch] = offset_idx
+                        offset_idx += 1
+                    if i == 0:
+                        label = op['name']
+                    else:
+                        label = None
+                    ax.plot(t, wfs[i] + ch_map[ch], label=label,
+                            color=colors[c_idx % len(colors)])
+
+    ax.set_yticks(list(ch_map.values()))
+    ax.set_yticklabels(list(ch_map.keys()))
 
     set_xlabel(ax, 'Time', 's')
+
+    ax.legend(loc=(1.05, .5))
     return f, ax
