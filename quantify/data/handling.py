@@ -185,6 +185,8 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     j = 0
     for getpar in getable_pars:
 
+        #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
+        #  so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
             itrbl = zip([getpar.name], [getpar.label], [getpar.unit])
         else:

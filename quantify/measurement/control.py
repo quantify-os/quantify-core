@@ -1,6 +1,7 @@
 import time
 import json
 from os.path import join
+from collections import namedtuple
 
 import numpy as np
 from qcodes import Instrument
@@ -100,150 +101,143 @@ class MeasurementControl(Instrument):
         )
 
         # variables that are set before the start of any experiment.
-
-        # todo remove these notes
-        # I feel like setpars and setpoints should be bound together in a tuple
-        self._settable_pars = []  # detector_function(s)?
-        self._setpoints = []  # sweep points?
-        self._gettable_pars = []  # sweep_function(s)?
-        # sweep_functions and detector_functions both have 'prepare'&'finish' in pyqed
-        # todo remove these notes
+        self._settable_pars = []
+        self._setpoints = []
+        self._gettable_pars = []
 
         # variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
-        self._soft_iterations = 0
+        self._soft_iterations_completed = 0
         self._begintime = time.time()
         self._last_upd = time.time()
 
+        # variables used for persistence and plotting
+        self._dataset = None
+        self._exp_folder = None
+        self._plotmon_name = ''
         self._plot_info = {}
 
-        self.GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
+        self._GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
 
     ############################################
     # Methods used to control the measurements #
     ############################################
 
-    def run(self, name: str = ''):
-        """
-        Starts a data acquisition loop.
+    def run_internally_controlled(self, name: str = ''):
+        self._setup(name)
 
-        Args:
-            name (str): Name of the measurement. This name is included in the name of the data files.
+        self._prepare_gettable()
+        for idx, setpts in enumerate(self._setpoints):
+            # set all individual setparams
+            for setpar, setpt in zip(self._settable_pars, setpts):
+                # TODO add smartness to avoid setting if unchanged
+                setpar.set(setpt)
+            # acquire all data points
+            for j, gpar in enumerate(self._gettable_pars):
+                val = gpar.get()
+                self._dataset['y{}'.format(j)].values[idx] = val
+            self._nr_acquired_values += 1
+            self._update()
 
-        Returns:
-            :class:`xarray.Dataset`: the dataset
-        """
+        self._cleanup()
+        return self._dataset
 
+    def run_externally_controlled(self, name: str = ''):
+        self._setup(name)
+
+        while self._get_fracdone() < 1.0:
+            setpoint_idx = self._curr_setpoint_idx()
+            for i, spar in enumerate(self._settable_pars):
+                swf_setpoints = self._setpoints[:, i]
+                spar.set(swf_setpoints[setpoint_idx])
+            self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
+
+            new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
+            # if we get a simple array, shape it to (1, M)
+            if len(np.shape(new_data)) == 1:
+                new_data = new_data.reshape(1, (len(new_data)))
+
+            for i, row in enumerate(new_data):
+                old_vals = self._dataset['y{}'.format(i)].values  # get the full y axes
+                # todo must be a better way of summing nans with reals
+                old_vals[np.isnan(old_vals)] = 0  # will be full of nans on the first iteration, change to 0
+                # row might not be the full axes length, pad either side with 0s
+                padded_row = np.pad(row, [setpoint_idx, len(old_vals) - len(row) - setpoint_idx], "constant")
+                # sum the data vectors together, averaging if required
+                if self.soft_avg() == 1:
+                    new_vals = old_vals + padded_row
+                else:
+                    new_vals = (padded_row + old_vals * self._soft_iterations_completed) / (
+                            1 + self._soft_iterations_completed)
+                self._dataset['y{}'.format(i)].values = new_vals  # update the dataset
+            self._nr_acquired_values += np.shape(new_data)[1]
+            self._update()
+
+        self._cleanup()
+        return self._dataset
+
+    def run_adaptively_controlled(self):
+        raise NotImplemented()
+
+    def _setup(self, name: str):
         # reset all variables that change during acquisition
         self._nr_acquired_values = 0
-        self._soft_iterations = 0
+        self._soft_iterations_completed = 0
         self._begintime = time.time()
 
-        # todo, check for control mismatch
-
         # initialize an empty dataset
-        # todo looks like this isnt taking into account multiple returns from hardware
-        dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
+        self._dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
 
         # cannot add it as a separate (nested) dict so make it flat.
-        dataset.attrs['name'] = name
-        dataset.attrs.update(self._plot_info)
+        self._dataset.attrs['name'] = name
+        self._dataset.attrs.update(self._plot_info)
 
-        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'], name=dataset.attrs['name'])
+        self._exp_folder = create_exp_folder(tuid=self._dataset.attrs['tuid'], name=self._dataset.attrs['name'])
         # Write the empty dataset
-        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
         # Save a snapshot of all
         snap = snapshot(update=False, clean=True)
-        with open(join(exp_folder, 'snapshot.json'), 'w') as file:
+        with open(join(self._exp_folder, 'snapshot.json'), 'w') as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-        plotmon_name = self.instr_plotmon()
-        if plotmon_name is not None and plotmon_name != '':
-            self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
+        self._plotmon_name = self.instr_plotmon()
+        if self._plotmon_name is not None and self._plotmon_name != '':
+            self.instr_plotmon.get_instr().tuid(self._dataset.attrs['tuid'])
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
 
-        if is_internally_controlled(self._settable_pars[0]) and is_internally_controlled(self._gettable_pars[0]):
-            is_internal = True
-        elif not is_internally_controlled(self._gettable_pars[0]):
-            is_internal = False
-        else:
-            raise Exception("Control mismatch")  # todo improve
-
         self._prepare_settables()
 
-        if is_internal:
-            self._prepare_gettable()
-            for idx, spts in enumerate(self._setpoints):
-                # set all individual setparams
-                for spar, spt in zip(self._settable_pars, spts):
-                    # TODO add smartness to avoid setting if unchanged
-                    spar.set(spt)
-                # acquire all data points
-                for j, gpar in enumerate(self._gettable_pars):
-                    val = gpar.get()
-                    dataset['y{}'.format(j)].values[idx] = val
-                self._nr_acquired_values += 1
-                self._update(dataset, plotmon_name, exp_folder)
-        else:
-            while self._get_fracdone() < 1.0:
-                setpoint_idx = self._curr_setpoint_idx()
-                for i, spar in enumerate(self._settable_pars):
-                    swf_setpoints = self._setpoints[:, i]
-                    spar.set(swf_setpoints[setpoint_idx])
-                self._prepare_gettable(self._setpoints[setpoint_idx:, self.GETTABLE_IDX])
-
-                new_data = self._gettable_pars[self.GETTABLE_IDX].get()  # can return (N, M)
-                # if we get a simple array, shape it to (1, M)
-                if len(np.shape(new_data)) == 1:
-                    new_data = new_data.reshape(1, (len(new_data)))
-
-                for i, row in enumerate(new_data):
-                    old_vals = dataset['y{}'.format(i)].values  # get the full y axes
-                    # todo must be a better way of summing nans with reals
-                    old_vals[np.isnan(old_vals)] = 0  # will be full of nans on the first iteration, change to 0
-                    # row might not be the full axes length, pad either side with 0s
-                    padded_row = np.pad(row, [setpoint_idx, len(old_vals) - len(row) - setpoint_idx], "constant")
-                    # sum the data vectors together, averaging if required
-                    if self.soft_avg() == 1:
-                        new_vals = old_vals + padded_row
-                    else:
-                        new_vals = (padded_row + old_vals * self._soft_iterations) / (1 + self._soft_iterations)
-                    dataset['y{}'.format(i)].values = new_vals  # update the dataset
-                self._nr_acquired_values += np.shape(new_data)[1]
-                self._update(dataset, plotmon_name, exp_folder)
-
+    def _cleanup(self,):
         # Wrap up experiment and store data
-        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-
+        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
         self._finish()
-        # reset the plot info for the next experiment.
-        self._plot_info = {'2D-grid': False}
-        # reset software averages back to 1
-        self.soft_avg(1)
+        self._plot_info = {'2D-grid': False}  # reset the plot info for the next experiment.
+        self.soft_avg(1)  # reset software averages back to 1
 
-        return dataset
+    def _update(self):
+        """
+        Check whether we need to update the disk/plots and check for interrupts
 
-    ############################################
-    # Methods used to control the measurements #
-    ############################################
-
-    # Here we do saving, plotting, checking for interrupts etc.
-    def _update(self, dataset, plotmon_name, exp_folder):
-        update = time.time() - self._last_upd > self.update_interval() or self._nr_acquired_values == len(self._setpoints)
+        Args:
+            output_targets: Targets to write to
+        """
+        update = time.time() - self._last_upd > self.update_interval() \
+            or self._nr_acquired_values == len(self._setpoints)
         if update:
             self.print_progress()
-            dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-            if plotmon_name is not None and plotmon_name != '':
+            self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
+            if self._plotmon_name is not None and self._plotmon_name != '':
                 self.instr_plotmon.get_instr().update()
             self._last_upd = time.time()
 
     def _prepare_gettable(self, setpoints=None):
         try:
             if setpoints is not None:
-                self._gettable_pars[self.GETTABLE_IDX].prepare(setpoints)
+                self._gettable_pars[self._GETTABLE_IDX].prepare(setpoints)
             else:
-                self._gettable_pars[self.GETTABLE_IDX].prepare()
+                self._gettable_pars[self._GETTABLE_IDX].prepare()
+        # it's fine if the gettable does not have a prepare function
         except AttributeError as e:
             pass
 
@@ -251,16 +245,27 @@ class MeasurementControl(Instrument):
         for setpar in self._settable_pars:
             try:
                 setpar.prepare()
+            # it's fine if the settable does not have a prepare function
             except AttributeError as e:
                 pass
 
     def _finish(self):
-        try:
-            for p in self._gettable_pars and self._settable_pars:
+        for p in self._gettable_pars and self._settable_pars:
+            try:
                 p.finish()
-        except AttributeError as e:
-            pass
+            # it's fine if the parameter does not have a finish function
+            except AttributeError as e:
+                pass
+    @property
+    def _is_internal(self):
+        if is_internally_controlled(self._settable_pars[0]) and is_internally_controlled(self._gettable_pars[0]):
+            return True
+        elif not is_internally_controlled(self._gettable_pars[0]):
+            return False
+        else:
+            raise Exception("Control mismatch")  # todo improve message
 
+    @property
     def _max_setpoints(self):
         return len(self._setpoints) * self.soft_avg()
 
@@ -274,14 +279,14 @@ class MeasurementControl(Instrument):
         """
         acquired = self._nr_acquired_values
         setpoint_idx = acquired % len(self._setpoints)
-        self._soft_iterations = acquired // len(self._setpoints)
+        self._soft_iterations_completed = acquired // len(self._setpoints)
         return setpoint_idx
 
     def _get_fracdone(self):
         """
         Returns the fraction of the experiment that is completed.
         """
-        return self._nr_acquired_values / self._max_setpoints()
+        return self._nr_acquired_values / self._max_setpoints
 
     def print_progress(self):
         percdone = self._get_fracdone()*100
