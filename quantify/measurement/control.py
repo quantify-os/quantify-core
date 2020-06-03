@@ -198,14 +198,19 @@ class MeasurementControl(Instrument):
                 if len(np.shape(new_data)) == 1:
                     new_data = new_data.reshape(1, (len(new_data)))
 
-                points_gathered = 0
                 for i, row in enumerate(new_data):
-                    old_vals = dataset['y{}'.format(i)].values[setpoint_idx:]
-                    old_vals[np.isnan(old_vals)] = 0
-                    new_vals = (row + old_vals * self._soft_iterations) / (1 + self._soft_iterations)
-                    dataset['y{}'.format(i)].values = new_vals  # todo this might not be 'overwriting' what exists
-                    points_gathered = len(row)
-                self._nr_acquired_values += points_gathered
+                    old_vals = dataset['y{}'.format(i)].values  # get the full y axes
+                    # todo must be a better way of summing nans with reals
+                    old_vals[np.isnan(old_vals)] = 0  # will be full of nans on the first iteration, change to 0
+                    # row might not be the full axes length, pad either side with 0s
+                    padded_row = np.pad(row, [setpoint_idx, len(old_vals) - len(row) - setpoint_idx], "constant")
+                    # sum the data vectors together, averaging if required
+                    if self.soft_avg() == 1:
+                        new_vals = old_vals + padded_row
+                    else:
+                        new_vals = (padded_row + old_vals * self._soft_iterations) / (1 + self._soft_iterations)
+                    dataset['y{}'.format(i)].values = new_vals  # update the dataset
+                self._nr_acquired_values += np.shape(new_data)[1]
                 self._update(dataset, plotmon_name, exp_folder)
 
         # Wrap up experiment and store data
@@ -214,6 +219,9 @@ class MeasurementControl(Instrument):
         self._finish()
         # reset the plot info for the next experiment.
         self._plot_info = {'2D-grid': False}
+        # reset software averages back to 1
+        self.soft_avg(1)
+
         return dataset
 
     ############################################
@@ -264,7 +272,6 @@ class MeasurementControl(Instrument):
         Returns:
             int: setpoint_idx
         """
-        max_sp = self._max_setpoints()
         acquired = self._nr_acquired_values
         setpoint_idx = acquired % len(self._setpoints)
         self._soft_iterations = acquired // len(self._setpoints)

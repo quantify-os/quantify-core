@@ -79,7 +79,9 @@ class DummyDetector:
         x = self.setpoints
         noise = self.noise * (np.random.rand(2, len(x)) - .5)
         data = self.mock_fn(x)
-        data += noise
+        # todo, fix this hack, noise doesn't currently naturally sum with data in 1D
+        if self.noise:
+            data += noise
         time.sleep(self.delay)
         return data
 
