@@ -15,12 +15,13 @@ class Settable:
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
 
-    .. jsonschema:: schemas/Settable.json
+    .. jsonschema:: schemas/Settable.json#/attrs
+    .. jsonschema:: schemas/Settable.json#/methods
 
     """
     def __new__(cls, obj):
-        jsonschema.validate(vars(obj), Settable.schema['required_attributes'])
-        jsonschema.validate(dir(obj), Settable.schema['required_methods'])
+        jsonschema.validate(vars(obj), Settable.schema['attrs'])
+        jsonschema.validate(dir(obj), Settable.schema['methods'])
         return obj
 
 
@@ -30,12 +31,13 @@ class Gettable:
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
 
-    .. jsonschema:: schemas/Gettable.json
+    .. jsonschema:: schemas/Gettable.json#/attrs
+    .. jsonschema:: schemas/Gettable.json#/methods
 
     """
     def __new__(cls, obj):
-        jsonschema.validate(vars(obj), Gettable.schema['required_attributes'])
-        jsonschema.validate(dir(obj), Gettable.schema['required_methods'])
+        jsonschema.validate(vars(obj), Gettable.schema['attrs'])
+        jsonschema.validate(dir(obj), Gettable.schema['methods'])
         return obj
 
 

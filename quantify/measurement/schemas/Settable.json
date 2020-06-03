@@ -1,6 +1,7 @@
 {
     "description": "Requirements for the Settable concept",
-    "required_attributes": {
+    "attrs": {
+        "description": "attributes",
         "required": [
             "name",
             "label",
@@ -25,22 +26,23 @@
             }
         }
     },
-    "required_methods": {
+    "methods": {
+        "description": "methods",
         "required": [
             "set"
         ],
         "properties": {
             "set": {
-                "type": "string",
-                "description": "set this to a float value"
+                "description": "set this to a float value",
+                "type": "object"
             },
             "prepare": {
-                "type": "string",
-                "description": "called before each iteration of the acquisition loop"
+                "description": "called before each iteration of the acquisition loop",
+                "type": "object"
             },
             "finish": {
-                "type": "string",
-                "description": "called once after the acquisition loop"
+                "description": "called once after the acquisition loop",
+                "type": "object"
             }
         }
     }
