@@ -1,7 +1,6 @@
 import time
 import json
 from os.path import join
-from collections import namedtuple
 
 import numpy as np
 from qcodes import Instrument
@@ -124,6 +123,15 @@ class MeasurementControl(Instrument):
     ############################################
 
     def run_internally_controlled(self, name: str = ''):
+        """
+        Starts a data acquisition loop where acquisition is managed by the MeasurementControl (ie. internally)
+
+        Args:
+            name (str): Name of the measurement. This name is included in the name of the data files.
+
+        Returns:
+            :class:`xarray.Dataset`: the dataset
+        """
         self._setup(name)
 
         self._prepare_gettable()
@@ -140,9 +148,18 @@ class MeasurementControl(Instrument):
             self._update()
 
         self._cleanup()
-        return self._dataset
+        return self._dataset.copy()
 
     def run_externally_controlled(self, name: str = ''):
+        """
+        Starts a data acquisition loop where acquisition is NOT managed by the MeasurementControl (ie. externally)
+
+        Args:
+            name (str): Name of the measurement. This name is included in the name of the data files.
+
+        Returns:
+            :class:`xarray.Dataset`: the dataset
+        """
         self._setup(name)
 
         while self._get_fracdone() < 1.0:
@@ -174,7 +191,7 @@ class MeasurementControl(Instrument):
             self._update()
 
         self._cleanup()
-        return self._dataset
+        return self._dataset.copy()
 
     def run_adaptively_controlled(self):
         raise NotImplemented()
@@ -256,6 +273,7 @@ class MeasurementControl(Instrument):
             # it's fine if the parameter does not have a finish function
             except AttributeError as e:
                 pass
+
     @property
     def _is_internal(self):
         if is_internally_controlled(self._settable_pars[0]) and is_internally_controlled(self._gettable_pars[0]):
@@ -272,7 +290,7 @@ class MeasurementControl(Instrument):
     def _curr_setpoint_idx(self):
         """
         Returns the current position through the sweep
-        Updates the _soft_iterations counter as it may have rolled over
+        Updates the _soft_iterations_completed counter as it may have rolled over
 
         Returns:
             int: setpoint_idx

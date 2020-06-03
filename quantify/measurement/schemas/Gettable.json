@@ -1,0 +1,77 @@
+{
+    "description": "Requirements for the Gettable concept",
+    "required_attributes": {
+        "required": [
+            "name",
+            "label",
+            "unit"
+        ],
+        "properties": {
+            "name": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "description": "identifier"
+            },
+            "label": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "description": "axis descriptor"
+            },
+            "unit": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "description": "unit of measurement"
+            },
+            "internal": {
+                "type": "boolean",
+                "description": "true if driven by the MeasurementControl, false otherwise"
+            }
+        }
+    },
+    "required_methods": {
+        "required": [
+            "get"
+        ],
+        "properties": {
+            "get": {
+                "type": "string",
+                "description": "get a float value"
+            },
+            "prepare": {
+                "type": "string",
+                "description": "called before each iteration of the acquisition loop"
+            },
+            "finish": {
+                "type": "string",
+                "description": "called once after the acquisition loop"
+            }
+        }
+    }
+}

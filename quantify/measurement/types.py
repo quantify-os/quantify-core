@@ -1,92 +1,41 @@
 import jsonschema
+import json
+import pathlib
+
+
+def _load_schema(filename):
+    path = pathlib.Path(__file__).resolve().parent.joinpath('schemas', filename)
+    with path.open(mode='r') as f:
+        return json.load(f)
 
 
 class Settable:
-    attr_schema = {
-        "required": [
-            "name",
-            "label",
-            "unit",
-        ],
-        "properties": {
-            "name": {"type": "string"},
-            "label": {"type": "string"},
-            "unit": {"type": "string"},
-        },
-    }
-
-    method_schema = {
-        "required": [
-            "set",
-        ],
-    }
+    schema = _load_schema('Settable.json')
 
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
 
-    contains attributes
-        - set(float)
-        - name: str
-        - label: str
-        - unit: str
+    .. jsonschema:: schemas/Settable.json
 
-    optional attributes
-        - internal (str): whether this parameter is internally or externally driven
-        - prepare():
-        - finish():
     """
     def __new__(cls, obj):
-        jsonschema.validate(vars(obj), Settable.attr_schema)
-        jsonschema.validate(dir(obj), Settable.method_schema)
+        jsonschema.validate(vars(obj), Settable.schema['required_attributes'])
+        jsonschema.validate(dir(obj), Settable.schema['required_methods'])
         return obj
 
 
 class Gettable:
-    attr_schema = {
-        "required": [
-            "name",
-            "label",
-            "unit",
-        ],
-        "properties": {
-            "name": {"oneOf": [
-                {"type": "string"},
-                {"type": "array", "items": {"type": "string"}},
-            ]},
-            "label": {"oneOf": [
-                {"type": "string"},
-                {"type": "array", "items": {"type": "string"}},
-            ]},
-            "unit": {"oneOf": [
-                {"type": "string"},
-                {"type": "array", "items": {"type": "string"}},
-            ]}
-        },
-    }
-
-    method_schema = {
-        "required": [
-            "get",
-        ],
-    }
+    schema = _load_schema('Gettable.json')
 
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
 
-    contains attributes
-        - get()
-        - name: str
-        - label: str
-        - unit: str
+    .. jsonschema:: schemas/Gettable.json
 
-    optional attributes
-        - internal (str): whether this parameter is internally or externally driven
-        - prepare():
-        - finish():
     """
     def __new__(cls, obj):
-        jsonschema.validate(vars(obj), Gettable.attr_schema)
-        jsonschema.validate(dir(obj), Gettable.method_schema)
+        jsonschema.validate(vars(obj), Gettable.schema['required_attributes'])
+        jsonschema.validate(dir(obj), Gettable.schema['required_methods'])
         return obj
 
 

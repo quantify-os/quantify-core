@@ -32,6 +32,9 @@ sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model
 
 
 class NoneSweep:
+    """
+    A mock Settable which does nothing but provide axis info
+    """
     def __init__(self, internal):
         self.name = 'none'
         self.unit = 'N'
@@ -52,6 +55,8 @@ def hardware_mock_values_2D(setpoints):
 
 class DummyDetector:
     """
+    A mock external Gettable, returning either a Sin or [Sin, Cos] wave
+
     Args:
         mode (str): Number of data rows to return, supports '1D' and '2D'
     """

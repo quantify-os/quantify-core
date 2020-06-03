@@ -1,0 +1,47 @@
+{
+    "description": "Requirements for the Settable concept",
+    "required_attributes": {
+        "required": [
+            "name",
+            "label",
+            "unit"
+        ],
+        "properties": {
+            "name": {
+                "type": "string",
+                "description": "identifier"
+            },
+            "label": {
+                "type": "string",
+                "description": "axis descriptor"
+            },
+            "unit": {
+                "type": "string",
+                "description": "unit of measurement"
+            },
+            "internal": {
+                "type": "boolean",
+                "description": "true if driven by the MeasurementControl, false otherwise"
+            }
+        }
+    },
+    "required_methods": {
+        "required": [
+            "set"
+        ],
+        "properties": {
+            "set": {
+                "type": "string",
+                "description": "set this to a float value"
+            },
+            "prepare": {
+                "type": "string",
+                "description": "called before each iteration of the acquisition loop"
+            },
+            "finish": {
+                "type": "string",
+                "description": "called once after the acquisition loop"
+            }
+        }
+    }
+}
