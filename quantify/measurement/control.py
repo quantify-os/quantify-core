@@ -157,62 +157,61 @@ class MeasurementControl(Instrument):
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
 
-        if is_internally_controlled(self._settable_pars[0]) and is_internally_controlled(self._gettable_pars[0]):
-            is_internal = True
-        elif not is_internally_controlled(self._gettable_pars[0]):
-            is_internal = False
-        else:
-            raise Exception("Control mismatch")  # todo improve message
-
         self._prepare_settables()
 
-        if is_internal:
-            self._prepare_gettable()
-            for idx, spts in enumerate(self._setpoints):
-                # set all individual setparams
-                for spar, spt in zip(self._settable_pars, spts):
-                    # TODO add smartness to avoid setting if unchanged
-                    spar.set(spt)
-                # acquire all data points
-                for j, gpar in enumerate(self._gettable_pars):
-                    val = gpar.get()
-                    dataset['y{}'.format(j)].values[idx] = val
-                self._nr_acquired_values += 1
-                self._update(dataset, plotmon_name, exp_folder)
+        if self._is_internal:
+            self._run_internal(dataset, plotmon_name, exp_folder)
         else:
-            while self._get_fracdone() < 1.0:
-                setpoint_idx = self._curr_setpoint_idx()
-                for i, spar in enumerate(self._settable_pars):
-                    swf_setpoints = self._setpoints[:, i]
-                    spar.set(swf_setpoints[setpoint_idx])
-                self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
-
-                new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
-                # if we get a simple array, shape it to (1, M)
-                if len(np.shape(new_data)) == 1:
-                    new_data = new_data.reshape(1, (len(new_data)))
-
-                for i, row in enumerate(new_data):
-                    old_vals = dataset['y{}'.format(i)].values  # get the full y axes
-                    old_vals[np.isnan(old_vals)] = 0  # will be full of nans on the first iteration, change to 0
-                    # row might not be the full axes length, pad either side with 0s
-                    padded_row = np.pad(row, [setpoint_idx, len(old_vals) - len(row) - setpoint_idx], "constant")
-                    # sum the data vectors together, averaging if required
-                    if self.soft_avg() == 1:
-                        new_vals = old_vals + padded_row
-                    else:
-                        new_vals = (padded_row + old_vals * self._soft_iterations_completed) / (1 + self._soft_iterations_completed)
-                    dataset['y{}'.format(i)].values = new_vals  # update the dataset
-                self._nr_acquired_values += np.shape(new_data)[1]
-                self._update(dataset, plotmon_name, exp_folder)
+            self._run_external(dataset, plotmon_name, exp_folder)
 
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
-
         self._finish()
         self._plot_info = {'2D-grid': False}  # reset the plot info for the next experiment.
         self.soft_avg(1)  # reset software averages back to 1
 
         return dataset
+
+    def _run_internal(self, dataset, plotmon_name, exp_folder):
+        self._prepare_gettable()
+        for idx, spts in enumerate(self._setpoints):
+            # set all individual setparams
+            for spar, spt in zip(self._settable_pars, spts):
+                # TODO add smartness to avoid setting if unchanged
+                spar.set(spt)
+            # acquire all data points
+            for j, gpar in enumerate(self._gettable_pars):
+                val = gpar.get()
+                dataset['y{}'.format(j)].values[idx] = val
+            self._nr_acquired_values += 1
+            self._update(dataset, plotmon_name, exp_folder)
+
+    def _run_external(self, dataset, plotmon_name, exp_folder):
+        while self._get_fracdone() < 1.0:
+            setpoint_idx = self._curr_setpoint_idx()
+            for i, spar in enumerate(self._settable_pars):
+                swf_setpoints = self._setpoints[:, i]
+                spar.set(swf_setpoints[setpoint_idx])
+            self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
+
+            new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
+            # if we get a simple array, shape it to (1, M)
+            if len(np.shape(new_data)) == 1:
+                new_data = new_data.reshape(1, (len(new_data)))
+
+            for i, row in enumerate(new_data):
+                old_vals = dataset['y{}'.format(i)].values  # get the full y axes
+                old_vals[np.isnan(old_vals)] = 0  # will be full of nans on the first iteration, change to 0
+                # row might not be the full axes length, pad either side with 0s
+                padded_row = np.pad(row, [setpoint_idx, len(old_vals) - len(row) - setpoint_idx], "constant")
+                # sum the data vectors together, averaging if required
+                if self.soft_avg() == 1:
+                    new_vals = old_vals + padded_row
+                else:
+                    new_vals = (padded_row + old_vals * self._soft_iterations_completed) / (
+                            1 + self._soft_iterations_completed)
+                dataset['y{}'.format(i)].values = new_vals  # update the dataset
+            self._nr_acquired_values += np.shape(new_data)[1]
+            self._update(dataset, plotmon_name, exp_folder)
 
     ############################################
     # Methods used to control the measurements #
@@ -228,7 +227,8 @@ class MeasurementControl(Instrument):
             plotmon_name (str): the plotmon identifier
             exp_folder (str): persistence directory
         """
-        update = time.time() - self._last_upd > self.update_interval() or self._nr_acquired_values == len(self._setpoints)
+        update = time.time() - self._last_upd > self.update_interval() \
+            or self._nr_acquired_values == len(self._setpoints)
         if update:
             self.print_progress()
             dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
