@@ -106,7 +106,7 @@ class DummyDetector:
     Args:
         mode (str): Number of data rows to return, supports '1D' and '2D'
     """
-    def __init__(self, return_dimensions: str):
+    def __init__(self, return_dimensions: str, noise=0.0):
         if return_dimensions == '1D':
             self.name = 'dum'
             self.unit = 'W'
@@ -120,7 +120,7 @@ class DummyDetector:
         else:
             raise Exception('Unsupported mode: {}'.format(return_dimensions))
         self.delay = 0
-        self.noise = 0
+        self.noise = noise
         self.internal = False
 
     def prepare(self, setpoints):
@@ -349,6 +349,28 @@ class TestMeasurementControl:
         assert dset['x1'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
         assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
         assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+
+    def test_hard_sweep_2D_grid_soft_avg(self):
+        x0 = np.arange(5)
+        x1 = np.linspace(5, 10, 5)
+        self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
+        self.MC.set_setpoints_grid([x0, x1])
+        self.MC.set_getpars(DummyDetector(return_dimensions='2D', noise=0.4))
+        noisy_dset = self.MC.run('noisy_hard_grid')
+
+        expected_vals = hardware_mock_values_2D(noisy_dset['x0'].values)
+        yn_0 = abs(noisy_dset['y0'].values - expected_vals[0])
+        yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
+
+        self.MC.soft_avg(1000)
+        avg_dset = self.MC.run('avg_hard_grid')
+        yavg_0 = abs(avg_dset['y0'].values - expected_vals[0])
+        yavg_1 = abs(avg_dset['y1'].values - expected_vals[1])
+
+        assert np.mean(yavg_0) < np.mean(yn_0)
+        assert np.mean(yavg_1) < np.mean(yn_1)
+        np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(noisy_dset['x0'].values)), decimal=2)
+        np.testing.assert_array_almost_equal(yavg_1, np.zeros(len(noisy_dset['x0'].values)), decimal=2)
 
     def test_hard_sweep_2D_arbitrary(self):
         r = np.linspace(0, 1.5, 5)
