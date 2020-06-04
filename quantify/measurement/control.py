@@ -171,6 +171,11 @@ class MeasurementControl(Instrument):
 
         return dataset
 
+    def run_adapative(self):
+        # looks like its the same up to when we start iteration setpoints in _run_internal
+        # except there is some shit before involved the adaptive function(s)
+        return 'lol'
+
     def _run_internal(self, dataset, plotmon_name, exp_folder):
         self._prepare_gettable()
         for idx, spts in enumerate(self._setpoints):

@@ -1,7 +1,10 @@
 import time
 import xarray as xr
 import numpy as np
+from scipy import optimize
 from qcodes import ManualParameter, Parameter
+from qcodes.instrument.base import Instrument
+from qcodes.utils import validators as vals
 from quantify.measurement.control import MeasurementControl, \
     tile_setpoints_grid
 from quantify import set_datadir
@@ -43,6 +46,49 @@ class NoneSweep:
 
     def set(self, val):
         pass
+
+
+class DummyParabola(Instrument):
+    def __init__(self, name):
+        super().__init__(name)
+
+        for parname in ["x", "y", "z", "x0", "y0", "z0"]:
+            self.add_parameter(
+                parname,
+                unit="m",
+                parameter_class=ManualParameter,
+                vals=vals.Numbers(),
+                initial_value=0.,
+            )
+
+        self.add_parameter(
+            "noise",
+            unit="V",
+            label="white noise amplitude",
+            parameter_class=ManualParameter,
+            vals=vals.Numbers(),
+            initial_value=0,
+        )
+
+        self.add_parameter(
+            "delay",
+            unit="s",
+            label="Sampling delay",
+            parameter_class=ManualParameter,
+            vals=vals.Numbers(),
+            initial_value=0,
+        )
+
+        self.add_parameter("parabola", unit="V", get_cmd=self._measure_parabola)
+
+    def _measure_parabola(self):
+        time.sleep(self.delay())
+        return (
+            (self.x() - self.x0()) ** 2
+            + (self.y() - self.y0()) ** 2
+            + (self.z() - self.z0()) ** 2
+            + self.noise() * np.random.rand(1)
+        )
 
 
 def hardware_mock_values_1D(setpoints):
@@ -389,6 +435,16 @@ class TestMeasurementControl:
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+    """
+    def test_adapative_nelder_mead(self):
+        dummy = DummyParabola("mock_parabola")
+        self.MC.set_setpars([dummy.x, dummy.y])
+        optimize.minimize(method='Nelder-Mead')
+        dummy.noise(0.5)
+        self.MC.set_getpars(dummy.parabola)
+        dset = self.MC.run('nelder_mead')
+    """
 
     def test_progress_callback(self):
 
