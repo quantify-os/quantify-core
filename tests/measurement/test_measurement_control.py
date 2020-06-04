@@ -126,7 +126,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(t)
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
-        dset = self.MC.run_internally_controlled()
+        dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
@@ -146,7 +146,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(NoneSweep(internal=False))
         self.MC.set_setpoints(x)
         self.MC.set_getpars(DummyDetector("2D"))
-        dset = self.MC.run_externally_controlled()
+        dset = self.MC.run()
 
         expected_vals = hardware_mock_values_2D(x)
         assert (np.array_equal(dset['x0'].values, x))
@@ -166,7 +166,7 @@ class TestMeasurementControl:
         d = DummyDetector('2D')
         d.noise = 0.4
         self.MC.set_getpars(d)
-        noisy_dset = self.MC.run_externally_controlled('noisy')
+        noisy_dset = self.MC.run('noisy')
         xn_0 = noisy_dset['x0'].values
         expected_vals = hardware_mock_values_2D(xn_0)
         yn_0 = abs(noisy_dset['y0'].values - expected_vals[0])
@@ -176,7 +176,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(NoneSweep(internal=False))
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(d)
-        avg_dset = self.MC.run_externally_controlled('averaged')
+        avg_dset = self.MC.run('averaged')
         yavg_0 = abs(avg_dset['y0'].values - expected_vals[0])
         yavg_1 = abs(avg_dset['y1'].values - expected_vals[1])
 
@@ -204,7 +204,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(mock)
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(d)
-        dset = self.MC.run_externally_controlled("soft_sweep_hard_det")
+        dset = self.MC.run("soft_sweep_hard_det")
 
         x = dset['x0'].values
         y0 = dset['y0'].values
@@ -225,7 +225,7 @@ class TestMeasurementControl:
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
         self.MC.set_getpars(sig)
-        dset = self.MC.run_internally_controlled()
+        dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
@@ -268,7 +268,7 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp])
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(sig)
-        dset = self.MC.run_internally_controlled()
+        dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
@@ -285,7 +285,7 @@ class TestMeasurementControl:
         self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
         self.MC.set_setpoints_grid([times, amps])
         self.MC.set_getpars(DummyDetector("2D"))
-        dset = self.MC.run_externally_controlled('2D Hard')
+        dset = self.MC.run('2D Hard')
 
         exp_sp = tile_setpoints_grid([times, amps])
         assert np.array_equal(exp_sp, self.MC._setpoints)
@@ -321,7 +321,7 @@ class TestMeasurementControl:
         self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(DummyDetector("1D"))
-        dset = self.MC.run_externally_controlled()
+        dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
@@ -350,7 +350,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(NoneSweep(internal=False))
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(d)
-        dset = self.MC.run_externally_controlled('varying')
+        dset = self.MC.run('varying')
 
         assert np.array_equal(dset['x0'], setpoints)
         assert np.array_equal(dset['y0'], 2 * setpoints)
@@ -368,7 +368,7 @@ class TestMeasurementControl:
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
         self.MC.set_getpars(sig)
-        dset = self.MC.run_internally_controlled()
+        dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
@@ -405,7 +405,7 @@ class TestMeasurementControl:
         self.MC.set_setpars(t)
         self.MC.set_setpoints(xvals)
         self.MC.set_getpars(sig)
-        self.MC.run_internally_controlled()
+        self.MC.run()
 
         assert progress_param() == 100
 
@@ -422,7 +422,7 @@ class TestMeasurementControl:
         self.MC.set_setpars([t, amp])
         self.MC.set_setpoints_grid([times, amps])
         self.MC.set_getpars(sig)
-        self.MC.run_internally_controlled('2D Cosine test')
+        self.MC.run('2D Cosine test')
 
         assert plotmon.tuid() != 'latest'
 
