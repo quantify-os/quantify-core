@@ -401,6 +401,30 @@ class TestMeasurementControl:
         assert np.array_equal(dset['x0'], setpoints)
         assert np.array_equal(dset['y0'], 2 * setpoints)
 
+    def test_variable_return_hard_sweep_soft_avg(self):
+        counter_param = ManualParameter("counter", initial_value=0)
+
+        def v_size(setpoints):
+            idx = counter_param() % 3
+            counter_param(counter_param() + 1)
+            if idx == 0:
+                return setpoints[:7]
+            elif idx == 1:
+                return setpoints[:4]
+            elif idx == 2:
+                return setpoints[:]
+
+        self.MC.soft_avg(30)
+        setpoints = np.arange(30.0)
+        d = DummyDetector('1D')
+        d.mock_fn = v_size
+        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpoints(setpoints)
+        self.MC.set_getpars(d)
+        plain_dset = self.MC.run('varying_avg')
+        assert np.array_equal(plain_dset['x0'].values, setpoints)
+        assert np.array_equal(plain_dset['y0'].values, setpoints)
+
     def test_soft_sweep_3D_grid(self):
 
         times = np.linspace(0, 5, 2)

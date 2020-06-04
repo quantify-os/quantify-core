@@ -106,7 +106,7 @@ class MeasurementControl(Instrument):
 
         # variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
-        self._soft_iterations_completed = 0
+        self._loop_count = 0
         self._begintime = time.time()
         self._last_upd = time.time()
 
@@ -135,7 +135,7 @@ class MeasurementControl(Instrument):
 
         # reset all variables that change during acquisition
         self._nr_acquired_values = 0
-        self._soft_iterations_completed = 0
+        self._loop_count = 0
         self._begintime = time.time()
 
         # initialize an empty dataset
@@ -204,17 +204,14 @@ class MeasurementControl(Instrument):
                 new_data = new_data.reshape(1, (len(new_data)))
 
             for i, row in enumerate(new_data):
-                old_vals = dataset['y{}'.format(i)].values  # get the full y axes
-                old_vals[np.isnan(old_vals)] = 0  # will be full of nans on the first iteration, change to 0
-                # row might not be the full axes length, pad either side with 0s
-                padded_row = np.pad(row, [setpoint_idx, len(old_vals) - len(row) - setpoint_idx], "constant")
-                # sum the data vectors together, averaging if required
+                slice_len = setpoint_idx + len(row)  # the slice we will be updating
+                old_vals = dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
+                old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
                 if self.soft_avg() == 1:
-                    new_vals = old_vals + padded_row
+                    new_vals = old_vals + row
                 else:
-                    new_vals = (padded_row + old_vals * self._soft_iterations_completed) / (
-                            1 + self._soft_iterations_completed)
-                dataset['y{}'.format(i)].values = new_vals  # update the dataset
+                    new_vals = (row + old_vals * self._loop_count) / (1 + self._loop_count)
+                dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = new_vals
             self._nr_acquired_values += np.shape(new_data)[1]
             self._update(dataset, plotmon_name, exp_folder)
 
@@ -290,7 +287,7 @@ class MeasurementControl(Instrument):
         """
         acquired = self._nr_acquired_values
         setpoint_idx = acquired % len(self._setpoints)
-        self._soft_iterations_completed = acquired // len(self._setpoints)
+        self._loop_count = acquired // len(self._setpoints)
         return setpoint_idx
 
     def _get_fracdone(self):
