@@ -38,11 +38,11 @@ class NoneSweep:
     """
     A mock Settable which does nothing but provide axis info
     """
-    def __init__(self, internal):
+    def __init__(self, soft):
         self.name = 'none'
         self.unit = 'N'
         self.label = 'None'
-        self.internal = internal
+        self.soft = soft
 
     def set(self, val):
         pass
@@ -121,7 +121,7 @@ class DummyDetector:
             raise Exception('Unsupported mode: {}'.format(return_dimensions))
         self.delay = 0
         self.noise = noise
-        self.internal = False
+        self.soft = False
 
     def prepare(self, setpoints):
         self.setpoints = setpoints
@@ -189,7 +189,7 @@ class TestMeasurementControl:
 
     def test_hard_sweep_1D(self):
         x = np.linspace(0, 10, 5)
-        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpars(NoneSweep(soft=False))
         self.MC.set_setpoints(x)
         self.MC.set_getpars(DummyDetector("2D"))
         dset = self.MC.run()
@@ -207,7 +207,7 @@ class TestMeasurementControl:
 
     def test_soft_averages_hard_sweep_1D(self):
         setpoints = np.arange(50.0)
-        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpars(NoneSweep(soft=False))
         self.MC.set_setpoints(setpoints)
         d = DummyDetector('2D')
         d.noise = 0.4
@@ -219,7 +219,7 @@ class TestMeasurementControl:
         yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
 
         self.MC.soft_avg(5000)
-        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpars(NoneSweep(soft=False))
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(d)
         avg_dset = self.MC.run('averaged')
@@ -328,7 +328,7 @@ class TestMeasurementControl:
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
+        self.MC.set_setpars([NoneSweep(soft=False), NoneSweep(soft=True)])
         self.MC.set_setpoints_grid([times, amps])
         self.MC.set_getpars(DummyDetector("2D"))
         dset = self.MC.run('2D Hard')
@@ -353,7 +353,7 @@ class TestMeasurementControl:
     def test_hard_sweep_2D_grid_soft_avg(self):
         x0 = np.arange(5)
         x1 = np.linspace(5, 10, 5)
-        self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
+        self.MC.set_setpars([NoneSweep(soft=False), NoneSweep(soft=True)])
         self.MC.set_setpoints_grid([x0, x1])
         self.MC.set_getpars(DummyDetector(return_dimensions='2D', noise=0.4))
         noisy_dset = self.MC.run('noisy_hard_grid')
@@ -386,7 +386,7 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        self.MC.set_setpars([NoneSweep(internal=False), NoneSweep(internal=True)])
+        self.MC.set_setpars([NoneSweep(soft=False), NoneSweep(soft=True)])
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(DummyDetector("1D"))
         dset = self.MC.run()
@@ -415,7 +415,7 @@ class TestMeasurementControl:
         setpoints = np.arange(30.0)
         d = DummyDetector('1D')
         d.mock_fn = v_size
-        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpars(NoneSweep(soft=False))
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(d)
         dset = self.MC.run('varying')
@@ -440,7 +440,7 @@ class TestMeasurementControl:
         setpoints = np.arange(30.0)
         d = DummyDetector('1D')
         d.mock_fn = v_size
-        self.MC.set_setpars(NoneSweep(internal=False))
+        self.MC.set_setpars(NoneSweep(soft=False))
         self.MC.set_setpoints(setpoints)
         self.MC.set_getpars(d)
         plain_dset = self.MC.run('varying_avg')

@@ -8,7 +8,7 @@ from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
-from quantify.measurement.types import Settable, Gettable, is_internally_controlled
+from quantify.measurement.types import Settable, Gettable, is_software_controlled
 
 
 class MeasurementControl(Instrument):
@@ -159,8 +159,8 @@ class MeasurementControl(Instrument):
 
         self._prepare_settables()
 
-        if self._is_internal:
-            self._run_internal(dataset, plotmon_name, exp_folder)
+        if self._is_soft:
+            self._run_soft(dataset, plotmon_name, exp_folder)
         else:
             self._run_external(dataset, plotmon_name, exp_folder)
 
@@ -172,11 +172,11 @@ class MeasurementControl(Instrument):
         return dataset
 
     def run_adapative(self):
-        # looks like its the same up to when we start iteration setpoints in _run_internal
+        # looks like its the same up to when we start iteration setpoints in _run_soft
         # except there is some shit before involved the adaptive function(s)
         return 'lol'
 
-    def _run_internal(self, dataset, plotmon_name, exp_folder):
+    def _run_soft(self, dataset, plotmon_name, exp_folder):
         self._prepare_gettable()
         for idx, spts in enumerate(self._setpoints):
             # set all individual setparams
@@ -265,10 +265,10 @@ class MeasurementControl(Instrument):
                 pass
 
     @property
-    def _is_internal(self):
-        if is_internally_controlled(self._settable_pars[0]) and is_internally_controlled(self._gettable_pars[0]):
+    def _is_soft(self):
+        if is_software_controlled(self._settable_pars[0]) and is_software_controlled(self._gettable_pars[0]):
             return True
-        elif not is_internally_controlled(self._gettable_pars[0]):
+        elif not is_software_controlled(self._gettable_pars[0]):
             return False
         else:
             raise Exception("Control mismatch")  # todo improve message
@@ -348,7 +348,7 @@ class MeasurementControl(Instrument):
         Args: setpoints (:class:`numpy.ndarray`) : An array that defines the values to loop over in the experiment.
         The shape of the array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
 
-        The setpoints are internally reshaped to (N, M) to be natively compatible with M-dimensional loops.
+        The setpoints are softly reshaped to (N, M) to be natively compatible with M-dimensional loops.
 
         .. tip::
 

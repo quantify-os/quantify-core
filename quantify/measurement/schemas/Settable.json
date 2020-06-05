@@ -20,9 +20,9 @@
                 "type": "string",
                 "description": "unit of measurement"
             },
-            "internal": {
+            "soft": {
                 "type": "boolean",
-                "description": "true if driven by the MeasurementControl, false otherwise"
+                "description": "true if driven by the MeasurementControl software, false otherwise"
             }
         }
     },

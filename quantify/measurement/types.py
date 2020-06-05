@@ -41,7 +41,7 @@ class Gettable:
         return obj
 
 
-def is_internally_controlled(obj):
-    if hasattr(obj, 'internal'):
-        return obj.internal
+def is_software_controlled(obj):
+    if hasattr(obj, 'soft'):
+        return obj.soft
     return True
