@@ -172,9 +172,7 @@ class MeasurementControl(Instrument):
         return dataset
 
     def run_adapative(self):
-        # looks like its the same up to when we start iteration setpoints in _run_soft
-        # except there is some shit before involved the adaptive function(s)
-        return 'lol'
+        raise NotImplemented()
 
     def _run_soft(self, dataset, plotmon_name, exp_folder):
         self._prepare_gettable()
@@ -219,7 +217,6 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    # Here we do saving, plotting, checking for interrupts etc.
     def _update(self, dataset, plotmon_name, exp_folder):
         """
         Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
@@ -239,6 +236,12 @@ class MeasurementControl(Instrument):
             self._last_upd = time.time()
 
     def _prepare_gettable(self, setpoints=None):
+        """
+        Call prepare() on the Gettable, if prepare() exists
+
+        Args:
+            setpoints (:class:`numpy.ndarray`): The values to pass to the Gettable
+        """
         try:
             if setpoints is not None:
                 self._gettable_pars[self._GETTABLE_IDX].prepare(setpoints)
@@ -249,6 +252,9 @@ class MeasurementControl(Instrument):
             pass
 
     def _prepare_settables(self):
+        """
+        Call prepare() on all Settable, if prepare() exists
+        """
         for setpar in self._settable_pars:
             try:
                 setpar.prepare()
@@ -257,6 +263,9 @@ class MeasurementControl(Instrument):
                 pass
 
     def _finish(self):
+        """
+        Call finish() on all Settables and Gettables, if finish() exists
+        """
         for p in self._gettable_pars and self._settable_pars:
             try:
                 p.finish()
@@ -266,6 +275,9 @@ class MeasurementControl(Instrument):
 
     @property
     def _is_soft(self):
+        """
+        Whether this MeasurementControl controls data stepping
+        """
         if is_software_controlled(self._settable_pars[0]) and is_software_controlled(self._gettable_pars[0]):
             return True
         elif not is_software_controlled(self._gettable_pars[0]):
@@ -275,6 +287,9 @@ class MeasurementControl(Instrument):
 
     @property
     def _max_setpoints(self):
+        """
+        The total number of setpoints to examine
+        """
         return len(self._setpoints) * self.soft_avg()
 
     def _curr_setpoint_idx(self):

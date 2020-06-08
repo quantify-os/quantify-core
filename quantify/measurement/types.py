@@ -10,15 +10,16 @@ def _load_schema(filename):
 
 
 class Settable:
-    schema = _load_schema('Settable.json')
-
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
+    This object does not wrap the passed in object but simply verifies and returns it.
 
     .. jsonschema:: schemas/Settable.json#/attrs
     .. jsonschema:: schemas/Settable.json#/methods
-
     """
+
+    schema = _load_schema('Settable.json')
+
     def __new__(cls, obj):
         jsonschema.validate(vars(obj), Settable.schema['attrs'])
         jsonschema.validate(dir(obj), Settable.schema['methods'])
@@ -26,15 +27,17 @@ class Settable:
 
 
 class Gettable:
-    schema = _load_schema('Gettable.json')
-
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
+    This object does not wrap the passed in object but simply verifies and returns it.
 
     .. jsonschema:: schemas/Gettable.json#/attrs
     .. jsonschema:: schemas/Gettable.json#/methods
 
     """
+
+    schema = _load_schema('Gettable.json')
+
     def __new__(cls, obj):
         jsonschema.validate(vars(obj), Gettable.schema['attrs'])
         jsonschema.validate(dir(obj), Gettable.schema['methods'])
