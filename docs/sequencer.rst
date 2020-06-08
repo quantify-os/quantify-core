@@ -260,6 +260,26 @@ And we can use this to create a default visualizaton.
   ax.set_xlim(-.5, 9.5)
 
 
+.. jupyter-execute::
+
+  import plotly.graph_objects as go
+
+  x= np.linspace(0, 10, 30)
+  y0 = np.cos(x)
+  y1 = np.sin(x)
+
+  fig = go.Figure()
+  fig.update_layout(
+            title= "A Fancy Plot",
+            yaxis={'tickformat':".2s", "hoverformat":'.2s'},
+            xaxis={'tickformat':".2s", "hoverformat":'.3s', 'ticksuffix':'s'})
+
+  fig.add_trace(go.Scatter(x=1e-9*(x), y=y0, mode='lines+markers', name='cosine'))
+  fig.add_trace(go.Scatter(x=1e-9*(x), y=y1, mode='lines+markers', name='sin'))
+
+  fig.add_trace(go.Scatter(x=1e-9*(x+40), y=y0, mode='lines+markers', name='cosine_disp'))
+  fig.add_trace(go.Scatter(x=1e-9*(x+40), y=y1, mode='lines+markers', name='sin_disp'))
+  fig
 
 
 
