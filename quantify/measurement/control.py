@@ -172,7 +172,7 @@ class MeasurementControl(Instrument):
         return dataset
 
     def run_adapative(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def _run_soft(self, dataset, plotmon_name, exp_folder):
         self._prepare_gettable()
@@ -248,7 +248,7 @@ class MeasurementControl(Instrument):
             else:
                 self._gettable_pars[self._GETTABLE_IDX].prepare()
         # it's fine if the gettable does not have a prepare function
-        except AttributeError as e:
+        except AttributeError:
             pass
 
     def _prepare_settables(self):
@@ -259,7 +259,7 @@ class MeasurementControl(Instrument):
             try:
                 setpar.prepare()
             # it's fine if the settable does not have a prepare function
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
     def _finish(self):
@@ -270,7 +270,7 @@ class MeasurementControl(Instrument):
             try:
                 p.finish()
             # it's fine if the parameter does not have a finish function
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
     @property

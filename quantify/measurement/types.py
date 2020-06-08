@@ -1,12 +1,5 @@
 import jsonschema
-import json
-import pathlib
-
-
-def _load_schema(filename):
-    path = pathlib.Path(__file__).resolve().parent.joinpath('schemas', filename)
-    with path.open(mode='r') as f:
-        return json.load(f)
+from quantify.utilities.general import load_json_schema
 
 
 class Settable:
@@ -18,7 +11,7 @@ class Settable:
     .. jsonschema:: schemas/Settable.json#/methods
     """
 
-    schema = _load_schema('Settable.json')
+    schema = load_json_schema(__file__, 'Settable.json')
 
     def __new__(cls, obj):
         jsonschema.validate(vars(obj), Settable.schema['attrs'])
@@ -36,7 +29,7 @@ class Gettable:
 
     """
 
-    schema = _load_schema('Gettable.json')
+    schema = load_json_schema(__file__, 'Gettable.json')
 
     def __new__(cls, obj):
         jsonschema.validate(vars(obj), Gettable.schema['attrs'])

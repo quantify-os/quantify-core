@@ -1,3 +1,5 @@
+import json
+import pathlib
 from collections.abc import MutableMapping
 
 
@@ -24,3 +26,21 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
             else:
                 modified_dict[key] = value
     return modified_dict
+
+
+def load_json_schema(relative_to, filename):
+    """
+    Load a JSON schema from file. Expects a 'schemas' directory in the same directory as `relative_to`.
+
+    .. tip:: Typical usage of the form `schema = load_json_schema(__file__, 'definition.json')`
+
+    Args:
+        relative_to (str): the file to begin searching from
+        filename (str): the JSON file to load
+
+    Returns:
+        dict: the schema
+    """
+    path = pathlib.Path(relative_to).resolve().parent.joinpath('schemas', filename)
+    with path.open(mode='r') as f:
+        return json.load(f)
