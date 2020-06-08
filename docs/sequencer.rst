@@ -259,27 +259,55 @@ And we can use this to create a default visualizaton.
   # all gates are plotted, but it doesn't all fit in a matplotlib figure
   ax.set_xlim(-.5, 9.5)
 
+Compilation onto a transmon backend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 .. jupyter-execute::
 
-  import plotly.graph_objects as go
+  device_test_cfg = {
+      'qubits':
+      {
+          'q0': {'mw_amp180': .75, 'mw_motzoi': -.25, 'mw_duration': 20e-9,
+                 'mw_modulation_freq': 50e6, 'mw_ef_amp180': .87, 'mw_ch_I': 'ch0', 'mw_ch_Q': 'ch1',
+                 'ro_pulse_ch_I': 'ch5.0', 'ro_pulse_ch_Q': 'ch6.0', 'ro_pulse_amp': .5, 'ro_pulse_modulation_freq': 80e6,
+                 'ro_pulse_type': 'square', 'ro_pulse_duration': 150e-9,
+                 'ro_acq_ch_I': 'acq_ch1', 'ro_acq_ch_Q': 'acq_ch2', 'ro_acq_delay': 120e-9, 'ro_acq_integration_time': 700e-9,
+                 'ro_acq_weigth_type': 'SSB',
+                 'init_duration': 250e-6,
+                 },
 
-  x= np.linspace(0, 10, 30)
-  y0 = np.cos(x)
-  y1 = np.sin(x)
+          'q1': {'mw_amp180': .45, 'mw_motzoi': -.15, 'mw_duration': 20e-9,
+                 'mw_modulation_freq': 80e6, 'mw_ef_amp180': .27, 'mw_ch_I': 'ch2', 'mw_ch_Q': 'ch3',
+                 'ro_pulse_ch_I': 'ch5.1', 'ro_pulse_ch_Q': 'ch6.1', 'ro_pulse_amp': .5, 'ro_pulse_modulation_freq': -23e6,
+                 'ro_pulse_type': 'square', 'ro_pulse_duration': 100e-9,
+                 'ro_acq_ch_I': 'acq_ch1', 'ro_acq_ch_Q': 'acq_ch2', 'ro_acq_delay': 120e-9, 'ro_acq_integration_time': 700e-9,
+                 'ro_acq_weigth_type': 'SSB',
+                 'init_duration': 250e-6, }
+      },
+      'edges':
+      {
+      }
+  }
 
-  fig = go.Figure()
-  fig.update_layout(
-            title= "A Fancy Plot",
-            yaxis={'tickformat':".2s", "hoverformat":'.2s'},
-            xaxis={'tickformat':".2s", "hoverformat":'.3s', 'ticksuffix':'s'})
 
-  fig.add_trace(go.Scatter(x=1e-9*(x), y=y0, mode='lines+markers', name='cosine'))
-  fig.add_trace(go.Scatter(x=1e-9*(x), y=y1, mode='lines+markers', name='sin'))
+Compilation is happening here
 
-  fig.add_trace(go.Scatter(x=1e-9*(x+40), y=y0, mode='lines+markers', name='cosine_disp'))
-  fig.add_trace(go.Scatter(x=1e-9*(x+40), y=y1, mode='lines+markers', name='sin_disp'))
-  fig
+.. jupyter-execute::
+
+  from quantify.sequencer.compilation import add_pulse_information_transmon
+  sched = add_pulse_information_transmon(sched, device_test_cfg)
+  sched = determine_absolute_timing(sched)
+
+
+
+And here we plot the resulting experiment using plotly
+
+.. jupyter-execute::
+
+  from quantify.sequencer.backends import pulse_diagram_plotly
+  fig = pulse_diagram_plotly(sched)
+  fig.show()
 
 
 
@@ -293,9 +321,7 @@ Bell violation circuit (change angle)
 
     - [x] Show input how to create
     - [x] Visualization circuit diagram
-    - [ ] Visualization pulse sequence (waveforms per channel)
-    - [ ] Visualization combined
-    - [ ] Show underlying data structures
+    - [x] Visualization pulse sequence (waveforms per channel)
 
 Chevron experiment
 

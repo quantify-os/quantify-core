@@ -4,7 +4,7 @@ This module contains compilation steps for the quantify sequencer.
 A compilation step is a function that takes a :class:`~quantify.sequencer.types.Schedule`
 and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
-
+import logging
 from os import path
 import json
 import jsonschema
@@ -153,31 +153,35 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                                                 duration=q_cfg['ro_acq_integration_time'],
                                                 ch_I=q_cfg['ro_acq_ch_I'],
                                                 ch_Q=q_cfg['ro_acq_ch_Q'],
-                                                freq_mod=-q_cfg['ro_pulse_modulation_freq'],
+                                                freq_mod=-
+                                                q_cfg['ro_pulse_modulation_freq'],
                                                 t0=q_cfg['ro_acq_delay']))
 
         elif op['gate_info']['operation_type'] == 'Rxy':
             q = op['gate_info']['qubits'][0]
-
             # read info from config
             q_cfg = device_cfg['qubits'][q]
+
             G_amp = q_cfg['mw_amp180']*op['gate_info']['theta']/180
             D_amp = G_amp * q_cfg['mw_motzoi']
-            phase = op['gate_info']['phi']
-            ch_I = q_cfg['mw_ch_I']
-            ch_Q = q_cfg['mw_ch_Q']
-            freq_mod = q_cfg['mw_modulation_freq']
-            duration = q_cfg['mw_duration']
-            pulse = DRAGPulse(G_amp=G_amp, D_amp=D_amp, phase=phase, ch_I=ch_I, ch_Q=ch_Q, duration=duration,
-                              freq_mod=freq_mod)
+
+            pulse = DRAGPulse(
+                G_amp=G_amp, D_amp=D_amp, phase=op['gate_info']['phi'],
+                ch_I=q_cfg['mw_ch_I'], ch_Q=q_cfg['mw_ch_Q'], duration=q_cfg['mw_duration'],
+                freq_mod=q_cfg['mw_modulation_freq'])
             op.add_pulse(pulse)
 
         elif op['gate_info']['operation_type'] == 'CNOT':
-            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
+
+            # These methods don't raise exceptions as they will be implemented shortly
+            logging.warning("Not Implemented yet")
+            logging.warning('Operation type "{}" not supported by backend'.format(
                 op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'CZ':
-            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
+            # These methods don't raise exceptions as they will be implemented shortly
+            logging.warning("Not Implemented yet")
+            logging.warning('Operation type "{}" not supported by backend'.format(
                 op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'reset':
