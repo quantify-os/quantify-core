@@ -49,7 +49,7 @@ setup(
     keywords='quantify',
     name='quantify',
     packages=find_packages(include=['quantify', 'quantify.*']),
-    package_data={'': '*.json'},  # ensures JSON schema are included
+    package_data={'': ['*.json']},  # ensures JSON schema are included
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
