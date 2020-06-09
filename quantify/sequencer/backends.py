@@ -5,6 +5,7 @@ A backend takes a :class:`~quantify.sequencer.types.Schedule` object as input
 and produces output in a different format.
 Examples of backends are a visualization, simulator input formats, or a hardware input format.
 """
+import logging
 import inspect
 import matplotlib.pyplot as plt
 import numpy as np
@@ -148,30 +149,55 @@ def pulse_diagram_matplotlib(schedule, figsize=None,
 
 
 def pulse_diagram_plotly(schedule,
-                         ch_map: dict = None,
-                         fig_ch_height=100,
+                         ch_list: list = None,
+                         fig_ch_height: float = 150,
+                         fig_width: float = 1000,
                          modulation: bool = True,
-                         sampling_rate: float = 2e9):
+                         sampling_rate: float = 1e9):
     """
-    Produce a visualization of the pulses used.
+    Produce a plotly visualization of the pulses used in the schedule.
+
+
+    Parameters
+    ------------
+    ch_list : list
+        A list of channels to show. if set to `None` will use the first
+        8 channels it encounteres in the sequence.
+    fig_ch_height: float
+        height for each channel subplot in px
+    fig_width: float
+        width for the figure in px
+    modulation: bool
+        determines if modulation is included in the visualization
+    sampling_rate : float
+        the time resolution used in the visualization.
+
     """
 
-    nr_rows = 10
-    fig = make_subplots(rows=nr_rows, cols=1, shared_xaxes=True,
-                        vertical_spacing=0.01)
-    fig.update_layout(
-        height=fig_ch_height*nr_rows, width=1000,
-        title=schedule.data['name'])
-
-    if ch_map is None:
+    if ch_list is None:  # determine the channel list automatically.
         auto_map = True
         offset_idx = 0
+        nr_rows = 8
         ch_map = {}
     else:
         auto_map = False
+        nr_rows = len(ch_list)
+        ch_map = dict(zip(ch_list, range(len(ch_list))))
+        print(ch_map)
+
+    fig = make_subplots(rows=nr_rows, cols=1, shared_xaxes=True,
+                        vertical_spacing=0.02)
+    fig.update_layout(
+        height=fig_ch_height*nr_rows, width=fig_width,
+        title=schedule.data['name'], showlegend=False)
 
     colors = px.colors.qualitative.Plotly
     col_idx = 0
+
+    # Ensures that the plots are created even if no waveforms are added
+    for r in range(nr_rows):
+        fig.add_trace(go.Scatter(x=[], y=[], mode='lines', showlegend=False),
+                      row=r+1, col=1)
 
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
         op = schedule.operations[t_constr['operation_hash']]
@@ -186,7 +212,7 @@ def pulse_diagram_plotly(schedule,
             t = np.arange(t0, t0+p['duration'], 1/sampling_rate)
 
             # function to generate waveform
-            if p['wf_func'] != None:
+            if p['wf_func'] is not None:
                 wf_func = import_func_from_string(p['wf_func'])
 
                 # select the arguments for the waveform function that are present in pulse info
@@ -205,17 +231,23 @@ def pulse_diagram_plotly(schedule,
                         t, wfs[0], wfs[1], p['freq_mod'])
 
                 for i, ch in enumerate(p['channels']):
+                    # If channel does not exist yet and using auto map, add it.
                     if ch not in ch_map.keys() and auto_map:
                         ch_map[ch] = offset_idx
                         offset_idx += 1
 
-                    # Ensures that the different parts of the same pulse are coupled to the same legend group.
-                    showlegend = (i == 0)
-                    label = op['name']
-                    fig.add_trace(go.Scatter(x=t, y=wfs[i], mode='lines', name=label, legendgroup=pls_idx,
-                                             showlegend=showlegend,
-                                             line_color=colors[col_idx]),
-                                  row=ch_map[ch]+1, col=1)
+                        # once all channels are used, don't add new channels anymore.
+                        if offset_idx > nr_rows:
+                            auto_map = False
+
+                    if ch in ch_map.keys():
+                        # Ensures that the different parts of the same pulse are coupled to the same legend group.
+                        showlegend = (i == 0)
+                        label = op['name']
+                        fig.add_trace(go.Scatter(x=t, y=wfs[i], mode='lines', name=label, legendgroup=pls_idx,
+                                                 showlegend=showlegend,
+                                                 line_color=colors[col_idx]),
+                                      row=ch_map[ch]+1, col=1)
 
     for r in range(nr_rows):
         title = ''
@@ -224,7 +256,12 @@ def pulse_diagram_plotly(schedule,
         # FIXME: units are hardcoded
         fig.update_xaxes(row=r+1, col=1, tickformat=".2s",
                          hoverformat='.3s', ticksuffix='s', title=title)
-        fig.update_yaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s',
-                         ticksuffix='V', title='Amplitude', range=[-1.1, 1.1])
+        try:
+            fig.update_yaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s',
+                             ticksuffix='V', title=list(ch_map.keys())[r], range=[-1.1, 1.1])
+        except:
+            logging.warning("{} not enough channels".format(r))
 
+
+    print(ch_map)
     return fig

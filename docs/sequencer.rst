@@ -291,6 +291,7 @@ Compilation onto a transmon backend
   }
 
 
+
 Compilation is happening here
 
 .. jupyter-execute::
@@ -303,10 +304,21 @@ Compilation is happening here
 
 And here we plot the resulting experiment using plotly
 
+
 .. jupyter-execute::
 
   from quantify.sequencer.backends import pulse_diagram_plotly
   fig = pulse_diagram_plotly(sched)
+  fig.show()
+
+
+By default :func:`quantify.sequencer.backends.pulse_diagram_plotly` shows the first 8 channels encountered in in a schedule, but by specifying a list of channels, a more compact visualization can be created.
+
+
+.. jupyter-execute::
+
+
+  fig = pulse_diagram_plotly(sched, ch_list=['ch0', 'ch5.0', 'ch6.0', 'acq_ch1'])
   fig.show()
 
 
