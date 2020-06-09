@@ -153,7 +153,9 @@ def pulse_diagram_plotly(schedule,
                          fig_ch_height: float = 150,
                          fig_width: float = 1000,
                          modulation: bool = True,
-                         sampling_rate: float = 1e9):
+                         sampling_rate: float = 1e9,
+                         mark_labels: list = [],
+                         mark_interval: tuple = (-5e-6, 1e-6)):
     """
     Produce a plotly visualization of the pulses used in the schedule.
 
@@ -172,7 +174,24 @@ def pulse_diagram_plotly(schedule,
     sampling_rate : float
         the time resolution used in the visualization.
 
+
+
+    .. warning::
+
+        these options have not been implemented yet.
+
+
+    mark_labels : list
+        mark intervals for range selection based on labels of operations in the schedule.
+        when the label of an operation in the schedule is in the mark_labels.
+    mark_interval : tuple
+        a tuple indiciating the interval around any marked label for the range selection functionality.
+
     """
+
+    if mark_labels != []:
+        logging.warning("marking labels is not implemented.")
+        rangeselector_buttons = list()
 
     if ch_list is None:  # determine the channel list automatically.
         auto_map = True
@@ -200,6 +219,18 @@ def pulse_diagram_plotly(schedule,
                       row=r+1, col=1)
 
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
+
+        # TODO: add mark_labels functionality.
+        # if t_constr['label'] in mark_labels:
+
+        #     buttons=list([
+        #         dict(count=1,
+        #              label=t_constr['label'],
+        #              step="month",
+        #              stepmode="backward"),
+
+
+
         op = schedule.operations[t_constr['operation_hash']]
 
         for p in op['pulse_info']:
@@ -253,15 +284,18 @@ def pulse_diagram_plotly(schedule,
         title = ''
         if r+1 == nr_rows:
             title = 'Time'
+            fig.update_xaxes(row=r+1, col=1, tickformat=".2s",
+                             hoverformat='.3s', ticksuffix='s', title=title,
+                             rangeslider=dict(visible=True, thickness=0.05))
+
         # FIXME: units are hardcoded
-        fig.update_xaxes(row=r+1, col=1, tickformat=".2s",
-                         hoverformat='.3s', ticksuffix='s', title=title)
+        else:
+            fig.update_xaxes(row=r+1, col=1, tickformat=".2s",
+                             hoverformat='.3s', ticksuffix='s', title=title)
         try:
             fig.update_yaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s',
                              ticksuffix='V', title=list(ch_map.keys())[r], range=[-1.1, 1.1])
         except:
             logging.warning("{} not enough channels".format(r))
 
-
-    print(ch_map)
     return fig
