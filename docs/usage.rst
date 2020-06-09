@@ -53,11 +53,11 @@ Measurement Control
 
 The :class:`~quantify.measurement.MeasurementControl` is in charge of the data-acquisition loop and is based on the notion that every experiment exists of the following three steps:
 
-1. Set some parameter(s),
+1. Initialize (set) some parameter(s),
 2. Measure (get) some parameter(s),
 3. Store the data.
 
-The interfaces for settable and gettable parameters are encapsulated in the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes respectively.
+Quantify provides two helper classes, Settable and Gettable to aid in these steps, which are explored further in later sections of this article.
 
 :class:`~quantify.measurement.MeasurementControl` provides the following functionality
 
@@ -70,6 +70,18 @@ The interfaces for settable and gettable parameters are encapsulated in the :cla
     + Hardware controlled
     + 1D/2D/nD
     + Adaptive loop
+
+
+Settable and Gettable
+----------------------
+
+The interfaces for Settable and Gettable parameters are encapsulated in the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes respectively.
+We set values to Settables; these values populate an x-axis. Similarly, we get values from Gettables which populate a y-axis.
+These classes define a set of mandatory and optional attributes the MeasurementControl will use as part of the experiment, which are expanded up in the API Reference.
+
+TODO -> link to tutorial
+
+For ease of use, the Settable and Gettable classes do not wrap the object and instead only verify the interface.
 
 Basic example, a 1D soft-loop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
