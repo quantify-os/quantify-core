@@ -175,18 +175,26 @@ class MeasurementControl(Instrument):
         raise NotImplementedError()
 
     def _run_soft(self, dataset, plotmon_name, exp_folder):
-        self._prepare_gettable()
-        for idx, spts in enumerate(self._setpoints):
-            # set all individual setparams
-            for spar, spt in zip(self._settable_pars, spts):
-                # TODO add smartness to avoid setting if unchanged
-                spar.set(spt)
-            # acquire all data points
-            for j, gpar in enumerate(self._gettable_pars):
-                val = gpar.get()
-                dataset['y{}'.format(j)].values[idx] = val
-            self._nr_acquired_values += 1
-            self._update(dataset, plotmon_name, exp_folder)
+        while self._get_fracdone() < 1.0:
+            self._prepare_gettable()
+            for idx, spts in enumerate(self._setpoints):
+                # set all individual setparams
+                for spar, spt in zip(self._settable_pars, spts):
+                    # TODO add smartness to avoid setting if unchanged
+                    spar.set(spt)
+                # acquire all data points
+                for j, gpar in enumerate(self._gettable_pars):
+                    val = gpar.get()
+                    old_val = dataset['y{}'.format(j)].values[idx]
+                    if self.soft_avg() == 1 or np.isnan(old_val):
+                        dataset['y{}'.format(j)].values[idx] = val
+                    else:
+                        # slow?
+                        averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
+                        dataset['y{}'.format(j)].values[idx] = averaged
+                self._nr_acquired_values += 1
+                self._update(dataset, plotmon_name, exp_folder)
+            self._loop_count += 1
 
     def _run_external(self, dataset, plotmon_name, exp_folder):
         while self._get_fracdone() < 1.0:
@@ -205,13 +213,15 @@ class MeasurementControl(Instrument):
                 slice_len = setpoint_idx + len(row)  # the slice we will be updating
                 old_vals = dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
                 old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                if self.soft_avg() == 1:
-                    new_vals = old_vals + row
-                else:
-                    new_vals = (row + old_vals * self._loop_count) / (1 + self._loop_count)
-                dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = new_vals
+                dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
             self._nr_acquired_values += np.shape(new_data)[1]
             self._update(dataset, plotmon_name, exp_folder)
+
+    def _build_data(self, new_data, old_data):
+        if self.soft_avg() == 1:
+            return old_data + new_data
+        else:
+            return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
     ############################################
     # Methods used to control the measurements #

@@ -1,4 +1,5 @@
 import time
+import random
 import xarray as xr
 import numpy as np
 from scipy import optimize
@@ -186,6 +187,24 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x0'], xvals))
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+    def test_soft_averages_soft_sweep_1D(self):
+        def rand():
+            return random.uniform(0.0, t())
+        rand_get = Parameter(name='sig', label='Signal level', unit='V', get_cmd=rand)
+        setpoints = np.arange(100.0)
+        self.MC.set_setpars(t)
+        self.MC.set_setpoints(setpoints)
+        self.MC.set_getpars(rand_get)
+        r_dset = self.MC.run('random')
+
+        self.MC.soft_avg(50)
+        avg_dset = self.MC.run('averaged')
+
+        expected_vals = 0.5 * np.arange(100.0)
+        r_delta = abs(r_dset['y0'].values - expected_vals)
+        avg_delta = abs(avg_dset['y0'].values - expected_vals)
+        assert np.mean(avg_delta) < np.mean(r_delta)
 
     def test_hard_sweep_1D(self):
         x = np.linspace(0, 10, 5)
