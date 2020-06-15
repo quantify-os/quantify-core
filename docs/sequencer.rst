@@ -1,18 +1,25 @@
-Sequencer
-===============
+Tutorial 3. Pulse sequencing
+=============================
+
+In this tutorial we explore how to program a basic experiment using the :mod:`quantify.sequencer`.
+We will give an overview of the sequncer module and show different visualization backends as well as compilation onto a hardware backend.
 
 .. warning::
 
   Under active development!
 
+Core Concepts
+----------------
 
 The :mod:`quantify.sequencer` can be used to schedule operations on the control hardware.
-The :mod:`quantify.sequencer` is designed to allow access to low-level (hardware) functionally at the highest level of abstraction if required, while simultaneously allowing the user to ignore these aspects when this level of detail is not required.
+The :mod:`quantify.sequencer` is designed to provide access to hardware functionality at a high-level interface.
 
-The :mod:`quantify.sequencer` is build around the :class:`~quantify.sequencer.Schedule`, a data structure containing :attr:`~quantify.sequencer.Schedule.operations` , :attr:`~quantify.sequencer.Schedule.timing_constraints` , and :attr:`~quantify.sequencer.Schedule.resources` .
+The :mod:`quantify.sequencer` is build around the :class:`~quantify.sequencer.Schedule`, a JSON-based data structure containing :attr:`~quantify.sequencer.Schedule.operations` , :attr:`~quantify.sequencer.Schedule.timing_constraints` , and :attr:`~quantify.sequencer.Schedule.resources` .
+Take a look at the :class:`quantify.sequencer.Schedule` documentation for more details.
 
-An :class:`~quantify.sequencer.Operation` contains information on how to *represent* the operation at the gate, pulse and/or instruction level as well as the :class:`~quantify.sequencer.Resource` (s) required.
-When adding an :class:`~quantify.sequencer.Operation` to a :class:`~quantify.sequencer.Schedule`, the user is not expected to provide this information at once.
+An :class:`~quantify.sequencer.Operation` contains information on how to *represent* the operation at different levels of abstraction such as the quantum-circuit (gate) level or the pulse level.
+The :mod:`quantify.sequencer` comes with a  :mod:`~quantify.sequencer.gate_library` and a :mod:`~quantify.sequencer.pulse_library` , both containing common operations.
+When adding an :class:`~quantify.sequencer.Operation` to a :class:`~quantify.sequencer.Schedule`, the user is not expected to provide all information at once.
 Only when specific information is required by a backend such as a simulator or a hardware backend does the information need to be provided.
 
 A compilation step is a transformation of the :class:`~quantify.sequencer.Schedule` and results in a new :class:`~quantify.sequencer.Schedule`.
@@ -20,17 +27,21 @@ A compilation step can be used to e.g., add pulse information to operations cont
 A final compilation step translates the :class:`~quantify.sequencer.Schedule` into a format compatible with the desired backend.
 
 
+The following diagram provides an overview of how to interact with the :class:`~quantify.sequencer.Schedule` class.
+The user can create a new schedule using the quantify API, or load a schedule based on one of the supported :mod:`~quantify.sequencer.frontends` for QASM-like formats such as qiskit QASM or OpenQL cQASM (todo).
+One or multiple compilation steps modify the :class:`~quantify.sequencer.Schedule` until it contains the information required for the :mod:`~quantify.sequencer.backends` used for visualization, simulation or compilation onto the hardware or back into a common QASM-like format.
+
+
 .. blockdiag::
 
     blockdiag sequencer {
 
-      qf_input [label="Embedded  language"];
+      qf_input [label="quantify API"];
       ext_input [label="Q A S M-like\nformats", stacked];
       vis_bck [label="Visualization \nbackends", stacked];
       hw_bck [label="Hardware\nbackends", stacked];
       sim_bck [label="Simulator\nbackends", stacked];
       ext_fmts [label="Q A S M-like\n formats", stacked];
-
 
       qf_input, ext_input -> Schedule;
       Schedule -> Schedule [label="Compile"];
@@ -62,17 +73,15 @@ A final compilation step translates the :class:`~quantify.sequencer.Schedule` in
     }
 
 
+
 The benefit of allowing the user to mix the high-level gate description of a circuit with the lower-level pulse description can be understood through an example.
 Below we first give an example of basic usage using `Bell violations`.
 We next show the `Chevron` experiment in which the user is required to mix gate-type and pulse-type information when define the :class:`~quantify.sequencer.Schedule`.
 
 
-Example circuit diagram -> a visual representation of a schedule using the gate-type information.
-Pulse sequence -> a visual representation of a schedule using the pulse-type information.
-Key idea is to provide access at highest level
+Ex: A basic quantum circuit:  the Bell experiment
+-----------------------------------------------------------------------------------------
 
-Example the Bell experiment
-----------------------------------------
 
 As the first example, we want to perform the  `Bell experiment <https://en.wikipedia.org/wiki/Bell%27s_theorem>`_ .
 In this example, we will go quite deep into the internals of the sequencer to show how the data strutures work.
@@ -122,8 +131,8 @@ We will be creating this same experiment using the Quantify sequencer.
   :figwidth: 50%
 
 
-Creating the experiment using the quantify sequencer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Creating a schedule
+~~~~~~~~~~~~~~~~~~~~
 
 We start by initializing an empty :class:`~quantify.sequencer.Schedule`
 
@@ -234,7 +243,7 @@ This is identical to how the pycqed pulsar works.
 Compilation efficiency is not an issue for "small" experiments but will be something we encounter in the future.
 
 
-Creating a circuit diagram
+Visualization using a circuit diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 So far we have only defined timing constraints.
@@ -302,6 +311,9 @@ Compilation is happening here
   sched = determine_absolute_timing(sched)
 
 
+Visualization using a pulse diagram
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 And here we plot the resulting experiment using plotly
 
@@ -309,18 +321,11 @@ And here we plot the resulting experiment using plotly
 .. jupyter-execute::
 
   from quantify.sequencer.backends import pulse_diagram_plotly
-  fig = pulse_diagram_plotly(sched)
+  fig = pulse_diagram_plotly(sched, ch_list=['ch0', 'ch5.0', 'ch6.0', 'acq_ch1'])
   fig.show()
 
 
 By default :func:`quantify.sequencer.backends.pulse_diagram_plotly` shows the first 8 channels encountered in in a schedule, but by specifying a list of channels, a more compact visualization can be created.
-
-
-.. jupyter-execute::
-
-
-  fig = pulse_diagram_plotly(sched, ch_list=['ch0', 'ch5.0', 'ch6.0', 'acq_ch1'])
-  fig.show()
 
 
 
@@ -330,12 +335,10 @@ By default :func:`quantify.sequencer.backends.pulse_diagram_plotly` shows the fi
 
 
 
-Bell violation circuit (change angle)
+Ex: Mixing pulse and gate-level descriptions, the Chevron experiment
+-----------------------------------------------------------------------------------------
 
-    - [x] Show input how to create
-    - [x] Visualization circuit diagram
-    - [x] Visualization pulse sequence (waveforms per channel)
+In this example, we want to perform a  Chevron experiment
 
-Chevron experiment
 
-    - Show input how to create
+
