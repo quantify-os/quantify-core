@@ -13,6 +13,7 @@ measurement
     :members:
     :undoc-members:
     :special-members:
+    :exclude-members: __dict__,__weakref__,__module__,__new__,schema
 
 
 data
