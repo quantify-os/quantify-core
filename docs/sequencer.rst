@@ -7,16 +7,17 @@ Sequencer
 
 
 The :mod:`quantify.sequencer` can be used to schedule operations on the control hardware.
+The :mod:`quantify.sequencer` is designed to allow access to low-level (hardware) functionally at the highest level of abstraction if required, while simultaneously allowing the user to ignore these aspects when this level of detail is not required.
 
-The quantify seqeuncer is designed to allow access to low-level (hardware) functionally at the highest level of abstraction if required, while simultaneously allowing the user to ignore these aspects when this level of detail is not required.
+The :mod:`quantify.sequencer` is build around the :class:`~quantify.sequencer.Schedule`, a data structure containing :attr:`~quantify.sequencer.Schedule.operations` , :attr:`~quantify.sequencer.Schedule.timing_constraints` , and :attr:`~quantify.sequencer.Schedule.resources` .
 
-The :mod:`quantify.sequencer` is build around the :class:`~quantify.sequencer.Schedule`, a data structure to which :class:`~quantify.sequencer.Operation` s are added with timing constraints.
-An :class:`~quantify.sequencer.Operation` object contains information on how to represent the operation at the gate, pulse and/or instruction level as well as the :class:`~quantify.sequencer.Resource` (s) used.
-When adding an :class:`~quantify.sequencer.Operation` to a :class:`~quantify.sequencer.Schedule`, the user is not expected to supply all this information at once.
-This should be taken care of during the *compilation* steps.
-Each compilation step is a transformation of the :class:`~quantify.sequencer.Schedule` and results in a new :class:`~quantify.sequencer.Schedule`.
-Examples of valid compliation steps are ..... TODO
-A final compilation step translates the :class:`~quantify.sequencer.Schedule` into a format compatible with the desired backend. VALID BACKENDS TODO
+An :class:`~quantify.sequencer.Operation` contains information on how to *represent* the operation at the gate, pulse and/or instruction level as well as the :class:`~quantify.sequencer.Resource` (s) required.
+When adding an :class:`~quantify.sequencer.Operation` to a :class:`~quantify.sequencer.Schedule`, the user is not expected to provide this information at once.
+Only when specific information is required by a backend such as a simulator or a hardware backend does the information need to be provided.
+
+A compilation step is a transformation of the :class:`~quantify.sequencer.Schedule` and results in a new :class:`~quantify.sequencer.Schedule`.
+A compilation step can be used to e.g., add pulse information to operations containing only a gate-level representation or to determine the absolute timing based on timing constraints.
+A final compilation step translates the :class:`~quantify.sequencer.Schedule` into a format compatible with the desired backend.
 
 
 .. blockdiag::

@@ -1,6 +1,7 @@
 """
 Module containing the core concepts of the sequencer.
 """
+import logging
 from os import path
 from uuid import uuid4
 from collections import UserDict
@@ -52,16 +53,24 @@ class Schedule(UserDict):
     @property
     def operations(self):
         """
-        Operation dictionary
+        Operation dictionary, keys are the has of operations values are instances of :class:`Operation`.
         """
         return self.data['operation_dict']
 
     @property
     def timing_constraints(self):
         """
-        Timing constraints
+        A list of dictionaries describing timing constraints between operations.
         """
         return self.data['timing_constraints']
+
+    @property
+    def resources(self):
+        """
+        A dictionary containing resources. Keys are names (str), values are instances of :class:`Resource` .
+        """
+        logging.warning('resources not implemented')
+        return {}
 
     def __repr__(self):
         return 'Schedule "{}" containing ({}) {}  (unique) operations.'.format(
