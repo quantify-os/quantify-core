@@ -103,8 +103,6 @@ SI_utilities
 plot_interpolation
 ------------------
 
-
-
 .. automodule:: quantify.visualization.plot_interpolation
     :members:
 

@@ -28,8 +28,3 @@ Take a look at our `Transmock demo <http://>`_ to see quantify in action!
 .. note::
 
     Features are WIP. All features listed should be added before a v1.0 release.
-
-Credits
--------
-
-* To be added

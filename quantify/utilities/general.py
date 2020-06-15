@@ -2,6 +2,8 @@ import importlib
 import copy
 import xxhash
 import numpy as np
+import json
+import pathlib
 from collections.abc import MutableMapping
 
 
@@ -69,3 +71,21 @@ def import_func_from_string(function_string):
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
     return func
+
+
+def load_json_schema(relative_to, filename):
+    """
+    Load a JSON schema from file. Expects a 'schemas' directory in the same directory as `relative_to`.
+
+    .. tip:: Typical usage of the form `schema = load_json_schema(__file__, 'definition.json')`
+
+    Args:
+        relative_to (str): the file to begin searching from
+        filename (str): the JSON file to load
+
+    Returns:
+        dict: the schema
+    """
+    path = pathlib.Path(relative_to).resolve().parent.joinpath('schemas', filename)
+    with path.open(mode='r') as f:
+        return json.load(f)
