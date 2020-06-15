@@ -110,7 +110,6 @@ Before you submit a merge request, check that it meets these guidelines:
    - Check the status of the pipelines https://gitlab.com/qblox/packages/software/quantify/pipelines, the status is also reported in the merge request.
    - Tests should pass for all versions of python.
    - flake8 linter should pass.
-   - pylint should not flag serious issues.
    - Documentation should build.
    - Pipeline should work for PyPy (TODO)
 

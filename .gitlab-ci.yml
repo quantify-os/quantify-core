@@ -66,19 +66,6 @@ flake8:
       - flake-report
     when: on_failure
 
-pylint:
-  image: python:latest
-  stage: Static Analysis
-  allow_failure: true
-  script:
-    - pip install -r requirements_dev.txt
-    - pylint quantify --rcfile=.pylintrc | pylint-json2html -o pylint.html
-
-  artifacts:
-    paths:
-      - pylint.html
-    when: on_failure
-
 run:
   stage: Test
   script:
