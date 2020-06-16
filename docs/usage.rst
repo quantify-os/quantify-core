@@ -81,39 +81,63 @@ These classes define a set of mandatory and optional attributes the MeasurementC
 
 For ease of use, the Settable and Gettable classes do not wrap the object and instead only verify the interface.
 In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
-Below we create a
+Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave
 
 .. jupyter-execute::
 
     import numpy as np
     from quantify.measurement.types import Settable, Gettable
 
-    class Sweep():
+    class DualWave:
         def __init__(self):
-            self.unit = 'Hz'
-            self.label = 'Frequency'
-            self.name = 'sweep'
-            self.current_val = None
-
-        def set(self, setpoint):
-            self.current_val = setpoint
-
-
-    class DualWave():
-        def __init__(self, sweep):
             self.unit = 'A'
             self.label = 'Amplitude'
             self.name = 'wave'
-            self.sweep = sweep
 
         def get(self):
             return np.array([np.sin(self.sweep.current_val / np.pi), np.cos(self.sweep.current_val / np.pi)])
 
+.soft, .prepare() and .finish()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    sweep_range = Settable(Sweep())
-    wave = Gettable(DualWave(sweep_range))
-    sweep_range.set(0)
-    print(wave.get())
+The MeasurementControl checks for 3 other optional properties on parameters, the `soft` attribute and the `prepare()` and `finish()` methods.
+`soft` declares whether this parameter is controlled by the MeasurementControl directly or manages itself, and typically delineates between
+data originating in software (such as a Sine function in Python) or hardware (such as an AWG). It defaults to `True` (ie, is software controlled).
+
+The `prepare()` and `finish()` methods are useful for performing work before each iteration of the measurement loop and once after completion.
+For example, arming a piece of hardware with data and then closing a connection upon completion. The `prepare()` method for hardware
+parameter optionally accepts a list of floats as a parameter. For example
+
+.. jupyter-execute::
+
+    class SinGenerator:
+        def __init__(self):
+            self.unit ='A'
+            self.label = 'Amplitude'
+            self.name = 'awg'
+            self.soft = False
+            self.data = None
+
+        def prepare(setpoints):
+            self.arm(setpoints)
+
+        def arm(data):
+            # send the data to the device etc.
+            pass
+
+        def trigger():
+            # processes and returns data etc.
+            return []
+
+        def get():
+            np.array([np.sin(self.trigger() / np.pi)])
+
+        def shutdown():
+            # power off the device etc.
+            pass
+
+        def finish():
+            self.shutdown()
 
 
 Basic example, a 1D soft-loop
