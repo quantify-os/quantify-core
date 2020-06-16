@@ -8,7 +8,7 @@ We will give an overview of the sequncer module and show different visualization
 
   Under active development!
 
-Core Concepts
+Concepts
 ----------------
 
 The :mod:`quantify.sequencer` can be used to schedule operations on the control hardware.
