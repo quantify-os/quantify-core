@@ -38,7 +38,8 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx',
               'sphinx_rtd_theme',
-              'nbsphinx']
+              'nbsphinx',
+              'sphinx-jsonschema']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

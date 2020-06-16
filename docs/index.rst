@@ -24,7 +24,7 @@ Tutorials
    :caption: Tutorials
 
    example_notebooks/T1_MeasurementControl.ipynb
-
+   example_notebooks/2_Advanced_MeasurementControl.ipynb
 
 
 API Reference
