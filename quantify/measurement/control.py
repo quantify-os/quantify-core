@@ -237,7 +237,7 @@ class MeasurementControl(Instrument):
             exp_folder (str): persistence directory
         """
         update = time.time() - self._last_upd > self.update_interval() \
-            or self._nr_acquired_values == len(self._setpoints)
+            or self._nr_acquired_values == self._max_setpoints
         if update:
             self.print_progress()
             dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
