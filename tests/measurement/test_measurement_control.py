@@ -154,25 +154,25 @@ class TestMeasurementControl:
     def test_MeasurementControl_name(self):
         assert self.MC.name == 'MC'
 
-    def test_set_setpoints(self):
+    def test_setpoints(self):
         x = np.linspace(0, 10, 11)
-        self.MC.set_setpoints(x)
+        self.MC.setpoints(x)
         assert np.array_equal(self.MC._setpoints[:, 0], x)
 
         x = np.random.rand(15, 2)
-        self.MC.set_setpoints(x)
+        self.MC.setpoints(x)
         assert np.array_equal(self.MC._setpoints, x)
 
         x = np.random.rand(15, 4)
-        self.MC.set_setpoints(x)
+        self.MC.setpoints(x)
         assert np.array_equal(self.MC._setpoints, x)
 
     def test_soft_sweep_1D(self):
         xvals = np.linspace(0, 2*np.pi, 31)
 
-        self.MC.set_settables(t)
-        self.MC.set_setpoints(xvals)
-        self.MC.set_gettables(sig)
+        self.MC.settables(t)
+        self.MC.setpoints(xvals)
+        self.MC.gettables(sig)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -193,9 +193,9 @@ class TestMeasurementControl:
             return random.uniform(0.0, t())
         rand_get = Parameter(name='sig', label='Signal level', unit='V', get_cmd=rand)
         setpoints = np.arange(100.0)
-        self.MC.set_settables(t)
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(rand_get)
+        self.MC.settables(t)
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(rand_get)
         r_dset = self.MC.run('random')
 
         self.MC.soft_avg(50)
@@ -208,9 +208,9 @@ class TestMeasurementControl:
 
     def test_hard_sweep_1D(self):
         x = np.linspace(0, 10, 5)
-        self.MC.set_settables(NoneSweep(soft=False))
-        self.MC.set_setpoints(x)
-        self.MC.set_gettables(DummyDetector("2D"))
+        self.MC.settables(NoneSweep(soft=False))
+        self.MC.setpoints(x)
+        self.MC.gettables(DummyDetector("2D"))
         dset = self.MC.run()
 
         expected_vals = hardware_mock_values_2D(x)
@@ -226,11 +226,11 @@ class TestMeasurementControl:
 
     def test_soft_averages_hard_sweep_1D(self):
         setpoints = np.arange(50.0)
-        self.MC.set_settables(NoneSweep(soft=False))
-        self.MC.set_setpoints(setpoints)
+        self.MC.settables(NoneSweep(soft=False))
+        self.MC.setpoints(setpoints)
         d = DummyDetector('2D')
         d.noise = 0.4
-        self.MC.set_gettables(d)
+        self.MC.gettables(d)
         noisy_dset = self.MC.run('noisy')
         xn_0 = noisy_dset['x0'].values
         expected_vals = hardware_mock_values_2D(xn_0)
@@ -238,9 +238,9 @@ class TestMeasurementControl:
         yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
 
         self.MC.soft_avg(5000)
-        self.MC.set_settables(NoneSweep(soft=False))
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(d)
+        self.MC.settables(NoneSweep(soft=False))
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(d)
         avg_dset = self.MC.run('averaged')
         yavg_0 = abs(avg_dset['y0'].values - expected_vals[0])
         yavg_1 = abs(avg_dset['y1'].values - expected_vals[1])
@@ -266,9 +266,9 @@ class TestMeasurementControl:
         d.mock_fn = mock_func
         setpoints = np.repeat(np.arange(5.0), 2)
 
-        self.MC.set_settables(mock)
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(d)
+        self.MC.settables(mock)
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(d)
         dset = self.MC.run("soft_sweep_hard_det")
 
         x = dset['x0'].values
@@ -283,13 +283,13 @@ class TestMeasurementControl:
         times = np.linspace(0, 5, 20)
         amps = np.linspace(-1, 1, 5)
 
-        self.MC.set_settables([t, amp])
-        self.MC.set_setpoints_grid([times, amps])
+        self.MC.settables([t, amp])
+        self.MC.setpoints_grid([times, amps])
 
         exp_sp = tile_setpoints_grid([times, amps])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
-        self.MC.set_gettables(sig)
+        self.MC.gettables(sig)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -330,9 +330,9 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        self.MC.set_settables([t, amp])
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(sig)
+        self.MC.settables([t, amp])
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(sig)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -347,9 +347,9 @@ class TestMeasurementControl:
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        self.MC.set_settables([NoneSweep(soft=False), NoneSweep(soft=True)])
-        self.MC.set_setpoints_grid([times, amps])
-        self.MC.set_gettables(DummyDetector("2D"))
+        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        self.MC.setpoints_grid([times, amps])
+        self.MC.gettables(DummyDetector("2D"))
         dset = self.MC.run('2D Hard')
 
         exp_sp = tile_setpoints_grid([times, amps])
@@ -372,9 +372,9 @@ class TestMeasurementControl:
     def test_hard_sweep_2D_grid_soft_avg(self):
         x0 = np.arange(5)
         x1 = np.linspace(5, 10, 5)
-        self.MC.set_settables([NoneSweep(soft=False), NoneSweep(soft=True)])
-        self.MC.set_setpoints_grid([x0, x1])
-        self.MC.set_gettables(DummyDetector(return_dimensions='2D', noise=0.4))
+        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        self.MC.setpoints_grid([x0, x1])
+        self.MC.gettables(DummyDetector(return_dimensions='2D', noise=0.4))
         noisy_dset = self.MC.run('noisy_hard_grid')
 
         expected_vals = hardware_mock_values_2D(noisy_dset['x0'].values)
@@ -405,9 +405,9 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        self.MC.set_settables([NoneSweep(soft=False), NoneSweep(soft=True)])
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(DummyDetector("1D"))
+        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(DummyDetector("1D"))
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -434,9 +434,9 @@ class TestMeasurementControl:
         setpoints = np.arange(30.0)
         d = DummyDetector('1D')
         d.mock_fn = v_size
-        self.MC.set_settables(NoneSweep(soft=False))
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(d)
+        self.MC.settables(NoneSweep(soft=False))
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(d)
         dset = self.MC.run('varying')
 
         assert np.array_equal(dset['x0'], setpoints)
@@ -459,9 +459,9 @@ class TestMeasurementControl:
         setpoints = np.arange(30.0)
         d = DummyDetector('1D')
         d.mock_fn = v_size
-        self.MC.set_settables(NoneSweep(soft=False))
-        self.MC.set_setpoints(setpoints)
-        self.MC.set_gettables(d)
+        self.MC.settables(NoneSweep(soft=False))
+        self.MC.setpoints(setpoints)
+        self.MC.gettables(d)
         plain_dset = self.MC.run('varying_avg')
         assert np.array_equal(plain_dset['x0'].values, setpoints)
         assert np.array_equal(plain_dset['y0'].values, setpoints)
@@ -472,13 +472,13 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
 
-        self.MC.set_settables([t, amp, freq])
-        self.MC.set_setpoints_grid([times, amps, freqs])
+        self.MC.settables([t, amp, freq])
+        self.MC.setpoints_grid([times, amps, freqs])
 
         exp_sp = tile_setpoints_grid([times, amps, freqs])
         assert (np.array_equal(self.MC._setpoints, exp_sp))
 
-        self.MC.set_gettables(sig)
+        self.MC.gettables(sig)
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
@@ -504,10 +504,10 @@ class TestMeasurementControl:
     """
     def test_adapative_nelder_mead(self):
         dummy = DummyParabola("mock_parabola")
-        self.MC.set_settables([dummy.x, dummy.y])
+        self.MC.settables([dummy.x, dummy.y])
         optimize.minimize(method='Nelder-Mead')
         dummy.noise(0.5)
-        self.MC.set_gettables(dummy.parabola)
+        self.MC.gettables(dummy.parabola)
         dset = self.MC.run('nelder_mead')
     """
 
@@ -523,9 +523,9 @@ class TestMeasurementControl:
         assert progress_param() == 0
 
         xvals = np.linspace(0, 2*np.pi, 31)
-        self.MC.set_settables(t)
-        self.MC.set_setpoints(xvals)
-        self.MC.set_gettables(sig)
+        self.MC.settables(t)
+        self.MC.setpoints(xvals)
+        self.MC.gettables(sig)
         self.MC.run()
 
         assert progress_param() == 100
@@ -540,9 +540,9 @@ class TestMeasurementControl:
         times = np.linspace(0, 5, 18)
         amps = np.linspace(-1, 1, 5)
 
-        self.MC.set_settables([t, amp])
-        self.MC.set_setpoints_grid([times, amps])
-        self.MC.set_gettables(sig)
+        self.MC.settables([t, amp])
+        self.MC.setpoints_grid([times, amps])
+        self.MC.gettables(sig)
         self.MC.run('2D Cosine test')
 
         assert plotmon.tuid() != 'latest'
