@@ -589,9 +589,9 @@ class TestMeasurementControl:
             obj = pickle.dumps(ComplexSettable(0.0))
 
         setpoints = np.arange(10)
-        self.MC.set_getpars(ComplexGettable(ComplexSettable(0.1)))
-        self.MC.set_setpars(self.MC._gettable_pars[0].settable)
-        self.MC.set_setpoints(setpoints)
+        self.MC.gettables(ComplexGettable(ComplexSettable(0.1)))
+        self.MC.settables(self.MC._gettable_pars[0].settable)
+        self.MC.setpoints(setpoints)
 
         dset = self.MC.run()
         assert dset['y0'].values[2] == 50
