@@ -7,6 +7,7 @@ coverage
 Sphinx
 nbsphinx
 sphinx-rtd-theme
+sphinx-jsonschema==1.15
 twine==1.14.0
 
 pytest
