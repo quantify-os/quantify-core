@@ -97,9 +97,11 @@ def SI_prefix_and_scale_factor(val, unit=None):
     Args:
         val (float) : the value
         unit (str)  : the unit of the value
-    Returns:
-        scale_factor (float) : scale_factor needed to convert value
-        unit (str)           : unit including the prefix
+
+    :returns:
+        - scale_factor (:py:class:`float`) - scale_factor needed to convert value
+        - unit (:py:class:`str`) - unit including the prefix
+
     """
 
     if unit in SI_UNITS:

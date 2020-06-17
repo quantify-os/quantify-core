@@ -1,3 +1,7 @@
+import importlib
+import copy
+import xxhash
+import numpy as np
 import json
 import pathlib
 from collections.abc import MutableMapping
@@ -26,6 +30,47 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
             else:
                 modified_dict[key] = value
     return modified_dict
+
+
+def make_hash(o):
+    """
+    Makes a hash from a dictionary, list, tuple or set to any level, that contains
+    only other hashable types (including any lists, tuples, sets, and
+    dictionaries).
+
+    from: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
+    """
+
+    h = xxhash.xxh64()
+    if isinstance(o, (set, tuple, list)):
+
+        return tuple([make_hash(e) for e in o])
+
+    elif isinstance(o, np.ndarray):
+        # numpy arrays behave funny for hashing
+        h.update(o)
+        val = h.intdigest()
+        h.reset()
+        return val
+
+    elif not isinstance(o, dict):
+        return hash(o)
+
+    new_o = copy.deepcopy(o)
+    for k, v in new_o.items():
+        new_o[k] = make_hash(v)
+
+    return hash(tuple(frozenset(sorted(new_o.items()))))
+
+
+def import_func_from_string(function_string):
+    """
+    Based on https://stackoverflow.com/questions/3061/calling-a-function-of-a-module-by-using-its-name-a-string
+    """
+    mod_name, func_name = function_string.rsplit('.', 1)
+    mod = importlib.import_module(mod_name)
+    func = getattr(mod, func_name)
+    return func
 
 
 def load_json_schema(relative_to, filename):

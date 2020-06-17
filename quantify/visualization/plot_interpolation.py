@@ -23,17 +23,17 @@ def unscale(points, xy_mean, xy_scale):
 def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
     """
     Args:
-        x   (array): x data points
-        y   (array): y data points
-        z   (array): z data points
+        x   (:class:`numpy.ndarray`): x data points
+        y   (:class:`numpy.ndarray`): y data points
+        z   (:class:`numpy.ndarray`): z data points
         n     (int): number of points for each dimension on the interpolated
             grid if set to None will auto determine amount of points needed
         interp_method (str): one of {"linear", "nearest", "deg"}, determines what interpolation method is used.
 
     Returns:
-        x_grid : N*1 array of x-values of the interpolated grid
-        y_grid : N*1 array of x-values of the interpolated grid
-        z_grid : N*N array of z-values that form a grid.
+        x_grid (:class:`numpy.ndarray`): N*1 array of x-values of the interpolated grid
+        y_grid (:class:`numpy.ndarray`): N*1 array of x-values of the interpolated grid
+        z_grid (:class:`numpy.ndarray`): N*N array of z-values that form a grid.
 
 
     The output of this method can directly be used for plt.imshow(z_grid, extent=extent, aspect='auto')

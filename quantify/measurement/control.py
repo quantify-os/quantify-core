@@ -28,9 +28,9 @@ class MeasurementControl(Instrument):
 
         .. code-block:: python
 
-            MC.set_setpars(mw_source1.freq)
-            MC.set_setpoints(np.arange(5e9, 5.2e9, 100e3))
-            MC.set_getpars(pulsar_AQM.signal)
+            MC.settables(mw_source1.freq)
+            MC.setpoints(np.arange(5e9, 5.2e9, 100e3))
+            MC.gettables(pulsar_AQM.signal)
             dataset = MC.run(name='Frequency sweep')
 
 
@@ -171,7 +171,7 @@ class MeasurementControl(Instrument):
             if self._is_soft:
                 runner = self._run_soft
             else:
-                runner = self._run_external
+                runner = self._run_hard
             future = executor.submit(runner, dataset, plotmon_name, exp_folder)
             try:
                 future.result()
@@ -214,7 +214,7 @@ class MeasurementControl(Instrument):
         except KeyboardFinish as e:
             return
 
-    def _run_external(self, dataset, plotmon_name, exp_folder):
+    def _run_hard(self, dataset, plotmon_name, exp_folder):
         try:
             while self._get_fracdone() < 1.0:
                 setpoint_idx = self._curr_setpoint_idx()
@@ -261,7 +261,7 @@ class MeasurementControl(Instrument):
             (:class:`quantify.utilities.general.KeyboardFinish`): if the main thread has signalled to exit early
         """
         update = time.time() - self._last_upd > self.update_interval() \
-            or self._nr_acquired_values == len(self._setpoints)
+            or self._nr_acquired_values == self._max_setpoints
         if update:
             self.print_progress()
             dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
@@ -373,7 +373,7 @@ class MeasurementControl(Instrument):
     # Non-parameter get/set functions  #
     ####################################
 
-    def set_setpars(self, settable_pars):
+    def settables(self, settable_pars):
         """
         Define the settable parameters for the acquisition loop.
 
@@ -392,7 +392,7 @@ class MeasurementControl(Instrument):
         for _, settable in enumerate(settable_pars):
             self._settable_pars.append(Settable(settable))
 
-    def set_setpoints(self, setpoints):
+    def setpoints(self, setpoints):
         """
         Set setpoints that determine values to be set in acquisition loop.
 
@@ -411,10 +411,10 @@ class MeasurementControl(Instrument):
         self._setpoints = setpoints
 
         # set to False whenever new setpoints are defined.
-        # this gets updated after calling set_setpoints_2D.
+        # this gets updated after calling setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_grid(self, setpoints):
+    def setpoints_grid(self, setpoints):
         """
         Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
         by repeating the setpoints M times and filling the second column with tiled values.
@@ -426,9 +426,9 @@ class MeasurementControl(Instrument):
 
             .. code-block:: python
 
-                MC.set_setpars([t, amp])
-                MC.set_setpoints_grid([times, amplitudes])
-                MC.set_getpars(sig)
+                MC.settables([t, amp])
+                MC.setpoints_grid([times, amplitudes])
+                MC.gettables(sig)
                 dataset = MC.run('2D grid')
         """
         if len(setpoints) == 2:
@@ -437,7 +437,7 @@ class MeasurementControl(Instrument):
             self._plot_info['2D-grid'] = True
         self._setpoints = tile_setpoints_grid(setpoints)
 
-    def set_getpars(self, gettable_par):
+    def gettables(self, gettable_par):
         """
         Define the parameters to be acquired during the acquisition loop.
 
