@@ -89,3 +89,10 @@ def load_json_schema(relative_to, filename):
     path = pathlib.Path(relative_to).resolve().parent.joinpath('schemas', filename)
     with path.open(mode='r') as f:
         return json.load(f)
+
+
+class KeyboardFinish(KeyboardInterrupt):
+    """
+    Indicates the user has signalled to safely abort/finish the experiment.
+    """
+    pass
