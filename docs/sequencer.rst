@@ -14,10 +14,10 @@ Concepts
 The :mod:`quantify.sequencer` can be used to schedule operations on the control hardware.
 The :mod:`quantify.sequencer` is designed to provide access to hardware functionality at a high-level interface.
 
-The :mod:`quantify.sequencer` is build around the :class:`~quantify.sequencer.Schedule`, a JSON-based data structure containing :attr:`~quantify.sequencer.Schedule.operations` , :attr:`~quantify.sequencer.Schedule.timing_constraints` , and :attr:`~quantify.sequencer.Schedule.resources` .
+The :mod:`quantify.sequencer` is built around the :class:`~quantify.sequencer.Schedule`, a JSON-based data structure containing :attr:`~quantify.sequencer.Schedule.operations` , :attr:`~quantify.sequencer.Schedule.timing_constraints` , and :attr:`~quantify.sequencer.Schedule.resources` .
 Take a look at the :class:`quantify.sequencer.Schedule` documentation for more details.
 
-An :class:`~quantify.sequencer.Operation` contains information on how to *represent* the operation at different levels of abstraction such as the quantum-circuit (gate) level or the pulse level.
+An :class:`~quantify.sequencer.Operation` contains information on how to *represent* the operation at different levels of abstraction, such as the quantum-circuit (gate) level or the pulse level.
 The :mod:`quantify.sequencer` comes with a  :mod:`~quantify.sequencer.gate_library` and a :mod:`~quantify.sequencer.pulse_library` , both containing common operations.
 When adding an :class:`~quantify.sequencer.Operation` to a :class:`~quantify.sequencer.Schedule`, the user is not expected to provide all information at once.
 Only when specific information is required by a backend such as a simulator or a hardware backend does the information need to be provided.
@@ -100,7 +100,7 @@ If everything is done properly, one should observe this oscillation:
 
 Bell circuit
 ~~~~~~~~~~~~~~~~
-Below is the QASM code used to perform this experiment in the `Quantum Inspire <http://>`_  [quantum inspire](https://www.quantum-inspire.com/) and a circuit diagram representation.
+Below is the QASM code used to perform this experiment in the `Quantum Inspire <https://www.quantum-inspire.com/>`_ and a circuit diagram representation.
 We will be creating this same experiment using the Quantify sequencer.
 
 .. code-block:: python
@@ -232,13 +232,12 @@ This allows effecient loading of pulses or gates to memory and also enables effi
     dict(islice(sched.data['operation_dict'].items(), 5))
 
 The timing constraints are stored as a list of pulses.
-Because
 
 .. jupyter-execute::
 
   sched.data['timing_constraints'][:6]
 
-Turning the constraints into a timed experiment, would require iterating over all elements in the timing constraints list.
+Because turning the constraints into a timed experiment, would require iterating over all elements in the timing constraints list.
 This is identical to how the pycqed pulsar works.
 Compilation efficiency is not an issue for "small" experiments but will be something we encounter in the future.
 
