@@ -11,6 +11,7 @@ Welcome to quantify's documentation!
    installation
    usage
    dataset_spec
+
    contributing
    authors
    history
@@ -25,7 +26,7 @@ Tutorials
 
    example_notebooks/T1_MeasurementControl.ipynb
    example_notebooks/2_Advanced_MeasurementControl.ipynb
-
+   sequencer
 
 API Reference
 ===================
