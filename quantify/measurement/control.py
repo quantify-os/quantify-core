@@ -25,9 +25,9 @@ class MeasurementControl(Instrument):
 
         .. code-block:: python
 
-            MC.set_settables(mw_source1.freq)
-            MC.set_setpoints(np.arange(5e9, 5.2e9, 100e3))
-            MC.set_gettables(pulsar_AQM.signal)
+            MC.settables(mw_source1.freq)
+            MC.setpoints(np.arange(5e9, 5.2e9, 100e3))
+            MC.gettables(pulsar_AQM.signal)
             dataset = MC.run(name='Frequency sweep')
 
 
@@ -139,17 +139,14 @@ class MeasurementControl(Instrument):
         self._begintime = time.time()
 
         # initialize an empty dataset
-        dataset = initialize_dataset(
-            self._settable_pars, self._setpoints, self._gettable_pars)
+        dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
 
         # cannot add it as a separate (nested) dict so make it flat.
         dataset.attrs['name'] = name
         dataset.attrs.update(self._plot_info)
 
-        exp_folder = create_exp_folder(
-            tuid=dataset.attrs['tuid'], name=dataset.attrs['name'])
-        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5')
-                          )  # Write the empty dataset
+        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'], name=dataset.attrs['name'])
+        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Write the empty dataset
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
         with open(join(exp_folder, 'snapshot.json'), 'w') as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
@@ -167,11 +164,9 @@ class MeasurementControl(Instrument):
         else:
             self._run_hard(dataset, plotmon_name, exp_folder)
 
-        # Wrap up experiment and store data
-        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
+        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
         self._finish()
-        # reset the plot info for the next experiment.
-        self._plot_info = {'2D-grid': False}
+        self._plot_info = {'2D-grid': False}  # reset the plot info for the next experiment.
         self.soft_avg(1)  # reset software averages back to 1
 
         return dataset
@@ -195,8 +190,7 @@ class MeasurementControl(Instrument):
                         dataset['y{}'.format(j)].values[idx] = val
                     else:
                         # slow?
-                        averaged = (val + old_val * self._loop_count) / \
-                            (1 + self._loop_count)
+                        averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
                         dataset['y{}'.format(j)].values[idx] = averaged
                 self._nr_acquired_values += 1
                 self._update(dataset, plotmon_name, exp_folder)
@@ -208,24 +202,18 @@ class MeasurementControl(Instrument):
             for i, spar in enumerate(self._settable_pars):
                 swf_setpoints = self._setpoints[:, i]
                 spar.set(swf_setpoints[setpoint_idx])
-            self._prepare_gettable(
-                self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
+            self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
 
-            # can return (N, M)
-            new_data = self._gettable_pars[self._GETTABLE_IDX].get()
+            new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
             # if we get a simple array, shape it to (1, M)
             if len(np.shape(new_data)) == 1:
                 new_data = new_data.reshape(1, (len(new_data)))
 
             for i, row in enumerate(new_data):
-                # the slice we will be updating
-                slice_len = setpoint_idx + len(row)
-                old_vals = dataset['y{}'.format(
-                    i)].values[setpoint_idx:slice_len]
-                # will be full of NaNs on the first iteration, change to 0
-                old_vals[np.isnan(old_vals)] = 0
-                dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(
-                    row, old_vals)
+                slice_len = setpoint_idx + len(row)  # the slice we will be updating
+                old_vals = dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
+                old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
+                dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
             self._nr_acquired_values += np.shape(new_data)[1]
             self._update(dataset, plotmon_name, exp_folder)
 
@@ -359,7 +347,7 @@ class MeasurementControl(Instrument):
     # Non-parameter get/set functions  #
     ####################################
 
-    def set_settables(self, settable_pars):
+    def settables(self, settable_pars):
         """
         Define the settable parameters for the acquisition loop.
 
@@ -378,7 +366,7 @@ class MeasurementControl(Instrument):
         for _, settable in enumerate(settable_pars):
             self._settable_pars.append(Settable(settable))
 
-    def set_setpoints(self, setpoints):
+    def setpoints(self, setpoints):
         """
         Set setpoints that determine values to be set in acquisition loop.
 
@@ -397,10 +385,10 @@ class MeasurementControl(Instrument):
         self._setpoints = setpoints
 
         # set to False whenever new setpoints are defined.
-        # this gets updated after calling set_setpoints_2D.
+        # this gets updated after calling setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_grid(self, setpoints):
+    def setpoints_grid(self, setpoints):
         """
         Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
         by repeating the setpoints M times and filling the second column with tiled values.
@@ -412,9 +400,9 @@ class MeasurementControl(Instrument):
 
             .. code-block:: python
 
-                MC.set_settables([t, amp])
-                MC.set_setpoints_grid([times, amplitudes])
-                MC.set_gettables(sig)
+                MC.settables([t, amp])
+                MC.setpoints_grid([times, amplitudes])
+                MC.gettables(sig)
                 dataset = MC.run('2D grid')
         """
         if len(setpoints) == 2:
@@ -423,7 +411,7 @@ class MeasurementControl(Instrument):
             self._plot_info['2D-grid'] = True
         self._setpoints = tile_setpoints_grid(setpoints)
 
-    def set_gettables(self, gettable_par):
+    def gettables(self, gettable_par):
         """
         Define the parameters to be acquired during the acquisition loop.
 
