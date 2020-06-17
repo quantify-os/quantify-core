@@ -72,81 +72,6 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     return f, ax
 
 
-def pulse_diagram_matplotlib(schedule, figsize=None,
-                             ch_map: dict = None,
-                             modulation: bool = True,
-                             sampling_rate: float = 2e9):
-    """
-    Produce a visualization of the pulses used.
-    """
-
-    # WORK IN PROGRESS!
-
-    # TODO: add modulatin
-    # TODO: add channel config
-    # TODO: add sensible coloring and labeling
-
-    f, ax = plt.subplots(figsize=figsize)
-
-    if ch_map is None:
-        auto_map = True
-        offset_idx = 0
-        ch_map = {}
-    else:
-        auto_map = False
-
-    cmap = get_cmap('tab10')
-    colors = cmap.colors
-    c_idx = 0
-
-    for t_constr in schedule.timing_constraints:
-        op = schedule.operations[t_constr['operation_hash']]
-
-        # iterate through the colors in the color map
-        c_idx += 1
-        for p in op['pulse_info']:
-            # times at which to evaluate waveform
-            t0 = t_constr['abs_time']+p['t0']
-            t = np.arange(t0, t0+p['duration'], 1/sampling_rate)
-
-            # function to generate waveform
-            if p['wf_func'] != None:
-                wf_func = import_func_from_string(p['wf_func'])
-
-                # select the arguments for the waveform function that are present in pulse info
-                par_map = inspect.signature(wf_func).parameters
-                wf_kwargs = {}
-                for kw in par_map.keys():
-                    if kw in p.keys():
-                        wf_kwargs[kw] = p[kw]
-
-                wfs = wf_func(t=t, **wf_kwargs)
-
-                if modulation and 'freq_mod' in p.keys():
-                    # apply modulation to the waveforms
-                    wfs = modulate_wave(
-                        t, wfs[0], wfs[1], p['freq_mod'])
-
-                for i, ch in enumerate(p['channels']):
-                    if ch not in ch_map.keys() and auto_map:
-                        ax.axhline(offset_idx, color='grey')
-                        ch_map[ch] = offset_idx
-                        offset_idx += 1
-                    if i == 0:
-                        label = op['name']
-                    else:
-                        label = None
-                    ax.plot(t, wfs[i] + ch_map[ch], label=label,
-                            color=colors[c_idx % len(colors)])
-
-    ax.set_yticks(list(ch_map.values()))
-    ax.set_yticklabels(list(ch_map.keys()))
-
-    set_xlabel(ax, 'Time', 's')
-
-    ax.legend(loc=(1.05, .5))
-    return f, ax
-
 
 def pulse_diagram_plotly(schedule,
                          ch_list: list = None,
@@ -228,8 +153,6 @@ def pulse_diagram_plotly(schedule,
         #              label=t_constr['label'],
         #              step="month",
         #              stepmode="backward"),
-
-
 
         op = schedule.operations[t_constr['operation_hash']]
 
