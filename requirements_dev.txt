@@ -6,11 +6,11 @@ flake8
 coverage
 Sphinx
 nbsphinx
-sphinx-rtd-theme
-sphinx-jsonschema==1.15
-jupyter-sphinx==0.2.3
+sphinx-rtd-theme==0.5.0rc2
+sphinxcontrib-blockdiag
+jupyter_sphinx==0.2.3
+sphinx-jsonschema>=1.15
 twine==1.14.0
-
 pytest
 pytest-runner
 pytest-cov

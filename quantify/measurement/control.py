@@ -1,6 +1,8 @@
 import time
 import json
 from os.path import join
+import concurrent.futures
+from threading import Event
 
 import numpy as np
 from qcodes import Instrument
@@ -9,6 +11,7 @@ from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
 from quantify.measurement.types import Settable, Gettable, is_software_controlled
+from quantify.utilities.general import KeyboardFinish
 
 
 class MeasurementControl(Instrument):
@@ -25,9 +28,9 @@ class MeasurementControl(Instrument):
 
         .. code-block:: python
 
-            MC.set_setpars(mw_source1.freq)
-            MC.set_setpoints(np.arange(5e9, 5.2e9, 100e3))
-            MC.set_getpars(pulsar_AQM.signal)
+            MC.settables(mw_source1.freq)
+            MC.setpoints(np.arange(5e9, 5.2e9, 100e3))
+            MC.gettables(pulsar_AQM.signal)
             dataset = MC.run(name='Frequency sweep')
 
 
@@ -118,6 +121,9 @@ class MeasurementControl(Instrument):
 
         self._GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
 
+        # early exit signal
+        self._exit_event = Event()
+
     ############################################
     # Methods used to control the measurements #
     ############################################
@@ -159,10 +165,20 @@ class MeasurementControl(Instrument):
 
         self._prepare_settables()
 
-        if self._is_soft:
-            self._run_soft(dataset, plotmon_name, exp_folder)
-        else:
-            self._run_external(dataset, plotmon_name, exp_folder)
+        # spawn the measurement loop into a side thread and listen for a keyboard interrupt in the main
+        # a keyboard interrupt will signal to the measurement loop that it should stop processing
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            if self._is_soft:
+                runner = self._run_soft
+            else:
+                runner = self._run_hard
+            future = executor.submit(runner, dataset, plotmon_name, exp_folder)
+            try:
+                future.result()
+            except KeyboardInterrupt as e:
+                print('Interrupt signalled, exiting gracefully...')
+                self._exit_event.set()
+                future.result()
 
         dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
         self._finish()
@@ -175,47 +191,52 @@ class MeasurementControl(Instrument):
         raise NotImplementedError()
 
     def _run_soft(self, dataset, plotmon_name, exp_folder):
-        while self._get_fracdone() < 1.0:
-            self._prepare_gettable()
-            for idx, spts in enumerate(self._setpoints):
-                # set all individual setparams
-                for spar, spt in zip(self._settable_pars, spts):
-                    # TODO add smartness to avoid setting if unchanged
-                    spar.set(spt)
-                # acquire all data points
-                for j, gpar in enumerate(self._gettable_pars):
-                    val = gpar.get()
-                    old_val = dataset['y{}'.format(j)].values[idx]
-                    if self.soft_avg() == 1 or np.isnan(old_val):
-                        dataset['y{}'.format(j)].values[idx] = val
-                    else:
-                        # slow?
-                        averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                        dataset['y{}'.format(j)].values[idx] = averaged
-                self._nr_acquired_values += 1
+        try:
+            while self._get_fracdone() < 1.0:
+                self._prepare_gettable()
+                for idx, spts in enumerate(self._setpoints):
+                    # set all individual setparams
+                    for spar, spt in zip(self._settable_pars, spts):
+                        # TODO add smartness to avoid setting if unchanged
+                        spar.set(spt)
+                    # acquire all data points
+                    for j, gpar in enumerate(self._gettable_pars):
+                        val = gpar.get()
+                        old_val = dataset['y{}'.format(j)].values[idx]
+                        if self.soft_avg() == 1 or np.isnan(old_val):
+                            dataset['y{}'.format(j)].values[idx] = val
+                        else:
+                            averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
+                            dataset['y{}'.format(j)].values[idx] = averaged
+                    self._nr_acquired_values += 1
+                    self._update(dataset, plotmon_name, exp_folder)
+                self._loop_count += 1
+        except KeyboardFinish as e:
+            return
+
+    def _run_hard(self, dataset, plotmon_name, exp_folder):
+        try:
+            while self._get_fracdone() < 1.0:
+                setpoint_idx = self._curr_setpoint_idx()
+                for i, spar in enumerate(self._settable_pars):
+                    swf_setpoints = self._setpoints[:, i]
+                    spar.set(swf_setpoints[setpoint_idx])
+                self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
+
+                new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
+                # if we get a simple array, shape it to (1, M)
+                if len(np.shape(new_data)) == 1:
+                    new_data = new_data.reshape(1, (len(new_data)))
+
+                for i, row in enumerate(new_data):
+                    slice_len = setpoint_idx + len(row)  # the slice we will be updating
+                    old_vals = dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
+                    old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
+                    dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                self._nr_acquired_values += np.shape(new_data)[1]
                 self._update(dataset, plotmon_name, exp_folder)
-            self._loop_count += 1
-
-    def _run_external(self, dataset, plotmon_name, exp_folder):
-        while self._get_fracdone() < 1.0:
-            setpoint_idx = self._curr_setpoint_idx()
-            for i, spar in enumerate(self._settable_pars):
-                swf_setpoints = self._setpoints[:, i]
-                spar.set(swf_setpoints[setpoint_idx])
-            self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
-
-            new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
-            # if we get a simple array, shape it to (1, M)
-            if len(np.shape(new_data)) == 1:
-                new_data = new_data.reshape(1, (len(new_data)))
-
-            for i, row in enumerate(new_data):
-                slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                old_vals = dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
-                old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
-            self._nr_acquired_values += np.shape(new_data)[1]
-            self._update(dataset, plotmon_name, exp_folder)
+        except KeyboardFinish as e:
+            return
 
     def _build_data(self, new_data, old_data):
         if self.soft_avg() == 1:
@@ -235,6 +256,9 @@ class MeasurementControl(Instrument):
             dataset (:class:`xarray.Dataset`): the dataset
             plotmon_name (str): the plotmon identifier
             exp_folder (str): persistence directory
+
+        Raises:
+            (:class:`quantify.utilities.general.KeyboardFinish`): if the main thread has signalled to exit early
         """
         update = time.time() - self._last_upd > self.update_interval() \
             or self._nr_acquired_values == self._max_setpoints
@@ -244,6 +268,8 @@ class MeasurementControl(Instrument):
             if plotmon_name is not None and plotmon_name != '':
                 self.instr_plotmon.get_instr().update()
             self._last_upd = time.time()
+        if self._exit_event.is_set():
+            raise KeyboardFinish()
 
     def _prepare_gettable(self, setpoints=None):
         """
@@ -347,7 +373,7 @@ class MeasurementControl(Instrument):
     # Non-parameter get/set functions  #
     ####################################
 
-    def set_setpars(self, settable_pars):
+    def settables(self, settable_pars):
         """
         Define the settable parameters for the acquisition loop.
 
@@ -366,7 +392,7 @@ class MeasurementControl(Instrument):
         for _, settable in enumerate(settable_pars):
             self._settable_pars.append(Settable(settable))
 
-    def set_setpoints(self, setpoints):
+    def setpoints(self, setpoints):
         """
         Set setpoints that determine values to be set in acquisition loop.
 
@@ -385,10 +411,10 @@ class MeasurementControl(Instrument):
         self._setpoints = setpoints
 
         # set to False whenever new setpoints are defined.
-        # this gets updated after calling set_setpoints_2D.
+        # this gets updated after calling setpoints_2D.
         self._plot_info['2D-grid'] = False
 
-    def set_setpoints_grid(self, setpoints):
+    def setpoints_grid(self, setpoints):
         """
         Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
         by repeating the setpoints M times and filling the second column with tiled values.
@@ -400,9 +426,9 @@ class MeasurementControl(Instrument):
 
             .. code-block:: python
 
-                MC.set_setpars([t, amp])
-                MC.set_setpoints_grid([times, amplitudes])
-                MC.set_getpars(sig)
+                MC.settables([t, amp])
+                MC.setpoints_grid([times, amplitudes])
+                MC.gettables(sig)
                 dataset = MC.run('2D grid')
         """
         if len(setpoints) == 2:
@@ -411,7 +437,7 @@ class MeasurementControl(Instrument):
             self._plot_info['2D-grid'] = True
         self._setpoints = tile_setpoints_grid(setpoints)
 
-    def set_getpars(self, gettable_par):
+    def gettables(self, gettable_par):
         """
         Define the parameters to be acquired during the acquisition loop.
 
