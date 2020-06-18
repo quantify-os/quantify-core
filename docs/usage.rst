@@ -79,14 +79,17 @@ The interfaces for Settable and Gettable parameters are encapsulated in the :cla
 We set values to Settables; these values populate an x-axis. Similarly, we get values from Gettables which populate a y-axis.
 These classes define a set of mandatory and optional attributes the MeasurementControl will use as part of the experiment, which are expanded up in the API Reference.
 
-For ease of use, the Settable and Gettable classes do not wrap the object and instead only verify the interface.
+For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
 In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
-Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave
+Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave, using a QCodes Settable:
 
 .. jupyter-execute::
 
     import numpy as np
-    from quantify.measurement.types import Settable, Gettable
+    from qcodes import ManualParameter
+
+
+    t = ManualParameter('time', label='Time', unit='s')
 
     class DualWave:
         def __init__(self):
@@ -95,7 +98,8 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
             self.name = 'wave'
 
         def get(self):
-            return np.array([np.sin(self.sweep.current_val / np.pi), np.cos(self.sweep.current_val / np.pi)])
+            return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
+
 
 .soft, .prepare() and .finish()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
