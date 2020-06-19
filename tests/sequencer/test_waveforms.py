@@ -31,7 +31,7 @@ def test_drag():
     plt.plot(np.arange(duration), formula)
     plt.plot(np.arange(duration), waveform[1])
     plt.legend(['formula', 'quantify'])
-    plt.show()
+    #plt.show()
 
     np.testing.assert_array_almost_equal(waveform[1], np.real(formula), decimal=2)
 

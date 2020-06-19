@@ -2,25 +2,22 @@
 Module containing the core concepts of the sequencer.
 """
 import logging
-from os import path
 from uuid import uuid4
 from collections import UserDict
-import json
 import jsonschema
-from quantify.utilities.general import make_hash
+from quantify.utilities.general import make_hash, load_json_schema
 
 
 class Schedule(UserDict):
     """
-    A collection of :class:`Operation` objects and timing contraints
-    that define relations between the operations.
+    A collection of :class:`Operation` objects and timing constraints that define relations between the operations.
 
     The Schedule data structure is based on a dictionary.
     This dictionary contains:
 
         operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
-        resource_dict      : a dictionary containing the relevant :class:Resource` s
+        resource_dict      : a dictionary containing the relevant :class:`Resource` s
 
     .. warning::
 
@@ -238,12 +235,7 @@ class Operation(UserDict):
 
     @classmethod
     def is_valid(cls, operation):
-
-        basepath = path.dirname(__file__)
-        filepath = path.abspath(path.join(basepath,
-                                          "schemas", "operation.json"))
-        with open(filepath) as json_file:
-            scheme = json.load(json_file)
+        scheme = load_json_schema(__file__, "operation.json")
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
 
