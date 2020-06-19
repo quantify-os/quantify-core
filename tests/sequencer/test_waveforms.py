@@ -13,7 +13,27 @@ def test_square_wave():
 
 
 def test_drag():
-    pass  # todo by someone who knows what it should look like
+    duration = 25
+    sigma = 4
+    amp = 0.5j
+    beta = 1
+    # formulaic
+    times = np.arange(duration)
+    times = times - (duration / 2) + times[0]
+    gauss = amp * np.exp(-(times / sigma) ** 2 / 2)
+    gauss_deriv = -(times / sigma ** 2) * gauss
+    formula = gauss + 1j * beta * gauss_deriv
+
+    # quantify
+    waveform = drag(np.arange(duration), 0.5, beta, duration, subtract_offset='average')
+
+    import matplotlib.pyplot as plt
+    plt.plot(np.arange(duration), formula)
+    plt.plot(np.arange(duration), waveform[1])
+    plt.legend(['formula', 'quantify'])
+    plt.show()
+
+    np.testing.assert_array_almost_equal(waveform[1], np.real(formula), decimal=2)
 
 
 def test_rotate_wave():

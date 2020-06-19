@@ -31,7 +31,7 @@ def drag(t,
          G_amp: float,
          D_amp: float,
          duration: float,
-         nr_sigma: int = 4,
+         sigma: int = 4,
          phase: float = 0,
          subtract_offset: str = 'average'):
     '''
@@ -65,10 +65,9 @@ def drag(t,
     '''
 
     mu = t[0] + duration/2
-    sigma = duration/nr_sigma
 
     gauss_env = G_amp*np.exp(-(0.5 * ((t-mu)**2) / sigma**2))
-    deriv_gauss_env = D_amp * -1 * (t-mu)/(sigma**1) * gauss_env
+    deriv_gauss_env = D_amp * 1 * (t-mu)/(sigma**2) * gauss_env
 
     # Subtract offsets
     if subtract_offset.lower() == 'none' or subtract_offset is None:
