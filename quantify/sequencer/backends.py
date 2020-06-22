@@ -42,9 +42,13 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
 
     """
     # qubit map should be obtained from the schedule object
-    qubit_map = {'q0': 0, 'q1': 1}
-
-    qubits = ('q0', 'q1')
+    qubits = set()
+    for _, op in schedule.operations.items():
+        for qubit in op.data['gate_info']['qubits']:
+            qubits.add(qubit)
+    qubit_map = {}
+    for idx, qubit in enumerate(sorted(qubits)):
+        qubit_map[qubit] = idx
 
     if figsize is None:
         figsize = (10, len(qubit_map))
@@ -56,6 +60,7 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     for q in qubits:
         ax.axhline(qubit_map[q], color='.75')
 
+    total_duration = 0
     for t_constr in schedule.timing_constraints:
         op = schedule.operations[t_constr['operation_hash']]
         plot_func = import_func_from_string(op['gate_info']['plot_func'])
@@ -63,7 +68,8 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
         time = t_constr['abs_time']
         idxs = [qubit_map[q] for q in op['gate_info']['qubits']]
         plot_func(ax, time=time, qubit_idxs=idxs, tex=op['gate_info']['tex'])
-        ax.set_xlim(-.2, t_constr['abs_time']+1)
+        total_duration = total_duration if total_duration > t_constr['abs_time'] else t_constr['abs_time']
+    ax.set_xlim(-.2, total_duration + 1)
 
     return f, ax
 
@@ -93,7 +99,6 @@ def pulse_diagram_plotly(schedule,
         determines if modulation is included in the visualization
     sampling_rate : float
         the time resolution used in the visualization.
-
 
 
     .. warning::

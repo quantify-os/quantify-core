@@ -5,6 +5,7 @@ from quantify.sequencer import Schedule
 from quantify.sequencer.compilation import determine_absolute_timing
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
 from quantify.sequencer.compilation import determine_absolute_timing, validate_config, add_pulse_information_transmon
+import matplotlib.pyplot as plt
 
 
 def test_circuit_diagram_matplotlib():
@@ -24,6 +25,7 @@ def test_circuit_diagram_matplotlib():
 
     sched = determine_absolute_timing(sched, clock_unit='ideal')
     f, ax = circuit_diagram_matplotlib(sched)
+    #plt.show()
 
 
 device_test_cfg = {
