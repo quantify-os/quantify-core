@@ -41,7 +41,6 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     for `abs_time` for each element in the timing_constraints.
 
     """
-    # qubit map should be obtained from the schedule object
     qubits = set()
     for _, op in schedule.operations.items():
         for qubit in op.data['gate_info']['qubits']:
@@ -59,6 +58,9 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     ax.set_ylim(-.5, len(qubit_map)-.5)
     for q in qubits:
         ax.axhline(qubit_map[q], color='.75')
+    # plot the qubit names on the y-axis
+    ax.set_yticks(list(qubit_map.values()))
+    ax.set_yticklabels(qubit_map.keys())
 
     total_duration = 0
     for t_constr in schedule.timing_constraints:
@@ -69,7 +71,7 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
         idxs = [qubit_map[q] for q in op['gate_info']['qubits']]
         plot_func(ax, time=time, qubit_idxs=idxs, tex=op['gate_info']['tex'])
         total_duration = total_duration if total_duration > t_constr['abs_time'] else t_constr['abs_time']
-    ax.set_xlim(-.2, total_duration + 1)
+    ax.set_xlim(-1, total_duration + 1)
 
     return f, ax
 

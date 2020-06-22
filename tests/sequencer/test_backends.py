@@ -14,7 +14,6 @@ def test_circuit_diagram_matplotlib():
     # define the resources
     # q0, q1 = Qubits(n=2) # assumes all to all connectivity
     q0, q1 = ('q0', 'q1')
-
     ref_label_1 = 'my_label'
 
     sched.add(Reset(q0, q1))
@@ -25,7 +24,6 @@ def test_circuit_diagram_matplotlib():
 
     sched = determine_absolute_timing(sched, clock_unit='ideal')
     f, ax = circuit_diagram_matplotlib(sched)
-    #plt.show()
 
 
 device_test_cfg = {

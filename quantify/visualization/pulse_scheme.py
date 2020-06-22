@@ -13,9 +13,13 @@ def new_pulse_fig(figsize=None):
     Open a new figure and configure it to plot pulse schemes.
     """
     fig, ax = plt.subplots(1, 1, figsize=figsize, frameon=False)
-    ax.axis('off')
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_ticklabels([])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
     fig.patch.set_alpha(0)
-    fig.subplots_adjust(bottom=0, top=1, left=0, right=1)
     ax.axhline(0, color='0.75')
 
     return fig, ax
