@@ -92,8 +92,8 @@ class Schedule(UserDict):
             operation (:class:`Operation`): The operation to add to the schedule
             rel_time (float) : relative time between the the reference operation and added operation.
             ref_op (str) : specifies the reference operation.
-            ref_pt (str): reference point in reference operation must be one of ('start', 'center', 'end').
-            ref_pt_new (str) : reference point in added operation must be one of ('start', 'center', 'end').
+            ref_pt (str): reference point in reference operation, must be one of ('start', 'center', 'end').
+            ref_pt_new (str) : reference point in added operation, must be one of ('start', 'center', 'end').
             label  (str) : a label that can be used as an identifier when adding more operations.
 
         Returns:
@@ -103,39 +103,28 @@ class Schedule(UserDict):
         """
         assert isinstance(operation, Operation)
 
-        operation_hash = operation.hash
-
         if label is None:
             label = str(uuid4())
 
-        # assert that the label of the operation does not exists in the
-        # timing constraints.
-        label_is_unique = len([item for item in self.data['timing_constraints']
-                               if item['label'] == label]) == 0
-        if not label_is_unique:
+        # assert that the label of the operation does not already exist in the timing constraints
+        if next((item for item in self.data['timing_constraints'] if item['label'] == label), None):
             raise ValueError('label "{}" must be unique'.format(label))
 
         # assert that the reference operation exists
         if ref_op is not None:
-            ref_exists = len([item for item in self.data['timing_constraints']
-                              if item['label'] == ref_op]) == 1
-            if not ref_exists:
-                raise ValueError(
-                    'Reference "{}" does not exist in schedule.'.format(ref_op))
+            if not next((item for item in self.data['timing_constraints'] if item['label'] == ref_op), None):
+                raise ValueError('Reference "{}" does not exist in schedule.'.format(ref_op))
 
-        self.data['operation_dict'][operation_hash] = operation
+        self.data['operation_dict'][operation.hash] = operation
         timing_constr = {'label': label,
                          'rel_time': rel_time,
                          'ref_op': ref_op,
                          'ref_pt_new': ref_pt_new,
                          'ref_pt': ref_pt,
-                         'operation_hash': operation_hash}
+                         'operation_hash': operation.hash}
 
         self.data['timing_constraints'].append(timing_constr)
-
         return label
-
-    pass
 
 
 class Operation(UserDict):
@@ -172,6 +161,8 @@ class Operation(UserDict):
 
 
     """
+
+    _scheme = load_json_schema(__file__, "operation.json")
 
     def __init__(self, name: str, data: dict = None):
         super().__init__()
@@ -235,8 +226,7 @@ class Operation(UserDict):
 
     @classmethod
     def is_valid(cls, operation):
-        scheme = load_json_schema(__file__, "operation.json")
-        jsonschema.validate(operation.data, scheme)
+        jsonschema.validate(operation.data, cls._scheme)
         return True  # if not exception was raised during validation
 
 

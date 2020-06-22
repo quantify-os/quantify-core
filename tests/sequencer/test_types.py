@@ -32,18 +32,15 @@ def test_schedule_Bell():
 
 
 def test_schedule_add_timing_constraints():
-
     sched = Schedule('my exp')
     test_lab = 'test label'
     x90_label = sched.add(Rxy(theta=90, phi=0, qubit='q0'), label=test_lab)
-
     assert x90_label == test_lab
 
     with pytest.raises(ValueError):
         x90_label = sched.add(Rxy(theta=90, phi=0, qubit='q0'), label=test_lab)
 
     uuid_label = sched.add(Rxy(theta=90, phi=0, qubit='q0'))
-
     assert uuid_label != x90_label
 
     # not specifying a label should work
@@ -54,12 +51,10 @@ def test_schedule_add_timing_constraints():
 
     # specifying non-existing label should raise an error
     with pytest.raises(ValueError):
-        sched.add(Rxy(theta=90, phi=0, qubit='q0'),
-                  ref_op='non-existing-operation')
+        sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op='non-existing-operation')
 
 
 def test_gates_valid():
-
     init_all = Reset('q0', 'q1')  # instantiates
     x90_q0 = Rxy(theta=124, phi=23.9, qubit='q5')
     x = X('q0')

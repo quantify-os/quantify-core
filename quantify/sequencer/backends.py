@@ -48,7 +48,7 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
 
     if figsize is None:
         figsize = (10, len(qubit_map))
-    f, ax = new_pulse_fig(figsize=(10, 1.5))
+    f, ax = new_pulse_fig(figsize=figsize)
     ax.set_title(schedule.data['name'])
     ax.set_aspect('equal')
 
@@ -59,18 +59,13 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     for t_constr in schedule.timing_constraints:
         op = schedule.operations[t_constr['operation_hash']]
         plot_func = import_func_from_string(op['gate_info']['plot_func'])
-        """
-        A valid plot_func must accept the following arguments: ax,
-            time (float), qubit_idxs (list), tex (str)
-        """
+        # A valid plot_func must accept the following arguments: ax, time (float), qubit_idxs (list), tex (str)
         time = t_constr['abs_time']
         idxs = [qubit_map[q] for q in op['gate_info']['qubits']]
         plot_func(ax, time=time, qubit_idxs=idxs, tex=op['gate_info']['tex'])
-
-    ax.set_xlim(-.2, t_constr['abs_time']+1)
+        ax.set_xlim(-.2, t_constr['abs_time']+1)
 
     return f, ax
-
 
 
 def pulse_diagram_plotly(schedule,
@@ -79,7 +74,7 @@ def pulse_diagram_plotly(schedule,
                          fig_width: float = 1000,
                          modulation: bool = True,
                          sampling_rate: float = 1e9,
-                         mark_labels: list = [],
+                         mark_labels = None,
                          mark_interval: tuple = (-5e-6, 1e-6)):
     """
     Produce a plotly visualization of the pulses used in the schedule.
@@ -114,7 +109,9 @@ def pulse_diagram_plotly(schedule,
 
     """
 
-    if mark_labels != []:
+    if mark_labels is None:
+        mark_labels = []
+    if mark_labels:
         logging.warning("marking labels is not implemented.")
         rangeselector_buttons = list()
 
@@ -129,19 +126,15 @@ def pulse_diagram_plotly(schedule,
         ch_map = dict(zip(ch_list, range(len(ch_list))))
         print(ch_map)
 
-    fig = make_subplots(rows=nr_rows, cols=1, shared_xaxes=True,
-                        vertical_spacing=0.02)
-    fig.update_layout(
-        height=fig_ch_height*nr_rows, width=fig_width,
-        title=schedule.data['name'], showlegend=False)
+    fig = make_subplots(rows=nr_rows, cols=1, shared_xaxes=True, vertical_spacing=0.02)
+    fig.update_layout(height=fig_ch_height*nr_rows, width=fig_width, title=schedule.data['name'], showlegend=False)
 
     colors = px.colors.qualitative.Plotly
     col_idx = 0
 
     # Ensures that the plots are created even if no waveforms are added
     for r in range(nr_rows):
-        fig.add_trace(go.Scatter(x=[], y=[], mode='lines', showlegend=False),
-                      row=r+1, col=1)
+        fig.add_trace(go.Scatter(x=[], y=[], mode='lines', showlegend=False), row=r+1, col=1)
 
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
 
@@ -181,8 +174,7 @@ def pulse_diagram_plotly(schedule,
                 # optionally adds some modulation
                 if modulation and 'freq_mod' in p.keys():
                     # apply modulation to the waveforms
-                    wfs = modulate_wave(
-                        t, wfs[0], wfs[1], p['freq_mod'])
+                    wfs = modulate_wave(t, wfs[0], wfs[1], p['freq_mod'])
 
                 for i, ch in enumerate(p['channels']):
                     # If channel does not exist yet and using auto map, add it.
@@ -213,8 +205,7 @@ def pulse_diagram_plotly(schedule,
 
         # FIXME: units are hardcoded
         else:
-            fig.update_xaxes(row=r+1, col=1, tickformat=".2s",
-                             hoverformat='.3s', ticksuffix='s', title=title)
+            fig.update_xaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s', ticksuffix='s', title=title)
         try:
             fig.update_yaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s',
                              ticksuffix='V', title=list(ch_map.keys())[r], range=[-1.1, 1.1])

@@ -8,7 +8,6 @@ from quantify.sequencer.compilation import determine_absolute_timing, validate_c
 
 
 def test_circuit_diagram_matplotlib():
-
     sched = Schedule('Test experiment')
 
     # define the resources
@@ -24,7 +23,6 @@ def test_circuit_diagram_matplotlib():
     sched.add(Measure(q0, q1), label='M0')
 
     sched = determine_absolute_timing(sched, clock_unit='ideal')
-
     f, ax = circuit_diagram_matplotlib(sched)
 
 
@@ -55,7 +53,6 @@ device_test_cfg = {
 
 
 def test_pulse_diagram_plotly():
-
     sched = Schedule('Test schedule')
 
     # define the resources
