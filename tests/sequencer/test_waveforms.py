@@ -25,7 +25,7 @@ def test_drag():
     formula = gauss + 1j * beta * gauss_deriv
 
     # quantify
-    waveform = drag(np.arange(duration), 0.5, beta, duration, subtract_offset='average')
+    waveform = drag(np.arange(duration), 0.5, beta, duration, subtract_offset='none')
 
     import matplotlib.pyplot as plt
     plt.plot(np.arange(duration), formula)
@@ -33,7 +33,7 @@ def test_drag():
     plt.legend(['formula', 'quantify'])
     #plt.show()
 
-    np.testing.assert_array_almost_equal(waveform[1], np.real(formula), decimal=2)
+    np.testing.assert_array_almost_equal(waveform[1], np.real(formula), decimal=3)
 
 
 def test_rotate_wave():
