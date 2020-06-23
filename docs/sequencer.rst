@@ -4,9 +4,11 @@ Tutorial 3. Pulse sequencing
 In this tutorial we explore how to program a basic experiment using the :mod:`quantify.sequencer`.
 We will give an overview of the sequncer module and show different visualization backends as well as compilation onto a hardware backend.
 
-.. warning::
 
-  Under active development!
+.. note::
+
+    This is part of the sequencer documentation that is under active development.
+
 
 Concepts
 ----------------
