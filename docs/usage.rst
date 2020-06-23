@@ -69,7 +69,33 @@ Quantify provides two helper classes, Settable and Gettable to aid in these step
     + Software controlled
     + Hardware controlled
     + 1D/2D/nD
-    + Adaptive loop
+
+
+Basic example, a 1D soft-loop
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Running an experiment is simple!
+Simply define what parameters to set, and get, and what points to loop over.
+
+In the example below we want to set frequencies on a microwave source and acquire the signal from the pulsar readout module.
+
+.. code-block:: python
+
+    MC.settables(mw_source1.freq)               # We want to set the frequency of a microwave source
+    MC.setpoints(np.arange(5e9, 5.2e9, 100e3))  # Scan around 5.1 GHz
+    MC.gettables(pulsar_QRM.signal)             # acquire the signal from the pulsar AQM
+    dataset = MC.run(name='Frequency sweep')    # Start the experiment
+
+
+The MeasurementControl can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance.
+Take a look at "nonexistent_example_notebook" for a tutorial on the MeasurementControl.
+
+
+.. note::
+
+    - Add example 2D measurement
+    - Add example of adaptive loop
+    - Explain difference between hard and soft-loop.
 
 
 Settable and Gettable
@@ -142,35 +168,6 @@ parameter optionally accepts a list of floats as a parameter. For example
 
         def finish():
             self.shutdown()
-
-
-Basic example, a 1D soft-loop
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Running an experiment is simple!
-Simply define what parameters to set, and get, and what points to loop over.
-
-In the example below we want to set frequencies on a microwave source and acquire the signal from the pulsar readout module.
-
-.. code-block:: python
-
-    MC.settables(Settable(mw_source1.freq))       # We want to set the frequency of a microwave source
-    MC.setpoints(np.arange(5e9, 5.2e9, 100e3))  # Scan around 5.1 GHz
-    MC.gettables(Gettable(pulsar_QRM.signal))     # acquire the signal from the pulsar AQM
-    dataset = MC.run(name='Frequency sweep')        # Start the experiment
-
-
-The MeasurementControl can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance.
-Take a look at "nonexistent_example_notebook" for a tutorial on the MeasurementControl.
-
-
-.. note::
-
-    - Add example 2D measurement
-    - Add example of adaptive loop
-    - Explain difference between hard and soft-loop.
-
-
 
 Data storage & Analysis
 --------------------------
