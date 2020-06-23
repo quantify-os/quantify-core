@@ -12,6 +12,7 @@ I intend this documentation to evolve together with the implementation as we wri
 
 The starting point for the assembler is a :class:`~quantify.sequencer.Schedule` containing several operations.
 The case we are considering does not include any "timeline-breaking" instructions such as hardware loops and feedback.
+We do not include any kind of classical logic.
 
 .. note::
 
@@ -37,7 +38,7 @@ Compilation steps (psuedocode)
     sched =  add_pulse_information(sched)
     sched = determine_absolute_timing(sched)
 
-    for all operation in schedule:
+    for all operation in schedule.timing_constraints:
         add operation to separate lists for each resource
         add pulses to pulse_dict per resource (similar to operation dict)
 

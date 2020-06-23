@@ -54,6 +54,13 @@ pulse_library
     :members:
 
 
+resources
+---------------
+
+.. automodule:: quantify.sequencer.resources
+    :members:
+
+
 waveforms
 ---------------
 
