@@ -5,16 +5,15 @@ from quantify.sequencer import Schedule
 from quantify.sequencer.compilation import determine_absolute_timing
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
 from quantify.sequencer.compilation import determine_absolute_timing, validate_config, add_pulse_information_transmon
+import matplotlib.pyplot as plt
 
 
 def test_circuit_diagram_matplotlib():
-
     sched = Schedule('Test experiment')
 
     # define the resources
     # q0, q1 = Qubits(n=2) # assumes all to all connectivity
     q0, q1 = ('q0', 'q1')
-
     ref_label_1 = 'my_label'
 
     sched.add(Reset(q0, q1))
@@ -24,7 +23,6 @@ def test_circuit_diagram_matplotlib():
     sched.add(Measure(q0, q1), label='M0')
 
     sched = determine_absolute_timing(sched, clock_unit='ideal')
-
     f, ax = circuit_diagram_matplotlib(sched)
 
 
@@ -55,7 +53,6 @@ device_test_cfg = {
 
 
 def test_pulse_diagram_plotly():
-
     sched = Schedule('Test schedule')
 
     # define the resources

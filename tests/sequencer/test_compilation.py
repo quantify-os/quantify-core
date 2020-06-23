@@ -7,7 +7,6 @@ from quantify.sequencer.compilation import determine_absolute_timing, validate_c
 
 
 def test_determine_absolute_timing_ideal_clock():
-
     sched = Schedule('Test experiment')
 
     # define the resources
@@ -31,37 +30,32 @@ def test_determine_absolute_timing_ideal_clock():
 
     timed_sched = determine_absolute_timing(sched, clock_unit='ideal')
 
-    abs_times = [constr['abs_time']
-                 for constr in timed_sched.data['timing_constraints']]
+    abs_times = [constr['abs_time'] for constr in timed_sched.data['timing_constraints']]
     assert abs_times == [0, 1, 2, 3, 4]
 
     # add a pulse and schedule simultaneous with the second pulse
     sched.add(Rxy(90, 0, qubit=q1), ref_pt='start', ref_op=ref_label_1)
     timed_sched = determine_absolute_timing(sched, clock_unit='ideal')
 
-    abs_times = [constr['abs_time']
-                 for constr in timed_sched.data['timing_constraints']]
+    abs_times = [constr['abs_time'] for constr in timed_sched.data['timing_constraints']]
     assert abs_times == [0, 1, 2, 3, 4, 1]
 
     sched.add(Rxy(90, 0, qubit=q1), ref_pt='start', ref_op='M0')
     timed_sched = determine_absolute_timing(sched, clock_unit='ideal')
 
-    abs_times = [constr['abs_time']
-                 for constr in timed_sched.data['timing_constraints']]
+    abs_times = [constr['abs_time'] for constr in timed_sched.data['timing_constraints']]
     assert abs_times == [0, 1, 2, 3, 4, 1, 4]
 
     sched.add(Rxy(90, 0, qubit=q1), ref_pt='end', ref_op=ref_label_1)
     timed_sched = determine_absolute_timing(sched, clock_unit='ideal')
 
-    abs_times = [constr['abs_time']
-                 for constr in timed_sched.data['timing_constraints']]
+    abs_times = [constr['abs_time'] for constr in timed_sched.data['timing_constraints']]
     assert abs_times == [0, 1, 2, 3, 4, 1, 4, 2]
 
     sched.add(Rxy(90, 0, qubit=q1), ref_pt='center', ref_op=ref_label_1)
     timed_sched = determine_absolute_timing(sched, clock_unit='ideal')
 
-    abs_times = [constr['abs_time']
-                 for constr in timed_sched.data['timing_constraints']]
+    abs_times = [constr['abs_time'] for constr in timed_sched.data['timing_constraints']]
     assert abs_times == [0, 1, 2, 3, 4, 1, 4, 2, 1.5]
 
 
@@ -92,12 +86,10 @@ device_test_cfg = {
 
 
 def test_config_spec():
-
     validate_config(device_test_cfg, scheme_fn='transmon_cfg.json')
 
 
 def test_compile_transmon_program():
-
     sched = Schedule('Test schedule')
 
     # define the resources

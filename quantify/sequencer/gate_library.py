@@ -47,16 +47,13 @@ class Rxy(Operation):
             [-1j*np.exp(-1j*phi_r)*np.sin(theta_r/2), np.cos(theta_r/2)]])
 
         tex = r'$R_{xy}^{'+'{:.0f}, {:.0f}'.format(theta, phi)+'}$'
-        data = {}
-        data['name'] = name
-        data['gate_info'] = {'unitary': unitary,
-                             'tex': tex,
-                             'plot_func': 'quantify.visualization.circuit_diagram.gate_box',
-                             'qubits': [qubit],
-                             'operation_type': 'Rxy',
-                             'theta': theta,
-                             'phi': phi}
-
+        data = {'name': name, 'gate_info': {'unitary': unitary,
+                                            'tex': tex,
+                                            'plot_func': 'quantify.visualization.circuit_diagram.gate_box',
+                                            'qubits': [qubit],
+                                            'operation_type': 'Rxy',
+                                            'theta': theta,
+                                            'phi': phi}}
         super().__init__(name, data=data)
 
 
@@ -158,15 +155,14 @@ class CNOT(Operation):
     """
 
     def __init__(self, qC, qT):
-        data = {}
-        data['gate_info'] = {'unitary': np.array([[1, 0, 0, 0],
-                                                  [0, 1, 0, 0],
-                                                  [0, 0, 0, 1],
-                                                  [0, 0, 1, 0]]),
-                             'tex': r'CNOT',
-                             'plot_func': 'quantify.visualization.circuit_diagram.cnot',
-                             'qubits': [qC, qT],
-                             'operation_type': 'CNOT'}
+        data = {'gate_info': {'unitary': np.array([[1, 0, 0, 0],
+                                                   [0, 1, 0, 0],
+                                                   [0, 0, 0, 1],
+                                                   [0, 0, 1, 0]]),
+                              'tex': r'CNOT',
+                              'plot_func': 'quantify.visualization.circuit_diagram.cnot',
+                              'qubits': [qC, qT],
+                              'operation_type': 'CNOT'}}
         super().__init__('CNOT ({}, {})'.format(qC, qT), data=data)
 
 
@@ -190,15 +186,14 @@ class CZ(Operation):
     """
 
     def __init__(self, qC, qT):
-        data = {}
-        data['gate_info'] = {'unitary': np.array([[1, 0, 0, 0],
-                                                  [0, 1, 0, 0],
-                                                  [0, 0, 1, 0],
-                                                  [0, 0, 0, -1]]),
-                             'tex': r'CZ',
-                             'plot_func': 'quantify.visualization.circuit_diagram.cz',
-                             'qubits': [qC, qT],
-                             'operation_type': 'CZ'}
+        data = {'gate_info': {'unitary': np.array([[1, 0, 0, 0],
+                                                   [0, 1, 0, 0],
+                                                   [0, 0, 1, 0],
+                                                   [0, 0, 0, -1]]),
+                              'tex': r'CZ',
+                              'plot_func': 'quantify.visualization.circuit_diagram.cz',
+                              'qubits': [qC, qT],
+                              'operation_type': 'CZ'}}
         super().__init__('CZ ({}, {})'.format(qC, qT), data=data)
 
 
@@ -213,13 +208,11 @@ class Reset(Operation):
     """
 
     def __init__(self, *qubits):
-        data = {}
-        data['gate_info'] = {'unitary': None,
-                             'tex': r'$|0\rangle$',
-                             'plot_func': 'quantify.visualization.circuit_diagram.reset',
-                             'qubits': list(qubits),
-                             'operation_type': 'reset'}
-
+        data = {'gate_info': {'unitary': None,
+                              'tex': r'$|0\rangle$',
+                              'plot_func': 'quantify.visualization.circuit_diagram.reset',
+                              'qubits': list(qubits),
+                              'operation_type': 'reset'}}
         super().__init__('Reset {}'.format(qubits), data=data)
 
 
@@ -233,11 +226,9 @@ class Measure(Operation):
     """
 
     def __init__(self, *qubits):
-        data = {}
-        data['gate_info'] = {'unitary': None,
-                             'plot_func': 'quantify.visualization.circuit_diagram.meter',
-                             'tex': r'$\langle0|$',
-                             'qubits': list(qubits),
-                             'operation_type': 'measure'}
-
+        data = {'gate_info': {'unitary': None,
+                              'plot_func': 'quantify.visualization.circuit_diagram.meter',
+                              'tex': r'$\langle0|$',
+                              'qubits': list(qubits),
+                              'operation_type': 'measure'}}
         super().__init__('Measure {}'.format(qubits), data=data)
