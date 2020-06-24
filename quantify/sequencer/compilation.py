@@ -6,9 +6,6 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
-from columnar import columnar
-import json
-from collections import OrderedDict, Counter
 from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
 from quantify.utilities.general import load_json_schema
 
@@ -193,75 +190,6 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                 op['gate_info']['operation_type']))
 
     return schedule
-
-
-# def order_operations_per_resource(schedule):
-#     ret = {}
-#     for resource in schedule.resources:
-#         ret[resource.name] = OrderedDict()
-#         for timing in schedule.timing_constraints:
-#             ret[resource.name][timing['abs_time']] = schedule.operations[timing['operation_hash']]
-#     return ret
-
-
-# pulse_data = {
-#     'SquarePulse': [0, 0.2, 0.6],
-#     'Idle': [-1, 0, 1, 0],
-# }
-
-
-# generate a json blob with waveform data
-def prepare_waveforms_for_q1asm(pulse_info):
-    sequencer_cfg = {"waveforms": {}, "program": ""}
-    for idx, (pulse, data) in enumerate(pulse_info.items()):
-        sequencer_cfg["waveforms"][pulse] = {
-            "data": data,
-            "index": idx
-        }
-    return sequencer_cfg
-
-
-# # this will be operation objects
-# pulse_timings = [
-#     (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-#     (4, IdlePulse(4)),
-#     (16, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-# ]
-
-
-
-
-
-def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
-    rows = []
-    rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
-
-    clock = 0  # current execution time
-    labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
-    for timing, operation in ordered_operations:
-        pulse_idx = pulse_dict[operation.name]['index']
-        # check if we must wait before beginning our next section
-        if clock < timing:
-            rows.append(['', 'wait', '{}'.format(timing - clock), '#Wait'])
-        rows.append(['', '', '', ''])
-        label = '{}_{}'.format(operation.name, labels[operation.name])
-        labels.update([operation.name])
-        rows.append(['{}:'.format(label), 'play', '{},{}'.format(pulse_idx, operation.duration), '#Play {}'.format(operation.name)])
-        clock += operation.duration
-
-    table = columnar(rows, no_borders=True)
-    print(table)
-    return table
-
-
-def generate_sequencer_cfg(pulse_info, pulse_timings):
-    """
-    Needs docstring
-    """
-    top_level = prepare_waveforms_for_q1asm(pulse_info)
-    program_str = construct_q1asm_pulse_operations(pulse_timings, top_level['waveforms'])
-    top_level['program'] = program_str
-    return top_level
 
 
 def validate_config(config: dict, scheme_fn: str):
