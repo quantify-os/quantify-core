@@ -6,7 +6,9 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
-from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse
+import json
+from collections import OrderedDict
+from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
 from quantify.utilities.general import load_json_schema
 
 
@@ -190,6 +192,63 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                 op['gate_info']['operation_type']))
 
     return schedule
+
+
+def order_operations_per_resource(schedule):
+    ret = {}
+    for resource in schedule.resources:
+        ret[resource.name] = OrderedDict()
+        for timing in schedule.timing_constraints:
+            ret[resource.name][timing['abs_time']] = schedule.operations[timing['operation_hash']]
+    return ret
+
+
+pulse_data = {
+    'SquarePulse': [0, 0.2, 0.6],
+    'Idle': [-1, 0, 1, 0],
+}
+
+
+# generate a json blob with waveform data
+def prepare_waveforms_for_q1asm(pulse_info):
+    top = {"waveforms": {}, "program": ""}
+    for idx, (pulse, data) in enumerate(pulse_info.items()):
+        top["waveforms"][pulse] = {
+            "data": data,
+            "index": idx
+        }
+    return top
+
+
+# this will be operation objects
+pulse_timings = [
+    (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
+    (4, IdlePulse(4)),
+    (16, SquarePulse(amp=1.0, duration=4, ch='ch1')),
+]
+
+
+from columnar import columnar
+
+
+def construct_q1asm_pulse_operations(ordered_operations, pulse_info):
+    rows = []
+    rows.append(['start:', 'move', '{},R0'.format(len(pulse_info)), '#Waveform count register'])
+    rows.append(['', 'move', '0,R1', '#Waveform index register'])
+    rows.append(['', 'move', '0,R2', '#Dyanmic Wait register'])
+
+    clock = 0
+    for timing, operation in ordered_operations:
+        if clock < timing:
+            rows.append(['', 'move', '{},R2'.format(timing - clock), '#Define current wait'])
+            rows.append(['', 'wait', 'R2', ''])
+        rows.append(['', '', '', ''])
+        rows.append(['{}:'.format(operation['name']), 'move', '{},R1'.format(pulse_info[operation['name']]['index']), '#Set wf idx'])
+        rows.append(['', 'play', 'R1,{}'.format(operation.duration), '#Play waveform'])
+        clock += operation.duration
+
+    table = columnar(rows, no_borders=True)
+    print(table)
 
 
 def validate_config(config: dict, scheme_fn: str):

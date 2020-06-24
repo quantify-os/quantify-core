@@ -53,7 +53,7 @@ class SquarePulse(Operation):
             channel for the in-phase component
         """
 
-        data = {'name': 'ModSquarePulse', 'pulse_info': [{
+        data = {'name': 'SquarePulse', 'pulse_info': [{
             'wf_func': 'quantify.sequencer.waveforms.square',
             'amp': amp, 'duration': duration,
             't0': t0,

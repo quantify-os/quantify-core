@@ -243,11 +243,6 @@ class Resource(UserDict):
 
     @classmethod
     def is_valid(cls, operation):
-
-        basepath = path.dirname(__file__)
-        filepath = path.abspath(path.join(basepath,
-                                          "schemas", "resource.json"))
-        with open(filepath) as json_file:
-            scheme = json.load(json_file)
+        scheme = load_json_schema(__file__, 'resource.json')
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
