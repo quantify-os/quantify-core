@@ -48,7 +48,7 @@ def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
     clock = 0  # current execution time
     labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
     for timing, operation in ordered_operations:
-        pulse_idx = pulse_dict[operation.name]['index']
+        pulse_idx = pulse_dict[operation.hash]['index']
         # check if we must wait before beginning our next section
         if clock < timing:
             rows.append(['', 'wait', '{}'.format(timing - clock), '#Wait'])
