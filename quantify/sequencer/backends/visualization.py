@@ -7,19 +7,14 @@ Examples of backends are a visualization, simulator input formats, or a hardware
 """
 import logging
 import inspect
-import matplotlib.pyplot as plt
 import numpy as np
-from quantify.visualization.pulse_scheme import new_pulse_fig
-from quantify.utilities.general import import_func_from_string
-from quantify.visualization.SI_utilities import set_xlabel
-from quantify.sequencer.waveforms import modulate_wave
-
-from matplotlib.cm import get_cmap
-
-
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
+from quantify.visualization.pulse_scheme import new_pulse_fig
+from quantify.utilities.general import import_func_from_string
+from quantify.sequencer.waveforms import modulate_wave
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):
@@ -70,7 +65,8 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
         time = t_constr['abs_time']
         idxs = [qubit_map[q] for q in op['gate_info']['qubits']]
         plot_func(ax, time=time, qubit_idxs=idxs, tex=op['gate_info']['tex'])
-        total_duration = total_duration if total_duration > t_constr['abs_time'] else t_constr['abs_time']
+        total_duration = total_duration if total_duration > t_constr[
+            'abs_time'] else t_constr['abs_time']
     ax.set_xlim(-1, total_duration + 1)
 
     return f, ax
@@ -82,7 +78,7 @@ def pulse_diagram_plotly(schedule,
                          fig_width: float = 1000,
                          modulation: bool = True,
                          sampling_rate: float = 1e9,
-                         mark_labels = None,
+                         mark_labels=None,
                          mark_interval: tuple = (-5e-6, 1e-6)):
     """
     Produce a plotly visualization of the pulses used in the schedule.
@@ -133,15 +129,18 @@ def pulse_diagram_plotly(schedule,
         ch_map = dict(zip(ch_list, range(len(ch_list))))
         print(ch_map)
 
-    fig = make_subplots(rows=nr_rows, cols=1, shared_xaxes=True, vertical_spacing=0.02)
-    fig.update_layout(height=fig_ch_height*nr_rows, width=fig_width, title=schedule.data['name'], showlegend=False)
+    fig = make_subplots(rows=nr_rows, cols=1,
+                        shared_xaxes=True, vertical_spacing=0.02)
+    fig.update_layout(height=fig_ch_height*nr_rows, width=fig_width,
+                      title=schedule.data['name'], showlegend=False)
 
     colors = px.colors.qualitative.Plotly
     col_idx = 0
 
     # Ensures that the plots are created even if no waveforms are added
     for r in range(nr_rows):
-        fig.add_trace(go.Scatter(x=[], y=[], mode='lines', showlegend=False), row=r+1, col=1)
+        fig.add_trace(go.Scatter(x=[], y=[], mode='lines',
+                                 showlegend=False), row=r+1, col=1)
 
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
 
@@ -212,7 +211,8 @@ def pulse_diagram_plotly(schedule,
 
         # FIXME: units are hardcoded
         else:
-            fig.update_xaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s', ticksuffix='s', title=title)
+            fig.update_xaxes(row=r+1, col=1, tickformat=".2s",
+                             hoverformat='.3s', ticksuffix='s', title=title)
         try:
             fig.update_yaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s',
                              ticksuffix='V', title=list(ch_map.keys())[r], range=[-1.1, 1.1])
@@ -220,3 +220,4 @@ def pulse_diagram_plotly(schedule,
             logging.warning("{} not enough channels".format(r))
 
     return fig
+

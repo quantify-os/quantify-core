@@ -6,6 +6,7 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
+from columnar import columnar
 import json
 from collections import OrderedDict, Counter
 from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
@@ -194,41 +195,41 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
     return schedule
 
 
-def order_operations_per_resource(schedule):
-    ret = {}
-    for resource in schedule.resources:
-        ret[resource.name] = OrderedDict()
-        for timing in schedule.timing_constraints:
-            ret[resource.name][timing['abs_time']] = schedule.operations[timing['operation_hash']]
-    return ret
+# def order_operations_per_resource(schedule):
+#     ret = {}
+#     for resource in schedule.resources:
+#         ret[resource.name] = OrderedDict()
+#         for timing in schedule.timing_constraints:
+#             ret[resource.name][timing['abs_time']] = schedule.operations[timing['operation_hash']]
+#     return ret
 
 
-pulse_data = {
-    'SquarePulse': [0, 0.2, 0.6],
-    'Idle': [-1, 0, 1, 0],
-}
+# pulse_data = {
+#     'SquarePulse': [0, 0.2, 0.6],
+#     'Idle': [-1, 0, 1, 0],
+# }
 
 
 # generate a json blob with waveform data
 def prepare_waveforms_for_q1asm(pulse_info):
-    top = {"waveforms": {}, "program": ""}
+    sequencer_cfg = {"waveforms": {}, "program": ""}
     for idx, (pulse, data) in enumerate(pulse_info.items()):
-        top["waveforms"][pulse] = {
+        sequencer_cfg["waveforms"][pulse] = {
             "data": data,
             "index": idx
         }
-    return top
+    return sequencer_cfg
 
 
-# this will be operation objects
-pulse_timings = [
-    (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-    (4, IdlePulse(4)),
-    (16, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-]
+# # this will be operation objects
+# pulse_timings = [
+#     (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
+#     (4, IdlePulse(4)),
+#     (16, SquarePulse(amp=1.0, duration=4, ch='ch1')),
+# ]
 
 
-from columnar import columnar
+
 
 
 def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
@@ -253,7 +254,10 @@ def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
     return table
 
 
-def generate_program(pulse_info, pulse_timings):
+def generate_sequencer_cfg(pulse_info, pulse_timings):
+    """
+    Needs docstring
+    """
     top_level = prepare_waveforms_for_q1asm(pulse_info)
     program_str = construct_q1asm_pulse_operations(pulse_timings, top_level['waveforms'])
     top_level['program'] = program_str
