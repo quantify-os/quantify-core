@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from quantify.sequencer.backends import pulse_diagram_plotly, circuit_diagram_matplotlib
+from quantify.sequencer.backends.visualization import pulse_diagram_plotly, circuit_diagram_matplotlib
 from quantify.sequencer import Schedule
 from quantify.sequencer.compilation import determine_absolute_timing
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
