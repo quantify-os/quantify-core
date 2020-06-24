@@ -265,8 +265,8 @@ And we can use this to create a default visualizaton.
 
   %matplotlib inline
 
-  from quantify.sequencer import backends
-  f, ax = backends.circuit_diagram_matplotlib(sched)
+  from quantify.sequencer.backends import visualization as viz
+  f, ax = viz.circuit_diagram_matplotlib(sched)
   # all gates are plotted, but it doesn't all fit in a matplotlib figure
   ax.set_xlim(-.5, 9.5)
 

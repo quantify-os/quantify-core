@@ -1,0 +1,25 @@
+{
+ "type": "object",
+ "description": "JSON schema for a quantify schedule.",
+ "additionalProperties": false,
+ "required": [
+  "name",
+  "timing_constraints",
+  "operation_dict",
+  "resource_dict"
+ ],
+ "properties": {
+  "name": {
+   "type": "string",
+   "description": "Name of the schedule."},
+  "timing_constraints": {
+   "type": "array",
+   "description": "A list containing timing constraints."},
+  "operation_dict": {
+   "type": "object",
+   "description": "A dictionary of operations."},
+  "resource_dict": {
+   "type": "object",
+   "description": "A dictionary of resources."}
+ }
+}

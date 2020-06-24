@@ -13,7 +13,7 @@ class CompositeResource(Resource):
     The compiler backend is responsible for using this resource to map
     operations to the relevant sub-channels.
 
-    .. example::
+    .. tip::
 
         A relevant use-case of this class is when making use of sequencer units in
         the Pulsar_QCM. The user can make specify this composite channel to
@@ -36,6 +36,9 @@ class CompositeResource(Resource):
 
         """
         super().__init__()
+        for rn in resource_names:
+            if not isinstance(rn, str):
+                raise TypeError('resource_names "{}"must be strings'.format(resource_names))
 
         self.data = {'name': name,
                      'type': str(self.__class__.__name__),
@@ -48,7 +51,7 @@ class Pulsar_QCM_sequencer(Resource):
     """
 
     def __init__(self, name: str, instrument_name: str,
-                 seq_idx: int, nco_freq: float, mod_enable: bool):
+                 seq_idx: int, nco_freq: float = None, mod_enable: bool = False):
         """
         A channel composed of multiple sub-channels.
 
