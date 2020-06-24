@@ -7,7 +7,7 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 import logging
 import jsonschema
 import json
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
 from quantify.utilities.general import load_json_schema
 
@@ -231,24 +231,33 @@ pulse_timings = [
 from columnar import columnar
 
 
-def construct_q1asm_pulse_operations(ordered_operations, pulse_info):
+def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
     rows = []
-    rows.append(['start:', 'move', '{},R0'.format(len(pulse_info)), '#Waveform count register'])
-    rows.append(['', 'move', '0,R1', '#Waveform index register'])
-    rows.append(['', 'move', '0,R2', '#Dyanmic Wait register'])
+    rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
 
-    clock = 0
+    clock = 0  # current execution time
+    labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
     for timing, operation in ordered_operations:
+        pulse_idx = pulse_dict[operation.name]['index']
+        # check if we must wait before beginning our next section
         if clock < timing:
-            rows.append(['', 'move', '{},R2'.format(timing - clock), '#Define current wait'])
-            rows.append(['', 'wait', 'R2', ''])
+            rows.append(['', 'wait', '{}'.format(timing - clock), '#Wait'])
         rows.append(['', '', '', ''])
-        rows.append(['{}:'.format(operation['name']), 'move', '{},R1'.format(pulse_info[operation['name']]['index']), '#Set wf idx'])
-        rows.append(['', 'play', 'R1,{}'.format(operation.duration), '#Play waveform'])
+        label = '{}_{}'.format(operation.name, labels[operation.name])
+        labels.update([operation.name])
+        rows.append(['{}:'.format(label), 'play', '{},{}'.format(pulse_idx, operation.duration), '#Play {}'.format(operation.name)])
         clock += operation.duration
 
     table = columnar(rows, no_borders=True)
     print(table)
+    return table
+
+
+def generate_program(pulse_info, pulse_timings):
+    top_level = prepare_waveforms_for_q1asm(pulse_info)
+    program_str = construct_q1asm_pulse_operations(pulse_timings, top_level['waveforms'])
+    top_level['program'] = program_str
+    return top_level
 
 
 def validate_config(config: dict, scheme_fn: str):
