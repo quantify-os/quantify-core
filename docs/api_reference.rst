@@ -79,6 +79,19 @@ backends
 .. automodule:: quantify.sequencer.backends
     :members:
 
+pulsar_backend
+~~~~~~~~~~~~~~
+
+.. automodule:: quantify.sequencer.backends.pulsar_backend
+    :members:
+
+
+visualization
+~~~~~~~~~~~~~~
+
+.. automodule:: quantify.sequencer.backends.visualization
+    :members:
+
 
 
 visualization
