@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from quantify.sequencer.backends import pulse_diagram_plotly
+from quantify.sequencer.backends.visualization import pulse_diagram_plotly
 from quantify.sequencer import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
 from quantify.sequencer.pulse_library import SquarePulse, IdlePulse

@@ -31,7 +31,7 @@ A final compilation step translates the :class:`~quantify.sequencer.Schedule` in
 
 The following diagram provides an overview of how to interact with the :class:`~quantify.sequencer.Schedule` class.
 The user can create a new schedule using the quantify API, or load a schedule based on one of the supported :mod:`~quantify.sequencer.frontends` for QASM-like formats such as qiskit QASM or OpenQL cQASM (todo).
-One or multiple compilation steps modify the :class:`~quantify.sequencer.Schedule` until it contains the information required for the :mod:`~quantify.sequencer.backends` used for visualization, simulation or compilation onto the hardware or back into a common QASM-like format.
+One or multiple compilation steps modify the :class:`~quantify.sequencer.Schedule` until it contains the information required for the :mod:`~quantify.sequencer.backends.visualization` used for visualization, simulation or compilation onto the hardware or back into a common QASM-like format.
 
 
 .. blockdiag::
@@ -321,12 +321,12 @@ And here we plot the resulting experiment using plotly
 
 .. jupyter-execute::
 
-  from quantify.sequencer.backends import pulse_diagram_plotly
+  from quantify.sequencer.backends.visualization import pulse_diagram_plotly
   fig = pulse_diagram_plotly(sched, ch_list=['ch0', 'ch5.0', 'ch6.0', 'acq_ch1'])
   fig.show()
 
 
-By default :func:`quantify.sequencer.backends.pulse_diagram_plotly` shows the first 8 channels encountered in in a schedule, but by specifying a list of channels, a more compact visualization can be created.
+By default :func:`quantify.sequencer.backends.visualization.pulse_diagram_plotly` shows the first 8 channels encountered in in a schedule, but by specifying a list of channels, a more compact visualization can be created.
 
 
 
