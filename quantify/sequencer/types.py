@@ -70,6 +70,17 @@ class Schedule(UserDict):
 
         return self.data['resource_dict']
 
+    def add_resources(self, resources: list):
+        for r in resources:
+            self.add_resource(r)
+
+    def add_resource(self, resource):
+        """
+        Add a resource such as a channel or qubit to the schedule.
+        """
+        assert Resource.is_valid(resource)
+        self.data['resource_dict'][resource.name] = resource
+
     def __repr__(self):
         return 'Schedule "{}" containing ({}) {}  (unique) operations.'.format(
             self.data['name'],

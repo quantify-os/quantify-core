@@ -18,6 +18,30 @@ def pulsar_assembler_backend(schedule):
         Does not yet support the Pulsar_QRM module.
     """
 
+    timing_tuples_dict = {}  # keys correspond to resources
+
+    for pls_idx, t_constr in enumerate(schedule.timing_constraints):
+        op = schedule.operations[t_constr['operation_hash']]
+
+        for p in op['pulse_info']:
+            t0 = t_constr['abs_time']+p['t0']
+
+            ch_name = p['channels']  # should this be singular?
+
+            ch = schedule.resources[ch_name]
+
+
+            pulse_id = None
+            wf = None
+
+
+
+
+
+
+
+
+
     # This is the master function that calls the other ones
 
     # for all operation in schedule.timing_constraints:
