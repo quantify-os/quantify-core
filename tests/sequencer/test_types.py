@@ -1,12 +1,13 @@
 import pytest
 import numpy as np
-from quantify.sequencer import Schedule, Operation
+from quantify.sequencer import Schedule, Operation, Resource
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, X, X90, Y, Y90, CZ
-
+from quantify.sequencer.resources import CompositeResource, Pulsar_QCM_sequencer
 
 def test_schedule_Bell():
     # Create an empty schedule
     sched = Schedule('Bell experiment')
+    assert Schedule.is_valid(sched)
 
     assert len(sched.data['operation_dict']) == 0
     assert len(sched.data['timing_constraints']) == 0
@@ -29,6 +30,8 @@ def test_schedule_Bell():
 
     assert len(sched.operations) == 24
     assert len(sched.timing_constraints) == 105
+
+    assert Schedule.is_valid(sched)
 
 
 def test_schedule_add_timing_constraints():
@@ -54,6 +57,22 @@ def test_schedule_add_timing_constraints():
         sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op='non-existing-operation')
 
 
+    assert Schedule.is_valid(sched)
+
+def test_valid_resources():
+    s0 = Pulsar_QCM_sequencer(name='s0', instrument_name='qcm1', seq_idx=0)
+    s1 = Pulsar_QCM_sequencer(name='s1', instrument_name='qcm1', seq_idx=1)
+    assert Resource.is_valid(s0)
+    assert Resource.is_valid(s1)
+
+    with pytest.raises(TypeError):
+        qcm1 = CompositeResource('qcm1', [s0, s1])
+
+    qcm1 = CompositeResource('qcm1', [s0.name, s1.name])
+    assert Resource.is_valid(qcm1)
+
+
+
 def test_gates_valid():
     init_all = Reset('q0', 'q1')  # instantiates
     x90_q0 = Rxy(theta=124, phi=23.9, qubit='q5')
@@ -76,10 +95,4 @@ def test_gates_valid():
     assert Operation.is_valid(cz)
     assert Operation.is_valid(cnot)
     assert Operation.is_valid(measure)
-
-
-@pytest.mark.skip(reason="not implemented")
-def test_sequence_valid():
-    raise NotImplementedError
-
 

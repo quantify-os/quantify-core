@@ -2,26 +2,28 @@
 Module containing the core concepts of the sequencer.
 """
 import logging
+from os import path
 from uuid import uuid4
 from collections import UserDict
+import json
 import jsonschema
-from quantify.utilities.general import make_hash, load_json_schema
+from quantify.utilities.general import make_hash
 
 
 class Schedule(UserDict):
     """
-    A collection of :class:`Operation` objects and timing constraints that define relations between the operations.
+    A collection of :class:`Operation` objects and timing contraints
+    that define relations between the operations.
 
     The Schedule data structure is based on a dictionary.
     This dictionary contains:
 
         operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
-        resource_dict      : a dictionary containing the relevant :class:`Resource` s
+        resource_dict      : a dictionary containing the relevant :class:Resource` s
 
-    .. warning::
 
-        JSON scheme definition and validation not implemented yet.
+    .. jsonschema:: schemas/schedule.json
 
     """
 
@@ -75,10 +77,15 @@ class Schedule(UserDict):
             len(self.data['operation_dict']), len(self.data['timing_constraints']))
 
     @classmethod
-    def is_valid(cls, schedule) -> bool:
-        # NOT IMPLEMENTED
+    def is_valid(cls, operation):
 
-        return True
+        basepath = path.dirname(__file__)
+        filepath = path.abspath(path.join(basepath,
+                                          "schemas", "schedule.json"))
+        with open(filepath) as json_file:
+            scheme = json.load(json_file)
+        jsonschema.validate(operation.data, scheme)
+        return True  # if not exception was raised during validation
 
     def add(self, operation, rel_time: float = 0,
             ref_op: str = None,
@@ -92,8 +99,8 @@ class Schedule(UserDict):
             operation (:class:`Operation`): The operation to add to the schedule
             rel_time (float) : relative time between the the reference operation and added operation.
             ref_op (str) : specifies the reference operation.
-            ref_pt (str): reference point in reference operation, must be one of ('start', 'center', 'end').
-            ref_pt_new (str) : reference point in added operation, must be one of ('start', 'center', 'end').
+            ref_pt (str): reference point in reference operation must be one of ('start', 'center', 'end').
+            ref_pt_new (str) : reference point in added operation must be one of ('start', 'center', 'end').
             label  (str) : a label that can be used as an identifier when adding more operations.
 
         Returns:
@@ -103,28 +110,39 @@ class Schedule(UserDict):
         """
         assert isinstance(operation, Operation)
 
+        operation_hash = operation.hash
+
         if label is None:
             label = str(uuid4())
 
-        # assert that the label of the operation does not already exist in the timing constraints
-        if next((item for item in self.data['timing_constraints'] if item['label'] == label), None):
+        # assert that the label of the operation does not exists in the
+        # timing constraints.
+        label_is_unique = len([item for item in self.data['timing_constraints']
+                               if item['label'] == label]) == 0
+        if not label_is_unique:
             raise ValueError('label "{}" must be unique'.format(label))
 
         # assert that the reference operation exists
         if ref_op is not None:
-            if not next((item for item in self.data['timing_constraints'] if item['label'] == ref_op), None):
-                raise ValueError('Reference "{}" does not exist in schedule.'.format(ref_op))
+            ref_exists = len([item for item in self.data['timing_constraints']
+                              if item['label'] == ref_op]) == 1
+            if not ref_exists:
+                raise ValueError(
+                    'Reference "{}" does not exist in schedule.'.format(ref_op))
 
-        self.data['operation_dict'][operation.hash] = operation
+        self.data['operation_dict'][operation_hash] = operation
         timing_constr = {'label': label,
                          'rel_time': rel_time,
                          'ref_op': ref_op,
                          'ref_pt_new': ref_pt_new,
                          'ref_pt': ref_pt,
-                         'operation_hash': operation.hash}
+                         'operation_hash': operation_hash}
 
         self.data['timing_constraints'].append(timing_constr)
+
         return label
+
+    pass
 
 
 class Operation(UserDict):
@@ -147,7 +165,6 @@ class Operation(UserDict):
     .. jsonschema:: schemas/operation.json
 
 
-
         .. warning::
 
             The instruction/logical information level is not clearly
@@ -161,8 +178,6 @@ class Operation(UserDict):
 
 
     """
-
-    _scheme = load_json_schema(__file__, "operation.json")
 
     def __init__(self, name: str, data: dict = None):
         super().__init__()
@@ -180,10 +195,6 @@ class Operation(UserDict):
             self.data['name'] = name
         if data is not None:
             self.data.update(data)
-
-    @property
-    def name(self):
-        return self.data['name']
 
     @property
     def duration(self):
@@ -230,7 +241,13 @@ class Operation(UserDict):
 
     @classmethod
     def is_valid(cls, operation):
-        jsonschema.validate(operation.data, cls._scheme)
+
+        basepath = path.dirname(__file__)
+        filepath = path.abspath(path.join(basepath,
+                                          "schemas", "operation.json"))
+        with open(filepath) as json_file:
+            scheme = json.load(json_file)
+        jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
 
 
@@ -239,14 +256,22 @@ class Resource(UserDict):
     A resource corresponds to a physical resource such as an AWG channel,
     a qubit, or a classical register.
 
-    .. warning::
 
-        The data types and interface of a Resource are not defined yet.
+    .. jsonschema:: schemas/resource.json
 
     """
 
     @classmethod
     def is_valid(cls, operation):
-        scheme = load_json_schema(__file__, 'resource.json')
+
+        basepath = path.dirname(__file__)
+        filepath = path.abspath(path.join(basepath,
+                                          "schemas", "resource.json"))
+        with open(filepath) as json_file:
+            scheme = json.load(json_file)
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
+
+    @property
+    def name(self):
+        return self.data['name']
