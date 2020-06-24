@@ -20,7 +20,6 @@ class Schedule(UserDict):
 
         operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
-        resource_dict      : a dictionary containing the relevant :class:Resource` s
 
 
     .. jsonschema:: schemas/schedule.json
@@ -68,8 +67,8 @@ class Schedule(UserDict):
         """
         A dictionary containing resources. Keys are names (str), values are instances of :class:`Resource` .
         """
-        logging.warning('resources not implemented')
-        return {}
+
+        return self.data['resource_dict']
 
     def __repr__(self):
         return 'Schedule "{}" containing ({}) {}  (unique) operations.'.format(
