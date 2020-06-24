@@ -1,3 +1,5 @@
+from columnar import columnar
+from collections import Counter
 
 
 def pulsar_assembler_backend(schedule):
@@ -27,3 +29,44 @@ def pulsar_assembler_backend(schedule):
 
     # Convert the code for each resource to assembly
     pass
+
+
+def prepare_waveforms_for_q1asm(pulse_info):
+    sequencer_cfg = {"waveforms": {}, "program": ""}
+    for idx, (pulse, data) in enumerate(pulse_info.items()):
+        sequencer_cfg["waveforms"][pulse] = {
+            "data": data,
+            "index": idx
+        }
+    return sequencer_cfg
+
+
+def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
+    rows = []
+    rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
+
+    clock = 0  # current execution time
+    labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
+    for timing, operation in ordered_operations:
+        pulse_idx = pulse_dict[operation.name]['index']
+        # check if we must wait before beginning our next section
+        if clock < timing:
+            rows.append(['', 'wait', '{}'.format(timing - clock), '#Wait'])
+        rows.append(['', '', '', ''])
+        label = '{}_{}'.format(operation.name, labels[operation.name])
+        labels.update([operation.name])
+        rows.append(['{}:'.format(label), 'play', '{},{}'.format(pulse_idx, operation.duration), '#Play {}'.format(operation.name)])
+        clock += operation.duration
+
+    table = columnar(rows, no_borders=True)
+    return table
+
+
+def generate_sequencer_cfg(pulse_info, pulse_timings):
+    """
+    Needs docstring
+    """
+    top_level = prepare_waveforms_for_q1asm(pulse_info)
+    program_str = construct_q1asm_pulse_operations(pulse_timings, top_level['waveforms'])
+    top_level['program'] = program_str
+    return top_level
