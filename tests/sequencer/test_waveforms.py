@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.testing as npt
+import pytest
 from quantify.sequencer.waveforms import square, square_IQ, drag, modulate_wave, rotate_wave
 
 
@@ -26,6 +27,9 @@ def test_drag():
 
     # quantify
     waveform = drag(np.arange(duration), 0.5, beta, duration, subtract_offset='none')
+
+    with pytest.raises(ValueError):
+        drag(np.arange(duration), 0.5, beta, duration, subtract_offset='bad!')
 
     import matplotlib.pyplot as plt
     plt.plot(np.arange(duration), formula)

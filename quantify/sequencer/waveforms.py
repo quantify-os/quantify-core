@@ -83,8 +83,7 @@ def drag(t,
         gauss_env -= gauss_env[-1]
         deriv_gauss_env -= deriv_gauss_env[-1]
     else:
-        raise ValueError('Unknown value "{}" for keyword argument '
-                         '"subtract_offset".'.format(subtract_offset))
+        raise ValueError('Unknown value "{}" for keyword argument subtract_offset".'.format(subtract_offset))
 
     # generate pulses
     G = gauss_env
