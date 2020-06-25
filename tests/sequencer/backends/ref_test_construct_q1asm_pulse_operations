@@ -1,9 +1,9 @@
           
   start:          move   3,R0   #Waveform count register  
                                                           
-  SquarePulse_0:  play   0,4    #Play SquarePulse         
+  SquarePulse_0:  play   0,0,4  #Play SquarePulse         
                                                           
-  DRAG_0:         play   1,4    #Play DRAG                
+  DRAG_0:         play   1,1,4  #Play DRAG                
                   wait   8      #Wait                     
                                                           
-  SquarePulse_1:  play   2,4    #Play SquarePulse         
+  SquarePulse_1:  play   2,2,4  #Play SquarePulse         

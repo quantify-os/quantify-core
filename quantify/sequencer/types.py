@@ -197,6 +197,10 @@ class Operation(UserDict):
             self.data.update(data)
 
     @property
+    def name(self):
+        return self.data['name']
+
+    @property
     def duration(self):
         """
         Determine the duration of the operation based on the pulses described in pulse_info.

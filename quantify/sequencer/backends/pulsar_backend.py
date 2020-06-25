@@ -55,7 +55,8 @@ def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
         rows.append(['', '', '', ''])
         label = '{}_{}'.format(operation.name, labels[operation.name])
         labels.update([operation.name])
-        rows.append(['{}:'.format(label), 'play', '{},{}'.format(pulse_idx, operation.duration), '#Play {}'.format(operation.name)])
+        rows.append(['{}:'.format(label), 'play', '{},{},{}'.format(pulse_idx, pulse_idx, operation.duration),
+                     '#Play {}'.format(operation.name)])
         clock += operation.duration
 
     table = columnar(rows, no_borders=True)

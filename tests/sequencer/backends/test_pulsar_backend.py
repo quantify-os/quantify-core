@@ -35,3 +35,6 @@ def test_construct_q1asm_pulse_operations():
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_construct_q1asm_pulse_operations'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
+
+def test_generate_sequencer_cfg():
+    pass
