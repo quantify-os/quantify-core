@@ -6,6 +6,18 @@ import numpy as np
 from .types import Resource
 
 
+class QubitResource(Resource):
+    """
+    A qubit resource.
+    """
+
+    def __init__(self, name: str):
+        super().__init__()
+
+        self.data = {'name': name,
+                     'type': str(self.__class__.__name__)}
+
+
 class CompositeResource(Resource):
     """
     A channel composed of multiple resources.
@@ -38,7 +50,8 @@ class CompositeResource(Resource):
         super().__init__()
         for rn in resource_names:
             if not isinstance(rn, str):
-                raise TypeError('resource_names "{}"must be strings'.format(resource_names))
+                raise TypeError(
+                    'resource_names "{}"must be strings'.format(resource_names))
 
         self.data = {'name': name,
                      'type': str(self.__class__.__name__),
