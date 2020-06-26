@@ -67,7 +67,6 @@ def test_determine_absolute_timing_ideal_clock():
 
 
 def test_missing_ref_op():
-    test_new_ci
     sched = Schedule('test')
     q0, q1 = ('q0', 'q1')
     ref_label_1 = 'test_label'
