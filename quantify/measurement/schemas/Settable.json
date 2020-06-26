@@ -3,15 +3,10 @@
     "attrs": {
         "description": "attributes",
         "required": [
-            "name",
             "label",
             "unit"
         ],
         "properties": {
-            "name": {
-                "type": "string",
-                "description": "identifier"
-            },
             "label": {
                 "type": "string",
                 "description": "axis descriptor"
@@ -29,9 +24,14 @@
     "methods": {
         "description": "methods",
         "required": [
+            "name",
             "set"
         ],
         "properties": {
+            "name": {
+                "type": "string",
+                "description": "identifier"
+            },
             "set": {
                 "description": "set this to a float value",
                 "type": "object"
