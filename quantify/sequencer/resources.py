@@ -61,6 +61,9 @@ class CompositeResource(Resource):
 class Pulsar_QCM_sequencer(Resource):
     """
     A single sequencer unit contained in a Pulsar_QCM module.
+
+    For pulse-sequencing purposes, the Pulsar_QCM_sequencer can be considered
+    a channel capabable of outputting complex valued signals (I, and Q).
     """
 
     def __init__(self, name: str, instrument_name: str,
@@ -71,10 +74,15 @@ class Pulsar_QCM_sequencer(Resource):
         Parameters
         -------------
         name : str
-            the name of this resource
-
-
-
+            the name of this resource.
+        instrument_name: str
+            name of the Pulsar_QCM instrument.
+        seq_idx: int
+            index of the sequencer unit to use.
+        nco_freq: float
+            modulation frequency.
+        mod_enable: bool
+            enable pulse modulation.
         """
         super().__init__()
 

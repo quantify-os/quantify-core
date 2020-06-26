@@ -25,7 +25,7 @@ def test_prepare_waveforms_for_q1asm():
 def test_construct_q1asm_pulse_operations():
     pulse_timings = [
         (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch_I='ch1', ch_Q='ch2')),
+        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch='ch1')),
         (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
     ]
 
@@ -43,7 +43,7 @@ def test_construct_q1asm_pulse_operations():
 def test_generate_sequencer_cfg():
     pulse_timings = [
         (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch_I='ch1', ch_Q='ch2')),
+        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch='ch1')),
         (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
     ]
 

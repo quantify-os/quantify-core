@@ -39,15 +39,15 @@
     "type":"object",
     "description": "Info to generate an individual pulse.",
     "required": [
-      "channels",
+      "channel",
       "wf_func",
       "t0",
       "duration"
     ],
     "properties": {
-      "channels": {
-        "description": "A list of strings specifying the channels used by the pulse.",
-        "type": "array"
+      "channel": {
+        "description": "A string specifying the channel used by the pulse.",
+        "type": ["string","null"]
       },
       "wf_func": {
         "description": "reference to a function to generate the pulse of this operation. ",

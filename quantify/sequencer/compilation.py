@@ -54,7 +54,8 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
             ref_op = last_op
         else:
             # this assumes the reference op exists. This is ensured in schedule.add
-            ref_constr = next(item for item in schedule.timing_constraints if item['label'] == t_constr['ref_op'])
+            ref_constr = next(
+                item for item in schedule.timing_constraints if item['label'] == t_constr['ref_op'])
             ref_op = schedule.operations[ref_constr['operation_hash']]
 
         # duration = 1 is useful when e.g., drawing a circuit diagram.
@@ -68,14 +69,16 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         elif t_constr['ref_pt'] == 'end':
             t0 = ref_constr['abs_time'] + duration_ref_op
         else:
-            raise NotImplementedError('Timing "{}" not supported by backend'.format(ref_constr['abs_time']))
+            raise NotImplementedError(
+                'Timing "{}" not supported by backend'.format(ref_constr['abs_time']))
 
         duration_new_op = curr_op.duration if clock_unit == 'physical' else 1
 
         if t_constr['ref_pt_new'] == 'start':
             t_constr['abs_time'] = t0 + t_constr['rel_time']
         elif t_constr['ref_pt_new'] == 'center':
-            t_constr['abs_time'] = t0 + t_constr['rel_time'] - duration_new_op/2
+            t_constr['abs_time'] = t0 + \
+                t_constr['rel_time'] - duration_new_op/2
         elif t_constr['ref_pt_new'] == 'end':
             t_constr['abs_time'] = t0 + t_constr['rel_time'] - duration_new_op
 
@@ -117,17 +120,9 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
     - :class:`~quantify.sequencer.gate_library.CZ`
 
 
-
     .. rubric:: Configuration specification
 
-
     .. jsonschema:: schemas/transmon_cfg.json
-
-
-    .. note::
-
-        This function could be expanded to work support multiple platforms.
-
 
     """
     validate_config(device_cfg, scheme_fn='transmon_cfg.json')
@@ -140,17 +135,14 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                 if q_cfg['ro_pulse_type'] == 'square':
                     op.add_pulse(ModSquarePulse(amp=q_cfg['ro_pulse_amp'],
                                                 duration=q_cfg['ro_pulse_duration'],
-                                                ch_I=q_cfg['ro_pulse_ch_I'],
-                                                ch_Q=q_cfg['ro_pulse_ch_Q'],
+                                                ch=q_cfg['ro_pulse_ch'],
                                                 freq_mod=q_cfg['ro_pulse_modulation_freq'],
                                                 t0=0))
                     # acquisition integration window
                     op.add_pulse(ModSquarePulse(amp=1,
                                                 duration=q_cfg['ro_acq_integration_time'],
-                                                ch_I=q_cfg['ro_acq_ch_I'],
-                                                ch_Q=q_cfg['ro_acq_ch_Q'],
-                                                freq_mod=-
-                                                q_cfg['ro_pulse_modulation_freq'],
+                                                ch=q_cfg['ro_acq_ch'],
+                                                freq_mod=-q_cfg['ro_pulse_modulation_freq'],
                                                 t0=q_cfg['ro_acq_delay']))
 
         elif op['gate_info']['operation_type'] == 'Rxy':
@@ -163,19 +155,21 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
 
             pulse = DRAGPulse(
                 G_amp=G_amp, D_amp=D_amp, phase=op['gate_info']['phi'],
-                ch_I=q_cfg['mw_ch_I'], ch_Q=q_cfg['mw_ch_Q'], duration=q_cfg['mw_duration'],
+                ch=q_cfg['mw_ch'],  duration=q_cfg['mw_duration'],
                 freq_mod=q_cfg['mw_modulation_freq'])
             op.add_pulse(pulse)
 
         elif op['gate_info']['operation_type'] == 'CNOT':
             # These methods don't raise exceptions as they will be implemented shortly
             logging.warning("Not Implemented yet")
-            logging.warning('Operation type "{}" not supported by backend'.format(op['gate_info']['operation_type']))
+            logging.warning('Operation type "{}" not supported by backend'.format(
+                op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'CZ':
             # These methods don't raise exceptions as they will be implemented shortly
             logging.warning("Not Implemented yet")
-            logging.warning('Operation type "{}" not supported by backend'.format(op['gate_info']['operation_type']))
+            logging.warning('Operation type "{}" not supported by backend'.format(
+                op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'reset':
             # Initialization through relaxation

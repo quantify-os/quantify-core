@@ -182,18 +182,19 @@ def pulse_diagram_plotly(schedule,
                     # apply modulation to the waveforms
                     wfs = modulate_wave(t, wfs[0], wfs[1], p['freq_mod'])
 
-                for i, ch in enumerate(p['channels']):
-                    # If channel does not exist yet and using auto map, add it.
-                    if ch not in ch_map.keys() and auto_map:
-                        ch_map[ch] = offset_idx
-                        offset_idx += 1
+                ch = p['channel']
+                # If channel does not exist yet and using auto map, add it.
+                if ch not in ch_map.keys() and auto_map:
+                    ch_map[ch] = offset_idx
+                    offset_idx += 1
 
-                        # once all channels are used, don't add new channels anymore.
-                        if offset_idx > nr_rows:
-                            auto_map = False
+                    # once all channels are used, don't add new channels anymore.
+                    if offset_idx > nr_rows:
+                        auto_map = False
 
-                    if ch in ch_map.keys():
-                        # Ensures that the different parts of the same pulse are coupled to the same legend group.
+                if ch in ch_map.keys():
+                    # FIXME properly deal with complex waveforms.
+                    for i in range(2):
                         showlegend = (i == 0)
                         label = op['name']
                         fig.add_trace(go.Scatter(x=t, y=wfs[i], mode='lines', name=label, legendgroup=pls_idx,
