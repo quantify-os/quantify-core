@@ -89,9 +89,16 @@ def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
 
 def generate_sequencer_cfg(pulse_info, pulse_timings):
     """
-    Needs docstring
+    Generate a JSON compatible dictionary for defining a sequencer configuration. Contains a list of waveforms and a
+    program in a q1asm string
+
+    Args:
+        pulse_info (dict): mapping of pulse IDs to numerical waveforms
+        pulse_timings (list): time ordered list of tuples containing the absolute starting time and pulse ID
+
+    Returns:
+        Sequencer configuration
     """
-    top_level = prepare_waveforms_for_q1asm(pulse_info)
-    program_str = construct_q1asm_pulse_operations(pulse_timings, top_level['waveforms'])
-    top_level['program'] = program_str
-    return top_level
+    cfg = prepare_waveforms_for_q1asm(pulse_info)
+    cfg['program'] = construct_q1asm_pulse_operations(pulse_timings, cfg['waveforms'])
+    return cfg
