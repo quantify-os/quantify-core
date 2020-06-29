@@ -147,4 +147,7 @@ def test_pulsar_assembler_backend():
 
     sched.add_resources([qcm1, qcm1_s0, qcm1_s1, qcm2, qcm2_s0, qcm2_s1])
 
+    seq_config_dict = pulsar_assembler_backend(sched)
 
+    # assert right keys.
+    # assert right content of the config files.

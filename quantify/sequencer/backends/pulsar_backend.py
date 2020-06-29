@@ -29,8 +29,12 @@ def pulsar_assembler_backend(schedule):
             # Assumes the channel exists in the resources available to the schedule
             ch = schedule.resources[p['channel']]
 
-
+            pulse_id = make_hash(without(p, 't0'))
             ch.pulse_dict
+
+            pulse_id =
+
+
             ch.timing_tuples.append((t0, pulse_id))
 
 
@@ -54,7 +58,7 @@ def pulsar_assembler_backend(schedule):
 
     # returns a dict of sequencer names as keys with json filenames as values.
     # add bool option to program immediately?
-    pass
+    return None
 
 
 def build_waveform_dict(pulse_info):
