@@ -10,13 +10,13 @@ def test_TUID():
     assert isinstance(dt, datetime)
     assert isinstance(tuid, str)
 
-    dt.year == 2020
-    dt.month == 4
-    dt.day == 9
+    assert dt.year == 2020
+    assert dt.month == 4
+    assert dt.day == 9
 
-    dt.hour == 12
-    dt.min == 30
-    dt.second == 15
+    assert dt.hour == 12
+    assert dt.minute == 30
+    assert dt.second == 15
 
     with pytest.raises(ValueError):
         tuid = TUID('200409-123015-123-abcdef')

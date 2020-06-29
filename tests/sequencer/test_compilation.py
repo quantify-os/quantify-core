@@ -72,6 +72,20 @@ def test_determine_absolute_timing_ideal_clock():
     abs_times = [constr['abs_time'] for constr in timed_sched.data['timing_constraints']]
     assert abs_times == [0, 1, 2, 3, 4, 1, 4, 2, 1.5]
 
+    bad_sched = Schedule('no good')
+    bad_sched.add(Rxy(180, 0, qubit=q1))
+    bad_sched.add(Rxy(90, 0, qubit=q1), ref_pt='bad')
+    with pytest.raises(NotImplementedError):
+        determine_absolute_timing(bad_sched)
+
+
+def test_missing_ref_op():
+    sched = Schedule('test')
+    q0, q1 = ('q0', 'q1')
+    ref_label_1 = 'test_label'
+    with pytest.raises(ValueError):
+        sched.add(operation=CNOT(qC=q0, qT=q1), ref_op=ref_label_1)
+
 
 
 def test_config_spec():
@@ -92,17 +106,3 @@ def test_compile_transmon_program():
     # pulse information is added
     sched = add_pulse_information_transmon(sched, device_cfg=DEVICE_TEST_CFG)
     sched = determine_absolute_timing(sched, clock_unit='physical')
-
-
-def test_construct_q1asm_pulse_operations():
-    sched = Schedule('Test experiment')
-
-    # define the resources
-    q0, q1 = ('q0', 'q1')
-    ref_label_1 = 'my_label'
-
-    sched.add(SquarePulse(amp=1.0, duration=4e6, ch='ch1'), label=ref_label_1)
-    ref = sched.add(IdlePulse(4e6), ref_op=ref_label_1)
-    sched.add(SquarePulse(amp=1.0, duration=4e6, ch='ch1'), ref_op=ref)
-
-    timed_sched = determine_absolute_timing(sched, clock_unit='ideal')
