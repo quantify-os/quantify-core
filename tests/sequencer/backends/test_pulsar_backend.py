@@ -69,24 +69,31 @@ def test_construct_q1asm_pulse_operations():
 
 
 def test_generate_sequencer_cfg():
-    # Pulse timings should already contain the tuple of wf + pulse_ID
     pulse_timings = [
-        (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch='ch1')),
-        (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
+        (0, 'square_1'),
+        (4, 'drag_1'),
+        (16, 'square_2'),
     ]
 
-    # pulse_timings hash property is not guaranteed to be unique as it i
+    real = np.random.random(4)
+    complex_vals = real + (np.random.random(4) * 1.0j)
     pulse_data = {
-        pulse_timings[0][1].hash: [0, 1, 0],
-        pulse_timings[1][1].hash: [-1, 0, -1],
-        pulse_timings[2][1].hash: [-1, 1, -1],
+        "square_1": [0.0, 1.0, 0.0, 0.0],
+        "drag_1": complex_vals,
+        "square_2": real,
     }
 
+    def check_waveform(entry, exp_data, exp_idx):
+        assert exp_idx == entry['index']
+        np.testing.assert_array_equal(exp_data, entry['data'])
+
     sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings)
-    assert sequence_cfg['waveforms'][pulse_timings[0][1].hash] == {'data': [0, 1, 0], 'index': 0}
-    assert sequence_cfg['waveforms'][pulse_timings[1][1].hash] == {'data': [-1, 0, -1], 'index': 1}
-    assert sequence_cfg['waveforms'][pulse_timings[2][1].hash] == {'data': [-1, 1, -1], 'index': 2}
+    check_waveform(sequence_cfg['waveforms']["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
+    check_waveform(sequence_cfg['waveforms']["square_1_Q"], np.zeros(4), 1)
+    check_waveform(sequence_cfg['waveforms']["drag_1_I"], complex_vals.real, 2)
+    check_waveform(sequence_cfg['waveforms']["drag_1_Q"], complex_vals.imag, 3)
+    check_waveform(sequence_cfg['waveforms']["square_2_I"], real, 4)
+    check_waveform(sequence_cfg['waveforms']["square_2_Q"], np.zeros(4), 5)
     assert len(sequence_cfg['program'])
 
 
