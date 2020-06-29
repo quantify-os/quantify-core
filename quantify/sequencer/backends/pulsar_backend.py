@@ -72,40 +72,41 @@ def build_waveform_dict(pulse_info):
     for idx, (pulse_id, data) in enumerate(pulse_info.items()):
         arr = np.array(data)
         if np.iscomplex(arr).any():
-            sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
-                "data": arr.real,
-                "index": idx + idx_offset
-            }
-            idx_offset += 1
-            sequencer_cfg["waveforms"]["{}_Q".format(pulse_id)] = {
-                "data": arr.imag,
-                "index": idx + idx_offset
-            }
+            I = arr.real
+            Q = arr.imag
         else:
-            sequencer_cfg["waveforms"][pulse_id] = {
-                "data": data,
-                "index": idx + idx_offset
-            }
+            I = arr
+            Q = np.zeros(len(arr))
+        sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
+            "data": I,
+            "index": idx + idx_offset
+        }
+        idx_offset += 1
+        sequencer_cfg["waveforms"]["{}_Q".format(pulse_id)] = {
+            "data": Q,
+            "index": idx + idx_offset
+        }
     return sequencer_cfg
 
 
-def construct_q1asm_pulse_operations(ordered_operations, pulse_dict):
+def build_q1asm(ordered_operations, pulse_dict):
     rows = []
     rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
 
     clock = 0  # current execution time
     labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
-    for timing, operation in ordered_operations:
-        pulse_idx = pulse_dict[operation.hash]['index']
+    for timing, pulse_id in ordered_operations:
+        I = pulse_dict["{}_I".format(pulse_id)]['index']
+        Q = pulse_dict["{}_Q".format(pulse_id)]['index']
         # check if we must wait before beginning our next section
         if clock < timing:
             rows.append(['', 'wait', '{}'.format(timing - clock), '#Wait'])
         rows.append(['', '', '', ''])
-        label = '{}_{}'.format(operation.name, labels[operation.name])
-        labels.update([operation.name])
-        rows.append(['{}:'.format(label), 'play', '{},{},{}'.format(pulse_idx, pulse_idx, operation.duration),
-                     '#Play {}'.format(operation.name)])
-        clock += operation.duration
+        label = '{}_{}'.format(pulse_id, labels[pulse_id])
+        labels.update([pulse_id])
+        duration = len(pulse_dict["{}_I".format(pulse_id)]['data'])  # duration in nanoseconds, QCM sample rate is 1Gsps
+        rows.append(['{}:'.format(label), 'play', '{},{},{}'.format(I, Q, duration), '#Play {}'.format(pulse_id)])
+        clock += duration
 
     table = columnar(rows, no_borders=True)
     return table
@@ -123,6 +124,6 @@ def generate_sequencer_cfg(pulse_info, pulse_timings):
     Returns:
         Sequencer configuration
     """
-    cfg = prepare_waveforms_for_q1asm(pulse_info)
-    cfg['program'] = construct_q1asm_pulse_operations(pulse_timings, cfg['waveforms'])
+    cfg = build_waveform_dict(pulse_info)
+    cfg['program'] = build_q1asm(pulse_timings, cfg['waveforms'])
     return cfg
