@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
-from quantify.sequencer.backends.pulsar_backend import prepare_waveforms_for_q1asm, construct_q1asm_pulse_operations, generate_sequencer_cfg
+from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, construct_q1asm_pulse_operations, generate_sequencer_cfg
 from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 
@@ -21,61 +21,41 @@ DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(
     test_data, 'transmon_test_config.json'))
 
 
-def test_prepare_waveforms_for_q1asm():
+def test_build_waveform_dict():
     pulse_data = {
-        'gdfshdg45': [0, 0.2, 0.6],
-        '6h5hh5hyj': [-1, 0, 1, 0],
+        'gdfshdg45': [1.0 + 0.0j, 2.0 + 0.2j, 3.0 + 0.6j],
+        '6h5hh5hyj': np.ones(4),
     }
-    sequence_cfg = prepare_waveforms_for_q1asm(pulse_data)
-    assert len(sequence_cfg['waveforms'])
-    wf_1 = sequence_cfg['waveforms']['gdfshdg45']
-    wf_2 = sequence_cfg['waveforms']['6h5hh5hyj']
-    assert wf_1['data'] == [0, 0.2, 0.6]
+    sequence_cfg = build_waveform_dict(pulse_data)
+    assert len(sequence_cfg['waveforms']) == 3
+    wf_1 = sequence_cfg['waveforms']['gdfshdg45_I']
+    wf_2 = sequence_cfg['waveforms']['gdfshdg45_Q']
+    wf_3 = sequence_cfg['waveforms']['6h5hh5hyj']
+    np.testing.assert_array_equal(wf_1['data'], [1.0, 2.0, 3.0])
     assert wf_1['index'] == 0
-    assert wf_2['data'] == [-1, 0, 1, 0]
+    np.testing.assert_array_equal(wf_2['data'], [0.0, 0.2, 0.6])
     assert wf_2['index'] == 1
+    np.testing.assert_array_equal(wf_3['data'], [1.0, 1.0, 1.0, 1.0])
+    assert wf_3['index'] == 2
 
 
 def test_construct_q1asm_pulse_operations():
-
-
-    # Input I want to provide for function 3, contents will change, data types and schema will not.
-    # pulse timings example ID's can change
     pulse_timings = [
         (0, 'square_id'),
         (4, 'drag_ID'),
-        (16, 'drag_ID5'),
-        (20, 'square_id')
+        (16, 'square_id')
     ]
 
-
-    # new/intended pulse_darta
-    # pulse_data = {'pulse_id': np.array (complex),
-    #                'square_id': np.ones(20)} # imaginary part is implicitly zero here
-
-
-    # provided pulse_dict:
     pulse_data = {
-        'square_id': np.ones(8),
-        'drag_ID':   some_np_complex_array,
-        'drag_ID5': np.ones(5)}
-
-
-
-    # function 1
-    # take pulse_data and turn it into the pulse_data required for the json spec (now same name, confusing)
-    # function 2
-    # loop over the timing tuples, being aware of the pulse_data for hardware config to get indices and produce valid assembly
-    # function 3
-    # combine function 1 and 2.
+        'square_id': {'data': [1.0, 0.0, 1.0, 0.0], 'index': 0},
+        'drag_ID_I': {'data': [-1.0, 0.5, 0.0, 1.0], 'index': 1},
+        'drag_ID_Q': {'data': [-1.0, -1.0, -1.0, -1.0], 'index': 2}
+    }
 
     program_str = construct_q1asm_pulse_operations(pulse_timings, pulse_data)
     # program_str should be a valid JSON containing both the pulse data and the assembly program.
-
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_construct_q1asm_pulse_operations'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
-
-
 
 
 def test_generate_sequencer_cfg():

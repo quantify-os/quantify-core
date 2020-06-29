@@ -1,5 +1,6 @@
 from columnar import columnar
 from collections import Counter
+import numpy as np
 
 
 def pulsar_assembler_backend(schedule):
@@ -56,13 +57,35 @@ def pulsar_assembler_backend(schedule):
     pass
 
 
-def prepare_waveforms_for_q1asm(pulse_info):
-    sequencer_cfg = {"waveforms": {}, "program": ""}
-    for idx, (pulse, data) in enumerate(pulse_info.items()):
-        sequencer_cfg["waveforms"][pulse] = {
-            "data": data,
-            "index": idx
-        }
+def build_waveform_dict(pulse_info):
+    """
+    Allocates numerical pulse representation to indices and formats for sequencer JSON.
+
+    Args:
+        pulse_info (dict): Pulse ID to array-like numerical representation
+
+    Returns:
+        Dictionary mapping pulses to numerical representation and memory index
+    """
+    sequencer_cfg = {"waveforms": {}}
+    idx_offset = 0
+    for idx, (pulse_id, data) in enumerate(pulse_info.items()):
+        arr = np.array(data)
+        if np.iscomplex(arr).any():
+            sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
+                "data": arr.real,
+                "index": idx + idx_offset
+            }
+            idx_offset += 1
+            sequencer_cfg["waveforms"]["{}_Q".format(pulse_id)] = {
+                "data": arr.imag,
+                "index": idx + idx_offset
+            }
+        else:
+            sequencer_cfg["waveforms"][pulse_id] = {
+                "data": data,
+                "index": idx + idx_offset
+            }
     return sequencer_cfg
 
 
