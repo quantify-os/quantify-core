@@ -1,3 +1,4 @@
+import json
 import pathlib
 import numpy as np
 from quantify.sequencer.types import Schedule
@@ -5,6 +6,19 @@ from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
 from quantify.sequencer.backends.pulsar_backend import prepare_waveforms_for_q1asm, construct_q1asm_pulse_operations, generate_sequencer_cfg
 from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
+
+
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
+
+from ... import test_data  # relative-import the *package* containing the templates
+
+
+DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(
+    test_data, 'transmon_test_config.json'))
 
 
 def test_prepare_waveforms_for_q1asm():
@@ -29,11 +43,24 @@ def test_construct_q1asm_pulse_operations():
         (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
     ]
 
+
+    # current description:
     pulse_data = {
         pulse_timings[0][1].hash: {'data': [0, 1, 0], 'index': 0},
         pulse_timings[1][1].hash: {'data': [-1, 0, -1], 'index': 1},
         pulse_timings[2][1].hash: {'data': [-1, 1, -1], 'index': 2}
     }
+    # intended description:
+
+    # pulse_data_us = {'pulse_id': {'data': np.array (complex)}
+
+
+    # pulse_data_hardware = {'pulse_id_I': {'data': np.array, 'index': int,
+    #                        'pulse_id_Q': {'data': np.array, 'index': int}
+
+
+
+
 
     program_str = construct_q1asm_pulse_operations(pulse_timings, pulse_data)
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_construct_q1asm_pulse_operations'), 'rb') as f:
@@ -41,12 +68,14 @@ def test_construct_q1asm_pulse_operations():
 
 
 def test_generate_sequencer_cfg():
+    # Pulse timings should already contain the tuple of wf + pulse_ID
     pulse_timings = [
         (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
         (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch='ch1')),
         (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
     ]
 
+    # pulse_timings hash property is not guaranteed to be unique as it i
     pulse_data = {
         pulse_timings[0][1].hash: [0, 1, 0],
         pulse_timings[1][1].hash: [-1, 0, -1],
@@ -110,28 +139,4 @@ def test_pulsar_assembler_backend():
 
     sched.add_resources([qcm1, qcm1_s0, qcm1_s1, qcm2, qcm2_s0, qcm2_s1])
 
-    device_test_cfg = {
-        'qubits':
-        {
-            'q0': {'mw_amp180': .75, 'mw_motzoi': -.25, 'mw_duration': 20e-9,
-                   'mw_modulation_freq': 50e6, 'mw_ef_amp180': .87, 'mw_ch_I': 'ch0', 'mw_ch_Q': 'ch1',
-                   'ro_pulse_ch_I': 'ch5.0', 'ro_pulse_ch_Q': 'ch6.0', 'ro_pulse_amp': .5, 'ro_pulse_modulation_freq': 80e6,
-                   'ro_pulse_type': 'square', 'ro_pulse_duration': 150e-9,
-                   'ro_acq_ch_I': 'acq_ch1', 'ro_acq_ch_Q': 'acq_ch2', 'ro_acq_delay': 120e-9, 'ro_acq_integration_time': 700e-9,
-                   'ro_acq_weigth_type': 'SSB',
-                   'init_duration': 250e-6,
-                   },
 
-            'q1': {'mw_amp180': .45, 'mw_motzoi': -.15, 'mw_duration': 20e-9,
-                   'mw_modulation_freq': 80e6, 'mw_ef_amp180': .27, 'mw_ch_I': 'ch2', 'mw_ch_Q': 'ch3',
-                   'ro_pulse_ch_I': 'ch5.1', 'ro_pulse_ch_Q': 'ch6.1', 'ro_pulse_amp': .5, 'ro_pulse_modulation_freq': -23e6,
-                   'ro_pulse_type': 'square', 'ro_pulse_duration': 100e-9,
-                   'ro_acq_ch_I': 'acq_ch1', 'ro_acq_ch_Q': 'acq_ch2', 'ro_acq_delay': 120e-9, 'ro_acq_integration_time': 700e-9,
-                   'ro_acq_weigth_type': 'SSB',
-                   'init_duration': 250e-6, }
-        },
-        'edges':
-        {
-            'q0-q1': {}  # TODO
-        }
-    }

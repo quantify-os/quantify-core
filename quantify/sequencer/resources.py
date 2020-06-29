@@ -86,9 +86,24 @@ class Pulsar_QCM_sequencer(Resource):
         """
         super().__init__()
 
+        self._timing_tuples = []
+        self._pulse_dict = {}
+
         self.data = {'name': name,
                      'type': str(self.__class__.__name__),
                      'instrument_name': instrument_name,
                      'seq_idx': seq_idx,
                      'nco_freq': nco_freq,
                      'mod_enable': mod_enable}
+
+    @property
+    def timing_tuples(self):
+        """
+        A list of timing tuples con
+        """
+        return self._timing_tuples
+
+    @property
+    def pulse_dict(self):
+        return self._pulse_dict
+

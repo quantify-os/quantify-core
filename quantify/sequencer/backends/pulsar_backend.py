@@ -25,14 +25,12 @@ def pulsar_assembler_backend(schedule):
 
         for p in op['pulse_info']:
             t0 = t_constr['abs_time']+p['t0']
-
-            ch_name = p['channels']  # should this be singular?
-
-            ch = schedule.resources[ch_name]
+            # Assumes the channel exists in the resources available to the schedule
+            ch = schedule.resources[p['channel']]
 
 
-            pulse_id = None
-            wf = None
+            ch.pulse_dict
+            ch.timing_tuples.append((t0, pulse_id))
 
 
 
