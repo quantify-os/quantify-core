@@ -3,8 +3,7 @@ import pathlib
 import numpy as np
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
-from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg
-from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse
+from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 
 
