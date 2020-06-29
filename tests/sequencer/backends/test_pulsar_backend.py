@@ -4,9 +4,7 @@ import pytest
 import numpy as np
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
-from quantify.sequencer.backends.pulsar_backend import prepare_waveforms_for_q1asm, \
-    construct_q1asm_pulse_operations, generate_sequencer_cfg, pulsar_assembler_backend
-from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse
+from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
 
@@ -23,37 +21,40 @@ DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(
     test_data, 'transmon_test_config.json'))
 
 
-def test_prepare_waveforms_for_q1asm():
+def test_build_waveform_dict():
+    real = np.random.random(int(4e3))
+    complex_vals = real + (np.random.random(int(4e3)) * 1.0j)
+
     pulse_data = {
-        'gdfshdg45': [0, 0.2, 0.6],
-        '6h5hh5hyj': [-1, 0, 1, 0],
+        'gdfshdg45': complex_vals,
+        '6h5hh5hyj': real,
     }
-    sequence_cfg = prepare_waveforms_for_q1asm(pulse_data)
-    assert len(sequence_cfg['waveforms'])
-    wf_1 = sequence_cfg['waveforms']['gdfshdg45']
-    wf_2 = sequence_cfg['waveforms']['6h5hh5hyj']
-    assert wf_1['data'] == [0, 0.2, 0.6]
+    sequence_cfg = build_waveform_dict(pulse_data)
+    assert len(sequence_cfg['waveforms']) == 2 * len(pulse_data)
+    wf_1 = sequence_cfg['waveforms']['gdfshdg45_I']
+    wf_2 = sequence_cfg['waveforms']['gdfshdg45_Q']
+    wf_3 = sequence_cfg['waveforms']['6h5hh5hyj_I']
+    wf_4 = sequence_cfg['waveforms']['6h5hh5hyj_Q']
+    np.testing.assert_array_equal(wf_1['data'], complex_vals.real)
     assert wf_1['index'] == 0
-    assert wf_2['data'] == [-1, 0, 1, 0]
+    np.testing.assert_array_equal(wf_2['data'], complex_vals.imag)
     assert wf_2['index'] == 1
+    np.testing.assert_array_equal(wf_3['data'], real)
+    assert wf_3['index'] == 2
+    np.testing.assert_array_equal(wf_4['data'], np.zeros(len(wf_4['data'])))
+    assert wf_4['index'] == 3
 
 @pytest.mark.skip('none')
 def test_construct_q1asm_pulse_operations():
+    real = np.random.random(4)
+    complex_vals = real + (np.random.random(4) * 1.0j)
 
-    # Input I want to provide for function 3, contents will change, data types and schema will not.
-    # pulse timings example ID's can change
     pulse_timings = [
         (0, 'square_id'),
         (4, 'drag_ID'),
-        (16, 'drag_ID5'),
-        (20, 'square_id')
+        (16, 'square_id')
     ]
 
-    # new/intended pulse_darta
-    # pulse_data = {'pulse_id': np.array (complex),
-    #                'square_id': np.ones(20)} # imaginary part is implicitly zero here
-
-    # provided pulse_dict:
     pulse_data = {
         'square_id': np.ones(8),
         # 'drag_ID':   some_np_complex_array,
@@ -77,33 +78,38 @@ def test_construct_q1asm_pulse_operations():
     program_str = construct_q1asm_pulse_operations(pulse_timings, pulse_data)
     # program_str should be a valid JSON containing both the pulse data and the assembly program.
 
+    program_str = build_q1asm(pulse_timings, pulse_data)
+    # program_str should be a valid JSON containing both the pulse data and the assembly program.
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_construct_q1asm_pulse_operations'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
 
 def test_generate_sequencer_cfg():
-    # Pulse timings should already contain the tuple of wf + pulse_ID
     pulse_timings = [
-        (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3,
-                      duration=4, freq_mod=15e6, ch='ch1')),
-        (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
+        (0, 'square_1'),
+        (4, 'drag_1'),
+        (16, 'square_2'),
     ]
 
-    # pulse_timings hash property is not guaranteed to be unique as it i
+    real = np.random.random(4)
+    complex_vals = real + (np.random.random(4) * 1.0j)
     pulse_data = {
-        pulse_timings[0][1].hash: [0, 1, 0],
-        pulse_timings[1][1].hash: [-1, 0, -1],
-        pulse_timings[2][1].hash: [-1, 1, -1],
+        "square_1": [0.0, 1.0, 0.0, 0.0],
+        "drag_1": complex_vals,
+        "square_2": real,
     }
 
+    def check_waveform(entry, exp_data, exp_idx):
+        assert exp_idx == entry['index']
+        np.testing.assert_array_equal(exp_data, entry['data'])
+
     sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings)
-    assert sequence_cfg['waveforms'][pulse_timings[0]
-                                     [1].hash] == {'data': [0, 1, 0], 'index': 0}
-    assert sequence_cfg['waveforms'][pulse_timings[1]
-                                     [1].hash] == {'data': [-1, 0, -1], 'index': 1}
-    assert sequence_cfg['waveforms'][pulse_timings[2]
-                                     [1].hash] == {'data': [-1, 1, -1], 'index': 2}
+    check_waveform(sequence_cfg['waveforms']["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
+    check_waveform(sequence_cfg['waveforms']["square_1_Q"], np.zeros(4), 1)
+    check_waveform(sequence_cfg['waveforms']["drag_1_I"], complex_vals.real, 2)
+    check_waveform(sequence_cfg['waveforms']["drag_1_Q"], complex_vals.imag, 3)
+    check_waveform(sequence_cfg['waveforms']["square_2_I"], real, 4)
+    check_waveform(sequence_cfg['waveforms']["square_2_Q"], np.zeros(4), 5)
     assert len(sequence_cfg['program'])
 
 @pytest.mark.skip('Not Implemented')

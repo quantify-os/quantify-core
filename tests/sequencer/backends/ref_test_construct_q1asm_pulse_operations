@@ -1,9 +1,9 @@
           
-  start:          move   3,R0   #Waveform count register  
-                                                          
-  SquarePulse_0:  play   0,0,4  #Play SquarePulse         
-                                                          
-  DRAG_0:         play   1,1,4  #Play DRAG                
-                  wait   8      #Wait                     
-                                                          
-  SquarePulse_1:  play   2,2,4  #Play SquarePulse         
+  start:        move   4,R0   #Waveform count register  
+                                                        
+  square_id_0:  play   0,1,4  #Play square_id           
+                                                        
+  drag_ID_0:    play   2,3,4  #Play drag_ID             
+                wait   8      #Wait                     
+                                                        
+  square_id_1:  play   0,1,4  #Play square_id           
