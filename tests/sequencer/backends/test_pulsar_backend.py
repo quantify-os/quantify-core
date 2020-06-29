@@ -3,7 +3,8 @@ import pathlib
 import numpy as np
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
-from quantify.sequencer.backends.pulsar_backend import prepare_waveforms_for_q1asm, construct_q1asm_pulse_operations, generate_sequencer_cfg
+from quantify.sequencer.backends.pulsar_backend import prepare_waveforms_for_q1asm, \
+    construct_q1asm_pulse_operations, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 
@@ -38,7 +39,6 @@ def test_prepare_waveforms_for_q1asm():
 
 def test_construct_q1asm_pulse_operations():
 
-
     # Input I want to provide for function 3, contents will change, data types and schema will not.
     # pulse timings example ID's can change
     pulse_timings = [
@@ -48,11 +48,9 @@ def test_construct_q1asm_pulse_operations():
         (20, 'square_id')
     ]
 
-
     # new/intended pulse_darta
     # pulse_data = {'pulse_id': np.array (complex),
     #                'square_id': np.ones(20)} # imaginary part is implicitly zero here
-
 
     # provided pulse_dict:
     pulse_data = {
@@ -60,12 +58,18 @@ def test_construct_q1asm_pulse_operations():
         'drag_ID':   some_np_complex_array,
         'drag_ID5': np.ones(5)}
 
-
-
     # function 1
     # take pulse_data and turn it into the pulse_data required for the json spec (now same name, confusing)
     # function 2
     # loop over the timing tuples, being aware of the pulse_data for hardware config to get indices and produce valid assembly
+
+    # this loop over timing tuples consisint of (t0, pulse_id) needs to specify two waveforms
+    pulse_dict_hardware = {
+        'pulse_id': 'square_id_I',  'data': np.ones(5), 'index': 0,
+        'pulse_id': 'square_id_Q',  'data': np.zeros(5), 'index': 1,
+        'pulse_id': 'drag_I',  'data': np.random(5), 'index': 2,
+        'pulse_id': 'drag_Q',  'data': np.random(5), 'index': 3, }
+
     # function 3
     # combine function 1 and 2.
 
@@ -76,13 +80,12 @@ def test_construct_q1asm_pulse_operations():
         assert program_str.encode('utf-8') == f.read()
 
 
-
-
 def test_generate_sequencer_cfg():
     # Pulse timings should already contain the tuple of wf + pulse_ID
     pulse_timings = [
         (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch='ch1')),
+        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3,
+                      duration=4, freq_mod=15e6, ch='ch1')),
         (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
     ]
 
@@ -94,9 +97,12 @@ def test_generate_sequencer_cfg():
     }
 
     sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings)
-    assert sequence_cfg['waveforms'][pulse_timings[0][1].hash] == {'data': [0, 1, 0], 'index': 0}
-    assert sequence_cfg['waveforms'][pulse_timings[1][1].hash] == {'data': [-1, 0, -1], 'index': 1}
-    assert sequence_cfg['waveforms'][pulse_timings[2][1].hash] == {'data': [-1, 1, -1], 'index': 2}
+    assert sequence_cfg['waveforms'][pulse_timings[0]
+                                     [1].hash] == {'data': [0, 1, 0], 'index': 0}
+    assert sequence_cfg['waveforms'][pulse_timings[1]
+                                     [1].hash] == {'data': [-1, 0, -1], 'index': 1}
+    assert sequence_cfg['waveforms'][pulse_timings[2]
+                                     [1].hash] == {'data': [-1, 1, -1], 'index': 2}
     assert len(sequence_cfg['program'])
 
 
@@ -150,4 +156,7 @@ def test_pulsar_assembler_backend():
 
     sched.add_resources([qcm1, qcm1_s0, qcm1_s1, qcm2, qcm2_s0, qcm2_s1])
 
+    seq_config_dict = pulsar_assembler_backend(sched)
 
+    # assert right keys.
+    # assert right content of the config files.
