@@ -94,7 +94,8 @@ class Pulsar_QCM_sequencer(Resource):
                      'instrument_name': instrument_name,
                      'seq_idx': seq_idx,
                      'nco_freq': nco_freq,
-                     'mod_enable': mod_enable}
+                     'mod_enable': mod_enable,
+                     'sampling_rate': 1e9}
 
     @property
     def timing_tuples(self):

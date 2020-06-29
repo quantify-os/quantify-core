@@ -1,5 +1,11 @@
+import inspect
+import logging
 from columnar import columnar
 from collections import Counter
+import numpy as np
+from quantify.utilities.general import make_hash, without, import_func_from_string
+
+
 
 
 def pulsar_assembler_backend(schedule):
@@ -18,23 +24,50 @@ def pulsar_assembler_backend(schedule):
         Does not yet support the Pulsar_QRM module.
     """
 
-    timing_tuples_dict = {}  # keys correspond to resources
-
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
         op = schedule.operations[t_constr['operation_hash']]
 
-        for p in op['pulse_info']:
-            t0 = t_constr['abs_time']+p['t0']
-            # Assumes the channel exists in the resources available to the schedule
-            ch = schedule.resources[p['channel']]
+        if len(op['pulse_info']) == 0:
+            # this exception is raised when no pulses have been added yet.
+            raise ValueError('Operation {} has no pulse info'.format(op))
 
+        for p in op['pulse_info']:
+
+            t0 = t_constr['abs_time']+p['t0']
             pulse_id = make_hash(without(p, 't0'))
+
+            if p['channel'] is None:
+                continue  # pulses with None channel will be ignored by this backend
+
+            # Assumes the channel exists in the resources available to the schedule
+            if p['channel'] not in schedule.resources.keys():
+                raise KeyError('Resource "{}" not available in "{}"'.format(p['channel'], schedule))
+
+            ch = schedule.resources[p['channel']]
+            ch.timing_tuples.append((int(t0*ch['sampling_rate']), pulse_id))
+
+            if pulse_id not in ch.pulse_dict.keys():
+
+                # the pulsar backend makes use of real-time pulse modulation
+                t = np.arange(0, 0+p['duration'], 1/ch['sampling_rate'])
+                wf_func = import_func_from_string(p['wf_func'])
+
+                # select the arguments for the waveform function that are present in pulse info
+                par_map = inspect.signature(wf_func).parameters
+                wf_kwargs = {}
+                for kw in par_map.keys():
+                    if kw in p.keys():
+                        wf_kwargs[kw] = p[kw]
+                # Calculate the numerical waveform using the wf_func
+                wf = wf_func(t=t, **wf_kwargs)
+                ch.pulse_dict[pulse_id] = wf
+
+
+
             ch.pulse_dict
 
-            pulse_id =
 
 
-            ch.timing_tuples.append((t0, pulse_id))
 
 
 
@@ -57,7 +90,18 @@ def pulsar_assembler_backend(schedule):
 
     # returns a dict of sequencer names as keys with json filenames as values.
     # add bool option to program immediately?
-    return None
+    return {}
+
+def sort_timing_tuples(timing_tuples):
+    """
+    Sorts a list of tuples of the form [(t0, pulse_id), ...] by ascending timestamp.
+    """
+
+    # insert sorting algorithm here.
+
+
+    return timing_tuples
+
 
 
 def prepare_waveforms_for_q1asm(pulse_info):
