@@ -63,30 +63,27 @@ class SquarePulse(Operation):
 
 class ModSquarePulse(Operation):
 
-    def __init__(self, amp: float, duration: float, ch: str, freq_mod: float = 0, t0: float = 0):
+    def __init__(self, amp: float, duration: float, ch: str, phase: float = 0, freq_mod: float = 0, t0: float = 0):
         """
         A two-channel square pulse.
 
         Parameters
         ------------
-        G_amp : float
-            Amplitude of the Gaussian envelope.
-        D_amp : float
-            Amplitude of the derivative component, the DRAG-pulse parameter.
+        amp : float
+            Amplitude of the envelope.
         duration : float
             Duration of the pulse in seconds.
-        nr_sigma : int
-            After how many sigma the Gaussian is cut off.
+        ch : str
+            channel of the pulse, must be capable of playing a complex waveform.
         phase : float
             Phase of the pulse in degrees.
         freq_mod :
             Modulation frequency in Hz.
-        ch : str
-            channel of the pulse, must be capable of playing a complex waveform.
+
         """
 
         data = {'name': 'ModSquarePulse', 'pulse_info': [{
-            'wf_func': 'quantify.sequencer.waveforms.square_IQ',
+            'wf_func': 'quantify.sequencer.waveforms.square',
             'amp': amp, 'duration': duration,
             't0': t0,
             'freq_mod': freq_mod,

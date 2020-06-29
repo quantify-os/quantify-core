@@ -44,6 +44,7 @@ def pulsar_assembler_backend(schedule):
             ch = schedule.resources[p['channel']]
             ch.timing_tuples.append((int(t0*ch['sampling_rate']), pulse_id))
 
+            # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
 
                 # the pulsar backend makes use of real-time pulse modulation

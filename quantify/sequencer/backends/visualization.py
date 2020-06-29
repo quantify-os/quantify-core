@@ -175,12 +175,12 @@ def pulse_diagram_plotly(schedule,
                     if kw in p.keys():
                         wf_kwargs[kw] = p[kw]
                 # Calculate the numerical waveform using the wf_func
-                wfs = wf_func(t=t, **wf_kwargs)
+                wf = wf_func(t=t, **wf_kwargs)
 
                 # optionally adds some modulation
                 if modulation and 'freq_mod' in p.keys():
                     # apply modulation to the waveforms
-                    wfs = modulate_wave(t, wfs[0], wfs[1], p['freq_mod'])
+                    wf = modulate_wave(t, wf, p['freq_mod'])
 
                 ch = p['channel']
                 # If channel does not exist yet and using auto map, add it.
@@ -197,9 +197,13 @@ def pulse_diagram_plotly(schedule,
                     for i in range(2):
                         showlegend = (i == 0)
                         label = op['name']
-                        fig.add_trace(go.Scatter(x=t, y=wfs[i], mode='lines', name=label, legendgroup=pls_idx,
+                        fig.add_trace(go.Scatter(x=t, y=wf.real, mode='lines', name=label, legendgroup=pls_idx,
                                                  showlegend=showlegend,
                                                  line_color=colors[col_idx]),
+                                      row=ch_map[ch]+1, col=1)
+                        fig.add_trace(go.Scatter(x=t, y=wf.imag, mode='lines', name=label, legendgroup=pls_idx,
+                                                 showlegend=showlegend,
+                                                 line_color='lightgrey'),
                                       row=ch_map[ch]+1, col=1)
 
     for r in range(nr_rows):
