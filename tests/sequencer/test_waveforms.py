@@ -37,7 +37,7 @@ def test_drag():
 
 def test_rotate_wave():
 
-    I = np.ones(10) # Q component is zero
+    I = np.ones(10)  # Q component is zero
     Q = np.zeros(10) # not used as input, only used for testing
 
     rot_wf = rotate_wave(I, 0)

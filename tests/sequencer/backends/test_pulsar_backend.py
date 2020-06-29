@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
-from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
+from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend, sort_timing_tuples
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
 

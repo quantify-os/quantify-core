@@ -8,12 +8,17 @@ from quantify.utilities.general import make_hash, without, import_func_from_stri
 
 def pulsar_assembler_backend(schedule):
     """
-    Create assembly input for a Qblox pulsar module.
+    Create assembly input for multiple Qblox pulsar modules.
 
     Parameters
     ------------
     schedule : :class:`~quantify.sequencer.types.Schedule` :
         The schedule to convert into assembly.
+
+    Returns
+    ----------
+    config_dict : dict
+        a dictionary containing
 
 
     .. note::
@@ -62,46 +67,20 @@ def pulsar_assembler_backend(schedule):
                 ch.pulse_dict[pulse_id] = wf
 
 
+    # Convert timing tuples and pulse dicts for each seqeuncer into assembly configs
+    for ch in schedule.resources.values():
+        if hasattr(ch, 'timing_tuples'):
+            seq_cfg = generate_sequencer_cfg(
+                pulse_info=ch.pulse_dict,
+                pulse_timings=sorted(ch.timing_tuples))
 
-            ch.pulse_dict
+            # TODO: write these seq_cfg to json files
 
-
-
-
-
-
-
-
-
-
-
-
-    # This is the master function that calls the other ones
-
-    # for all operation in schedule.timing_constraints:
-    # add operation to separate lists for each resource
-    # add pulses to pulse_dict per resource (similar to operation dict)
-
-    # for resource in resources:
-    #     sort operation lists
-
-    # Convert the code for each resource to assembly
+            # TODO: configure the settings (modulation freq etc. for each seqeuncer)
 
     # returns a dict of sequencer names as keys with json filenames as values.
     # add bool option to program immediately?
     return {}
-
-def sort_timing_tuples(timing_tuples):
-    """
-    Sorts a list of tuples of the form [(t0, pulse_id), ...] by ascending timestamp.
-    """
-
-    # insert sorting algorithm here.
-
-
-    return timing_tuples
-
-
 
 def build_waveform_dict(pulse_info):
     """
