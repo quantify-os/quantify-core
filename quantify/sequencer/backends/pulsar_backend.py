@@ -50,6 +50,9 @@ def pulsar_assembler_backend(schedule):
     #     sort operation lists
 
     # Convert the code for each resource to assembly
+
+    # returns a dict of sequencer names as keys with json filenames as values.
+    # add bool option to program immediately?
     pass
 
 

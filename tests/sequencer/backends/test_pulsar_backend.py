@@ -37,34 +37,45 @@ def test_prepare_waveforms_for_q1asm():
 
 
 def test_construct_q1asm_pulse_operations():
+
+
+    # Input I want to provide for function 3, contents will change, data types and schema will not.
+    # pulse timings example ID's can change
     pulse_timings = [
-        (0, SquarePulse(amp=1.0, duration=4, ch='ch1')),
-        (4, DRAGPulse(G_amp=.8, D_amp=-.3, phase=24.3, duration=4, freq_mod=15e6, ch='ch1')),
-        (16, SquarePulse(amp=2.0, duration=4, ch='ch1')),
+        (0, 'square_id'),
+        (4, 'drag_ID'),
+        (16, 'drag_ID5'),
+        (20, 'square_id')
     ]
 
 
-    # current description:
+    # new/intended pulse_darta
+    # pulse_data = {'pulse_id': np.array (complex),
+    #                'square_id': np.ones(20)} # imaginary part is implicitly zero here
+
+
+    # provided pulse_dict:
     pulse_data = {
-        pulse_timings[0][1].hash: {'data': [0, 1, 0], 'index': 0},
-        pulse_timings[1][1].hash: {'data': [-1, 0, -1], 'index': 1},
-        pulse_timings[2][1].hash: {'data': [-1, 1, -1], 'index': 2}
-    }
-    # intended description:
-
-    # pulse_data_us = {'pulse_id': {'data': np.array (complex)}
-
-
-    # pulse_data_hardware = {'pulse_id_I': {'data': np.array, 'index': int,
-    #                        'pulse_id_Q': {'data': np.array, 'index': int}
+        'square_id': np.ones(8),
+        'drag_ID':   some_np_complex_array,
+        'drag_ID5': np.ones(5)}
 
 
 
-
+    # function 1
+    # take pulse_data and turn it into the pulse_data required for the json spec (now same name, confusing)
+    # function 2
+    # loop over the timing tuples, being aware of the pulse_data for hardware config to get indices and produce valid assembly
+    # function 3
+    # combine function 1 and 2.
 
     program_str = construct_q1asm_pulse_operations(pulse_timings, pulse_data)
+    # program_str should be a valid JSON containing both the pulse data and the assembly program.
+
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_construct_q1asm_pulse_operations'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
+
+
 
 
 def test_generate_sequencer_cfg():
