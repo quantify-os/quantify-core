@@ -90,6 +90,25 @@ def test_bad_pulse_timings():
                 r'duration of 4ns necessitating a wait of duration 2ns.*must be at least 4ns')
 
 
+def test_overflowing_instruction_times():
+    real = np.random.random(129380)
+    pulse_timings = [
+        (0, 'square_ID')
+    ]
+    pulse_data = {
+        'square_ID_I': {'data': real, 'index': 0},
+        'square_ID_Q': {'data': np.zeros(len(real)), 'index': 1}
+    }
+    program_str = build_q1asm(pulse_timings, pulse_data, len(real))
+    with open(pathlib.Path(__file__).parent.joinpath('ref_test_large_plays_q1asm'), 'rb') as f:
+        assert program_str.encode('utf-8') == f.read()
+
+    pulse_timings.append((229380 + pow(2, 16), 'square_ID'))
+    program_str = build_q1asm(pulse_timings, pulse_data, 524296)
+    with open(pathlib.Path(__file__).parent.joinpath('ref_test_large_waits_q1asm'), 'rb') as f:
+        assert program_str.encode('utf-8') == f.read()
+
+
 def test_build_q1asm():
     real = np.random.random(4)
     complex_vals = real + (np.random.random(4) * 1.0j)

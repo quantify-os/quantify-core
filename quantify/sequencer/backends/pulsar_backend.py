@@ -5,13 +5,56 @@ import logging
 from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
 from qcodes import Instrument
-from collections import Counter
 import numpy as np
 from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
 INSTRUCTION_CLOCK_TIME = 4  # 250MHz processor
+INSTRUCTION_MAX_TIME = pow(2, 16) - 1  # 16 bit val
+
+
+class Q1ASMBuilder:
+    WAVEFORM_IDX_SIZE = pow(2, 10) -1
+
+    def __init__(self):
+        self.rows = []
+
+    def get_str(self):
+        return columnar(self.rows, no_borders=True)
+
+    def check_wave_idx(self, idx):
+        if idx > self.WAVEFORM_IDX_SIZE:
+            raise ValueError()
+        return idx
+
+    def check_playtime(self, duration):
+        if duration < INSTRUCTION_CLOCK_TIME:
+            raise ValueError()
+        split = []
+        while duration > INSTRUCTION_MAX_TIME:
+            split.append(INSTRUCTION_MAX_TIME)
+            duration -= INSTRUCTION_MAX_TIME
+        split.append(duration)
+        return split
+
+    def play(self, label, I_idx, Q_idx, playtime, comment):
+        self.check_wave_idx(I_idx)
+        self.check_wave_idx(Q_idx)
+        for duration in self.check_playtime(playtime):
+            args = '{},{},{}'.format(I_idx, Q_idx, duration)
+            row = [label if label else '', 'play', args, comment]
+            label = None
+            self.rows.append(row)
+
+    def wait(self, label, playtime, comment):
+        for duration in self.check_playtime(playtime):
+            row = [label if label else '', 'wait', duration, comment]
+            label = None
+            self.rows.append(row)
+
+    def jmp(self, label, target, comment):
+        self.rows.append([label if label else '', 'jmp', '@{}'.format(target), comment])
 
 
 def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
@@ -166,6 +209,7 @@ def configure_pulsar_sequencers(config_dict: dict):
                 logging.warning(
                     'Not Implemented, awaiting driver for more than one seqeuncer')
 
+
 def build_waveform_dict(pulse_info):
     """
     Allocates numerical pulse representation to indices and formats for sequencer JSON.
@@ -201,6 +245,15 @@ def check_pulse_long_enough(duration):
     return duration >= INSTRUCTION_CLOCK_TIME
 
 
+def split_duration(duration):
+    split = []
+    while duration > INSTRUCTION_MAX_TIME:
+        split.append(INSTRUCTION_MAX_TIME)
+        duration -= INSTRUCTION_MAX_TIME
+    split.append(duration)
+    return split
+
+
 def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
     """
     Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
@@ -229,8 +282,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         return start_time + runtime
 
     rows = []
-    rows.append(['start:', 'move', '{},R0'.format(
-        len(pulse_dict)), '#Waveform count register'])
+    rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
 
     if timing_tuples and get_pulse_finish_time(-1) > sequence_duration:
         raise ValueError("Provided sequence_duration '{}' is less than the total runtime of this sequence ({})."
@@ -238,7 +290,6 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
 
     previous = None  # previous pulse
     clock = 0  # current execution time
-    labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
     for timing, pulse_id in timing_tuples:
         # check each operation has the minimum required timing
         if previous and not check_pulse_long_enough(timing - previous[0]):
@@ -257,31 +308,20 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
                                  "(must be at least {} ns)."
                                  .format(previous[1], pulse_id, previous[0], timing, pulse_id, previous_duration,
                                          wait_duration, INSTRUCTION_CLOCK_TIME))
-
-            # FIXME: split the wait instruction here
-            # print('*'*80)
-            # while wait_duration > 65535:
-            #     rows.append(['', 'wait', '{}'.format(65500), '#Wait'])
-            #     wait_duration -= 65500
-            #     print(wait_duration)
-            # print('*'*80)
-
-            rows.append(['', 'wait', '{}'.format(wait_duration), '#Wait'])
+            for duration in split_duration(wait_duration):
+                rows.append(['', 'wait', duration, '#Wait'])
 
         I = pulse_dict["{}_I".format(pulse_id)]['index']
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
-
         rows.append(['', '', '', ''])
-        label = '{}_{}'.format(pulse_id, labels[pulse_id])
-        labels.update([pulse_id])
 
         duration = get_pulse_runtime(pulse_id)  # duration in nanoseconds, QCM sample rate is 1Gsps
-        # ensure pulse runs for at least the minimum time
-        if not check_pulse_long_enough(duration):
-            raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {} ns)"
-                             .format(pulse_id, timing, INSTRUCTION_CLOCK_TIME))
-        rows.append([' '*20, 'play', '{},{},{}'.format(
-            I, Q, duration), '#Play {}'.format(pulse_id)])
+        for split in split_duration(duration):
+            # ensure pulse runs for at least the minimum time
+            if not check_pulse_long_enough(split):
+                raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {} ns)"
+                                 .format(pulse_id, timing, INSTRUCTION_CLOCK_TIME))
+            rows.append(['', 'play', '{},{},{}'.format(I, Q, split), '#Play {}'.format(pulse_id)])
 
         previous = (timing, pulse_id)
         clock += duration + wait_duration
@@ -289,14 +329,14 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
     # check if we must wait to sync up with fellow sequencers
     final_wait = sequence_duration - clock
     if final_wait > 0:
-        if not check_pulse_long_enough(final_wait):
-            finish_time = get_pulse_finish_time(-1)
-            raise ValueError("Insufficient sync time of '{}' (must be at least {}ns)"
-                             .format(finish_time - sequence_duration, INSTRUCTION_CLOCK_TIME))
-        rows.append(['', 'wait', '{}'.format(final_wait), '#Sync with other sequencers'])
+        for split in split_duration(final_wait):
+            if not check_pulse_long_enough(split):
+                finish_time = get_pulse_finish_time(-1)
+                raise ValueError("Insufficient sync time of '{}' (must be at least {}ns)"
+                                 .format(finish_time - sequence_duration, INSTRUCTION_CLOCK_TIME))
+            rows.append(['', 'wait', '{}'.format(split), '#Sync with other sequencers'])
 
     rows.append(['', 'jmp', '@start', '#Loop back to start'])
-
     table = columnar(rows, no_borders=True)
     return table
 
