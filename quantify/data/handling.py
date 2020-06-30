@@ -46,7 +46,11 @@ def gen_tuid(ts=None):
 
 
 def get_datadir():
-    """Returns the current data directory."""
+    """
+    Returns the current data directory.
+
+    The data directory can be changed using :func:`~quantify.data.handling.set_datadir`
+    """
 
     if this._datadir is None:
         this._datadir = this._default_datadir
