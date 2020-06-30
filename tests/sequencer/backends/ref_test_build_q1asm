@@ -1,0 +1,10 @@
+          
+  start:        move   4,R0    #Waveform count register  
+                                                         
+  square_id_0:  play   0,1,4   #Play square_id           
+                                                         
+  drag_ID_0:    play   2,3,4   #Play drag_ID             
+                wait   8       #Wait                     
+                                                         
+  square_id_1:  play   0,1,4   #Play square_id           
+                jmp    @start  #Loop back to start       

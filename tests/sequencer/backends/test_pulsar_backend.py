@@ -77,20 +77,20 @@ def test_bad_pulse_timings():
     }
 
     with pytest.raises(ValueError) as e:
-        build_q1asm(too_close_pulse_timings, dummy_pulse_data)
+        build_q1asm(too_close_pulse_timings, dummy_pulse_data, too_close_pulse_timings[-1][0] + 4)
         e.match(r'Timings.*0.*2.*too close.*must be at least 4ns')
 
     with pytest.raises(ValueError) as e:
-        build_q1asm(short_pulse_timings, dummy_pulse_data)
+        build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4)
         e.match(r'Pulse.*drag_ID.*at timing.*0.*is too short.*must be at least 4ns')
 
     with pytest.raises(ValueError) as e:
-        build_q1asm(short_wait_timings, dummy_pulse_data)
+        build_q1asm(short_wait_timings, dummy_pulse_data, short_wait_timings[-1][0] + 4)
         e.match(r'Insufficient wait period between pulses.*square_ID.*and.*square_ID.*timings.*0.*6.*square_ID.*'
                 r'duration of 4ns necessitating a wait of duration 2ns.*must be at least 4ns')
 
-@pytest.mark.skip('no reason')
-def test_construct_q1asm_pulse_operations():
+
+def test_build_q1asm():
     real = np.random.random(4)
     complex_vals = real + (np.random.random(4) * 1.0j)
 
@@ -107,10 +107,26 @@ def test_construct_q1asm_pulse_operations():
         'drag_ID_Q': {'data': complex_vals.imag, 'index': 3}
     }
 
-    program_str = build_q1asm(pulse_timings, pulse_data)
-    # program_str should be a valid JSON containing both the pulse data and the assembly program.
-    with open(pathlib.Path(__file__).parent.joinpath('ref_test_construct_q1asm_pulse_operations'), 'rb') as f:
+    program_str = build_q1asm(pulse_timings, pulse_data, 20)
+    with open(pathlib.Path(__file__).parent.joinpath('ref_test_build_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
+
+    program_str_sync = build_q1asm(pulse_timings, pulse_data, 30)
+    with open(pathlib.Path(__file__).parent.joinpath('ref_test_build_q1asm_sync'), 'rb') as f:
+        assert program_str_sync.encode('utf-8') == f.read()
+
+    with pytest.raises(ValueError) as e:
+        build_q1asm(pulse_timings, pulse_data, 4)
+        e.match(r'Provided sequence_duration 4 is less than the total runtime of this sequence (20).')
+
+    # sequence_duration greater than final timing but less than total runtime
+    with pytest.raises(ValueError) as e:
+        build_q1asm(pulse_timings, pulse_data, 18)
+        e.match(r'Provided sequence_duration 18 is less than the total runtime of this sequence (20).')
+
+    with pytest.raises(ValueError) as e:
+        build_q1asm(pulse_timings, pulse_data, 22)
+        e.match(r'Insufficient sync period between final timing.*16.*and sequence_duration.*22.*must be at least 4ns')
 
 
 def test_generate_sequencer_cfg():
@@ -132,7 +148,7 @@ def test_generate_sequencer_cfg():
         assert exp_idx == entry['index']
         np.testing.assert_array_equal(exp_data, entry['data'])
 
-    sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings)
+    sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings, 20)
     check_waveform(sequence_cfg['waveforms']["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
     check_waveform(sequence_cfg['waveforms']["square_1_Q"], np.zeros(4), 1)
     check_waveform(sequence_cfg['waveforms']["drag_1_I"], complex_vals.real, 2)

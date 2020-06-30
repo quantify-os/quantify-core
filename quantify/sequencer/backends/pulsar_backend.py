@@ -97,13 +97,23 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     seq_folder = os.path.join(exp_folder, 'schedule')
     os.makedirs(seq_folder, exist_ok=True)
 
+    # Find the longest running schedule (other sequences must wait before repeating to stay in sync)
+    # todo shame to sort the timing_tuples again here
+    max_sequence_duration = 0
+    for resource in schedule.resources.values():
+        if hasattr(resource, 'timing_tuples') and resource.timing_tuples:
+            final_pulse = sorted(resource.timing_tuples)[-1]
+            final_timing = final_pulse[0] + len(resource.pulse_dict[final_pulse[1]])
+            max_sequence_duration = final_timing if final_timing > max_sequence_duration else max_sequence_duration
+
     # Convert timing tuples and pulse dicts for each seqeuncer into assembly configs
     config_dict = {}
     for resource in schedule.resources.values():
         if hasattr(resource, 'timing_tuples'):
             seq_cfg = generate_sequencer_cfg(
                 pulse_info=resource.pulse_dict,
-                timing_tuples=sorted(resource.timing_tuples))
+                timing_tuples=sorted(resource.timing_tuples),
+                sequence_duration=max_sequence_duration)
             seq_cfg['instr_cfg'] = resource.data
 
             seq_fn = os.path.join(
@@ -192,7 +202,7 @@ def check_pulse_long_enough(duration):
     return duration >= INSTRUCTION_CLOCK_TIME
 
 
-def build_q1asm(timing_tuples, pulse_dict):
+def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
     """
     Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
 
@@ -205,13 +215,27 @@ def build_q1asm(timing_tuples, pulse_dict):
     Args:
         timing_tuples (list): A sorted list of tuples matching timings to pulse_IDs.
         pulse_dict (dict): pulse_IDs to numerical waveforms with registered index in waveform memory.
+        sequence_duration (int): maximum runtime of this sequence
 
     Returns:
         A q1asm program in a string.
     """
+
+    def get_pulse_runtime(pulse_id):
+        return len(pulse_dict["{}_I".format(pulse_id)]['data'])
+
+    def get_pulse_finish_time(pulse_idx):
+        start_time = timing_tuples[pulse_idx][0]
+        runtime = get_pulse_runtime(timing_tuples[pulse_idx][1])
+        return start_time + runtime
+
     rows = []
     rows.append(['start:', 'move', '{},R0'.format(
         len(pulse_dict)), '#Waveform count register'])
+
+    if timing_tuples and get_pulse_finish_time(-1) > sequence_duration:
+        raise ValueError("Provided sequence_duration '{}' is less than the total runtime of this sequence ({})."
+                         .format(sequence_duration, get_pulse_finish_time(-1)))
 
     previous = None  # previous pulse
     clock = 0  # current execution time
@@ -228,8 +252,7 @@ def build_q1asm(timing_tuples, pulse_dict):
             # if the previous operation is not contiguous to the current, we must wait for period
             # check this period is at least the minimum time
             if not check_pulse_long_enough(wait_duration):
-                previous_duration = len(
-                    pulse_dict['{}_I'.format(previous[1])]['data'])
+                previous_duration = get_pulse_runtime(previous[1])
                 raise ValueError("Insufficient wait period between pulses '{}' and '{}' with timings '{}' and '{}'."
                                  "{} has a duration of {} ns necessitating a wait of duration {} ns "
                                  "(must be at least {} ns)."
@@ -242,9 +265,9 @@ def build_q1asm(timing_tuples, pulse_dict):
             #     rows.append(['', 'wait', '{}'.format(65500), '#Wait'])
             #     wait_duration -= 65500
             #     print(wait_duration)
+            # print('*'*80)
 
             rows.append(['', 'wait', '{}'.format(wait_duration), '#Wait'])
-            print('*'*80)
 
         I = pulse_dict["{}_I".format(pulse_id)]['index']
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
@@ -252,8 +275,8 @@ def build_q1asm(timing_tuples, pulse_dict):
         rows.append(['', '', '', ''])
         label = '{}_{}'.format(pulse_id, labels[pulse_id])
         labels.update([pulse_id])
-        # duration in nanoseconds, QCM sample rate is 1Gsps
-        duration = len(pulse_dict["{}_I".format(pulse_id)]['data'])
+
+        duration = get_pulse_runtime(pulse_id)  # duration in nanoseconds, QCM sample rate is 1Gsps
         # ensure pulse runs for at least the minimum time
         if not check_pulse_long_enough(duration):
             raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {} ns)"
@@ -262,24 +285,35 @@ def build_q1asm(timing_tuples, pulse_dict):
             I, Q, duration), '#Play {}'.format(pulse_id)])
 
         previous = (timing, pulse_id)
-        clock += duration
+        clock += duration + wait_duration
+
+    # check if we must wait to sync up with fellow sequencers
+    final_wait = sequence_duration - clock
+    if final_wait > 0:
+        if not check_pulse_long_enough(final_wait):
+            finish_time = get_pulse_finish_time(-1)
+            raise ValueError("Insufficient sync time")
+        rows.append(['', 'wait', '{}'.format(final_wait), '#Sync with other sequencers'])
+
+    rows.append(['', 'jmp', '@start', '#Loop back to start'])
 
     table = columnar(rows, no_borders=True)
     return table
 
 
-def generate_sequencer_cfg(pulse_info, timing_tuples):
+def generate_sequencer_cfg(pulse_info, timing_tuples, sequence_duration: int):
     """
     Generate a JSON compatible dictionary for defining a sequencer configuration. Contains a list of waveforms and a
-    program in a q1asm string
+    program in a q1asm string.
 
     Args:
         pulse_info (dict): mapping of pulse IDs to numerical waveforms
         timing_tuples (list): time ordered list of tuples containing the absolute starting time and pulse ID
+        sequence_duration (int): maximum runtime of this sequence
 
     Returns:
         Sequencer configuration
     """
     cfg = build_waveform_dict(pulse_info)
-    cfg['program'] = build_q1asm(timing_tuples, cfg['waveforms'])
+    cfg['program'] = build_q1asm(timing_tuples, cfg['waveforms'], sequence_duration)
     return cfg
