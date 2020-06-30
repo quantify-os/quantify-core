@@ -11,7 +11,6 @@ from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
-
 INSTRUCTION_CLOCK_TIME = 4  # 250MHz processor
 
 
@@ -66,7 +65,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
             # Assumes the channel exists in the resources available to the schedule
             if p['channel'] not in schedule.resources.keys():
-                raise KeyError('Resource "{}" not available in "{}"'.format(p['channel'], schedule))
+                raise KeyError('Resource "{}" not available in "{}"'.format(
+                    p['channel'], schedule))
 
             ch = schedule.resources[p['channel']]
             ch.timing_tuples.append((int(t0*ch['sampling_rate']), pulse_id))
@@ -106,7 +106,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                 timing_tuples=sorted(resource.timing_tuples))
             seq_cfg['instr_cfg'] = resource.data
 
-            seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
+            seq_fn = os.path.join(
+                seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
             with open(seq_fn, 'w') as f:
                 json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
             config_dict[resource.name] = seq_fn
@@ -120,6 +121,15 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
 
 def configure_pulsar_sequencers(config_dict: dict):
+    """
+    Configures multiple pulsar modules based on a configuration dictionary.
+
+    Parameters
+    ------------
+    config_dict: dict
+        Dictionary with resource_names as keys and filenames of sequencer config json files as values.
+    """
+
     for resource, config_fn in config_dict.items():
         with open(config_fn) as seq_config:
             data = json.load(seq_config)
@@ -128,19 +138,23 @@ def configure_pulsar_sequencers(config_dict: dict):
 
             if instr_cfg['seq_idx'] == 0:
                 # configure settings
-                qcm.set('sequencer{}_mod_enable'.format(instr_cfg['seq_idx']), instr_cfg['mod_enable'])
-                qcm.set('sequencer{}_nco_freq'.format(instr_cfg['seq_idx']), instr_cfg['nco_freq'])
-                qcm.set('sequencer{}_cont_mode_en'.format(instr_cfg['seq_idx']), False)
-                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(instr_cfg['seq_idx']), 0)
-                qcm.set('sequencer{}_upsample_rate'.format(instr_cfg['seq_idx']), 0)
-
+                qcm.set('sequencer{}_mod_enable'.format(
+                    instr_cfg['seq_idx']), instr_cfg['mod_enable'])
+                qcm.set('sequencer{}_nco_freq'.format(
+                    instr_cfg['seq_idx']), instr_cfg['nco_freq'])
+                qcm.set('sequencer{}_cont_mode_en'.format(
+                    instr_cfg['seq_idx']), False)
+                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(
+                    instr_cfg['seq_idx']), 0)
+                qcm.set('sequencer{}_upsample_rate'.format(
+                    instr_cfg['seq_idx']), 0)
 
                 # configure sequencer
                 qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),
                         config_fn)
             else:
-                logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
-
+                logging.warning(
+                    'Not Implemented, awaiting driver for more than one seqeuncer')
 
 
 def build_waveform_dict(pulse_info):
@@ -157,12 +171,11 @@ def build_waveform_dict(pulse_info):
     idx_offset = 0
     for idx, (pulse_id, data) in enumerate(pulse_info.items()):
         arr = np.array(data)
-        if np.iscomplex(arr).any():
-            I = arr.real
-            Q = arr.imag
-        else:
-            I = arr
-            Q = np.zeros(len(arr))
+
+        I = arr.real
+        Q = arr.imag
+        # real-valued arrays automatically evaluate to an array of zeros
+
         sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
             "data": I,
             "index": idx + idx_offset
@@ -197,7 +210,8 @@ def build_q1asm(timing_tuples, pulse_dict):
         A q1asm program in a string.
     """
     rows = []
-    rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
+    rows.append(['start:', 'move', '{},R0'.format(
+        len(pulse_dict)), '#Waveform count register'])
 
     previous = None  # previous pulse
     clock = 0  # current execution time
@@ -205,7 +219,7 @@ def build_q1asm(timing_tuples, pulse_dict):
     for timing, pulse_id in timing_tuples:
         # check each operation has the minimum required timing
         if previous and not check_pulse_long_enough(timing - previous[0]):
-            raise ValueError("Timings '{}' and '{}' are too close (must be at least {}ns)"
+            raise ValueError("Timings '{}' and '{}' are too close (must be at least {} ns)"
                              .format(previous[0], timing, INSTRUCTION_CLOCK_TIME))
 
         # check if we must wait before beginning our next section
@@ -214,13 +228,23 @@ def build_q1asm(timing_tuples, pulse_dict):
             # if the previous operation is not contiguous to the current, we must wait for period
             # check this period is at least the minimum time
             if not check_pulse_long_enough(wait_duration):
-                previous_duration = len(pulse_dict['{}_I'.format(previous[1])]['data'])
+                previous_duration = len(
+                    pulse_dict['{}_I'.format(previous[1])]['data'])
                 raise ValueError("Insufficient wait period between pulses '{}' and '{}' with timings '{}' and '{}'."
-                                 "{} has a duration of {}ns necessitating a wait of duration {}ns "
-                                 "(must be at least {}ns)."
+                                 "{} has a duration of {} ns necessitating a wait of duration {} ns "
+                                 "(must be at least {} ns)."
                                  .format(previous[1], pulse_id, previous[0], timing, pulse_id, previous_duration,
                                          wait_duration, INSTRUCTION_CLOCK_TIME))
+
+            # FIXME: split the wait instruction here
+            # print('*'*80)
+            # while wait_duration > 65535:
+            #     rows.append(['', 'wait', '{}'.format(65500), '#Wait'])
+            #     wait_duration -= 65500
+            #     print(wait_duration)
+
             rows.append(['', 'wait', '{}'.format(wait_duration), '#Wait'])
+            print('*'*80)
 
         I = pulse_dict["{}_I".format(pulse_id)]['index']
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
@@ -228,12 +252,15 @@ def build_q1asm(timing_tuples, pulse_dict):
         rows.append(['', '', '', ''])
         label = '{}_{}'.format(pulse_id, labels[pulse_id])
         labels.update([pulse_id])
-        duration = len(pulse_dict["{}_I".format(pulse_id)]['data'])  # duration in nanoseconds, QCM sample rate is 1Gsps
+        # duration in nanoseconds, QCM sample rate is 1Gsps
+        duration = len(pulse_dict["{}_I".format(pulse_id)]['data'])
         # ensure pulse runs for at least the minimum time
         if not check_pulse_long_enough(duration):
-            raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {}ns)"
+            raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {} ns)"
                              .format(pulse_id, timing, INSTRUCTION_CLOCK_TIME))
-        rows.append(['{}:'.format(label), 'play', '{},{},{}'.format(I, Q, duration), '#Play {}'.format(pulse_id)])
+        rows.append([' '*20, 'play', '{},{},{}'.format(
+            I, Q, duration), '#Play {}'.format(pulse_id)])
+
         previous = (timing, pulse_id)
         clock += duration
 

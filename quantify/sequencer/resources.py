@@ -66,7 +66,7 @@ class Pulsar_QCM_sequencer(Resource):
     """
 
     def __init__(self, name: str, instrument_name: str,
-                 seq_idx: int, nco_freq: float = None, mod_enable: bool = False):
+                 seq_idx: int, nco_freq: float = 0, mod_enable: bool = False):
         """
         A channel composed of multiple sub-channels.
 
