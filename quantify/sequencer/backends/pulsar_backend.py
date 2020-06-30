@@ -6,9 +6,12 @@ import numpy as np
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
-def pulsar_assembler_backend(schedule):
+def pulsar_assembler_backend(schedule, tuid=None):
     """
-    Create assembly input for multiple Qblox pulsar modules.
+    Create sequencer configuration files for multiple Qblox pulsar modules.
+
+    Sequencer configuration files contain assembly, a waveform dictionary and the
+    parameters to be configured for every pulsar sequencer.
 
     Parameters
     ------------
