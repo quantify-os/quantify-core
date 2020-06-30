@@ -6,6 +6,9 @@ import numpy as np
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
+INSTRUCTION_CLOCK_TIME = 4  # 250MHz processor
+
+
 def pulsar_assembler_backend(schedule):
     """
     Create assembly input for multiple Qblox pulsar modules.
@@ -115,12 +118,22 @@ def build_waveform_dict(pulse_info):
     return sequencer_cfg
 
 
+def check_pulse_duration(duration):
+    return not duration < INSTRUCTION_CLOCK_TIME
+
+
 def build_q1asm(ordered_operations, pulse_dict):
     """
-    Converts operations and waveforms to a q1asm program.
+    Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
+
+        * Each pulse must run for at least the INSTRUCTION_CLOCK_TIME
+        * Each operation must have a timing separation of at least INSTRUCTION_CLOCK_TIME
+
+    .. warning:
+        The above restrictions apply to any generated WAIT instructions.
 
     Args:
-        ordered_operations (list): Tuples matching timings to pulse_IDs.
+        ordered_operations (list): A sorted list of tuples matching timings to pulse_IDs.
         pulse_dict (dict): pulse_IDs to numerical waveforms with registered index in waveform memory.
 
     Returns:
@@ -129,19 +142,42 @@ def build_q1asm(ordered_operations, pulse_dict):
     rows = []
     rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
 
+    previous = None  # previous pulse
     clock = 0  # current execution time
     labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
     for timing, pulse_id in ordered_operations:
+        # check each operation has the minimum required timing
+        if previous and check_pulse_duration(timing - previous[0]):
+            raise ValueError("Timings '{}' and '{}' are too close (must be at least {}ns)"
+                             .format(previous[0], timing, INSTRUCTION_CLOCK_TIME))
+
+        # check if we must wait before beginning our next section
+        wait_duration = timing - clock
+        if previous and wait_duration > 0:
+            # if the previous operation is not contiguous to the current, we must wait for period
+            # check this period is at least the minimum time
+            if not check_pulse_duration(wait_duration):
+                previous_duration = len(pulse_dict[previous[1]]['data'])
+                raise ValueError("Insufficient wait period between pulses '{}' and '{}' with timings '{}' and '{}'."
+                                 "{} has a duration of {}ns necessitating a wait of duration {}ns "
+                                 "(must be at least {}ns)."
+                                 .format(previous[1], pulse_id, previous[0], timing, pulse_id, previous_duration,
+                                         wait_duration, INSTRUCTION_CLOCK_TIME))
+            rows.append(['', 'wait', '{}'.format(wait_duration), '#Wait'])
+
         I = pulse_dict["{}_I".format(pulse_id)]['index']
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
-        # check if we must wait before beginning our next section
-        if clock < timing:
-            rows.append(['', 'wait', '{}'.format(timing - clock), '#Wait'])
+
         rows.append(['', '', '', ''])
         label = '{}_{}'.format(pulse_id, labels[pulse_id])
         labels.update([pulse_id])
         duration = len(pulse_dict["{}_I".format(pulse_id)]['data'])  # duration in nanoseconds, QCM sample rate is 1Gsps
+        # ensure pulse runs for at least the minimum time
+        if not check_pulse_duration(duration):
+            raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {}ns)"
+                             .format(pulse_id, timing, INSTRUCTION_CLOCK_TIME))
         rows.append(['{}:'.format(label), 'play', '{},{},{}'.format(I, Q, duration), '#Play {}'.format(pulse_id)])
+        previous = (timing, pulse_id)
         clock += duration
 
     table = columnar(rows, no_borders=True)

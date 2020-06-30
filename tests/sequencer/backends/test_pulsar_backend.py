@@ -45,9 +45,41 @@ def test_build_waveform_dict():
     assert wf_4['index'] == 3
 
 
-@pytest.mark.skip('Not Implemented')
 def test_bad_pulse_timings():
-    raise NotImplemented('yet')
+    too_close_pulse_timings = [
+        (0, 'square_id'),
+        (2, 'drag_ID')
+    ]
+
+    short_pulse_timings = [
+        (0, 'drag_ID'),
+        (4, 'square_id')
+    ]
+
+    short_wait_timings = [
+        (0, 'square_id'),
+        (6, 'square_id')
+    ]
+
+    dummy_pulse_data = {
+        'square_id_I': {'data': np.ones(4), 'index': 0},
+        'square_id_Q': {'data': np.zeros(4), 'index': 1},
+        'drag_ID_I': {'data': np.ones(2), 'index': 2},
+        'drag_ID_Q': {'data': np.ones(2), 'index': 3}
+    }
+
+    with pytest.raises(ValueError) as e:
+        build_q1asm(too_close_pulse_timings, dummy_pulse_data)
+        e.match(r'Timings.*0.*2.*too close.*must be at least 4ns')
+
+    with pytest.raises(ValueError) as e:
+        build_q1asm(short_pulse_timings, dummy_pulse_data)
+        e.match(r'Pulse.*drag_ID.*at timing.*0.*is too short.*must be at least 4ns')
+
+    with pytest.raises(ValueError) as e:
+        build_q1asm(short_wait_timings, dummy_pulse_data)
+        e.match(r'Insufficient wait period between pulses.*square_ID.*and.*square_ID.*timings.*0.*6.*square_ID.*'
+                r'duration of 4ns necessitating a wait of duration 2ns.*must be at least 4ns')
 
 
 def test_construct_q1asm_pulse_operations():
