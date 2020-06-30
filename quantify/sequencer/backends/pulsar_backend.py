@@ -166,7 +166,6 @@ def configure_pulsar_sequencers(config_dict: dict):
                 logging.warning(
                     'Not Implemented, awaiting driver for more than one seqeuncer')
 
-
 def build_waveform_dict(pulse_info):
     """
     Allocates numerical pulse representation to indices and formats for sequencer JSON.
@@ -292,7 +291,8 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
     if final_wait > 0:
         if not check_pulse_long_enough(final_wait):
             finish_time = get_pulse_finish_time(-1)
-            raise ValueError("Insufficient sync time")
+            raise ValueError("Insufficient sync time of '{}' (must be at least {}ns)"
+                             .format(finish_time - sequence_duration, INSTRUCTION_CLOCK_TIME))
         rows.append(['', 'wait', '{}'.format(final_wait), '#Sync with other sequencers'])
 
     rows.append(['', 'jmp', '@start', '#Loop back to start'])
