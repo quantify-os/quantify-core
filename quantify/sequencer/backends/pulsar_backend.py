@@ -102,7 +102,7 @@ def pulsar_assembler_backend(schedule, tuid=None, program_sequencers=False):
         if hasattr(resource, 'timing_tuples'):
             seq_cfg = generate_sequencer_cfg(
                 pulse_info=resource.pulse_dict,
-                pulse_timings=sorted(resource.timing_tuples))
+                timing_tuples=sorted(resource.timing_tuples))
             seq_cfg['instr_cfg'] = resource.data
 
             seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
@@ -154,7 +154,7 @@ def check_pulse_long_enough(duration):
     return duration >= INSTRUCTION_CLOCK_TIME
 
 
-def build_q1asm(ordered_operations, pulse_dict):
+def build_q1asm(timing_tuples, pulse_dict, sequence_duration: int):
     """
     Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
 
@@ -165,7 +165,7 @@ def build_q1asm(ordered_operations, pulse_dict):
         The above restrictions apply to any generated WAIT instructions.
 
     Args:
-        ordered_operations (list): A sorted list of tuples matching timings to pulse_IDs.
+        timing_tuples (list): A sorted list of tuples matching timings to pulse_IDs.
         pulse_dict (dict): pulse_IDs to numerical waveforms with registered index in waveform memory.
 
     Returns:
@@ -177,7 +177,7 @@ def build_q1asm(ordered_operations, pulse_dict):
     previous = None  # previous pulse
     clock = 0  # current execution time
     labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
-    for timing, pulse_id in ordered_operations:
+    for timing, pulse_id in timing_tuples:
         # check each operation has the minimum required timing
         if previous and not check_pulse_long_enough(timing - previous[0]):
             raise ValueError("Timings '{}' and '{}' are too close (must be at least {}ns)"
@@ -216,18 +216,18 @@ def build_q1asm(ordered_operations, pulse_dict):
     return table
 
 
-def generate_sequencer_cfg(pulse_info, pulse_timings):
+def generate_sequencer_cfg(pulse_info, timing_tuples):
     """
     Generate a JSON compatible dictionary for defining a sequencer configuration. Contains a list of waveforms and a
     program in a q1asm string
 
     Args:
         pulse_info (dict): mapping of pulse IDs to numerical waveforms
-        pulse_timings (list): time ordered list of tuples containing the absolute starting time and pulse ID
+        timing_tuples (list): time ordered list of tuples containing the absolute starting time and pulse ID
 
     Returns:
         Sequencer configuration
     """
     cfg = build_waveform_dict(pulse_info)
-    cfg['program'] = build_q1asm(pulse_timings, cfg['waveforms'])
+    cfg['program'] = build_q1asm(timing_tuples, cfg['waveforms'])
     return cfg
