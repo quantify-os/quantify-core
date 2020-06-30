@@ -244,6 +244,8 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration: int):
             raise ValueError("Insufficient sync time")
         rows.append(['', 'wait', '{}'.format(final_wait), '#Sync with other sequencers'])
 
+    rows.append(['', 'jmp', '@start', '#Loop back to start'])
+
     table = columnar(rows, no_borders=True)
     return table
 
