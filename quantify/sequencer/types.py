@@ -49,6 +49,10 @@ class Schedule(UserDict):
             raise NotImplementedError
 
     @property
+    def name(self):
+        return self.data['name']
+
+    @property
     def operations(self):
         """
         Operation dictionary, keys are the has of operations values are instances of :class:`Operation`.

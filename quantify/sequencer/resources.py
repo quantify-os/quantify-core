@@ -17,7 +17,6 @@ class QubitResource(Resource):
         self.data = {'name': name,
                      'type': str(self.__class__.__name__)}
 
-
 class CompositeResource(Resource):
     """
     A channel composed of multiple resources.

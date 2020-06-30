@@ -1,8 +1,12 @@
+import os
 import inspect
+import json
 import logging
+from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
 from collections import Counter
 import numpy as np
+from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
@@ -13,10 +17,17 @@ def pulsar_assembler_backend(schedule, tuid=None):
     Sequencer configuration files contain assembly, a waveform dictionary and the
     parameters to be configured for every pulsar sequencer.
 
+    The sequencer configuration files are stored in the quantify datadir (see :func:`~quantify.data.handling.get_datadir`)
+
+
     Parameters
     ------------
     schedule : :class:`~quantify.sequencer.types.Schedule` :
         The schedule to convert into assembly.
+
+    tuid : :class:`~quantify.data.types.TUID` :
+        a tuid of the experiment the schedule belongs to. If set to None, a new TUID will be generated to store
+        the sequencer configuration files.
 
     Returns
     ----------
@@ -69,21 +80,32 @@ def pulsar_assembler_backend(schedule, tuid=None):
                 wf = wf_func(t=t, **wf_kwargs)
                 ch.pulse_dict[pulse_id] = wf
 
+    # Creating the files
+    if tuid is None:
+        tuid = gen_tuid()
+    # Should use the folder of the matching file if tuid already exists
+    exp_folder = create_exp_folder(tuid=tuid, name=schedule.name+'_schedule')
+    seq_folder = os.path.join(exp_folder, 'schedule')
+    os.makedirs(seq_folder, exist_ok=True)
 
     # Convert timing tuples and pulse dicts for each seqeuncer into assembly configs
+    config_dict = {}
     for ch in schedule.resources.values():
         if hasattr(ch, 'timing_tuples'):
             seq_cfg = generate_sequencer_cfg(
                 pulse_info=ch.pulse_dict,
                 pulse_timings=sorted(ch.timing_tuples))
+            seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(ch.name))
+            with open(seq_fn, 'w') as f:
+                json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
+            config_dict[ch.name] = seq_fn
 
-            # TODO: write these seq_cfg to json files
 
             # TODO: configure the settings (modulation freq etc. for each seqeuncer)
 
     # returns a dict of sequencer names as keys with json filenames as values.
     # add bool option to program immediately?
-    return {}
+    return config_dict
 
 
 def build_waveform_dict(pulse_info):
