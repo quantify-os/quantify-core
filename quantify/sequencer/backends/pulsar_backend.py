@@ -4,6 +4,7 @@ import json
 import logging
 from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
+from qcodes import Instrument
 from collections import Counter
 import numpy as np
 from quantify.data.handling import gen_tuid, create_exp_folder
@@ -14,7 +15,7 @@ from quantify.utilities.general import make_hash, without, import_func_from_stri
 INSTRUCTION_CLOCK_TIME = 4  # 250MHz processor
 
 
-def pulsar_assembler_backend(schedule, tuid=None, program_sequencers=False):
+def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     """
     Create sequencer configuration files for multiple Qblox pulsar modules.
 
@@ -33,7 +34,7 @@ def pulsar_assembler_backend(schedule, tuid=None, program_sequencers=False):
         a tuid of the experiment the schedule belongs to. If set to None, a new TUID will be generated to store
         the sequencer configuration files.
 
-    program_sequencers : bool
+    configure_hardware : bool
         if True will configure the hardware to run the specified schedule.
 
     Returns
@@ -110,12 +111,36 @@ def pulsar_assembler_backend(schedule, tuid=None, program_sequencers=False):
                 json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
             config_dict[resource.name] = seq_fn
 
-    if program_sequencers:
-        raise NotImplementedError
+    if configure_hardware:
+        configure_pulsar_sequencers(config_dict)
 
     # returns a dict of sequencer names as keys with json filenames as values.
     # add bool option to program immediately?
     return config_dict
+
+
+def configure_pulsar_sequencers(config_dict: dict):
+    for resource, config_fn in config_dict.items():
+        with open(config_fn) as seq_config:
+            data = json.load(seq_config)
+            instr_cfg = data['instr_cfg']
+            qcm = Instrument.find_instrument(instr_cfg['instrument_name'])
+
+            if instr_cfg['seq_idx'] == 0:
+                # configure settings
+                qcm.set('sequencer{}_mod_enable'.format(instr_cfg['seq_idx']), instr_cfg['mod_enable'])
+                qcm.set('sequencer{}_nco_freq'.format(instr_cfg['seq_idx']), instr_cfg['nco_freq'])
+                qcm.set('sequencer{}_cont_mode_en'.format(instr_cfg['seq_idx']), False)
+                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(instr_cfg['seq_idx']), 0)
+                qcm.set('sequencer{}_upsample_rate'.format(instr_cfg['seq_idx']), 0)
+
+
+                # configure sequencer
+                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),
+                        config_fn)
+            else:
+                logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
+
 
 
 def build_waveform_dict(pulse_info):
@@ -154,7 +179,7 @@ def check_pulse_long_enough(duration):
     return duration >= INSTRUCTION_CLOCK_TIME
 
 
-def build_q1asm(timing_tuples, pulse_dict, sequence_duration: int):
+def build_q1asm(timing_tuples, pulse_dict):
     """
     Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
 
