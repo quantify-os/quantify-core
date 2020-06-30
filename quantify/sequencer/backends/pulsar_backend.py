@@ -82,6 +82,7 @@ def pulsar_assembler_backend(schedule):
     # add bool option to program immediately?
     return {}
 
+
 def build_waveform_dict(pulse_info):
     """
     Allocates numerical pulse representation to indices and formats for sequencer JSON.
@@ -115,6 +116,16 @@ def build_waveform_dict(pulse_info):
 
 
 def build_q1asm(ordered_operations, pulse_dict):
+    """
+    Converts operations and waveforms to a q1asm program.
+
+    Args:
+        ordered_operations (list): Tuples matching timings to pulse_IDs.
+        pulse_dict (dict): pulse_IDs to numerical waveforms with registered index in waveform memory.
+
+    Returns:
+        A q1asm program in a string.
+    """
     rows = []
     rows.append(['start:', 'move', '{},R0'.format(len(pulse_dict)), '#Waveform count register'])
 

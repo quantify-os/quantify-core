@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
-from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend, sort_timing_tuples
+from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
 
@@ -44,7 +44,12 @@ def test_build_waveform_dict():
     np.testing.assert_array_equal(wf_4['data'], np.zeros(len(wf_4['data'])))
     assert wf_4['index'] == 3
 
-@pytest.mark.skip('none')
+
+@pytest.mark.skip('Not Implemented')
+def test_bad_pulse_timings():
+    raise NotImplemented('yet')
+
+
 def test_construct_q1asm_pulse_operations():
     real = np.random.random(4)
     complex_vals = real + (np.random.random(4) * 1.0j)
@@ -56,27 +61,11 @@ def test_construct_q1asm_pulse_operations():
     ]
 
     pulse_data = {
-        'square_id': np.ones(8),
-        # 'drag_ID':   some_np_complex_array,
-        'drag_ID5': np.ones(5)}
-
-    # function 1
-    # take pulse_data and turn it into the pulse_data required for the json spec (now same name, confusing)
-    # function 2
-    # loop over the timing tuples, being aware of the pulse_data for hardware config to get indices and produce valid assembly
-
-    # this loop over timing tuples consisint of (t0, pulse_id) needs to specify two waveforms
-    pulse_dict_hardware = {
-        'pulse_id': 'square_id_I',  'data': np.ones(5), 'index': 0,
-        'pulse_id': 'square_id_Q',  'data': np.zeros(5), 'index': 1,
-        'pulse_id': 'drag_I',  'data': np.random.rand(5), 'index': 2,
-        'pulse_id': 'drag_Q',  'data': np.random.rand(5), 'index': 3, }
-
-    # function 3
-    # combine function 1 and 2.
-
-    program_str = construct_q1asm_pulse_operations(pulse_timings, pulse_data)
-    # program_str should be a valid JSON containing both the pulse data and the assembly program.
+        'square_id_I': {'data': real, 'index': 0},
+        'square_id_Q': {'data': np.zeros(len(real)), 'index': 1},
+        'drag_ID_I': {'data': complex_vals.real, 'index': 2},
+        'drag_ID_Q': {'data': complex_vals.imag, 'index': 3}
+    }
 
     program_str = build_q1asm(pulse_timings, pulse_data)
     # program_str should be a valid JSON containing both the pulse data and the assembly program.
@@ -112,10 +101,12 @@ def test_generate_sequencer_cfg():
     check_waveform(sequence_cfg['waveforms']["square_2_Q"], np.zeros(4), 5)
     assert len(sequence_cfg['program'])
 
+
 @pytest.mark.skip('Not Implemented')
 def test_pulsar_assembler_backend_missing_pulse_info():
     # should raise an exception
     pass
+
 
 @pytest.mark.skip('Not Implemented')
 def test_pulsar_assembler_backend_missing_timing_info():
