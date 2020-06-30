@@ -118,8 +118,8 @@ def build_waveform_dict(pulse_info):
     return sequencer_cfg
 
 
-def check_pulse_duration(duration):
-    return not duration < INSTRUCTION_CLOCK_TIME
+def check_pulse_long_enough(duration):
+    return duration >= INSTRUCTION_CLOCK_TIME
 
 
 def build_q1asm(ordered_operations, pulse_dict):
@@ -147,7 +147,7 @@ def build_q1asm(ordered_operations, pulse_dict):
     labels = Counter()  # for unique labels, suffixed with a count in the case of repeats
     for timing, pulse_id in ordered_operations:
         # check each operation has the minimum required timing
-        if previous and check_pulse_duration(timing - previous[0]):
+        if previous and not check_pulse_long_enough(timing - previous[0]):
             raise ValueError("Timings '{}' and '{}' are too close (must be at least {}ns)"
                              .format(previous[0], timing, INSTRUCTION_CLOCK_TIME))
 
@@ -156,8 +156,8 @@ def build_q1asm(ordered_operations, pulse_dict):
         if previous and wait_duration > 0:
             # if the previous operation is not contiguous to the current, we must wait for period
             # check this period is at least the minimum time
-            if not check_pulse_duration(wait_duration):
-                previous_duration = len(pulse_dict[previous[1]]['data'])
+            if not check_pulse_long_enough(wait_duration):
+                previous_duration = len(pulse_dict['{}_I'.format(previous[1])]['data'])
                 raise ValueError("Insufficient wait period between pulses '{}' and '{}' with timings '{}' and '{}'."
                                  "{} has a duration of {}ns necessitating a wait of duration {}ns "
                                  "(must be at least {}ns)."
@@ -173,7 +173,7 @@ def build_q1asm(ordered_operations, pulse_dict):
         labels.update([pulse_id])
         duration = len(pulse_dict["{}_I".format(pulse_id)]['data'])  # duration in nanoseconds, QCM sample rate is 1Gsps
         # ensure pulse runs for at least the minimum time
-        if not check_pulse_duration(duration):
+        if not check_pulse_long_enough(duration):
             raise ValueError("Pulse '{}' at timing '{}' is too short (must be at least {}ns)"
                              .format(pulse_id, timing, INSTRUCTION_CLOCK_TIME))
         rows.append(['{}:'.format(label), 'play', '{},{},{}'.format(I, Q, duration), '#Play {}'.format(pulse_id)])
