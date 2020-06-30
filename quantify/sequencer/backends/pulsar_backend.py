@@ -10,10 +10,11 @@ from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
+
 INSTRUCTION_CLOCK_TIME = 4  # 250MHz processor
 
 
-def pulsar_assembler_backend(schedule, tuid=None):
+def pulsar_assembler_backend(schedule, tuid=None, program_sequencers=False):
     """
     Create sequencer configuration files for multiple Qblox pulsar modules.
 
@@ -31,6 +32,9 @@ def pulsar_assembler_backend(schedule, tuid=None):
     tuid : :class:`~quantify.data.types.TUID` :
         a tuid of the experiment the schedule belongs to. If set to None, a new TUID will be generated to store
         the sequencer configuration files.
+
+    program_sequencers : bool
+        if True will configure the hardware to run the specified schedule.
 
     Returns
     ----------
@@ -68,6 +72,7 @@ def pulsar_assembler_backend(schedule, tuid=None):
 
             # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
+                # TODO: configure the settings (modulation freq etc. for each seqeuncer)
 
                 # the pulsar backend makes use of real-time pulse modulation
                 t = np.arange(0, 0+p['duration'], 1/ch['sampling_rate'])
@@ -105,7 +110,8 @@ def pulsar_assembler_backend(schedule, tuid=None):
                 json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
             config_dict[resource.name] = seq_fn
 
-            # TODO: configure the settings (modulation freq etc. for each seqeuncer)
+    if program_sequencers:
+        raise NotImplementedError
 
     # returns a dict of sequencer names as keys with json filenames as values.
     # add bool option to program immediately?
