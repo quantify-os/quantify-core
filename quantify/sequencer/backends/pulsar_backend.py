@@ -90,16 +90,17 @@ def pulsar_assembler_backend(schedule, tuid=None):
 
     # Convert timing tuples and pulse dicts for each seqeuncer into assembly configs
     config_dict = {}
-    for ch in schedule.resources.values():
-        if hasattr(ch, 'timing_tuples'):
+    for resource in schedule.resources.values():
+        if hasattr(resource, 'timing_tuples'):
             seq_cfg = generate_sequencer_cfg(
-                pulse_info=ch.pulse_dict,
-                pulse_timings=sorted(ch.timing_tuples))
-            seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(ch.name))
+                pulse_info=resource.pulse_dict,
+                pulse_timings=sorted(resource.timing_tuples))
+            seq_cfg['instr_cfg'] = resource.data
+
+            seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
             with open(seq_fn, 'w') as f:
                 json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
-            config_dict[ch.name] = seq_fn
-
+            config_dict[resource.name] = seq_fn
 
             # TODO: configure the settings (modulation freq etc. for each seqeuncer)
 
