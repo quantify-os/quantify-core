@@ -77,15 +77,18 @@ def test_bad_pulse_timings():
     }
 
     with pytest.raises(ValueError) as e:
-        build_q1asm(too_close_pulse_timings, dummy_pulse_data, too_close_pulse_timings[-1][0] + 4)
+        build_q1asm(too_close_pulse_timings, dummy_pulse_data,
+                    too_close_pulse_timings[-1][0] + 4)
         e.match(r'Timings.*0.*2.*too close.*must be at least 4ns')
 
     with pytest.raises(ValueError) as e:
-        build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4)
+        build_q1asm(short_pulse_timings, dummy_pulse_data,
+                    short_pulse_timings[-1][0] + 4)
         e.match(r'Pulse.*drag_ID.*at timing.*0.*is too short.*must be at least 4ns')
 
     with pytest.raises(ValueError) as e:
-        build_q1asm(short_wait_timings, dummy_pulse_data, short_wait_timings[-1][0] + 4)
+        build_q1asm(short_wait_timings, dummy_pulse_data,
+                    short_wait_timings[-1][0] + 4)
         e.match(r'Insufficient wait period between pulses.*square_ID.*and.*square_ID.*timings.*0.*6.*square_ID.*'
                 r'duration of 4ns necessitating a wait of duration 2ns.*must be at least 4ns')
 
@@ -136,12 +139,14 @@ def test_build_q1asm():
 
     with pytest.raises(ValueError) as e:
         build_q1asm(pulse_timings, pulse_data, 4)
-        e.match(r'Provided sequence_duration 4 is less than the total runtime of this sequence (20).')
+        e.match(
+            r'Provided sequence_duration 4 is less than the total runtime of this sequence (20).')
 
     # sequence_duration greater than final timing but less than total runtime
     with pytest.raises(ValueError) as e:
         build_q1asm(pulse_timings, pulse_data, 18)
-        e.match(r'Provided sequence_duration 18 is less than the total runtime of this sequence (20).')
+        e.match(
+            r'Provided sequence_duration 18 is less than the total runtime of this sequence (20).')
 
     with pytest.raises(ValueError) as e:
         build_q1asm(pulse_timings, pulse_data, 22)
@@ -168,7 +173,8 @@ def test_generate_sequencer_cfg():
         np.testing.assert_array_equal(exp_data, entry['data'])
 
     sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings, 20)
-    check_waveform(sequence_cfg['waveforms']["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
+    check_waveform(sequence_cfg['waveforms']
+                   ["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
     check_waveform(sequence_cfg['waveforms']["square_1_Q"], np.zeros(4), 1)
     check_waveform(sequence_cfg['waveforms']["drag_1_I"], complex_vals.real, 2)
     check_waveform(sequence_cfg['waveforms']["drag_1_Q"], complex_vals.imag, 3)
@@ -187,109 +193,110 @@ def test_pulsar_assembler_backend_missing_pulse_info():
 def test_pulsar_assembler_backend_missing_timing_info():
     pass
 
-class TestAssemblerBackend:
-    @classmethod
-    def setup_class(cls):
-        if PULSAR_ASSEMBLER:
-            _pulsars = []
-            for qcm_name in ['qcm0', 'qcm1', 'qrm0', 'qrm1']:
-                _pulsars.append(pulsar_qcm_dummy(qcm_name))
-        # ensures the default datadir is used which is excluded from git
-        set_datadir(None)
+
+@pytest.fixture
+def dummy_pulsars():
+    if PULSAR_ASSEMBLER:
+        _pulsars = []
+        for qcm_name in ['qcm0', 'qcm1', 'qrm0', 'qrm1']:
+            _pulsars.append(pulsar_qcm_dummy(qcm_name))
+    else:
+        _pulsars = []
+
+    # ensures the default datadir is used which is excluded from git
+    set_datadir(None)
+    yield _pulsars
+
+    # teardown
+    for instr_name in list(Instrument._all_instruments):
+        try:
+            inst = Instrument.find_instrument(instr_name)
+            inst.close()
+        except KeyError:
+            pass
 
 
-    @classmethod
-    def teardown_class(self):
-        for instr_name in list(Instrument._all_instruments):
-            try:
-                inst = Instrument.find_instrument(instr_name)
-                inst.close()
-            except KeyError:
-                pass
-        set_datadir(None)
+def test_pulsar_assembler_backend(dummy_pulsars):
+    """
+    This test uses a full example of compilation for a simple Bell experiment.
+    This test can be made simpler the more we clean up the code.
+    """
+    # Create an empty schedule
+    sched = Schedule('Bell experiment')
+
+    # define the resources
+    q0, q1 = (QubitResource('q0'), QubitResource('q1'))
+
+    sched.add_resource(q0)
+    sched.add_resource(q1)
+
+    # Define the operations, these will be added to the circuit
+    init_all = Reset(q0.name, q1.name)  # instantiates
+    x90_q0 = Rxy(theta=90, phi=0, qubit=q0.name)
+
+    # we use a regular for loop as we have to unroll the changing theta variable here
+    for theta in np.linspace(0, 360, 21):
+        sched.add(init_all)
+        sched.add(x90_q0)
+        # sched.add(operation=CNOT(qC=q0.name, qT=q1.name))
+        sched.add(Rxy(theta=theta, phi=0, qubit=q0.name))
+        sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
+        sched.add(Measure(q0.name, q1.name),
+                  label='M {:.2f} deg'.format(theta))
+
+    # Add the resources for the pulsar qcm channels
+    qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
+    qcm0_s0 = Pulsar_QCM_sequencer(
+        'qcm0.s0', instrument_name='qcm0', seq_idx=0)
+    qcm0_s1 = Pulsar_QCM_sequencer(
+        'qcm0.s1', instrument_name='qcm0', seq_idx=1)
+
+    qcm1 = CompositeResource('qcm1', ['qcm1.s0', 'qcm1.s1'])
+    qcm1_s0 = Pulsar_QCM_sequencer(
+        'qcm1.s0', instrument_name='qcm1', seq_idx=0)
+    qcm1_s1 = Pulsar_QCM_sequencer(
+        'qcm1.s1', instrument_name='qcm1', seq_idx=1)
+
+    qrm0 = CompositeResource('qrm0', ['qrm0.s0', 'qrm0.s1'])
+    # Currently mocking a readout module using an acquisition module
+    qrm0_s0 = Pulsar_QCM_sequencer(
+        'qrm0.s0', instrument_name='qrm0', seq_idx=0)
+    qrm0_s1 = Pulsar_QCM_sequencer(
+        'qrm0.s1', instrument_name='qrm0', seq_idx=1)
+
+    # using qcm sequencing modules to fake a readout module
+    qrm0_r0 = Pulsar_QCM_sequencer(
+        'qrm0.r0', instrument_name='qrm0', seq_idx=0)
+    qrm0_r1 = Pulsar_QCM_sequencer(
+        'qrm0.r1', instrument_name='qrm0', seq_idx=1)
+
+    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0,
+                         qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
+
+    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
+    sched = determine_absolute_timing(sched)
+
+    print('*'*80)
+    print(Instrument._all_instruments)
+    print('*'*80)
+
+    seq_config_dict = pulsar_assembler_backend(sched,
+                                               configure_hardware=PULSAR_ASSEMBLER)
+
+    assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*2)
+    assert len(qcm0_s0.timing_tuples) == int(21*2)
+    assert len(qcm0_s1.timing_tuples) == 0
+    assert len(qcm1_s0.timing_tuples) == 21
+    assert len(qcm1_s1.timing_tuples) == 0
+
+    # if PULSAR_ASSEMBLER:
+    #     seq_config_dict = pulsar_assembler_backend(sched, program_sequencers=True)
+
+    # assert right keys.
+    # assert right content of the config files.
 
 
+@pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar_qcm assembler to be installed")
+def test_configure_pulsar_sequencers():
 
-    def test_pulsar_assembler_backend(self):
-        """
-        This test uses a full example of compilation for a simple Bell experiment.
-        This test can be made simpler the more we clean up the code.
-        """
-        # Create an empty schedule
-        sched = Schedule('Bell experiment')
-
-        # define the resources
-        q0, q1 = (QubitResource('q0'), QubitResource('q1'))
-
-        sched.add_resource(q0)
-        sched.add_resource(q1)
-
-        # Define the operations, these will be added to the circuit
-        init_all = Reset(q0.name, q1.name)  # instantiates
-        x90_q0 = Rxy(theta=90, phi=0, qubit=q0.name)
-
-        # we use a regular for loop as we have to unroll the changing theta variable here
-        for theta in np.linspace(0, 360, 21):
-            sched.add(init_all)
-            sched.add(x90_q0)
-            # sched.add(operation=CNOT(qC=q0.name, qT=q1.name))
-            sched.add(Rxy(theta=theta, phi=0, qubit=q0.name))
-            sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
-            sched.add(Measure(q0.name, q1.name),
-                      label='M {:.2f} deg'.format(theta))
-
-        # Add the resources for the pulsar qcm channels
-        qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
-        qcm0_s0 = Pulsar_QCM_sequencer(
-            'qcm0.s0', instrument_name='qcm0', seq_idx=0)
-        qcm0_s1 = Pulsar_QCM_sequencer(
-            'qcm0.s1', instrument_name='qcm0', seq_idx=1)
-
-        qcm1 = CompositeResource('qcm1', ['qcm1.s0', 'qcm1.s1'])
-        qcm1_s0 = Pulsar_QCM_sequencer(
-            'qcm1.s0', instrument_name='qcm1', seq_idx=0)
-        qcm1_s1 = Pulsar_QCM_sequencer(
-            'qcm1.s1', instrument_name='qcm1', seq_idx=1)
-
-        qrm0 = CompositeResource('qrm0', ['qrm0.s0', 'qrm0.s1'])
-        # Currently mocking a readout module using an acquisition module
-        qrm0_s0 = Pulsar_QCM_sequencer(
-            'qrm0.s0', instrument_name='qrm0', seq_idx=0)
-        qrm0_s1 = Pulsar_QCM_sequencer(
-            'qrm0.s1', instrument_name='qrm0', seq_idx=1)
-
-        # using qcm sequencing modules to fake a readout module
-        qrm0_r0 = Pulsar_QCM_sequencer(
-            'qrm0.r0', instrument_name='qrm0', seq_idx=0)
-        qrm0_r1 = Pulsar_QCM_sequencer(
-            'qrm0.r1', instrument_name='qrm0', seq_idx=1)
-
-        sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
-
-        sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
-        sched = determine_absolute_timing(sched)
-
-
-        seq_config_dict = pulsar_assembler_backend(sched,
-            configure_hardware=PULSAR_ASSEMBLER)
-
-
-        assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*2)
-        assert len(qcm0_s0.timing_tuples) == int(21*2)
-        assert len(qcm0_s1.timing_tuples) == 0
-        assert len(qcm1_s0.timing_tuples) == 21
-        assert len(qcm1_s1.timing_tuples) == 0
-
-
-        # if PULSAR_ASSEMBLER:
-        #     seq_config_dict = pulsar_assembler_backend(sched, program_sequencers=True)
-
-
-        # assert right keys.
-        # assert right content of the config files.
-
-
-    @pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar_qcm assembler to be installed")
-    def test_configure_pulsar_sequencers(self):
-
-        pass
+    pass
