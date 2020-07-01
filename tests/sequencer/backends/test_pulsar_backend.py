@@ -300,3 +300,10 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 def test_configure_pulsar_sequencers():
 
     pass
+
+
+
+@pytest.mark.skip('no reason')
+def test_rounding_errors_in_timing():
+
+    pass
