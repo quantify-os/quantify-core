@@ -4,6 +4,7 @@ import pytest
 from quantify import set_datadir
 import numpy as np
 from qcodes.instrument.base import Instrument
+from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
@@ -188,6 +189,14 @@ def test_generate_sequencer_cfg():
     check_waveform(sequence_cfg['waveforms']["square_2_I"], real, 4)
     check_waveform(sequence_cfg['waveforms']["square_2_Q"], np.zeros(4), 5)
     assert len(sequence_cfg['program'])
+
+    if PULSAR_ASSEMBLER:
+        with open('tmp.json', 'w') as f:
+            f.write(json.dumps(sequence_cfg, cls=NumpyJSONEncoder))
+        qcm = pulsar_qcm_dummy('test')
+        qcm.sequencer0_waveforms_and_program('tmp.json')
+        assert 'assembler finished successfully' in qcm.get_assembler_log()
+        pathlib.Path('tmp.json').unlink()
 
 
 @pytest.mark.skip('Not Implemented')
