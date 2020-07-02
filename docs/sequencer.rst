@@ -276,31 +276,30 @@ Compilation onto a transmon backend
 
 .. jupyter-execute::
 
-  device_test_cfg = {
-      'qubits':
-      {
-          'q0': {'mw_amp180': .75, 'mw_motzoi': -.25, 'mw_duration': 20e-9,
-                 'mw_modulation_freq': 50e6, 'mw_ef_amp180': .87, 'mw_ch_I': 'ch0', 'mw_ch_Q': 'ch1',
-                 'ro_pulse_ch_I': 'ch5.0', 'ro_pulse_ch_Q': 'ch6.0', 'ro_pulse_amp': .5, 'ro_pulse_modulation_freq': 80e6,
-                 'ro_pulse_type': 'square', 'ro_pulse_duration': 150e-9,
-                 'ro_acq_ch_I': 'acq_ch1', 'ro_acq_ch_Q': 'acq_ch2', 'ro_acq_delay': 120e-9, 'ro_acq_integration_time': 700e-9,
-                 'ro_acq_weigth_type': 'SSB',
-                 'init_duration': 250e-6,
-                 },
-
-          'q1': {'mw_amp180': .45, 'mw_motzoi': -.15, 'mw_duration': 20e-9,
-                 'mw_modulation_freq': 80e6, 'mw_ef_amp180': .27, 'mw_ch_I': 'ch2', 'mw_ch_Q': 'ch3',
-                 'ro_pulse_ch_I': 'ch5.1', 'ro_pulse_ch_Q': 'ch6.1', 'ro_pulse_amp': .5, 'ro_pulse_modulation_freq': -23e6,
-                 'ro_pulse_type': 'square', 'ro_pulse_duration': 100e-9,
-                 'ro_acq_ch_I': 'acq_ch1', 'ro_acq_ch_Q': 'acq_ch2', 'ro_acq_delay': 120e-9, 'ro_acq_integration_time': 700e-9,
-                 'ro_acq_weigth_type': 'SSB',
-                 'init_duration': 250e-6, }
-      },
-      'edges':
-      {
-      }
-  }
-
+    device_test_cfg = {
+        "qubits":
+        {
+            "q0": {"mw_amp180": 0.3, "mw_motzoi": -0.25, "mw_duration": 20e-9,
+                   "mw_modulation_freq": 50e6, "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0",
+                   "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 80e6,
+                   "ro_pulse_type": "square", "ro_pulse_duration": 150e-9,
+                   "ro_acq_ch": "qrm0.r0",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
+                   "ro_acq_weigth_type": "SSB",
+                   "init_duration": 250e-6
+                   },
+            "q1": {"mw_amp180": 0.45, "mw_motzoi": -0.15, "mw_duration": 20e-9,
+                   "mw_modulation_freq": 80e6, "mw_ef_amp180": 0.27, "mw_ch": "qcm1.s0",
+                   "ro_pulse_ch": "qrm0.s1", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": -23e6,
+                   "ro_pulse_type": "square", "ro_pulse_duration": 100e-9,
+                   "ro_acq_ch": "qrm0.r1",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
+                   "ro_acq_weigth_type": "SSB",
+                   "init_duration": 250e-6 }
+        },
+        "edges":
+        {
+            "q0-q1": {}
+        }
+    }
 
 
 Compilation is happening here
@@ -315,20 +314,16 @@ Compilation is happening here
 Visualization using a pulse diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 And here we plot the resulting experiment using plotly
-
 
 .. jupyter-execute::
 
   from quantify.sequencer.backends.visualization import pulse_diagram_plotly
-  fig = pulse_diagram_plotly(sched, ch_list=['ch0', 'ch5.0', 'ch6.0', 'acq_ch1'])
+  fig = pulse_diagram_plotly(sched, ch_list=['qcm0.s0', 'qcm1.s0', 'qrm0.s0', 'qrm0.r0'])
   fig.show()
 
 
 By default :func:`quantify.sequencer.backends.visualization.pulse_diagram_plotly` shows the first 8 channels encountered in in a schedule, but by specifying a list of channels, a more compact visualization can be created.
-
-
 
 .. note::
 
