@@ -11,40 +11,38 @@ from quantify.utilities.general import make_hash, without, import_func_from_stri
 
 
 class Q1ASMBuilder:
-    CYCLE_TIME_ns = 4  # 250MHz processor
-    WAVEFORM_IDX_SZ = pow(2, 10) - 1
+    """
+    Generates a q1asm program instruction by instruction. Handles splitting overflowing operation times.
+    """
     IMMEDIATE_SZ = pow(2, 16) - 1
+    CYCLE_TIME_ns = 4
 
     def __init__(self):
         self.rows = []
 
     def get_str(self):
+        """
+        Returns:
+            The program in string format
+        """
         return columnar(self.rows, no_borders=True)
 
     @staticmethod
     def _iff(label):
         return '{}:'.format(label) if label else ''
 
-    def _check_wave_idx(self, idx):
-        if idx > self.WAVEFORM_IDX_SZ:
-            raise ValueError("waveform_idx must be less than {}, actual: {}".format(self.WAVEFORM_IDX_SZ, idx))
-        return idx
-
-    def _check_immediate(self, val):
-        if val > self.IMMEDIATE_SZ:
-            raise ValueError("immediate value must be less than {}, actual: {}".format(self.IMMEDIATE_SZ, val))
-        return val
-
-    def _check_playtime(self, duration):
-        if duration < self.CYCLE_TIME_ns:
-            raise ValueError("instruction time must be greater than {}, actual: {}"
-                             .format(self.CYCLE_TIME_ns, duration))
+    def _split_playtime(self, duration):
         split = []
         while duration > self.IMMEDIATE_SZ:
             split.append(self.IMMEDIATE_SZ)
             duration -= self.IMMEDIATE_SZ
         split.append(duration)
         return split
+
+    def _check_playtime(self, duration):
+        if duration < self.CYCLE_TIME_ns:
+            raise ValueError('duration {}ns < cycle time {}ns'.format(duration, self.CYCLE_TIME_ns))
+        return duration
 
     def line_break(self):
         self.rows.append(['', '', '', ''])
@@ -53,22 +51,26 @@ class Q1ASMBuilder:
         self.rows.append(['', '', '', '#Wait for all sequencers to be ready'])
 
     def move(self, label, source, target, comment):
-        if isinstance(source, int):
-            self._check_immediate(source)
         self.rows.append([self._iff(label), 'move', '{},{}'.format(source, target), comment])
 
     def play(self, label, I_idx, Q_idx, playtime, comment):
-        self._check_wave_idx(I_idx)
-        self._check_wave_idx(Q_idx)
-        for duration in self._check_playtime(playtime):
+        for duration in self._split_playtime(playtime):
             args = '{},{},{}'.format(I_idx, Q_idx, duration)
             row = [self._iff(label), 'play', args, comment]
             label = None
             self.rows.append(row)
 
     def wait(self, label, playtime, comment):
-        for duration in self._check_playtime(playtime):
-            row = [label if label else '', 'wait', duration, comment]
+        """
+        Insert a wait instruction.
+
+        Args:
+             label (str):       Label to add
+             playtime (int):    Duration to wait. Will be split into multiple instructions if greater than max size.
+             comment (str):     Comment to add
+        """
+        for duration in self._split_playtime(playtime):
+            row = [label if label else '', 'wait', self._check_playtime(duration), comment]
             label = None
             self.rows.append(row)
 
@@ -286,11 +288,19 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         runtime = get_pulse_runtime(timing_tuples[pulse_idx][1])
         return start_time + runtime
 
-    def attempt(operation, args, time, id):
+    def auto_wait(label, duration, comment, previous):
+        """
+        Checks if our automatically generated 'sync' waits are too short.
+
+        Throws:
+            (ValueError): on short timings
+        """
         try:
-            operation(*args)
+            if previous and duration > 0:
+                q1asm.wait(label, duration, comment)
         except ValueError as e:
-            raise ValueError("'{}', at {}:{}, sequence_duration: {}".format(str(e), time, id, sequence_duration))
+            raise ValueError("Generated wait for '{}':'{}' caused exception '{}'"
+                             .format(previous[0], previous[1], str(e)))
 
     q1asm = Q1ASMBuilder()
     q1asm.move('start', len(pulse_dict), 'R0', '#Waveform count register')
@@ -302,21 +312,13 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
     previous = None  # previous pulse
     clock = 0  # current execution time
     for timing, pulse_id in timing_tuples:
-        """
-        # check each operation has the minimum required timing
-        if previous:
-            try:
-                q1asm._check_playtime(timing - previous[0])
-            except ValueError as e:
-                raise ValueError("Timings '{}' and '{}' are too close (must be at least {} ns)"
-                                 .format(previous[0], timing, q1asm.CYCLE_TIME_ns))
-        """
+        if clock > timing:
+            raise ValueError('Pulse {} at {} has duration {} but next timing is {}.'
+                             .format(previous[1], previous[0], get_pulse_runtime(previous[1]), timing))
 
         # check if we must wait before beginning our next section
         wait_duration = timing - clock
-        if previous and wait_duration > 0:
-            # if the previous operation is not contiguous to the current, we must wait for period
-            attempt(q1asm.wait, ['', wait_duration, '#Wait'], previous[0], previous[1])
+        auto_wait('', wait_duration, '#Wait', previous)
 
         I = pulse_dict["{}_I".format(pulse_id)]['index']
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
@@ -329,9 +331,8 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         clock += duration + wait_duration
 
     # check if we must wait to sync up with fellow sequencers
-    final_wait = sequence_duration - clock
-    if final_wait > 0:
-        attempt(q1asm.wait, ['', final_wait, '#Sync with other sequencers'], timing_tuples[-1][0], timing_tuples[-1][1])
+    final_wait_duration = sequence_duration - clock
+    auto_wait('', final_wait_duration, '#Sync with other sequencers', timing_tuples[-1])
 
     q1asm.jmp('', 'start', '#Loop back to start')
     return q1asm.get_str()

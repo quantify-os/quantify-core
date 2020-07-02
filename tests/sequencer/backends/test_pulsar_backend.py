@@ -1,9 +1,12 @@
 import json
 import pathlib
 import pytest
+import unittest
+import logging
 from quantify import set_datadir
 import numpy as np
 from qcodes.instrument.base import Instrument
+from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.sequencer.types import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
@@ -58,15 +61,17 @@ def test_bad_pulse_timings():
         (0, 'square_id'),
         (2, 'drag_ID')
     ]
-
     short_pulse_timings = [
         (0, 'drag_ID'),
         (4, 'square_id')
     ]
-
     short_wait_timings = [
         (0, 'square_id'),
         (6, 'square_id')
+    ]
+    short_final_wait = [
+        (0, 'square_id'),
+        (4, 'square_id')
     ]
 
     dummy_pulse_data = {
@@ -76,18 +81,33 @@ def test_bad_pulse_timings():
         'drag_ID_Q': {'data': np.ones(2), 'index': 3}
     }
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match="Pulse square_id at 0 has duration 4 but next timing is 2."):
         build_q1asm(too_close_pulse_timings, dummy_pulse_data, too_close_pulse_timings[-1][0] + 4)
-        assert e.match(r'Timings.*0.*2.*too close.*must be at least 4ns')
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match="Generated wait for '0':'drag_ID' caused exception 'duration 2ns < "
+                                         "cycle time 4ns'"):
         build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4)
-        assert e.match(r'Pulse.*drag_ID.*at timing.*0.*is too short.*must be at least 4ns')
 
-    with pytest.raises(ValueError) as e:
-        build_q1asm(short_wait_timings, dummy_pulse_data, short_wait_timings[-1][0] + 4)
-        assert e.match(r'Insufficient wait period between pulses.*square_ID.*and.*square_ID.*timings.*0.*6.*square_ID.*'
-                       r'duration of 4ns necessitating a wait of duration 2ns.*must be at least 4ns')
+    with pytest.raises(ValueError, match="Generated wait for '0':'square_id' caused exception 'duration 2ns < "
+                                         "cycle time 4ns'"):
+        build_q1asm(short_wait_timings, dummy_pulse_data, 10)
+
+    with pytest.raises(ValueError, match="Generated wait for '4':'square_id' caused exception 'duration 2ns < "
+                                         "cycle time 4ns'"):
+        build_q1asm(short_final_wait, dummy_pulse_data, 10)
+
+
+def deploy_q1asm(cfg_path, messages=None, delete_file=False):
+    qcm = pulsar_qcm_dummy('test')
+    qcm.sequencer0_waveforms_and_program(str(cfg_path))
+    if not messages:
+        assert 'assembler finished successfully' in qcm.get_assembler_log()
+    else:
+        print(qcm.get_assembler_log())
+        for message in messages:
+            assert message in qcm.get_assembler_log()
+    if delete_file:
+        cfg_path.unlink()
 
 
 def test_overflowing_instruction_times():
@@ -142,10 +162,6 @@ def test_build_q1asm():
     err = r"Provided sequence_duration.*18.*less than the total runtime of this sequence.*20"
     with pytest.raises(ValueError, match=err):
         build_q1asm(pulse_timings, pulse_data, 18)
-
-    err = r"Provided sequence_duration.*22.*less than the total runtime of this sequence.*20"
-    with pytest.raises(ValueError, match="lol"):
-        build_q1asm(pulse_timings, pulse_data, 22)
 
 
 def test_generate_sequencer_cfg():
