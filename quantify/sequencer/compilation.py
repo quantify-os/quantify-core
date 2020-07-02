@@ -6,7 +6,7 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
-from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
+from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse
 from quantify.utilities.general import load_json_schema
 
 

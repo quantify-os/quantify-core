@@ -85,7 +85,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     Sequencer configuration files contain assembly, a waveform dictionary and the
     parameters to be configured for every pulsar sequencer.
 
-    The sequencer configuration files are stored in the quantify datadir (see :func:`~quantify.data.handling.get_datadir`)
+    The sequencer configuration files are stored in the quantify datadir
+    (see :func:`~quantify.data.handling.get_datadir`)
 
 
     Parameters
@@ -241,7 +242,7 @@ def build_waveform_dict(pulse_info):
     for idx, (pulse_id, data) in enumerate(pulse_info.items()):
         arr = np.array(data)
 
-        I = arr.real
+        I = arr.real  # noqa: E741
         Q = arr.imag  # real-valued arrays automatically evaluate to an array of zeros
 
         sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
@@ -310,7 +311,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         wait_duration = timing - clock
         auto_wait('', wait_duration, '#Wait', previous)
 
-        I = pulse_dict["{}_I".format(pulse_id)]['index']
+        I = pulse_dict["{}_I".format(pulse_id)]['index']  # noqa: E741
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
         q1asm.line_break()
 

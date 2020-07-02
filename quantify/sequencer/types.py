@@ -1,7 +1,6 @@
 """
 Module containing the core concepts of the sequencer.
 """
-import logging
 from os import path
 from uuid import uuid4
 from collections import UserDict
