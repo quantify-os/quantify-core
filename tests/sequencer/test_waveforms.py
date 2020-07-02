@@ -29,41 +29,16 @@ def test_drag_ns():
     # quantify
     waveform = drag(times, G_amp=G_amp, D_amp=D_amp, duration=duration, nr_sigma=nr_sigma, subtract_offset='none')
 
-    import matplotlib.pyplot as plt
-    f, ax = plt.subplots()
-    ax.plot(waveform.real, label='real')
-    ax.plot(waveform.imag, label='imag')
-    ax.plot(exp_waveform.real, label='exp real', ls='--')
-    ax.plot(exp_waveform.imag, label='exp imag', ls='--')
-    ax.legend()
-    plt.show()
-
-
     np.testing.assert_array_almost_equal(waveform, exp_waveform, decimal=3)
     assert pytest.approx(np.max(waveform), .5)
 
     with pytest.raises(ValueError):
         drag(times, 0.5, D_amp, duration, subtract_offset='bad!')
 
-
-
     waveform = drag(times, G_amp=G_amp, D_amp=D_amp, duration=duration, nr_sigma=nr_sigma, subtract_offset='average')
     exp_waveform.real -= np.mean([exp_waveform.real[0], exp_waveform.real[-1]])
     exp_waveform.imag -= np.mean([exp_waveform.imag[0], exp_waveform.imag[-1]])
-
-
-
-
-    f, ax = plt.subplots()
-    ax.plot(waveform.real, label='real')
-    ax.plot(waveform.imag, label='imag')
-    ax.plot(exp_waveform.real, label='exp real', ls='--')
-    ax.plot(exp_waveform.imag, label='exp imag', ls='--')
-    ax.legend()
-    plt.show()
     np.testing.assert_array_almost_equal(waveform, exp_waveform, decimal=3)
-
-
 
 
 def test_rotate_wave():
