@@ -197,13 +197,13 @@ def pulse_diagram_plotly(schedule,
                     for i in range(2):
                         showlegend = (i == 0)
                         label = op['name']
-                        fig.add_trace(go.Scatter(x=t, y=wf.real, mode='lines', name=label, legendgroup=pls_idx,
-                                                 showlegend=showlegend,
-                                                 line_color=colors[col_idx]),
-                                      row=ch_map[ch]+1, col=1)
                         fig.add_trace(go.Scatter(x=t, y=wf.imag, mode='lines', name=label, legendgroup=pls_idx,
                                                  showlegend=showlegend,
                                                  line_color='lightgrey'),
+                                      row=ch_map[ch]+1, col=1)
+                        fig.add_trace(go.Scatter(x=t, y=wf.real, mode='lines', name=label, legendgroup=pls_idx,
+                                                 showlegend=showlegend,
+                                                 line_color=colors[col_idx]),
                                       row=ch_map[ch]+1, col=1)
 
     for r in range(nr_rows):

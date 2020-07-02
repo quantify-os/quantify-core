@@ -13,25 +13,56 @@ def test_square_wave():
     npt.assert_array_equal(amped_sq_iq.imag, np.linspace(0, 0, 20))
 
 
-def test_drag():
-    duration = 25
-    sigma = 4
-    amp = 0.5j
-    beta = 1
-    # formulaic
-    times = np.arange(duration)
-    times = times - (duration / 2) + times[0]
-    gauss = amp * np.exp(-(times / sigma) ** 2 / 2)
-    gauss_deriv = -(times / sigma ** 2) * gauss
-    formula_der_comp = gauss + 1j * beta * gauss_deriv
+def test_drag_ns():
+    duration = 20e-9
+    nr_sigma = 3
+    G_amp = 0.5
+    D_amp = 1
+
+    times = np.arange(0, duration, 1e-9)  # sampling rate set to 1 GSPs
+    mu = times[0] + duration/2
+    sigma = duration/(2*nr_sigma)
+    gauss_env = G_amp*np.exp(-(0.5 * ((times-mu)**2) / sigma**2))
+    deriv_gauss_env = D_amp * -1 * (times-mu)/(sigma**1) * gauss_env
+    exp_waveform = gauss_env + 1j * deriv_gauss_env
 
     # quantify
-    waveform = drag(np.arange(duration), 0.5, beta, duration, subtract_offset='none')
+    waveform = drag(times, G_amp=G_amp, D_amp=D_amp, duration=duration, nr_sigma=nr_sigma, subtract_offset='none')
+
+    import matplotlib.pyplot as plt
+    f, ax = plt.subplots()
+    ax.plot(waveform.real, label='real')
+    ax.plot(waveform.imag, label='imag')
+    ax.plot(exp_waveform.real, label='exp real', ls='--')
+    ax.plot(exp_waveform.imag, label='exp imag', ls='--')
+    ax.legend()
+    plt.show()
+
+
+    np.testing.assert_array_almost_equal(waveform, exp_waveform, decimal=3)
+    assert pytest.approx(np.max(waveform), .5)
 
     with pytest.raises(ValueError):
-        drag(np.arange(duration), 0.5, beta, duration, subtract_offset='bad!')
+        drag(times, 0.5, D_amp, duration, subtract_offset='bad!')
 
-    np.testing.assert_array_almost_equal(waveform.imag, np.real(formula_der_comp), decimal=3)
+
+
+    waveform = drag(times, G_amp=G_amp, D_amp=D_amp, duration=duration, nr_sigma=nr_sigma, subtract_offset='average')
+    exp_waveform.real -= np.mean([exp_waveform.real[0], exp_waveform.real[-1]])
+    exp_waveform.imag -= np.mean([exp_waveform.imag[0], exp_waveform.imag[-1]])
+
+
+
+
+    f, ax = plt.subplots()
+    ax.plot(waveform.real, label='real')
+    ax.plot(waveform.imag, label='imag')
+    ax.plot(exp_waveform.real, label='exp real', ls='--')
+    ax.plot(exp_waveform.imag, label='exp imag', ls='--')
+    ax.legend()
+    plt.show()
+    np.testing.assert_array_almost_equal(waveform, exp_waveform, decimal=3)
+
 
 
 

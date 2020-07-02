@@ -24,12 +24,25 @@ def drag(t,
          G_amp: float,
          D_amp: float,
          duration: float,
-         sigma: int = 4,
+         nr_sigma: int = 3,
          phase: float = 0,
          subtract_offset: str = 'average'):
     '''
+    Generates a DRAG pulse consisting of a Gaussian :math:`G` as the I- and a Derivative :math:`D` as the Q-component.
+
     All inputs are in s and Hz.
     phases are in degree.
+
+    :math:`G(t) = G_{amp} e^{- \\frac{(t-\\mu)^2}{2\\sigma^2}}`.
+
+    :math:`D(t) = -D_{amp} \\frac{(t-\\mu)}{\\sigma} G(t)`.
+
+    .. note:
+
+        One would expect a factor :math:`1/\\sigma^2` in the prefactor of :math:`1/\\sigma^2`, we absorb this
+        in the scaling factor :math:`D_{amp}` to ensure the derivative component is scale invariant with the duration of
+        the pulse.
+
 
     Args:
         t (:py:class:`numpy.ndarray`): times at which to evaluate the function
@@ -54,12 +67,32 @@ def drag(t,
     :returns:
         - rot_drag_wave (:py:class:`numpy.ndarray`) - complex waveform.
 
+
+    References:
+        1. |citation1|_
+
+        .. _citation1: https://link.aps.org/doi/10.1103/PhysRevA.83.012308
+
+        .. |citation1| replace:: *Gambetta, J. M., Motzoi, F., Merkel, S. T. & Wilhelm, F. K.
+           Analytic control methods for high-fidelity unitary operations
+           in a weakly nonlinear oscillator. Phys. Rev. A 83, 012308 (2011).*
+
+        2. |citation2|_
+
+        .. _citation2: https://link.aps.org/doi/10.1103/PhysRevLett.103.110501
+
+        .. |citation2| replace:: *F. Motzoi, J. M. Gambetta, P. Rebentrost, and F. K. Wilhelm
+           Phys. Rev. Lett. 103, 110501 (2009).*
+
+
     '''
 
     mu = t[0] + duration/2
 
+    sigma = duration/(2*nr_sigma)
+
     gauss_env = G_amp*np.exp(-(0.5 * ((t-mu)**2) / sigma**2))
-    deriv_gauss_env = D_amp * 1 * (t-mu)/(sigma**2) * gauss_env
+    deriv_gauss_env = - D_amp * (t-mu)/(sigma**1) * gauss_env
 
     # Subtract offsets
     if subtract_offset.lower() == 'none' or subtract_offset is None:
