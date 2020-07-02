@@ -112,6 +112,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
         Does not yet support the Pulsar_QRM module.
     """
 
+    max_seq_duration = 0
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
         op = schedule.operations[t_constr['operation_hash']]
 
@@ -153,6 +154,9 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                 wf = wf_func(t=t, **wf_kwargs)
                 ch.pulse_dict[pulse_id] = wf
 
+            seq_duration = ch.timing_tuples[-1][0] + len(ch.pulse_dict[pulse_id])
+            max_seq_duration = max_seq_duration if max_seq_duration > seq_duration else seq_duration
+
     # Creating the files
     if tuid is None:
         tuid = gen_tuid()
@@ -161,15 +165,6 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     seq_folder = os.path.join(exp_folder, 'schedule')
     os.makedirs(seq_folder, exist_ok=True)
 
-    # Find the longest running schedule (other sequences must wait before repeating to stay in sync)
-    # todo shame to sort the timing_tuples again here
-    max_sequence_duration = 0
-    for resource in schedule.resources.values():
-        if hasattr(resource, 'timing_tuples') and resource.timing_tuples:
-            final_pulse = sorted(resource.timing_tuples)[-1]
-            final_timing = final_pulse[0] + len(resource.pulse_dict[final_pulse[1]])
-            max_sequence_duration = final_timing if final_timing > max_sequence_duration else max_sequence_duration
-
     # Convert timing tuples and pulse dicts for each seqeuncer into assembly configs
     config_dict = {}
     for resource in schedule.resources.values():
@@ -177,7 +172,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
             seq_cfg = generate_sequencer_cfg(
                 pulse_info=resource.pulse_dict,
                 timing_tuples=sorted(resource.timing_tuples),
-                sequence_duration=max_sequence_duration)
+                sequence_duration=max_seq_duration)
             seq_cfg['instr_cfg'] = resource.data
 
             seq_fn = os.path.join(
@@ -288,13 +283,8 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         runtime = get_pulse_runtime(timing_tuples[pulse_idx][1])
         return start_time + runtime
 
+    # Checks if our automatically generated 'sync' waits are too short.
     def auto_wait(label, duration, comment, previous):
-        """
-        Checks if our automatically generated 'sync' waits are too short.
-
-        Throws:
-            (ValueError): on short timings
-        """
         try:
             if previous and duration > 0:
                 q1asm.wait(label, duration, comment)
@@ -332,7 +322,8 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
 
     # check if we must wait to sync up with fellow sequencers
     final_wait_duration = sequence_duration - clock
-    auto_wait('', final_wait_duration, '#Sync with other sequencers', timing_tuples[-1])
+    if timing_tuples:
+        auto_wait('', final_wait_duration, '#Sync with other sequencers', timing_tuples[-1])
 
     q1asm.jmp('', 'start', '#Loop back to start')
     return q1asm.get_str()
