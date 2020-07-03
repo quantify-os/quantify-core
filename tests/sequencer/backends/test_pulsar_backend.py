@@ -6,7 +6,7 @@ import numpy as np
 from qcodes.instrument.base import Instrument
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.sequencer.types import Schedule
-from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
+from quantify.sequencer.gate_library import Reset, Measure, CNOT, CZ, Rxy
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
@@ -254,37 +254,28 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     for theta in np.linspace(0, 360, 21):
         sched.add(init_all)
         sched.add(x90_q0)
-        # sched.add(operation=CNOT(qC=q0.name, qT=q1.name))
+        sched.add(operation=CZ(qC=q0.name, qT=q1.name))
         sched.add(Rxy(theta=theta, phi=0, qubit=q0.name))
         sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
-        sched.add(Measure(q0.name, q1.name),
-                  label='M {:.2f} deg'.format(theta))
+        sched.add(Measure(q0.name, q1.name), label='M {:.2f} deg'.format(theta))
 
     # Add the resources for the pulsar qcm channels
     qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
-    qcm0_s0 = Pulsar_QCM_sequencer(
-        'qcm0.s0', instrument_name='qcm0', seq_idx=0)
-    qcm0_s1 = Pulsar_QCM_sequencer(
-        'qcm0.s1', instrument_name='qcm0', seq_idx=1)
+    qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
+    qcm0_s1 = Pulsar_QCM_sequencer('qcm0.s1', instrument_name='qcm0', seq_idx=1)
 
     qcm1 = CompositeResource('qcm1', ['qcm1.s0', 'qcm1.s1'])
-    qcm1_s0 = Pulsar_QCM_sequencer(
-        'qcm1.s0', instrument_name='qcm1', seq_idx=0)
-    qcm1_s1 = Pulsar_QCM_sequencer(
-        'qcm1.s1', instrument_name='qcm1', seq_idx=1)
+    qcm1_s0 = Pulsar_QCM_sequencer('qcm1.s0', instrument_name='qcm1', seq_idx=0)
+    qcm1_s1 = Pulsar_QCM_sequencer('qcm1.s1', instrument_name='qcm1', seq_idx=1)
 
     qrm0 = CompositeResource('qrm0', ['qrm0.s0', 'qrm0.s1'])
     # Currently mocking a readout module using an acquisition module
-    qrm0_s0 = Pulsar_QCM_sequencer(
-        'qrm0.s0', instrument_name='qrm0', seq_idx=0)
-    qrm0_s1 = Pulsar_QCM_sequencer(
-        'qrm0.s1', instrument_name='qrm0', seq_idx=1)
+    qrm0_s0 = Pulsar_QCM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
+    qrm0_s1 = Pulsar_QCM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=1)
 
     # using qcm sequencing modules to fake a readout module
-    qrm0_r0 = Pulsar_QCM_sequencer(
-        'qrm0.r0', instrument_name='qrm0', seq_idx=0)
-    qrm0_r1 = Pulsar_QCM_sequencer(
-        'qrm0.r1', instrument_name='qrm0', seq_idx=1)
+    qrm0_r0 = Pulsar_QCM_sequencer('qrm0.r0', instrument_name='qrm0', seq_idx=0)
+    qrm0_r1 = Pulsar_QCM_sequencer('qrm0.r1', instrument_name='qrm0', seq_idx=1)
 
     sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0,
                          qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
@@ -292,12 +283,7 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
     sched = determine_absolute_timing(sched)
 
-    print('*'*80)
-    print(Instrument._all_instruments)
-    print('*'*80)
-
-    seq_config_dict = pulsar_assembler_backend(sched,
-                                               configure_hardware=PULSAR_ASSEMBLER)
+    seq_config_dict = pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
 
     assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*2)
     assert len(qcm0_s0.timing_tuples) == int(21*2)

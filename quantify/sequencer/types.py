@@ -6,7 +6,7 @@ from uuid import uuid4
 from collections import UserDict
 import json
 import jsonschema
-from quantify.utilities.general import make_hash
+from quantify.utilities.general import make_hash, without
 
 
 class Schedule(UserDict):
@@ -247,12 +247,22 @@ class Operation(UserDict):
         """
         self.data['gate_info'].update(gate_operation.data['gate_info'])
 
+    def add_filter(self, window):
+        """
+        Adds a filter to all pulses in this operation.
+
+        Args:
+            window (object): Window to filter with.  # todo improve
+        """
+        for pulse in self.data['pulse_info']:
+            pulse['filter'] = window
+
     def add_pulse(self, pulse_operation):
         """
         Adds pulse_info of pulse_operation to self.
 
         Args:
-            pulse_operation (:class:`Operation`) : an operation containing pulse_info.
+            pulse_operation (:class:`Operation`)    : an operation containing pulse_info.
         """
         self.data['pulse_info'] += pulse_operation.data['pulse_info']
 

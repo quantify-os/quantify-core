@@ -33,7 +33,6 @@ class NumericPulse(Operation):
     """
 
     def __init__(self, t0):
-
         raise NotImplementedError
 
 

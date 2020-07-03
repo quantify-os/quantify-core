@@ -6,7 +6,9 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
-from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse
+from scipy.signal import hanning
+from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
+from quantify.sequencer.windows import Hanning
 from quantify.utilities.general import load_json_schema
 
 
@@ -54,8 +56,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
             ref_op = last_op
         else:
             # this assumes the reference op exists. This is ensured in schedule.add
-            ref_constr = next(
-                item for item in schedule.timing_constraints if item['label'] == t_constr['ref_op'])
+            ref_constr = next(item for item in schedule.timing_constraints if item['label'] == t_constr['ref_op'])
             ref_op = schedule.operations[ref_constr['operation_hash']]
 
         # duration = 1 is useful when e.g., drawing a circuit diagram.
@@ -150,7 +151,7 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             # read info from config
             q_cfg = device_cfg['qubits'][q]
 
-            G_amp = q_cfg['mw_amp180']*op['gate_info']['theta']/180
+            G_amp = q_cfg['mw_amp180']*op['gate_info']['theta'] / 180
             D_amp = G_amp * q_cfg['mw_motzoi']
 
             pulse = DRAGPulse(
@@ -162,15 +163,19 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
         elif op['gate_info']['operation_type'] == 'CNOT':
             # These methods don't raise exceptions as they will be implemented shortly
             logging.warning("Not Implemented yet")
-            logging.warning('Operation type "{}" not supported by backend'.format(
-                op['gate_info']['operation_type']))
+            logging.warning('Operation type "{}" not supported by backend'.format(op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'CZ':
-            # These methods don't raise exceptions as they will be implemented shortly
-            logging.warning("Not Implemented yet")
-            logging.warning('Operation type "{}" not supported by backend'.format(
-                op['gate_info']['operation_type']))
+            q0 = op['gate_info']['qubits'][0]
+            q1 = op['gate_info']['qubits'][1]
+            q0_cfg = device_cfg['qubits'][q0]
+            q1_cfg = device_cfg['qubits'][q1]
 
+            amp = q0_cfg['mw_amp180']
+
+            pulse = SquarePulse(amp=amp, duration=q0_cfg['mw_duration'], ch=q0_cfg['mw_ch'])
+            pulse.add_filter(Hanning(2))
+            op.add_pulse(pulse)
         elif op['gate_info']['operation_type'] == 'reset':
             # Initialization through relaxation
             qubits = op['gate_info']['qubits']
@@ -180,8 +185,8 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             op.add_pulse(IdlePulse(max(init_times)))
 
         else:
-            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
-                op['gate_info']['operation_type']))
+            raise NotImplementedError('Operation type "{}" not supported by backend'
+                                      .format(op['gate_info']['operation_type']))
 
     return schedule
 

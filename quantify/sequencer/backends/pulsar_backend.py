@@ -6,6 +6,7 @@ from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
 from qcodes import Instrument
 import numpy as np
+from scipy.signal import convolve
 from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
@@ -153,6 +154,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                         wf_kwargs[kw] = p[kw]
                 # Calculate the numerical waveform using the wf_func
                 wf = wf_func(t=t, **wf_kwargs)
+                if 'filter' in p.keys():
+                    wf = p['filter'].filter(wf)
                 ch.pulse_dict[pulse_id] = wf
 
             seq_duration = ch.timing_tuples[-1][0] + len(ch.pulse_dict[pulse_id])

@@ -3,7 +3,7 @@ import numpy as np
 import json
 from quantify.sequencer.backends.visualization import pulse_diagram_plotly
 from quantify.sequencer import Schedule
-from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy
+from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, CZ
 from quantify.sequencer.pulse_library import SquarePulse, IdlePulse
 from quantify.sequencer.compilation import determine_absolute_timing, validate_config, add_pulse_information_transmon
 
@@ -87,7 +87,6 @@ def test_missing_ref_op():
         sched.add(operation=CNOT(qC=q0, qT=q1), ref_op=ref_label_1)
 
 
-
 def test_config_spec():
     validate_config(DEVICE_TEST_CFG, scheme_fn='transmon_cfg.json')
 
@@ -100,7 +99,7 @@ def test_compile_transmon_program():
     q0, q1 = ('q0', 'q1')
     sched.add(Reset(q0, q1))
     sched.add(Rxy(90, 0, qubit=q0))
-    # sched.add(operation=CNOT(qC=q0, qT=q1)) # not implemented in config
+    sched.add(operation=CZ(qC=q0, qT=q1)) # not implemented in config
     sched.add(Rxy(theta=90, phi=0, qubit=q0))
     sched.add(Measure(q0, q1), label='M0')
     # pulse information is added
