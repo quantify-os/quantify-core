@@ -6,9 +6,8 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
-from scipy.signal import hanning
 from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
-from quantify.sequencer.windows import Hanning
+from quantify.sequencer.windows import Hann
 from quantify.utilities.general import load_json_schema
 
 
@@ -174,7 +173,7 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             amp = q0_cfg['mw_amp180']
 
             pulse = SquarePulse(amp=amp, duration=q0_cfg['mw_duration'], ch=q0_cfg['mw_ch'])
-            pulse.add_filter(Hanning(2))
+            pulse.add_filter(Hann(2))
             op.add_pulse(pulse)
         elif op['gate_info']['operation_type'] == 'reset':
             # Initialization through relaxation

@@ -6,7 +6,6 @@ from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
 from qcodes import Instrument
 import numpy as np
-from scipy.signal import convolve
 from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 

@@ -1,7 +1,10 @@
 from scipy import signal
 
 
-class Hanning:
+class Hann:
+    """
+    Hann window
+    """
 
     def __init__(self, scale):
         """

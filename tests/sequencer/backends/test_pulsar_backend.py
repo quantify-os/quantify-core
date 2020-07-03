@@ -285,8 +285,8 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     seq_config_dict = pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
 
-    assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*2)
-    assert len(qcm0_s0.timing_tuples) == int(21*2)
+    assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*3)
+    assert len(qcm0_s0.timing_tuples) == int(21*3)
     assert len(qcm0_s1.timing_tuples) == 0
     assert len(qcm1_s0.timing_tuples) == 21
     assert len(qcm1_s1.timing_tuples) == 0

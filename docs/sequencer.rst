@@ -214,17 +214,12 @@ The timing constraints are stored as a list of pulses.
 
   sched.data['timing_constraints'][:6]
 
-Because turning the constraints into a timed experiment, would require iterating over all elements in the timing constraints list.
-This is identical to how the pycqed pulsar works.
-Compilation efficiency is not an issue for "small" experiments but will be something we encounter in the future.
-
 Visualization using a circuit diagram
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-So far we have only defined timing constraints.
-Duration of pulses not known, but can create circuit diagram.
+So far we have only defined timing constraints but the duration of pulses is not known.
 
-For this purpose we do our first compilation step.
+For this purpose we do our first compilation step:
 
 .. jupyter-execute::
 
@@ -233,7 +228,7 @@ For this purpose we do our first compilation step.
   # setting clock_unit='ideal' ignores the duration of operations and sets it to 1.
   determine_absolute_timing(sched, clock_unit='ideal')
 
-And we can use this to create a default visualizaton.
+And we can use this to create a default visualizaton:
 
 .. jupyter-execute::
 
@@ -244,8 +239,11 @@ And we can use this to create a default visualizaton.
   # all gates are plotted, but it doesn't all fit in a matplotlib figure
   ax.set_xlim(-.5, 9.5)
 
-Compilation onto a transmon backend
+Compilation onto a Transmon backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Of course different Qubits are drive with different techniques which must be defined. Here we have a pair of Transmon qubits,
+which respond to microwave pulses:
 
 .. jupyter-execute::
 
@@ -274,7 +272,7 @@ Compilation onto a transmon backend
         }
     }
 
-Compilation is happening here
+With this information, the compiler can now generate the waveforms required:
 
 .. jupyter-execute::
 
@@ -297,9 +295,14 @@ By default :func:`quantify.sequencer.backends.visualization.pulse_diagram_plotly
 
 Resources
 ----------
+
+Our gates and timings are now defined but we still need to describe how the various devices in our experiments are connected; Quantify uses the :class:`quantify.sequencer.types.Resource` to represent this.
+Of particular interest to us are the :class:`quantify.sequencer.resources.CompositeResource` and the :class:`quantify.sequencer.resources.Pulsar_QCM_sequencer`,
+which represent a collection of Resources and a single Core on the Pulsar QCM:
+
 .. jupyter-execute::
 
-    from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
+    from quantify.sequencer.resources import CompositeResource, Pulsar_QCM_sequencer
     qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     qcm0_s1 = Pulsar_QCM_sequencer('qcm0.s1', instrument_name='qcm0', seq_idx=1)
@@ -317,13 +320,51 @@ Resources
     qrm0_r0 = Pulsar_QCM_sequencer('qrm0.r0', instrument_name='qrm0', seq_idx=0)
     qrm0_r1 = Pulsar_QCM_sequencer('qrm0.r1', instrument_name='qrm0', seq_idx=1)
 
-    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
+    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1, qrm0_r0, qrm0_r1])
 
+With our schedule now fully defined, we now pass it to Pulsar QCM compiler:
 
 .. jupyter-execute::
 
     from quantify.sequencer.backends import pulsar_backend as pb
     config_dict = pb.pulsar_assembler_backend(sched)
+
+Let's take a look at what our finished configuration looks like:
+
+.. jupyter-execute::
+
+    config_dict
+
+It contains a list of JSON files representing the configuration for each device. Now we are ready to deploy to hardware.
+
+Connecting to Hardware
+----------------------
+
+The Pulsar QCM provides a QCodes based Python API. As well as interfacing with real hardware, it provides a mock driver we can use for testing and development, which we will
+also use for demonstration purposes as part of this tutorial:
+
+.. jupyter-execute::
+
+    from pulsar_qcm.pulsar_qcm import pulsar_qcm_dummy
+    qcm = pulsar_qcm_dummy("qcm0")
+    qcm.get_idn()
+
+The Pulsar QCM backend provides a method for deploying our complete configuration to all our devices at once:
+
+.. jupyter-execute::
+
+    _pulsars = []
+    # first we need to create some Instruments representing the other devices in our configuration
+    for qcm_name in ['qcm1', 'qrm0', 'qrm1']:
+        _pulsars.append(pulsar_qcm_dummy(qcm_name))
+    pb.configure_pulsar_sequencers(config_dict)
+
+At this point, the assembler on the device will load the waveforms into memory and verify the program can be executed. We must next arm and then start the device:
+
+.. jupyter-execute::
+
+    qcm.arm_sequencer()
+    qcm.start_sequencer()
 
 .. note::
 
