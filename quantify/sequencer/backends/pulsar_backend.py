@@ -104,7 +104,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     Returns
     ----------
     config_dict : dict
-        a dictionary containing
+        of sequencer names as keys with json filenames as values
 
 
     .. note::
@@ -176,8 +176,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                 sequence_duration=max_seq_duration)
             seq_cfg['instr_cfg'] = resource.data
 
-            seq_fn = os.path.join(
-                seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
+            seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
             with open(seq_fn, 'w') as f:
                 json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
             config_dict[resource.name] = seq_fn
@@ -185,8 +184,6 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     if configure_hardware:
         configure_pulsar_sequencers(config_dict)
 
-    # returns a dict of sequencer names as keys with json filenames as values.
-    # add bool option to program immediately?
     return config_dict
 
 
@@ -208,23 +205,16 @@ def configure_pulsar_sequencers(config_dict: dict):
 
             if instr_cfg['seq_idx'] == 0:
                 # configure settings
-                qcm.set('sequencer{}_mod_enable'.format(
-                    instr_cfg['seq_idx']), instr_cfg['mod_enable'])
-                qcm.set('sequencer{}_nco_freq'.format(
-                    instr_cfg['seq_idx']), instr_cfg['nco_freq'])
-                qcm.set('sequencer{}_cont_mode_en'.format(
-                    instr_cfg['seq_idx']), False)
-                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(
-                    instr_cfg['seq_idx']), 0)
-                qcm.set('sequencer{}_upsample_rate'.format(
-                    instr_cfg['seq_idx']), 0)
+                qcm.set('sequencer{}_mod_enable'.format(instr_cfg['seq_idx']), instr_cfg['mod_enable'])
+                qcm.set('sequencer{}_nco_freq'.format(instr_cfg['seq_idx']), instr_cfg['nco_freq'])
+                qcm.set('sequencer{}_cont_mode_en'.format(instr_cfg['seq_idx']), False)
+                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(instr_cfg['seq_idx']), 0)
+                qcm.set('sequencer{}_upsample_rate'.format(instr_cfg['seq_idx']), 0)
 
                 # configure sequencer
-                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),
-                        config_fn)
+                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),config_fn)
             else:
-                logging.warning(
-                    'Not Implemented, awaiting driver for more than one seqeuncer')
+                logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
 
 
 def build_waveform_dict(pulse_info):

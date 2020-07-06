@@ -68,8 +68,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         elif t_constr['ref_pt'] == 'end':
             t0 = ref_constr['abs_time'] + duration_ref_op
         else:
-            raise NotImplementedError(
-                'Timing "{}" not supported by backend'.format(ref_constr['abs_time']))
+            raise NotImplementedError('Timing "{}" not supported by backend'.format(ref_constr['abs_time']))
 
         duration_new_op = curr_op.duration if clock_unit == 'physical' else 1
 
@@ -165,9 +164,9 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
 
         elif op['gate_info']['operation_type'] == 'CZ':
             q0 = op['gate_info']['qubits'][0]
-            q1 = op['gate_info']['qubits'][1]
+            #  q1 = op['gate_info']['qubits'][1]
             q0_cfg = device_cfg['qubits'][q0]
-            q1_cfg = device_cfg['qubits'][q1]
+            #  q1_cfg = device_cfg['qubits'][q1]
 
             amp = q0_cfg['mw_amp180']
 

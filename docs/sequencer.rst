@@ -242,7 +242,7 @@ And we can use this to create a default visualizaton:
 Compilation onto a Transmon backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Of course different Qubits are drive with different techniques which must be defined. Here we have a pair of Transmon qubits,
+Of course different Qubits are driven with different techniques which must be defined. Here we have a pair of Transmon qubits,
 which respond to microwave pulses:
 
 .. jupyter-execute::

@@ -65,8 +65,7 @@ class Pulsar_QCM_sequencer(Resource):
     a channel capabable of outputting complex valued signals (I, and Q).
     """
 
-    def __init__(self, name: str, instrument_name: str,
-                 seq_idx: int, nco_freq: float = 0, mod_enable: bool = False):
+    def __init__(self, name: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, mod_enable: bool = False):
         """
         A channel composed of multiple sub-channels.
 
