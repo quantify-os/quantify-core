@@ -122,7 +122,6 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
             raise ValueError('Operation {} has no pulse info'.format(op))
 
         for p in op['pulse_info']:
-
             t0 = t_constr['abs_time']+p['t0']
             pulse_id = make_hash(without(p, 't0'))
 
@@ -139,7 +138,12 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
             # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
-                # TODO: configure the settings (modulation freq etc. for each seqeuncer)
+                if 'freq_mod' in p:
+                    if ch['nco_freq'] is not 0 and not p['freq_mod'] == ch['nco_freq']:
+                        raise ValueError('pulse {} on channel {} has divergent modulation frequency: expected {} but '
+                                         'was {}'.format(pulse_id, ch['name'], ch['nco_freq'], p['freq_mod']))
+                    else:
+                        ch['nco_freq'] = p['freq_mod']
 
                 # the pulsar backend makes use of real-time pulse modulation
                 t = np.arange(0, 0+p['duration'], 1/ch['sampling_rate'])

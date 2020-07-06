@@ -140,7 +140,7 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                     op.add_pulse(ModSquarePulse(amp=1,
                                                 duration=q_cfg['ro_acq_integration_time'],
                                                 ch=q_cfg['ro_acq_ch'],
-                                                freq_mod=-q_cfg['ro_pulse_modulation_freq'],
+                                                freq_mod=q_cfg['ro_pulse_modulation_freq'],
                                                 t0=q_cfg['ro_acq_delay']))
 
         elif op['gate_info']['operation_type'] == 'Rxy':

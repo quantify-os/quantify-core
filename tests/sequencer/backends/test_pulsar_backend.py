@@ -277,8 +277,7 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     qrm0_r0 = Pulsar_QCM_sequencer('qrm0.r0', instrument_name='qrm0', seq_idx=0)
     qrm0_r1 = Pulsar_QCM_sequencer('qrm0.r1', instrument_name='qrm0', seq_idx=1)
 
-    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0,
-                         qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
+    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
 
     sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
     sched = determine_absolute_timing(sched)
@@ -302,7 +301,6 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 def test_configure_pulsar_sequencers():
 
     pass
-
 
 
 @pytest.mark.skip('no reason')
