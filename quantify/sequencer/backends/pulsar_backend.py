@@ -153,8 +153,6 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                         wf_kwargs[kw] = p[kw]
                 # Calculate the numerical waveform using the wf_func
                 wf = wf_func(t=t, **wf_kwargs)
-                if 'filter' in p.keys():
-                    wf = p['filter'].filter(wf)
                 ch.pulse_dict[pulse_id] = wf
 
             seq_duration = ch.timing_tuples[-1][0] + len(ch.pulse_dict[pulse_id])
