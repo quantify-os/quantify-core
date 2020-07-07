@@ -119,9 +119,12 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
         if len(op['pulse_info']) == 0:
             # this exception is raised when no pulses have been added yet.
-            raise ValueError('Operation {} has no pulse info'.format(op))
+            raise ValueError('Operation {} has no pulse info'.format(op.name))
 
         for p in op['pulse_info']:
+            if 'abs_time' not in t_constr:
+                raise ValueError("Absolute timing has not be determined for schedule '{}'".format(schedule.name))
+
             t0 = t_constr['abs_time']+p['t0']
             pulse_id = make_hash(without(p, 't0'))
 
@@ -130,8 +133,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
             # Assumes the channel exists in the resources available to the schedule
             if p['channel'] not in schedule.resources.keys():
-                raise KeyError('Resource "{}" not available in "{}"'.format(
-                    p['channel'], schedule))
+                raise KeyError('Resource "{}" not available in "{}"'.format(p['channel'], schedule))
 
             ch = schedule.resources[p['channel']]
             ch.timing_tuples.append((round(t0*ch['sampling_rate']), pulse_id))
@@ -139,7 +141,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
             # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
                 if 'freq_mod' in p:
-                    if ch['nco_freq'] is not 0 and not p['freq_mod'] == ch['nco_freq']:
+                    if ch['nco_freq'] != 0 and p['freq_mod'] != ch['nco_freq']:
                         raise ValueError('pulse {} on channel {} has divergent modulation frequency: expected {} but '
                                          'was {}'.format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
                     else:

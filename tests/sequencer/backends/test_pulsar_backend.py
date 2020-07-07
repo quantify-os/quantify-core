@@ -5,7 +5,7 @@ from quantify import set_datadir
 import numpy as np
 from qcodes.instrument.base import Instrument
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.sequencer.types import Schedule
+from quantify.sequencer.types import Schedule, Operation
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, CZ, Rxy
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
@@ -199,15 +199,33 @@ def test_generate_sequencer_cfg():
         pathlib.Path('tmp.json').unlink()
 
 
-@pytest.mark.skip('Not Implemented')
 def test_pulsar_assembler_backend_missing_pulse_info():
-    # should raise an exception
-    pass
+    sched = Schedule('missing pulses')
+    q0 = QubitResource('q0')
+    sched.add_resource(q0)
+    sched.add(Reset(q0.name))
+    #  oops we missed out the call to add_pulse_information
+    sched = determine_absolute_timing(sched)
+    with pytest.raises(ValueError, match=r"Operation Reset.*q0.*has no pulse info"):
+        pulsar_assembler_backend(sched)
 
 
-@pytest.mark.skip('Not Implemented')
 def test_pulsar_assembler_backend_missing_timing_info():
-    pass
+    min_config = {
+        "qubits": {
+            "q0": {"init_duration": 250e-6}
+        },
+        "edges": {}
+    }
+
+    sched = Schedule('missing timings')
+    q0 = QubitResource('q0')
+    sched.add_resource(q0)
+    sched.add(Reset(q0.name))
+    sched = add_pulse_information_transmon(sched, min_config)
+    #  oops we missed out the call to determine_absolute_timing
+    with pytest.raises(ValueError, match="Absolute timing has not be determined for schedule 'missing timings'"):
+        pulsar_assembler_backend(sched)
 
 
 @pytest.fixture
