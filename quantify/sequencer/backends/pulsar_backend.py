@@ -141,7 +141,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                 if 'freq_mod' in p:
                     if ch['nco_freq'] is not 0 and not p['freq_mod'] == ch['nco_freq']:
                         raise ValueError('pulse {} on channel {} has divergent modulation frequency: expected {} but '
-                                         'was {}'.format(pulse_id, ch['name'], ch['nco_freq'], p['freq_mod']))
+                                         'was {}'.format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
                     else:
                         ch['nco_freq'] = p['freq_mod']
 

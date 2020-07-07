@@ -290,11 +290,45 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     assert len(qcm1_s0.timing_tuples) == 21
     assert len(qcm1_s1.timing_tuples) == 0
 
+    assert sched.resources['qcm0.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["mw_modulation_freq"]
+    assert sched.resources['qrm0.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
+    assert sched.resources['qrm0.r0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
+    assert sched.resources['qcm1.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["mw_modulation_freq"]
+    assert sched.resources['qrm0.s1']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
+    assert sched.resources['qrm0.r1']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
+
     # if PULSAR_ASSEMBLER:
     #     seq_config_dict = pulsar_assembler_backend(sched, program_sequencers=True)
 
     # assert right keys.
     # assert right content of the config files.
+
+
+def test_mismatched_mod_freq():
+    bad_config = {
+        "qubits": {
+            "q0": {"mw_amp180": 0.75, "mw_motzoi": -0.25, "mw_duration": 20e-9, "mw_modulation_freq": 50e6,
+                   "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0"},
+            "q1": {"mw_amp180": 0.75, "mw_motzoi": -0.25, "mw_duration": 20e-9, "mw_modulation_freq": 70e6,
+                   "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0"}
+        },
+        "edges": {
+            "q0-q1": {}
+        }
+    }
+    sched = Schedule('Mismatched mod freq')
+    q0, q1 = (QubitResource('q0'), QubitResource('q1'))
+    sched.add_resource(q0)
+    sched.add_resource(q1)
+    sched.add(Rxy(theta=90, phi=0, qubit=q0.name))
+    sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
+    qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
+    sched.add_resource(qcm0_s0)
+    sched = add_pulse_information_transmon(sched, bad_config)
+    sched = determine_absolute_timing(sched)
+    with pytest.raises(ValueError, match=r'pulse.*\d+ on channel qcm0.s0 has divergent modulation frequency: '
+                                         r'expected 50000000 but was 70000000'):
+        pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
 
 
 @pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar_qcm assembler to be installed")
