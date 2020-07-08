@@ -155,7 +155,7 @@ Because this experiment is most conveniently described on the gate level, we use
     # Define the operations, these will be added to the circuit
     init_all = Reset(q0, q1) # instantiates
     x90_q0 = Rxy(theta=90, phi=0, qubit=q0)
-    cz = CZ(qC=q0, qT= q1)
+    cz = CZ(qC=q0, qT=q1)
     Rxy_theta = Rxy(theta=23, phi=0, qubit=q0) # will be not be used in the experiment loop.
     meass_all = Measure(q0, q1)
 
@@ -247,12 +247,13 @@ which respond to microwave pulses:
 
 .. jupyter-execute::
 
+    #  q0 ro_pulse_modulation_freq should be 80e6, requires issue38 resolution
     device_test_cfg = {
         "qubits":
         {
-            "q0": {"mw_amp180": 0.3, "mw_motzoi": -0.25, "mw_duration": 20e-9,
+            "q0": {"mw_amp180": 0.75, "mw_motzoi": -0.25, "mw_duration": 20e-9,
                    "mw_modulation_freq": 50e6, "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0",
-                   "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 80e6,
+                   "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 0e6,
                    "ro_pulse_type": "square", "ro_pulse_duration": 150e-9,
                    "ro_acq_ch": "qrm0.r0",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
                    "ro_acq_weigth_type": "SSB",
@@ -268,7 +269,10 @@ which respond to microwave pulses:
         },
         "edges":
         {
-            "q0-q1": {}
+            "q0-q1": {
+                "flux_duration": 20e-9, "flux_ch_control": "qcm0.s0", "flux_amp_control": 0.5,
+                "phase_correction_control": 0, "flux_ch_target": "qcm1.s0", "flux_amp_target": 0,
+                "phase_correction_target": 0}
         }
     }
 

@@ -219,7 +219,7 @@ def configure_pulsar_sequencers(config_dict: dict):
                 qcm.set('sequencer{}_upsample_rate'.format(instr_cfg['seq_idx']), 0)
 
                 # configure sequencer
-                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),config_fn)
+                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']), config_fn)
             else:
                 logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
 
