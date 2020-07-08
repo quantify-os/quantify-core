@@ -182,10 +182,10 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             # this reflective edge is a unique property of the CZ gate
             try:
                 edge_cfg = _find_edge(device_cfg, q0, q1, 'CZ')
-            except KeyError:
+            except ValueError:
                 try:
                     edge_cfg = _find_edge(device_cfg, q1, q0, 'CZ')
-                except KeyError:
+                except ValueError:
                     raise
 
             amp = edge_cfg['flux_amp_control']

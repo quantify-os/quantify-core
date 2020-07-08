@@ -116,7 +116,7 @@ def test_missing_edge():
 
     q0, q1 = ('q0', 'q1')
     sched.add(operation=CZ(qC=q0, qT=q1))
-    with pytest.raises(ValueError, match="Attempting operation 'CZ' on qubits q0 and q1 which lack a connective edge."):
+    with pytest.raises(ValueError, match="Attempting operation 'CZ' on qubits q1 and q0 which lack a connective edge."):
         add_pulse_information_transmon(sched, device_cfg=bad_cfg)
 
 

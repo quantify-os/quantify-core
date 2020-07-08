@@ -250,6 +250,7 @@ def dummy_pulsars():
             pass
 
 
+@pytest.mark.skip('Issue 38')
 def test_pulsar_assembler_backend(dummy_pulsars):
     """
     This test uses a full example of compilation for a simple Bell experiment.
