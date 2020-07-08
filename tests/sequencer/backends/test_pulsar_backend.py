@@ -224,7 +224,7 @@ def test_pulsar_assembler_backend_missing_timing_info():
     sched.add(Reset(q0.name))
     sched = add_pulse_information_transmon(sched, min_config)
     #  oops we missed out the call to determine_absolute_timing
-    with pytest.raises(ValueError, match="Absolute timing has not be determined for schedule 'missing timings'"):
+    with pytest.raises(ValueError, match="Absolute timing has not been determined for the schedule 'missing timings'"):
         pulsar_assembler_backend(sched)
 
 
@@ -344,7 +344,7 @@ def test_mismatched_mod_freq():
     sched.add_resource(qcm0_s0)
     sched = add_pulse_information_transmon(sched, bad_config)
     sched = determine_absolute_timing(sched)
-    with pytest.raises(ValueError, match=r'pulse.*\d+ on channel qcm0.s0 has divergent modulation frequency: '
+    with pytest.raises(ValueError, match=r'pulse.*\d+ on channel qcm0.s0 has an inconsistent modulation frequency: '
                                          r'expected 50000000 but was 70000000'):
         pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
 

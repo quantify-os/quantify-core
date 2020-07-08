@@ -90,6 +90,15 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
     return schedule
 
 
+def _find_edge(device_cfg, q0, q1, op_name):
+    try:
+        edge_cfg = device_cfg['edges']["{}-{}".format(q0, q1)]
+    except KeyError:
+        raise ValueError("Attempting operation '{}' on qubits {} and {} which lack a connective edge."
+                         .format(op_name, q0, q1))
+    return edge_cfg
+
+
 def add_pulse_information_transmon(schedule, device_cfg: dict):
     """
     Adds pulse information specified in the device config to the schedule.
@@ -143,7 +152,7 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                     op.add_pulse(ModSquarePulse(amp=1,
                                                 duration=q_cfg['ro_acq_integration_time'],
                                                 ch=q_cfg['ro_acq_ch'],
-                                                freq_mod=q_cfg['ro_pulse_modulation_freq'],
+                                                freq_mod=-q_cfg['ro_pulse_modulation_freq'],
                                                 t0=q_cfg['ro_acq_delay']))
 
         elif op['gate_info']['operation_type'] == 'Rxy':
@@ -166,14 +175,21 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             logging.warning('Operation type "{}" not supported by backend'.format(op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'CZ':
+            # todo mock implementation, needs a proper version before release
             q0 = op['gate_info']['qubits'][0]
-            #  q1 = op['gate_info']['qubits'][1]
-            q0_cfg = device_cfg['qubits'][q0]
-            #  q1_cfg = device_cfg['qubits'][q1]
+            q1 = op['gate_info']['qubits'][1]
 
-            amp = q0_cfg['mw_amp180']
+            # this reflective edge is a unique property of the CZ gate
+            try:
+                edge_cfg = _find_edge(device_cfg, q0, q1, 'CZ')
+            except KeyError:
+                try:
+                    edge_cfg = _find_edge(device_cfg, q1, q0, 'CZ')
+                except KeyError:
+                    raise
 
-            pulse = SoftSquarePulse(amp=amp, duration=q0_cfg['mw_duration'], ch=q0_cfg['mw_ch'])
+            amp = edge_cfg['flux_amp_control']
+            pulse = SoftSquarePulse(amp=amp, duration=edge_cfg['flux_duration'], ch=edge_cfg['flux_ch_control'])
             op.add_pulse(pulse)
         elif op['gate_info']['operation_type'] == 'reset':
             # Initialization through relaxation

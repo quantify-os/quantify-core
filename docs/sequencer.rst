@@ -176,7 +176,7 @@ Now we create the Bell experiment, including observing the oscillation in a simp
     for theta in np.linspace(0, 360, 21):
         sched.add(init_all)
         sched.add(x90_q0)
-        sched.add(operation=CZ(qC=q0, qT= q1))
+        sched.add(operation=cz)
         sched.add(Rxy(theta=theta, phi=0, qubit=q0))
         sched.add(Measure(q0, q1), label='M {:.2f} deg'.format(theta))
 

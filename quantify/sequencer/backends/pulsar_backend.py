@@ -123,7 +123,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
         for p in op['pulse_info']:
             if 'abs_time' not in t_constr:
-                raise ValueError("Absolute timing has not be determined for schedule '{}'".format(schedule.name))
+                raise ValueError("Absolute timing has not been determined for the schedule '{}'".format(schedule.name))
 
             t0 = t_constr['abs_time']+p['t0']
             pulse_id = make_hash(without(p, 't0'))
@@ -142,8 +142,9 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
             if pulse_id not in ch.pulse_dict.keys():
                 if 'freq_mod' in p:
                     if ch['nco_freq'] != 0 and p['freq_mod'] != ch['nco_freq']:
-                        raise ValueError('pulse {} on channel {} has divergent modulation frequency: expected {} but '
-                                         'was {}'.format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
+                        raise ValueError('pulse {} on channel {} has an inconsistent modulation frequency: expected {} '
+                                         'but was {}'
+                                         .format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
                     else:
                         ch['nco_freq'] = p['freq_mod']
 
