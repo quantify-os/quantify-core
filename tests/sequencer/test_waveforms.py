@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import pytest
-from quantify.sequencer.waveforms import square, drag, modulate_wave, rotate_wave
+from quantify.sequencer.waveforms import square, soft_square, drag, modulate_wave, rotate_wave
 
 
 def test_square_wave():

@@ -2,7 +2,6 @@
 Library containing common resources for use with the quantify sequencer.
 """
 
-import numpy as np
 from .types import Resource
 
 
@@ -16,6 +15,7 @@ class QubitResource(Resource):
 
         self.data = {'name': name,
                      'type': str(self.__class__.__name__)}
+
 
 class CompositeResource(Resource):
     """
@@ -65,8 +65,7 @@ class Pulsar_QCM_sequencer(Resource):
     a channel capabable of outputting complex valued signals (I, and Q).
     """
 
-    def __init__(self, name: str, instrument_name: str,
-                 seq_idx: int, nco_freq: float = 0, mod_enable: bool = False):
+    def __init__(self, name: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, mod_enable: bool = False):
         """
         A channel composed of multiple sub-channels.
 
@@ -106,4 +105,3 @@ class Pulsar_QCM_sequencer(Resource):
     @property
     def pulse_dict(self):
         return self._pulse_dict
-

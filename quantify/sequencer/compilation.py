@@ -6,7 +6,7 @@ and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
 """
 import logging
 import jsonschema
-from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SquarePulse
+from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
 from quantify.utilities.general import load_json_schema
 
 
@@ -40,6 +40,9 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
 
     """
 
+    if len(schedule.timing_constraints) == 0:
+        raise ValueError("schedule '{}' contains no operations".format(schedule.name))
+
     # iterate over the objects in the schedule.
     last_constr = schedule.timing_constraints[0]
     last_op = schedule.operations[last_constr['operation_hash']]
@@ -54,8 +57,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
             ref_op = last_op
         else:
             # this assumes the reference op exists. This is ensured in schedule.add
-            ref_constr = next(
-                item for item in schedule.timing_constraints if item['label'] == t_constr['ref_op'])
+            ref_constr = next(item for item in schedule.timing_constraints if item['label'] == t_constr['ref_op'])
             ref_op = schedule.operations[ref_constr['operation_hash']]
 
         # duration = 1 is useful when e.g., drawing a circuit diagram.
@@ -69,8 +71,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         elif t_constr['ref_pt'] == 'end':
             t0 = ref_constr['abs_time'] + duration_ref_op
         else:
-            raise NotImplementedError(
-                'Timing "{}" not supported by backend'.format(ref_constr['abs_time']))
+            raise NotImplementedError('Timing "{}" not supported by backend'.format(ref_constr['abs_time']))
 
         duration_new_op = curr_op.duration if clock_unit == 'physical' else 1
 
@@ -87,6 +88,15 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         last_op = curr_op
 
     return schedule
+
+
+def _find_edge(device_cfg, q0, q1, op_name):
+    try:
+        edge_cfg = device_cfg['edges']["{}-{}".format(q0, q1)]
+    except KeyError:
+        raise ValueError("Attempting operation '{}' on qubits {} and {} which lack a connective edge."
+                         .format(op_name, q0, q1))
+    return edge_cfg
 
 
 def add_pulse_information_transmon(schedule, device_cfg: dict):
@@ -150,7 +160,7 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             # read info from config
             q_cfg = device_cfg['qubits'][q]
 
-            G_amp = q_cfg['mw_amp180']*op['gate_info']['theta']/180
+            G_amp = q_cfg['mw_amp180']*op['gate_info']['theta'] / 180
             D_amp = G_amp * q_cfg['mw_motzoi']
 
             pulse = DRAGPulse(
@@ -162,15 +172,25 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
         elif op['gate_info']['operation_type'] == 'CNOT':
             # These methods don't raise exceptions as they will be implemented shortly
             logging.warning("Not Implemented yet")
-            logging.warning('Operation type "{}" not supported by backend'.format(
-                op['gate_info']['operation_type']))
+            logging.warning('Operation type "{}" not supported by backend'.format(op['gate_info']['operation_type']))
 
         elif op['gate_info']['operation_type'] == 'CZ':
-            # These methods don't raise exceptions as they will be implemented shortly
-            logging.warning("Not Implemented yet")
-            logging.warning('Operation type "{}" not supported by backend'.format(
-                op['gate_info']['operation_type']))
+            # todo mock implementation, needs a proper version before release
+            q0 = op['gate_info']['qubits'][0]
+            q1 = op['gate_info']['qubits'][1]
 
+            # this reflective edge is a unique property of the CZ gate
+            try:
+                edge_cfg = _find_edge(device_cfg, q0, q1, 'CZ')
+            except ValueError:
+                try:
+                    edge_cfg = _find_edge(device_cfg, q1, q0, 'CZ')
+                except ValueError:
+                    raise
+
+            amp = edge_cfg['flux_amp_control']
+            pulse = SoftSquarePulse(amp=amp, duration=edge_cfg['flux_duration'], ch=edge_cfg['flux_ch_control'])
+            op.add_pulse(pulse)
         elif op['gate_info']['operation_type'] == 'reset':
             # Initialization through relaxation
             qubits = op['gate_info']['qubits']
@@ -180,8 +200,8 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
             op.add_pulse(IdlePulse(max(init_times)))
 
         else:
-            raise NotImplementedError('Operation type "{}" not supported by backend'.format(
-                op['gate_info']['operation_type']))
+            raise NotImplementedError('Operation type "{}" not supported by backend'
+                                      .format(op['gate_info']['operation_type']))
 
     return schedule
 

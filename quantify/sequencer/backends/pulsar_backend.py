@@ -85,7 +85,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     Sequencer configuration files contain assembly, a waveform dictionary and the
     parameters to be configured for every pulsar sequencer.
 
-    The sequencer configuration files are stored in the quantify datadir (see :func:`~quantify.data.handling.get_datadir`)
+    The sequencer configuration files are stored in the quantify datadir
+    (see :func:`~quantify.data.handling.get_datadir`)
 
 
     Parameters
@@ -103,7 +104,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     Returns
     ----------
     config_dict : dict
-        a dictionary containing
+        of sequencer names as keys with json filenames as values
 
 
     .. note::
@@ -118,9 +119,11 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
         if len(op['pulse_info']) == 0:
             # this exception is raised when no pulses have been added yet.
-            raise ValueError('Operation {} has no pulse info'.format(op))
+            raise ValueError('Operation {} has no pulse info'.format(op.name))
 
         for p in op['pulse_info']:
+            if 'abs_time' not in t_constr:
+                raise ValueError("Absolute timing has not been determined for the schedule '{}'".format(schedule.name))
 
             t0 = t_constr['abs_time']+p['t0']
             pulse_id = make_hash(without(p, 't0'))
@@ -130,15 +133,20 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
 
             # Assumes the channel exists in the resources available to the schedule
             if p['channel'] not in schedule.resources.keys():
-                raise KeyError('Resource "{}" not available in "{}"'.format(
-                    p['channel'], schedule))
+                raise KeyError('Resource "{}" not available in "{}"'.format(p['channel'], schedule))
 
             ch = schedule.resources[p['channel']]
             ch.timing_tuples.append((round(t0*ch['sampling_rate']), pulse_id))
 
             # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
-                # TODO: configure the settings (modulation freq etc. for each seqeuncer)
+                if 'freq_mod' in p:
+                    if ch['nco_freq'] != 0 and p['freq_mod'] != ch['nco_freq']:
+                        raise ValueError('pulse {} on channel {} has an inconsistent modulation frequency: expected {} '
+                                         'but was {}'
+                                         .format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
+                    else:
+                        ch['nco_freq'] = p['freq_mod']
 
                 # the pulsar backend makes use of real-time pulse modulation
                 t = np.arange(0, 0+p['duration'], 1/ch['sampling_rate'])
@@ -175,8 +183,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                 sequence_duration=max_seq_duration)
             seq_cfg['instr_cfg'] = resource.data
 
-            seq_fn = os.path.join(
-                seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
+            seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
             with open(seq_fn, 'w') as f:
                 json.dump(seq_cfg, f, cls=NumpyJSONEncoder, indent=4)
             config_dict[resource.name] = seq_fn
@@ -184,8 +191,6 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
     if configure_hardware:
         configure_pulsar_sequencers(config_dict)
 
-    # returns a dict of sequencer names as keys with json filenames as values.
-    # add bool option to program immediately?
     return config_dict
 
 
@@ -207,23 +212,16 @@ def configure_pulsar_sequencers(config_dict: dict):
 
             if instr_cfg['seq_idx'] == 0:
                 # configure settings
-                qcm.set('sequencer{}_mod_enable'.format(
-                    instr_cfg['seq_idx']), instr_cfg['mod_enable'])
-                qcm.set('sequencer{}_nco_freq'.format(
-                    instr_cfg['seq_idx']), instr_cfg['nco_freq'])
-                qcm.set('sequencer{}_cont_mode_en'.format(
-                    instr_cfg['seq_idx']), False)
-                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(
-                    instr_cfg['seq_idx']), 0)
-                qcm.set('sequencer{}_upsample_rate'.format(
-                    instr_cfg['seq_idx']), 0)
+                qcm.set('sequencer{}_mod_enable'.format(instr_cfg['seq_idx']), instr_cfg['mod_enable'])
+                qcm.set('sequencer{}_nco_freq'.format(instr_cfg['seq_idx']), instr_cfg['nco_freq'])
+                qcm.set('sequencer{}_cont_mode_en'.format(instr_cfg['seq_idx']), False)
+                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(instr_cfg['seq_idx']), 0)
+                qcm.set('sequencer{}_upsample_rate'.format(instr_cfg['seq_idx']), 0)
 
                 # configure sequencer
-                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),
-                        config_fn)
+                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']),config_fn)
             else:
-                logging.warning(
-                    'Not Implemented, awaiting driver for more than one seqeuncer')
+                logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
 
 
 def build_waveform_dict(pulse_info):
@@ -241,7 +239,7 @@ def build_waveform_dict(pulse_info):
     for idx, (pulse_id, data) in enumerate(pulse_info.items()):
         arr = np.array(data)
 
-        I = arr.real
+        I = arr.real  # noqa: E741
         Q = arr.imag  # real-valued arrays automatically evaluate to an array of zeros
 
         sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
@@ -310,7 +308,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         wait_duration = timing - clock
         auto_wait('', wait_duration, '#Wait', previous)
 
-        I = pulse_dict["{}_I".format(pulse_id)]['index']
+        I = pulse_dict["{}_I".format(pulse_id)]['index']  # noqa: E741
         Q = pulse_dict["{}_Q".format(pulse_id)]['index']
         q1asm.line_break()
 

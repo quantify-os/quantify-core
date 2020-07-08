@@ -11,6 +11,7 @@ knowledge of the flux sensitivity and interaction strengths and qubit
 frequencies.
 """
 import numpy as np
+from scipy import signal
 
 
 def square(t, amp):
@@ -18,6 +19,12 @@ def square(t, amp):
     A square pulse.
     """
     return amp*np.ones(len(t))
+
+
+def soft_square(t, amp):
+    sq = square(t, amp)
+    window = signal.windows.hann(int(len(t) / 2))
+    return signal.convolve(sq, window, mode='same') / sum(window)
 
 
 def drag(t,

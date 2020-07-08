@@ -1,13 +1,10 @@
 """
 Module containing the core concepts of the sequencer.
 """
-import logging
-from os import path
 from uuid import uuid4
 from collections import UserDict
-import json
 import jsonschema
-from quantify.utilities.general import make_hash
+from quantify.utilities.general import make_hash, load_json_schema
 
 
 class Schedule(UserDict):
@@ -71,7 +68,6 @@ class Schedule(UserDict):
         """
         A dictionary containing resources. Keys are names (str), values are instances of :class:`Resource` .
         """
-
         return self.data['resource_dict']
 
     def add_resources(self, resources: list):
@@ -92,12 +88,7 @@ class Schedule(UserDict):
 
     @classmethod
     def is_valid(cls, operation):
-
-        basepath = path.dirname(__file__)
-        filepath = path.abspath(path.join(basepath,
-                                          "schemas", "schedule.json"))
-        with open(filepath) as json_file:
-            scheme = json.load(json_file)
+        scheme = load_json_schema(__file__, 'schedule.json')
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
 
@@ -253,18 +244,13 @@ class Operation(UserDict):
         Adds pulse_info of pulse_operation to self.
 
         Args:
-            pulse_operation (:class:`Operation`) : an operation containing pulse_info.
+            pulse_operation (:class:`Operation`)    : an operation containing pulse_info.
         """
         self.data['pulse_info'] += pulse_operation.data['pulse_info']
 
     @classmethod
     def is_valid(cls, operation):
-
-        basepath = path.dirname(__file__)
-        filepath = path.abspath(path.join(basepath,
-                                          "schemas", "operation.json"))
-        with open(filepath) as json_file:
-            scheme = json.load(json_file)
+        scheme = load_json_schema(__file__, 'operation.json')
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
 
@@ -281,12 +267,7 @@ class Resource(UserDict):
 
     @classmethod
     def is_valid(cls, operation):
-
-        basepath = path.dirname(__file__)
-        filepath = path.abspath(path.join(basepath,
-                                          "schemas", "resource.json"))
-        with open(filepath) as json_file:
-            scheme = json.load(json_file)
+        scheme = load_json_schema(__file__, 'resource.json')
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
 

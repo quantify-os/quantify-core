@@ -33,7 +33,6 @@ class NumericPulse(Operation):
     """
 
     def __init__(self, t0):
-
         raise NotImplementedError
 
 
@@ -87,6 +86,20 @@ class ModSquarePulse(Operation):
             'amp': amp, 'duration': duration,
             't0': t0,
             'freq_mod': freq_mod,
+            'channel': ch}]}
+        super().__init__(name=data['name'], data=data)
+
+
+class SoftSquarePulse(Operation):
+    """
+    Place holder pulse for mocking the CZ pulse until proper implementation. Replicates parameters.
+    """
+
+    def __init__(self, amp: float, duration: float, ch, t0: float = 0):
+        data = {'name': 'SoftSquarePulse', 'pulse_info': [{
+            'wf_func': 'quantify.sequencer.waveforms.soft_square',
+            'amp': amp, 'duration': duration,
+            't0': t0,
             'channel': ch}]}
         super().__init__(name=data['name'], data=data)
 

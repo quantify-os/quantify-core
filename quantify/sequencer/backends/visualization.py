@@ -116,7 +116,7 @@ def pulse_diagram_plotly(schedule,
         mark_labels = []
     if mark_labels:
         logging.warning("marking labels is not implemented.")
-        rangeselector_buttons = list()
+        # rangeselector_buttons = list()
 
     if ch_list is None:  # determine the channel list automatically.
         auto_map = True
@@ -221,8 +221,7 @@ def pulse_diagram_plotly(schedule,
         try:
             fig.update_yaxes(row=r+1, col=1, tickformat=".2s", hoverformat='.3s',
                              ticksuffix='V', title=list(ch_map.keys())[r], range=[-1.1, 1.1])
-        except:
+        except Exception:
             logging.warning("{} not enough channels".format(r))
 
     return fig
-
