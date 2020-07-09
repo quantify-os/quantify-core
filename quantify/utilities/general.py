@@ -98,3 +98,10 @@ def without(d, key):
     new_d = d.copy()
     new_d.pop(key)
     return new_d
+
+
+class KeyboardFinish(KeyboardInterrupt):
+    """
+    Indicates the user has signalled to safely abort/finish the experiment.
+    """
+    pass
