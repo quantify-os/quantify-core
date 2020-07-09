@@ -21,6 +21,7 @@ requirements = [
     'numpy',
     'scipy',
     'xarray',
+    'columnar',
     'xxhash',
     'matplotlib',
     'lmfit',

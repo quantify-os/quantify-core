@@ -37,6 +37,7 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.napoleon',  # autodoc understands numpy docstrings
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx',
+              'sphinx.ext.autosectionlabel',
               'sphinx-jsonschema',
               'sphinx_rtd_theme',
               'sphinx.ext.mathjax',

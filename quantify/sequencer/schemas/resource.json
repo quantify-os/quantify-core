@@ -1,0 +1,17 @@
+{
+ "type": "object",
+ "description": "JSON schema for a quantify resource.",
+ "additionalProperties": true,
+ "required": [
+  "name",
+  "type"
+ ],
+ "properties": {
+  "name": {
+   "type": "string",
+   "description": "Name of the resource."},
+   "type": {
+   "type": "string",
+   "description": "Type of the resource, this property can be used by compilation steps."}
+  }
+}

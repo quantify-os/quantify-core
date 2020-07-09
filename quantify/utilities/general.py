@@ -91,6 +91,15 @@ def load_json_schema(relative_to, filename):
         return json.load(f)
 
 
+def without(d, key):
+    """
+    Utility that copies a dictionary exluding a specific key.
+    """
+    new_d = d.copy()
+    new_d.pop(key)
+    return new_d
+
+
 class KeyboardFinish(KeyboardInterrupt):
     """
     Indicates the user has signalled to safely abort/finish the experiment.

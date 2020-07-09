@@ -1,13 +1,10 @@
 """
 Module containing the core concepts of the sequencer.
 """
-import logging
-from os import path
 from uuid import uuid4
 from collections import UserDict
-import json
 import jsonschema
-from quantify.utilities.general import make_hash
+from quantify.utilities.general import make_hash, load_json_schema
 
 
 class Schedule(UserDict):
@@ -20,11 +17,9 @@ class Schedule(UserDict):
 
         operation_dict     : a hash table containing the unique :class:`Operation` s added to the schedule.
         timing_constraints : a list of all timing constraints added between operations.
-        resource_dict      : a dictionary containing the relevant :class:Resource` s
 
-    .. warning::
 
-        JSON scheme definition and validation not implemented yet.
+    .. jsonschema:: schemas/schedule.json
 
     """
 
@@ -51,6 +46,10 @@ class Schedule(UserDict):
             raise NotImplementedError
 
     @property
+    def name(self):
+        return self.data['name']
+
+    @property
     def operations(self):
         """
         Operation dictionary, keys are the has of operations values are instances of :class:`Operation`.
@@ -69,8 +68,18 @@ class Schedule(UserDict):
         """
         A dictionary containing resources. Keys are names (str), values are instances of :class:`Resource` .
         """
-        logging.warning('resources not implemented')
-        return {}
+        return self.data['resource_dict']
+
+    def add_resources(self, resources: list):
+        for r in resources:
+            self.add_resource(r)
+
+    def add_resource(self, resource):
+        """
+        Add a resource such as a channel or qubit to the schedule.
+        """
+        assert Resource.is_valid(resource)
+        self.data['resource_dict'][resource.name] = resource
 
     def __repr__(self):
         return 'Schedule "{}" containing ({}) {}  (unique) operations.'.format(
@@ -78,10 +87,10 @@ class Schedule(UserDict):
             len(self.data['operation_dict']), len(self.data['timing_constraints']))
 
     @classmethod
-    def is_valid(cls, schedule) -> bool:
-        # NOT IMPLEMENTED
-
-        return True
+    def is_valid(cls, operation):
+        scheme = load_json_schema(__file__, 'schedule.json')
+        jsonschema.validate(operation.data, scheme)
+        return True  # if not exception was raised during validation
 
     def add(self, operation, rel_time: float = 0,
             ref_op: str = None,
@@ -161,7 +170,6 @@ class Operation(UserDict):
     .. jsonschema:: schemas/operation.json
 
 
-
         .. warning::
 
             The instruction/logical information level is not clearly
@@ -192,6 +200,10 @@ class Operation(UserDict):
             self.data['name'] = name
         if data is not None:
             self.data.update(data)
+
+    @property
+    def name(self):
+        return self.data['name']
 
     @property
     def duration(self):
@@ -232,18 +244,13 @@ class Operation(UserDict):
         Adds pulse_info of pulse_operation to self.
 
         Args:
-            pulse_operation (:class:`Operation`) : an operation containing pulse_info.
+            pulse_operation (:class:`Operation`)    : an operation containing pulse_info.
         """
         self.data['pulse_info'] += pulse_operation.data['pulse_info']
 
     @classmethod
     def is_valid(cls, operation):
-
-        basepath = path.dirname(__file__)
-        filepath = path.abspath(path.join(basepath,
-                                          "schemas", "operation.json"))
-        with open(filepath) as json_file:
-            scheme = json.load(json_file)
+        scheme = load_json_schema(__file__, 'operation.json')
         jsonschema.validate(operation.data, scheme)
         return True  # if not exception was raised during validation
 
@@ -253,10 +260,17 @@ class Resource(UserDict):
     A resource corresponds to a physical resource such as an AWG channel,
     a qubit, or a classical register.
 
-    .. warning::
 
-        The data types and interface of a Resource are not defined yet.
+    .. jsonschema:: schemas/resource.json
 
     """
 
-    pass
+    @classmethod
+    def is_valid(cls, operation):
+        scheme = load_json_schema(__file__, 'resource.json')
+        jsonschema.validate(operation.data, scheme)
+        return True  # if not exception was raised during validation
+
+    @property
+    def name(self):
+        return self.data['name']
