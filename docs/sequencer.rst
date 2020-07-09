@@ -349,26 +349,36 @@ also use for demonstration purposes as part of this tutorial:
 
 .. jupyter-execute::
 
-    from pulsar_qcm.pulsar_qcm import pulsar_qcm_dummy
-    qcm = pulsar_qcm_dummy("qcm0")
-    qcm.get_idn()
+    # todo install from pypi when released
+    try:
+        from pulsar_qcm.pulsar_qcm import pulsar_qcm_dummy
+        PULSAR_ASSEMBLER = True
+    except ImportError:
+        PULSAR_ASSEMBLER = False
+
+    if PULSAR_ASSEMBLER:
+        from pulsar_qcm.pulsar_qcm import pulsar_qcm_dummy
+        qcm = pulsar_qcm_dummy("qcm0")
+        qcm.get_idn()
 
 The Pulsar QCM backend provides a method for deploying our complete configuration to all our devices at once:
 
 .. jupyter-execute::
 
-    _pulsars = []
-    # first we need to create some Instruments representing the other devices in our configuration
-    for qcm_name in ['qcm1', 'qrm0', 'qrm1']:
-        _pulsars.append(pulsar_qcm_dummy(qcm_name))
-    pb.configure_pulsar_sequencers(config_dict)
+    if PULSAR_ASSEMBLER:
+        _pulsars = []
+        # first we need to create some Instruments representing the other devices in our configuration
+        for qcm_name in ['qcm1', 'qrm0', 'qrm1']:
+            _pulsars.append(pulsar_qcm_dummy(qcm_name))
+        pb.configure_pulsar_sequencers(config_dict)
 
 At this point, the assembler on the device will load the waveforms into memory and verify the program can be executed. We must next arm and then start the device:
 
 .. jupyter-execute::
 
-    qcm.arm_sequencer()
-    qcm.start_sequencer()
+    if PULSAR_ASSEMBLER:
+        qcm.arm_sequencer()
+        qcm.start_sequencer()
 
 .. note::
 
