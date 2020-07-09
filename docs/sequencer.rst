@@ -73,17 +73,17 @@ One or multiple compilation steps modify the :class:`~quantify.sequencer.Schedul
 
 The benefit of allowing the user to mix the high-level gate description of a circuit with the lower-level pulse description can be understood through an example.
 Below we first give an example of basic usage using `Bell violations`.
-We next show the `Chevron` experiment in which the user is required to mix gate-type and pulse-type information when define the :class:`~quantify.sequencer.Schedule`.
+We next show the `Chevron` experiment in which the user is required to mix gate-type and pulse-type information when defining the :class:`~quantify.sequencer.Schedule`.
 
 Ex: A basic quantum circuit:  the Bell experiment
 -----------------------------------------------------------------------------------------
 
-As the first example, we want to perform the  `Bell experiment <https://en.wikipedia.org/wiki/Bell%27s_theorem>`_ .
+As the first example, we want to perform the `Bell experiment <https://en.wikipedia.org/wiki/Bell%27s_theorem>`_ .
 In this example, we will go quite deep into the internals of the sequencer to show how the data strutures work.
 
 The goal of the Bell experiment is to create a Bell state :math:`|\Phi ^+\rangle=\frac{1}{2}(|00\rangle+|11\rangle)` followed by a measurement and observe violations of the CSHS inequality.
 
-By changing the basis in one which one of the detectors measures, we can observe an oscillation which should result in a violation of Bell's inequality.
+By changing the basis in which one of the detectors measures, we can observe an oscillation which should result in a violation of Bell's inequality.
 If everything is done properly, one should observe this oscillation:
 
 .. figure:: https://upload.wikimedia.org/wikipedia/commons/e/e2/Bell.svg
@@ -91,7 +91,7 @@ If everything is done properly, one should observe this oscillation:
 
 Bell circuit
 ~~~~~~~~~~~~~~~~
-Below is the QASM code used to perform this experiment in the `Quantum Inspire <https://www.quantum-inspire.com/>`_ and a circuit diagram representation.
+Below is the QASM code used to perform this experiment in `Quantum Inspire <https://www.quantum-inspire.com/>`_ as well as a circuit diagram representation.
 We will be creating this same experiment using the Quantify sequencer.
 
 .. code-block:: python
@@ -104,7 +104,6 @@ We will be creating this same experiment using the Quantify sequencer.
 
     .init
     prep_z q[0:1]
-
 
     .Entangle
     X90 q[0]
@@ -153,13 +152,13 @@ Because this experiment is most conveniently described on the gate level, we use
     from quantify.sequencer.gate_library import Reset, Measure, CZ, Rxy, X90
 
     # Define the operations, these will be added to the circuit
-    init_all = Reset(q0, q1) # instantiates
+    init_all = Reset(q0, q1)
     x90_q0 = Rxy(theta=90, phi=0, qubit=q0)
     cz = CZ(qC=q0, qT=q1)
     Rxy_theta = Rxy(theta=23, phi=0, qubit=q0) # will be not be used in the experiment loop.
     meass_all = Measure(q0, q1)
 
-Similar to the schedule, :class:`~quantify.sequencer.Operation` are also based on dicts.
+Similar to the schedule, :class:`~quantify.sequencer.Operation` objects are also based on dicts.
 
 .. jupyter-execute::
 
@@ -200,7 +199,7 @@ We can see that the number of unique operations is 24 corresponding to 4 operati
     sched.data.keys()
 
 The schedule consists of a hash table containing all the operations.
-This allows effecient loading of pulses or gates to memory and also enables efficient adding of pulse type information as a compilation step.
+This allows efficient loading of pulses or gates to memory and also enables efficient adding of pulse type information as a compilation step.
 
 .. jupyter-execute::
 
@@ -387,4 +386,4 @@ At this point, the assembler on the device will load the waveforms into memory a
 Ex: Mixing pulse and gate-level descriptions, the Chevron experiment
 -----------------------------------------------------------------------------------------
 
-In this example, we want to perform a  Chevron experiment
+In this example, we want to perform a Chevron experiment
