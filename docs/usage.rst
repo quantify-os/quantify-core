@@ -171,6 +171,23 @@ parameter optionally accepts a list of floats as a parameter. For example
 
 Data storage & Analysis
 --------------------------
+As well as the produced dataset, every parameter in an experiment run by Quantify is automatically serialized to disk, aiding in reproducibility.
 
-Folder structure
-====================
+Concepts
+==========
+Data directory
+~~~~~~~~~~~~~~~~
+The top level directory in the file system where output is saved to. Experiments are organised first by date;
+all experiments which take place on a certain date will be grouped together in a subdirectory in the form YYYYMMDD.
+
+Individual experiments are saved to subdirectories named by the TUID.
+
+.. note::
+    TUID: A time based unique ID of the form HHMMSS-sss-<random 6 character string> + <experiment name (if any)>.
+
+These directories are populated by the QCodes ExperimentContainer, typical output being the Dataset in hdf5 format and JSON format file describing Parameters, Instruments and such.
+
+.. note::
+    ExperimentContainer: A QCodes helper class for serialization of experiment configuration and output.
+
+put an example of the dir structure here
