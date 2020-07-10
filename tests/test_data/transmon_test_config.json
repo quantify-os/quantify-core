@@ -21,7 +21,7 @@
     {
         "q0-q1": {
             "flux_duration": 40e-9,
-            "flux_ch_control": "qcm0.s0", "flux_ch_target": "qcm1.s0",
+            "flux_ch_control": "qcm0.s1", "flux_ch_target": "qcm1.s1",
             "flux_amp_control": 0.5,  "flux_amp_target": 0,
             "phase_correction_control": 0,
             "phase_correction_target": 0}
