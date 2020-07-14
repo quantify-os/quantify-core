@@ -210,4 +210,5 @@ The output produced by the experiment, stored in HDF5 format. This topic is expa
 
 Snapshot
 ~~~~~~~~~~
-The configuration for each device, instrument, parameter etc. for the experiment.
+The configuration for each QCodes Instrument used in this experiment. This information is automatically collected for all Instruments in use.
+It is useful for quickly reconstructing a complex set-up or verifying Parameters are as expected.
