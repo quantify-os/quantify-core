@@ -170,17 +170,20 @@ parameter optionally accepts a list of floats as a parameter. For example
             self.shutdown()
 
 Data storage & Analysis
---------------------------
-As well as the produced dataset, every parameter in an experiment run by Quantify is automatically serialized to disk, aiding in reproducibility.
+=========================
+As well as the produced dataset, every parameter in an experiment run by Quantify is automatically serialized to disk.
+This is intended to aid with reproducibility, as a past experiment can be easily reloaded and re-run by anyone.
 
 Concepts
-==========
+----------
+
 Data directory
 ~~~~~~~~~~~~~~~~
-The top level directory in the file system where output is saved to. Experiments are organised first by date;
-all experiments which take place on a certain date will be grouped together in a subdirectory in the form YYYYMMDD.
 
-Individual experiments are saved to subdirectories named by the TUID.
+The top level directory in the file system where output is saved to. Experiments are first grouped by date -
+all experiments which take place on a certain date will be saved together in a subdirectory in the form YYYYMMDD.
+
+Individual experiments are saved to their own subdirectories named by the TUID.
 
 .. note::
     TUID: A time based unique ID of the form HHMMSS-sss-<random 6 character string> + <experiment name (if any)>.
@@ -190,4 +193,21 @@ These directories are populated by the QCodes ExperimentContainer, typical outpu
 .. note::
     ExperimentContainer: A QCodes helper class for serialization of experiment configuration and output.
 
-put an example of the dir structure here
+A data directory with the name 'data' thus will look similar to the below:
+
+- data
+    - 20200708
+        - 145048-800-60cf37
+        - 145205-042-6d068a-bell_test
+            - dataset.hdf5
+            - snapshot.json
+    - 20200710
+
+Dataset
+~~~~~~~~~
+
+The output produced by the experiment, stored in HDF5 format. This topic is expanded upon on this page: :ref:`DataStorage specification`.
+
+Snapshot
+~~~~~~~~~~
+The configuration for each device, instrument, parameter etc. for the experiment.

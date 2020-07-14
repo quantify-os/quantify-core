@@ -9,8 +9,7 @@ from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify.measurement.control import MeasurementControl, \
-    tile_setpoints_grid
+from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
