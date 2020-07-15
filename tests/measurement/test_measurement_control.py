@@ -9,8 +9,7 @@ from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify.measurement.control import MeasurementControl, \
-    tile_setpoints_grid
+from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
@@ -504,15 +503,20 @@ class TestMeasurementControl:
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
-    """
     def test_adapative_nelder_mead(self):
         dummy = DummyParabola("mock_parabola")
         self.MC.settables([dummy.x, dummy.y])
-        optimize.minimize(method='Nelder-Mead')
+
+        af_pars = {
+            "adaptive_function": optimize.minimize,
+            "x0": [-50, -50],
+            "method": "Nelder-Mead"
+        }
+
         dummy.noise(0.5)
         self.MC.gettables(dummy.parabola)
-        dset = self.MC.run('nelder_mead')
-    """
+        dset = self.MC.run_adapative('nelder_mead', af_pars)
+        print(dset)
 
     def test_progress_callback(self):
 

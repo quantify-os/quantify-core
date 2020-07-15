@@ -1,5 +1,6 @@
 import time
 import json
+import types
 from os.path import join
 import concurrent.futures
 from threading import Event
@@ -124,16 +125,20 @@ class MeasurementControl(Instrument):
         # early exit signal
         self._exit_event = Event()
 
+        # variables used for adaptive measurements
+        self._af_pars = {}
+
     ############################################
     # Methods used to control the measurements #
     ############################################
 
-    def run(self, name: str = ''):
+    def run(self, name: str = '', adaptive: bool = False):
         """
         Starts a data acquisition loop.
 
         Args:
             name (str): Name of the measurement. This name is included in the name of the data files.
+            adaptive (bool): Whether to run in Adaptive mode.
 
         Returns:
             :class:`xarray.Dataset`: the dataset
@@ -168,7 +173,9 @@ class MeasurementControl(Instrument):
         # spawn the measurement loop into a side thread and listen for a keyboard interrupt in the main
         # a keyboard interrupt will signal to the measurement loop that it should stop processing
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            if self._is_soft:
+            if adaptive:
+                runner = self._run_adapative
+            elif self._is_soft:
                 runner = self._run_soft
             else:
                 runner = self._run_hard
@@ -187,8 +194,32 @@ class MeasurementControl(Instrument):
 
         return dataset
 
-    def run_adapative(self):
-        raise NotImplementedError()
+    def _measure(self, vec) -> float:
+        # each i in the vec is the i'th settable to set to
+        # then get
+        for idx, settable in enumerate(self._settable_pars):
+            settable.set(vec[idx])
+        return self._gettable_pars[self._GETTABLE_IDX].get()
+
+    def run_adapative(self, name, params):
+        self._prepare_settables()
+        self._prepare_gettable()
+
+        # soft averaging IS NOT ALLOWED
+
+        adaptive_function = params.get("adaptive_function")
+
+        result = None
+        # simple case, function provided
+        if isinstance(adaptive_function, types.FunctionType):
+            af_pars_copy = dict(params)
+            unused_pars = ["adaptive_function", "minimize", "f_termination"]
+            for unused_par in unused_pars:
+                af_pars_copy.pop(unused_par, None)
+            result = adaptive_function(self._measure, **af_pars_copy)
+
+        self._finish()
+        return result
 
     def _run_soft(self, dataset, plotmon_name, exp_folder):
         try:
