@@ -504,10 +504,7 @@ class TestMeasurementControl:
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
     def test_adapative_nelder_mead(self):
-        plotmon = PlotMonitor_pyqt('plotmon_MC')
-        self.MC.instr_plotmon(plotmon.name)
         dummy = DummyParabola("mock_parabola")
-        dummy.delay(0.1)
         self.MC.settables([dummy.x, dummy.y])
         af_pars = {
             "adaptive_function": optimize.minimize,
@@ -521,6 +518,18 @@ class TestMeasurementControl:
         assert dset['x0'][-1] < 0.7
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
+
+    def test_adaptive_basinhopping(self):
+        dummy = DummyParabola("mock_parabola")
+        self.MC.settables([dummy.x, dummy.y])
+        af_pars = {
+            "adaptive_function": optimize.basinhopping,
+            "x0": [-2, 2],
+            "stepsize": 0.5
+        }
+        dummy.noise(0.5)
+        self.MC.gettables(dummy.parabola)
+        dset = self.MC.run_adapative('basinhop', af_pars, 100)
 
     def test_progress_callback(self):
 
