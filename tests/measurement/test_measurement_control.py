@@ -504,7 +504,10 @@ class TestMeasurementControl:
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
     def test_adapative_nelder_mead(self):
+        plotmon = PlotMonitor_pyqt('plotmon_MC')
+        self.MC.instr_plotmon(plotmon.name)
         dummy = DummyParabola("mock_parabola")
+        dummy.delay(0.1)
         self.MC.settables([dummy.x, dummy.y])
         af_pars = {
             "adaptive_function": optimize.minimize,
