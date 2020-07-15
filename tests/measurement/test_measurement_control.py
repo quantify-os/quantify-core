@@ -506,17 +506,18 @@ class TestMeasurementControl:
     def test_adapative_nelder_mead(self):
         dummy = DummyParabola("mock_parabola")
         self.MC.settables([dummy.x, dummy.y])
-
         af_pars = {
             "adaptive_function": optimize.minimize,
             "x0": [-50, -50],
             "method": "Nelder-Mead"
         }
-
         dummy.noise(0.5)
         self.MC.gettables(dummy.parabola)
-        dset = self.MC.run_adapative('nelder_mead', af_pars)
-        print(dset)
+        dset = self.MC.run_adapative('nelder_mead', af_pars, 150)
+
+        assert dset['x0'][-1] < 0.7
+        assert dset['x1'][-1] < 0.7
+        assert dset['y0'][-1] < 0.7
 
     def test_progress_callback(self):
 

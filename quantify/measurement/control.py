@@ -6,6 +6,7 @@ import concurrent.futures
 from threading import Event
 
 import numpy as np
+import xarray as xr
 from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
@@ -132,7 +133,7 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    def run(self, name: str = '', adaptive: bool = False):
+    def run(self, name: str = ''):
         """
         Starts a data acquisition loop.
 
@@ -173,9 +174,7 @@ class MeasurementControl(Instrument):
         # spawn the measurement loop into a side thread and listen for a keyboard interrupt in the main
         # a keyboard interrupt will signal to the measurement loop that it should stop processing
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            if adaptive:
-                runner = self._run_adapative
-            elif self._is_soft:
+            if self._is_soft:
                 runner = self._run_soft
             else:
                 runner = self._run_hard
@@ -194,32 +193,67 @@ class MeasurementControl(Instrument):
 
         return dataset
 
-    def _measure(self, vec) -> float:
-        # each i in the vec is the i'th settable to set to
-        # then get
+    def _measure(self, vec, dataset, plotmon_name, exp_folder, max_iterations) -> float:
         for idx, settable in enumerate(self._settable_pars):
             settable.set(vec[idx])
-        return self._gettable_pars[self._GETTABLE_IDX].get()
+            dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
+        val = self._gettable_pars[self._GETTABLE_IDX].get()
+        dataset['y0'].values[self._nr_acquired_values] = val
+        self._nr_acquired_values += 1
+        self._update(dataset, plotmon_name, exp_folder)
+        if self._nr_acquired_values == max_iterations:
+            raise StopIteration
+        return val
 
-    def run_adapative(self, name, params):
+    def run_adapative(self, name, params, max_iterations):
+        # reset all variables that change during acquisition
+        self._nr_acquired_values = 0
+        self._loop_count = 0
+        self._begintime = time.time()
+
+        # need a better way of tricking _max_setpoints
+        self.setpoints(np.empty((max_iterations, len(params['x0']))))
+
+        # move dataset, exp_folder and plotmon_name to be instance vars, which are reset each iteration
+
+        dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
+        dataset.attrs['name'] = name
+        dataset.attrs.update(self._plot_info)
+
+        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'], name=dataset.attrs['name'])
+        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Write the empty dataset
+        snap = snapshot(update=False, clean=True)  # Save a snapshot of all
+        with open(join(exp_folder, 'snapshot.json'), 'w') as file:
+            json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
+
+        plotmon_name = self.instr_plotmon()
+        if plotmon_name is not None and plotmon_name != '':
+            self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
+            # if the timestamp has changed, this will initialize the monitor
+            self.instr_plotmon.get_instr().update()
+
         self._prepare_settables()
         self._prepare_gettable()
 
-        # soft averaging IS NOT ALLOWED
+        # soft averaging IS NOT ALLOW
 
         adaptive_function = params.get("adaptive_function")
 
-        result = None
         # simple case, function provided
         if isinstance(adaptive_function, types.FunctionType):
             af_pars_copy = dict(params)
             unused_pars = ["adaptive_function", "minimize", "f_termination"]
             for unused_par in unused_pars:
                 af_pars_copy.pop(unused_par, None)
-            result = adaptive_function(self._measure, **af_pars_copy)
+            try:
+                measure_args = (dataset, plotmon_name, exp_folder, max_iterations)
+                adaptive_function(self._measure, args=measure_args, **af_pars_copy)
+            except StopIteration as e:
+                pass
 
         self._finish()
-        return result
+        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
+        return dataset
 
     def _run_soft(self, dataset, plotmon_name, exp_folder):
         try:

@@ -169,9 +169,9 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     Initialize an empty dataset based on setable_pars, setpoints and getable_pars
 
     Args:
-        setable_pars (list):    a list of M setables
-        setpoints (:class:`numpy.ndarray`):   an (N*M) array
-        getable_pars (list):    a list of getables
+        setable_pars (list):                    a list of M settables
+        setpoints (:class:`numpy.ndarray`):     an (N*M) array
+        getable_pars (list):                    a list of gettables
 
     Returns:
         :class:`xarray.Dataset`: the dataset
@@ -188,7 +188,6 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     numpoints = len(setpoints[:, 0])
     j = 0
     for getpar in getable_pars:
-
         #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
         #  so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
