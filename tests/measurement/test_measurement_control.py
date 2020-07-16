@@ -51,7 +51,7 @@ class NoneSweep:
         pass
 
 
-class DummyParabola(Instrument):
+class DummyParHolder(Instrument):
     def __init__(self, name):
         super().__init__(name)
 
@@ -146,11 +146,13 @@ class TestMeasurementControl:
     def setup_class(cls):
         cls.MC = MeasurementControl(name='MC')
         # ensures the default datadir is used which is excluded from git
+        cls.dummy_parabola = DummyParHolder('parabola')
         set_datadir(None)
 
     @classmethod
     def teardown_class(cls):
         cls.MC.close()
+        cls.dummy_parabola.close()
         set_datadir(None)
 
     def test_MeasurementControl_name(self):
@@ -504,32 +506,46 @@ class TestMeasurementControl:
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
     def test_adapative_nelder_mead(self):
-        dummy = DummyParabola("mock_parabola")
-        self.MC.settables([dummy.x, dummy.y])
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": optimize.minimize,
             "x0": [-50, -50],
             "method": "Nelder-Mead"
         }
-        dummy.noise(0.5)
-        self.MC.gettables(dummy.parabola)
+        self.dummy_parabola.noise(0.5)
+        self.MC.gettables(self.dummy_parabola.parabola)
         dset = self.MC.run_adapative('nelder_mead', af_pars, 150)
 
         assert dset['x0'][-1] < 0.7
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
 
+    def test_adaptive_trim(self):
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        af_pars = {
+            "adaptive_function": optimize.minimize,
+            "x0": [-50, -50],
+            "method": "Nelder-Mead"
+        }
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adapative('nelder_mead', af_pars, 1000)  # this should end after ~400 iterations
+
+        assert len(dset['y0'].values) < 1000
+        assert len(dset['y0'].values) > 200
+
     def test_adaptive_basinhopping(self):
-        dummy = DummyParabola("mock_parabola")
-        self.MC.settables([dummy.x, dummy.y])
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": optimize.basinhopping,
-            "x0": [-2, 2],
+            "x0": [-2, -2],
             "stepsize": 0.5
         }
-        dummy.noise(0.5)
-        self.MC.gettables(dummy.parabola)
-        dset = self.MC.run_adapative('basinhop', af_pars, 100)
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adapative('basinhop', af_pars, 1000)
+
+        assert dset['x0'][-1] < 1.0
+        assert dset['x1'][-1] < 1.0
+        assert dset['y0'][-1] < 4.0
 
     def test_progress_callback(self):
 

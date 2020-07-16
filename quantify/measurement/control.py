@@ -10,7 +10,7 @@ from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
+from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, trim_dataset
 from quantify.measurement.types import Settable, Gettable, is_software_controlled
 from quantify.utilities.general import KeyboardFinish
 
@@ -237,6 +237,7 @@ class MeasurementControl(Instrument):
                 pass
 
         self._finish()
+        self._dataset = trim_dataset(self._dataset)
         self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
         return self._dataset
 
@@ -495,7 +496,6 @@ class MeasurementControl(Instrument):
 
         TODO: support fancier getables, i.e. ones that return
             - more than one quantity
-            - multiple points at once (hard loop)
 
         """
         self._gettable_pars = [Gettable(gettable_par)]
