@@ -506,6 +506,12 @@ class TestMeasurementControl:
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
+    def test_adaptive_no_averaging(self):
+        self.MC.soft_avg(5)
+        with pytest.raises(ValueError, match=r"software averaging not allowed in adaptive loops; currently set to 5"):
+            self.MC.run_adaptive('fail', {})
+        self.MC.soft_avg(1)
+
     def test_adaptive_nelder_mead(self):
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
@@ -515,24 +521,11 @@ class TestMeasurementControl:
         }
         self.dummy_parabola.noise(0.5)
         self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive('nelder_mead', af_pars, 150)
+        dset = self.MC.run_adaptive('nelder_mead', af_pars)
 
         assert dset['x0'][-1] < 0.7
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
-
-    def test_adaptive_trim(self):
-        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
-        af_pars = {
-            "adaptive_function": optimize.minimize,
-            "x0": [-50, -50],
-            "method": "Nelder-Mead"
-        }
-        self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive('nelder_mead', af_pars, 1000)  # this should end after ~400 iterations
-
-        assert len(dset['y0'].values) < 1000
-        assert len(dset['y0'].values) > 200
 
     def test_adaptive_basinhopping(self):
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
@@ -542,11 +535,11 @@ class TestMeasurementControl:
             "stepsize": 0.5
         }
         self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive('basinhop', af_pars, 2000)
+        dset = self.MC.run_adaptive('basinhop', af_pars)
 
         assert dset['x0'][-1] < 1.0
         assert dset['x1'][-1] < 1.0
-        assert dset['y0'][-1] < 4.0
+        assert dset['y0'][-1] < 8.0
 
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)
@@ -557,18 +550,16 @@ class TestMeasurementControl:
             "bounds": ((-50, 50), (-20, 30)),
         }
         self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive('adaptive sample', af_pars, 500)
-        print(dset)
+        dset = self.MC.run_adaptive('adaptive sample', af_pars)
+        # todo pycqed has no verification step here, what should we do?
 
     def test_progress_callback(self):
-
         progress_param = ManualParameter("progress", initial_value=0)
 
         def set_progress_param_callable(progress):
             progress_param(progress)
 
         self.MC.on_progress_callback(set_progress_param_callable)
-
         assert progress_param() == 0
 
         xvals = np.linspace(0, 2*np.pi, 31)

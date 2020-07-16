@@ -212,15 +212,38 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     return dataset
 
 
+def grow_dataset(dataset):
+    """
+    Resizes the dataset by doubling the current length of all arrays.
+
+    Args:
+        dataset (:class:`xarray.Dataset`): the dataset to resize.
+
+    Returns:
+        The resized dataset.
+    """
+    darrs = []
+    for col in dataset:
+        data = dataset[col].values
+        darrs.append(xr.DataArray(
+            name=dataset[col].name,
+            data=np.resize(data, len(data) * 2),
+            attrs=dataset[col].attrs
+        ))
+    dataset = dataset.drop_dims(['dim_0'])
+    new_data = xr.merge(darrs)
+    return dataset.merge(new_data)
+
+
 def trim_dataset(dataset):
     """
     Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
 
     Args:
-        dataset (:class:`xarray.Dataset`): the dataset.
+        dataset (:class:`xarray.Dataset`): the dataset to trim.
 
     Returns:
-        The dataset, resized if necessary or unchanged.
+        The dataset, trimmed and resized if necessary or unchanged.
     """
     for i, val in enumerate(reversed(dataset['y0'].values)):
         if not np.isnan(val):

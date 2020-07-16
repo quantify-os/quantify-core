@@ -11,7 +11,7 @@ from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, trim_dataset
+from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, grow_dataset, trim_dataset
 from quantify.measurement.types import Settable, Gettable, is_software_controlled
 from quantify.utilities.general import KeyboardFinish
 
@@ -201,6 +201,9 @@ class MeasurementControl(Instrument):
         return self._dataset
 
     def _measure(self, vec) -> float:
+        if len(self._dataset['y0']) == self._nr_acquired_values:
+            self._dataset = grow_dataset(self._dataset)
+
         for idx, settable in enumerate(self._settable_pars):
             settable.set(vec[idx])
             self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
@@ -208,46 +211,48 @@ class MeasurementControl(Instrument):
         self._dataset['y0'].values[self._nr_acquired_values] = val
         self._nr_acquired_values += 1
         self._update()
-        if self._get_fracdone() == 1.0:
-            raise StopIteration
         return val
 
-    def run_adaptive(self, name, params, max_iterations):
+    def run_adaptive(self, name, params):
+        def subroutine():
+            self._prepare_settables()
+            self._prepare_gettable()
+
+            adaptive_function = params.get("adaptive_function")
+            af_pars_copy = dict(params)
+
+            # leveraging the adaptive library
+            if isinstance(adaptive_function, type) and issubclass(adaptive_function, adaptive.learner.BaseLearner):
+                goal = af_pars_copy['goal']
+                unusued_pars = ["adaptive_function", "goal"]
+                for unusued_par in unusued_pars:
+                    af_pars_copy.pop(unusued_par, None)
+                learner = adaptive_function(self._measure, **af_pars_copy)
+                adaptive.runner.simple(learner, goal)
+
+            # free function
+            if isinstance(adaptive_function, types.FunctionType):
+                unused_pars = ["adaptive_function", "minimize", "f_termination"]
+                for unused_par in unused_pars:
+                    af_pars_copy.pop(unused_par, None)
+                adaptive_function(self._measure, **af_pars_copy)
+
+        if self.soft_avg() != 1:
+            raise ValueError("software averaging not allowed in adaptive loops; currently set to {}."
+                             .format(self.soft_avg()))
+
         self._reset()
-        # adaptive runs do not use setpoints, but we mock that up for the sake of the Dataset presizing, _update, etc.
-        self.setpoints(np.empty((max_iterations, len(self._settable_pars))))
+        self.setpoints(np.empty((64, len(self._settable_pars))))  # block out some space in the dataset
         self._init(name)
 
-        self._prepare_settables()
-        self._prepare_gettable()
-
-        # todo soft averaging IS NOT ALLOW
-        # todo interrupt handler
-
-        adaptive_function = params.get("adaptive_function")
-        af_pars_copy = dict(params)
-
-        # leveraging the adaptive library
-        if isinstance(adaptive_function, type) and issubclass(adaptive_function, adaptive.learner.BaseLearner):
-            goal = af_pars_copy['goal']
-            unusued_pars = ["adaptive_function", "goal"]
-            for unusued_par in unusued_pars:
-                af_pars_copy.pop(unusued_par, None)
-            learner = adaptive_function(self._measure, **af_pars_copy)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(subroutine)
             try:
-                adaptive.runner.simple(learner, goal)
-            except StopIteration as e:
-                pass
-
-        # free function
-        if isinstance(adaptive_function, types.FunctionType):
-            unused_pars = ["adaptive_function", "minimize", "f_termination"]
-            for unused_par in unused_pars:
-                af_pars_copy.pop(unused_par, None)
-            try:
-                adaptive_function(self._measure, **af_pars_copy)
-            except StopIteration as e:
-                pass
+                future.result()
+            except KeyboardInterrupt as e:
+                print('Interrupt signalled, exiting gracefully...')
+                self._exit_event.set()
+                future.result()
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
