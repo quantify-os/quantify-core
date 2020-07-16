@@ -505,7 +505,7 @@ class TestMeasurementControl:
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
-    def test_adapative_nelder_mead(self):
+    def test_adaptive_nelder_mead(self):
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": optimize.minimize,
@@ -514,7 +514,7 @@ class TestMeasurementControl:
         }
         self.dummy_parabola.noise(0.5)
         self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adapative('nelder_mead', af_pars, 150)
+        dset = self.MC.run_adaptive('nelder_mead', af_pars, 150)
 
         assert dset['x0'][-1] < 0.7
         assert dset['x1'][-1] < 0.7
@@ -528,7 +528,7 @@ class TestMeasurementControl:
             "method": "Nelder-Mead"
         }
         self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adapative('nelder_mead', af_pars, 1000)  # this should end after ~400 iterations
+        dset = self.MC.run_adaptive('nelder_mead', af_pars, 1000)  # this should end after ~400 iterations
 
         assert len(dset['y0'].values) < 1000
         assert len(dset['y0'].values) > 200
@@ -541,7 +541,7 @@ class TestMeasurementControl:
             "stepsize": 0.5
         }
         self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adapative('basinhop', af_pars, 1000)
+        dset = self.MC.run_adaptive('basinhop', af_pars, 2000)
 
         assert dset['x0'][-1] < 1.0
         assert dset['x1'][-1] < 1.0

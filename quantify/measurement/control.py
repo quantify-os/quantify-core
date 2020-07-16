@@ -211,7 +211,7 @@ class MeasurementControl(Instrument):
             raise StopIteration
         return val
 
-    def run_adapative(self, name, params, max_iterations):
+    def run_adaptive(self, name, params, max_iterations):
         self._reset()
         # adaptive runs do not use setpoints, but we mock that up for the sake of the Dataset presizing, _update, etc.
         self.setpoints(np.empty((max_iterations, len(params['x0']))))
