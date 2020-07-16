@@ -6,6 +6,7 @@ import concurrent.futures
 from threading import Event
 
 import numpy as np
+import adaptive
 from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
@@ -214,7 +215,7 @@ class MeasurementControl(Instrument):
     def run_adaptive(self, name, params, max_iterations):
         self._reset()
         # adaptive runs do not use setpoints, but we mock that up for the sake of the Dataset presizing, _update, etc.
-        self.setpoints(np.empty((max_iterations, len(params['x0']))))
+        self.setpoints(np.empty((max_iterations, len(self._settable_pars))))
         self._init(name)
 
         self._prepare_settables()
@@ -224,10 +225,22 @@ class MeasurementControl(Instrument):
         # todo interrupt handler
 
         adaptive_function = params.get("adaptive_function")
+        af_pars_copy = dict(params)
 
-        # simple case, function provided
+        # leveraging the adaptive library
+        if isinstance(adaptive_function, type) and issubclass(adaptive_function, adaptive.learner.BaseLearner):
+            goal = af_pars_copy['goal']
+            unusued_pars = ["adaptive_function", "goal"]
+            for unusued_par in unusued_pars:
+                af_pars_copy.pop(unusued_par, None)
+            learner = adaptive_function(self._measure, **af_pars_copy)
+            try:
+                adaptive.runner.simple(learner, goal)
+            except StopIteration as e:
+                pass
+
+        # free function
         if isinstance(adaptive_function, types.FunctionType):
-            af_pars_copy = dict(params)
             unused_pars = ["adaptive_function", "minimize", "f_termination"]
             for unused_par in unused_pars:
                 af_pars_copy.pop(unused_par, None)

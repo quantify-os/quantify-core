@@ -28,7 +28,9 @@ requirements = [
     'pyqt5',
     'pyqtgraph',
     'plotly',
-    'jsonschema']
+    'jsonschema',
+    'adaptive'
+]
 
 setup_requirements = ['pytest-runner', ]
 

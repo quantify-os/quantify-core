@@ -4,6 +4,7 @@ import xarray as xr
 import numpy as np
 import pickle
 import pytest
+import adaptive
 from threading import Timer
 from scipy import optimize
 from qcodes import ManualParameter, Parameter
@@ -546,6 +547,18 @@ class TestMeasurementControl:
         assert dset['x0'][-1] < 1.0
         assert dset['x1'][-1] < 1.0
         assert dset['y0'][-1] < 4.0
+
+    def test_adaptive_sampling(self):
+        self.dummy_parabola.noise(0)
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        af_pars = {
+            "adaptive_function": adaptive.learner.Learner2D,
+            "goal": lambda l: l.npoints > 20 * 20,
+            "bounds": ((-50, 50), (-20, 30)),
+        }
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adaptive('adaptive sample', af_pars, 500)
+        print(dset)
 
     def test_progress_callback(self):
 
