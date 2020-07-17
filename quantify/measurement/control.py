@@ -1,6 +1,7 @@
 import time
 import json
 import types
+import numbers
 from os.path import join
 import concurrent.futures
 from threading import Event
@@ -208,7 +209,10 @@ class MeasurementControl(Instrument):
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-            val = self._gettable_pars[self._GETTABLE_IDX].get()[0]
+            val = self._gettable_pars[self._GETTABLE_IDX].get()
+            # QCodes.get returns an array, make sure we are working with a single value
+            if not isinstance(val, numbers.Number):
+                val = val[0]
             self._dataset['y0'].values[self._nr_acquired_values] = val
             self._nr_acquired_values += 1
             self._update()
