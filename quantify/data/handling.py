@@ -216,7 +216,7 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
 ########################################################################
 
 
-def get_latest_tuid(contains=''):
+def get_latest_tuid(contains='') -> TUID:
     """
     Returns the most recent tuid.
 
@@ -235,44 +235,45 @@ def get_latest_tuid(contains=''):
         most recent :class:`~quantify.data.types.TUID` for performance reasons.
 
     """
-
-    datadir = get_datadir()
-    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
-    daydirs.sort(reverse=True)
-    if len(daydirs) == 0:
-        raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
-    else:
-        for dd in daydirs:
-            expdirs = list(
-                filter(lambda x:
-                       (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and
-                        contains in x), os.listdir(os.path.join(datadir, dd))))
-            expdirs.sort(reverse=True)
-            if len(expdirs) > 0:
-                return TUID('{}-{}'.format(dd, expdirs[0][:17]))
-        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+    return get_tuids_containing(contains, 1)[0]
 
 
-def get_tuids_containing(contains='') -> list:
+def get_tuids_containing(contains, max_results=sys.maxsize) -> list:
     """
     Returns a list of tuids containing a specific label
 
     Args:
         contains (str): a string contained in the experiment name.
+        max_results (int): maximum number of results to return. Defaults to unlimited.
 
     Returns:
         A list of  :class:`~quantify.data.types.TUID`: objects
 
     Raises:
-        FileNotFoundError: If no data is found containing the
+        FileNotFoundError: No data found
 
     .. tip::
 
         If one is only interested in the most recent :class:`~quantify.data.types.TUID`,
         :func:`~get_latest_tuid` is preferred for performance reasons.
     """
-
-    raise NotImplementedError
+    datadir = get_datadir()
+    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
+    daydirs.sort(reverse=True)
+    if len(daydirs) == 0:
+        raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
+    tuids = []
+    for dd in daydirs:
+        expdirs = list(filter(lambda x: (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and contains in x),
+                              os.listdir(os.path.join(datadir, dd))))
+        expdirs.sort(reverse=True)
+        for expname in expdirs:
+            tuids.append(TUID('{}-{}'.format(dd, expname[:17])))
+            if len(tuids) == max_results:
+                return tuids
+    if len(tuids) == 0:
+        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+    return tuids
 
 
 def snapshot(update: bool = False, clean: bool = True) -> dict:
