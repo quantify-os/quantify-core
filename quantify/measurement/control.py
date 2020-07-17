@@ -207,7 +207,7 @@ class MeasurementControl(Instrument):
         for idx, settable in enumerate(self._settable_pars):
             settable.set(vec[idx])
             self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-        val = self._gettable_pars[self._GETTABLE_IDX].get()
+        val = self._gettable_pars[self._GETTABLE_IDX].get()[0]
         self._dataset['y0'].values[self._nr_acquired_values] = val
         self._nr_acquired_values += 1
         self._update()
@@ -232,7 +232,7 @@ class MeasurementControl(Instrument):
 
             # free function
             if isinstance(adaptive_function, types.FunctionType):
-                unused_pars = ["adaptive_function", "minimize", "f_termination"]
+                unused_pars = ["adaptive_function"]
                 for unused_par in unused_pars:
                     af_pars_copy.pop(unused_par, None)
                 adaptive_function(self._measure, **af_pars_copy)

@@ -553,6 +553,21 @@ class TestMeasurementControl:
         dset = self.MC.run_adaptive('adaptive sample', af_pars)
         # todo pycqed has no verification step here, what should we do?
 
+    def test_adaptive_skoptlearner(self):
+        self.dummy_parabola.noise(0)
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        af_pars = {
+            "adaptive_function": adaptive.SKOptLearner,
+            "goal": lambda l: l.npoints > 30,
+            "dimensions": [(-50.0, +50.0), (-20.0, +30.0)],
+            "base_estimator": "gp",
+            "acq_func": "EI",
+            "acq_optimizer": "lbfgs",
+        }
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adaptive('skopt', af_pars)
+        # todo pycqed has no verification step here, what should we do?
+
     def test_progress_callback(self):
         progress_param = ManualParameter("progress", initial_value=0)
 
