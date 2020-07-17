@@ -527,20 +527,6 @@ class TestMeasurementControl:
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
 
-    def test_adaptive_basinhopping(self):
-        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
-        af_pars = {
-            "adaptive_function": optimize.basinhopping,
-            "x0": [-2, -2],
-            "stepsize": 0.5
-        }
-        self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive('basinhop', af_pars)
-
-        assert dset['x0'][-1] < 1.0
-        assert dset['x1'][-1] < 1.0
-        assert dset['y0'][-1] < 8.0
-
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
