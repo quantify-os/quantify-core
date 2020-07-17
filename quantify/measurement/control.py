@@ -200,20 +200,20 @@ class MeasurementControl(Instrument):
 
         return self._dataset
 
-    def _measure(self, vec) -> float:
-        if len(self._dataset['y0']) == self._nr_acquired_values:
-            self._dataset = grow_dataset(self._dataset)
-
-        for idx, settable in enumerate(self._settable_pars):
-            settable.set(vec[idx])
-            self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-        val = self._gettable_pars[self._GETTABLE_IDX].get()[0]
-        self._dataset['y0'].values[self._nr_acquired_values] = val
-        self._nr_acquired_values += 1
-        self._update()
-        return val
-
     def run_adaptive(self, name, params):
+        def measure(vec) -> float:
+            if len(self._dataset['y0']) == self._nr_acquired_values:
+                self._dataset = grow_dataset(self._dataset)
+
+            for idx, settable in enumerate(self._settable_pars):
+                settable.set(vec[idx])
+                self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
+            val = self._gettable_pars[self._GETTABLE_IDX].get()[0]
+            self._dataset['y0'].values[self._nr_acquired_values] = val
+            self._nr_acquired_values += 1
+            self._update()
+            return val
+
         def subroutine():
             self._prepare_settables()
             self._prepare_gettable()
@@ -227,7 +227,7 @@ class MeasurementControl(Instrument):
                 unusued_pars = ["adaptive_function", "goal"]
                 for unusued_par in unusued_pars:
                     af_pars_copy.pop(unusued_par, None)
-                learner = adaptive_function(self._measure, **af_pars_copy)
+                learner = adaptive_function(measure, **af_pars_copy)
                 adaptive.runner.simple(learner, goal)
 
             # free function
@@ -235,7 +235,7 @@ class MeasurementControl(Instrument):
                 unused_pars = ["adaptive_function"]
                 for unused_par in unused_pars:
                     af_pars_copy.pop(unused_par, None)
-                adaptive_function(self._measure, **af_pars_copy)
+                adaptive_function(measure, **af_pars_copy)
 
         if self.soft_avg() != 1:
             raise ValueError("software averaging not allowed in adaptive loops; currently set to {}."
