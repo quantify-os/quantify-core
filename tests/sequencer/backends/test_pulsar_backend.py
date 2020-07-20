@@ -26,8 +26,7 @@ except ImportError:
 from ... import test_data  # relative-import the *package* containing the templates
 
 
-DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(
-    test_data, 'transmon_test_config.json'))
+DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(test_data, 'transmon_test_config.json'))
 
 
 def test_build_waveform_dict():
@@ -316,7 +315,8 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     assert sched.resources['qrm0.s1']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
     assert sched.resources['qrm0.r1']['nco_freq'] == -DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
 
-    assert dummy_pulsars[0].get('sequencer0_mod_enable')
+    if PULSAR_ASSEMBLER:
+        assert dummy_pulsars[0].get('sequencer0_mod_enable')
 
 
 def test_mismatched_mod_freq():
