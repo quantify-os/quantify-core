@@ -146,6 +146,14 @@ def test_get_latest_tuid_correct_tuid():
     assert tuid == exp_tuid
 
 
+def test_get_tuid_contains():
+    dh.set_datadir(test_datadir)
+    tuids = dh.get_tuids_containing('Cosine test')
+    assert len(tuids) == 2
+    assert tuids[0] == '20200504-191556-002-4209ee'
+    assert tuids[1] == '20200430-170837-001-315f36'
+
+
 def test_snapshot():
     empty_snap = dh.snapshot()
     assert empty_snap == {'instruments': {}, 'parameters': {}}
