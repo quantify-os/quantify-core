@@ -212,14 +212,21 @@ def configure_pulsar_sequencers(config_dict: dict):
 
             if instr_cfg['seq_idx'] == 0:
                 # configure settings
-                qcm.set('sequencer{}_mod_enable'.format(instr_cfg['seq_idx']), instr_cfg['mod_enable'])
-                qcm.set('sequencer{}_nco_freq'.format(instr_cfg['seq_idx']), instr_cfg['nco_freq'])
-                qcm.set('sequencer{}_cont_mode_en'.format(instr_cfg['seq_idx']), False)
-                qcm.set('sequencer{}_cont_mode_waveform_idx'.format(instr_cfg['seq_idx']), 0)
-                qcm.set('sequencer{}_upsample_rate'.format(instr_cfg['seq_idx']), 0)
+                seq_idx = instr_cfg['seq_idx']
+                qcm.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
+                qcm.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
+                mod_enable = True if instr_cfg['nco_freq'] != 0 or instr_cfg['nco_phase'] != 0 else False
+                qcm.set('sequencer{}_mod_enable'.format(seq_idx), mod_enable)
+                for path in (0, 1):
+                    awg_path = "_awg_path{}".format(path)
+                    qcm.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
+                    qcm.set('sequencer{}_cont_mode_waveform_idx{}'.format(seq_idx, awg_path), 0)
+                    qcm.set('sequencer{}_upsample_rate{}'.format(seq_idx, awg_path), 0)
+                    qcm.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 0)
+                    qcm.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
 
                 # configure sequencer
-                qcm.set('sequencer{}_waveforms_and_program'.format(instr_cfg['seq_idx']), config_fn)
+                qcm.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
             else:
                 logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
 
