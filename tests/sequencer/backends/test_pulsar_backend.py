@@ -26,8 +26,7 @@ except ImportError:
 from ... import test_data  # relative-import the *package* containing the templates
 
 
-DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(
-    test_data, 'transmon_test_config.json'))
+DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(test_data, 'transmon_test_config.json'))
 
 
 def test_build_waveform_dict():
@@ -311,18 +310,13 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     assert sched.resources['qcm0.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["mw_modulation_freq"]
     assert sched.resources['qrm0.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
-    # todo, currently producing an incorrect pulse due to !38, fix
-    #  assert sched.resources['qrm0.r0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
+    assert sched.resources['qrm0.r0']['nco_freq'] == -DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
     assert sched.resources['qcm1.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["mw_modulation_freq"]
     assert sched.resources['qrm0.s1']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
-    # todo, currently producing an incorrect pulse due to !38, fix
-    #  assert sched.resources['qrm0.r1']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
+    assert sched.resources['qrm0.r1']['nco_freq'] == -DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
 
-    # if PULSAR_ASSEMBLER:
-    #     seq_config_dict = pulsar_assembler_backend(sched, program_sequencers=True)
-
-    # assert right keys.
-    # assert right content of the config files.
+    if PULSAR_ASSEMBLER:
+        assert dummy_pulsars[0].get('sequencer0_mod_enable')
 
 
 def test_mismatched_mod_freq():

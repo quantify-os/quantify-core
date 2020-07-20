@@ -65,7 +65,7 @@ class Pulsar_QCM_sequencer(Resource):
     a channel capabable of outputting complex valued signals (I, and Q).
     """
 
-    def __init__(self, name: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, mod_enable: bool = False):
+    def __init__(self, name: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, nco_phase: float = 0):
         """
         A channel composed of multiple sub-channels.
 
@@ -79,8 +79,8 @@ class Pulsar_QCM_sequencer(Resource):
             index of the sequencer unit to use.
         nco_freq: float
             modulation frequency.
-        mod_enable: bool
-            enable pulse modulation.
+        nco_phase: float
+            modulation phase.
         """
         super().__init__()
 
@@ -92,8 +92,9 @@ class Pulsar_QCM_sequencer(Resource):
                      'instrument_name': instrument_name,
                      'seq_idx': seq_idx,
                      'nco_freq': nco_freq,
-                     'mod_enable': mod_enable,
-                     'sampling_rate': 1e9}
+                     'nco_phase': nco_freq,
+                     'sampling_rate': 1e9
+                     }
 
     @property
     def timing_tuples(self):
