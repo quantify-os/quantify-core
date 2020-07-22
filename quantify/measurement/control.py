@@ -117,7 +117,7 @@ class MeasurementControl(Instrument):
         self._dataset = None
         self._exp_folder = None
         self._plotmon_name = ''
-        self._plot_info = {}
+        self._plot_info = {'2D-grid': False}
 
         self._GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
 
