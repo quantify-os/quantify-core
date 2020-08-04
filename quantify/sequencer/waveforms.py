@@ -1,14 +1,12 @@
 """
-Contains function to generate most basic waveforms, basic means having a
-few parameters and a straightforward translation to AWG amplitude, i.e.,
-no knowledge of qubit parameters, channels, etc.
-
-These functions are intened to be used to generate waveforms defined in the :mod:`.pulse_library`.
-
-
-Examples of waveforms that are too advanced are flux pulses that require
-knowledge of the flux sensitivity and interaction strengths and qubit
-frequencies.
+-----------------------------------------------------------------------------
+Description:    Contains function to generate most basic waveforms.
+                These functions are intened to be used to generate waveforms defined in the :mod:`.pulse_library`.
+                Examples of waveforms that are too advanced are flux pulses that require knowledge of the flux
+                sensitivity and interaction strengths and qubit frequencies.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 import numpy as np
 from scipy import signal

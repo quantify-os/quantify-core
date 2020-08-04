@@ -1,10 +1,10 @@
 """
-Module containing the core data concepts of quantify.
-
-todo - quantify datasets are based on the :class:`xarray.Dataset`. - document experiment container (containing a
-Dataset, snapshot and optional other files such as figures analysis results etc.).
+-----------------------------------------------------------------------------
+Description:    Module containing the core data concepts of quantify.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
-
 import datetime
 
 

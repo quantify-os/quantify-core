@@ -1,10 +1,10 @@
 """
-Plotting functions used in the visualization backend of the sequencer.
-
-Mostly thin wrappers around the functions in :mod:`~quantify.visualization.pulse_scheme`
-with default values to ensure that they match the required call signature.
+-----------------------------------------------------------------------------
+Description:    Plotting functions used in the visualization backend of the sequencer.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
-
 import quantify.visualization.pulse_scheme as ps
 
 
