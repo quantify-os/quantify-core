@@ -18,7 +18,7 @@ def test_copyrights():
                 filepath = os.path.join(*path, file)
                 with open(os.path.join(quantify_path, filepath), 'r') as f:
                     copyright_found = False
-                    for line in f.readlines(512):  # no need to read the whole file, this should be enough
+                    for line in f.readlines():
                         if re.match(".*Copyright.*Qblox BV", line):
                             copyright_found = True
                             if current_year not in line:
