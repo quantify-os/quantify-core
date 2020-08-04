@@ -1,9 +1,12 @@
 """
-Backends for the quantify sequencer.
-
-A backend takes a :class:`~quantify.sequencer.types.Schedule` object as input
-and produces output in a different format.
-Examples of backends are a visualization, simulator input formats, or a hardware input format.
+-----------------------------------------------------------------------------
+Description:    Backends for the quantify sequencer.
+                A backend takes a :class:`~quantify.sequencer.types.Schedule` object as input and produces output in a
+                different format. Examples of backends are a visualization, simulator input formats, or a
+                hardware input format.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 import logging
 import inspect

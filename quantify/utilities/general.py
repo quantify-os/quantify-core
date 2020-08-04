@@ -1,3 +1,10 @@
+"""
+-----------------------------------------------------------------------------
+Description:    General utilities.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
+"""
 import importlib
 import copy
 import xxhash

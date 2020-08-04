@@ -1,3 +1,10 @@
+"""
+-----------------------------------------------------------------------------
+Description:    Module containing the MeasurementControl.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
+"""
 import time
 import json
 from os.path import join

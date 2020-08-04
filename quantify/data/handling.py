@@ -1,8 +1,9 @@
 """
-Module for handling data.
-
-This module contains  utilities to handle the data files in quantify.
-
+-----------------------------------------------------------------------------
+Description:    Utilities for handling data.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 import os
 import sys

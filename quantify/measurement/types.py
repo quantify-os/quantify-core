@@ -1,3 +1,10 @@
+"""
+-----------------------------------------------------------------------------
+Description:    Module containing the core types for use with the MeasurementControl.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
+"""
 import jsonschema
 from quantify.utilities.general import load_json_schema
 

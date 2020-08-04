@@ -1,7 +1,10 @@
 """
-Library standard pulses for use with the quantify sequencer.
+-----------------------------------------------------------------------------
+Description:    Library standard pulses for use with the quantify sequencer.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
-
 from .types import Operation
 
 
