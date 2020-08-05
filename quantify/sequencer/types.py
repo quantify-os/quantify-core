@@ -1,5 +1,9 @@
 """
-Module containing the core concepts of the sequencer.
+-----------------------------------------------------------------------------
+Description:    Module containing the core concepts of the sequencer.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 from uuid import uuid4
 from collections import UserDict

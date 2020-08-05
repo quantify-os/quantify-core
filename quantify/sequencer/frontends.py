@@ -1,5 +1,9 @@
 """
-Frontends for the quantify sequencer.
+-----------------------------------------------------------------------------
+Description:    Frontends for the quantify sequencer.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 
 

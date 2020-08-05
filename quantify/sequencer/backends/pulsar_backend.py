@@ -1,3 +1,10 @@
+"""
+-----------------------------------------------------------------------------
+Description:    Compiler backend for the Pulsar QCM.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
+"""
 import os
 import inspect
 import json

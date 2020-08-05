@@ -1,8 +1,9 @@
 """
-This module contains compilation steps for the quantify sequencer.
-
-A compilation step is a function that takes a :class:`~quantify.sequencer.types.Schedule`
-and returns a new (modified) :class:`~quantify.sequencer.types.Schedule`.
+-----------------------------------------------------------------------------
+Description:    Compiler for the quantify sequencer.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 import logging
 import jsonschema
