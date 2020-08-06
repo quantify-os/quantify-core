@@ -14,6 +14,7 @@ from quantify.measurement.control import MeasurementControl, \
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+from quantify.utilities.experiment_helpers import setup_instrument
 
 
 # Define some helpers that are used in the tests
@@ -595,6 +596,10 @@ class TestMeasurementControl:
 
         dset = self.MC.run()
         assert dset['y0'].values[2] == 50
+
+    def test_instrument_settings_from_disk(self):
+        # wait for adaptive branch, has the dummy par instrument setup
+        pass
 
 
 def test_tile_setpoints_grid():

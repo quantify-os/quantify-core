@@ -8,7 +8,6 @@ Copyright (C) Qblox BV (2020)
 import os
 import sys
 import json
-import pprint
 from datetime import datetime
 from uuid import uuid4
 import numpy as np
@@ -317,12 +316,3 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         snap = delete_keys_from_dict(snap, exclude_keys)
 
     return snap
-
-
-def setup_instrument(instrument: Instrument, tuid: TUID, datadir: str = None):
-    instruments = load_snapshot(tuid, datadir)['instruments']
-    if instrument.name not in instruments:
-        raise ValueError('Instrument "{}" not found in snapshot:\n"{}"'
-                         .format(instrument.name, pprint.pprint(instruments)))
-    for parname, par in instruments[instrument.name]["parameters"].items():
-        instrument.set(parname, par["value"])
