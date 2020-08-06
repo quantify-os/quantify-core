@@ -91,7 +91,7 @@ def pulse_diagram_plotly(schedule,
     ------------
     ch_list : list
         A list of channels to show. if set to `None` will use the first
-        8 channels it encounteres in the sequence.
+        8 channels it encounters in the sequence.
     fig_ch_height: float
         height for each channel subplot in px
     fig_width: float
@@ -132,18 +132,11 @@ def pulse_diagram_plotly(schedule,
         ch_map = dict(zip(ch_list, range(len(ch_list))))
         print(ch_map)
 
-    fig = make_subplots(rows=nr_rows, cols=1,
-                        shared_xaxes=True, vertical_spacing=0.02)
-    fig.update_layout(height=fig_ch_height*nr_rows, width=fig_width,
-                      title=schedule.data['name'], showlegend=False)
+    fig = make_subplots(rows=nr_rows, cols=1, shared_xaxes=True, vertical_spacing=0.02)
+    fig.update_layout(height=fig_ch_height*nr_rows, width=fig_width, title=schedule.data['name'], showlegend=False)
 
     colors = px.colors.qualitative.Plotly
     col_idx = 0
-
-    # Ensures that the plots are created even if no waveforms are added
-    for r in range(nr_rows):
-        fig.add_trace(go.Scatter(x=[], y=[], mode='lines',
-                                 showlegend=False), row=r+1, col=1)
 
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
 
