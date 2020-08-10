@@ -8,7 +8,7 @@ from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.sequencer.types import Schedule, Operation
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, CZ, Rxy
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
-from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
+from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
 from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
 
 try:
@@ -287,14 +287,10 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     qrm0 = CompositeResource('qrm0', ['qrm0.s0', 'qrm0.s1'])
     # Currently mocking a readout module using an acquisition module
-    qrm0_s0 = Pulsar_QCM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
-    qrm0_s1 = Pulsar_QCM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=1)
+    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', readout='qrm0.r0', seq_idx=0)
+    qrm0_s1 = Pulsar_QRM_sequencer('qrm0.s1', instrument_name='qrm0', readout='qrm0.r1', seq_idx=1)
 
-    # using qcm sequencing modules to fake a readout module
-    qrm0_r0 = Pulsar_QCM_sequencer('qrm0.r0', instrument_name='qrm0', seq_idx=0)
-    qrm0_r1 = Pulsar_QCM_sequencer('qrm0.r1', instrument_name='qrm0', seq_idx=1)
-
-    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1,  qrm0_r0, qrm0_r1])
+    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1, qrm0_s0.readout, qrm0_s1.readout])
 
     sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
     sched = determine_absolute_timing(sched)
@@ -317,6 +313,21 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     if PULSAR_ASSEMBLER:
         assert dummy_pulsars[0].get('sequencer0_mod_en_awg')
+
+
+def test_qrm_simple():
+    sched = Schedule('Simples')
+    q0 = QubitResource('q0')
+    sched.add_resource(q0)
+    sched.add(Measure(q0.name))
+
+    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', readout='qrm0.r0', seq_idx=0)
+    sched.add_resources([qrm0_s0, qrm0_s0.readout])
+
+    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
+    sched = determine_absolute_timing(sched)
+
+    seq_config_dict = pulsar_assembler_backend(sched)
 
 
 def test_mismatched_mod_freq():

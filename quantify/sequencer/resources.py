@@ -109,3 +109,53 @@ class Pulsar_QCM_sequencer(Resource):
     @property
     def pulse_dict(self):
         return self._pulse_dict
+
+
+class Pulsar_QRM_sequencer(Resource):
+    class Readout(Resource):
+        def __init__(self, name: str, owner: str):
+            super().__init__()
+            self.data = {'name': name, 'type': str(self.__class__.__name__), 'owner': owner}
+
+    def __init__(self, name: str, readout: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, nco_phase: float = 0):
+        """
+        A channel composed of multiple sub-channels.
+
+        Parameters
+        -------------
+        name : str
+            the name of this resource.
+        instrument_name: str
+            name of the Pulsar_QCM instrument.
+        seq_idx: int
+            index of the sequencer unit to use.
+        nco_freq: float
+            modulation frequency.
+        nco_phase: float
+            modulation phase.
+        """
+        super().__init__()
+
+        self._timing_tuples = []
+        self._pulse_dict = {}
+        self.readout = Pulsar_QRM_sequencer.Readout(readout, name)
+
+        self.data = {'name': name,
+                     'type': str(self.__class__.__name__),
+                     'instrument_name': instrument_name,
+                     'seq_idx': seq_idx,
+                     'nco_freq': nco_freq,
+                     'nco_phase': nco_freq,
+                     'sampling_rate': 1e9
+                     }
+
+    @property
+    def timing_tuples(self):
+        """
+        A list of timing tuples con
+        """
+        return self._timing_tuples
+
+    @property
+    def pulse_dict(self):
+        return self._pulse_dict
