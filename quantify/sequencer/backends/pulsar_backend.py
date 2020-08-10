@@ -236,6 +236,9 @@ def configure_pulsar_sequencers(config_dict: dict):
             if instr_cfg['seq_idx'] == 0:
                 # configure settings
                 seq_idx = instr_cfg['seq_idx']
+                qcm.set("sequencer{}_sync_en".format(seq_idx), True)
+                qcm.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), False)
+                qcm.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), False)
                 qcm.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
                 qcm.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
                 mod_enable = True if instr_cfg['nco_freq'] != 0 or instr_cfg['nco_phase'] != 0 else False
@@ -265,22 +268,18 @@ def build_waveform_dict(pulse_info, acquisitions):
         Dictionary mapping pulses to numerical representation and memory index
     """
     sequencer_cfg = {"waveforms": {"awg": {}, "acq": {}}}
-    idx_offset = 0
-    for idx, (pulse_id, data) in enumerate(pulse_info.items()):
+    for pulse_id, data in pulse_info.items():
         arr = np.array(data)
-
         I = arr.real  # noqa: E741
         Q = arr.imag  # real-valued arrays automatically evaluate to an array of zeros
-
         device = 'awg' if pulse_id not in acquisitions else 'acq'
         sequencer_cfg["waveforms"][device]["{}_I".format(pulse_id)] = {
             "data": I,
-            "index": idx + idx_offset
+            "index": len(sequencer_cfg["waveforms"][device])
         }
-        idx_offset += 1
         sequencer_cfg["waveforms"][device]["{}_Q".format(pulse_id)] = {
             "data": Q,
-            "index": idx + idx_offset
+            "index": len(sequencer_cfg["waveforms"][device])
         }
     return sequencer_cfg
 
