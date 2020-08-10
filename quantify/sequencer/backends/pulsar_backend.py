@@ -285,6 +285,7 @@ def build_waveform_dict(pulse_info, acquisitions):
     return sequencer_cfg
 
 
+# todo this needs a serious clean up
 def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
     """
     Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
@@ -316,7 +317,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
     # Checks if our automatically generated 'sync' waits are too short.
     def auto_wait(label, duration, comment, previous):
         try:
-            if previous and duration > 0:
+            if duration > 0:
                 q1asm.wait(label, duration, comment)
         except ValueError as e:
             raise ValueError("Generated wait for '{}':'{}' caused exception '{}'"
@@ -341,8 +342,9 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
         wait_duration = timing - clock
         # should add a check here to see if the previous instruction was non-blocking
         if wait_duration < 0:
-            wait_duration = clock + wait_duration
-        auto_wait('', wait_duration, '#Wait', previous)
+            auto_wait('', clock + wait_duration, '#Wait', previous)
+        else:
+            auto_wait('', wait_duration, '#Wait', previous)
 
         I = pulse_dict[device]["{}_I".format(pulse_id)]['index']  # noqa: E741
         Q = pulse_dict[device]["{}_Q".format(pulse_id)]['index']
