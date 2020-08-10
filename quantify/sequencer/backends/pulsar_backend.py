@@ -323,7 +323,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
                              .format(previous[0], previous[1], str(e)))
 
     q1asm = Q1ASMBuilder()
-    q1asm.move('start', len(pulse_dict), 'R0', '#Waveform count register')
+    q1asm.move('start', len(pulse_dict['awg']), 'R0', '#Waveform count register')
 
     if timing_tuples and get_pulse_finish_time(-1) > sequence_duration:
         raise ValueError("Provided sequence_duration '{}' is less than the total runtime of this sequence ({})."
@@ -339,6 +339,9 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
 
         # check if we must wait before beginning our next section
         wait_duration = timing - clock
+        # should add a check here to see if the previous instruction was non-blocking
+        if wait_duration < 0:
+            wait_duration = clock + wait_duration
         auto_wait('', wait_duration, '#Wait', previous)
 
         I = pulse_dict[device]["{}_I".format(pulse_id)]['index']  # noqa: E741

@@ -37,12 +37,13 @@ def test_build_waveform_dict():
         'gdfshdg45': complex_vals,
         '6h5hh5hyj': real,
     }
-    sequence_cfg = build_waveform_dict(pulse_data)
-    assert len(sequence_cfg['waveforms']) == 2 * len(pulse_data)
-    wf_1 = sequence_cfg['waveforms']['gdfshdg45_I']
-    wf_2 = sequence_cfg['waveforms']['gdfshdg45_Q']
-    wf_3 = sequence_cfg['waveforms']['6h5hh5hyj_I']
-    wf_4 = sequence_cfg['waveforms']['6h5hh5hyj_Q']
+    sequence_cfg = build_waveform_dict(pulse_data, acquisitions={'6h5hh5hyj'})
+    assert len(sequence_cfg['waveforms']['awg']) == 2
+    assert len(sequence_cfg['waveforms']['acq']) == 2
+    wf_1 = sequence_cfg['waveforms']['awg']['gdfshdg45_I']
+    wf_2 = sequence_cfg['waveforms']['awg']['gdfshdg45_Q']
+    wf_3 = sequence_cfg['waveforms']['acq']['6h5hh5hyj_I']
+    wf_4 = sequence_cfg['waveforms']['acq']['6h5hh5hyj_Q']
     np.testing.assert_array_equal(wf_1['data'], complex_vals.real)
     assert wf_1['index'] == 0
     np.testing.assert_array_equal(wf_2['data'], complex_vals.imag)
@@ -72,26 +73,28 @@ def test_bad_pulse_timings():
     ]
 
     dummy_pulse_data = {
-        'square_id_I': {'data': np.ones(4), 'index': 0},
-        'square_id_Q': {'data': np.zeros(4), 'index': 1},
-        'drag_ID_I': {'data': np.ones(2), 'index': 2},
-        'drag_ID_Q': {'data': np.ones(2), 'index': 3}
+        'awg': {
+            'square_id_I': {'data': np.ones(4), 'index': 0},
+            'square_id_Q': {'data': np.zeros(4), 'index': 1},
+            'drag_ID_I': {'data': np.ones(2), 'index': 2},
+            'drag_ID_Q': {'data': np.ones(2), 'index': 3}
+        }
     }
 
     with pytest.raises(ValueError, match="Pulse square_id at 0 has duration 4 but next timing is 2."):
-        build_q1asm(too_close_pulse_timings, dummy_pulse_data, too_close_pulse_timings[-1][0] + 4)
+        build_q1asm(too_close_pulse_timings, dummy_pulse_data, too_close_pulse_timings[-1][0] + 4, {})
 
     with pytest.raises(ValueError, match="Generated wait for '0':'drag_ID' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
-        build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4)
+        build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4, {})
 
     with pytest.raises(ValueError, match="Generated wait for '0':'square_id' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
-        build_q1asm(short_wait_timings, dummy_pulse_data, 10)
+        build_q1asm(short_wait_timings, dummy_pulse_data, 10, {})
 
     with pytest.raises(ValueError, match="Generated wait for '4':'square_id' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
-        build_q1asm(short_final_wait, dummy_pulse_data, 10)
+        build_q1asm(short_final_wait, dummy_pulse_data, 10, {})
 
 
 def deploy_q1asm(cfg_path, messages=None, delete_file=False):
@@ -113,15 +116,17 @@ def test_overflowing_instruction_times():
         (0, 'square_ID')
     ]
     pulse_data = {
-        'square_ID_I': {'data': real, 'index': 0},
-        'square_ID_Q': {'data': np.zeros(len(real)), 'index': 1}
+        'awg': {
+            'square_ID_I': {'data': real, 'index': 0},
+            'square_ID_Q': {'data': np.zeros(len(real)), 'index': 1}
+        }
     }
-    program_str = build_q1asm(pulse_timings, pulse_data, len(real))
+    program_str = build_q1asm(pulse_timings, pulse_data, len(real), {})
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_large_plays_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
     pulse_timings.append((229380 + pow(2, 16), 'square_ID'))
-    program_str = build_q1asm(pulse_timings, pulse_data, 524296)
+    program_str = build_q1asm(pulse_timings, pulse_data, 524296, {})
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_large_waits_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
@@ -137,28 +142,30 @@ def test_build_q1asm():
     ]
 
     pulse_data = {
-        'square_id_I': {'data': real, 'index': 0},
-        'square_id_Q': {'data': np.zeros(len(real)), 'index': 1},
-        'drag_ID_I': {'data': complex_vals.real, 'index': 2},
-        'drag_ID_Q': {'data': complex_vals.imag, 'index': 3}
+        'awg': {
+            'square_id_I': {'data': real, 'index': 0},
+            'square_id_Q': {'data': np.zeros(len(real)), 'index': 1},
+            'drag_ID_I': {'data': complex_vals.real, 'index': 2},
+            'drag_ID_Q': {'data': complex_vals.imag, 'index': 3}
+        }
     }
 
-    program_str = build_q1asm(pulse_timings, pulse_data, 20)
+    program_str = build_q1asm(pulse_timings, pulse_data, 20, {})
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_build_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
-    program_str_sync = build_q1asm(pulse_timings, pulse_data, 30)
+    program_str_sync = build_q1asm(pulse_timings, pulse_data, 30, {})
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_build_q1asm_sync'), 'rb') as f:
         assert program_str_sync.encode('utf-8') == f.read()
 
     err = r"Provided sequence_duration.*4.*less than the total runtime of this sequence.*20"
     with pytest.raises(ValueError, match=err):
-        build_q1asm(pulse_timings, pulse_data, 4)
+        build_q1asm(pulse_timings, pulse_data, 4, {})
 
     # sequence_duration greater than final timing but less than total runtime
     err = r"Provided sequence_duration.*18.*less than the total runtime of this sequence.*20"
     with pytest.raises(ValueError, match=err):
-        build_q1asm(pulse_timings, pulse_data, 18)
+        build_q1asm(pulse_timings, pulse_data, 18, {})
 
 
 def test_generate_sequencer_cfg():
@@ -180,13 +187,13 @@ def test_generate_sequencer_cfg():
         assert exp_idx == entry['index']
         np.testing.assert_array_equal(exp_data, entry['data'])
 
-    sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings, 20)
-    check_waveform(sequence_cfg['waveforms']["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
-    check_waveform(sequence_cfg['waveforms']["square_1_Q"], np.zeros(4), 1)
-    check_waveform(sequence_cfg['waveforms']["drag_1_I"], complex_vals.real, 2)
-    check_waveform(sequence_cfg['waveforms']["drag_1_Q"], complex_vals.imag, 3)
-    check_waveform(sequence_cfg['waveforms']["square_2_I"], real, 4)
-    check_waveform(sequence_cfg['waveforms']["square_2_Q"], np.zeros(4), 5)
+    sequence_cfg = generate_sequencer_cfg(pulse_data, pulse_timings, 20, set())
+    check_waveform(sequence_cfg['waveforms']["awg"]["square_1_I"], [0.0, 1.0, 0.0, 0.0], 0)
+    check_waveform(sequence_cfg['waveforms']["awg"]["square_1_Q"], np.zeros(4), 1)
+    check_waveform(sequence_cfg['waveforms']["awg"]["drag_1_I"], complex_vals.real, 2)
+    check_waveform(sequence_cfg['waveforms']["awg"]["drag_1_Q"], complex_vals.imag, 3)
+    check_waveform(sequence_cfg['waveforms']["awg"]["square_2_I"], real, 4)
+    check_waveform(sequence_cfg['waveforms']["awg"]["square_2_Q"], np.zeros(4), 5)
     assert len(sequence_cfg['program'])
 
     if PULSAR_ASSEMBLER:
