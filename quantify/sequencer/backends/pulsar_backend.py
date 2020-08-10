@@ -223,7 +223,7 @@ def configure_pulsar_sequencers(config_dict: dict):
                 qcm.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
                 qcm.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
                 mod_enable = True if instr_cfg['nco_freq'] != 0 or instr_cfg['nco_phase'] != 0 else False
-                qcm.set('sequencer{}_mod_enable'.format(seq_idx), mod_enable)
+                qcm.set('sequencer{}_mod_en_awg'.format(seq_idx), mod_enable)
                 for path in (0, 1):
                     awg_path = "_awg_path{}".format(path)
                     qcm.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
@@ -248,7 +248,7 @@ def build_waveform_dict(pulse_info):
     Returns:
         Dictionary mapping pulses to numerical representation and memory index
     """
-    sequencer_cfg = {"waveforms": {}}
+    sequencer_cfg = {"waveforms": {"awg": {}, "acq": {}}}
     idx_offset = 0
     for idx, (pulse_id, data) in enumerate(pulse_info.items()):
         arr = np.array(data)
@@ -256,12 +256,12 @@ def build_waveform_dict(pulse_info):
         I = arr.real  # noqa: E741
         Q = arr.imag  # real-valued arrays automatically evaluate to an array of zeros
 
-        sequencer_cfg["waveforms"]["{}_I".format(pulse_id)] = {
+        sequencer_cfg["waveforms"]["awg"]["{}_I".format(pulse_id)] = {
             "data": I,
             "index": idx + idx_offset
         }
         idx_offset += 1
-        sequencer_cfg["waveforms"]["{}_Q".format(pulse_id)] = {
+        sequencer_cfg["waveforms"]["awg"]["{}_Q".format(pulse_id)] = {
             "data": Q,
             "index": idx + idx_offset
         }
@@ -288,7 +288,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
     """
 
     def get_pulse_runtime(pulse_id):
-        return len(pulse_dict["{}_I".format(pulse_id)]['data'])
+        return len(pulse_dict["awg"]["{}_I".format(pulse_id)]['data'])
 
     def get_pulse_finish_time(pulse_idx):
         start_time = timing_tuples[pulse_idx][0]
@@ -322,8 +322,8 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration):
         wait_duration = timing - clock
         auto_wait('', wait_duration, '#Wait', previous)
 
-        I = pulse_dict["{}_I".format(pulse_id)]['index']  # noqa: E741
-        Q = pulse_dict["{}_Q".format(pulse_id)]['index']
+        I = pulse_dict["awg"]["{}_I".format(pulse_id)]['index']  # noqa: E741
+        Q = pulse_dict["awg"]["{}_Q".format(pulse_id)]['index']
         q1asm.line_break()
 
         duration = get_pulse_runtime(pulse_id)  # duration in nanoseconds, QCM sample rate is 1Gsps

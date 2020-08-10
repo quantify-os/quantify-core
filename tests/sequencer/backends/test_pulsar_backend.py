@@ -316,7 +316,7 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     assert sched.resources['qrm0.r1']['nco_freq'] == -DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
 
     if PULSAR_ASSEMBLER:
-        assert dummy_pulsars[0].get('sequencer0_mod_enable')
+        assert dummy_pulsars[0].get('sequencer0_mod_en_awg')
 
 
 def test_mismatched_mod_freq():
