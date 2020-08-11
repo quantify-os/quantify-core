@@ -147,22 +147,21 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
             if p['channel'] is None:
                 continue  # pulses with None channel will be ignored by this backend
 
+            if p['channel'][-8:] == '_READOUT':
+                acquisitions.add(pulse_id)
+                p['channel'] = p['channel'][:-8]
+
             # Assumes the channel exists in the resources available to the schedule
             if p['channel'] not in schedule.resources.keys():
                 raise KeyError('Resource "{}" not available in "{}"'.format(p['channel'], schedule))
 
             ch = schedule.resources[p['channel']]
-
-            if isinstance(ch, Pulsar_QRM_sequencer.Readout):
-                acquisitions.add(pulse_id)
-                ch = schedule.resources[ch['owner']]
-
             ch.timing_tuples.append((round(t0*ch['sampling_rate']), pulse_id))
 
             # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
-                if 'freq_mod' in p and pulse_id not in acquisitions:
-                    if ch['nco_freq'] != 0 and p['freq_mod'] != ch['nco_freq']:
+                if 'freq_mod' in p:
+                    if ch['type'] == 'Pulsar_QCM_sequencer' and ch['nco_freq'] != 0 and p['freq_mod'] != ch['nco_freq']:
                         raise ValueError('pulse {} on channel {} has an inconsistent modulation frequency: expected {} '
                                          'but was {}'
                                          .format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))

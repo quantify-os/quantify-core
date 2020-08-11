@@ -146,13 +146,13 @@ def add_pulse_information_transmon(schedule, device_cfg: dict):
                 if q_cfg['ro_pulse_type'] == 'square':
                     op.add_pulse(ModSquarePulse(amp=q_cfg['ro_pulse_amp'],
                                                 duration=q_cfg['ro_pulse_duration'],
-                                                ch=q_cfg['ro_pulse_ch'],
+                                                ch=q_cfg['ro_ch'],
                                                 freq_mod=q_cfg['ro_pulse_modulation_freq'],
                                                 t0=0))
                     # acquisition integration window
                     op.add_pulse(ModSquarePulse(amp=1,
                                                 duration=q_cfg['ro_acq_integration_time'],
-                                                ch=q_cfg['ro_acq_ch'],
+                                                ch="{}_READOUT".format(q_cfg['ro_ch']),
                                                 freq_mod=-q_cfg['ro_pulse_modulation_freq'],
                                                 t0=q_cfg['ro_acq_delay']))
 

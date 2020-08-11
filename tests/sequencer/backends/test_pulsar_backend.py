@@ -49,9 +49,9 @@ def test_build_waveform_dict():
     np.testing.assert_array_equal(wf_2['data'], complex_vals.imag)
     assert wf_2['index'] == 1
     np.testing.assert_array_equal(wf_3['data'], real)
-    assert wf_3['index'] == 2
+    assert wf_3['index'] == 0
     np.testing.assert_array_equal(wf_4['data'], np.zeros(len(wf_4['data'])))
-    assert wf_4['index'] == 3
+    assert wf_4['index'] == 1
 
 
 def test_bad_pulse_timings():
@@ -294,10 +294,10 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     qrm0 = CompositeResource('qrm0', ['qrm0.s0', 'qrm0.s1'])
     # Currently mocking a readout module using an acquisition module
-    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', readout='qrm0.r0', seq_idx=0)
-    qrm0_s1 = Pulsar_QRM_sequencer('qrm0.s1', instrument_name='qrm0', readout='qrm0.r1', seq_idx=1)
+    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
+    qrm0_s1 = Pulsar_QRM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=1)
 
-    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1, qrm0_s0.readout, qrm0_s1.readout])
+    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1])
 
     sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
     sched = determine_absolute_timing(sched)
@@ -326,13 +326,14 @@ def test_qrm_simple():
     sched = Schedule('Simples')
     q0 = QubitResource('q0')
     sched.add_resource(q0)
-    sched.add(Measure(q0.name))
-    sched.add(Rxy(90, 0, q0.name))
+    for theta in range(0, 360):
+        sched.add(Rxy(theta, 0, q0.name))
+        sched.add(Measure(q0.name))
 
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
-    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', readout='qrm0.r0', seq_idx=0)
+    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
 
-    sched.add_resources([qcm0_s0, qrm0_s0, qrm0_s0.readout])
+    sched.add_resources([qcm0_s0, qrm0_s0])
 
     sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
     sched = determine_absolute_timing(sched)

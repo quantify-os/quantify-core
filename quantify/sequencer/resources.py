@@ -112,12 +112,7 @@ class Pulsar_QCM_sequencer(Resource):
 
 
 class Pulsar_QRM_sequencer(Resource):
-    class Readout(Resource):
-        def __init__(self, name: str, owner: str):
-            super().__init__()
-            self.data = {'name': name, 'type': str(self.__class__.__name__), 'owner': owner}
-
-    def __init__(self, name: str, readout: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, nco_phase: float = 0):
+    def __init__(self, name: str, instrument_name: str, seq_idx: int, nco_freq: float = 0, nco_phase: float = 0):
         """
         A channel composed of multiple sub-channels.
 
@@ -138,7 +133,6 @@ class Pulsar_QRM_sequencer(Resource):
 
         self._timing_tuples = []
         self._pulse_dict = {}
-        self.readout = Pulsar_QRM_sequencer.Readout(readout, name)
 
         self.data = {'name': name,
                      'type': str(self.__class__.__name__),
