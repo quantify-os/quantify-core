@@ -332,10 +332,13 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
     clock = 0  # current execution time
     for timing, pulse_id in timing_tuples:
         device = 'awg' if pulse_id not in acquisitions else 'acq'
+        """
+        should ideally come back or maybe only warn? shouldnt be provoked by users
+
         if device == 'awg' and clock > timing:
             raise ValueError('Pulse {} at {} has duration {} but next timing is {}.'
                              .format(previous[1], previous[0], get_pulse_runtime(previous[1]), timing))
-
+        """
         # check if we must wait before beginning our next section
         wait_duration = timing - clock
         # should add a check here to see if the previous instruction was non-blocking

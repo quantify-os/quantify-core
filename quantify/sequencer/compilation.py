@@ -50,7 +50,6 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
 
     last_constr['abs_time'] = 0
 
-    # 1. loop over all operations in the schedule and
     for t_constr in schedule.data['timing_constraints'][1:]:
         curr_op = schedule.operations[t_constr['operation_hash']]
         if t_constr['ref_op'] is None:
@@ -79,8 +78,7 @@ def determine_absolute_timing(schedule, clock_unit='physical'):
         if t_constr['ref_pt_new'] == 'start':
             t_constr['abs_time'] = t0 + t_constr['rel_time']
         elif t_constr['ref_pt_new'] == 'center':
-            t_constr['abs_time'] = t0 + \
-                t_constr['rel_time'] - duration_new_op/2
+            t_constr['abs_time'] = t0 + t_constr['rel_time'] - duration_new_op/2
         elif t_constr['ref_pt_new'] == 'end':
             t_constr['abs_time'] = t0 + t_constr['rel_time'] - duration_new_op
 
