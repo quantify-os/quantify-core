@@ -56,7 +56,7 @@ class Q1ASMBuilder:
         self.rows.append(['', '', '', ''])
 
     def wait_sync(self):
-        self.rows.append(['', '', '', '#Wait for all sequencers to be ready'])
+        self.rows.append(['', 'wait_sync', '4', '#Wait for all sequencers to be ready'])
 
     def move(self, label, source, target, comment):
         self.rows.append([self._iff(label), 'move', '{},{}'.format(source, target), comment])
@@ -166,7 +166,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                                          'but was {}'
                                          .format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
                     else:
-                        ch['nco_freq'] = p['freq_mod']
+                        ch['nco_freq'] = abs(p['freq_mod'])
 
                 # the pulsar backend makes use of real-time pulse modulation
                 t = np.arange(0, 0+p['duration'], 1/ch['sampling_rate'])
@@ -247,7 +247,7 @@ def configure_pulsar_sequencers(config_dict: dict):
                     qcm.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
                     qcm.set('sequencer{}_cont_mode_waveform_idx{}'.format(seq_idx, awg_path), 0)
                     qcm.set('sequencer{}_upsample_rate{}'.format(seq_idx, awg_path), 0)
-                    qcm.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 0)
+                    qcm.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 1)
                     qcm.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
 
                 # configure sequencer
@@ -322,6 +322,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
                              .format(previous[0], previous[1], str(e)))
 
     q1asm = Q1ASMBuilder()
+    q1asm.wait_sync()
     q1asm.move('start', len(pulse_dict['awg']), 'R0', '#Waveform count register')
 
     if timing_tuples and get_pulse_finish_time(-1) > sequence_duration:
