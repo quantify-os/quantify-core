@@ -55,10 +55,6 @@ def test_build_waveform_dict():
 
 
 def test_bad_pulse_timings():
-    too_close_pulse_timings = [
-        (0, 'square_id'),
-        (2, 'drag_ID')
-    ]
     short_pulse_timings = [
         (0, 'drag_ID'),
         (4, 'square_id')
@@ -80,9 +76,6 @@ def test_bad_pulse_timings():
             'drag_ID_Q': {'data': np.ones(2), 'index': 3}
         }
     }
-
-    with pytest.raises(ValueError, match="Pulse square_id at 0 has duration 4 but next timing is 2."):
-        build_q1asm(too_close_pulse_timings, dummy_pulse_data, too_close_pulse_timings[-1][0] + 4, {})
 
     with pytest.raises(ValueError, match="Generated wait for '0':'drag_ID' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
