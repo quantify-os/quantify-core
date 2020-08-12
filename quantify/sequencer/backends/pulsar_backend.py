@@ -225,7 +225,6 @@ def configure_pulsar_sequencers(config_dict: dict):
     config_dict: dict
         Dictionary with resource_names as keys and filenames of sequencer config json files as values.
     """
-
     for resource, config_fn in config_dict.items():
         with open(config_fn) as seq_config:
             data = json.load(seq_config)
@@ -233,30 +232,28 @@ def configure_pulsar_sequencers(config_dict: dict):
             pulsar = Instrument.find_instrument(instr_cfg['instrument_name'])
             is_qrm = instr_cfg['type'] == "Pulsar_QRM_sequencer"
 
-            if instr_cfg['seq_idx'] == 0:
-                # configure settings
-                seq_idx = instr_cfg['seq_idx']
-                pulsar.set("sequencer{}_sync_en".format(seq_idx), True)
-                pulsar.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
-                pulsar.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
-                mod_enable = True if instr_cfg['nco_freq'] != 0 or instr_cfg['nco_phase'] != 0 else False
-                pulsar.set('sequencer{}_mod_en_awg'.format(seq_idx), mod_enable)
-                for path in (0, 1):
-                    awg_path = "_awg_path{}".format(path)
-                    pulsar.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
-                    pulsar.set('sequencer{}_cont_mode_waveform_idx{}'.format(seq_idx, awg_path), 0)
-                    pulsar.set('sequencer{}_upsample_rate{}'.format(seq_idx, awg_path), 0)
-                    pulsar.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 1)
-                    pulsar.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
+            # configure settings
+            seq_idx = instr_cfg['seq_idx']
+            pulsar.set("sequencer{}_sync_en".format(seq_idx), True)
+            pulsar.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
+            pulsar.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
+            mod_enable = True if instr_cfg['nco_freq'] != 0 or instr_cfg['nco_phase'] != 0 else False
+            pulsar.set('sequencer{}_mod_en_awg'.format(seq_idx), mod_enable)
+            for path in (0, 1):
+                awg_path = "_awg_path{}".format(path)
+                pulsar.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
+                pulsar.set('sequencer{}_cont_mode_waveform_idx{}'.format(seq_idx, awg_path), 0)
+                pulsar.set('sequencer{}_upsample_rate{}'.format(seq_idx, awg_path), 0)
+                pulsar.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 1)
+                pulsar.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
 
-                if is_qrm:
-                    pulsar.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), False)
-                    pulsar.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), False)
+            if is_qrm:
+                # todo check with Jordy wrt Callum&Marijn found involving acquisitions and wait_sync
+                pulsar.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), True)
+                pulsar.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), True)
 
-                # configure sequencer
-                pulsar.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
-            else:
-                logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
+            # configure sequencer
+            pulsar.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
 
 
 def build_waveform_dict(pulse_info, acquisitions):
