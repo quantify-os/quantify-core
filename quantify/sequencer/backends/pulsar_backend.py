@@ -230,28 +230,31 @@ def configure_pulsar_sequencers(config_dict: dict):
         with open(config_fn) as seq_config:
             data = json.load(seq_config)
             instr_cfg = data['instr_cfg']
-            qcm = Instrument.find_instrument(instr_cfg['instrument_name'])
+            pulsar = Instrument.find_instrument(instr_cfg['instrument_name'])
+            is_qrm = instr_cfg['type'] == "Pulsar_QRM_sequencer"
 
             if instr_cfg['seq_idx'] == 0:
                 # configure settings
                 seq_idx = instr_cfg['seq_idx']
-                qcm.set("sequencer{}_sync_en".format(seq_idx), True)
-                qcm.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), False)
-                qcm.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), False)
-                qcm.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
-                qcm.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
+                pulsar.set("sequencer{}_sync_en".format(seq_idx), True)
+                pulsar.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
+                pulsar.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
                 mod_enable = True if instr_cfg['nco_freq'] != 0 or instr_cfg['nco_phase'] != 0 else False
-                qcm.set('sequencer{}_mod_en_awg'.format(seq_idx), mod_enable)
+                pulsar.set('sequencer{}_mod_en_awg'.format(seq_idx), mod_enable)
                 for path in (0, 1):
                     awg_path = "_awg_path{}".format(path)
-                    qcm.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
-                    qcm.set('sequencer{}_cont_mode_waveform_idx{}'.format(seq_idx, awg_path), 0)
-                    qcm.set('sequencer{}_upsample_rate{}'.format(seq_idx, awg_path), 0)
-                    qcm.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 1)
-                    qcm.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
+                    pulsar.set('sequencer{}_cont_mode_en{}'.format(seq_idx, awg_path), False)
+                    pulsar.set('sequencer{}_cont_mode_waveform_idx{}'.format(seq_idx, awg_path), 0)
+                    pulsar.set('sequencer{}_upsample_rate{}'.format(seq_idx, awg_path), 0)
+                    pulsar.set('sequencer{}_gain{}'.format(seq_idx, awg_path), 1)
+                    pulsar.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
+
+                if is_qrm:
+                    pulsar.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), False)
+                    pulsar.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), False)
 
                 # configure sequencer
-                qcm.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
+                pulsar.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
             else:
                 logging.warning('Not Implemented, awaiting driver for more than one seqeuncer')
 
