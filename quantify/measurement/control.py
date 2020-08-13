@@ -206,6 +206,10 @@ class MeasurementControl(Instrument):
             if len(self._dataset['y0']) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
 
+            #  1D sweeps return single values, wrap in a list
+            if np.isscalar(vec):
+                vec = [vec]
+
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
@@ -215,7 +219,7 @@ class MeasurementControl(Instrument):
                 val = val[0]
             self._dataset['y0'].values[self._nr_acquired_values] = val
             self._nr_acquired_values += 1
-            self._update()
+            self._update("Running adaptively")
             return val
 
         def subroutine():
@@ -321,7 +325,7 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    def _update(self):
+    def _update(self, print_message: str = None):
         """
         Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
 
@@ -331,7 +335,7 @@ class MeasurementControl(Instrument):
         update = time.time() - self._last_upd > self.update_interval() \
             or self._nr_acquired_values == self._max_setpoints
         if update:
-            self.print_progress()
+            self.print_progress(print_message)
             self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
             if self._plotmon_name is not None and self._plotmon_name != '':
                 self.instr_plotmon.get_instr().update()
@@ -415,19 +419,20 @@ class MeasurementControl(Instrument):
         """
         return self._nr_acquired_values / self._max_setpoints
 
-    def print_progress(self):
+    def print_progress(self, progress_message: str = None):
         percdone = self._get_fracdone()*100
         elapsed_time = time.time() - self._begintime
-        progress_message = (
-            "\r {percdone}% completed \telapsed time: "
-            "{t_elapsed}s \ttime left: {t_left}s".format(
-                percdone=int(percdone),
-                t_elapsed=round(elapsed_time, 1),
-                t_left=round((100.0 - percdone) / percdone * elapsed_time, 1)
-                if percdone != 0
-                else "",
+        if not progress_message:
+            progress_message = (
+                "\r {percdone}% completed \telapsed time: "
+                "{t_elapsed}s \ttime left: {t_left}s".format(
+                    percdone=int(percdone),
+                    t_elapsed=round(elapsed_time, 1),
+                    t_left=round((100.0 - percdone) / percdone * elapsed_time, 1)
+                    if percdone != 0
+                    else "",
+                )
             )
-        )
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(percdone)
         if percdone != 100:

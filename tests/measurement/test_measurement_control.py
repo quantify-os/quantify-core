@@ -527,6 +527,26 @@ class TestMeasurementControl:
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
 
+    def test_adaptive_bounds_1D(self):
+        freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
+        amp = ManualParameter(name='amp', unit='V', label='Amplitude', initial_value=1)
+        fwhm = 300
+        resonance_freq = random.uniform(6e9, 7e9)
+
+        def lorenz():
+            return amp() * ((fwhm / 2.) ** 2) / ((freq() - resonance_freq) ** 2 + (fwhm / 2.) ** 2)
+
+        resonance = Parameter('resonance', unit='V', label='Amplitude', get_cmd=lorenz)
+
+        self.MC.settables(freq)
+        af_pars = {
+            "adaptive_function": adaptive.learner.Learner1D,
+            "goal": lambda l: l.npoints > 20 * 20,
+            "bounds": (6e9, 7e9),
+        }
+        self.MC.gettables(resonance)
+        dset = self.MC.run_adaptive('adaptive sample', af_pars)
+
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
