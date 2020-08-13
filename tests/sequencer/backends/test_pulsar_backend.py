@@ -346,6 +346,26 @@ def test_mismatched_mod_freq():
         pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
 
 
+def test_waveform_amplitude_breach():
+    bad_config = {
+        "qubits": {
+            "q0": {"mw_amp180": 0.75, "mw_motzoi": -0.25, "mw_duration": 20e-9, "mw_modulation_freq": 50e6,
+                   "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0"},
+        },
+        "edges": {}
+    }
+    sched = Schedule('Amplitude too great')
+    q0 = QubitResource('q0')
+    sched.add_resource(q0)
+    sched.add(Rxy(theta=360, phi=0, qubit=q0.name))
+    qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
+    sched.add_resource(qcm0_s0)
+    sched = add_pulse_information_transmon(sched, bad_config)
+    sched = determine_absolute_timing(sched)
+    with pytest.raises(ValueError, match=r"pulse.*in operation.*Rxy.*360.*q0.*qcm.*s0.*illegal.*amplitude"):
+        pulsar_assembler_backend(sched)
+
+
 @pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar_qcm assembler to be installed")
 def test_configure_pulsar_sequencers():
 
