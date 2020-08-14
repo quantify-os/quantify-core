@@ -6,6 +6,8 @@ flake8
 coverage
 Sphinx
 nbsphinx
+scikit-learn==0.23.1
+scikit-optimize
 sphinx-rtd-theme==0.5.0rc2
 sphinxcontrib-blockdiag
 jupyter_sphinx==0.2.3

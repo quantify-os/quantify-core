@@ -4,13 +4,13 @@ import xarray as xr
 import numpy as np
 import pickle
 import pytest
+import adaptive
 from threading import Timer
 from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify.measurement.control import MeasurementControl, \
-    tile_setpoints_grid
+from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
@@ -53,7 +53,7 @@ class NoneSweep:
         pass
 
 
-class DummyParabola(Instrument):
+class DummyParHolder(Instrument):
     def __init__(self, name):
         super().__init__(name)
 
@@ -148,11 +148,13 @@ class TestMeasurementControl:
     def setup_class(cls):
         cls.MC = MeasurementControl(name='MC')
         # ensures the default datadir is used which is excluded from git
+        cls.dummy_parabola = DummyParHolder('parabola')
         set_datadir(None)
 
     @classmethod
     def teardown_class(cls):
         cls.MC.close()
+        cls.dummy_parabola.close()
         set_datadir(None)
 
     def test_MeasurementControl_name(self):
@@ -505,25 +507,81 @@ class TestMeasurementControl:
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
-    """
-    def test_adapative_nelder_mead(self):
-        dummy = DummyParabola("mock_parabola")
-        self.MC.settables([dummy.x, dummy.y])
-        optimize.minimize(method='Nelder-Mead')
-        dummy.noise(0.5)
-        self.MC.gettables(dummy.parabola)
-        dset = self.MC.run('nelder_mead')
-    """
+    def test_adaptive_no_averaging(self):
+        self.MC.soft_avg(5)
+        with pytest.raises(ValueError, match=r"software averaging not allowed in adaptive loops; currently set to 5"):
+            self.MC.run_adaptive('fail', {})
+        self.MC.soft_avg(1)
+
+    def test_adaptive_nelder_mead(self):
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        af_pars = {
+            "adaptive_function": optimize.minimize,
+            "x0": [-50, -50],
+            "method": "Nelder-Mead"
+        }
+        self.dummy_parabola.noise(0.5)
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adaptive('nelder_mead', af_pars)
+
+        assert dset['x0'][-1] < 0.7
+        assert dset['x1'][-1] < 0.7
+        assert dset['y0'][-1] < 0.7
+
+    def test_adaptive_bounds_1D(self):
+        freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
+        amp = ManualParameter(name='amp', unit='V', label='Amplitude', initial_value=1)
+        fwhm = 300
+        resonance_freq = random.uniform(6e9, 7e9)
+
+        def lorenz():
+            return amp() * ((fwhm / 2.) ** 2) / ((freq() - resonance_freq) ** 2 + (fwhm / 2.) ** 2)
+
+        resonance = Parameter('resonance', unit='V', label='Amplitude', get_cmd=lorenz)
+
+        self.MC.settables(freq)
+        af_pars = {
+            "adaptive_function": adaptive.learner.Learner1D,
+            "goal": lambda l: l.npoints > 20 * 20,
+            "bounds": (6e9, 7e9),
+        }
+        self.MC.gettables(resonance)
+        dset = self.MC.run_adaptive('adaptive sample', af_pars)
+
+    def test_adaptive_sampling(self):
+        self.dummy_parabola.noise(0)
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        af_pars = {
+            "adaptive_function": adaptive.learner.Learner2D,
+            "goal": lambda l: l.npoints > 20 * 20,
+            "bounds": ((-50, 50), (-20, 30)),
+        }
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adaptive('adaptive sample', af_pars)
+        # todo pycqed has no verification step here, what should we do?
+
+    def test_adaptive_skoptlearner(self):
+        self.dummy_parabola.noise(0)
+        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        af_pars = {
+            "adaptive_function": adaptive.SKOptLearner,
+            "goal": lambda l: l.npoints > 30,
+            "dimensions": [(-50.0, +50.0), (-20.0, +30.0)],
+            "base_estimator": "gp",
+            "acq_func": "EI",
+            "acq_optimizer": "lbfgs",
+        }
+        self.MC.gettables(self.dummy_parabola.parabola)
+        dset = self.MC.run_adaptive('skopt', af_pars)
+        # todo pycqed has no verification step here, what should we do?
 
     def test_progress_callback(self):
-
         progress_param = ManualParameter("progress", initial_value=0)
 
         def set_progress_param_callable(progress):
             progress_param(progress)
 
         self.MC.on_progress_callback(set_progress_param_callable)
-
         assert progress_param() == 0
 
         xvals = np.linspace(0, 2*np.pi, 31)

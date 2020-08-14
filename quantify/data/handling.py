@@ -174,9 +174,9 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     Initialize an empty dataset based on setable_pars, setpoints and getable_pars
 
     Args:
-        setable_pars (list):    a list of M setables
-        setpoints (:class:`numpy.ndarray`):   an (N*M) array
-        getable_pars (list):    a list of getables
+        setable_pars (list):                    a list of M settables
+        setpoints (:class:`numpy.ndarray`):     an (N*M) array
+        getable_pars (list):                    a list of gettables
 
     Returns:
         :class:`xarray.Dataset`: the dataset
@@ -193,7 +193,6 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     numpoints = len(setpoints[:, 0])
     j = 0
     for getpar in getable_pars:
-
         #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
         #  so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
@@ -215,6 +214,56 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
 
     dataset = xr.merge(darrs)
     dataset.attrs['tuid'] = gen_tuid()
+    return dataset
+
+
+def grow_dataset(dataset):
+    """
+    Resizes the dataset by doubling the current length of all arrays.
+
+    Args:
+        dataset (:class:`xarray.Dataset`): the dataset to resize.
+
+    Returns:
+        The resized dataset.
+    """
+    darrs = []
+    for col in dataset:
+        data = dataset[col].values
+        darrs.append(xr.DataArray(
+            name=dataset[col].name,
+            data=np.resize(data, len(data) * 2),
+            attrs=dataset[col].attrs
+        ))
+    dataset = dataset.drop_dims(['dim_0'])
+    new_data = xr.merge(darrs)
+    return dataset.merge(new_data)
+
+
+def trim_dataset(dataset):
+    """
+    Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
+
+    Args:
+        dataset (:class:`xarray.Dataset`): the dataset to trim.
+
+    Returns:
+        The dataset, trimmed and resized if necessary or unchanged.
+    """
+    for i, val in enumerate(reversed(dataset['y0'].values)):
+        if not np.isnan(val):
+            finish_idx = len(dataset['y0'].values) - i
+            darrs = []
+            for col in dataset:
+                data = dataset[col].values[:finish_idx]
+                darrs.append(xr.DataArray(
+                    name=dataset[col].name,
+                    data=data,
+                    attrs=dataset[col].attrs
+                ))
+            dataset = dataset.drop_dims(['dim_0'])
+            new_data = xr.merge(darrs)
+            return dataset.merge(new_data)
     return dataset
 
 
