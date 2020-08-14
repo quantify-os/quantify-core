@@ -19,6 +19,7 @@ def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: s
         datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
 
     Raises:
+        ValueError: if the provided instrument has no match in the loaded snapshot.
     """
     instruments = load_snapshot(tuid, datadir)['instruments']
     if instrument.name not in instruments:
