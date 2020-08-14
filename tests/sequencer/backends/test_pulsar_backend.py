@@ -9,6 +9,7 @@ from quantify.sequencer.types import Schedule, Operation
 from quantify.sequencer.gate_library import Reset, Measure, CNOT, CZ, Rxy, X
 from quantify.sequencer.pulse_library import IdlePulse
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend, configure_pulsar_sequencers
+from quantify.sequencer.backends.visualization import pulse_diagram_plotly
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
 from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
 
@@ -310,10 +311,8 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     assert sched.resources['qcm0.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["mw_modulation_freq"]
     assert sched.resources['qrm0.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
-    assert sched.resources['qrm0.r0']['nco_freq'] == -DEVICE_TEST_CFG["qubits"]["q0"]["ro_pulse_modulation_freq"]
     assert sched.resources['qcm1.s0']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["mw_modulation_freq"]
     assert sched.resources['qrm0.s1']['nco_freq'] == DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
-    assert sched.resources['qrm0.r1']['nco_freq'] == -DEVICE_TEST_CFG["qubits"]["q1"]["ro_pulse_modulation_freq"]
 
     if PULSAR_ASSEMBLER:
         assert dummy_pulsars[0].get('sequencer0_mod_en_awg')
@@ -322,11 +321,10 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 def test_qrm_simple(dummy_pulsars):
     sched = Schedule('sched')
     q0 = QubitResource('q0')
-    sched.add(Measure(q0.name), label='measure')
-    x = X(q0.name)
-    sched.add(x, rel_time=150e-9, ref_op='measure', ref_pt='start')
-    for i in [2, 4, 8, 16]:
-        sched.add(x, rel_time=4e-9 * i)
+    sched.add(Measure(q0.name), label='measurement')
+    sched.add(X(q0.name), rel_time=200e-9)
+    for t in np.linspace(20e-9, 100e-9, 4):
+        sched.add(X(q0.name), rel_time=t)
 
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)

@@ -165,8 +165,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                         raise ValueError('pulse {} on channel {} has an inconsistent modulation frequency: expected {} '
                                          'but was {}'
                                          .format(pulse_id, ch['name'], int(ch['nco_freq']), int(p['freq_mod'])))
-                    else:
-                        ch['nco_freq'] = abs(p['freq_mod'])
+                    if ch['nco_freq'] == 0:
+                        ch['nco_freq'] = p['freq_mod']
 
                 # the pulsar backend makes use of real-time pulse modulation
                 t = np.arange(0, 0+p['duration'], 1/ch['sampling_rate'])
@@ -234,6 +234,9 @@ def configure_pulsar_sequencers(config_dict: dict):
 
             # configure settings
             seq_idx = instr_cfg['seq_idx']
+            if seq_idx > 0:
+                continue  # multiple sequencers not supported yet
+
             pulsar.set("sequencer{}_sync_en".format(seq_idx), True)
             pulsar.set('sequencer{}_nco_freq'.format(seq_idx), instr_cfg['nco_freq'])
             pulsar.set('sequencer{}_nco_phase'.format(seq_idx), instr_cfg['nco_phase'])
