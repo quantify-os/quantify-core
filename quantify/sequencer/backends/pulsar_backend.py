@@ -8,14 +8,12 @@ Copyright (C) Qblox BV (2020)
 import os
 import inspect
 import json
-import logging
 from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
 from qcodes import Instrument
 import numpy as np
 from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
-from quantify.sequencer.resources import Pulsar_QRM_sequencer
 
 
 class Q1ASMBuilder:
@@ -115,6 +113,9 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
 
     configure_hardware : bool
         if True will configure the hardware to run the specified schedule.
+
+    debug : bool
+        if True will produce extra debug output
 
     Returns
     ----------
@@ -264,12 +265,13 @@ def configure_pulsar_sequencers(config_dict: dict):
             pulsar.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
 
 
-def build_waveform_dict(pulse_info, acquisitions):
+def build_waveform_dict(pulse_info: dict, acquisitions: set) -> dict:
     """
     Allocates numerical pulse representation to indices and formats for sequencer JSON.
 
     Args:
         pulse_info (dict): Pulse ID to array-like numerical representation
+        acquisitions (set): set of pulse_IDs which are acquisitions
 
     Returns:
         Dictionary mapping pulses to numerical representation and memory index
@@ -292,7 +294,7 @@ def build_waveform_dict(pulse_info, acquisitions):
 
 
 # todo this needs a serious clean up
-def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
+def build_q1asm(timing_tuples: list, pulse_dict: dict, sequence_duration: int, acquisitions: set) -> str:
     """
     Converts operations and waveforms to a q1asm program. This function verifies these hardware based constraints:
 
@@ -306,6 +308,7 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
         timing_tuples (list): A sorted list of tuples matching timings to pulse_IDs.
         pulse_dict (dict): pulse_IDs to numerical waveforms with registered index in waveform memory.
         sequence_duration (int): maximum runtime of this sequence
+        acquisitions (set): set of pulse_IDs which are acquisitions
 
     Returns:
         A q1asm program in a string.
@@ -339,21 +342,21 @@ def build_q1asm(timing_tuples, pulse_dict, sequence_duration, acquisitions):
 
     previous = None  # previous pulse
     clock = 0  # current execution time
-    for timing, pulse_id in timing_tuples:
+
+    for idx, (timing, pulse_id) in enumerate(timing_tuples):
         # check if we must wait before beginning our next section
         wait_duration = timing - clock
-        # should add a check here to see if the previous instruction was non-blocking
-        if wait_duration < 0:
-            auto_wait('', clock + wait_duration, '#Wait', previous)
-        else:
-            auto_wait('', wait_duration, '#Wait', previous)
-
         device = 'awg' if pulse_id not in acquisitions else 'acq'
+        auto_wait('', wait_duration, '#Wait', previous)
+
         I = pulse_dict[device]["{}_I".format(pulse_id)]['index']  # noqa: E741
         Q = pulse_dict[device]["{}_Q".format(pulse_id)]['index']
         q1asm.line_break()
 
-        duration = get_pulse_runtime(pulse_id)  # duration in nanoseconds, QCM sample rate is 1Gsps
+        # duration should be the pulse length or next start time
+        next_timing = timing_tuples[idx+1][0] if idx < len(timing_tuples) - 1 else np.Inf
+        pulse_runtime = get_pulse_runtime(pulse_id)  # duration in nanoseconds, QCM sample rate is # 1Gsps
+        duration = min(next_timing, pulse_runtime)
         if device == 'awg':
             q1asm.play('', I, Q, duration, '#Play {}'.format(pulse_id))
         else:
@@ -380,6 +383,7 @@ def generate_sequencer_cfg(pulse_info, timing_tuples, sequence_duration: int, ac
         pulse_info (dict): mapping of pulse IDs to numerical waveforms
         timing_tuples (list): time ordered list of tuples containing the absolute starting time and pulse ID
         sequence_duration (int): maximum runtime of this sequence
+        acquisitions (set): set of pulse IDs which are acquisitions
 
     Returns:
         Sequencer configuration
