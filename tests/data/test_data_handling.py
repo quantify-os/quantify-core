@@ -10,8 +10,7 @@ from qcodes import ManualParameter
 import quantify
 
 
-test_datadir = os.path.join(os.path.split(
-    quantify.__file__)[0], '..', 'tests', 'test_data')
+test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
 
 
 def test_is_valid_dset():
