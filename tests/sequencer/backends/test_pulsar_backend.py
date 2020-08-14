@@ -318,24 +318,6 @@ def test_pulsar_assembler_backend(dummy_pulsars):
         assert dummy_pulsars[0].get('sequencer0_mod_en_awg')
 
 
-def test_qrm_simple(dummy_pulsars):
-    sched = Schedule('sched')
-    q0 = QubitResource('q0')
-    sched.add(Measure(q0.name), label='measurement')
-    sched.add(X(q0.name), rel_time=200e-9)
-    for t in np.linspace(20e-9, 100e-9, 4):
-        sched.add(X(q0.name), rel_time=t)
-
-    qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
-    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
-
-    sched.add_resources([q0, qrm0_s0, qcm0_s0])
-    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
-    sched = determine_absolute_timing(sched)
-    seq_config_dict = pulsar_assembler_backend(sched)
-    configure_pulsar_sequencers(seq_config_dict)
-
-
 def test_mismatched_mod_freq():
     bad_config = {
         "qubits": {
