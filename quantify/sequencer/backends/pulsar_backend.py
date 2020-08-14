@@ -93,7 +93,7 @@ class Q1ASMBuilder:
         self.rows.append([self._iff(label), 'jmp', '@{}'.format(target), comment])
 
 
-def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
+def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debug=False):
     """
     Create sequencer configuration files for multiple Qblox pulsar modules.
 
@@ -204,6 +204,11 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False):
                 acquisitions=acquisitions
             )
             seq_cfg['instr_cfg'] = resource.data
+
+            if debug:
+                qasm_dump = os.path.join(seq_folder, '{}_sequencer.q1asm'.format(resource.name))
+                with open(qasm_dump, 'w') as f:
+                    f.write(seq_cfg['program'])
 
             seq_fn = os.path.join(seq_folder, '{}_sequencer_cfg.json'.format(resource.name))
             with open(seq_fn, 'w') as f:
