@@ -15,7 +15,7 @@ from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
-from quantify.utilities.experiment_helpers import setup_instrument
+from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 import quantify
 
 
@@ -661,7 +661,7 @@ class TestMeasurementControl:
         assert dset['y0'].values[2] == 50
 
     def test_instrument_settings_from_disk(self):
-        setup_instrument(self.dummy_parabola, TUID('20200814-134652-492-fbf254'), test_datadir)
+        load_settings_onto_instrument(self.dummy_parabola, TUID('20200814-134652-492-fbf254'), test_datadir)
         assert self.dummy_parabola.x() == 40.0
         assert self.dummy_parabola.y() == 90.0
         assert self.dummy_parabola.z() == -20.0
@@ -669,7 +669,7 @@ class TestMeasurementControl:
 
         non_existing = DummyParHolder('the mac')
         with pytest.raises(ValueError, match='Instrument "the mac" not found in snapshot'):
-            setup_instrument(non_existing, TUID('20200814-134652-492-fbf254'), test_datadir)
+            load_settings_onto_instrument(non_existing, TUID('20200814-134652-492-fbf254'), test_datadir)
 
 
 def test_tile_setpoints_grid():
