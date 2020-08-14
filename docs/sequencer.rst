@@ -250,7 +250,7 @@ which respond to microwave pulses:
     device_test_cfg = {
           "qubits":
           {
-              "q0": {"mw_amp180": 0.75, "mw_motzoi": -0.25, "mw_duration": 20e-9,
+              "q0": {"mw_amp180": 0.5, "mw_motzoi": -0.25, "mw_duration": 20e-9,
                      "mw_modulation_freq": 50e6, "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0",
                      "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 80e6,
                      "ro_pulse_type": "square", "ro_pulse_duration": 150e-9,
