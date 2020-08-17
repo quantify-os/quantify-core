@@ -7,6 +7,7 @@ Copyright (C) Qblox BV (2020)
 """
 import os
 import sys
+import json
 from datetime import datetime
 from uuid import uuid4
 import numpy as np
@@ -70,7 +71,25 @@ def set_datadir(datadir):
     this._datadir = datadir
 
 
-def load_dataset(tuid, datadir=None):
+def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
+    if datadir is None:
+        datadir = get_datadir()
+
+    daydir = os.path.join(datadir, tuid[:8])
+
+    # This will raise a file not found error if no data exists on the specified date
+    exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
+    if len(exp_folders) == 0:
+        print(os.listdir(daydir))
+        raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
+
+    # We assume that the length is 1 as tuid is assumed to be unique
+    exp_folder = exp_folders[0]
+
+    return os.path.join(daydir, exp_folder, name)
+
+
+def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     """
     Loads a dataset specified by a tuid.
 
@@ -95,23 +114,12 @@ def load_dataset(tuid, datadir=None):
         This method uses :func:`xarray.load_dataset` to ensure the file is closed after loading as datasets are
         intended to be immutable after performing the initial experiment.
     """
+    return xr.load_dataset(_locate_experiment_file(tuid, datadir, 'dataset.hdf5'))
 
-    if datadir is None:
-        datadir = get_datadir()
 
-    daydir = os.path.join(datadir, tuid[:8])
-
-    # This will raise a file not found error if no data exists on the specified date
-    exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
-    if len(exp_folders) == 0:
-        print(os.listdir(daydir))
-        raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
-
-    # We assume that the length is 1 as tuid is assumed to be unique
-    exp_folder = exp_folders[0]
-
-    dataset = xr.load_dataset(os.path.join(daydir, exp_folder, 'dataset.hdf5'))
-    return dataset
+def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') -> dict:
+    with open(_locate_experiment_file(tuid, datadir, file)) as snap:
+        return json.load(snap)
 
 
 def create_exp_folder(tuid, name='', datadir=None):
@@ -159,10 +167,6 @@ def is_valid_dset(dset):
     assert TUID.is_valid(dset.attrs['tuid'])
 
     return True
-
-
-def append_to_Xarr():
-    raise NotImplementedError()
 
 
 def initialize_dataset(setable_pars, setpoints, getable_pars):

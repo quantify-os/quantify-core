@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 import pytest
 import adaptive
+import os
 from threading import Timer
 from scipy import optimize
 from qcodes import ManualParameter, Parameter
@@ -14,6 +15,11 @@ from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+from quantify.utilities.experiment_helpers import load_settings_onto_instrument
+import quantify
+
+
+test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
 
 
 # Define some helpers that are used in the tests
@@ -653,6 +659,17 @@ class TestMeasurementControl:
 
         dset = self.MC.run()
         assert dset['y0'].values[2] == 50
+
+    def test_instrument_settings_from_disk(self):
+        load_settings_onto_instrument(self.dummy_parabola, TUID('20200814-134652-492-fbf254'), test_datadir)
+        assert self.dummy_parabola.x() == 40.0
+        assert self.dummy_parabola.y() == 90.0
+        assert self.dummy_parabola.z() == -20.0
+        assert self.dummy_parabola.delay() == 10.0
+
+        non_existing = DummyParHolder('the mac')
+        with pytest.raises(ValueError, match='Instrument "the mac" not found in snapshot'):
+            load_settings_onto_instrument(non_existing, TUID('20200814-134652-492-fbf254'), test_datadir)
 
 
 def test_tile_setpoints_grid():
