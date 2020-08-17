@@ -1,8 +1,5 @@
 """
 Module containing the core data concepts of quantify.
-
-todo - quantify datasets are based on the :class:`xarray.Dataset`. - document experiment container (containing a
-Dataset, snapshot and optional other files such as figures analysis results etc.).
 """
 
 import datetime

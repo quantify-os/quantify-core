@@ -13,11 +13,13 @@ As previously described, an individual experiment is represented on disk by thes
 Dataset
 ~~~~~~~~~
 
-The Dataset is implemented using the xarray :class:`~xarray.DataSet` class. Most concepts are translated
+The Dataset is implemented using the xarray :class:`xarray.Dataset` class.
 
-Quantify arranges data along n-many X axis an one Y axis. The X axis represents the setpoints provided, which are tiled in the case of multiple dimensions.
-The Y axis represents the output of the Gettable. Both are numbered ascending from 0, and each stores information described by the :class:`~quantify.measurement.Settable`
-and :class:`~quantify.measurement.Gettable` classes, such as titles and units. The Dataset object also stores some further metadata, such as the TUID of the experiment which it was generated from.
+Quantify arranges data along n-many X axes and m-many Y axes.
+Each X axis represents one of the setpoints provided. The Y axes represents the output of the Gettable.
+Both are numbered ascending from 0, and each stores information described by the :class:`~quantify.measurement.Settable` and
+:class:`~quantify.measurement.Gettable` classes, such as titles and units. The Dataset object also stores some further metadata,
+such as the :class:`~quantify.data.types.TUID` of the experiment which it was generated from.
 
 For example, consider an experiment varying time and amplitude against a Cosine function.
 The resulting dataset will look something like the following:
