@@ -148,6 +148,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
             if p['channel'] is None:
                 continue  # pulses with None channel will be ignored by this backend
 
+            # if the compiler has marked this pulse as being on a readout channel, mark it in the acquisitions set
             if p['channel'][-8:] == '_READOUT':
                 acquisitions.add(pulse_id)
                 p['channel'] = p['channel'][:-8]
