@@ -170,7 +170,51 @@ parameter optionally accepts a list of floats as a parameter. For example
             self.shutdown()
 
 Data storage & Analysis
---------------------------
+=========================
+As well as the produced dataset, every :class:`qcodes.instrument.parameter.Parameter` and QCodes Instrument in an
+experiment run by Quantify is automatically serialized to disk.
 
-Folder structure
-====================
+This is intended to aid with reproducibility, as a past experiment can be easily reloaded and re-run by anyone.
+
+Concepts
+----------
+
+Data Directory
+~~~~~~~~~~~~~~~~
+
+The top level directory in the file system where output is saved to. Experiments are first grouped by date -
+all experiments which take place on a certain date will be saved together in a subdirectory in the form YYYYMMDD.
+
+Experiment Container
+~~~~~~~~~~~~~~~~~~~~
+
+Individual experiments are saved to their own subdirectories (of the Data Directory) named by the :class:`~quantify.data.types.TUID`.
+
+.. note::
+    TUID: A time based unique ID of the form HHMMSS-sss-<random 6 character string> + <experiment name (if any)>.
+
+These subdirectories are termed 'Experiment Containers', typical output being the Dataset in hdf5 format and JSON format file describing Parameters, Instruments and such.
+
+Furthermore, additional analysis such as fits can also be written to this directory, storing all data in one location.
+
+A data directory with the name 'data' thus will look similar to the below:
+
+- data
+    - 20200708
+        - 145048-800-60cf37
+        - 145205-042-6d068a-bell_test
+            - dataset.hdf5
+            - snapshot.json
+            - lmfit.png
+    - 20200710
+
+Dataset
+~~~~~~~~~
+
+The output produced by the experiment, stored in HDF5 format. This topic is expanded upon on this page: :ref:`DataStorage specification`.
+
+Snapshot
+~~~~~~~~~~
+
+The configuration for each QCodes Instrument used in this experiment. This information is automatically collected for all Instruments in use.
+It is useful for quickly reconstructing a complex set-up or verifying :class:`qcodes.instrument.parameter.Parameter` objects are as expected.

@@ -3,56 +3,43 @@
 DataStorage specification
 ==========================
 
-The quantify dataset is based on ideas from PycQED, QCoDeS and xarray.
+Quantify experiment output storage is based on ideas from PycQED, QCoDeS and xarray. Conceptually it is divided into two parts:
 
-xarray dataset
+- Dataset, stored in dataset.hdf5. This file contains the raw data with associated attributes, such as axis labels and units.
+- Metadata, stored in snapshot.json. This file contains information such as when the experiment was run, what devices were in use and so on.
 
-- Dataset -> arrays + attrs
-- metadata -> snapshot etc.
+As previously described, an individual experiment is represented on disk by these two files in a directory named relative to the start time of the experiment.
 
-.. _dataset-spec:
+Dataset
+~~~~~~~~~
 
-Introduction
-============
+The Dataset is implemented using the xarray :class:`xarray.Dataset` class.
 
-The DataSet class is used in QCoDeS to hold measurement results.
-It is the destination for measurement loops and the source for plotting and data analysis.
-As such, it is a central component of QCoDeS.
+Quantify arranges data along n-many X axes and m-many Y axes.
+Each X axis represents one of the setpoints provided. The Y axes represents the output of the Gettable.
+Both are numbered ascending from 0, and each stores information described by the :class:`~quantify.measurement.Settable` and
+:class:`~quantify.measurement.Gettable` classes, such as titles and units. The Dataset object also stores some further metadata,
+such as the :class:`~quantify.data.types.TUID` of the experiment which it was generated from.
 
-The DataSet class should be usable on its own, without other QCoDeS components.
-In particular, the DataSet class should not require the use of Loop and parameters, although it should integrate with those components seamlessly.
-This will significantly improve the modularity of QCoDeS by allowing users to plug into and extend the package in many different ways.
-As long as a DataSet is used for data storage, users can freely select the QCoDeS components they want to use.
+For example, consider an experiment varying time and amplitude against a Cosine function.
+The resulting dataset will look something like the following:
 
-Terminology
-================
+.. jupyter-execute::
 
-.. warning::
+    from qcodes import ManualParameter, Parameter
+    from quantify.measurement.control import MeasurementControl
+    import numpy as np
 
-    Below is copied from the QCoDeS data spec. it needs to be updated for quantify.
+    t = ManualParameter('t', initial_value=1, unit='s', label='Time')
+    amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
 
-Metadata
-    Many items in this spec have metadata associated with them.
-    In all cases, we expect metadata to be represented as a dictionary with string keys.
-    While the values are arbitrary and up to the user, in many cases we expect metadata to be nested, string-keyed dictionaries
-    with scalars (strings or numbers) as the final values.
-    In some cases, we specify particular keys or paths in the metadata that other QCoDeS components may rely on.
+    def CosFunc():
+        return amp() * np.cos(2 * np.pi * 1e6 * t())
 
-Parameter
-    A logically-single value input to or produced by a measurement.
-    A parameter need not be a scalar, but can be an array or a tuple or an array of tuples, etc.
-    A DataSet parameter corresponds conceptually to a QCoDeS parameter, but does not have to be defined by or associated with a QCoDeS Parameter .
-    Roughly, a parameter represents a column in a table of experimental data.
+    sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=CosFunc)
 
-Result
-    A result is the collection of parameter values associated to a single measurement in an experiment.
-    Roughly, a result corresponds to a row in a table of experimental data.
-
-DataSet
-    A DataSet is a QCoDeS object that stores the results of an experiment.
-    Roughly, a DataSet corresponds to a table of experimental data, along with metadata that describes the data.
-    Depending on the state of the experiment, a DataSet may be "in progress" or "completed".
-
-ExperimentContainer
-    An ExperimentContainer is a QCoDeS object that stores all information about an experiment.
-    This includes items such as the equipment on which the experiment was run, the configuration of the equipment, graphs and other analytical output, and arbitrary notes, as well as the DataSet that holds the results of the experiment.
+    MC = MeasurementControl('cosine')
+    MC.settables([t, amp])
+    MC.setpoints_grid([np.linspace(0, 5, 20), np.linspace(-1, 1, 5)])
+    MC.gettables(sig)
+    MC.run('my experiment')
