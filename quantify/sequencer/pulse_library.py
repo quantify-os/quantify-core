@@ -1,7 +1,10 @@
 """
-Library standard pulses for use with the quantify sequencer.
+-----------------------------------------------------------------------------
+Description:    Library standard pulses for use with the quantify sequencer.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
-
 from .types import Operation
 
 
@@ -100,6 +103,7 @@ class SoftSquarePulse(Operation):
             'wf_func': 'quantify.sequencer.waveforms.soft_square',
             'amp': amp, 'duration': duration,
             't0': t0,
+            'freq_mod': 0,  # flux pulses cannot have a modulation frequency
             'channel': ch}]}
         super().__init__(name=data['name'], data=data)
 

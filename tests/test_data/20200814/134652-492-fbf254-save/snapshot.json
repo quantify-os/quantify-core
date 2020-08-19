@@ -1,0 +1,127 @@
+{
+    "instruments": {
+        "MC": {
+            "parameters": {
+                "IDN": {
+                    "value": "the mac",
+                    "ts": null,
+                    "label": "IDN",
+                    "unit": "",
+                    "name": "IDN"
+                },
+                "verbose": {
+                    "value": true,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "verbose",
+                    "unit": "",
+                    "name": "verbose"
+                },
+                "on_progress_callback": {
+                    "value": null,
+                    "ts": null,
+                    "label": "on_progress_callback",
+                    "unit": "",
+                    "name": "on_progress_callback"
+                },
+                "soft_avg": {
+                    "value": 50,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "Number of soft averages",
+                    "unit": "",
+                    "name": "soft_avg"
+                },
+                "instr_plotmon": {
+                    "value": null,
+                    "ts": null,
+                    "label": "instr_plotmon",
+                    "unit": "",
+                    "name": "instr_plotmon"
+                },
+                "update_interval": {
+                    "value": 0.6,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "update_interval",
+                    "unit": "",
+                    "name": "update_interval"
+                }
+            },
+            "name": "MC"
+        },
+        "parabola": {
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "label": "IDN",
+                    "unit": "",
+                    "name": "IDN"
+                },
+                "x": {
+                    "value": 40.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "x",
+                    "unit": "m",
+                    "name": "x"
+                },
+                "y": {
+                    "value": 90.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "y",
+                    "unit": "m",
+                    "name": "y"
+                },
+                "z": {
+                    "value": -20.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "z",
+                    "unit": "m",
+                    "name": "z"
+                },
+                "x0": {
+                    "value": 0.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "x0",
+                    "unit": "m",
+                    "name": "x0"
+                },
+                "y0": {
+                    "value": 0.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "y0",
+                    "unit": "m",
+                    "name": "y0"
+                },
+                "z0": {
+                    "value": 0.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "z0",
+                    "unit": "m",
+                    "name": "z0"
+                },
+                "noise": {
+                    "value": 0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "white noise amplitude",
+                    "unit": "V",
+                    "name": "noise"
+                },
+                "delay": {
+                    "value": 10.0,
+                    "ts": "2020-08-14 13:46:52",
+                    "label": "Sampling delay",
+                    "unit": "s",
+                    "name": "delay"
+                },
+                "parabola": {
+                    "value": null,
+                    "ts": null,
+                    "label": "parabola",
+                    "unit": "V",
+                    "name": "parabola"
+                }
+            },
+            "name": "parabola"
+        }
+    },
+    "parameters": {}
+}

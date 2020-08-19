@@ -1,11 +1,13 @@
 """
-Module for handling data.
-
-This module contains  utilities to handle the data files in quantify.
-
+-----------------------------------------------------------------------------
+Description:    Utilities for handling data.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
 """
 import os
 import sys
+import json
 from datetime import datetime
 from uuid import uuid4
 import numpy as np
@@ -69,7 +71,25 @@ def set_datadir(datadir):
     this._datadir = datadir
 
 
-def load_dataset(tuid, datadir=None):
+def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
+    if datadir is None:
+        datadir = get_datadir()
+
+    daydir = os.path.join(datadir, tuid[:8])
+
+    # This will raise a file not found error if no data exists on the specified date
+    exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
+    if len(exp_folders) == 0:
+        print(os.listdir(daydir))
+        raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
+
+    # We assume that the length is 1 as tuid is assumed to be unique
+    exp_folder = exp_folders[0]
+
+    return os.path.join(daydir, exp_folder, name)
+
+
+def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     """
     Loads a dataset specified by a tuid.
 
@@ -94,23 +114,12 @@ def load_dataset(tuid, datadir=None):
         This method uses :func:`xarray.load_dataset` to ensure the file is closed after loading as datasets are
         intended to be immutable after performing the initial experiment.
     """
+    return xr.load_dataset(_locate_experiment_file(tuid, datadir, 'dataset.hdf5'))
 
-    if datadir is None:
-        datadir = get_datadir()
 
-    daydir = os.path.join(datadir, tuid[:8])
-
-    # This will raise a file not found error if no data exists on the specified date
-    exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
-    if len(exp_folders) == 0:
-        print(os.listdir(daydir))
-        raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
-
-    # We assume that the length is 1 as tuid is assumed to be unique
-    exp_folder = exp_folders[0]
-
-    dataset = xr.load_dataset(os.path.join(daydir, exp_folder, 'dataset.hdf5'))
-    return dataset
+def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') -> dict:
+    with open(_locate_experiment_file(tuid, datadir, file)) as snap:
+        return json.load(snap)
 
 
 def create_exp_folder(tuid, name='', datadir=None):
@@ -160,18 +169,14 @@ def is_valid_dset(dset):
     return True
 
 
-def append_to_Xarr():
-    raise NotImplementedError()
-
-
 def initialize_dataset(setable_pars, setpoints, getable_pars):
     """
     Initialize an empty dataset based on setable_pars, setpoints and getable_pars
 
     Args:
-        setable_pars (list):    a list of M setables
-        setpoints (:class:`numpy.ndarray`):   an (N*M) array
-        getable_pars (list):    a list of getables
+        setable_pars (list):                    a list of M settables
+        setpoints (:class:`numpy.ndarray`):     an (N*M) array
+        getable_pars (list):                    a list of gettables
 
     Returns:
         :class:`xarray.Dataset`: the dataset
@@ -188,7 +193,6 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     numpoints = len(setpoints[:, 0])
     j = 0
     for getpar in getable_pars:
-
         #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
         #  so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
@@ -213,10 +217,60 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     return dataset
 
 
+def grow_dataset(dataset):
+    """
+    Resizes the dataset by doubling the current length of all arrays.
+
+    Args:
+        dataset (:class:`xarray.Dataset`): the dataset to resize.
+
+    Returns:
+        The resized dataset.
+    """
+    darrs = []
+    for col in dataset:
+        data = dataset[col].values
+        darrs.append(xr.DataArray(
+            name=dataset[col].name,
+            data=np.resize(data, len(data) * 2),
+            attrs=dataset[col].attrs
+        ))
+    dataset = dataset.drop_dims(['dim_0'])
+    new_data = xr.merge(darrs)
+    return dataset.merge(new_data)
+
+
+def trim_dataset(dataset):
+    """
+    Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
+
+    Args:
+        dataset (:class:`xarray.Dataset`): the dataset to trim.
+
+    Returns:
+        The dataset, trimmed and resized if necessary or unchanged.
+    """
+    for i, val in enumerate(reversed(dataset['y0'].values)):
+        if not np.isnan(val):
+            finish_idx = len(dataset['y0'].values) - i
+            darrs = []
+            for col in dataset:
+                data = dataset[col].values[:finish_idx]
+                darrs.append(xr.DataArray(
+                    name=dataset[col].name,
+                    data=data,
+                    attrs=dataset[col].attrs
+                ))
+            dataset = dataset.drop_dims(['dim_0'])
+            new_data = xr.merge(darrs)
+            return dataset.merge(new_data)
+    return dataset
+
+
 ########################################################################
 
 
-def get_latest_tuid(contains=''):
+def get_latest_tuid(contains='') -> TUID:
     """
     Returns the most recent tuid.
 
@@ -235,44 +289,45 @@ def get_latest_tuid(contains=''):
         most recent :class:`~quantify.data.types.TUID` for performance reasons.
 
     """
-
-    datadir = get_datadir()
-    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
-    daydirs.sort(reverse=True)
-    if len(daydirs) == 0:
-        raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
-    else:
-        for dd in daydirs:
-            expdirs = list(
-                filter(lambda x:
-                       (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and
-                        contains in x), os.listdir(os.path.join(datadir, dd))))
-            expdirs.sort(reverse=True)
-            if len(expdirs) > 0:
-                return TUID('{}-{}'.format(dd, expdirs[0][:17]))
-        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+    return get_tuids_containing(contains, 1)[0]
 
 
-def get_tuids_containing(contains='') -> list:
+def get_tuids_containing(contains, max_results=sys.maxsize) -> list:
     """
     Returns a list of tuids containing a specific label
 
     Args:
         contains (str): a string contained in the experiment name.
+        max_results (int): maximum number of results to return. Defaults to unlimited.
 
     Returns:
         A list of  :class:`~quantify.data.types.TUID`: objects
 
     Raises:
-        FileNotFoundError: If no data is found containing the
+        FileNotFoundError: No data found
 
     .. tip::
 
         If one is only interested in the most recent :class:`~quantify.data.types.TUID`,
         :func:`~get_latest_tuid` is preferred for performance reasons.
     """
-
-    raise NotImplementedError
+    datadir = get_datadir()
+    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
+    daydirs.sort(reverse=True)
+    if len(daydirs) == 0:
+        raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
+    tuids = []
+    for dd in daydirs:
+        expdirs = list(filter(lambda x: (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and contains in x),
+                              os.listdir(os.path.join(datadir, dd))))
+        expdirs.sort(reverse=True)
+        for expname in expdirs:
+            tuids.append(TUID('{}-{}'.format(dd, expname[:17])))
+            if len(tuids) == max_results:
+                return tuids
+    if len(tuids) == 0:
+        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+    return tuids
 
 
 def snapshot(update: bool = False, clean: bool = True) -> dict:

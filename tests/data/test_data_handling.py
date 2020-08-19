@@ -10,8 +10,7 @@ from qcodes import ManualParameter
 import quantify
 
 
-test_datadir = os.path.join(os.path.split(
-    quantify.__file__)[0], '..', 'tests', 'test_data')
+test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
 
 
 def test_is_valid_dset():
@@ -144,6 +143,14 @@ def test_get_latest_tuid_correct_tuid():
     tuid = dh.get_latest_tuid(contains='36-Cosine')
     exp_tuid = '20200430-170837-001-315f36'
     assert tuid == exp_tuid
+
+
+def test_get_tuid_contains():
+    dh.set_datadir(test_datadir)
+    tuids = dh.get_tuids_containing('Cosine test')
+    assert len(tuids) == 2
+    assert tuids[0] == '20200504-191556-002-4209ee'
+    assert tuids[1] == '20200430-170837-001-315f36'
 
 
 def test_snapshot():

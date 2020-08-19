@@ -248,32 +248,35 @@ which respond to microwave pulses:
 
     #  q0 ro_pulse_modulation_freq should be 80e6, requires issue38 resolution
     device_test_cfg = {
-        "qubits":
-        {
-            "q0": {"mw_amp180": 0.75, "mw_motzoi": -0.25, "mw_duration": 20e-9,
-                   "mw_modulation_freq": 50e6, "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0",
-                   "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 0e6,
-                   "ro_pulse_type": "square", "ro_pulse_duration": 150e-9,
-                   "ro_acq_ch": "qrm0.r0",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
-                   "ro_acq_weigth_type": "SSB",
-                   "init_duration": 250e-6
-                   },
-            "q1": {"mw_amp180": 0.45, "mw_motzoi": -0.15, "mw_duration": 20e-9,
-                   "mw_modulation_freq": 80e6, "mw_ef_amp180": 0.27, "mw_ch": "qcm1.s0",
-                   "ro_pulse_ch": "qrm0.s1", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": -23e6,
-                   "ro_pulse_type": "square", "ro_pulse_duration": 100e-9,
-                   "ro_acq_ch": "qrm0.r1",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
-                   "ro_acq_weigth_type": "SSB",
-                   "init_duration": 250e-6 }
-        },
-        "edges":
-        {
-            "q0-q1": {
-                "flux_duration": 20e-9, "flux_ch_control": "qcm0.s0", "flux_amp_control": 0.5,
-                "phase_correction_control": 0, "flux_ch_target": "qcm1.s0", "flux_amp_target": 0,
-                "phase_correction_target": 0}
-        }
-    }
+          "qubits":
+          {
+              "q0": {"mw_amp180": 0.5, "mw_motzoi": -0.25, "mw_duration": 20e-9,
+                     "mw_modulation_freq": 50e6, "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0",
+                     "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 80e6,
+                     "ro_pulse_type": "square", "ro_pulse_duration": 150e-9,
+                     "ro_acq_ch": "qrm0.r0",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
+                     "ro_acq_weigth_type": "SSB",
+                     "init_duration": 250e-6
+                     },
+              "q1": {"mw_amp180": 0.45, "mw_motzoi": -0.15, "mw_duration": 20e-9,
+                     "mw_modulation_freq": 80e6, "mw_ef_amp180": 0.27, "mw_ch": "qcm1.s0",
+                     "ro_pulse_ch": "qrm0.s1", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": -23e6,
+                     "ro_pulse_type": "square", "ro_pulse_duration": 100e-9,
+                     "ro_acq_ch": "qrm0.r1",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
+                     "ro_acq_weigth_type": "SSB",
+                     "init_duration": 250e-6 }
+          },
+          "edges":
+          {
+              "q0-q1": {
+                  "flux_duration": 40e-9,
+                  "flux_ch_control": "qcm0.s1", "flux_ch_target": "qcm1.s1",
+                  "flux_amp_control": 0.5,  "flux_amp_target": 0,
+                  "phase_correction_control": 0,
+                  "phase_correction_target": 0}
+          }
+      }
+
 
 With this information, the compiler can now generate the waveforms required:
 

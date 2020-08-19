@@ -1,15 +1,25 @@
+"""
+-----------------------------------------------------------------------------
+Description:    Module containing the MeasurementControl.
+Repository:     https://gitlab.com/qblox/packages/software/quantify/
+Copyright (C) Qblox BV (2020)
+-----------------------------------------------------------------------------
+"""
 import time
 import json
+import types
+import numbers
 from os.path import join
 import concurrent.futures
 from threading import Event
 
 import numpy as np
+import adaptive
 from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot
+from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, grow_dataset, trim_dataset
 from quantify.measurement.types import Settable, Gettable, is_software_controlled
 from quantify.utilities.general import KeyboardFinish
 
@@ -117,7 +127,7 @@ class MeasurementControl(Instrument):
         self._dataset = None
         self._exp_folder = None
         self._plotmon_name = ''
-        self._plot_info = {}
+        self._plot_info = {'2D-grid': False}
 
         self._GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
 
@@ -128,40 +138,51 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
+    def _reset(self):
+        """
+        Resets all experiment specific variables for a new run.
+        """
+        self._nr_acquired_values = 0
+        self._loop_count = 0
+        self._begintime = time.time()
+
+    def _init(self, name):
+        """
+        Initializes MC, such as creating the Dataset, experiment folder and such.
+        """
+        # initialize an empty dataset
+        self._dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
+
+        # cannot add it as a separate (nested) dict so make it flat.
+        self._dataset.attrs['name'] = name
+        self._dataset.attrs.update(self._plot_info)
+
+        self._exp_folder = create_exp_folder(tuid=self._dataset.attrs['tuid'], name=self._dataset.attrs['name'])
+        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Write the empty dataset
+        snap = snapshot(update=False, clean=True)  # Save a snapshot of all
+        with open(join(self._exp_folder, 'snapshot.json'), 'w') as file:
+            json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
+
+        self._plotmon_name = self.instr_plotmon()
+        if self._plotmon_name is not None and self._plotmon_name != '':
+            self.instr_plotmon.get_instr().tuid(self._dataset.attrs['tuid'])
+            # if the timestamp has changed, this will initialize the monitor
+            self.instr_plotmon.get_instr().update()
+
     def run(self, name: str = ''):
         """
         Starts a data acquisition loop.
 
         Args:
             name (str): Name of the measurement. This name is included in the name of the data files.
+            adaptive (bool): Whether to run in Adaptive mode.
 
         Returns:
             :class:`xarray.Dataset`: the dataset
         """
 
-        # reset all variables that change during acquisition
-        self._nr_acquired_values = 0
-        self._loop_count = 0
-        self._begintime = time.time()
-
-        # initialize an empty dataset
-        dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
-
-        # cannot add it as a separate (nested) dict so make it flat.
-        dataset.attrs['name'] = name
-        dataset.attrs.update(self._plot_info)
-
-        exp_folder = create_exp_folder(tuid=dataset.attrs['tuid'], name=dataset.attrs['name'])
-        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Write the empty dataset
-        snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        with open(join(exp_folder, 'snapshot.json'), 'w') as file:
-            json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
-
-        plotmon_name = self.instr_plotmon()
-        if plotmon_name is not None and plotmon_name != '':
-            self.instr_plotmon.get_instr().tuid(dataset.attrs['tuid'])
-            # if the timestamp has changed, this will initialize the monitor
-            self.instr_plotmon.get_instr().update()
+        self._reset()
+        self._init(name)
 
         self._prepare_settables()
 
@@ -172,7 +193,7 @@ class MeasurementControl(Instrument):
                 runner = self._run_soft
             else:
                 runner = self._run_hard
-            future = executor.submit(runner, dataset, plotmon_name, exp_folder)
+            future = executor.submit(runner)
             try:
                 future.result()
             except KeyboardInterrupt as e:
@@ -180,17 +201,80 @@ class MeasurementControl(Instrument):
                 self._exit_event.set()
                 future.result()
 
-        dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
+        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
         self._finish()
         self._plot_info = {'2D-grid': False}  # reset the plot info for the next experiment.
         self.soft_avg(1)  # reset software averages back to 1
 
-        return dataset
+        return self._dataset
 
-    def run_adapative(self):
-        raise NotImplementedError()
+    def run_adaptive(self, name, params):
+        def measure(vec) -> float:
+            if len(self._dataset['y0']) == self._nr_acquired_values:
+                self._dataset = grow_dataset(self._dataset)
 
-    def _run_soft(self, dataset, plotmon_name, exp_folder):
+            #  1D sweeps return single values, wrap in a list
+            if np.isscalar(vec):
+                vec = [vec]
+
+            for idx, settable in enumerate(self._settable_pars):
+                settable.set(vec[idx])
+                self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
+            val = self._gettable_pars[self._GETTABLE_IDX].get()
+            # QCodes.get returns an array, make sure we are working with a single value
+            if not isinstance(val, numbers.Number):
+                val = val[0]
+            self._dataset['y0'].values[self._nr_acquired_values] = val
+            self._nr_acquired_values += 1
+            self._update("Running adaptively")
+            return val
+
+        def subroutine():
+            self._prepare_settables()
+            self._prepare_gettable()
+
+            adaptive_function = params.get("adaptive_function")
+            af_pars_copy = dict(params)
+
+            # leveraging the adaptive library
+            if isinstance(adaptive_function, type) and issubclass(adaptive_function, adaptive.learner.BaseLearner):
+                goal = af_pars_copy['goal']
+                unusued_pars = ["adaptive_function", "goal"]
+                for unusued_par in unusued_pars:
+                    af_pars_copy.pop(unusued_par, None)
+                learner = adaptive_function(measure, **af_pars_copy)
+                adaptive.runner.simple(learner, goal)
+
+            # free function
+            if isinstance(adaptive_function, types.FunctionType):
+                unused_pars = ["adaptive_function"]
+                for unused_par in unused_pars:
+                    af_pars_copy.pop(unused_par, None)
+                adaptive_function(measure, **af_pars_copy)
+
+        if self.soft_avg() != 1:
+            raise ValueError("software averaging not allowed in adaptive loops; currently set to {}."
+                             .format(self.soft_avg()))
+
+        self._reset()
+        self.setpoints(np.empty((64, len(self._settable_pars))))  # block out some space in the dataset
+        self._init(name)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(subroutine)
+            try:
+                future.result()
+            except KeyboardInterrupt as e:
+                print('Interrupt signalled, exiting gracefully...')
+                self._exit_event.set()
+                future.result()
+
+        self._finish()
+        self._dataset = trim_dataset(self._dataset)
+        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
+        return self._dataset
+
+    def _run_soft(self):
         try:
             while self._get_fracdone() < 1.0:
                 self._prepare_gettable()
@@ -202,19 +286,19 @@ class MeasurementControl(Instrument):
                     # acquire all data points
                     for j, gpar in enumerate(self._gettable_pars):
                         val = gpar.get()
-                        old_val = dataset['y{}'.format(j)].values[idx]
+                        old_val = self._dataset['y{}'.format(j)].values[idx]
                         if self.soft_avg() == 1 or np.isnan(old_val):
-                            dataset['y{}'.format(j)].values[idx] = val
+                            self._dataset['y{}'.format(j)].values[idx] = val
                         else:
                             averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                            dataset['y{}'.format(j)].values[idx] = averaged
+                            self._dataset['y{}'.format(j)].values[idx] = averaged
                     self._nr_acquired_values += 1
-                    self._update(dataset, plotmon_name, exp_folder)
+                    self._update()
                 self._loop_count += 1
         except KeyboardFinish as e:
             return
 
-    def _run_hard(self, dataset, plotmon_name, exp_folder):
+    def _run_hard(self):
         try:
             while self._get_fracdone() < 1.0:
                 setpoint_idx = self._curr_setpoint_idx()
@@ -230,11 +314,11 @@ class MeasurementControl(Instrument):
 
                 for i, row in enumerate(new_data):
                     slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
+                    old_vals = self._dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
                     old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                    dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                    self._dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
                 self._nr_acquired_values += np.shape(new_data)[1]
-                self._update(dataset, plotmon_name, exp_folder)
+                self._update()
         except KeyboardFinish as e:
             return
 
@@ -248,14 +332,9 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
-    def _update(self, dataset, plotmon_name, exp_folder):
+    def _update(self, print_message: str = None):
         """
         Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
-
-        Args:
-            dataset (:class:`xarray.Dataset`): the dataset
-            plotmon_name (str): the plotmon identifier
-            exp_folder (str): persistence directory
 
         Raises:
             (:class:`quantify.utilities.general.KeyboardFinish`): if the main thread has signalled to exit early
@@ -263,9 +342,9 @@ class MeasurementControl(Instrument):
         update = time.time() - self._last_upd > self.update_interval() \
             or self._nr_acquired_values == self._max_setpoints
         if update:
-            self.print_progress()
-            dataset.to_netcdf(join(exp_folder, 'dataset.hdf5'))
-            if plotmon_name is not None and plotmon_name != '':
+            self.print_progress(print_message)
+            self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
+            if self._plotmon_name is not None and self._plotmon_name != '':
                 self.instr_plotmon.get_instr().update()
             self._last_upd = time.time()
         if self._exit_event.is_set():
@@ -347,19 +426,20 @@ class MeasurementControl(Instrument):
         """
         return self._nr_acquired_values / self._max_setpoints
 
-    def print_progress(self):
+    def print_progress(self, progress_message: str = None):
         percdone = self._get_fracdone()*100
         elapsed_time = time.time() - self._begintime
-        progress_message = (
-            "\r {percdone}% completed \telapsed time: "
-            "{t_elapsed}s \ttime left: {t_left}s".format(
-                percdone=int(percdone),
-                t_elapsed=round(elapsed_time, 1),
-                t_left=round((100.0 - percdone) / percdone * elapsed_time, 1)
-                if percdone != 0
-                else "",
+        if not progress_message:
+            progress_message = (
+                "\r {percdone}% completed \telapsed time: "
+                "{t_elapsed}s \ttime left: {t_left}s".format(
+                    percdone=int(percdone),
+                    t_elapsed=round(elapsed_time, 1),
+                    t_left=round((100.0 - percdone) / percdone * elapsed_time, 1)
+                    if percdone != 0
+                    else "",
+                )
             )
-        )
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(percdone)
         if percdone != 100:
@@ -450,7 +530,6 @@ class MeasurementControl(Instrument):
 
         TODO: support fancier getables, i.e. ones that return
             - more than one quantity
-            - multiple points at once (hard loop)
 
         """
         self._gettable_pars = [Gettable(gettable_par)]

@@ -92,7 +92,14 @@ visualization
 .. automodule:: quantify.sequencer.backends.visualization
     :members:
 
+utilities
+=========
 
+experiment_helpers
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: quantify.utilities.experiment_helpers
+    :members:
 
 visualization
 =============
