@@ -38,7 +38,6 @@ def create_plotmon_from_historical(tuid: TUID):
 
     Args:
         tuid (:class:`~quantify.data.types.TUID`): the TUID of the experiment.
-        plotname (str): the unique name for the created plotmon
 
     Returns:
         (:class:~quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt): the plotmon
