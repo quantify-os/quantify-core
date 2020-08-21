@@ -252,17 +252,17 @@ which respond to microwave pulses:
           {
               "q0": {"mw_amp180": 0.5, "mw_motzoi": -0.25, "mw_duration": 20e-9,
                      "mw_modulation_freq": 50e6, "mw_ef_amp180": 0.87, "mw_ch": "qcm0.s0",
-                     "ro_pulse_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 80e6,
+                     "ro_ch": "qrm0.s0", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": 80e6,
                      "ro_pulse_type": "square", "ro_pulse_duration": 150e-9,
-                     "ro_acq_ch": "qrm0.r0",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
+                     "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
                      "ro_acq_weigth_type": "SSB",
                      "init_duration": 250e-6
                      },
               "q1": {"mw_amp180": 0.45, "mw_motzoi": -0.15, "mw_duration": 20e-9,
                      "mw_modulation_freq": 80e6, "mw_ef_amp180": 0.27, "mw_ch": "qcm1.s0",
-                     "ro_pulse_ch": "qrm0.s1", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": -23e6,
+                     "ro_ch": "qrm0.s1", "ro_pulse_amp": 0.5, "ro_pulse_modulation_freq": -23e6,
                      "ro_pulse_type": "square", "ro_pulse_duration": 100e-9,
-                     "ro_acq_ch": "qrm0.r1",  "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
+                     "ro_acq_delay": 120e-9, "ro_acq_integration_time": 700e-9,
                      "ro_acq_weigth_type": "SSB",
                      "init_duration": 250e-6 }
           },
@@ -308,7 +308,7 @@ which represent a collection of Resources and a single Core on the Pulsar QCM:
 
 .. jupyter-execute::
 
-    from quantify.sequencer.resources import CompositeResource, Pulsar_QCM_sequencer
+    from quantify.sequencer.resources import CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
     qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     qcm0_s1 = Pulsar_QCM_sequencer('qcm0.s1', instrument_name='qcm0', seq_idx=1)
@@ -319,14 +319,10 @@ which represent a collection of Resources and a single Core on the Pulsar QCM:
 
     qrm0 = CompositeResource('qrm0', ['qrm0.s0', 'qrm0.s1'])
     # Currently mocking a readout module using an acquisition module
-    qrm0_s0 = Pulsar_QCM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
-    qrm0_s1 = Pulsar_QCM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=1)
+    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
+    qrm0_s1 = Pulsar_QRM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=1)
 
-    # using qcm sequencing modules to fake a readout module
-    qrm0_r0 = Pulsar_QCM_sequencer('qrm0.r0', instrument_name='qrm0', seq_idx=0)
-    qrm0_r1 = Pulsar_QCM_sequencer('qrm0.r1', instrument_name='qrm0', seq_idx=1)
-
-    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1, qrm0_r0, qrm0_r1])
+    sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1])
 
 With our schedule now fully defined, we now pass it to Pulsar QCM compiler:
 
@@ -354,14 +350,10 @@ also use for demonstration purposes as part of this tutorial:
     # todo install from pypi when released
     try:
         from pulsar_qcm.pulsar_qcm import pulsar_qcm_dummy
+        from pulsar_qrm.pulsar_qrm import pulsar_qrm_dummy
         PULSAR_ASSEMBLER = True
     except ImportError:
         PULSAR_ASSEMBLER = False
-
-    if PULSAR_ASSEMBLER:
-        from pulsar_qcm.pulsar_qcm import pulsar_qcm_dummy
-        qcm = pulsar_qcm_dummy("qcm0")
-        qcm.get_idn()
 
 The Pulsar QCM backend provides a method for deploying our complete configuration to all our devices at once:
 
@@ -370,8 +362,10 @@ The Pulsar QCM backend provides a method for deploying our complete configuratio
     if PULSAR_ASSEMBLER:
         _pulsars = []
         # first we need to create some Instruments representing the other devices in our configuration
-        for qcm_name in ['qcm1', 'qrm0', 'qrm1']:
+        for qcm_name in ['qcm0', 'qcm1']:
             _pulsars.append(pulsar_qcm_dummy(qcm_name))
+        for qrm_name in ['qrm0', 'qrm1']:
+            _pulsars.append(pulsar_qrm_dummy(qrm_name))
         pb.configure_pulsar_sequencers(config_dict)
 
 At this point, the assembler on the device will load the waveforms into memory and verify the program can be executed. We must next arm and then start the device:
@@ -379,8 +373,26 @@ At this point, the assembler on the device will load the waveforms into memory a
 .. jupyter-execute::
 
     if PULSAR_ASSEMBLER:
-        qcm.arm_sequencer()
-        qcm.start_sequencer()
+        qcm0 = _pulsars[0]
+        qrm0 = _pulsars[2]
+
+        qcm0.arm_sequencer()
+        qrm0.arm_sequencer()
+        qcm0.start_sequencer()
+        qrm0.start_sequencer()
+
+Provided we have synchronized our Pulsars properly using the sync-line, our experiment will now run. Once it's complete,
+it is necessary to stop the QRMs before we read any data they have acquired. We first instruct the QRM to move it's
+acquisition to disk memory with a named identifier and number of samples. We then request the QRM to return these
+acquisitions over the driver so we can do some processing in Python:
+
+.. jupyter-execute::
+
+    if PULSAR_ASSEMBLER:
+        seq_idx = 0
+        qrm0.stop_sequencer()
+        qrm0.store_acquisition(seq_idx, "meas_0", 4800)
+        acq = qrm0.get_acquisitions(seq_idx)
 
 .. note::
 
