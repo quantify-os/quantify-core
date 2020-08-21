@@ -6,10 +6,10 @@ from quantify.data.handling import set_datadir
 
 
 test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
-set_datadir(test_datadir)
 
 
 def test_create_plotmon_from_historical():
+    set_datadir(test_datadir)
     plotmon = create_plotmon_from_historical('20200504-191556-002-4209ee')
 
     x = plotmon.curves[0]['config']['x']
@@ -30,3 +30,4 @@ def test_create_plotmon_from_historical():
     assert cfg['zunit'] == 'V'
 
     plotmon.close()
+    set_datadir(None)
