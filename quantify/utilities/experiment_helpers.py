@@ -6,6 +6,7 @@
 from qcodes import Instrument
 from quantify.data.types import TUID
 from quantify.data.handling import load_snapshot
+from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
 def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: str = None):
@@ -28,3 +29,20 @@ def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: s
         val = par["value"]
         if val:  # qcodes doesn't like setting to none
             instrument.set(parname, par["value"])
+
+
+def create_plotmon_from_historical(tuid: TUID):
+    """
+    Creates a plotmon using the dataset of the provided experiment denoted by the tuid in the datadir.
+    Loads the data and draws any required figures.
+
+    Args:
+        tuid (:class:`~quantify.data.types.TUID`): the TUID of the experiment.
+
+    Returns:
+        (:class:~quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt): the plotmon
+    """
+    plot = PlotMonitor_pyqt(tuid)
+    plot.tuid(tuid)
+    plot.update()
+    return plot
