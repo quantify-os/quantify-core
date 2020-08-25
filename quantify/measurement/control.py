@@ -220,14 +220,18 @@ class MeasurementControl(Instrument):
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-            val = self._gettable_pars[self._GETTABLE_IDX].get()
-            # QCodes.get returns an array, make sure we are working with a single value
-            if not isinstance(val, numbers.Number):
-                val = val[0]
-            self._dataset['y0'].values[self._nr_acquired_values] = val
+            vals = self._gettable_pars[self._GETTABLE_IDX].get()
+
+            # if we returned a single value, wrap it in an array to make the later nD compliant code work
+            if np.isscalar(vals):
+                vals = [vals]
+
+            for idx, val in enumerate(vals):
+                self._dataset['y{}'.format(idx)].values[self._nr_acquired_values] = val
+
             self._nr_acquired_values += 1
             self._update("Running adaptively")
-            return val
+            return vals[0]
 
         def subroutine():
             self._prepare_settables()
