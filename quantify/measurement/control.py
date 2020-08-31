@@ -175,7 +175,6 @@ class MeasurementControl(Instrument):
 
         Args:
             name (str): Name of the measurement. This name is included in the name of the data files.
-            adaptive (bool): Whether to run in Adaptive mode.
 
         Returns:
             :class:`xarray.Dataset`: the dataset
@@ -209,6 +208,21 @@ class MeasurementControl(Instrument):
         return self._dataset
 
     def run_adaptive(self, name, params):
+        """
+        Starts a data acquisition loop using an adaptive function.
+
+        .. warning ::
+            The functionality of this mode can be complex - it is recommended to read the relevant long form
+            documentation.
+
+        Args:
+            name (str): Name of the measurement. This name is included in the name of the data files.
+            params (dict): Key value parameters describe the adaptive function to use, and any further parameters for
+            that function.
+
+        Returns:
+            :class:`xarray.Dataset`: the dataset
+        """
         def measure(vec) -> float:
             if len(self._dataset['y0']) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
@@ -220,14 +234,18 @@ class MeasurementControl(Instrument):
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-            val = self._gettable_pars[self._GETTABLE_IDX].get()
-            # QCodes.get returns an array, make sure we are working with a single value
-            if not isinstance(val, numbers.Number):
-                val = val[0]
-            self._dataset['y0'].values[self._nr_acquired_values] = val
+            vals = self._gettable_pars[self._GETTABLE_IDX].get()
+
+            # if we returned a single value, wrap it in an array to make the later nD compliant code work
+            if np.isscalar(vals):
+                vals = [vals]
+
+            for idx, val in enumerate(vals):
+                self._dataset['y{}'.format(idx)].values[self._nr_acquired_values] = val
+
             self._nr_acquired_values += 1
             self._update("Running adaptively")
-            return val
+            return vals[0]
 
         def subroutine():
             self._prepare_settables()

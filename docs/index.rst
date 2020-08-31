@@ -12,7 +12,6 @@ Welcome to quantify's documentation!
    usage
    dataset_spec
    pulsar_assembler
-
    contributing
    authors
    history
@@ -25,8 +24,9 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
-   example_notebooks/T1_MeasurementControl.ipynb
-   example_notebooks/2_Advanced_MeasurementControl.ipynb
+   example_notebooks/MeasurementControl.ipynb
+   example_notebooks/Advanced_MC.ipynb
+   example_notebooks/Adaptive.ipynb
    sequencer
 
 API Reference
