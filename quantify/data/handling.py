@@ -232,7 +232,7 @@ def grow_dataset(dataset):
         data = dataset[col].values
         darrs.append(xr.DataArray(
             name=dataset[col].name,
-            data=np.resize(data, len(data) * 2),
+            data=np.pad(data, (0, len(data)), 'constant', constant_values=np.nan),
             attrs=dataset[col].attrs
         ))
     dataset = dataset.drop_dims(['dim_0'])

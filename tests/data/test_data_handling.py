@@ -164,3 +164,43 @@ def test_snapshot():
     assert snap['instruments']['MC']['parameters']['soft_avg']['value'] == 5
 
     test_MC.close()
+
+
+def test_dynamic_dataset():
+    x = ManualParameter('x', unit='m', label='X position')
+    y = ManualParameter('y', unit='m', label='Y position')
+    z = ManualParameter('z', unit='V', label='Signal amplitude')
+    settables = [x, y]
+    gettables = [z]
+    dset = dh.initialize_dataset(settables, np.empty((8, len(settables))), gettables)
+
+    x0_vals = np.random.random(8)
+    x1_vals = np.random.random(8)
+    y0_vals = np.random.random(8)
+    dset['x0'].values[:] = x0_vals
+    dset['x1'].values[:] = x1_vals
+    dset['y0'].values[:] = y0_vals
+
+    dset = dh.grow_dataset(dset)
+    assert len(dset['x0']) == len(dset['x1']) == len(dset['y0']) == 16
+    assert np.isnan(dset['x0'][8:]).all()
+    assert np.isnan(dset['x1'][8:]).all()
+    assert np.isnan(dset['y0'][8:]).all()
+
+    x0_vals_ext = np.random.random(3)
+    x1_vals_ext = np.random.random(3)
+    y0_vals_ext = np.random.random(3)
+
+    dset['x0'].values[8:11] = x0_vals_ext
+    dset['x1'].values[8:11] = x1_vals_ext
+    dset['y0'].values[8:11] = y0_vals_ext
+
+    dset = dh.trim_dataset(dset)
+    assert len(dset['x0']) == len(dset['x1']) == len(dset['y0']) == 11
+    np.array_equal(dset['x0'], np.concatenate([x0_vals, x0_vals_ext]))
+    np.array_equal(dset['x1'], np.concatenate([x1_vals, x1_vals_ext]))
+    np.array_equal(dset['y0'], np.concatenate([y0_vals, y0_vals_ext]))
+
+    assert not np.isnan(dset['x0']).any()
+    assert not np.isnan(dset['x1']).any()
+    assert not np.isnan(dset['y0']).any()
