@@ -175,7 +175,6 @@ class MeasurementControl(Instrument):
 
         Args:
             name (str): Name of the measurement. This name is included in the name of the data files.
-            adaptive (bool): Whether to run in Adaptive mode.
 
         Returns:
             :class:`xarray.Dataset`: the dataset
@@ -209,6 +208,21 @@ class MeasurementControl(Instrument):
         return self._dataset
 
     def run_adaptive(self, name, params):
+        """
+        Starts a data acquisition loop using an adaptive function.
+
+        .. warning ::
+            The functionality of this mode can be complex - it is recommended to read the relevant long form
+            documentation.
+
+        Args:
+            name (str): Name of the measurement. This name is included in the name of the data files.
+            params (dict): Key value parameters describe the adaptive function to use, and any further parameters for
+            that function.
+
+        Returns:
+            :class:`xarray.Dataset`: the dataset
+        """
         def measure(vec) -> float:
             if len(self._dataset['y0']) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
