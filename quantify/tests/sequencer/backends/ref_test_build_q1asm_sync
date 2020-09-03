@@ -1,0 +1,12 @@
+          
+          wait_sync  4       #sync                        
+  start:  move       4,R0    #Waveform count register     
+                                                          
+          play       0,1,4   #Play square_id              
+                                                          
+          play       2,3,4   #Play drag_ID                
+          wait       8       #Wait                        
+                                                          
+          play       0,1,4   #Play square_id              
+          wait       10      #Sync with other sequencers  
+          jmp        @start  #Loop back to start          

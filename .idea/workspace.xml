@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="40815f35-de1b-402e-a6ad-2b5d81eb85dc" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1gzvEkiIrpz6UYmVoADLAP9h7Ri" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/doc" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/quantify/tests" />
+      <recent name="$PROJECT_DIR$/quantify/tests/test_data" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/quantify/tests" />
+      <recent name="$PROJECT_DIR$/quantify" />
+      <recent name="$PROJECT_DIR$/sequencer/utilities" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/quantify-scheduler" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python docs.scheduler doc">
+    <configuration name="test_waveforms" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="quantify-scheduler" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/quantify/tests/sequencer" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/quantify/tests/sequencer/test_waveforms.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="scheduler doc" type="docs" factoryName="Sphinx task">
+      <module name="quantify-scheduler" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="docutils_input_file" value="$PROJECT_DIR$/doc" />
+      <option name="docutils_output_file" value="$PROJECT_DIR$/build" />
+      <option name="docutils_params" value="" />
+      <option name="docutils_task" value="html" />
+      <option name="docutils_open_in_browser" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest in quantify" type="tests" factoryName="py.test" nameIsGenerated="true">
+      <module name="quantify-scheduler" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_parameters" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/quantify&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.test_waveforms" />
+      <item itemvalue="Python docs.scheduler doc" />
+      <item itemvalue="Python tests.pytest in quantify" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.test_waveforms" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="40815f35-de1b-402e-a6ad-2b5d81eb85dc" name="Default Changelist" comment="" />
+      <created>1599130126464</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1599130126464</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="451" y="127" width="1084" height="736" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1599144534723">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state x="451" y="127" width="1084" height="736" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.27.1853.887@67.27.1853.887" timestamp="1599144534723" />
+    <state x="776" y="240" width="447" height="484" key="FileChooserDialogImpl" timestamp="1599144441033">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state x="776" y="240" width="447" height="484" key="FileChooserDialogImpl/67.27.1853.887@67.27.1853.887" timestamp="1599144441033" />
+    <state width="1830" height="306" key="GridCell.Tab.0.bottom" timestamp="1599144492624">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="306" key="GridCell.Tab.0.bottom/67.27.1853.887@67.27.1853.887" timestamp="1599144492624" />
+    <state width="1830" height="306" key="GridCell.Tab.0.center" timestamp="1599144492623">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="306" key="GridCell.Tab.0.center/67.27.1853.887@67.27.1853.887" timestamp="1599144492623" />
+    <state width="1830" height="306" key="GridCell.Tab.0.left" timestamp="1599144492622">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="306" key="GridCell.Tab.0.left/67.27.1853.887@67.27.1853.887" timestamp="1599144492622" />
+    <state width="1830" height="306" key="GridCell.Tab.0.right" timestamp="1599144492623">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="306" key="GridCell.Tab.0.right/67.27.1853.887@67.27.1853.887" timestamp="1599144492623" />
+    <state width="1830" height="297" key="GridCell.Tab.1.bottom" timestamp="1599142269771">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="297" key="GridCell.Tab.1.bottom/67.27.1853.887@67.27.1853.887" timestamp="1599142269771" />
+    <state width="1830" height="297" key="GridCell.Tab.1.center" timestamp="1599142269770">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="297" key="GridCell.Tab.1.center/67.27.1853.887@67.27.1853.887" timestamp="1599142269770" />
+    <state width="1830" height="297" key="GridCell.Tab.1.left" timestamp="1599142269770">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="297" key="GridCell.Tab.1.left/67.27.1853.887@67.27.1853.887" timestamp="1599142269770" />
+    <state width="1830" height="297" key="GridCell.Tab.1.right" timestamp="1599142269770">
+      <screen x="67" y="27" width="1853" height="887" />
+    </state>
+    <state width="1830" height="297" key="GridCell.Tab.1.right/67.27.1853.887@67.27.1853.887" timestamp="1599142269770" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/quantify/tests/sequencer/test_compilation.py</url>
+          <line>100</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

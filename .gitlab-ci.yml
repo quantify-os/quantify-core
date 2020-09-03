@@ -1,0 +1,98 @@
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: python:latest
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  QT_DEBUG_PLUGINS: 1
+
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+#
+# If you want to also cache the installed packages, you have to install
+# them in a virtualenv and cache it as well.
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  - python -V  # Print out python version for debugging
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - apt update
+  - sleep 3
+
+stages:
+  - Static Analysis
+  - Test
+  - Deploy
+
+test:
+  stage: Test
+  script:
+    - git clone -b development https://gitlab.com/quantify-os/quantify-core.git && cd quantify && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
+    - pip install -e .
+    - pip install -r requirements_dev.txt
+    - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+  artifacts:
+    paths:
+      - htmlcov
+      - coverage.xml
+    reports:
+      cobertura: coverage.xml
+    when: always
+
+test-3.8:
+  extends: "test"
+  image: "python:3.8"
+
+flake8:
+  image: python:latest
+  stage: Static Analysis
+  allow_failure: true
+  script:
+    - pip install -r requirements_dev.txt
+    - flake8 quantify tests --format=html --htmldir=flake-report
+
+  artifacts:
+    paths:
+      - flake-report
+    when: on_failure
+
+run:
+  stage: Test
+  script:
+    - python setup.py bdist_wheel
+    # an alternative approach is to install and run:
+    - pip install dist/*
+    # run the command here
+  artifacts:
+    paths:
+      - dist/*.whl
+
+pages:
+  stage: Deploy
+  allow_failure: true
+  script:
+    - apt install -y pandoc # required for nbsphinx plugin
+    - pip install sphinx
+    - pip install -r requirements_dev.txt
+    - cd docs ; make html
+    - mv _build/html/ ../public/
+  artifacts:
+    paths:
+      - public
+
+pypi:
+  image: python:latest
+  stage: Deploy
+  script:
+    - pip install -U twine
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
+  only:
+    - master
