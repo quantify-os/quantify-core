@@ -1,6 +1,6 @@
 
 ===============================
-quantify assembler backend
+Assembler backends
 ===============================
 
 .. note::

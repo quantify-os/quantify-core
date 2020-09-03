@@ -34,7 +34,7 @@ stages:
 test:
   stage: Test
   script:
-    - git clone -b development https://gitlab.com/quantify-os/quantify-core.git && cd quantify && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
+    - git clone -b development git@gitlab.com:quantify-os/quantify-core.git && cd quantify && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
