@@ -41,7 +41,7 @@ setup(
     description="",
     install_requires=requirements,
     license="MIT license",
-    long_description=readme + '\n\n' + authors + '\n\n' + history,
+    long_description=readme + '\n\n' + authors,
     include_package_data=True,
     keywords='quantify-scheduler',
     name='quantify-scheduler',
