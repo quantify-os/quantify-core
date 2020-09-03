@@ -34,6 +34,8 @@ requirements = [
 
 setup_requirements = ['pytest-runner', ]
 
+version = '0.1.1'
+
 setup(
     author="QBlox BV",
     python_requires='>=3.5',
@@ -51,9 +53,9 @@ setup(
     license="MIT license",
     long_description=readme + '\n\n' + authors + '\n\n' + history,
     include_package_data=True,
-    keywords='quantify',
-    name='quantify',
-    packages=find_packages(include=['quantify', 'quantify.*']),
+    keywords='quantify-core',
+    name='quantify-core',
+    packages=find_packages(include=['quantify-core', 'quantify-core.*']),
     package_data={'': ['*.json']},  # ensures JSON schema are included
     setup_requires=setup_requirements,
     test_suite='tests',
