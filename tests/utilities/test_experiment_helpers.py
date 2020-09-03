@@ -1,11 +1,10 @@
-import os
-import quantify
 import numpy as np
 from quantify.utilities.experiment_helpers import create_plotmon_from_historical
 from quantify.data.handling import set_datadir
+from tests.helpers import get_test_data_dir
 
 
-test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
+test_datadir = get_test_data_dir()
 
 
 def test_create_plotmon_from_historical():

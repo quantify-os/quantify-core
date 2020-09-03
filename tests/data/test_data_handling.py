@@ -7,10 +7,10 @@ import quantify.data.handling as dh
 from quantify.measurement.control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
-import quantify
+from tests.helpers import get_test_data_dir
 
 
-test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
+test_datadir = get_test_data_dir()
 
 
 def test_is_valid_dset():
@@ -123,8 +123,7 @@ def test_get_latest_tuid_invalid_datadir():
 
 
 def test_get_latest_tuid_empty_datadir():
-    valid_dir_but_no_data = os.path.join(os.path.split(
-        quantify.__file__)[0], '..', 'tests', 'measurement')
+    valid_dir_but_no_data = get_test_data_dir() / 'empty'
     dh.set_datadir(valid_dir_but_no_data)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid()
