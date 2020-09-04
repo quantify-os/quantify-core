@@ -34,9 +34,10 @@ stages:
 test:
   stage: Test
   script:
-    - cd quantify-core/ && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
+    - cd quantify-core/ && pip install -e . && cd .. # change this to just pull when public
     - pip install -e .
     - pip install -r requirements_dev.txt
+    - apt install python3-pyqt5 -y  # install here manually due to issues
     - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
   artifacts:
     paths:
