@@ -5,23 +5,15 @@ from quantify.sequencer.compilation import determine_absolute_timing, add_pulse_
 import matplotlib.pyplot as plt
 import json
 
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
-
-from tests import test_data  # relative-import the *package* containing the templates
-
-
-DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(test_data, 'transmon_test_config.json'))
+import pathlib
+cfg_f = pathlib.Path(__file__).parent.parent.parent.absolute() / 'test_data' / 'transmon_test_config.json'
+with open(cfg_f, 'r') as f:
+    DEVICE_TEST_CFG = json.load(f)
 
 
 def test_circuit_diagram_matplotlib():
     sched = Schedule('Test experiment')
 
-    # define the resources
-    # q0, q1 = Qubits(n=2) # assumes all to all connectivity
     q0, q1 = ('q0', 'q1')
     ref_label_1 = 'my_label'
 
