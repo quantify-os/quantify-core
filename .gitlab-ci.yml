@@ -34,7 +34,7 @@ stages:
 test:
   stage: Test
   script:
-    - cd quantify-core/ && pip install -e . && cd .. && rm -rf quantify-core # change this to just pull when public
+    - cd quantify-core/ && pip install . && cd .. && rm -rf quantify-core # change this to just pull when public
     - pip install -e .
     - pip install -r requirements_dev.txt
     - apt install python3-pyqt5 -y  # install here manually due to issues
