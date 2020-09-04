@@ -1,4 +1,4 @@
 [submodule "quantify-core"]
 	path = quantify-core
-	url = https://gitlab.com/quantify-os/quantify-core.git
+	url = git@gitlab.com:quantify-os/quantify-core.git
 	branch = develop
