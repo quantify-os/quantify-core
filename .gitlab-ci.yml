@@ -34,7 +34,7 @@ stages:
 test:
   stage: Test
   script:
-    - cd quantify-core/quantify && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
+    - cd quantify-core/ && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
