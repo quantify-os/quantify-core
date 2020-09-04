@@ -6,7 +6,7 @@ image: python:latest
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  QT_DEBUG_PLUGINS: 1
+  GIT_SUBMODULE_STRATEGY: recursive
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -34,7 +34,7 @@ stages:
 test:
   stage: Test
   script:
-    - git config credential.helper '!f() { sleep 1; echo "username=${GIT_USER}"; echo "password=${GIT_PASSWORD}"; }; f' && git clone -b development https://gitlab.com/quantify-os/quantify-core.git && cd quantify-core/quantify && pip install -e . && cd .. # change this to have development on testpypi and pull from there
+    - cd quantify-core/quantify && pip install -e . && cd .. # change this to have development on testpypi and pull from there?
     - pip install -e .
     - pip install -r requirements_dev.txt
     - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
