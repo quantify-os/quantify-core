@@ -20,7 +20,8 @@ except ImportError:
     PULSAR_ASSEMBLER = False
 
 
-cfg_f = pathlib.Path(__name__).parent.resolve() / 'tests' / 'test_data' / 'transmon_test_config.json'
+import pathlib
+cfg_f = pathlib.Path(__file__).parent.parent.parent.absolute() / 'test_data' / 'transmon_test_config.json'
 with open(cfg_f, 'r') as f:
     DEVICE_TEST_CFG = json.load(f)
 
