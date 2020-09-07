@@ -1,4 +1,0 @@
-[submodule "quantify-core"]
-	path = quantify-core
-	url = ../quantify-core.git
-	branch = develop
