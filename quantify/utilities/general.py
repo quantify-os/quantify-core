@@ -98,12 +98,15 @@ def load_json_schema(relative_to, filename):
         return json.load(f)
 
 
-def without(d, key):
+def without(d, keys):
     """
-    Utility that copies a dictionary exluding a specific key.
+    Utility that copies a dictionary exluding a specific list of keys.
     """
+    if not isinstance(keys, list):
+        keys = [keys]
     new_d = d.copy()
-    new_d.pop(key)
+    for key in keys:
+        new_d.pop(key)
     return new_d
 
 
