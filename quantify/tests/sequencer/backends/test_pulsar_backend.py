@@ -1,15 +1,14 @@
 import json
-import pathlib
 import pytest
 from quantify.data.handling import set_datadir
 import numpy as np
 from qcodes.instrument.base import Instrument
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.sequencer.types import Schedule
-from quantify.sequencer.gate_library import Reset, Measure,  CZ, Rxy
+from quantify.sequencer.gate_library import Reset, Measure, CZ, Rxy
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
 from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
-from quantify.sequencer.compilation import add_pulse_information_transmon, determine_absolute_timing
+from quantify.sequencer.compilation import qcompile
 
 
 try:
@@ -195,35 +194,6 @@ def test_generate_sequencer_cfg():
         pathlib.Path('tmp.json').unlink()
 
 
-def test_pulsar_assembler_backend_missing_pulse_info():
-    sched = Schedule('missing pulses')
-    q0 = QubitResource('q0')
-    sched.add_resource(q0)
-    sched.add(Reset(q0.name))
-    #  oops we missed out the call to add_pulse_information
-    sched = determine_absolute_timing(sched)
-    with pytest.raises(ValueError, match=r"Operation Reset.*q0.*has no pulse info"):
-        pulsar_assembler_backend(sched)
-
-
-def test_pulsar_assembler_backend_missing_timing_info():
-    min_config = {
-        "qubits": {
-            "q0": {"init_duration": 250e-6}
-        },
-        "edges": {}
-    }
-
-    sched = Schedule('missing timings')
-    q0 = QubitResource('q0')
-    sched.add_resource(q0)
-    sched.add(Reset(q0.name))
-    sched = add_pulse_information_transmon(sched, min_config)
-    #  oops we missed out the call to determine_absolute_timing
-    with pytest.raises(ValueError, match="Absolute timing has not been determined for the schedule 'missing timings'"):
-        pulsar_assembler_backend(sched)
-
-
 @pytest.fixture
 def dummy_pulsars():
     if PULSAR_ASSEMBLER:
@@ -291,10 +261,7 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1])
 
-    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
-    sched = determine_absolute_timing(sched)
-
-    seq_config_dict = pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
+    seq_config_dict = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend, configure_hardware=PULSAR_ASSEMBLER)
 
     assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*2)
     assert len(sched.resources['qcm0.s1'].timing_tuples) == int(21*1)
@@ -332,11 +299,9 @@ def test_mismatched_mod_freq():
     sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resource(qcm0_s0)
-    sched = add_pulse_information_transmon(sched, bad_config)
-    sched = determine_absolute_timing(sched)
     with pytest.raises(ValueError, match=r'pulse.*\d+ on channel qcm0.s0 has an inconsistent modulation frequency: '
                                          r'expected 50000000 but was 70000000'):
-        pulsar_assembler_backend(sched, configure_hardware=PULSAR_ASSEMBLER)
+        qcompile(sched, bad_config, backend=pulsar_assembler_backend)
 
 
 def test_waveform_amplitude_breach():
@@ -353,10 +318,8 @@ def test_waveform_amplitude_breach():
     sched.add(Rxy(theta=360, phi=0, qubit=q0.name))
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resource(qcm0_s0)
-    sched = add_pulse_information_transmon(sched, bad_config)
-    sched = determine_absolute_timing(sched)
     with pytest.raises(ValueError, match=r"pulse.*in operation.*Rxy.*360.*q0.*qcm.*s0.*illegal.*amplitude"):
-        pulsar_assembler_backend(sched)
+        qcompile(sched, bad_config, backend=pulsar_assembler_backend)
 
 
 @pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar_qcm assembler to be installed")

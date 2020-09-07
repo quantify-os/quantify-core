@@ -1,17 +1,17 @@
-"""
------------------------------------------------------------------------------
-Description:    Compiler for the quantify sequencer.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Compiler for the quantify sequencer.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
 import logging
 import jsonschema
+from typing import Callable
+from quantify.sequencer.types import Schedule
 from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
 from quantify.utilities.general import load_json_schema
 
 
-def determine_absolute_timing(schedule, clock_unit='physical'):
+def _determine_absolute_timing(schedule, clock_unit='physical'):
     """
     Determines the absolute timing of a schedule based on the timing constraints.
 
@@ -98,7 +98,7 @@ def _find_edge(device_cfg, q0, q1, op_name):
     return edge_cfg
 
 
-def add_pulse_information_transmon(schedule, device_cfg: dict):
+def _add_pulse_information_transmon(schedule, device_cfg: dict):
     """
     Adds pulse information specified in the device config to the schedule.
 
@@ -224,3 +224,39 @@ def validate_config(config: dict, scheme_fn: str):
     scheme = load_json_schema(__file__, scheme_fn)
     jsonschema.validate(config, scheme)
     return True
+
+
+def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backend: Callable = None, **kwargs):
+    """
+    Compile and assemble a schedule into deployables.
+
+    Parameters
+    ----------
+    schedule : :class:`~quantify.sequencer.Schedule`
+        To be compiled
+    device_cfg : dict
+        Specifying the required pulse information. The device_cfg schema is specified in
+        `sequencer/schemas/transmon_cfg.json` see also below.
+    clock_unit : str
+        Must be ('physical', 'ideal') : whether to use physical units to determine the
+        absolute time or ideal time.
+        When clock_unit == "physical" the duration attribute is used.
+        When clock_unit == "ideal" the duration attribute is ignored and treated as if it is 1.
+    backend : Callable
+        To the compiler, assembles the program(s).
+
+    Returns
+    ----------
+    schedule : :class:`~quantify.sequencer.Schedule`
+        The prepared schedule if no backend is provided, otherwise whatever object returned by the backend
+
+    .. rubric:: Configuration specification
+
+    .. jsonschema:: schemas/transmon_cfg.json
+    """
+    schedule = _add_pulse_information_transmon(schedule=schedule, device_cfg=device_cfg)
+    schedule = _determine_absolute_timing(schedule=schedule, clock_unit=clock_unit)
+    if backend:
+        return backend(schedule, **kwargs)
+    else:
+        return schedule
