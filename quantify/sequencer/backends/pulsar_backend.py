@@ -1,13 +1,12 @@
-"""
------------------------------------------------------------------------------
-Description:    Compiler backend for the Pulsar QCM.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Compiler backend for the Pulsar QCM.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
 import os
 import inspect
 import json
+from collections import namedtuple
 from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
 from qcodes import Instrument
@@ -16,12 +15,25 @@ from quantify.data.handling import gen_tuid, create_exp_folder
 from quantify.utilities.general import make_hash, without, import_func_from_string
 
 
+PulsarModulations = namedtuple('PulsarModulations', ['gain', 'gain_Q', 'offset', 'phase', 'phase_delta'],
+                               defaults=[None, None, None, None, None])
+
+
 class Q1ASMBuilder:
     """
     Generates a q1asm program instruction by instruction. Handles splitting overflowing operation times.
     """
     IMMEDIATE_SZ = pow(2, 16) - 1
     CYCLE_TIME_ns = 4
+    AWG_OUTPUT_VOLT = 2.5
+
+    # phase counter
+    AWG_ACQ_SMPL_PATH_WITH = 4
+    SYS_CLK_FREQ_MHZ = 250
+    PH_INCR_MAX = AWG_ACQ_SMPL_PATH_WITH * SYS_CLK_FREQ_MHZ * 1000000
+    NCO_LUT_DEPTH = 400
+    PH_INCR_COARSE_FACT = PH_INCR_MAX / NCO_LUT_DEPTH
+    PH_INCR_FINE_FACT = PH_INCR_COARSE_FACT / NCO_LUT_DEPTH
 
     def __init__(self):
         self.rows = []
@@ -50,6 +62,41 @@ class Q1ASMBuilder:
             raise ValueError('duration {}ns < cycle time {}ns'.format(duration, self.CYCLE_TIME_ns))
         return duration
 
+    def _calculate_phase_params(self, degrees):
+        phase = int((degrees / 360) * self.PH_INCR_MAX)
+        static_ph_coarse = int(phase / self.PH_INCR_COARSE_FACT)
+        phase_corase = static_ph_coarse * self.PH_INCR_COARSE_FACT
+        static_ph_fine = int((phase - phase_corase) / self.PH_INCR_FINE_FACT)
+        phase_fine = static_ph_fine * self.PH_INCR_FINE_FACT
+        static_ph_ufine = int(phase - phase_corase - phase_fine)
+        return static_ph_coarse, static_ph_fine, static_ph_ufine
+
+    def _expand_from_normalised_range(self, val, param):
+        if val < -1.0 or val > 1.0:
+            raise ValueError("{} parameter of PulsarModulations must be in the range 0.0:1.0".format(param))
+        return int(val * self.IMMEDIATE_SZ / 2)
+
+    def update_parameters(self, modulations: PulsarModulations, device):
+        if not modulations:
+            return
+        if modulations.gain is not None:
+            normalised = modulations.gain/self.AWG_OUTPUT_VOLT
+            gain_val = self._expand_from_normalised_range(normalised, "Gain")
+            gain_Q_val = gain_val
+            if modulations.gain_Q is not None:
+                normalised = modulations.gain_Q / self.AWG_OUTPUT_VOLT
+                gain_Q_val = self._expand_from_normalised_range(normalised, "Gain")
+            self.rows.append(['', 'set_{}_gain'.format(device), "{},{}".format(gain_val, gain_Q_val), '#Set gain'])
+        if modulations.offset is not None:
+            offset_val = self._expand_from_normalised_range(modulations.offset, "Offset")
+            self.rows.append(['', 'set_{}_offs'.format(device), "{0},{0}".format(offset_val), ""])
+        if modulations.phase is not None:
+            coarse, fine, ufine = self._calculate_phase_params(modulations.phase)
+            self.rows.append(['', 'set_ph', '{},{},{}'.format(coarse, fine, ufine), ''])
+        if modulations.phase_delta is not None:
+            coarse, fine, ufine = self._calculate_phase_params(modulations.phase_delta)
+            self.rows.append(['', 'set_ph_delta', '{},{},{}'.format(coarse, fine, ufine), ''])
+
     def line_break(self):
         self.rows.append(['', '', '', ''])
 
@@ -73,15 +120,10 @@ class Q1ASMBuilder:
             label = None
             self.rows.append(row)
 
-    def wait(self, label, playtime, comment):
-        """
-        Insert a wait instruction.
+    def set_mrk(self, label, val):
+        self.rows.append([self._iff(label), 'set_mrk', val, ''])
 
-        Args:
-             label (str):       Label to add
-             playtime (int):    Duration to wait. Will be split into multiple instructions if greater than max size.
-             comment (str):     Comment to add
-        """
+    def wait(self, label, playtime, comment):
         for duration in self._split_playtime(playtime):
             row = [label if label else '', 'wait', self._check_playtime(duration), comment]
             label = None
@@ -89,6 +131,26 @@ class Q1ASMBuilder:
 
     def jmp(self, label, target, comment):
         self.rows.append([self._iff(label), 'jmp', '@{}'.format(target), comment])
+
+
+# todo this doesnt work for custom waveform functions - use visitors?
+def _prepare_pulse(description):
+    def dummy_load_params(param_list):
+        for param, default in param_list:
+            description[param] = default
+        return description
+
+    wf_func = description['wf_func']
+    if wf_func == 'quantify.sequencer.waveforms.square' or wf_func == 'quantify.sequencer.waveforms.soft_square':
+        params = PulsarModulations(gain=description['amp'])
+        return params, dummy_load_params([('amp', 1.0)])
+    elif wf_func == 'quantify.sequencer.waveforms.drag':
+        params = PulsarModulations(gain=description['G_amp'], gain_Q=description['D_amp'], phase=description['phase'])
+        return params, dummy_load_params([('G_amp', 1.0), ('D_amp', 1.0), ('phase', 0)])
+    elif wf_func is None:
+        return None, description
+    else:
+        raise ValueError("Unknown wave {}".format(wf_func))
 
 
 def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debug=False):
@@ -138,12 +200,14 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
             # this exception is raised when no pulses have been added yet.
             raise ValueError('Operation {} has no pulse info'.format(op.name))
 
-        for p in op['pulse_info']:
+        for p_ref in op['pulse_info']:
             if 'abs_time' not in t_constr:
                 raise ValueError("Absolute timing has not been determined for the schedule '{}'".format(schedule.name))
 
+            # prepare pulse will modify, copy to avoid changing the reference operation in the master schedule list
+            params, p = _prepare_pulse(p_ref.copy())
             t0 = t_constr['abs_time']+p['t0']
-            pulse_id = make_hash(without(p, 't0'))
+            pulse_id = make_hash(without(p, ['t0']))
 
             if p['channel'] is None:
                 continue  # pulses with None channel will be ignored by this backend
@@ -158,7 +222,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
                 raise KeyError('Resource "{}" not available in "{}"'.format(p['channel'], schedule))
 
             ch = schedule.resources[p['channel']]
-            ch.timing_tuples.append((round(t0*ch['sampling_rate']), pulse_id))
+            ch.timing_tuples.append((round(t0*ch['sampling_rate']), pulse_id, params))
 
             # determine waveform
             if pulse_id not in ch.pulse_dict.keys():
@@ -182,10 +246,6 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
                         wf_kwargs[kw] = p[kw]
                 # Calculate the numerical waveform using the wf_func
                 wf = wf_func(t=t, **wf_kwargs)
-                if max(abs(wf)) > 1.0:
-                    raise ValueError("pulse '{}' in operation '{}' on channel '{}' illegal abs amplitude {} "
-                                     "(must be within range -1.0 < x < 1.0)."
-                                     .format(pulse_id, op['name'], ch['name'], max(abs(wf))))
                 ch.pulse_dict[pulse_id] = wf
 
             seq_duration = ch.timing_tuples[-1][0] + len(ch.pulse_dict[pulse_id])
@@ -262,9 +322,9 @@ def configure_pulsar_sequencers(config_dict: dict):
                 pulsar.set('sequencer{}_offset{}'.format(seq_idx, awg_path), 0)
 
             if is_qrm:
-                # todo check with Jordy wrt Callum&Marijn found involving acquisitions and wait_sync
-                pulsar.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), True)
-                pulsar.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), True)
+                # trigger_mode False = triggered by instructions rather than on signal
+                pulsar.set("sequencer{}_trigger_mode_acq_path0".format(seq_idx), False)
+                pulsar.set("sequencer{}_trigger_mode_acq_path1".format(seq_idx), False)
 
             # configure sequencer
             pulsar.set('sequencer{}_waveforms_and_program'.format(seq_idx), config_fn)
@@ -339,35 +399,35 @@ def build_q1asm(timing_tuples: list, pulse_dict: dict, sequence_duration: int, a
 
     q1asm = Q1ASMBuilder()
     q1asm.wait_sync()
-    q1asm.move('start', len(pulse_dict['awg']), 'R0', '#Waveform count register')
+    q1asm.set_mrk('start', 1)
 
     if timing_tuples and get_pulse_finish_time(-1) > sequence_duration:
         raise ValueError("Provided sequence_duration '{}' is less than the total runtime of this sequence ({})."
                          .format(sequence_duration, get_pulse_finish_time(-1)))
 
-    previous = None  # previous pulse
     clock = 0  # current execution time
-
-    for idx, (timing, pulse_id) in enumerate(timing_tuples):
+    for idx, (timing, pulse_id, hardware_modulations) in enumerate(timing_tuples):
         # check if we must wait before beginning our next section
         wait_duration = timing - clock
         device = 'awg' if pulse_id not in acquisitions else 'acq'
-        auto_wait('', wait_duration, '#Wait', previous)
+        auto_wait('', wait_duration, '#Wait', None if idx == 0 else timing_tuples[idx-1])
+        q1asm.line_break()
+
+        q1asm.update_parameters(hardware_modulations, device)
 
         I = pulse_dict[device]["{}_I".format(pulse_id)]['index']  # noqa: E741
         Q = pulse_dict[device]["{}_Q".format(pulse_id)]['index']
-        q1asm.line_break()
 
         # duration should be the pulse length or next start time
         next_timing = timing_tuples[idx+1][0] if idx < len(timing_tuples) - 1 else np.Inf
         pulse_runtime = get_pulse_runtime(pulse_id)  # duration in nanoseconds, QCM sample rate is # 1Gsps
         duration = min(next_timing, pulse_runtime)
-        if device == 'awg':
-            q1asm.play('', I, Q, duration, '#Play {}'.format(pulse_id))
-        else:
-            q1asm.acquire('', I, Q, duration, '#Play {}'.format(pulse_id))
 
-        previous = (timing, pulse_id)
+        if device == 'awg':
+            q1asm.play('', I, Q, duration, '')
+        else:
+            q1asm.acquire('', I, Q, duration, '')
+
         clock += duration + wait_duration
 
     # check if we must wait to sync up with fellow sequencers
@@ -375,6 +435,7 @@ def build_q1asm(timing_tuples: list, pulse_dict: dict, sequence_duration: int, a
     if timing_tuples:
         auto_wait('', final_wait_duration, '#Sync with other sequencers', timing_tuples[-1])
 
+    q1asm.line_break()
     q1asm.jmp('', 'start', '#Loop back to start')
     return q1asm.get_str()
 
@@ -386,7 +447,7 @@ def generate_sequencer_cfg(pulse_info, timing_tuples, sequence_duration: int, ac
 
     Args:
         pulse_info (dict): mapping of pulse IDs to numerical waveforms
-        timing_tuples (list): time ordered list of tuples containing the absolute starting time and pulse ID
+        timing_tuples (list): time ordered list of tuples containing the (absolute starting time, pulse ID, modulations)
         sequence_duration (int): maximum runtime of this sequence
         acquisitions (set): set of pulse IDs which are acquisitions
 

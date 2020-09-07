@@ -111,7 +111,6 @@ class Schedule(UserDict):
             label  (str) : a label that can be used as an identifier when adding more operations.
 
         Returns:
-
             (str) : returns the (unique) label of the last added operation.
 
         """
@@ -124,18 +123,15 @@ class Schedule(UserDict):
 
         # assert that the label of the operation does not exists in the
         # timing constraints.
-        label_is_unique = len([item for item in self.data['timing_constraints']
-                               if item['label'] == label]) == 0
+        label_is_unique = len([item for item in self.data['timing_constraints'] if item['label'] == label]) == 0
         if not label_is_unique:
             raise ValueError('label "{}" must be unique'.format(label))
 
         # assert that the reference operation exists
         if ref_op is not None:
-            ref_exists = len([item for item in self.data['timing_constraints']
-                              if item['label'] == ref_op]) == 1
+            ref_exists = len([item for item in self.data['timing_constraints'] if item['label'] == ref_op]) == 1
             if not ref_exists:
-                raise ValueError(
-                    'Reference "{}" does not exist in schedule.'.format(ref_op))
+                raise ValueError('Reference "{}" does not exist in schedule.'.format(ref_op))
 
         self.data['operation_dict'][operation_hash] = operation
         timing_constr = {'label': label,
@@ -143,8 +139,8 @@ class Schedule(UserDict):
                          'ref_op': ref_op,
                          'ref_pt_new': ref_pt_new,
                          'ref_pt': ref_pt,
-                         'operation_hash': operation_hash}
-
+                         'operation_hash': operation_hash
+                         }
         self.data['timing_constraints'].append(timing_constr)
 
         return label
@@ -195,6 +191,7 @@ class Operation(UserDict):
             'qubits': []}
         self.data['pulse_info'] = []  # A list of pulses
         self.data['logic_info'] = {}
+        self.modulations = None
 
         if name is not None:
             self.data['name'] = name
