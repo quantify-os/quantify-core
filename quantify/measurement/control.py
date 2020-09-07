@@ -302,14 +302,23 @@ class MeasurementControl(Instrument):
                         # TODO add smartness to avoid setting if unchanged
                         spar.set(spt)
                     # acquire all data points
+                    y_offset = 0
                     for j, gpar in enumerate(self._gettable_pars):
-                        val = gpar.get()
-                        old_val = self._dataset['y{}'.format(j)].values[idx]
-                        if self.soft_avg() == 1 or np.isnan(old_val):
-                            self._dataset['y{}'.format(j)].values[idx] = val
-                        else:
-                            averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                            self._dataset['y{}'.format(j)].values[idx] = averaged
+                        # acquire from the gettable
+                        new_data = gpar.get()
+                        # if the gettable returned a float, cast to list
+                        if np.isscalar(new_data):
+                            new_data = [new_data]
+                        # iterate through the data list, each element is different y for these x coordinates
+                        for val in new_data:
+                            y = j + y_offset
+                            old_val = self._dataset['y{}'.format(y)].values[idx]
+                            if self.soft_avg() == 1 or np.isnan(old_val):
+                                self._dataset['y{}'.format(y)].values[idx] = val
+                            else:
+                                averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
+                                self._dataset['y{}'.format(y)].values[idx] = averaged
+                            y_offset += 1
                     self._nr_acquired_values += 1
                     self._update()
                 self._loop_count += 1
