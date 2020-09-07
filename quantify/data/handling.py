@@ -1,10 +1,9 @@
-"""
------------------------------------------------------------------------------
-Description:    Utilities for handling data.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Utilities for handling data.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
+import pathlib
 import os
 import sys
 import json
@@ -20,7 +19,7 @@ from quantify.utilities.general import delete_keys_from_dict
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
-_default_datadir = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'data'))
+_default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / 'data'
 
 this._datadir = None
 
@@ -66,7 +65,7 @@ def set_datadir(datadir):
 
     Args:
         datadir (str):
-            path of the data directory. If set to None, resets the datadir to the default datadir (quantify/data).
+            path of the data directory. If set to None, resets the datadir to the default datadir (<top_level>/data).
     """
     this._datadir = datadir
 

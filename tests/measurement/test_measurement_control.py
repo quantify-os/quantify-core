@@ -12,17 +12,14 @@ from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
-from quantify import set_datadir
+from quantify.data.handling import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
-import quantify
+from tests.helpers import get_test_data_dir
 
 
-test_datadir = os.path.join(os.path.split(quantify.__file__)[0], '..', 'tests', 'test_data')
-
-
-# Define some helpers that are used in the tests
+test_datadir = get_test_data_dir()
 
 
 def CosFunc(t, amplitude, frequency, phase):
