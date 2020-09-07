@@ -305,20 +305,6 @@ def test_mismatched_mod_freq():
         qcompile(sched, bad_config, backend=pulsar_assembler_backend)
 
 
-def test_pulsar_phase():
-    sched = Schedule('pulsar_phase_params')
-    q0 = QubitResource('q0')
-    sched.add(Rxy(90, 0, q0.name))
-    sched.add(Rxy(180, 0, q0.name))
-    sched.add(Rxy(90, 0, q0.name))
-    sched.add(Rxy(180, 0, q0.name))
-    qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
-    sched.add_resources([q0, qcm0_s0])
-    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
-    sched = determine_absolute_timing(sched)
-    pulsar_assembler_backend(sched)
-
-
 def test_chevron():
     sched = Schedule("Chevron Experiment")
     q0, q1 = (QubitResource("q0"), QubitResource("q1"))
@@ -339,9 +325,7 @@ def test_chevron():
     qrm1_s0 = Pulsar_QRM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=0)
 
     sched.add_resources([q0, q1, qcm0_s0, qrm0_s0, qcm1_s0, qrm1_s0])
-    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
-    sched = determine_absolute_timing(sched)
-    pulsar_assembler_backend(sched, debug=True)
+    qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
 
 
 def test_pulsar_params():
@@ -355,9 +339,7 @@ def test_pulsar_params():
     sched.add(x_gate)
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resources([q0, qcm0_s0])
-    sched = add_pulse_information_transmon(sched, DEVICE_TEST_CFG)
-    sched = determine_absolute_timing(sched)
-    cfgs = pulsar_assembler_backend(sched)
+    cfgs = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
     with open(cfgs["qcm0.s0"], "rb") as cfg:
         with open(pathlib.Path(__file__).parent.joinpath('ref_params.json'), 'rb') as ref:
             prog = json.load(cfg)
