@@ -5,16 +5,10 @@ from quantify.sequencer.compilation import _determine_absolute_timing, qcompile
 import matplotlib.pyplot as plt
 import json
 
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
-
-from ... import test_data  # relative-import the *package* containing the templates
-
-
-DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(test_data, 'transmon_test_config.json'))
+import pathlib
+cfg_f = pathlib.Path(__file__).parent.parent.parent.absolute() / 'test_data' / 'transmon_test_config.json'
+with open(cfg_f, 'r') as f:
+    DEVICE_TEST_CFG = json.load(f)
 
 
 def test_circuit_diagram_matplotlib():

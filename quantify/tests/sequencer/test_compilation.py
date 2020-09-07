@@ -8,15 +8,10 @@ from quantify.sequencer.resources import QubitResource
 from quantify.sequencer.types import Operation
 
 
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
-
-from .. import test_data  # relative-import the *package* containing the templates
-
-DEVICE_TEST_CFG = json.loads(pkg_resources.read_text(test_data, 'transmon_test_config.json'))
+import pathlib
+cfg_f = pathlib.Path(__file__).parent.parent.parent.absolute() / 'test_data' / 'transmon_test_config.json'
+with open(cfg_f, 'r') as f:
+    DEVICE_TEST_CFG = json.load(f)
 
 
 def test__determine_absolute_timing_ideal_clock():
