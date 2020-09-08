@@ -546,9 +546,6 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
 
-        plotmon = PlotMonitor_pyqt('plotmon_MC')
-        self.MC.instr_plotmon(plotmon.name)
-
         self.MC.settables([t, amp, freq])
         self.MC.setpoints_grid([times, amps, freqs])
         self.MC.gettables([DualWave(), sig, DualWave()])
@@ -585,6 +582,37 @@ class TestMeasurementControl:
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
 
+    def test_adaptive_multi_return(self):
+        freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
+        amp = ManualParameter(name='amp', unit='V', label='Amplitude', initial_value=1)
+        dummy = ManualParameter(name='dummy', unit='V', label='Dummy', initial_value=99)
+        fwhm = 300
+        resonance_freq = random.uniform(6e9, 7e9)
+
+        def lorenz():
+            return amp() * ((fwhm / 2.) ** 2) / ((freq() - resonance_freq) ** 2 + (fwhm / 2.) ** 2)
+
+        # gimmick class for return
+        class ResonancePlus:
+            def __init__(self):
+                self.name = ['resonance', 'dummy']
+                self.label = ['Amplitude', 'Dummy']
+                self.unit = ['V', 'V']
+
+            def get(self):
+                return [lorenz(), dummy()]
+
+        self.MC.settables(freq)
+        af_pars = {
+            "adaptive_function": adaptive.learner.Learner1D,
+            "goal": lambda l: l.npoints > 5,
+            "bounds": (6e9, 7e9),
+        }
+        self.MC.gettables([ResonancePlus(), dummy])
+        dset = self.MC.run_adaptive('multi return', af_pars)
+        assert (dset['y1'].values == 99).all()
+        assert (dset['y2'].values == 99).all()
+
     def test_adaptive_bounds_1D(self):
         freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
         amp = ManualParameter(name='amp', unit='V', label='Amplitude', initial_value=1)
@@ -604,6 +632,7 @@ class TestMeasurementControl:
         }
         self.MC.gettables(resonance)
         dset = self.MC.run_adaptive('adaptive sample', af_pars)
+        print('jej')
 
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)

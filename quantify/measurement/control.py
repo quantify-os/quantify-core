@@ -234,18 +234,27 @@ class MeasurementControl(Instrument):
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-            vals = self._gettable_pars[self._GETTABLE_IDX].get()
 
-            # if we returned a single value, wrap it in an array to make the later nD compliant code work
-            if np.isscalar(vals):
-                vals = [vals]
+            ret = np.nan
+            y_offset = 0
+            for gpar in self._gettable_pars:
+                new_data = gpar.get()
 
-            for idx, val in enumerate(vals):
-                self._dataset['y{}'.format(idx)].values[self._nr_acquired_values] = val
+                # if we returned a single value, wrap it in an array to make the later nD compliant code work
+                if np.isscalar(new_data):
+                    new_data = [new_data]
+
+                # return the first value to the adaptive function
+                if y_offset == 0:
+                    ret = new_data[0]
+
+                for val in new_data:
+                    self._dataset['y{}'.format(y_offset)].values[self._nr_acquired_values] = val
+                    y_offset += 1
 
             self._nr_acquired_values += 1
             self._update("Running adaptively")
-            return vals[0]
+            return ret
 
         def subroutine():
             self._prepare_settables()
