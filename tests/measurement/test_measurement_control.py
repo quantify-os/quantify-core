@@ -27,10 +27,18 @@ def CosFunc(t, amplitude, frequency, phase):
     return amplitude * np.cos(2 * np.pi * frequency * t + phase)
 
 
+def SinFunc(t, amplitude, frequency, phase):
+    return amplitude * np.sin(2 * np.pi * frequency * t + phase)
+
+
 # Parameters are created to emulate a system being measured
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
 amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
 freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Frequency')
+
+
+def sine_model():
+    return SinFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
 
 def cosine_model():
@@ -39,6 +47,16 @@ def cosine_model():
 
 # We wrap our function in a Parameter to be able to give
 sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
+
+
+class DualWave:
+    def __init__(self):
+        self.name = ['sin', 'cos']
+        self.unit = ['V', 'V']
+        self.label = ['Sine', 'Cosine']
+
+    def get(self):
+        return np.array([sine_model(), cosine_model()])
 
 
 class NoneSweep:
@@ -195,6 +213,21 @@ class TestMeasurementControl:
         assert (np.array_equal(dset['x0'], xvals))
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+    def test_soft_sweep_1D_multi_return(self):
+        xvals = np.linspace(0, 2*np.pi, 31)
+
+        self.MC.settables(t)
+        self.MC.setpoints(xvals)
+        self.MC.gettables(DualWave())
+        dset = self.MC.run()
+
+        exp_y0 = SinFunc(xvals, 1, 1, 0)
+        exp_y1 = CosFunc(xvals, 1, 1, 0)
+
+        assert dset.keys() == {'x0', 'y0', 'y1'}
+        np.testing.assert_array_equal(dset['y0'], exp_y0)
+        np.testing.assert_array_equal(dset['y1'], exp_y1)
 
     def test_soft_averages_soft_sweep_1D(self):
         def rand():
@@ -475,7 +508,6 @@ class TestMeasurementControl:
         assert np.array_equal(plain_dset['y0'].values, setpoints)
 
     def test_soft_sweep_3D_grid(self):
-
         times = np.linspace(0, 5, 2)
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
@@ -508,6 +540,29 @@ class TestMeasurementControl:
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
+
+    def test_soft_sweep_3D_multi_return(self):
+        times = np.linspace(0, 5, 2)
+        amps = np.linspace(-1, 1, 3)
+        freqs = np.linspace(41000, 82000, 2)
+
+        plotmon = PlotMonitor_pyqt('plotmon_MC')
+        self.MC.instr_plotmon(plotmon.name)
+
+        self.MC.settables([t, amp, freq])
+        self.MC.setpoints_grid([times, amps, freqs])
+        self.MC.gettables([DualWave(), sig, DualWave()])
+        dset = self.MC.run()
+
+        exp_sp = tile_setpoints_grid([times, amps, freqs])
+        exp_y0 = exp_y3 = SinFunc(t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
+        exp_y1 = exp_y2 = exp_y4 = CosFunc(t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
+
+        np.testing.assert_array_equal(dset['y0'], exp_y0)
+        np.testing.assert_array_equal(dset['y1'], exp_y1)
+        np.testing.assert_array_equal(dset['y2'], exp_y2)
+        np.testing.assert_array_equal(dset['y3'], exp_y3)
+        np.testing.assert_array_equal(dset['y4'], exp_y4)
 
     def test_adaptive_no_averaging(self):
         self.MC.soft_avg(5)

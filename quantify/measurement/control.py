@@ -303,7 +303,7 @@ class MeasurementControl(Instrument):
                         spar.set(spt)
                     # acquire all data points
                     y_offset = 0
-                    for j, gpar in enumerate(self._gettable_pars):
+                    for gpar in self._gettable_pars:
                         # acquire from the gettable
                         new_data = gpar.get()
                         # if the gettable returned a float, cast to list
@@ -311,13 +311,12 @@ class MeasurementControl(Instrument):
                             new_data = [new_data]
                         # iterate through the data list, each element is different y for these x coordinates
                         for val in new_data:
-                            y = j + y_offset
-                            old_val = self._dataset['y{}'.format(y)].values[idx]
+                            old_val = self._dataset['y{}'.format(y_offset)].values[idx]
                             if self.soft_avg() == 1 or np.isnan(old_val):
-                                self._dataset['y{}'.format(y)].values[idx] = val
+                                self._dataset['y{}'.format(y_offset)].values[idx] = val
                             else:
                                 averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                                self._dataset['y{}'.format(y)].values[idx] = averaged
+                                self._dataset['y{}'.format(y_offset)].values[idx] = averaged
                             y_offset += 1
                     self._nr_acquired_values += 1
                     self._update()
@@ -496,7 +495,7 @@ class MeasurementControl(Instrument):
             settable_pars = [settable_pars]
 
         self._settable_pars = []
-        for _, settable in enumerate(settable_pars):
+        for settable in settable_pars:
             self._settable_pars.append(Settable(settable))
 
     def setpoints(self, setpoints):
@@ -544,7 +543,7 @@ class MeasurementControl(Instrument):
             self._plot_info['2D-grid'] = True
         self._setpoints = tile_setpoints_grid(setpoints)
 
-    def gettables(self, gettable_par):
+    def gettables(self, gettable_pars):
         """
         Define the parameters to be acquired during the acquisition loop.
 
@@ -554,12 +553,13 @@ class MeasurementControl(Instrument):
                  - a single Gettable object
 
         The :class:`~quantify.measurement.Gettable` helper class defines the requirements for a Gettable object.
-
-        TODO: support fancier getables, i.e. ones that return
-            - more than one quantity
-
         """
-        self._gettable_pars = [Gettable(gettable_par)]
+        if not isinstance(gettable_pars, (list, tuple)):
+            gettable_pars = [gettable_pars]
+
+        self._gettable_pars = []
+        for gpar in gettable_pars:
+            self._gettable_pars.append(Gettable(gpar))
 
 
 def tile_setpoints_grid(setpoints):
