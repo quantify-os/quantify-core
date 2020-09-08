@@ -561,6 +561,22 @@ class TestMeasurementControl:
         np.testing.assert_array_equal(dset['y3'], exp_y3)
         np.testing.assert_array_equal(dset['y4'], exp_y4)
 
+    def test_hard_sweep_2D_multi_return(self):
+        x0 = np.arange(5)
+        x1 = np.linspace(5, 10, 5)
+        self.MC.settables([NoneSweep(soft=False), t])
+        self.MC.setpoints_grid([x0, x1])
+        # stuck now without Gettable prepare thing resolved
+        self.MC.gettables([DummyDetector(return_dimensions='2D'), DummyDetector(return_dimensions='1D')])
+        dset = self.MC.run('noisy_hard_grid')
+
+        y0_1 = hardware_mock_values_2D(x0)
+        y2 = hardware_mock_values_1D(x1)
+
+        np.testing.assert_array_equal(dset['y0'], y0_1[0, :])
+        np.testing.assert_array_equal(dset['y1'], y0_1[1, :])
+        np.testing.assert_array_equal(dset['y2'], y2)
+
     def test_adaptive_no_averaging(self):
         self.MC.soft_avg(5)
         with pytest.raises(ValueError, match=r"software averaging not allowed in adaptive loops; currently set to 5"):

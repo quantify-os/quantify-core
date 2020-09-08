@@ -340,6 +340,7 @@ class MeasurementControl(Instrument):
                 for i, spar in enumerate(self._settable_pars):
                     swf_setpoints = self._setpoints[:, i]
                     spar.set(swf_setpoints[setpoint_idx])
+                # this is wrong, should be passing all setpoints in and letting Gettable decide - make an issue for removal
                 self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
 
                 y_offset = 0
@@ -432,6 +433,10 @@ class MeasurementControl(Instrument):
         Whether this MeasurementControl controls data stepping
         """
         if is_software_controlled(self._settable_pars[0]) and is_software_controlled(self._gettable_pars[0]):
+            for gpar in self._gettable_pars:
+                # necessary? problem is hardware mode 'skips' calling set on all setpoints (is that correct behaviour anyway? pycqed does it)
+                if not is_software_controlled(gpar):
+                    raise Exception("Mixed Gettables currently not supported")
             return True
         elif not is_software_controlled(self._gettable_pars[0]):
             return False
