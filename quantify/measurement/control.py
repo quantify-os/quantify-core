@@ -333,17 +333,20 @@ class MeasurementControl(Instrument):
                     spar.set(swf_setpoints[setpoint_idx])
                 self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
 
-                new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
-                # if we get a simple array, shape it to (1, M)
-                if len(np.shape(new_data)) == 1:
-                    new_data = new_data.reshape(1, (len(new_data)))
+                y_offset = 0
+                for gpar in self._gettable_pars:
+                    new_data = gpar.get()  # can return (N, M)
+                    # if we get a simple array, shape it to (1, M)
+                    if len(np.shape(new_data)) == 1:
+                        new_data = new_data.reshape(1, (len(new_data)))
 
-                for i, row in enumerate(new_data):
-                    slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = self._dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
-                    old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
-                self._nr_acquired_values += np.shape(new_data)[1]
+                    for row in new_data:
+                        slice_len = setpoint_idx + len(row)  # the slice we will be updating
+                        old_vals = self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len]
+                        old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
+                        self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                        y_offset += 1
+                    self._nr_acquired_values += np.shape(new_data)[1]
                 self._update()
         except KeyboardFinish as e:
             return
