@@ -338,10 +338,8 @@ class MeasurementControl(Instrument):
             while self._get_fracdone() < 1.0:
                 setpoint_idx = self._curr_setpoint_idx()
                 for i, spar in enumerate(self._settable_pars):
-                    swf_setpoints = self._setpoints[:, i]
-                    spar.set(swf_setpoints[setpoint_idx])
-                # this is wrong, should be passing all setpoints in and letting Gettable decide - make an issue for removal
-                self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
+                    spar.set(self._setpoints[:, i])
+                self._prepare_gettable()
 
                 y_offset = 0
                 for gpar in self._gettable_pars:

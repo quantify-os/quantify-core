@@ -124,6 +124,47 @@ def hardware_mock_values_2D(setpoints):
     return np.array([np.sin(setpoints / np.pi), np.cos(setpoints / np.pi)])
 
 
+class DummyHardwareSettable:
+
+    def __init__(self):
+        self.name = 'DummyHardwareSettable'
+        self.label = 'Amp'
+        self.unit = 'V'
+        self.soft = False
+        self.setpoints = []
+
+    def set(self, setpoints):
+        self.setpoints = setpoints
+
+
+class DummyHardwareGettable:
+
+    def __init__(self, settable, noise=0.0):
+        self.name = ['DummyHardwareGettable_0']
+        self.unit = ['W']
+        self.label = ['Watts']
+        self.soft = False
+        self.device = settable
+        self.noise = noise
+        self.device_func = hardware_mock_values_1D
+
+    def set_return_2D(self):
+        self.name.append('DummyHardwareGettable_1')
+        self.unit.append('V')
+        self.label.append('Amp')
+        self.device_func = hardware_mock_values_2D
+
+    def prepare(self):
+        assert self.device is not None
+
+    def get(self):
+        shape = 1 if self.device_func is hardware_mock_values_1D else 2
+        noise = self.noise * (np.random.rand(shape, len(self.device.setpoints)) - .5)
+        data = self.device_func(self.device.setpoints)
+        data += noise
+        return data
+
+
 class DummyDetector:
     """
     A mock external Gettable, returning either a Sin or [Sin, Cos] wave
@@ -249,21 +290,20 @@ class TestMeasurementControl:
 
     def test_hard_sweep_1D(self):
         x = np.linspace(0, 10, 5)
-        self.MC.settables(NoneSweep(soft=False))
+        device = DummyHardwareSettable()
+        self.MC.settables(device)
         self.MC.setpoints(x)
-        self.MC.gettables(DummyDetector("2D"))
+        self.MC.gettables(DummyHardwareGettable(device))
         dset = self.MC.run()
 
-        expected_vals = hardware_mock_values_2D(x)
+        expected_vals = hardware_mock_values_1D(x)
         assert (np.array_equal(dset['x0'].values, x))
         assert (np.array_equal(dset['y0'].values, expected_vals[0]))
-        assert (np.array_equal(dset['y1'].values, expected_vals[1]))
 
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {'x0', 'y0', 'y1'}
-        assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
-        assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
-        assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+        assert dset.keys() == {'x0', 'y0'}
+        assert dset['x0'].attrs == {'name': 'DummyHardwareSettable', 'long_name': 'Amp', 'unit': 'V'}
+        assert dset['y0'].attrs == {'name': 'DummyHardwareGettable_0', 'long_name': 'Watts', 'unit': 'W'}
 
     def test_soft_averages_hard_sweep_1D(self):
         setpoints = np.arange(50.0)
