@@ -117,11 +117,11 @@ class DummyParHolder(Instrument):
 
 
 def hardware_mock_values_1D(setpoints):
-    return np.array([np.tan(setpoints / np.pi)])
+    return np.sin(setpoints / np.pi)
 
 
 def hardware_mock_values_2D(setpoints):
-    return np.array([np.sin(setpoints / np.pi), np.cos(setpoints / np.pi)])
+    return np.sin(setpoints / np.pi), np.cos(setpoints / np.pi)
 
 
 class DummyHardwareSettable:
@@ -133,18 +133,22 @@ class DummyHardwareSettable:
         self.soft = False
         self.setpoints = []
 
+    # copy what qcodes does for easy testing interop
+    def __call__(self):
+        return self.setpoints
+
     def set(self, setpoints):
         self.setpoints = setpoints
 
 
 class DummyHardwareGettable:
 
-    def __init__(self, settable, noise=0.0):
+    def __init__(self, settables, noise=0.0):
         self.name = ['DummyHardwareGettable_0']
         self.unit = ['W']
         self.label = ['Watts']
         self.soft = False
-        self.device = settable
+        self.settables = [settables] if not isinstance(settables, list) else settables
         self.noise = noise
         self.device_func = hardware_mock_values_1D
 
@@ -155,14 +159,19 @@ class DummyHardwareGettable:
         self.device_func = hardware_mock_values_2D
 
     def prepare(self):
-        assert self.device is not None
+        assert len(self.settables) > 0
+        for settable in self.settables:
+            assert settable is not None
+
+    def _get_data(self):
+        return np.array([i() for i in self.settables])
 
     def get(self):
-        shape = 1 if self.device_func is hardware_mock_values_1D else 2
-        noise = self.noise * (np.random.rand(shape, len(self.device.setpoints)) - .5)
-        data = self.device_func(self.device.setpoints)
+        data = self._get_data()
+        data = self.device_func(data)
+        noise = self.noise * (np.random.rand(1, data.shape[1]) - .5)
         data += noise
-        return data
+        return data[0:len(self.name), :]
 
 
 class DummyDetector:
@@ -298,7 +307,7 @@ class TestMeasurementControl:
 
         expected_vals = hardware_mock_values_1D(x)
         assert (np.array_equal(dset['x0'].values, x))
-        assert (np.array_equal(dset['y0'].values, expected_vals[0]))
+        assert (np.array_equal(dset['y0'].values, expected_vals))
 
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {'x0', 'y0'}
@@ -307,57 +316,42 @@ class TestMeasurementControl:
 
     def test_soft_averages_hard_sweep_1D(self):
         setpoints = np.arange(50.0)
-        self.MC.settables(NoneSweep(soft=False))
+        settable = DummyHardwareSettable()
+        gettable = DummyHardwareGettable(settable)
+        gettable.noise = 0.4
+        self.MC.settables(settable)
         self.MC.setpoints(setpoints)
-        d = DummyDetector('2D')
-        d.noise = 0.4
-        self.MC.gettables(d)
+        self.MC.gettables(gettable)
         noisy_dset = self.MC.run('noisy')
         xn_0 = noisy_dset['x0'].values
-        expected_vals = hardware_mock_values_2D(xn_0)
-        yn_0 = abs(noisy_dset['y0'].values - expected_vals[0])
-        yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
+        expected_vals = hardware_mock_values_1D(xn_0)
+        yn_0 = abs(noisy_dset['y0'].values - expected_vals)
 
         self.MC.soft_avg(5000)
-        self.MC.settables(NoneSweep(soft=False))
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(d)
         avg_dset = self.MC.run('averaged')
-        yavg_0 = abs(avg_dset['y0'].values - expected_vals[0])
-        yavg_1 = abs(avg_dset['y1'].values - expected_vals[1])
+        yavg_0 = abs(avg_dset['y0'].values - expected_vals)
 
         np.testing.assert_array_equal(xn_0, setpoints)
         assert np.mean(yn_0) > np.mean(yavg_0)
-        assert np.mean(yn_1) > np.mean(yavg_1)
-
         np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(xn_0)), decimal=2)
-        np.testing.assert_array_almost_equal(yavg_1, np.zeros(len(xn_0)), decimal=2)
 
     def test_soft_set_hard_get_1D(self):
-        mock = ManualParameter('m', initial_value=1, unit='M', label='Mock')
+        gettable = DummyHardwareGettable(t)
 
-        def mock_func(none):
-            # to also test if the values are set correctly in the sweep
-            arr = np.zeros([2, 2])
-            arr[0, :] = np.array([mock()] * 2)
-            arr[1, :] = np.array([mock() + 2] * 2)
-            return arr
+        def mock_get():
+            return np.sin(t())
 
-        d = DummyDetector(return_dimensions='2D')
-        d.mock_fn = mock_func
-        setpoints = np.repeat(np.arange(5.0), 2)
-
-        self.MC.settables(mock)
+        gettable.get = mock_get
+        setpoints = np.linspace(0, 360, 8)
+        self.MC.settables(t)
         self.MC.setpoints(setpoints)
-        self.MC.gettables(d)
+        self.MC.gettables(gettable)
         dset = self.MC.run("soft_sweep_hard_det")
 
         x = dset['x0'].values
         y0 = dset['y0'].values
-        y1 = dset['y1'].values
         np.testing.assert_array_equal(x, setpoints)
-        np.testing.assert_array_equal(y0, setpoints)
-        np.testing.assert_array_equal(y1, setpoints + 2)
+        np.testing.assert_array_equal(y0, np.sin(setpoints))
 
     def test_soft_sweep_2D_grid(self):
 
@@ -428,9 +422,11 @@ class TestMeasurementControl:
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
+        gettable = DummyHardwareGettable(settables)
+        self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
-        self.MC.gettables(DummyDetector("2D"))
+        self.MC.gettables(gettable)
         dset = self.MC.run('2D Hard')
 
         exp_sp = tile_setpoints_grid([times, amps])
@@ -440,15 +436,13 @@ class TestMeasurementControl:
 
         expected_vals = hardware_mock_values_2D(dset['x0'].values)
         assert np.array_equal(dset['y0'].values, expected_vals[0])
-        assert np.array_equal(dset['y1'].values, expected_vals[1])
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
 
-        assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
-        assert dset['x1'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
-        assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
-        assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+        assert dset['x0'].attrs == {'name': 'DummyHardwareSettable', 'long_name': 'Amp', 'unit': 'V'}
+        assert dset['x1'].attrs == {'name': 'DummyHardwareSettable', 'long_name': 'Amp', 'unit': 'V'}
+        assert dset['y0'].attrs == {'name': 'DummyHardwareGettable_0', 'long_name': 'Watts', 'unit': 'W'}
 
     def test_hard_sweep_2D_grid_soft_avg(self):
         x0 = np.arange(5)

@@ -338,7 +338,7 @@ class MeasurementControl(Instrument):
             while self._get_fracdone() < 1.0:
                 setpoint_idx = self._curr_setpoint_idx()
                 for i, spar in enumerate(self._settable_pars):
-                    spar.set(self._setpoints[:, i])
+                    spar.set(self._setpoints[setpoint_idx:, i])
                 self._prepare_gettable()
 
                 y_offset = 0
@@ -387,21 +387,16 @@ class MeasurementControl(Instrument):
         if self._exit_event.is_set():
             raise KeyboardFinish()
 
-    def _prepare_gettable(self, setpoints=None):
+    def _prepare_gettable(self):
         """
         Call prepare() on the Gettable, if prepare() exists
-
-        Args:
-            setpoints (:class:`numpy.ndarray`): The values to pass to the Gettable
         """
-        try:
-            if setpoints is not None:
-                self._gettable_pars[self._GETTABLE_IDX].prepare(setpoints)
-            else:
-                self._gettable_pars[self._GETTABLE_IDX].prepare()
-        # it's fine if the gettable does not have a prepare function
-        except AttributeError:
-            pass
+        for getpar in self._gettable_pars:
+            try:
+                getpar.prepare()
+            # it's fine if the gettable does not have a prepare function
+            except AttributeError:
+                pass
 
     def _prepare_settables(self):
         """
