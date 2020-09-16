@@ -231,11 +231,11 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
+            # todo can probably tie this into the similar code in _run_soft
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
 
-            ret = np.nan
             y_offset = 0
             for gpar in self._gettable_pars:
                 new_data = gpar.get()
@@ -244,14 +244,12 @@ class MeasurementControl(Instrument):
                 if np.isscalar(new_data):
                     new_data = [new_data]
 
-                # return the first value to the adaptive function
-                if y_offset == 0:
-                    ret = new_data[0]
-
                 for val in new_data:
                     self._dataset['y{}'.format(y_offset)].values[self._nr_acquired_values] = val
                     y_offset += 1
+            # todo, somewhere around here
 
+            ret = self._dataset['y0'].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
             return ret
