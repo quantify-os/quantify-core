@@ -231,7 +231,7 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._soft_set_and_get(vec, self._nr_acquired_values)
+            self._soft_set_and_get(vec)
             ret = self._dataset['y0'].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
@@ -286,8 +286,8 @@ class MeasurementControl(Instrument):
         try:
             while self._get_fracdone() < 1.0:
                 self._prepare_gettable()
-                for idx, spts in enumerate(self._setpoints):
-                    self._soft_set_and_get(spts, idx)
+                for row in self._setpoints:
+                    self._soft_set_and_get(row)
                     self._nr_acquired_values += 1
                     self._update()
                 self._loop_count += 1
@@ -326,23 +326,23 @@ class MeasurementControl(Instrument):
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _soft_set_and_get(self, setpoints: np.ndarray, idx: int):
+    def _soft_set_and_get(self, setpoints: np.ndarray):
         """
-        Note that some lines in this function are redundant depending on mode (sweep vs adaptive). Specifically
+        Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
+
+        Note: some lines in this function are redundant depending on mode (sweep vs adaptive). Specifically
         - in sweep, the x dimensions are already filled
         - in adaptive, soft_avg is always 1
         """
-
-        # todo can idx be self._nr_acquired_values?
+        idx = self._curr_setpoint_idx()
 
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             self._dataset['x{}'.format(setpar_idx)].values[idx] = spt
             spar.set(spt)  # TODO add smartness to avoid setting if unchanged
-        # acquire all data points
+        # get all data points
         y_offset = 0
         for gpar in self._gettable_pars:
-            # acquire from the gettable
             new_data = gpar.get()
             # if the gettable returned a float, cast to list
             if np.isscalar(new_data):
