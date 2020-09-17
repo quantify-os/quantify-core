@@ -231,24 +231,11 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
-            # todo can probably tie this into the similar code in _run_soft
             for idx, settable in enumerate(self._settable_pars):
                 settable.set(vec[idx])
                 self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
 
-            y_offset = 0
-            for gpar in self._gettable_pars:
-                new_data = gpar.get()
-
-                # if we returned a single value, wrap it in an array to make the later nD compliant code work
-                if np.isscalar(new_data):
-                    new_data = [new_data]
-
-                for val in new_data:
-                    self._dataset['y{}'.format(y_offset)].values[self._nr_acquired_values] = val
-                    y_offset += 1
-            # todo, somewhere around here
-
+            self._soft_get(self._nr_acquired_values)
             ret = self._dataset['y0'].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
@@ -309,22 +296,7 @@ class MeasurementControl(Instrument):
                         # TODO add smartness to avoid setting if unchanged
                         spar.set(spt)
                     # acquire all data points
-                    y_offset = 0
-                    for gpar in self._gettable_pars:
-                        # acquire from the gettable
-                        new_data = gpar.get()
-                        # if the gettable returned a float, cast to list
-                        if np.isscalar(new_data):
-                            new_data = [new_data]
-                        # iterate through the data list, each element is different y for these x coordinates
-                        for val in new_data:
-                            old_val = self._dataset['y{}'.format(y_offset)].values[idx]
-                            if self.soft_avg() == 1 or np.isnan(old_val):
-                                self._dataset['y{}'.format(y_offset)].values[idx] = val
-                            else:
-                                averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                                self._dataset['y{}'.format(y_offset)].values[idx] = averaged
-                            y_offset += 1
+                    self._soft_get(idx)
                     self._nr_acquired_values += 1
                     self._update()
                 self._loop_count += 1
@@ -362,6 +334,24 @@ class MeasurementControl(Instrument):
             return old_data + new_data
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
+
+    def _soft_get(self, idx):
+        y_offset = 0
+        for gpar in self._gettable_pars:
+            # acquire from the gettable
+            new_data = gpar.get()
+            # if the gettable returned a float, cast to list
+            if np.isscalar(new_data):
+                new_data = [new_data]
+            # iterate through the data list, each element is different y for these x coordinates
+            for val in new_data:
+                old_val = self._dataset['y{}'.format(y_offset)].values[idx]
+                if self.soft_avg() == 1 or np.isnan(old_val):
+                    self._dataset['y{}'.format(y_offset)].values[idx] = val
+                else:
+                    averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
+                    self._dataset['y{}'.format(y_offset)].values[idx] = averaged
+                y_offset += 1
 
     ############################################
     # Methods used to control the measurements #
