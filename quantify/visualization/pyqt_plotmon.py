@@ -255,9 +255,7 @@ class PlotMonitor_pyqt(Instrument):
                     # interpolation needs to be meaningful
                     if len(z) < 8:
                         break
-                    x_grid, y_grid, z_grid = interpolate_heatmap(
-                        x=x, y=y, z=z,
-                        interp_method='linear')
+                    x_grid, y_grid, z_grid = interpolate_heatmap(x=x, y=y, z=z, interp_method='linear')
 
                     trace = self._im_curves[yidx]
                     trace['config']['x'] = x_grid

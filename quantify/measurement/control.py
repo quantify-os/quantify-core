@@ -417,16 +417,11 @@ class MeasurementControl(Instrument):
         """
         Whether this MeasurementControl controls data stepping
         """
-        if is_software_controlled(self._settable_pars[0]) and is_software_controlled(self._gettable_pars[0]):
-            for gpar in self._gettable_pars:
-                # necessary? problem is hardware mode 'skips' calling set on all setpoints (is that correct behaviour anyway? pycqed does it)
-                if not is_software_controlled(gpar):
-                    raise Exception("Mixed Gettables currently not supported")
+        if any(is_software_controlled(gpar) for gpar in self._gettable_pars):
+            if not all(is_software_controlled(gpar) for gpar in self._gettable_pars):
+                raise Exception("Control mismatch; all Gettables must have the same Control Mode")
             return True
-        elif not is_software_controlled(self._gettable_pars[0]):
-            return False
-        else:
-            raise Exception("Control mismatch")  # todo improve message
+        return False
 
     @property
     def _max_setpoints(self):
