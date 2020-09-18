@@ -601,9 +601,6 @@ class TestMeasurementControl:
         self.MC.soft_avg(1)
 
     def test_adaptive_nelder_mead(self):
-        plotmon = PlotMonitor_pyqt('plotmon_MC')
-        self.MC.instr_plotmon(plotmon.name)
-
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": optimize.minimize,
