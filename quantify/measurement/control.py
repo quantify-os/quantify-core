@@ -129,8 +129,6 @@ class MeasurementControl(Instrument):
         self._plotmon_name = ''
         self._plot_info = {'2D-grid': False}
 
-        self._GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
-
         # early exit signal
         self._exit_event = Event()
 
@@ -231,7 +229,7 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._soft_set_and_get(vec)
+            self._soft_set_and_get(vec, self._nr_acquired_values)
             ret = self._dataset['y0'].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
@@ -287,7 +285,7 @@ class MeasurementControl(Instrument):
             while self._get_fracdone() < 1.0:
                 self._prepare_gettable()
                 for row in self._setpoints:
-                    self._soft_set_and_get(row)
+                    self._soft_set_and_get(row, self._curr_setpoint_idx())
                     self._nr_acquired_values += 1
                     self._update()
                 self._loop_count += 1
@@ -326,7 +324,7 @@ class MeasurementControl(Instrument):
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _soft_set_and_get(self, setpoints: np.ndarray):
+    def _soft_set_and_get(self, setpoints: np.ndarray, idx: int):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
 
@@ -334,8 +332,6 @@ class MeasurementControl(Instrument):
         - in sweep, the x dimensions are already filled
         - in adaptive, soft_avg is always 1
         """
-        idx = self._curr_setpoint_idx()
-
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             self._dataset['x{}'.format(setpar_idx)].values[idx] = spt
