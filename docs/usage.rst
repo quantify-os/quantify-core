@@ -40,14 +40,6 @@ Instruments provide the following functionality.
 - All instruments inherit from the QCoDeS :class:`~qcodes.instrument.base.Instrument` class.
 
 
-
-.. note::
-
-    - Add example of instrument
-    - Add overview of different kind of instruments (meta-instrument, virtual instrument, etc.)
-
-
-
 Measurement Control
 ----------------------
 
@@ -64,11 +56,9 @@ Quantify provides two helper classes, Settable and Gettable to aid in these step
 - Enforce standardization of experiments
 - Standardized data storage
 - Live plotting of the experiment.
-- Support *advanced* experiments
-
-    + Software controlled
-    + Hardware controlled
-    + 1D/2D/nD
+- nD dimensional sweeps
+- Data acquisition controlled by software or hardware
+- Adaptive sweeps
 
 
 Basic example, a 1D soft-loop
@@ -91,11 +81,14 @@ The MeasurementControl can also be used to perform more advanced experiments suc
 Take a look at "nonexistent_example_notebook" for a tutorial on the MeasurementControl.
 
 
-.. note::
+Control Mode
+------------
 
-    - Add example 2D measurement
-    - Add example of adaptive loop
-    - Explain difference between hard and soft-loop.
+A very important distinct in the usage of the MeasurementControl is in the Control Mode, which specifies whether the MC itself dictates how the setpoints are iterated through, or whether an external device does.
+These modes are referred to as *Software* in the former case and *Hardware* in the latter. The benefit provided by this differentiation is in overhead reduction; it is often costly to transmit (large) blocks of data to external devices.
+In *Software* mode, the MC steps through each setpoint one at a time, processing them one by one.
+In *Hardware* mode, the MC vectorises the setpoints such that they processed in a batch.
+Control mode is detected automatically based on attributes on the Gettables; this expanded upon in subsequent sections.
 
 
 Settable and Gettable
@@ -105,9 +98,26 @@ The interfaces for Settable and Gettable parameters are encapsulated in the :cla
 We set values to Settables; these values populate an x-axis. Similarly, we get values from Gettables which populate a y-axis.
 These classes define a set of mandatory and optional attributes the MeasurementControl will use as part of the experiment, which are expanded up in the API Reference.
 
+Depending on which mode the MeasurementControl is running in, the interfaces for these objects are slightly different:
+
+**Software Controlled:**
+- Each settable accepts a single float value
+- Gettables return a single float value, OR
+- Gettables return a 1D array of floats, with each element corresponding to a *different y dimension*.
+
+**Hardware Controlled:**
+- Each settable accepts a 1D array of float values corresponding to all setpoints for a single dimension
+- Gettables return a 1D array of float values with each element corresponding to the datapoints *in that y dimension*, OR
+- Gettables return a 2D array of float values with each row representing a *different y dimension* with the above structure
+
+.. note::
+    It is also possible for a Hard Gettables to return a partial array with length less than the input. This is helpful when working with resource constrained devices,
+    for example if you have n setpoints but your device can only load <n datapoints into memory. In this scenario, the MC tracks how many datapoints were actually
+    processed, automatically adjusting the size of the next batch.
+
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
 In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
-Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave, using a QCodes Settable:
+Below we create a Soft Gettable which returns values in two dimensions, one Sine wave and a Cosine wave, using a QCodes Settable:
 
 .. jupyter-execute::
 
@@ -119,9 +129,9 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
 
     class DualWave:
         def __init__(self):
-            self.unit = 'A'
-            self.label = 'Amplitude'
-            self.name = 'wave'
+            self.unit = ['V', 'V']
+            self.label = ['Amplitude', 'Amplitude']
+            self.name = ['sine', 'cosine']
 
         def get(self):
             return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
@@ -130,44 +140,12 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
 .soft, .prepare() and .finish()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The MeasurementControl checks for 3 other optional properties on parameters, the `soft` attribute and the `prepare()` and `finish()` methods.
-`soft` declares whether this parameter is controlled by the MeasurementControl directly or manages itself, and typically delineates between
-data originating in software (such as a Sine function in Python) or hardware (such as an AWG). It defaults to `True` (ie, is software controlled).
+The MeasurementControl checks for 3 other optional properties on settables/gettables, the `soft` attribute and the `prepare()` and `finish()` methods.
+`soft` declares which Control Mode this parameter runs in. It defaults to `True` (ie, is software controlled). All Gettables must currently have the same setting;
+this defines which Control Mode the experiment will run in.
 
 The `prepare()` and `finish()` methods are useful for performing work before each iteration of the measurement loop and once after completion.
-For example, arming a piece of hardware with data and then closing a connection upon completion. The `prepare()` method for hardware
-parameter optionally accepts a list of floats as a parameter. For example
-
-.. jupyter-execute::
-
-    class SinGenerator:
-        def __init__(self):
-            self.unit ='A'
-            self.label = 'Amplitude'
-            self.name = 'awg'
-            self.soft = False
-            self.data = None
-
-        def prepare(setpoints):
-            self.arm(setpoints)
-
-        def arm(data):
-            # send the data to the device etc.
-            pass
-
-        def trigger():
-            # processes and returns data etc.
-            return []
-
-        def get():
-            np.array([np.sin(self.trigger() / np.pi)])
-
-        def shutdown():
-            # power off the device etc.
-            pass
-
-        def finish():
-            self.shutdown()
+For example, arming a piece of hardware with data and then closing a connection upon completion.
 
 Data storage & Analysis
 =========================

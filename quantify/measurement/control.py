@@ -129,8 +129,6 @@ class MeasurementControl(Instrument):
         self._plotmon_name = ''
         self._plot_info = {'2D-grid': False}
 
-        self._GETTABLE_IDX = 0  # avoid magic numbers until/if we support multiple Gettables
-
         # early exit signal
         self._exit_event = Event()
 
@@ -231,21 +229,11 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
-            for idx, settable in enumerate(self._settable_pars):
-                settable.set(vec[idx])
-                self._dataset['x{}'.format(idx)].values[self._nr_acquired_values] = vec[idx]
-            vals = self._gettable_pars[self._GETTABLE_IDX].get()
-
-            # if we returned a single value, wrap it in an array to make the later nD compliant code work
-            if np.isscalar(vals):
-                vals = [vals]
-
-            for idx, val in enumerate(vals):
-                self._dataset['y{}'.format(idx)].values[self._nr_acquired_values] = val
-
+            self._soft_set_and_get(vec, self._nr_acquired_values)
+            ret = self._dataset['y0'].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
-            return vals[0]
+            return ret
 
         def subroutine():
             self._prepare_settables()
@@ -296,20 +284,8 @@ class MeasurementControl(Instrument):
         try:
             while self._get_fracdone() < 1.0:
                 self._prepare_gettable()
-                for idx, spts in enumerate(self._setpoints):
-                    # set all individual setparams
-                    for spar, spt in zip(self._settable_pars, spts):
-                        # TODO add smartness to avoid setting if unchanged
-                        spar.set(spt)
-                    # acquire all data points
-                    for j, gpar in enumerate(self._gettable_pars):
-                        val = gpar.get()
-                        old_val = self._dataset['y{}'.format(j)].values[idx]
-                        if self.soft_avg() == 1 or np.isnan(old_val):
-                            self._dataset['y{}'.format(j)].values[idx] = val
-                        else:
-                            averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                            self._dataset['y{}'.format(j)].values[idx] = averaged
+                for row in self._setpoints:
+                    self._soft_set_and_get(row, self._curr_setpoint_idx())
                     self._nr_acquired_values += 1
                     self._update()
                 self._loop_count += 1
@@ -321,21 +297,23 @@ class MeasurementControl(Instrument):
             while self._get_fracdone() < 1.0:
                 setpoint_idx = self._curr_setpoint_idx()
                 for i, spar in enumerate(self._settable_pars):
-                    swf_setpoints = self._setpoints[:, i]
-                    spar.set(swf_setpoints[setpoint_idx])
-                self._prepare_gettable(self._setpoints[setpoint_idx:, self._GETTABLE_IDX])
+                    spar.set(self._setpoints[setpoint_idx:, i])
+                self._prepare_gettable()
 
-                new_data = self._gettable_pars[self._GETTABLE_IDX].get()  # can return (N, M)
-                # if we get a simple array, shape it to (1, M)
-                if len(np.shape(new_data)) == 1:
-                    new_data = new_data.reshape(1, (len(new_data)))
+                y_offset = 0
+                for gpar in self._gettable_pars:
+                    new_data = gpar.get()  # can return (N, M)
+                    # if we get a simple array, shape it to (1, M)
+                    if len(np.shape(new_data)) == 1:
+                        new_data = new_data.reshape(1, (len(new_data)))
 
-                for i, row in enumerate(new_data):
-                    slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = self._dataset['y{}'.format(i)].values[setpoint_idx:slice_len]
-                    old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset['y{}'.format(i)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
-                self._nr_acquired_values += np.shape(new_data)[1]
+                    for row in new_data:
+                        slice_len = setpoint_idx + len(row)  # the slice we will be updating
+                        old_vals = self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len]
+                        old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
+                        self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                        y_offset += 1
+                    self._nr_acquired_values += np.shape(new_data)[1]
                 self._update()
         except KeyboardFinish as e:
             return
@@ -345,6 +323,35 @@ class MeasurementControl(Instrument):
             return old_data + new_data
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
+
+    def _soft_set_and_get(self, setpoints: np.ndarray, idx: int):
+        """
+        Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
+
+        Note: some lines in this function are redundant depending on mode (sweep vs adaptive). Specifically
+        - in sweep, the x dimensions are already filled
+        - in adaptive, soft_avg is always 1
+        """
+        # set all individual setparams
+        for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
+            self._dataset['x{}'.format(setpar_idx)].values[idx] = spt
+            spar.set(spt)  # TODO add smartness to avoid setting if unchanged
+        # get all data points
+        y_offset = 0
+        for gpar in self._gettable_pars:
+            new_data = gpar.get()
+            # if the gettable returned a float, cast to list
+            if np.isscalar(new_data):
+                new_data = [new_data]
+            # iterate through the data list, each element is different y for these x coordinates
+            for val in new_data:
+                old_val = self._dataset['y{}'.format(y_offset)].values[idx]
+                if self.soft_avg() == 1 or np.isnan(old_val):
+                    self._dataset['y{}'.format(y_offset)].values[idx] = val
+                else:
+                    averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
+                    self._dataset['y{}'.format(y_offset)].values[idx] = averaged
+                y_offset += 1
 
     ############################################
     # Methods used to control the measurements #
@@ -368,21 +375,16 @@ class MeasurementControl(Instrument):
         if self._exit_event.is_set():
             raise KeyboardFinish()
 
-    def _prepare_gettable(self, setpoints=None):
+    def _prepare_gettable(self):
         """
         Call prepare() on the Gettable, if prepare() exists
-
-        Args:
-            setpoints (:class:`numpy.ndarray`): The values to pass to the Gettable
         """
-        try:
-            if setpoints is not None:
-                self._gettable_pars[self._GETTABLE_IDX].prepare(setpoints)
-            else:
-                self._gettable_pars[self._GETTABLE_IDX].prepare()
-        # it's fine if the gettable does not have a prepare function
-        except AttributeError:
-            pass
+        for getpar in self._gettable_pars:
+            try:
+                getpar.prepare()
+            # it's fine if the gettable does not have a prepare function
+            except AttributeError:
+                pass
 
     def _prepare_settables(self):
         """
@@ -411,12 +413,11 @@ class MeasurementControl(Instrument):
         """
         Whether this MeasurementControl controls data stepping
         """
-        if is_software_controlled(self._settable_pars[0]) and is_software_controlled(self._gettable_pars[0]):
+        if any(is_software_controlled(gpar) for gpar in self._gettable_pars):
+            if not all(is_software_controlled(gpar) for gpar in self._gettable_pars):
+                raise Exception("Control mismatch; all Gettables must have the same Control Mode")
             return True
-        elif not is_software_controlled(self._gettable_pars[0]):
-            return False
-        else:
-            raise Exception("Control mismatch")  # todo improve message
+        return False
 
     @property
     def _max_setpoints(self):
@@ -487,7 +488,7 @@ class MeasurementControl(Instrument):
             settable_pars = [settable_pars]
 
         self._settable_pars = []
-        for _, settable in enumerate(settable_pars):
+        for settable in settable_pars:
             self._settable_pars.append(Settable(settable))
 
     def setpoints(self, setpoints):
@@ -535,7 +536,7 @@ class MeasurementControl(Instrument):
             self._plot_info['2D-grid'] = True
         self._setpoints = tile_setpoints_grid(setpoints)
 
-    def gettables(self, gettable_par):
+    def gettables(self, gettable_pars):
         """
         Define the parameters to be acquired during the acquisition loop.
 
@@ -545,12 +546,13 @@ class MeasurementControl(Instrument):
                  - a single Gettable object
 
         The :class:`~quantify.measurement.Gettable` helper class defines the requirements for a Gettable object.
-
-        TODO: support fancier getables, i.e. ones that return
-            - more than one quantity
-
         """
-        self._gettable_pars = [Gettable(gettable_par)]
+        if not isinstance(gettable_pars, (list, tuple)):
+            gettable_pars = [gettable_pars]
+
+        self._gettable_pars = []
+        for gpar in gettable_pars:
+            self._gettable_pars.append(Gettable(gpar))
 
 
 def tile_setpoints_grid(setpoints):

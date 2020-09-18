@@ -63,7 +63,7 @@
                 "description": "identifier"
             },
             "get": {
-                "description": "get a float value",
+                "description": "get values from this device",
                 "type": "object"
             },
             "prepare": {

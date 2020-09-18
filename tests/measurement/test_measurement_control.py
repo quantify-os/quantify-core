@@ -27,10 +27,18 @@ def CosFunc(t, amplitude, frequency, phase):
     return amplitude * np.cos(2 * np.pi * frequency * t + phase)
 
 
+def SinFunc(t, amplitude, frequency, phase):
+    return amplitude * np.sin(2 * np.pi * frequency * t + phase)
+
+
 # Parameters are created to emulate a system being measured
 t = ManualParameter('t', initial_value=1, unit='s', label='Time')
 amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
 freq = ManualParameter('freq', initial_value=1, unit='Hz', label='Frequency')
+
+
+def sine_model():
+    return SinFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
 
 def cosine_model():
@@ -41,18 +49,14 @@ def cosine_model():
 sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
 
 
-class NoneSweep:
-    """
-    A mock Settable which does nothing but provide axis info
-    """
-    def __init__(self, soft):
-        self.name = 'none'
-        self.unit = 'N'
-        self.label = 'None'
-        self.soft = soft
+class DualWave:
+    def __init__(self):
+        self.name = ['sin', 'cos']
+        self.unit = ['V', 'V']
+        self.label = ['Sine', 'Cosine']
 
-    def set(self, val):
-        pass
+    def get(self):
+        return np.array([sine_model(), cosine_model()])
 
 
 class DummyParHolder(Instrument):
@@ -98,50 +102,57 @@ class DummyParHolder(Instrument):
         )
 
 
-def hardware_mock_values_1D(setpoints):
-    return np.array([np.tan(setpoints / np.pi)])
+def hardware_mock_values(setpoints):
+    return np.sin(setpoints / np.pi)
 
 
-def hardware_mock_values_2D(setpoints):
-    return np.array([np.sin(setpoints / np.pi), np.cos(setpoints / np.pi)])
+class DummyHardwareSettable:
 
-
-class DummyDetector:
-    """
-    A mock external Gettable, returning either a Sin or [Sin, Cos] wave
-
-    Args:
-        mode (str): Number of data rows to return, supports '1D' and '2D'
-    """
-    def __init__(self, return_dimensions: str, noise=0.0):
-        if return_dimensions == '1D':
-            self.name = 'dum'
-            self.unit = 'W'
-            self.label = 'Watts'
-            self.mock_fn = hardware_mock_values_1D
-        elif return_dimensions == '2D':
-            self.name = ['dum', 'mud']
-            self.unit = ['W', 'M']
-            self.label = ['Watts', 'Matts']
-            self.mock_fn = hardware_mock_values_2D
-        else:
-            raise Exception('Unsupported mode: {}'.format(return_dimensions))
-        self.delay = 0
-        self.noise = noise
+    def __init__(self):
+        self.name = 'DummyHardwareSettable'
+        self.label = 'Amp'
+        self.unit = 'V'
         self.soft = False
+        self.setpoints = []
 
-    def prepare(self, setpoints):
+    # copy what qcodes does for easy testing interop
+    def __call__(self):
+        return self.setpoints
+
+    def set(self, setpoints):
         self.setpoints = setpoints
 
+
+class DummyHardwareGettable:
+
+    def __init__(self, settables, noise=0.0):
+        self.name = ['DummyHardwareGettable_0']
+        self.unit = ['W']
+        self.label = ['Watts']
+        self.soft = False
+        self.settables = [settables] if not isinstance(settables, list) else settables
+        self.noise = noise
+        self.get_func = hardware_mock_values
+
+    def set_return_2D(self):
+        self.name.append('DummyHardwareGettable_1')
+        self.unit.append('V')
+        self.label.append('Amp')
+
+    def prepare(self):
+        assert len(self.settables) > 0
+        for settable in self.settables:
+            assert settable is not None
+
+    def _get_data(self):
+        return np.array([i() for i in self.settables])
+
     def get(self):
-        x = self.setpoints
-        noise = self.noise * (np.random.rand(2, len(x)) - .5)
-        data = self.mock_fn(x)
-        # todo, fix this hack, noise doesn't currently naturally sum with data in 1D
-        if self.noise:
-            data += noise
-        time.sleep(self.delay)
-        return data
+        data = self._get_data()
+        data = self.get_func(data)
+        noise = self.noise * (np.random.rand(1, data.shape[1]) - .5)
+        data += noise
+        return data[0:len(self.name), :]
 
 
 class TestMeasurementControl:
@@ -196,6 +207,21 @@ class TestMeasurementControl:
         assert dset['x0'].attrs == {'name': 't', 'long_name': 'Time', 'unit': 's'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
+    def test_soft_sweep_1D_multi_return(self):
+        xvals = np.linspace(0, 2*np.pi, 31)
+
+        self.MC.settables(t)
+        self.MC.setpoints(xvals)
+        self.MC.gettables(DualWave())
+        dset = self.MC.run()
+
+        exp_y0 = SinFunc(xvals, 1, 1, 0)
+        exp_y1 = CosFunc(xvals, 1, 1, 0)
+
+        assert dset.keys() == {'x0', 'y0', 'y1'}
+        np.testing.assert_array_equal(dset['y0'], exp_y0)
+        np.testing.assert_array_equal(dset['y1'], exp_y1)
+
     def test_soft_averages_soft_sweep_1D(self):
         def rand():
             return random.uniform(0.0, t())
@@ -216,75 +242,59 @@ class TestMeasurementControl:
 
     def test_hard_sweep_1D(self):
         x = np.linspace(0, 10, 5)
-        self.MC.settables(NoneSweep(soft=False))
+        device = DummyHardwareSettable()
+        self.MC.settables(device)
         self.MC.setpoints(x)
-        self.MC.gettables(DummyDetector("2D"))
+        self.MC.gettables(DummyHardwareGettable(device))
         dset = self.MC.run()
 
-        expected_vals = hardware_mock_values_2D(x)
+        expected_vals = hardware_mock_values(x)
         assert (np.array_equal(dset['x0'].values, x))
-        assert (np.array_equal(dset['y0'].values, expected_vals[0]))
-        assert (np.array_equal(dset['y1'].values, expected_vals[1]))
+        assert (np.array_equal(dset['y0'].values, expected_vals))
 
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {'x0', 'y0', 'y1'}
-        assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
-        assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
-        assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+        assert dset.keys() == {'x0', 'y0'}
+        assert dset['x0'].attrs == {'name': 'DummyHardwareSettable', 'long_name': 'Amp', 'unit': 'V'}
+        assert dset['y0'].attrs == {'name': 'DummyHardwareGettable_0', 'long_name': 'Watts', 'unit': 'W'}
 
     def test_soft_averages_hard_sweep_1D(self):
         setpoints = np.arange(50.0)
-        self.MC.settables(NoneSweep(soft=False))
+        settable = DummyHardwareSettable()
+        gettable = DummyHardwareGettable(settable)
+        gettable.noise = 0.4
+        self.MC.settables(settable)
         self.MC.setpoints(setpoints)
-        d = DummyDetector('2D')
-        d.noise = 0.4
-        self.MC.gettables(d)
+        self.MC.gettables(gettable)
         noisy_dset = self.MC.run('noisy')
         xn_0 = noisy_dset['x0'].values
-        expected_vals = hardware_mock_values_2D(xn_0)
-        yn_0 = abs(noisy_dset['y0'].values - expected_vals[0])
-        yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
+        expected_vals = hardware_mock_values(xn_0)
+        yn_0 = abs(noisy_dset['y0'].values - expected_vals)
 
         self.MC.soft_avg(5000)
-        self.MC.settables(NoneSweep(soft=False))
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(d)
         avg_dset = self.MC.run('averaged')
-        yavg_0 = abs(avg_dset['y0'].values - expected_vals[0])
-        yavg_1 = abs(avg_dset['y1'].values - expected_vals[1])
+        yavg_0 = abs(avg_dset['y0'].values - expected_vals)
 
         np.testing.assert_array_equal(xn_0, setpoints)
         assert np.mean(yn_0) > np.mean(yavg_0)
-        assert np.mean(yn_1) > np.mean(yavg_1)
-
         np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(xn_0)), decimal=2)
-        np.testing.assert_array_almost_equal(yavg_1, np.zeros(len(xn_0)), decimal=2)
 
     def test_soft_set_hard_get_1D(self):
-        mock = ManualParameter('m', initial_value=1, unit='M', label='Mock')
+        gettable = DummyHardwareGettable(t)
 
-        def mock_func(none):
-            # to also test if the values are set correctly in the sweep
-            arr = np.zeros([2, 2])
-            arr[0, :] = np.array([mock()] * 2)
-            arr[1, :] = np.array([mock() + 2] * 2)
-            return arr
+        def mock_get():
+            return np.sin(t())
 
-        d = DummyDetector(return_dimensions='2D')
-        d.mock_fn = mock_func
-        setpoints = np.repeat(np.arange(5.0), 2)
-
-        self.MC.settables(mock)
+        gettable.get = mock_get
+        setpoints = np.linspace(0, 360, 8)
+        self.MC.settables(t)
         self.MC.setpoints(setpoints)
-        self.MC.gettables(d)
+        self.MC.gettables(gettable)
         dset = self.MC.run("soft_sweep_hard_det")
 
         x = dset['x0'].values
         y0 = dset['y0'].values
-        y1 = dset['y1'].values
         np.testing.assert_array_equal(x, setpoints)
-        np.testing.assert_array_equal(y0, setpoints)
-        np.testing.assert_array_equal(y1, setpoints + 2)
+        np.testing.assert_array_equal(y0, np.sin(setpoints))
 
     def test_soft_sweep_2D_grid(self):
 
@@ -355,9 +365,11 @@ class TestMeasurementControl:
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
+        gettable = DummyHardwareGettable(settables)
+        self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
-        self.MC.gettables(DummyDetector("2D"))
+        self.MC.gettables(gettable)
         dset = self.MC.run('2D Hard')
 
         exp_sp = tile_setpoints_grid([times, amps])
@@ -365,27 +377,50 @@ class TestMeasurementControl:
         assert np.array_equal(dset['x0'].values, exp_sp[:, 0])
         assert np.array_equal(dset['x1'].values, exp_sp[:, 1])
 
-        expected_vals = hardware_mock_values_2D(dset['x0'].values)
-        assert np.array_equal(dset['y0'].values, expected_vals[0])
-        assert np.array_equal(dset['y1'].values, expected_vals[1])
+        expected_vals = hardware_mock_values(dset['x0'].values)
+        assert np.array_equal(dset['y0'].values, expected_vals)
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
 
-        assert dset['x0'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
-        assert dset['x1'].attrs == {'name': 'none', 'long_name': 'None', 'unit': 'N'}
-        assert dset['y0'].attrs == {'name': 'dum', 'long_name': 'Watts', 'unit': 'W'}
-        assert dset['y1'].attrs == {'name': 'mud', 'long_name': 'Matts', 'unit': 'M'}
+        assert dset['x0'].attrs == {'name': 'DummyHardwareSettable', 'long_name': 'Amp', 'unit': 'V'}
+        assert dset['x1'].attrs == {'name': 'DummyHardwareSettable', 'long_name': 'Amp', 'unit': 'V'}
+        assert dset['y0'].attrs == {'name': 'DummyHardwareGettable_0', 'long_name': 'Watts', 'unit': 'W'}
 
-    def test_hard_sweep_2D_grid_soft_avg(self):
+    def test_hard_sweep_2D_grid_multi_return(self):
+        times = np.linspace(10, 20, 3)
+        amps = np.linspace(0, 10, 5)
+
+        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
+        gettable = DummyHardwareGettable(settables)
+        gettable.set_return_2D()
+        self.MC.settables(settables)
+        self.MC.setpoints_grid([times, amps])
+        self.MC.gettables(gettable)
+        dset = self.MC.run('2D Hard')
+
+        exp_sp = tile_setpoints_grid([times, amps])
+        assert np.array_equal(exp_sp, self.MC._setpoints)
+        assert np.array_equal(dset['x0'].values, exp_sp[:, 0])
+        assert np.array_equal(dset['x1'].values, exp_sp[:, 1])
+
+        expected_vals = hardware_mock_values(np.stack((dset['x0'].values, dset['x1'].values)))
+        assert np.array_equal(dset['y0'].values, expected_vals[0])
+        assert np.array_equal(dset['y1'].values, expected_vals[1])
+
+    def test_hard_sweep_2D_grid_multi_return_soft_avg(self):
         x0 = np.arange(5)
         x1 = np.linspace(5, 10, 5)
-        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
+        gettable = DummyHardwareGettable(settables)
+        gettable.noise = 0.4
+        gettable.set_return_2D()
+        self.MC.settables(settables)
         self.MC.setpoints_grid([x0, x1])
-        self.MC.gettables(DummyDetector(return_dimensions='2D', noise=0.4))
+        self.MC.gettables(gettable)
         noisy_dset = self.MC.run('noisy_hard_grid')
 
-        expected_vals = hardware_mock_values_2D(noisy_dset['x0'].values)
+        expected_vals = hardware_mock_values(np.stack((noisy_dset['x0'].values, noisy_dset['x1'])))
         yn_0 = abs(noisy_dset['y0'].values - expected_vals[0])
         yn_1 = abs(noisy_dset['y1'].values - expected_vals[1])
 
@@ -413,18 +448,19 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        self.MC.settables([NoneSweep(soft=False), NoneSweep(soft=True)])
+        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
+        self.MC.settables(settables)
         self.MC.setpoints(setpoints)
-        self.MC.gettables(DummyDetector("1D"))
+        self.MC.gettables(DummyHardwareGettable(settables))
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs['tuid'])
 
-        expected_vals = hardware_mock_values_1D(x)
+        expected_vals = hardware_mock_values(x)
 
         assert np.array_equal(dset['x0'].values, x)
         assert np.array_equal(dset['x1'].values, y)
-        assert np.array_equal(dset['y0'].values, expected_vals[0, :])
+        assert np.array_equal(dset['y0'].values, expected_vals)
 
     def test_variable_return_hard_sweep(self):
         counter_param = ManualParameter("counter", initial_value=0)
@@ -440,11 +476,12 @@ class TestMeasurementControl:
                 return 2 * setpoints[:]
 
         setpoints = np.arange(30.0)
-        d = DummyDetector('1D')
-        d.mock_fn = v_size
-        self.MC.settables(NoneSweep(soft=False))
+        settable = DummyHardwareSettable()
+        gettable = DummyHardwareGettable(settable)
+        gettable.get_func = v_size
+        self.MC.settables(settable)
         self.MC.setpoints(setpoints)
-        self.MC.gettables(d)
+        self.MC.gettables(gettable)
         dset = self.MC.run('varying')
 
         assert np.array_equal(dset['x0'], setpoints)
@@ -457,25 +494,27 @@ class TestMeasurementControl:
             idx = counter_param() % 3
             counter_param(counter_param() + 1)
             if idx == 0:
-                return setpoints[:7]
+                return 2 * setpoints[:7]
             elif idx == 1:
-                return setpoints[:4]
+                return 2 * setpoints[:4]
             elif idx == 2:
-                return setpoints[:]
+                return 2 * setpoints[:]
 
-        self.MC.soft_avg(30)
         setpoints = np.arange(30.0)
-        d = DummyDetector('1D')
-        d.mock_fn = v_size
-        self.MC.settables(NoneSweep(soft=False))
+        settable = DummyHardwareSettable()
+        gettable = DummyHardwareGettable(settable)
+        gettable.get_func = v_size
+        gettable.noise = 0.25
+        self.MC.settables(settable)
         self.MC.setpoints(setpoints)
-        self.MC.gettables(d)
-        plain_dset = self.MC.run('varying_avg')
-        assert np.array_equal(plain_dset['x0'].values, setpoints)
-        assert np.array_equal(plain_dset['y0'].values, setpoints)
+        self.MC.gettables(gettable)
+        self.MC.soft_avg(5000)
+        dset = self.MC.run('varying')
+
+        assert np.array_equal(dset['x0'], setpoints)
+        np.testing.assert_array_almost_equal(dset.y0, 2 * setpoints, decimal=2)
 
     def test_soft_sweep_3D_grid(self):
-
         times = np.linspace(0, 5, 2)
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
@@ -509,6 +548,52 @@ class TestMeasurementControl:
         assert dset['x2'].attrs == {'name': 'freq', 'long_name': 'Frequency', 'unit': 'Hz'}
         assert dset['y0'].attrs == {'name': 'sig', 'long_name': 'Signal level', 'unit': 'V'}
 
+    def test_soft_sweep_3D_multi_return(self):
+        times = np.linspace(0, 5, 2)
+        amps = np.linspace(-1, 1, 3)
+        freqs = np.linspace(41000, 82000, 2)
+
+        self.MC.settables([t, amp, freq])
+        self.MC.setpoints_grid([times, amps, freqs])
+        self.MC.gettables([DualWave(), sig, DualWave()])
+        dset = self.MC.run()
+
+        exp_sp = tile_setpoints_grid([times, amps, freqs])
+        exp_y0 = exp_y3 = SinFunc(t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
+        exp_y1 = exp_y2 = exp_y4 = CosFunc(t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0)
+
+        np.testing.assert_array_equal(dset['y0'], exp_y0)
+        np.testing.assert_array_equal(dset['y1'], exp_y1)
+        np.testing.assert_array_equal(dset['y2'], exp_y2)
+        np.testing.assert_array_equal(dset['y3'], exp_y3)
+        np.testing.assert_array_equal(dset['y4'], exp_y4)
+
+    def test_hard_sweep_3D_multi_return_soft_averaging(self):
+        def v_get(setpoints):
+            return setpoints
+
+        times = np.linspace(0, 5, 2)
+        amps = np.linspace(-1, 1, 3)
+        freqs = np.linspace(41000, 82000, 2)
+        hardware_settable_0 = DummyHardwareSettable()
+        hardware_settable_1 = DummyHardwareSettable()
+        nd_gettable = DummyHardwareGettable([hardware_settable_0, hardware_settable_1])
+        nd_gettable.set_return_2D()
+        noisy_gettable = DummyHardwareGettable([t])
+        noisy_gettable.get_func = v_get
+        noisy_gettable.noise = 0.25
+
+        self.MC.settables([t, hardware_settable_0, hardware_settable_1])
+        self.MC.setpoints_grid([times, amps, freqs])
+        self.MC.gettables([noisy_gettable, nd_gettable])
+        self.MC.soft_avg(5000)
+        dset = self.MC.run()
+
+        exp_sp = tile_setpoints_grid([times, amps, freqs])
+        np.testing.assert_array_almost_equal(dset.y0, exp_sp[:, 0], decimal=2)
+        np.testing.assert_array_almost_equal(dset.y1, hardware_mock_values(exp_sp[:, 1]), decimal=4)
+        np.testing.assert_array_almost_equal(dset.y2, hardware_mock_values(exp_sp[:, 2]), decimal=4)
+
     def test_adaptive_no_averaging(self):
         self.MC.soft_avg(5)
         with pytest.raises(ValueError, match=r"software averaging not allowed in adaptive loops; currently set to 5"):
@@ -530,6 +615,37 @@ class TestMeasurementControl:
         assert dset['x1'][-1] < 0.7
         assert dset['y0'][-1] < 0.7
 
+    def test_adaptive_multi_return(self):
+        freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
+        amp = ManualParameter(name='amp', unit='V', label='Amplitude', initial_value=1)
+        dummy = ManualParameter(name='dummy', unit='V', label='Dummy', initial_value=99)
+        fwhm = 300
+        resonance_freq = random.uniform(6e9, 7e9)
+
+        def lorenz():
+            return amp() * ((fwhm / 2.) ** 2) / ((freq() - resonance_freq) ** 2 + (fwhm / 2.) ** 2)
+
+        # gimmick class for return
+        class ResonancePlus:
+            def __init__(self):
+                self.name = ['resonance', 'dummy']
+                self.label = ['Amplitude', 'Dummy']
+                self.unit = ['V', 'V']
+
+            def get(self):
+                return [lorenz(), dummy()]
+
+        self.MC.settables(freq)
+        af_pars = {
+            "adaptive_function": adaptive.learner.Learner1D,
+            "goal": lambda l: l.npoints > 5,
+            "bounds": (6e9, 7e9),
+        }
+        self.MC.gettables([ResonancePlus(), dummy])
+        dset = self.MC.run_adaptive('multi return', af_pars)
+        assert (dset['y1'].values == 99).all()
+        assert (dset['y2'].values == 99).all()
+
     def test_adaptive_bounds_1D(self):
         freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
         amp = ManualParameter(name='amp', unit='V', label='Amplitude', initial_value=1)
@@ -549,6 +665,7 @@ class TestMeasurementControl:
         }
         self.MC.gettables(resonance)
         dset = self.MC.run_adaptive('adaptive sample', af_pars)
+        print('jej')
 
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)

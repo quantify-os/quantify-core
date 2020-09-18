@@ -33,7 +33,7 @@
                 "description": "identifier"
             },
             "set": {
-                "description": "set this to a float value",
+                "description": "send data to this device",
                 "type": "object"
             },
             "prepare": {
