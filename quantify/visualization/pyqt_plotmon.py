@@ -1,10 +1,8 @@
-"""
------------------------------------------------------------------------------
-Description:    Module containing the pyqtgraph based plotting monitor.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Module containing the pyqtgraph based plotting monitor.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
 import numpy as np
 
 from qcodes import validators as vals

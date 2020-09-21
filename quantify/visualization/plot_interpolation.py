@@ -1,10 +1,8 @@
-"""
------------------------------------------------------------------------------
-Description:    Plot interpolations.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Plot interpolations.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
 import numpy as np
 import logging
 from scipy import interpolate

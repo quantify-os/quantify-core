@@ -1,10 +1,8 @@
-"""
------------------------------------------------------------------------------
-Description:    Utilities for managing SI units with plotting systems.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Utilities for managing SI units with plotting systems.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
