@@ -77,19 +77,6 @@ run:
     paths:
       - dist/*.whl
 
-pages:
-  stage: Deploy
-  allow_failure: true
-  script:
-    - apt install -y pandoc # required for nbsphinx plugin
-    - pip install sphinx
-    - pip install -r requirements_dev.txt
-    - cd docs ; make html
-    - mv _build/html/ ../public/
-  artifacts:
-    paths:
-      - public
-
 pypi:
   image: python:latest
   stage: Deploy
