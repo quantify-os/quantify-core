@@ -731,49 +731,6 @@ class TestMeasurementControl:
         plotmon.close()
         self.MC.instr_plotmon('')
 
-    def test_MC_interrupt_spawning_ok(self):
-        outer = ManualParameter('outer', label='test', unit='s', initial_value=0)
-
-        class ComplexSettable:
-            def __init__(self, timer_duration):
-                self.name = 'Unpickable_s'
-                self.label = 'Whoops'
-                self.unit = 's'
-                self.timer = Timer(timer_duration, self.update)
-                self.timer.daemon = True
-                self.timer.start()
-                self.val = 0
-
-            def update(self):
-                outer(50)
-
-            def set(self, setpoint):
-                self.val = setpoint
-
-        class ComplexGettable:
-            def __init__(self, settable):
-                self.name = 'Unpickable_g'
-                self.label = 'Whoops'
-                self.unit = 's'
-                self.settable = settable
-
-            def get(self):
-                if self.settable.val == 2:
-                    time.sleep(0.11)
-                    return outer()
-                return self.settable.val
-
-        with pytest.raises(AttributeError):
-            obj = pickle.dumps(ComplexSettable(0.0))
-
-        setpoints = np.arange(10)
-        self.MC.gettables(ComplexGettable(ComplexSettable(0.1)))
-        self.MC.settables(self.MC._gettable_pars[0].settable)
-        self.MC.setpoints(setpoints)
-
-        dset = self.MC.run()
-        assert dset['y0'].values[2] == 50
-
     def test_instrument_settings_from_disk(self):
         load_settings_onto_instrument(self.dummy_parabola, TUID('20200814-134652-492-fbf254'), test_datadir)
         assert self.dummy_parabola.x() == 40.0
