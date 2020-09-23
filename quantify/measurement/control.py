@@ -7,8 +7,6 @@ import time
 import json
 import types
 from os.path import join
-import concurrent.futures
-from threading import Event
 
 import numpy as np
 import adaptive
@@ -18,7 +16,6 @@ from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, grow_dataset, trim_dataset
 from quantify.measurement.types import Settable, Gettable, is_software_controlled
-from quantify.utilities.general import KeyboardFinish
 
 
 class MeasurementControl(Instrument):
@@ -126,9 +123,6 @@ class MeasurementControl(Instrument):
         self._plotmon_name = ''
         self._plot_info = {'2D-grid': False}
 
-        # early exit signal
-        self._exit_event = Event()
-
     ############################################
     # Methods used to control the measurements #
     ############################################
@@ -180,20 +174,13 @@ class MeasurementControl(Instrument):
 
         self._prepare_settables()
 
-        # spawn the measurement loop into a side thread and listen for a keyboard interrupt in the main
-        # a keyboard interrupt will signal to the measurement loop that it should stop processing
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        try:
             if self._is_soft:
-                runner = self._run_soft
+                self._run_soft()
             else:
-                runner = self._run_hard
-            future = executor.submit(runner)
-            try:
-                future.result()
-            except KeyboardInterrupt as e:
-                print('Interrupt signalled, exiting gracefully...')
-                self._exit_event.set()
-                future.result()
+                self._run_hard()
+        except KeyboardInterrupt as e:
+            print("Interrupt signalled, exiting gracefully...")
 
         self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
         self._finish()
@@ -262,15 +249,10 @@ class MeasurementControl(Instrument):
         self._reset()
         self.setpoints(np.empty((64, len(self._settable_pars))))  # block out some space in the dataset
         self._init(name)
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(subroutine)
-            try:
-                future.result()
-            except KeyboardInterrupt as e:
-                print('Interrupt signalled, exiting gracefully...')
-                self._exit_event.set()
-                future.result()
+        try:
+            subroutine()
+        except KeyboardInterrupt as e:
+            print('Interrupt signalled, exiting gracefully...')
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
@@ -278,42 +260,36 @@ class MeasurementControl(Instrument):
         return self._dataset
 
     def _run_soft(self):
-        try:
-            while self._get_fracdone() < 1.0:
-                self._prepare_gettable()
-                for row in self._setpoints:
-                    self._soft_set_and_get(row, self._curr_setpoint_idx())
-                    self._nr_acquired_values += 1
-                    self._update()
-                self._loop_count += 1
-        except KeyboardFinish as e:
-            return
+        while self._get_fracdone() < 1.0:
+            self._prepare_gettable()
+            for row in self._setpoints:
+                self._soft_set_and_get(row, self._curr_setpoint_idx())
+                self._nr_acquired_values += 1
+                self._update()
+            self._loop_count += 1
 
     def _run_hard(self):
-        try:
-            while self._get_fracdone() < 1.0:
-                setpoint_idx = self._curr_setpoint_idx()
-                for i, spar in enumerate(self._settable_pars):
-                    spar.set(self._setpoints[setpoint_idx:, i])
-                self._prepare_gettable()
+        while self._get_fracdone() < 1.0:
+            setpoint_idx = self._curr_setpoint_idx()
+            for i, spar in enumerate(self._settable_pars):
+                spar.set(self._setpoints[setpoint_idx:, i])
+            self._prepare_gettable()
 
-                y_offset = 0
-                for gpar in self._gettable_pars:
-                    new_data = gpar.get()  # can return (N, M)
-                    # if we get a simple array, shape it to (1, M)
-                    if len(np.shape(new_data)) == 1:
-                        new_data = new_data.reshape(1, (len(new_data)))
+            y_offset = 0
+            for gpar in self._gettable_pars:
+                new_data = gpar.get()  # can return (N, M)
+                # if we get a simple array, shape it to (1, M)
+                if len(np.shape(new_data)) == 1:
+                    new_data = new_data.reshape(1, (len(new_data)))
 
-                    for row in new_data:
-                        slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                        old_vals = self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len]
-                        old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                        self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
-                        y_offset += 1
-                    self._nr_acquired_values += np.shape(new_data)[1]
-                self._update()
-        except KeyboardFinish as e:
-            return
+                for row in new_data:
+                    slice_len = setpoint_idx + len(row)  # the slice we will be updating
+                    old_vals = self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len]
+                    old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
+                    self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                    y_offset += 1
+                self._nr_acquired_values += np.shape(new_data)[1]
+            self._update()
 
     def _build_data(self, new_data, old_data):
         if self.soft_avg() == 1:
@@ -357,9 +333,6 @@ class MeasurementControl(Instrument):
     def _update(self, print_message: str = None):
         """
         Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
-
-        Raises:
-            (:class:`quantify.utilities.general.KeyboardFinish`): if the main thread has signalled to exit early
         """
         update = time.time() - self._last_upd > self.update_interval() \
             or self._nr_acquired_values == self._max_setpoints
@@ -369,8 +342,6 @@ class MeasurementControl(Instrument):
             if self._plotmon_name is not None and self._plotmon_name != '':
                 self.instr_plotmon.get_instr().update()
             self._last_upd = time.time()
-        if self._exit_event.is_set():
-            raise KeyboardFinish()
 
     def _prepare_gettable(self):
         """
