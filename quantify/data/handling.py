@@ -131,10 +131,10 @@ def create_exp_folder(tuid, name='', datadir=None):
     Args:
         tuid (:class:`~quantify.data.types.TUID`) : a timestamp based human-readable unique identifier.
         name (str) : optional name to identify the folder
-        datadir (str) : path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+        datadir (str) : path of the data directory. If ``None``, uses ``get_datadir()`` to determine the data directory.
 
     Returns:
-        str: full path of the experiment folder following format: /datadir/YYMMDD/HHMMSS-******-name/.
+        str: full path of the experiment folder following format: ``/datadir/YYMMDD/HHMMSS-******-name/``.
     """
     assert TUID.is_valid(tuid)
 
