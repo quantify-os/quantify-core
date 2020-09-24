@@ -27,7 +27,8 @@ class TUID(str):
     def uuid(self):
         """
         Returns:
-            str: the uuid component of the TUID.
+            str: the uuid (universally unique identifier) component of the TUID,
+            corresponding to the last 6 characters.
         """
         return self[20:]
 
