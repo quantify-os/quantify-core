@@ -1,7 +1,7 @@
 """
 -----------------------------------------------------------------------------
-Description:    Backends for the quantify sequencer.
-                A backend takes a :class:`~quantify.sequencer.types.Schedule` object as input and produces output in a
+Description:    Backends for the quantify.scheduler.
+                A backend takes a :class:`~quantify.scheduler.types.Schedule` object as input and produces output in a
                 different format. Examples of backends are a visualization, simulator input formats, or a
                 hardware input format.
 Repository:     https://gitlab.com/qblox/packages/software/quantify/
@@ -25,7 +25,7 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     Creates a circuit diagram visualization of a schedule using matplotlib.
 
     Args:
-        schedule (:class:`~quantify.sequencer.types.Schedule`) : the schedule to render.
+        schedule (:class:`~quantify.scheduler.types.Schedule`) : the schedule to render.
         figsize (tuple) : matplotlib figsize.
 
     Returns:
