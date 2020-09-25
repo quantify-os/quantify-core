@@ -16,8 +16,10 @@ class QubitResource(Resource):
     def __init__(self, name: str):
         super().__init__()
 
-        self.data = {'name': name,
-                     'type': str(self.__class__.__name__)}
+        self.data = {'name': name, 'type': str(self.__class__.__name__)}
+
+    def __str__(self):
+        return self.data['name']
 
 
 class CompositeResource(Resource):

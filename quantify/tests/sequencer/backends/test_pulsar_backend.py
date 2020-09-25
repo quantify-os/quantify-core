@@ -234,17 +234,17 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     sched.add_resource(q1)
 
     # Define the operations, these will be added to the circuit
-    init_all = Reset(q0.name, q1.name)  # instantiates
+    init_all = Reset(q0.name, q1)  # instantiates
     x90_q0 = Rxy(theta=90, phi=0, qubit=q0.name)
 
     # we use a regular for loop as we have to unroll the changing theta variable here
     for theta in np.linspace(0, 360, 21):
         sched.add(init_all)
         sched.add(x90_q0)
-        sched.add(operation=CZ(qC=q0.name, qT=q1.name))
+        sched.add(operation=CZ(qC=q0.name, qT="q1"))
         sched.add(Rxy(theta=theta, phi=0, qubit=q0.name))
-        sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
-        sched.add(Measure(q0.name, q1.name), label='M {:.2f} deg'.format(theta))
+        sched.add(Rxy(theta=90, phi=0, qubit=q1))
+        sched.add(Measure(q0, q1.name), label='M {:.2f} deg'.format(theta))
 
     # Add the resources for the pulsar qcm channels
     qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
@@ -296,7 +296,7 @@ def test_mismatched_mod_freq():
     q0, q1 = (QubitResource('q0'), QubitResource('q1'))
     sched.add_resource(q0)
     sched.add_resource(q1)
-    sched.add(Rxy(theta=90, phi=0, qubit=q0.name))
+    sched.add(Rxy(theta=90, phi=0, qubit=q0))
     sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resource(qcm0_s0)
