@@ -24,20 +24,18 @@ class Rxy(Operation):
 
     """
 
-    def __init__(self, theta: float, phi: float, qubit: str):
+    def __init__(self, theta: float, phi: float, qubit):
         """
         A single qubit rotation around an axis in the equator of the Bloch sphere.
 
         Args:
-            theta (float) : rotation angle in degrees
-            phi (float)   : phase of the rotation axis
-            qubit (str)   : the target qubit
+            theta (float)   : rotation angle in degrees
+            phi (float)     : phase of the rotation axis
+            qubit           : the target qubit, by name or Resource
 
         N.B. we now expect floats, no parametrized operations yet...
         """
-
-        # data =
-
+        qubit = str(qubit)
         name = ('Rxy({:.2f}, {:.2f}) {}'.format(theta, phi, qubit))
 
         theta_r = np.deg2rad(theta)
@@ -75,7 +73,7 @@ class X(Rxy):
 
     """
 
-    def __init__(self, qubit: str):
+    def __init__(self, qubit):
         """
         Args:
             qubit (str): the target qubit
@@ -90,7 +88,7 @@ class X90(Rxy):
     A single qubit rotation of 90 degrees around the X-axis.
     """
 
-    def __init__(self, qubit: str):
+    def __init__(self, qubit):
         """
         Args:
             qubit (str): the target qubit
@@ -113,7 +111,7 @@ class Y(Rxy):
 
     """
 
-    def __init__(self, qubit: str):
+    def __init__(self, qubit):
         """
         Args:
             qubit (str): the target qubit
@@ -128,7 +126,7 @@ class Y90(Rxy):
     A single qubit rotation of 90 degrees around the Y-axis.
     """
 
-    def __init__(self, qubit: str):
+    def __init__(self, qubit):
         """
         Args:
             qubit (str): the target qubit
@@ -158,6 +156,9 @@ class CNOT(Operation):
     """
 
     def __init__(self, qC, qT):
+        qC = str(qC)
+        qT = str(qT)
+
         data = {'gate_info': {'unitary': np.array([[1, 0, 0, 0],
                                                    [0, 1, 0, 0],
                                                    [0, 0, 0, 1],
@@ -214,9 +215,9 @@ class Reset(Operation):
         data = {'gate_info': {'unitary': None,
                               'tex': r'$|0\rangle$',
                               'plot_func': 'quantify.visualization.circuit_diagram.reset',
-                              'qubits': list(qubits),
+                              'qubits': [str(q) for q in qubits],
                               'operation_type': 'reset'}}
-        super().__init__('Reset {}'.format(qubits), data=data)
+        super().__init__('Reset {}'.format([str(q) for q in qubits]), data=data)
 
 
 class Measure(Operation):
@@ -232,6 +233,6 @@ class Measure(Operation):
         data = {'gate_info': {'unitary': None,
                               'plot_func': 'quantify.visualization.circuit_diagram.meter',
                               'tex': r'$\langle0|$',
-                              'qubits': list(qubits),
+                              'qubits': [str(q) for q in qubits],
                               'operation_type': 'measure'}}
-        super().__init__('Measure {}'.format(qubits), data=data)
+        super().__init__('Measure {}'.format([str(q) for q in qubits]), data=data)

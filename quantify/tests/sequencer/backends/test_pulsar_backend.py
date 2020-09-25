@@ -1,11 +1,11 @@
 import json
 import pytest
-from quantify.data.handling import set_datadir
+from quantify.data.handling import set_datadir, get_datadir
 import numpy as np
 from qcodes.instrument.base import Instrument
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.sequencer.types import Schedule, Operation
-from quantify.sequencer.gate_library import Reset, Measure, CNOT, CZ, Rxy, X, X90
+from quantify.sequencer.types import Schedule
+from quantify.sequencer.gate_library import Reset, Measure, CZ, Rxy, X, X90
 from quantify.sequencer.pulse_library import SquarePulse
 from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, \
     pulsar_assembler_backend, _check_driver_version, QCM_DRIVER_VER, QRM_DRIVER_VER
@@ -77,28 +77,15 @@ def test_bad_pulse_timings():
 
     with pytest.raises(ValueError, match="Generated wait for '0':'drag_ID' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
-        build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4, {})
+        build_q1asm(short_pulse_timings, dummy_pulse_data, short_pulse_timings[-1][0] + 4, set())
 
     with pytest.raises(ValueError, match="Generated wait for '0':'square_id' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
-        build_q1asm(short_wait_timings, dummy_pulse_data, 10, {})
+        build_q1asm(short_wait_timings, dummy_pulse_data, 10, set())
 
     with pytest.raises(ValueError, match="Generated wait for '4':'square_id' caused exception 'duration 2ns < "
                                          "cycle time 4ns'"):
-        build_q1asm(short_final_wait, dummy_pulse_data, 10, {})
-
-
-def deploy_q1asm(cfg_path, messages=None, delete_file=False):
-    qcm = pulsar_qcm_dummy('test')
-    qcm.sequencer0_waveforms_and_program(str(cfg_path))
-    if not messages:
-        assert 'assembler finished successfully' in qcm.get_assembler_log()
-    else:
-        print(qcm.get_assembler_log())
-        for message in messages:
-            assert message in qcm.get_assembler_log()
-    if delete_file:
-        cfg_path.unlink()
+        build_q1asm(short_final_wait, dummy_pulse_data, 10, set())
 
 
 def test_overflowing_instruction_times():
@@ -112,12 +99,12 @@ def test_overflowing_instruction_times():
             'square_ID_Q': {'data': np.zeros(len(real)), 'index': 1}
         }
     }
-    program_str = build_q1asm(pulse_timings, pulse_data, len(real), {})
+    program_str = build_q1asm(pulse_timings, pulse_data, len(real), set())
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_large_plays_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
     pulse_timings.append((229380 + pow(2, 16), 'square_ID', None))
-    program_str = build_q1asm(pulse_timings, pulse_data, 524296, {})
+    program_str = build_q1asm(pulse_timings, pulse_data, 524296, set())
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_large_waits_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
@@ -141,22 +128,22 @@ def test_build_q1asm():
         }
     }
 
-    program_str = build_q1asm(pulse_timings, pulse_data, 20, {})
+    program_str = build_q1asm(pulse_timings, pulse_data, 20, set())
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_build_q1asm'), 'rb') as f:
         assert program_str.encode('utf-8') == f.read()
 
-    program_str_sync = build_q1asm(pulse_timings, pulse_data, 30, {})
+    program_str_sync = build_q1asm(pulse_timings, pulse_data, 30, set())
     with open(pathlib.Path(__file__).parent.joinpath('ref_test_build_q1asm_sync'), 'rb') as f:
         assert program_str_sync.encode('utf-8') == f.read()
 
     err = r"Provided sequence_duration.*4.*less than the total runtime of this sequence.*20"
     with pytest.raises(ValueError, match=err):
-        build_q1asm(pulse_timings, pulse_data, 4, {})
+        build_q1asm(pulse_timings, pulse_data, 4, set())
 
     # sequence_duration greater than final timing but less than total runtime
     err = r"Provided sequence_duration.*18.*less than the total runtime of this sequence.*20"
     with pytest.raises(ValueError, match=err):
-        build_q1asm(pulse_timings, pulse_data, 18, {})
+        build_q1asm(pulse_timings, pulse_data, 18, set())
 
 
 def test_generate_sequencer_cfg():
@@ -235,17 +222,17 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     sched.add_resource(q1)
 
     # Define the operations, these will be added to the circuit
-    init_all = Reset(q0.name, q1.name)  # instantiates
+    init_all = Reset(q0.name, q1)  # instantiates
     x90_q0 = Rxy(theta=90, phi=0, qubit=q0.name)
 
     # we use a regular for loop as we have to unroll the changing theta variable here
     for theta in np.linspace(0, 360, 21):
         sched.add(init_all)
         sched.add(x90_q0)
-        sched.add(operation=CZ(qC=q0.name, qT=q1.name))
+        sched.add(operation=CZ(qC=q0.name, qT="q1"))
         sched.add(Rxy(theta=theta, phi=0, qubit=q0.name))
-        sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
-        sched.add(Measure(q0.name, q1.name), label='M {:.2f} deg'.format(theta))
+        sched.add(Rxy(theta=90, phi=0, qubit=q1))
+        sched.add(Measure(q0, q1.name), label='M {:.2f} deg'.format(theta))
 
     # Add the resources for the pulsar qcm channels
     qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
@@ -263,7 +250,7 @@ def test_pulsar_assembler_backend(dummy_pulsars):
 
     sched.add_resources([qcm0, qcm0_s0, qcm0_s1, qcm1, qcm1_s0, qcm1_s1, qrm0, qrm0_s0, qrm0_s1])
 
-    seq_config_dict = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend, configure_hardware=PULSAR_ASSEMBLER)
+    sched, cfgs = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend, configure_hardware=PULSAR_ASSEMBLER)
 
     assert len(sched.resources['qcm0.s0'].timing_tuples) == int(21*2)
     assert len(sched.resources['qcm0.s1'].timing_tuples) == int(21*1)
@@ -297,7 +284,7 @@ def test_mismatched_mod_freq():
     q0, q1 = (QubitResource('q0'), QubitResource('q1'))
     sched.add_resource(q0)
     sched.add_resource(q1)
-    sched.add(Rxy(theta=90, phi=0, qubit=q0.name))
+    sched.add(Rxy(theta=90, phi=0, qubit=q0))
     sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resource(qcm0_s0)
@@ -306,58 +293,21 @@ def test_mismatched_mod_freq():
         qcompile(sched, bad_config, backend=pulsar_assembler_backend)
 
 
-def test_chevron():
+def test_gate_and_pulse():
     sched = Schedule("Chevron Experiment")
-    q0, q1 = (QubitResource("q0"), QubitResource("q1"))
-
-    # used to generate one long square wave
-    sq_duration = 8e-9
-    for amp, cut_off in zip(np.linspace(0.2, 0.8, 1), np.linspace(24e-9, sq_duration, 1)):
-        track_0_first_x = sched.add(X(q0.name))
-        chevron = X(q1.name)
-        chevron.add_pulse(SquarePulse(amp=amp, duration=sq_duration, ch='qcm1.s0', t0=20e-9))  # this channel should be different, is it the q0-q1 edge?
-        track_1_first_x = sched.add(chevron, ref_op=track_0_first_x, ref_pt='start')
-        track_0_second_x = sched.add(X90(q0.name), ref_op=track_1_first_x, ref_pt='start', rel_time=cut_off)
-        sched.add(X90(q1.name), ref_op=track_0_second_x, ref_pt='start')
-        sched.add(Measure(q0.name, q1.name))
+    q0 = QubitResource("q0")
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
-    qcm1_s0 = Pulsar_QCM_sequencer('qcm1.s0', instrument_name='qcm1', seq_idx=0)
-    qrm0_s0 = Pulsar_QRM_sequencer('qrm0.s0', instrument_name='qrm0', seq_idx=0)
-    qrm1_s0 = Pulsar_QRM_sequencer('qrm0.s1', instrument_name='qrm0', seq_idx=0)
 
-    sched.add_resources([q0, q1, qcm0_s0, qrm0_s0, qcm1_s0, qrm1_s0])
-    qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
+    sched.add(X(q0.name))
+    sched.add(SquarePulse(0.8, 20e-9, 'qcm0.s0'))
+    sched.add(Rxy(90, 90, q0.name))
+    sched.add(SquarePulse(0.4, 20e-9, 'qcm0.s0'))
 
-
-def test_pulsar_params():
-    sched = Schedule('pulsar_params')
-    q0 = QubitResource('q0')
-    sched.add(X(q0.name))
-    sched.add(X(q0.name))
-    sched.add(X(q0.name))
-    x_gate = X(q0.name)
-    x_gate.add_pulse(SquarePulse(0.5, 20e-9, 'qcm0.s0', t0=20e-9))
-    sched.add(x_gate)
-    qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resources([q0, qcm0_s0])
-    cfgs = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
-    with open(cfgs["qcm0.s0"], "rb") as cfg:
-        with open(pathlib.Path(__file__).parent.joinpath('ref_params.json'), 'rb') as ref:
-            prog = json.load(cfg)
-            ref_prog = json.load(ref)
-            assert prog['program'] == ref_prog['program']
-
-
-@pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar_qcm assembler to be installed")
-def test_configure_pulsar_sequencers():
-
-    pass
-
-
-@pytest.mark.skip('no reason')
-def test_rounding_errors_in_timing():
-
-    pass
+    sched, cfgs = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
+    with open(cfgs["qcm0.s0"], 'rb') as cfg:
+        prog = json.load(cfg)
+        assert len(prog['waveforms']['awg']) == 4
 
 
 @pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar drivers available")
