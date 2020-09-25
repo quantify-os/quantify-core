@@ -180,6 +180,7 @@ class MeasurementControl(Instrument):
             else:
                 self._run_hard()
         except KeyboardInterrupt as e:
+            print()
             print("Interrupt signalled, exiting gracefully...")
 
         self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
@@ -252,6 +253,7 @@ class MeasurementControl(Instrument):
         try:
             subroutine()
         except KeyboardInterrupt as e:
+            print()
             print('Interrupt signalled, exiting gracefully...')
 
         self._finish()
