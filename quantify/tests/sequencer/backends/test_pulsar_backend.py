@@ -7,7 +7,8 @@ from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.scheduler.types import Schedule
 from quantify.scheduler.gate_library import Reset, Measure, CZ, Rxy, X, X90
 from quantify.scheduler.pulse_library import SquarePulse
-from quantify.scheduler.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, pulsar_assembler_backend
+from quantify.scheduler.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, \
+    pulsar_assembler_backend, _check_driver_version, QCM_DRIVER_VER, QRM_DRIVER_VER
 from quantify.scheduler.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
 from quantify.scheduler.compilation import qcompile
 
@@ -307,3 +308,17 @@ def test_gate_and_pulse():
     with open(cfgs["qcm0.s0"], 'rb') as cfg:
         prog = json.load(cfg)
         assert len(prog['waveforms']['awg']) == 4
+
+
+@pytest.mark.skipif(not PULSAR_ASSEMBLER, reason="requires pulsar drivers available")
+def test_bad_driver_vers():
+    def subtest(device, version):
+        _check_driver_version(device, version)
+        # sad path
+        device._build = {'version': 'l.o.l.'}
+        error = "Backend requires Pulsar Dummy to have driver version {}, found l.o.l. installed.".format(version)
+        with pytest.raises(ValueError, match=error):
+            _check_driver_version(device, version)
+
+    subtest(pulsar_qcm_dummy('qcm_bad_vers'), QCM_DRIVER_VER)
+    subtest(pulsar_qrm_dummy('qrm_bad_vers'), QRM_DRIVER_VER)
