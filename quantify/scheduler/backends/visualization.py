@@ -17,7 +17,7 @@ from plotly.subplots import make_subplots
 
 from quantify.visualization.pulse_scheme import new_pulse_fig
 from quantify.utilities.general import import_func_from_string
-from quantify.sequencer.waveforms import modulate_wave
+from quantify.scheduler.waveforms import modulate_wave
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):

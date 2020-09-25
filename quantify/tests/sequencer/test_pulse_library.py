@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from quantify.sequencer import Operation
-from quantify.sequencer.gate_library import X90
-from quantify.sequencer.pulse_library import SquarePulse, DRAGPulse, IdlePulse, ModSquarePulse
+from quantify.scheduler import Operation
+from quantify.scheduler.gate_library import X90
+from quantify.scheduler.pulse_library import SquarePulse, DRAGPulse, IdlePulse, ModSquarePulse
 
 
 def test_operation_duration_single_pulse():

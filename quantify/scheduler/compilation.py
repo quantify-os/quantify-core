@@ -6,8 +6,8 @@
 import logging
 import jsonschema
 from typing import Callable
-from quantify.sequencer.types import Schedule
-from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
+from quantify.scheduler.types import Schedule
+from quantify.scheduler.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
 from quantify.utilities.general import load_json_schema
 
 
