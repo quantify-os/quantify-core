@@ -293,9 +293,12 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
 
 
 def _check_driver_version(instr, ver):
-    idn = instr.get_IDN()
-    if idn.whatever not == ver:
-        raise EnvironmentError("Backend requires Pulsar: {} requires version {}, but is {}")
+    driver_vers = instr.get_idn()['build']['driver']['version']
+    if driver_vers != ver:
+
+        raise ValueError("Backend requires {} to have driver version {}, found {} installed.".format(
+            instr.get_idn()['device'], ver, driver_vers
+        ))
 
 
 def configure_pulsar_sequencers(config_dict: dict):
