@@ -109,7 +109,6 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
 
     device_cfg: dict
         A dictionary specifying the required pulse information.
-        The device_cfg schema is specified in `sequencer/schemas/transmon_cfg.json` see also below.
 
 
     Returns
@@ -240,7 +239,6 @@ def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backen
         To be compiled
     device_cfg : dict
         Specifying the required pulse information. The device_cfg schema is specified in
-        `sequencer/schemas/transmon_cfg.json` see also below.
     clock_unit : str
         Must be ('physical', 'ideal') : whether to use physical units to determine the
         absolute time or ideal time.

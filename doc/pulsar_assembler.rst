@@ -3,14 +3,7 @@
 Assembler backends
 ===============================
 
-.. note::
-
-    This is part of the sequencer documentation that is under active development.
-
-Here I document how the assembler backend should function.
-I intend this documentation to evolve together with the implementation as we write it.
-
-The starting point for the assembler is a :class:`~quantify.sequencer.Schedule` containing several operations.
+The starting point for the assembler is a :class:`~quantify.scheduler.Schedule` containing several operations.
 The case we are considering does not include any "timeline-breaking" instructions such as hardware loops and feedback.
 We do not include any kind of classical logic.
 
