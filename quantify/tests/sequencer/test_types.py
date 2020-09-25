@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from quantify.sequencer import Schedule, Operation, Resource
-from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, X, X90, Y, Y90, CZ
-from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
+from quantify.scheduler import Schedule, Operation, Resource
+from quantify.scheduler.gate_library import Reset, Measure, CNOT, Rxy, X, X90, Y, Y90, CZ
+from quantify.scheduler.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
 
 def test_schedule_Bell():
     # Create an empty schedule

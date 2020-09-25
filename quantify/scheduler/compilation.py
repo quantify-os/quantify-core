@@ -1,13 +1,13 @@
 # -----------------------------------------------------------------------------
-# Description:    Compiler for the quantify sequencer.
+# Description:    Compiler for the quantify.scheduler.
 # Repository:     https://gitlab.com/qblox/packages/software/quantify/
 # Copyright (C) Qblox BV (2020)
 # -----------------------------------------------------------------------------
 import logging
 import jsonschema
 from typing import Callable
-from quantify.sequencer.types import Schedule
-from quantify.sequencer.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
+from quantify.scheduler.types import Schedule
+from quantify.scheduler.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
 from quantify.utilities.general import load_json_schema
 
 
@@ -17,7 +17,7 @@ def _determine_absolute_timing(schedule, clock_unit='physical'):
 
     Parameters
     ----------
-    schedule : :class:`~quantify.sequencer.Schedule`
+    schedule : :class:`~quantify.scheduler.Schedule`
         The schedule for which to determine timings.
     clock_unit : str
         Must be ('physical', 'ideal') : whether to use physical units to determine the
@@ -28,12 +28,12 @@ def _determine_absolute_timing(schedule, clock_unit='physical'):
 
     Returns
     ----------
-    schedule : :class:`~quantify.sequencer.Schedule`
+    schedule : :class:`~quantify.scheduler.Schedule`
         a new schedule object where the absolute time for each operation has been determined.
 
 
     This function determines absolute timings for every operation in the
-    :attr:`~quantify.sequencer.Schedule.timing_constraints`. It does this by:
+    :attr:`~quantify.scheduler.Schedule.timing_constraints`. It does this by:
 
         1. iterating over all and elements in the timing_constraints.
         2. determining the absolute time of the reference operation.
@@ -104,17 +104,16 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
 
     Parameters
     ------------
-    schedule : :class:`~quantify.sequencer.Schedule`
+    schedule : :class:`~quantify.scheduler.Schedule`
         The schedule for which to add pulse information.
 
     device_cfg: dict
         A dictionary specifying the required pulse information.
-        The device_cfg schema is specified in `sequencer/schemas/transmon_cfg.json` see also below.
 
 
     Returns
     ----------
-    schedule : :class:`~quantify.sequencer.Schedule`
+    schedule : :class:`~quantify.scheduler.Schedule`
         a new schedule object where the pulse information has been added.
 
 
@@ -123,10 +122,10 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
 
     The following gate type operations are supported by this compilation step.
 
-    - :class:`~quantify.sequencer.gate_library.Rxy`
-    - :class:`~quantify.sequencer.gate_library.Reset`
-    - :class:`~quantify.sequencer.gate_library.Measure`
-    - :class:`~quantify.sequencer.gate_library.CZ`
+    - :class:`~quantify.scheduler.gate_library.Rxy`
+    - :class:`~quantify.scheduler.gate_library.Reset`
+    - :class:`~quantify.scheduler.gate_library.Measure`
+    - :class:`~quantify.scheduler.gate_library.CZ`
 
 
     .. rubric:: Configuration specification
@@ -218,7 +217,7 @@ def validate_config(config: dict, scheme_fn: str):
     config : dict
         The configuration to validate
     scheme_fn : str
-        The name of a json schema in the quantify.sequencer.schemas folder.
+        The name of a json schema in the quantify.scheduler.schemas folder.
 
     Returns
     ----------
@@ -236,11 +235,10 @@ def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backen
 
     Parameters
     ----------
-    schedule : :class:`~quantify.sequencer.Schedule`
+    schedule : :class:`~quantify.scheduler.Schedule`
         To be compiled
     device_cfg : dict
         Specifying the required pulse information. The device_cfg schema is specified in
-        `sequencer/schemas/transmon_cfg.json` see also below.
     clock_unit : str
         Must be ('physical', 'ideal') : whether to use physical units to determine the
         absolute time or ideal time.
@@ -251,7 +249,7 @@ def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backen
 
     Returns
     ----------
-    schedule : :class:`~quantify.sequencer.Schedule`
+    schedule : :class:`~quantify.scheduler.Schedule`
         The prepared schedule if no backend is provided, otherwise whatever object returned by the backend
 
     .. rubric:: Configuration specification

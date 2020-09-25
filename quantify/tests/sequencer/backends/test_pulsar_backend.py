@@ -4,13 +4,13 @@ from quantify.data.handling import set_datadir, get_datadir
 import numpy as np
 from qcodes.instrument.base import Instrument
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.sequencer.types import Schedule
-from quantify.sequencer.gate_library import Reset, Measure, CZ, Rxy, X, X90
-from quantify.sequencer.pulse_library import SquarePulse
-from quantify.sequencer.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, \
+from quantify.scheduler.types import Schedule
+from quantify.scheduler.gate_library import Reset, Measure, CZ, Rxy, X, X90
+from quantify.scheduler.pulse_library import SquarePulse
+from quantify.scheduler.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, \
     pulsar_assembler_backend, _check_driver_version, QCM_DRIVER_VER, QRM_DRIVER_VER
-from quantify.sequencer.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
-from quantify.sequencer.compilation import qcompile
+from quantify.scheduler.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
+from quantify.scheduler.compilation import qcompile
 
 
 try:

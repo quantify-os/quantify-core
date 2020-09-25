@@ -144,10 +144,10 @@ def _prepare_pulse(description):
         return description
 
     wf_func = description['wf_func']
-    if wf_func == 'quantify.sequencer.waveforms.square' or wf_func == 'quantify.sequencer.waveforms.soft_square':
+    if wf_func == 'quantify.scheduler.waveforms.square' or wf_func == 'quantify.scheduler.waveforms.soft_square':
         params = PulsarModulations(gain=description['amp'])
         return params, dummy_load_params([('amp', 1.0)])
-    elif wf_func == 'quantify.sequencer.waveforms.drag':
+    elif wf_func == 'quantify.scheduler.waveforms.drag':
         params = PulsarModulations(gain=description['G_amp'], gain_Q=description['D_amp'], phase=description['phase'])
         return params, dummy_load_params([('G_amp', 1.0), ('D_amp', 1.0), ('phase', 0)])
     elif wf_func is None:
@@ -169,7 +169,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
 
     Parameters
     ------------
-    schedule : :class:`~quantify.sequencer.types.Schedule` :
+    schedule : :class:`~quantify.scheduler.types.Schedule` :
         The schedule to convert into assembly.
 
     tuid : :class:`~quantify.data.types.TUID` :
@@ -184,7 +184,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
 
     Returns
     ----------
-    schedule : :class:`~quantify.sequencer.types.Schedule` :
+    schedule : :class:`~quantify.scheduler.types.Schedule` :
         The schedule
     config_dict : dict
         of sequencer names as keys with json filenames as values

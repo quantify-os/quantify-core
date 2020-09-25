@@ -1,6 +1,6 @@
 """
 -----------------------------------------------------------------------------
-Description:    Library standard pulses for use with the quantify sequencer.
+Description:    Library standard pulses for use with the quantify.scheduler.
 Repository:     https://gitlab.com/qblox/packages/software/quantify/
 Copyright (C) Qblox BV (2020)
 -----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ class SquarePulse(Operation):
         """
 
         data = {'name': 'SquarePulse', 'pulse_info': [{
-            'wf_func': 'quantify.sequencer.waveforms.square',
+            'wf_func': 'quantify.scheduler.waveforms.square',
             'amp': amp, 'duration': duration,
             't0': t0,
             'channel': ch}]}
@@ -85,7 +85,7 @@ class ModSquarePulse(Operation):
         """
 
         data = {'name': 'ModSquarePulse', 'pulse_info': [{
-            'wf_func': 'quantify.sequencer.waveforms.square',
+            'wf_func': 'quantify.scheduler.waveforms.square',
             'amp': amp, 'duration': duration,
             't0': t0,
             'freq_mod': freq_mod,
@@ -100,7 +100,7 @@ class SoftSquarePulse(Operation):
 
     def __init__(self, amp: float, duration: float, ch, t0: float = 0):
         data = {'name': 'SoftSquarePulse', 'pulse_info': [{
-            'wf_func': 'quantify.sequencer.waveforms.soft_square',
+            'wf_func': 'quantify.scheduler.waveforms.soft_square',
             'amp': amp, 'duration': duration,
             't0': t0,
             'freq_mod': 0,  # flux pulses cannot have a modulation frequency
@@ -158,7 +158,7 @@ class DRAGPulse(Operation):
         """
 
         data = {'name': "DRAG", 'pulse_info': [{
-            'wf_func': 'quantify.sequencer.waveforms.drag',
+            'wf_func': 'quantify.scheduler.waveforms.drag',
             'G_amp': G_amp, 'D_amp': D_amp, 'duration': duration,
             'phase': phase, 'nr_sigma': 4, 'freq_mod': freq_mod,
             'channel': ch,  't0': t0}]}

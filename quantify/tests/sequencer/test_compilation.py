@@ -1,11 +1,11 @@
 import pytest
 import numpy as np
 import json
-from quantify.sequencer import Schedule
-from quantify.sequencer.gate_library import Reset, Measure, CNOT, Rxy, CZ
-from quantify.sequencer.compilation import _determine_absolute_timing, validate_config, _add_pulse_information_transmon
-from quantify.sequencer.resources import QubitResource
-from quantify.sequencer.types import Operation
+from quantify.scheduler import Schedule
+from quantify.scheduler.gate_library import Reset, Measure, CNOT, Rxy, CZ
+from quantify.scheduler.compilation import _determine_absolute_timing, validate_config, _add_pulse_information_transmon
+from quantify.scheduler.resources import QubitResource
+from quantify.scheduler.types import Operation
 
 
 import pathlib

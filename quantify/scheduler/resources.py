@@ -1,6 +1,6 @@
 """
 -----------------------------------------------------------------------------
-Description:    Library containing common resources for use with the quantify sequencer.
+Description:    Library containing common resources for use with the quantify.scheduler.
 Repository:     https://gitlab.com/qblox/packages/software/quantify/
 Copyright (C) Qblox BV (2020)
 -----------------------------------------------------------------------------

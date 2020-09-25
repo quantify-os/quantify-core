@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Description:    Module containing the core concepts of the sequencer.
+# Description:    Module containing the core concepts of the scheduler.
 # Repository:     https://gitlab.com/qblox/packages/software/quantify/
 # Copyright (C) Qblox BV (2020)
 # -----------------------------------------------------------------------------

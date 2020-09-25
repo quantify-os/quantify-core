@@ -1,8 +1,8 @@
-from quantify.sequencer.backends.visualization import pulse_diagram_plotly, circuit_diagram_matplotlib
-from quantify.sequencer import Schedule
-from quantify.sequencer.gate_library import Reset, Measure, CZ, CNOT, Rxy
-from quantify.sequencer.pulse_library import SquarePulse
-from quantify.sequencer.compilation import _determine_absolute_timing, qcompile
+from quantify.scheduler.backends.visualization import pulse_diagram_plotly, circuit_diagram_matplotlib
+from quantify.scheduler import Schedule
+from quantify.scheduler.gate_library import Reset, Measure, CZ, CNOT, Rxy
+from quantify.scheduler.pulse_library import SquarePulse
+from quantify.scheduler.compilation import _determine_absolute_timing, qcompile
 import matplotlib.pyplot as plt
 import json
 
