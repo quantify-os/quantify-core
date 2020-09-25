@@ -63,13 +63,22 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     total_duration = 0
     for t_constr in schedule.timing_constraints:
         op = schedule.operations[t_constr['operation_hash']]
+        plot_func_name = op['gate_info']['plot_func']
+
+        # todo, hybrid visualisation
+        if plot_func_name is None:
+            op['gate_info']['plot_func'] = 'quantify.visualization.circuit_diagram.gate_box'
+            op['gate_info']['tex'] = 'Pulse'
+            op['gate_info']['operation_type'] = 'Pulse'
+            for pulse in op['pulse_info']:
+                op['gate_info']['qubits'].append(pulse['channel'])
+
         plot_func = import_func_from_string(op['gate_info']['plot_func'])
         # A valid plot_func must accept the following arguments: ax, time (float), qubit_idxs (list), tex (str)
         time = t_constr['abs_time']
         idxs = [qubit_map[q] for q in op['gate_info']['qubits']]
         plot_func(ax, time=time, qubit_idxs=idxs, tex=op['gate_info']['tex'])
-        total_duration = total_duration if total_duration > t_constr[
-            'abs_time'] else t_constr['abs_time']
+        total_duration = total_duration if total_duration > t_constr['abs_time'] else t_constr['abs_time']
     ax.set_xlim(-1, total_duration + 1)
 
     return f, ax

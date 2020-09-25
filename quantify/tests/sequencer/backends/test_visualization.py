@@ -1,6 +1,7 @@
 from quantify.sequencer.backends.visualization import pulse_diagram_plotly, circuit_diagram_matplotlib
 from quantify.sequencer import Schedule
 from quantify.sequencer.gate_library import Reset, Measure, CZ, CNOT, Rxy
+from quantify.sequencer.pulse_library import SquarePulse
 from quantify.sequencer.compilation import _determine_absolute_timing, qcompile
 import matplotlib.pyplot as plt
 import json
@@ -21,6 +22,7 @@ def test_circuit_diagram_matplotlib():
 
     sched.add(Reset(q0, q1))
     sched.add(Rxy(90, 0, qubit=q0), label=ref_label_1)
+    sched.add(SquarePulse(0.8, 20e-9, ch='q0'))  # will change with API update
     sched.add(operation=CNOT(qC=q0, qT=q1))
     sched.add(Rxy(theta=90, phi=0, qubit=q0))
     sched.add(Measure(q0, q1), label='M0')
