@@ -137,6 +137,10 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
     validate_config(device_cfg, scheme_fn='transmon_cfg.json')
 
     for op in schedule.operations.values():
+        if 'operation_type' not in op['gate_info'] and len(op['pulse_info']) > 0:
+            # this is a pulse operation, nothing more to be done
+            continue
+
         if op['gate_info']['operation_type'] == 'measure':
             for q in op['gate_info']['qubits']:
                 q_cfg = device_cfg['qubits'][q]

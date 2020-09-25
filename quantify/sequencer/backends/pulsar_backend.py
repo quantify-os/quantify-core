@@ -181,6 +181,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
 
     Returns
     ----------
+    schedule : :class:`~quantify.sequencer.types.Schedule` :
+        The schedule
     config_dict : dict
         of sequencer names as keys with json filenames as values
 
@@ -284,7 +286,7 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
     if configure_hardware:
         configure_pulsar_sequencers(config_dict)
 
-    return config_dict
+    return schedule, config_dict
 
 
 def configure_pulsar_sequencers(config_dict: dict):
