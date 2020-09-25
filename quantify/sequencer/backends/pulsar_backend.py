@@ -18,6 +18,9 @@ from quantify.utilities.general import make_hash, without, import_func_from_stri
 PulsarModulations = namedtuple('PulsarModulations', ['gain', 'gain_Q', 'offset', 'phase', 'phase_delta'],
                                defaults=[None, None, None, None, None])
 
+QCM_DRIVER_VER = '0.1.0'
+QRM_DRIVER_VER = '0.1.0'
+
 
 class Q1ASMBuilder:
     """
@@ -181,6 +184,8 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
 
     Returns
     ----------
+    schedule : :class:`~quantify.sequencer.types.Schedule` :
+        The schedule
     config_dict : dict
         of sequencer names as keys with json filenames as values
 
@@ -284,7 +289,13 @@ def pulsar_assembler_backend(schedule, tuid=None, configure_hardware=False, debu
     if configure_hardware:
         configure_pulsar_sequencers(config_dict)
 
-    return config_dict
+    return schedule, config_dict
+
+
+def _check_driver_version(instr, ver):
+    idn = instr.get_IDN()
+    if idn.whatever not == ver:
+        raise EnvironmentError("Backend requires Pulsar: {} requires version {}, but is {}")
 
 
 def configure_pulsar_sequencers(config_dict: dict):
@@ -302,6 +313,10 @@ def configure_pulsar_sequencers(config_dict: dict):
             instr_cfg = data['instr_cfg']
             pulsar = Instrument.find_instrument(instr_cfg['instrument_name'])
             is_qrm = instr_cfg['type'] == "Pulsar_QRM_sequencer"
+            if is_qrm:
+                _check_driver_version(pulsar, QRM_DRIVER_VER)
+            else:
+                _check_driver_version(pulsar, QCM_DRIVER_VER)
 
             # configure settings
             seq_idx = instr_cfg['seq_idx']
