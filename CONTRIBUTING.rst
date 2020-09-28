@@ -14,7 +14,7 @@ Types of Contributions
 Bugs
 ~~~~
 
-Please report bugs to [the GitLab Tracker](https://gitlab.com/quantify-os/quantify-core/-/issues)
+Please report bugs to `the GitLab Tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_
 using the **Bug** description template.
 
 Issues on the Tracker marked with the *Bug* or *Help Wanted* labels are open to contributions. Please see the
@@ -23,7 +23,7 @@ Issues on the Tracker marked with the *Bug* or *Help Wanted* labels are open to 
 Features
 ~~~~~~~~
 
-If you wish to propose a feature, please file an issue on [the GitLab Tracker](https://gitlab.com/quantify-os/quantify-core/-/issues)
+If you wish to propose a feature, please file an issue on `the GitLab Tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_
 using the **Enhancement** description template. Community members will help refine and design your idea until it is
 ready for implementation. Via these early reviews, we hope to steer contributors away from producing work outside of
 the project boundaries.
