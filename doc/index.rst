@@ -9,8 +9,8 @@ Welcome to quantify's documentation!
 
    readme
    installation
-   usage
-   pulsar_assembler
+   concepts
+   toolchain
    contributing
    authors
    history
