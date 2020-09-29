@@ -179,7 +179,7 @@ class MeasurementControl(Instrument):
                 self._run_soft()
             else:
                 self._run_hard()
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             print()
             print("Interrupt signalled, exiting gracefully...")
 
@@ -252,7 +252,7 @@ class MeasurementControl(Instrument):
         self._init(name)
         try:
             subroutine()
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             print()
             print('Interrupt signalled, exiting gracefully...')
 
@@ -277,7 +277,7 @@ class MeasurementControl(Instrument):
                 spar.set(self._setpoints[setpoint_idx:, i])
             self._prepare_gettable()
 
-            y_offset = 0
+            y_off = 0
             for gpar in self._gettable_pars:
                 new_data = gpar.get()  # can return (N, M)
                 # if we get a simple array, shape it to (1, M)
@@ -286,10 +286,10 @@ class MeasurementControl(Instrument):
 
                 for row in new_data:
                     slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len]
+                    old_vals = self._dataset['y{}'.format(y_off)].values[setpoint_idx:slice_len]
                     old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset['y{}'.format(y_offset)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
-                    y_offset += 1
+                    self._dataset['y{}'.format(y_off)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                    y_off += 1
                 self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
 
