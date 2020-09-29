@@ -59,4 +59,7 @@ class TUID(str):
             raise ValueError('Invalid timespec {}'.format(tuid))
         if not len(tuid) == 26:
             raise ValueError('Invalid uuid {}'.format(tuid))
+
+        cls.datetime(tuid)  # verify date format
+
         return True

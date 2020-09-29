@@ -59,7 +59,7 @@ def get_datadir():
     return this._datadir
 
 
-def set_datadir(datadir):
+def set_datadir(datadir: str):
     """
     Sets the data directory.
 
@@ -121,7 +121,7 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') 
         return json.load(snap)
 
 
-def create_exp_folder(tuid, name='', datadir=None):
+def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
     """
     Creates an empty folder to store an experiment container.
 
@@ -148,7 +148,7 @@ def create_exp_folder(tuid, name='', datadir=None):
     return exp_folder
 
 
-def is_valid_dset(dset):
+def is_valid_dset(dset: xr.Dataset):
     """
     Asserts if dset adheres to quantify Dataset specification.
 
