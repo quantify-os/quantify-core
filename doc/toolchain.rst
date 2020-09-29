@@ -12,6 +12,7 @@ level abstractions (such as Gates) into these pulses. As such a compiler is spec
 The compiler also resolves connections between resources, translating virtual addresses into physical ones.
 
 Quantify currently supports:
+
 - Transmons
 
 Assembler Backends
@@ -21,5 +22,6 @@ The backend converts the output of the compiler (a time ordered list of operatio
 will run. This typically involves generating the requisite waveforms and an assembly language describing the program
 itself.
 
-Quantify currently supports
+Quantify currently supports:
+
 - QBlox Pulsar range

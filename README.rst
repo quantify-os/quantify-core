@@ -5,7 +5,9 @@ quantify-scheduler
 The Quantify Scheduler is a toolchain for writing quantum programs. It is designed for experimentalists to easily define
 complex experiments, and produces synchronized pulse schedules to be distributed to control hardware.
 
-It is a part of the `Quantify OS project <https://gitlab.com/quantify-os>_`.
+It is a part of the `Quantify OS project`_.
+
+.. _Quantify OS project: https://gitlab.com/quantify-os
 
 Features
 --------

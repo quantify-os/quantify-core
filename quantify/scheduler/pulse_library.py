@@ -1,10 +1,8 @@
-"""
------------------------------------------------------------------------------
-Description:    Library standard pulses for use with the quantify.scheduler.
-Repository:     https://gitlab.com/qblox/packages/software/quantify/
-Copyright (C) Qblox BV (2020)
------------------------------------------------------------------------------
-"""
+# -----------------------------------------------------------------------------
+# Description:    Library standard pulses for use with the quantify.scheduler.
+# Repository:     https://gitlab.com/qblox/packages/software/quantify/
+# Copyright (C) Qblox BV (2020)
+# -----------------------------------------------------------------------------
 from .types import Operation
 
 

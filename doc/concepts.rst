@@ -32,16 +32,19 @@ To compile a program, the user must specify some configuration on:
 - the control hardware
 
 *Timing is determined*
-Operations in the schedule are defined relatively. This step converts those relative timings into clock time ordered
-operations.
+
+- Operations in the schedule are defined relatively. This step converts those relative timings into clock time ordered operations.
 
 *Gates are translated into Pulses*
-The Compiler then converts Gates into their equivalent pulse representation.
+
+- The Compiler then converts Gates into their equivalent pulse representation.
 
 *Pulses are translated into Waveforms*
-The Backend then converts these pulses into waveforms and generates QASM like code for triggering them.
+
+- The Backend then converts these pulses into waveforms and generates QASM like code for triggering them.
 
 *Waveforms are distributed to Resources*
-The set of generated programs are uploaded to the control hardware.
+
+- The set of generated programs are uploaded to the control hardware.
 
 **For a practical example, check out the provided tutorials!**
