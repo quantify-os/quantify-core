@@ -14,7 +14,7 @@ Types of Contributions
 Bugs
 ~~~~
 
-Please report bugs to [the GitLab Tracker](https://gitlab.com/qblox/packages/software/quantify/issues)
+Please report bugs to `the GitLab Tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_
 using the **Bug** description template.
 
 Issues on the Tracker marked with the *Bug* or *Help Wanted* labels are open to contributions. Please see the
@@ -23,7 +23,7 @@ Issues on the Tracker marked with the *Bug* or *Help Wanted* labels are open to 
 Features
 ~~~~~~~~
 
-If you wish to propose a feature, please file an issue on [the GitLab Tracker](https://gitlab.com/qblox/packages/software/quantify/issues)
+If you wish to propose a feature, please file an issue on `the GitLab Tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_
 using the **Enhancement** description template. Community members will help refine and design your idea until it is
 ready for implementation. Via these early reviews, we hope to steer contributors away from producing work outside of
 the project boundaries.
@@ -97,7 +97,7 @@ Before you submit a merge request, check that it meets these guidelines:
 2. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 3. The CI pipelines should pass for all merge requests.
 
-   - Check the status of the pipelines https://gitlab.com/qblox/packages/software/quantify/pipelines, the status is also reported in the merge request.
+   - Check the status of the pipelines, the status is also reported in the merge request.
    - flake8 linter should pass.
    - No degradation in code coverage.
    - Documentation should build.
