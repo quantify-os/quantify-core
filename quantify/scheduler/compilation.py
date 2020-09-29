@@ -8,6 +8,7 @@ import jsonschema
 from typing import Callable
 from quantify.scheduler.types import Schedule
 from quantify.scheduler.pulse_library import ModSquarePulse, DRAGPulse, IdlePulse, SoftSquarePulse
+from quantify.scheduler.resources import QubitResource, PortResource
 from quantify.utilities.general import load_json_schema
 
 
@@ -98,6 +99,14 @@ def _find_edge(device_cfg, q0, q1, op_name):
     return edge_cfg
 
 
+def _find_endpoint(device_cfg, address):
+    paths = address.split(':')
+    curr_level = device_cfg['qubits']  # todo, make this work with more than just qubits
+    for path in paths:
+        curr_level = curr_level[path]
+    return curr_level
+
+
 def _add_pulse_information_transmon(schedule, device_cfg: dict):
     """
     Adds pulse information specified in the device config to the schedule.
@@ -137,7 +146,10 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
 
     for op in schedule.operations.values():
         if 'operation_type' not in op['gate_info'] and len(op['pulse_info']) > 0:
-            # this is a pulse operation, nothing more to be done
+            # this is a pulse operation, make sure the address is resolved
+            for pulse in op.data['pulse_info']:
+                if isinstance(pulse['channel'], PortResource):
+                    pulse['channel'] = _find_endpoint(device_cfg, pulse['channel']['name'])
             continue
 
         if op['gate_info']['operation_type'] == 'measure':

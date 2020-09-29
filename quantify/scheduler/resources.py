@@ -16,6 +16,26 @@ class QubitResource(Resource):
 
         self.data = {'name': name, 'type': str(self.__class__.__name__)}
 
+    def __hash__(self):
+        return hash(self.data['name'])
+
+    def __str__(self):
+        return self.data['name']
+
+
+class PortResource(Resource):
+    """
+    A port resource.
+    """
+
+    def __init__(self, name: str):
+        super().__init__()
+
+        self.data = {'name': name, 'type': str(self.__class__.__name__)}
+
+    def __hash__(self):
+        return hash(self.data['name'])
+
     def __str__(self):
         return self.data['name']
 
