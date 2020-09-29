@@ -18,6 +18,8 @@ def test_TUID():
     assert dt.minute == 30
     assert dt.second == 15
 
+    assert tuid.uuid() == 'abcdef'
+
     with pytest.raises(ValueError):
         tuid = TUID('200409-123015-123-abcdef')
 

@@ -136,7 +136,7 @@ def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
     Returns:
         str: full path of the experiment folder following format: ``/datadir/YYMMDD/HHMMSS-******-name/``.
     """
-    assert TUID.is_valid(tuid)
+    TUID.is_valid(tuid)
 
     if datadir is None:
         datadir = get_datadir()
@@ -150,7 +150,7 @@ def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
 
 def is_valid_dset(dset: xr.Dataset):
     """
-    Asserts if dset adheres to quantify Dataset specification.
+    Verifies if dset adheres to quantify Dataset specification.
 
     Args:
         dset (:class:`xarray.Dataset`): the dataset
@@ -163,7 +163,7 @@ def is_valid_dset(dset: xr.Dataset):
     """
     if not isinstance(dset, xr.Dataset):
         raise TypeError
-    assert TUID.is_valid(dset.attrs['tuid'])
+    TUID.is_valid(dset.attrs['tuid'])
 
     return True
 
@@ -216,7 +216,7 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
     return dataset
 
 
-def grow_dataset(dataset):
+def grow_dataset(dataset: xr.Dataset):
     """
     Resizes the dataset by doubling the current length of all arrays.
 
@@ -239,7 +239,7 @@ def grow_dataset(dataset):
     return dataset.merge(new_data)
 
 
-def trim_dataset(dataset):
+def trim_dataset(dataset: xr.Dataset):
     """
     Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
 
@@ -269,7 +269,7 @@ def trim_dataset(dataset):
 ########################################################################
 
 
-def get_latest_tuid(contains='') -> TUID:
+def get_latest_tuid(contains: str = '') -> TUID:
     """
     Returns the most recent tuid.
 
@@ -291,7 +291,7 @@ def get_latest_tuid(contains='') -> TUID:
     return get_tuids_containing(contains, 1)[0]
 
 
-def get_tuids_containing(contains, max_results=sys.maxsize) -> list:
+def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
     """
     Returns a list of tuids containing a specific label
 
