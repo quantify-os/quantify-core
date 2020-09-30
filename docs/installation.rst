@@ -32,7 +32,7 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://gitlab.com/qblox/packages/software/quantify
+    $ git clone https://gitlab.com/quantify-os/quantify-core.git
 
 Once you have a copy of the source, you can install it with:
 
@@ -40,5 +40,11 @@ Once you have a copy of the source, you can install it with:
 
     $ pip install .
 
+If you are a developer you might want to install the package in the editable mode:
 
-.. _GitLab repo: https://gitlab.com/qblox/packages/software/quantify
+.. code-block:: console
+    $ pip install -e .
+
+
+
+.. _GitLab repo: https://gitlab.com/quantify-os/quantify-core
