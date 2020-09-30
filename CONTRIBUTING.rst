@@ -18,7 +18,7 @@ Please report bugs to [the GitLab Tracker](https://gitlab.com/qblox/packages/sof
 using the **Bug** description template.
 
 Issues on the Tracker marked with the *Bug* or *Help Wanted* labels are open to contributions. Please see the
-[Merge Request Guidelines](#merge-request-guidelines) for details on best developmental practices.
+`Merge Request Guidelines`_ for details on best developmental practices.
 
 Features
 ~~~~~~~~
@@ -29,13 +29,13 @@ ready for implementation. Via these early reviews, we hope to steer contributors
 the project boundaries.
 
 Issues on the Tracker marked with the *Enhancement* or *Help Wanted* labels are ready and open to contributions.
-Please see the [Merge Request Guidelines](#merge-request-guidelines) for details on best developmental practices.
+Please see the `Merge Request Guidelines`_ for details on best developmental practices.
 
 Documentation
 ~~~~~~~~~~~~~
 
 quantify could always use more documentation, whether as part of the official quantify docs, in docstrings, tutorials
-and even on the web in blog posts, articles and such. Please follow the [bugs](#bugs) workflow when contributing
+and even on the web in blog posts, articles and such. Please follow the `bugs`_ workflow when contributing
 documentation changes.
 
 For docstrings, please use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
@@ -63,7 +63,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 the tests and have test coverage::
+5. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
 
     $ flake8 quantify tests
     $ pytest --cov
