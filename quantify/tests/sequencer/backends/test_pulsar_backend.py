@@ -9,7 +9,7 @@ from quantify.scheduler.gate_library import Reset, Measure, CZ, Rxy, X, X90
 from quantify.scheduler.pulse_library import SquarePulse
 from quantify.scheduler.backends.pulsar_backend import build_waveform_dict, build_q1asm, generate_sequencer_cfg, \
     pulsar_assembler_backend, _check_driver_version, QCM_DRIVER_VER, QRM_DRIVER_VER
-from quantify.scheduler.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
+from quantify.scheduler.resources import CompositeResource, Pulsar_QCM_sequencer, Pulsar_QRM_sequencer
 from quantify.scheduler.compilation import qcompile
 
 
@@ -216,14 +216,14 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     sched = Schedule('Bell experiment')
 
     # define the resources
-    q0, q1 = (QubitResource('q0'), QubitResource('q1'))
+    q0, q1 = ('q0', 'q1')
 
     sched.add_resource(q0)
     sched.add_resource(q1)
 
     # Define the operations, these will be added to the circuit
-    init_all = Reset(q0.name, q1)  # instantiates
-    x90_q0 = Rxy(theta=90, phi=0, qubit=q0.name)
+    init_all = Reset(q0, q1)  # instantiates
+    x90_q0 = Rxy(theta=90, phi=0, qubit=q0)
 
     # we use a regular for loop as we have to unroll the changing theta variable here
     for theta in np.linspace(0, 360, 21):

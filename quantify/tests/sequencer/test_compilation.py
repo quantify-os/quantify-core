@@ -149,6 +149,12 @@ def test_bad_gate():
 
 
 def test_resource_resolution():
+    # i think ultimately explicit resources for qubits/ports is no bueno, just adds an extra layer with no purpose
+    # addressing scheme of q0:mw:qcm0:s0 makes much more sense
+    # resolve leftwards
+
+    # walk_address -> return the right most
+
     sched = Schedule('resource_resolution')
     q0 = QubitResource('q0')
     q0_mw = PortResource('q0:mw_ch')
@@ -156,6 +162,7 @@ def test_resource_resolution():
 
     sched.add(Rxy(90, 0, q0))
     sched.add(SquarePulse(0.8, 20e-9, q0_mw))
+    sched.add(SquarePulse(0.6, 20e-9, 'q0:mw_ch'))
 
     sched.add_resources([q0, q0_mw, qcm0_s0])
     sched = qcompile(sched, DEVICE_TEST_CFG)
