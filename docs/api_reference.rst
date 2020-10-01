@@ -41,18 +41,6 @@ visualization
 .. automodule:: quantify.visualization
     :members:
 
-circuit_diagram
-------------------
-
-.. automodule:: quantify.visualization.circuit_diagram
-    :members:
-
-pulse_scheme
-------------------
-
-.. automodule:: quantify.visualization.pulse_scheme
-    :members:
-
 SI_utilities
 ------------------
 
