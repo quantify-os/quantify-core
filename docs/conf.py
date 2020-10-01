@@ -47,6 +47,8 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinxcontrib.blockdiag',
               ]
 
+autodoc_mock_imports = ['sip', 'PyQt5', 'PyQt5.QtGui', 'PyQt5.QtCore', 'PyQt5.QtWidgets']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
