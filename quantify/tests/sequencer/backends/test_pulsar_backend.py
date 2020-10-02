@@ -218,9 +218,6 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     # define the resources
     q0, q1 = ('q0', 'q1')
 
-    sched.add_resource(q0)
-    sched.add_resource(q1)
-
     # Define the operations, these will be added to the circuit
     init_all = Reset(q0, q1)  # instantiates
     x90_q0 = Rxy(theta=90, phi=0, qubit=q0)
@@ -229,10 +226,10 @@ def test_pulsar_assembler_backend(dummy_pulsars):
     for theta in np.linspace(0, 360, 21):
         sched.add(init_all)
         sched.add(x90_q0)
-        sched.add(operation=CZ(qC=q0.name, qT="q1"))
-        sched.add(Rxy(theta=theta, phi=0, qubit=q0.name))
+        sched.add(operation=CZ(qC=q0, qT="q1"))
+        sched.add(Rxy(theta=theta, phi=0, qubit="q0"))
         sched.add(Rxy(theta=90, phi=0, qubit=q1))
-        sched.add(Measure(q0, q1.name), label='M {:.2f} deg'.format(theta))
+        sched.add(Measure(q0, "q1"), label='M {:.2f} deg'.format(theta))
 
     # Add the resources for the pulsar qcm channels
     qcm0 = CompositeResource('qcm0', ['qcm0.s0', 'qcm0.s1'])
@@ -296,9 +293,9 @@ def test_gate_and_pulse():
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
 
     sched.add(X('q0'))
-    sched.add(SquarePulse(0.8, 20e-9, 'qcm0.s0'))
+    sched.add(SquarePulse(0.8, 20e-9, 'q0:mw_ch'))
     sched.add(Rxy(90, 90, 'q0'))
-    sched.add(SquarePulse(0.4, 20e-9, 'qcm0.s0'))
+    sched.add(SquarePulse(0.4, 20e-9, 'q0:mw_ch'))
 
     sched.add_resources([qcm0_s0])
     sched, cfgs = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
