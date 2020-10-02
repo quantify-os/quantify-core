@@ -28,11 +28,15 @@ def gen_tuid(ts=None):
     """
     Generates a :class:`~quantify.data.types.TUID` based on current time.
 
-    Args:
-        ts (:class:`datetime.datetime`) : optional, can be passed to ensure the tuid is based on a specific time.
+    Parameters
+    ----------
+    ts : :class:`datetime.datetime`
+        optional, can be passed to ensure the tuid is based on a specific time.
 
-    Returns:
-        :class:`~quantify.data.types.TUID`: timestamp based uid.
+    Returns
+    -------
+    :class:`~quantify.data.types.TUID`
+        timestamp based uid.
     """
     if ts is None:
         ts = datetime.now()
@@ -49,8 +53,12 @@ def gen_tuid(ts=None):
 def get_datadir():
     """
     Returns the current data directory.
-
     The data directory can be changed using :func:`~quantify.data.handling.set_datadir`
+
+    Returns
+    -------
+    str
+        the current data directory
     """
 
     if this._datadir is None:
@@ -63,8 +71,9 @@ def set_datadir(datadir):
     """
     Sets the data directory.
 
-    Args:
-        datadir (str):
+    Parameters
+    ----------
+    datadir : str
             path of the data directory. If set to None, resets the datadir to the default datadir (<top_level>/data).
     """
     this._datadir = datadir
@@ -92,17 +101,20 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     """
     Loads a dataset specified by a tuid.
 
-    Args:
-        tuid (str): a :class:`~quantify.data.types.TUID` string.
-            It is also possible to specify only the first part of a tuid.
-
-        datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
-
-    Returns:
-        :class:`xarray.Dataset`: The dataset.
-
-    Raises:
-        FileNotFoundError: No data found for specified date.
+    Parameters
+    ----------
+    tuid : str
+        a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
+    datadir : str
+        path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+    Returns
+    -------
+    :class:`xarray.Dataset`
+        The dataset.
+    Raises
+    ------
+    FileNotFoundError
+        No data found for specified date.
 
     .. tip::
 
@@ -117,6 +129,26 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
 
 
 def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') -> dict:
+    """
+    Loads a snapshot specified by a tuid.
+
+    Parameters
+    ----------
+    tuid : str
+        a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
+    datadir : str
+        path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+    file : str
+        filename to load
+    Returns
+    -------
+    dict
+        The snapshot.
+    Raises
+    ------
+    FileNotFoundError
+        No data found for specified date.
+    """
     with open(_locate_experiment_file(tuid, datadir, file)) as snap:
         return json.load(snap)
 
@@ -128,13 +160,18 @@ def create_exp_folder(tuid, name='', datadir=None):
     If the folder already exists, simple return the experiment folder corresponding to the
     :class:`~quantify.data.types.TUID`.
 
-    Args:
-        tuid (:class:`~quantify.data.types.TUID`) : a timestamp based human-readable unique identifier.
-        name (str) : optional name to identify the folder
-        datadir (str) : path of the data directory. If ``None``, uses ``get_datadir()`` to determine the data directory.
-
-    Returns:
-        str: full path of the experiment folder following format: ``/datadir/YYMMDD/HHMMSS-******-name/``.
+    Parameters
+    ----------
+    tuid : :class:`~quantify.data.types.TUID`
+        a timestamp based human-readable unique identifier.
+    name : str
+        optional name to identify the folder
+    datadir : str
+        path of the data directory. If ``None``, uses ``get_datadir()`` to determine the data directory.
+    Returns
+    -------
+    str
+        full path of the experiment folder following format: ``/datadir/YYMMDD/HHMMSS-******-name/``.
     """
     assert TUID.is_valid(tuid)
 
@@ -152,14 +189,18 @@ def is_valid_dset(dset):
     """
     Asserts if dset adheres to quantify Dataset specification.
 
-    Args:
-        dset (:class:`xarray.Dataset`): the dataset
-
-    Returns:
-        bool
-
-    Raises:
-        TypeError: the dataset is not of type :class:`xarray.Dataset`
+    Parameters
+    ----------
+    dset : :class:`xarray.Dataset`
+        the dataset
+    Returns
+    -------
+    bool
+        if valid
+    Raises
+    ------
+    TypeError
+        the dataset is not of type :class:`xarray.Dataset`
     """
     if not isinstance(dset, xr.Dataset):
         raise TypeError
