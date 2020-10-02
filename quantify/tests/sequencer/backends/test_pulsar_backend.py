@@ -281,11 +281,9 @@ def test_mismatched_mod_freq():
         }
     }
     sched = Schedule('Mismatched mod freq')
-    q0, q1 = (QubitResource('q0'), QubitResource('q1'))
-    sched.add_resource(q0)
-    sched.add_resource(q1)
+    q0, q1 = ('q0', 'q1')
     sched.add(Rxy(theta=90, phi=0, qubit=q0))
-    sched.add(Rxy(theta=90, phi=0, qubit=q1.name))
+    sched.add(Rxy(theta=90, phi=0, qubit=q1))
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
     sched.add_resource(qcm0_s0)
     with pytest.raises(ValueError, match=r'pulse.*\d+ on channel qcm0.s0 has an inconsistent modulation frequency: '
@@ -295,15 +293,14 @@ def test_mismatched_mod_freq():
 
 def test_gate_and_pulse():
     sched = Schedule("Chevron Experiment")
-    q0 = QubitResource("q0")
     qcm0_s0 = Pulsar_QCM_sequencer('qcm0.s0', instrument_name='qcm0', seq_idx=0)
 
-    sched.add(X(q0.name))
+    sched.add(X('q0'))
     sched.add(SquarePulse(0.8, 20e-9, 'qcm0.s0'))
-    sched.add(Rxy(90, 90, q0.name))
+    sched.add(Rxy(90, 90, 'q0'))
     sched.add(SquarePulse(0.4, 20e-9, 'qcm0.s0'))
 
-    sched.add_resources([q0, qcm0_s0])
+    sched.add_resources([qcm0_s0])
     sched, cfgs = qcompile(sched, DEVICE_TEST_CFG, backend=pulsar_assembler_backend)
     with open(cfgs["qcm0.s0"], 'rb') as cfg:
         prog = json.load(cfg)

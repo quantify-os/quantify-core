@@ -152,7 +152,7 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
 
         if op['gate_info']['operation_type'] == 'measure':
             for q in op['gate_info']['qubits']:
-                q_cfg = device_cfg['qubits'][q]
+                q_cfg = _walk_address(device_cfg, q)
                 # readout pulse
                 if q_cfg['ro_pulse_type'] == 'square':
                     op.add_pulse(ModSquarePulse(amp=q_cfg['ro_pulse_amp'],
