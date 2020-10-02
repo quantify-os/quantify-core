@@ -164,11 +164,14 @@ class MeasurementControl(Instrument):
         """
         Starts a data acquisition loop.
 
-        Args:
-            name (str): Name of the measurement. This name is included in the name of the data files.
-
-        Returns:
-            :class:`xarray.Dataset`: the dataset
+        Parameters
+        ----------
+        name : str
+            Name of the measurement. This name is included in the name of the data files.
+        Returns
+        -------
+        :class:`xarray.Dataset`
+            the dataset
         """
 
         self._reset()
@@ -200,13 +203,16 @@ class MeasurementControl(Instrument):
             The functionality of this mode can be complex - it is recommended to read the relevant long form
             documentation.
 
-        Args:
-            name (str): Name of the measurement. This name is included in the name of the data files.
-            params (dict): Key value parameters describe the adaptive function to use, and any further parameters for
-            that function.
-
-        Returns:
-            :class:`xarray.Dataset`: the dataset
+        Parameters
+        ----------
+        name : str
+            Name of the measurement. This name is included in the name of the data files.
+        params : dict
+            Key value parameters describe the adaptive function to use, and any further parameters for that function.
+        Returns
+        -------
+        :class:`xarray.Dataset`
+            the dataset
         """
         def measure(vec) -> float:
             if len(self._dataset['y0']) == self._nr_acquired_values:
@@ -305,9 +311,10 @@ class MeasurementControl(Instrument):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
 
-        Note: some lines in this function are redundant depending on mode (sweep vs adaptive). Specifically
-        - in sweep, the x dimensions are already filled
-        - in adaptive, soft_avg is always 1
+        .. note ::
+            Note: some lines in this function are redundant depending on mode (sweep vs adaptive). Specifically
+                - in sweep, the x dimensions are already filled
+                - in adaptive, soft_avg is always 1
         """
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
@@ -403,8 +410,10 @@ class MeasurementControl(Instrument):
         Returns the current position through the sweep
         Updates the _soft_iterations_completed counter as it may have rolled over
 
-        Returns:
-            int: setpoint_idx
+        Returns
+        -------
+        int
+            setpoint_idx
         """
         acquired = self._nr_acquired_values
         setpoint_idx = acquired % len(self._setpoints)
@@ -448,12 +457,13 @@ class MeasurementControl(Instrument):
         """
         Define the settable parameters for the acquisition loop.
 
-        Args:
-            settable_pars: parameter(s) to be set during the acquisition loop, accepts:
-                - list or tuple of multiple Settable objects
-                - a single Settable object.
-
         The :class:`~quantify.measurement.Settable` helper class defines the requirements for a Settable object.
+
+        Parameters
+        ---------
+        settable_pars
+            parameter(s) to be set during the acquisition loop, accepts a list or tuple of multiple Settable objects
+            or a single Settable object.
         """
         # for native nD compatibility we treat this like a list of settables.
         if not isinstance(settable_pars, (list, tuple)):
@@ -467,15 +477,16 @@ class MeasurementControl(Instrument):
         """
         Set setpoints that determine values to be set in acquisition loop.
 
-        Args: setpoints (:class:`numpy.ndarray`) : An array that defines the values to loop over in the experiment.
-        The shape of the array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
-
-        The setpoints are softly reshaped to (N, M) to be natively compatible with M-dimensional loops.
-
         .. tip::
 
             Use :code:`np.colstack((x0, x1))` to reshape multiple
             1D arrays when setting multiple setables.
+
+        Parameters
+        ----------
+        setpoints : :class:`numpy.ndarray`
+            An array that defines the values to loop over in the experiment.
+            The shape of the array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
         """
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
@@ -490,17 +501,10 @@ class MeasurementControl(Instrument):
         Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
         by repeating the setpoints M times and filling the second column with tiled values.
 
-        Args: setpoints (list(:class:`numpy.ndarray`)) : The values to loop over in the experiment. The grid is
-        reshaped in this order.
-
-        Example
-
-            .. code-block:: python
-
-                MC.settables([t, amp])
-                MC.setpoints_grid([times, amplitudes])
-                MC.gettables(sig)
-                dataset = MC.run('2D grid')
+        Parameters
+        ----------
+        setpoints : list
+            The values to loop over in the experiment. The grid is reshaped in this order.
         """
         if len(setpoints) == 2:
             self._plot_info['xlen'] = len(setpoints[0])
@@ -512,12 +516,14 @@ class MeasurementControl(Instrument):
         """
         Define the parameters to be acquired during the acquisition loop.
 
-        Args:
-            gettable_pars: parameter(s) to be get during the acquisition loop, accepts:
+        The :class:`~quantify.measurement.Gettable` helper class defines the requirements for a Gettable object.
+
+        Parameters
+        ----------
+        gettable_pars
+            parameter(s) to be get during the acquisition loop, accepts:
                  - list or tuple of multiple Gettable objects
                  - a single Gettable object
-
-        The :class:`~quantify.measurement.Gettable` helper class defines the requirements for a Gettable object.
         """
         if not isinstance(gettable_pars, (list, tuple)):
             gettable_pars = [gettable_pars]
@@ -531,16 +537,19 @@ def tile_setpoints_grid(setpoints):
     """
     Tile setpoints into an n-dimensional grid.
 
-    Args: setpoints (list(:class:`numpy.ndarray`)): A list of arrays that defines the values to loop over in the
-    experiment. The grid is reshaped in this order.
-
-    Returns:
-        :class:`numpy.ndarray`: an array with repeated x-values and tiled xn-values.
-
     .. warning ::
 
         using this method typecasts all values into the same type. This may lead to validator errors when setting
         e.g., a float instead of an int.
+
+    Parameters
+    ----------
+    setpoints : list(:class:`numpy.ndarray`)
+        A list of arrays that defines the values to loop over in the experiment. The grid is reshaped in this order.
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        an array with repeated x-values and tiled xn-values.
     """
     xn = setpoints[0].reshape((len(setpoints[0]), 1))
     for setpoints_n in setpoints[1:]:
