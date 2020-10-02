@@ -55,8 +55,10 @@ class MeasurementControl(Instrument):
         """
         Creates an instance of the Measurement Control.
 
-        Args:
-            name (str): name
+        Parameters
+        ----------
+        name : str
+            name of this instrument
         """
         super().__init__(name=name)
 

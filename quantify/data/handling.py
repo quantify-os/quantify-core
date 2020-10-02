@@ -101,6 +101,15 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     """
     Loads a dataset specified by a tuid.
 
+    .. tip::
+
+        This method also works when specifying only the first part of a :class:`~quantify.data.types.TUID`.
+
+    .. note::
+
+        This method uses :func:`xarray.load_dataset` to ensure the file is closed after loading as datasets are
+        intended to be immutable after performing the initial experiment.
+
     Parameters
     ----------
     tuid : str
@@ -115,15 +124,6 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     ------
     FileNotFoundError
         No data found for specified date.
-
-    .. tip::
-
-        This method also works when specifying only the first part of a :class:`~quantify.data.types.TUID`.
-
-    .. note::
-
-        This method uses :func:`xarray.load_dataset` to ensure the file is closed after loading as datasets are
-        intended to be immutable after performing the initial experiment.
     """
     return xr.load_dataset(_locate_experiment_file(tuid, datadir, 'dataset.hdf5'))
 
@@ -209,21 +209,25 @@ def is_valid_dset(dset):
     return True
 
 
-def initialize_dataset(setable_pars, setpoints, getable_pars):
+def initialize_dataset(settable_pars, setpoints, gettable_pars):
     """
-    Initialize an empty dataset based on setable_pars, setpoints and getable_pars
+    Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
-    Args:
-        setable_pars (list):                    a list of M settables
-        setpoints (:class:`numpy.ndarray`):     an (N*M) array
-        getable_pars (list):                    a list of gettables
-
-    Returns:
-        :class:`xarray.Dataset`: the dataset
-
+    Parameters
+    ----------
+    settable_pars : list
+        a list of M settables
+    setpoints : :class:`numpy.ndarray`
+        an (N*M) array
+    gettable_pars : list
+        a list of gettables
+    Returns
+    -------
+    :class:`xarray.Dataset`
+        the dataset
     """
     darrs = []
-    for i, setpar in enumerate(setable_pars):
+    for i, setpar in enumerate(settable_pars):
         darrs.append(xr.DataArray(
             data=setpoints[:, i],
             name='x{}'.format(i),
@@ -232,7 +236,7 @@ def initialize_dataset(setable_pars, setpoints, getable_pars):
 
     numpoints = len(setpoints[:, 0])
     j = 0
-    for getpar in getable_pars:
+    for getpar in gettable_pars:
         #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
         #  so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
@@ -261,11 +265,14 @@ def grow_dataset(dataset):
     """
     Resizes the dataset by doubling the current length of all arrays.
 
-    Args:
-        dataset (:class:`xarray.Dataset`): the dataset to resize.
-
-    Returns:
-        The resized dataset.
+    Parameters
+    ----------
+    dataset ::class:`xarray.Dataset`
+        the dataset to resize.
+    Returns
+    -------
+    :class:`xarray.Dataset`
+        The resized dataset
     """
     darrs = []
     for col in dataset:
@@ -284,10 +291,13 @@ def trim_dataset(dataset):
     """
     Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
 
-    Args:
-        dataset (:class:`xarray.Dataset`): the dataset to trim.
-
-    Returns:
+    Parameters
+    ----------
+    dataset : :class:`xarray.Dataset`
+        the dataset to trim.
+    Returns
+    -------
+    :class:`xarray.Dataset`
         The dataset, trimmed and resized if necessary or unchanged.
     """
     for i, val in enumerate(reversed(dataset['y0'].values)):
@@ -314,20 +324,23 @@ def get_latest_tuid(contains='') -> TUID:
     """
     Returns the most recent tuid.
 
-    Args:
-        contains (str): an optional string contained in the experiment name.
-
-    Returns:
-        :class:`~quantify.data.types.TUID`: the latest TUID
-
-    Raises:
-        FileNotFoundError: No data found
-
     .. tip::
 
         This function is similar to :func:`~get_tuids_containing` but is preferred if one is only interested in the
         most recent :class:`~quantify.data.types.TUID` for performance reasons.
 
+    Parameters
+    ----------
+    contains : str
+        an optional string contained in the experiment name.
+    Returns
+    -------
+    :class:`~quantify.data.types.TUID`
+        the latest TUID
+    Raises
+    ------
+    FileNotFoundError
+        No data found
     """
     return get_tuids_containing(contains, 1)[0]
 
@@ -336,20 +349,25 @@ def get_tuids_containing(contains, max_results=sys.maxsize) -> list:
     """
     Returns a list of tuids containing a specific label
 
-    Args:
-        contains (str): a string contained in the experiment name.
-        max_results (int): maximum number of results to return. Defaults to unlimited.
-
-    Returns:
-        A list of  :class:`~quantify.data.types.TUID`: objects
-
-    Raises:
-        FileNotFoundError: No data found
-
     .. tip::
 
         If one is only interested in the most recent :class:`~quantify.data.types.TUID`,
         :func:`~get_latest_tuid` is preferred for performance reasons.
+
+    Parameters
+    ----------
+    contains : str
+        a string contained in the experiment name.
+    max_results : int
+        maximum number of results to return. Defaults to unlimited.
+    Returns
+    -------
+    list
+        A list of :class:`~quantify.data.types.TUID`: objects
+    Raises
+    ------
+    FileNotFoundError
+        No data found
     """
     datadir = get_datadir()
     daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
@@ -375,10 +393,12 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
     State of all instruments setup as a JSON-compatible dictionary (everything that the custom JSON encoder class
     :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
 
-    Args:
-        update (bool) : if True, first gets all values before filling the snapshot.
-        clean (bool)  : if True, removes certain keys from the snapshot to create a more readible and compact snapshot.
-
+    Parameters
+    ----------
+    update : bool
+        if True, first gets all values before filling the snapshot.
+    clean : bool
+        if True, removes certain keys from the snapshot to create a more readable and compact snapshot.
     """
 
     snap = {
