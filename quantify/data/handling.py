@@ -148,26 +148,6 @@ def create_exp_folder(tuid, name='', datadir=None):
     return exp_folder
 
 
-def is_valid_dset(dset):
-    """
-    Asserts if dset adheres to quantify Dataset specification.
-
-    Args:
-        dset (:class:`xarray.Dataset`): the dataset
-
-    Returns:
-        bool
-
-    Raises:
-        TypeError: the dataset is not of type :class:`xarray.Dataset`
-    """
-    if not isinstance(dset, xr.Dataset):
-        raise TypeError
-    assert TUID.is_valid(dset.attrs['tuid'])
-
-    return True
-
-
 def initialize_dataset(setable_pars, setpoints, getable_pars):
     """
     Initialize an empty dataset based on setable_pars, setpoints and getable_pars
