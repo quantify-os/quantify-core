@@ -26,12 +26,14 @@ class Rxy(Operation):
         """
         A single qubit rotation around an axis in the equator of the Bloch sphere.
 
-        Args:
-            theta (float)   : rotation angle in degrees
-            phi (float)     : phase of the rotation axis
-            qubit           : the target qubit, by name or Resource
-
-        N.B. we now expect floats, no parametrized operations yet...
+        Parameters
+        ----------
+        theta : float
+            rotation angle in degrees
+        phi : float
+            phase of the rotation axis
+        qubit : str
+            the target qubit
         """
         qubit = str(qubit)
         name = ('Rxy({:.2f}, {:.2f}) {}'.format(theta, phi, qubit))
@@ -73,8 +75,10 @@ class X(Rxy):
 
     def __init__(self, qubit):
         """
-        Args:
-            qubit (str): the target qubit
+        Parameters
+        ----------
+        qubit : str
+            the target qubit
         """
         super().__init__(theta=180, phi=0, qubit=qubit)
         self.data['name'] = 'X {}'.format(qubit)
@@ -88,8 +92,10 @@ class X90(Rxy):
 
     def __init__(self, qubit):
         """
-        Args:
-            qubit (str): the target qubit
+        Parameters
+        ----------
+        qubit : str
+            the target qubit
         """
         super().__init__(theta=90, phi=0, qubit=qubit)
         self.data['name'] = 'X_{90}'+' {}'.format(qubit)
@@ -111,8 +117,10 @@ class Y(Rxy):
 
     def __init__(self, qubit):
         """
-        Args:
-            qubit (str): the target qubit
+        Parameters
+        ----------
+        qubit : str
+            the target qubit
         """
         super().__init__(theta=180, phi=90, qubit=qubit)
         self.data['name'] = 'Y {}'.format(qubit)
@@ -126,8 +134,10 @@ class Y90(Rxy):
 
     def __init__(self, qubit):
         """
-        Args:
-            qubit (str): the target qubit
+        Parameters
+        ----------
+        qubit : str
+            the target qubit
         """
         super().__init__(theta=90, phi=90, qubit=qubit)
         self.data['name'] = 'Y_{90}'+' {}'.format(qubit)

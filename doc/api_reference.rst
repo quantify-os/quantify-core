@@ -6,7 +6,7 @@ quantify
    :members:
 
 
-sequencer
+scheduler
 ============
 
 .. automodule:: quantify.scheduler

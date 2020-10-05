@@ -43,8 +43,10 @@ class Q1ASMBuilder:
 
     def get_str(self):
         """
-        Returns:
-            The program in string format
+        Returns
+        -------
+        str
+            The program
         """
         return columnar(self.rows, no_borders=True)
 
