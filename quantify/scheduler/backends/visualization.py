@@ -16,6 +16,7 @@ from plotly.subplots import make_subplots
 from quantify.visualization.pulse_scheme import new_pulse_fig
 from quantify.utilities.general import import_func_from_string
 from quantify.scheduler.waveforms import modulate_wave
+from quantify.scheduler.compilation import _determine_absolute_timing
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):
@@ -37,6 +38,8 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
     for `abs_time` for each element in the timing_constraints.
 
     """
+    schedule = _determine_absolute_timing(schedule, 'ideal')
+
     qubits = set()
     for _, op in schedule.operations.items():
         for qubit in op.data['gate_info']['qubits']:
