@@ -27,25 +27,32 @@ def unscale(points, xy_mean, xy_scale):
 
 def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
     """
-    Args:
-        x   (:class:`numpy.ndarray`): x data points
-        y   (:class:`numpy.ndarray`): y data points
-        z   (:class:`numpy.ndarray`): z data points
-        n     (int): number of points for each dimension on the interpolated
-            grid if set to None will auto determine amount of points needed
-        interp_method (str): one of {"linear", "nearest", "deg"}, determines what interpolation method is used.
-
-    Returns:
-        x_grid (:class:`numpy.ndarray`): N*1 array of x-values of the interpolated grid
-        y_grid (:class:`numpy.ndarray`): N*1 array of x-values of the interpolated grid
-        z_grid (:class:`numpy.ndarray`): N*N array of z-values that form a grid.
-
-
     The output of this method can directly be used for plt.imshow(z_grid, extent=extent, aspect='auto')
-        where the extent is determined by the min and max of the x_grid and y_grid.
+    where the extent is determined by the min and max of the x_grid and y_grid.
 
     The output can also be used as input for ax.pcolormesh(x, y, Z,**kw)
 
+    Parameters
+    ----------
+    x : :class:`numpy.ndarray`
+        x data points
+    y : :class:`numpy.ndarray`
+        y data points
+    z : :class:`numpy.ndarray`
+        z data points
+    n : int
+        number of points for each dimension on the interpolated grid if set to None will auto determine amount of
+        points needed
+    interp_method : str
+        one of {"linear", "nearest", "deg"}, determines what interpolation method is used.
+    Returns
+    -------
+    x_grid : :class:`numpy.ndarray`
+        N*1 array of x-values of the interpolated grid
+    y_grid : :class:`numpy.ndarray`
+        N*1 array of x-values of the interpolated grid
+    z_grid : :class:`numpy.ndarray`
+        N*N array of z-values that form a grid.
     """
 
     points = list(zip(x, y))

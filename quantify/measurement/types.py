@@ -31,7 +31,6 @@ class Gettable:
 
     .. jsonschema:: schemas/Gettable.json#/attrs
     .. jsonschema:: schemas/Gettable.json#/methods
-
     """
 
     schema = load_json_schema(__file__, 'Gettable.json')

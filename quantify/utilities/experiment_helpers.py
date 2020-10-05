@@ -14,13 +14,18 @@ def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: s
     Loads settings from a previous experiment onto a current :class:`~qcodes.instrument.base.Instrument`. This
     information is loaded from the 'snapshot.json' file in the provided experiment directory.
 
-    Args:
-        instrument (:class:`~qcodes.instrument.base.Instrument`): the instrument to be configured.
-        tuid (:class:`~quantify.data.types.TUID`): the TUID of the experiment.
-        datadir (str): path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
-
-    Raises:
-        ValueError: if the provided instrument has no match in the loaded snapshot.
+    Parameters
+    ----------
+    instrument : :class:`~qcodes.instrument.base.Instrument`
+        the instrument to be configured.
+    tuid : :class:`~quantify.data.types.TUID`
+        the TUID of the experiment.
+    datadir : str
+        path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+    Raises
+    ------
+    ValueError
+        if the provided instrument has no match in the loaded snapshot.
     """
     instruments = load_snapshot(tuid, datadir)['instruments']
     if instrument.name not in instruments:
@@ -36,11 +41,14 @@ def create_plotmon_from_historical(tuid: TUID):
     Creates a plotmon using the dataset of the provided experiment denoted by the tuid in the datadir.
     Loads the data and draws any required figures.
 
-    Args:
-        tuid (:class:`~quantify.data.types.TUID`): the TUID of the experiment.
-
-    Returns:
-        (:class:~quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt): the plotmon
+    Parameters
+    ----------
+    tuid : :class:`~quantify.data.types.TUID`
+        the TUID of the experiment.
+    Returns
+    -------
+    :class:`quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt`
+        the plot
     """
     plot = PlotMonitor_pyqt(tuid)
     plot.tuid(tuid)
