@@ -40,33 +40,3 @@ visualization
 
 .. automodule:: quantify.visualization
     :members:
-
-circuit_diagram
-------------------
-
-.. automodule:: quantify.visualization.circuit_diagram
-    :members:
-
-pulse_scheme
-------------------
-
-.. automodule:: quantify.visualization.pulse_scheme
-    :members:
-
-SI_utilities
-------------------
-
-.. automodule:: quantify.visualization.SI_utilities
-    :members:
-
-plot_interpolation
-------------------
-
-.. automodule:: quantify.visualization.plot_interpolation
-    :members:
-
-pyqt_plotmon
-------------------
-
-.. automodule:: quantify.visualization.pyqt_plotmon
-    :members:

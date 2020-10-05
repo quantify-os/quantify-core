@@ -16,14 +16,16 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
     """
     Delete keys from dictionary recursively.
 
-    Args:
-        dictionary (dict)
-        keys (set)  a set of keys to strip from the dictionary.
-
-    Return:
-        dict: a new dictionary that does not included the blacklisted keys.
-
-    function based on "https://stackoverflow.com/questions/3405715/"
+    Parameters
+    ----------
+    dictionary : dict
+        to be mutated
+    keys : set
+        a set of keys to strip from the dictionary
+    Returns
+    -------
+    dict
+        a new dictionary that does not included the blacklisted keys
     """
     keys_set = set(keys)  # optimization for the "if key in keys" lookup.
 
@@ -84,12 +86,16 @@ def load_json_schema(relative_to, filename):
 
     .. tip:: Typical usage of the form `schema = load_json_schema(__file__, 'definition.json')`
 
-    Args:
-        relative_to (str): the file to begin searching from
-        filename (str): the JSON file to load
-
-    Returns:
-        dict: the schema
+    Parameters
+    ----------
+    relative_to : str
+        the file to begin searching from
+    filename : str
+        the JSON file to load
+    Returns
+    -------
+    dict
+        the schema
     """
     path = pathlib.Path(relative_to).resolve().parent.joinpath('schemas', filename)
     with path.open(mode='r') as f:
