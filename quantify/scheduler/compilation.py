@@ -221,7 +221,8 @@ def validate_config(config: dict, scheme_fn: str):
 
     Returns
     ----------
-        valid : bool
+        bool
+            True if valid
 
     """
     scheme = load_json_schema(__file__, scheme_fn)
@@ -247,7 +248,9 @@ def qcompile(schedule: Schedule, device_cfg: dict, backend: Callable = None, **k
     schedule : :class:`~quantify.scheduler.Schedule`
         The prepared schedule if no backend is provided, otherwise whatever object returned by the backend
 
+
     .. rubric:: Configuration specification
+
 
     .. jsonschema:: schemas/transmon_cfg.json
     """

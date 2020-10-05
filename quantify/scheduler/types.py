@@ -102,17 +102,24 @@ class Schedule(UserDict):
         """
         Add an Operation to the schedule and specify timing constraints.
 
-        Args:
-            operation (:class:`Operation`): The operation to add to the schedule
-            rel_time (float) : relative time between the the reference operation and added operation.
-            ref_op (str) : specifies the reference operation.
-            ref_pt (str): reference point in reference operation must be one of ('start', 'center', 'end').
-            ref_pt_new (str) : reference point in added operation must be one of ('start', 'center', 'end').
-            label  (str) : a label that can be used as an identifier when adding more operations.
-
-        Returns:
-            (str) : returns the (unique) label of the last added operation.
-
+        Parameters
+        ----------
+        operation : :class:`Operation`
+            The operation to add to the schedule
+        rel_time : float
+            relative time between the the reference operation and added operation.
+        ref_op : str
+            specifies the reference operation.
+        ref_pt : str
+            reference point in reference operation must be one of ('start', 'center', 'end').
+        ref_pt_new : str
+            reference point in added operation must be one of ('start', 'center', 'end').
+        label : str
+            a label that can be used as an identifier when adding more operations.
+        Returns
+        -------
+        str
+            returns the (unique) label of the last added operation.
         """
         assert isinstance(operation, Operation)
 
@@ -156,7 +163,7 @@ class Operation(UserDict):
 
     - duration  (float) : duration of the operation in seconds (can be 0)
     - hash      (str)   : an auto generated unique identifier.
-    - name      (str)   : a readable identifer, does not have to be unique
+    - name      (str)   : a readable identifier, does not have to be unique
 
     An Operation can contain information  on several levels of abstraction.
     This information is used when different representations. Note that when
@@ -168,16 +175,12 @@ class Operation(UserDict):
 
         .. warning::
 
-            The instruction/logical information level is not clearly
-            defined yet.
+            The instruction/logical information level is not clearly defined yet.
 
 
     .. note::
 
-        Two different Operations containing the same information generate the
-        same hash and are considered identical.
-
-
+        Two different Operations containing the same information generate the same hash and are considered identical.
     """
 
     def __init__(self, name: str, data: dict = None):
@@ -207,8 +210,7 @@ class Operation(UserDict):
         """
         Determine the duration of the operation based on the pulses described in pulse_info.
 
-        If the operation contains no pulse info, it is assumed to be ideal and
-        have zero duration.
+        If the operation contains no pulse info, it is assumed to be ideal and have zero duration.
         """
         duration = 0  # default to zero duration if no pulse content is specified.
 
@@ -231,8 +233,10 @@ class Operation(UserDict):
         """
         Updates self.data['gate_info'] with contents of gate_operation.
 
-        Args:
-            gate_operation (:class:`Operation`) : an operation containing gate_info.
+        Parameters
+        ----------
+        gate_operation : :class:`Operation`
+            an operation containing gate_info.
         """
         self.data['gate_info'].update(gate_operation.data['gate_info'])
 
@@ -240,8 +244,10 @@ class Operation(UserDict):
         """
         Adds pulse_info of pulse_operation to self.
 
-        Args:
-            pulse_operation (:class:`Operation`)    : an operation containing pulse_info.
+        Parameters
+        ----------
+        pulse_operation : :class:`Operation`
+            an operation containing pulse_info.
         """
         self.data['pulse_info'] += pulse_operation.data['pulse_info']
 
@@ -254,12 +260,9 @@ class Operation(UserDict):
 
 class Resource(UserDict):
     """
-    A resource corresponds to a physical resource such as an AWG channel,
-    a qubit, or a classical register.
-
+    A resource corresponds to a physical resource such as an AWG channel, a qubit, or a classical register.
 
     .. jsonschema:: schemas/resource.json
-
     """
 
     @classmethod
