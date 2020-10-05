@@ -45,6 +45,28 @@ If you are a developer you might want to install the package in the editable mod
 .. code-block:: console
     $ pip install -e .
 
-
-
 .. _GitLab repo: https://gitlab.com/quantify-os/quantify-core
+
+PyQt5
+=====
+
+quantify-core has a dependency on the PyQt5 package, which itself has a dependency on the Qt5 runtime. On most systems,
+the standard installation process will install Qt. If you see errors during installation, the following commands should
+perform the setup for the listed platforms. You may need to consult a search engine if you have a more exotic system.
+
+Linux (Ubuntu)
+~~~~~~~~~~~~~~
+
+.. code-block:: console
+
+    $ sudo apt-get install python3-pyqt5
+
+Windows
+~~~~~~~
+
+From https://www.qt.io/download
+
+MacOS
+~~~~~
+
+From https://doc.qt.io/qt-5/macos.html
