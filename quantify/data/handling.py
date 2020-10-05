@@ -67,7 +67,7 @@ def get_datadir():
     return this._datadir
 
 
-def set_datadir(datadir):
+def set_datadir(datadir: str):
     """
     Sets the data directory.
 
@@ -153,7 +153,7 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') 
         return json.load(snap)
 
 
-def create_exp_folder(tuid, name='', datadir=None):
+def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
     """
     Creates an empty folder to store an experiment container.
 
@@ -173,7 +173,7 @@ def create_exp_folder(tuid, name='', datadir=None):
     str
         full path of the experiment folder following format: ``/datadir/YYMMDD/HHMMSS-******-name/``.
     """
-    assert TUID.is_valid(tuid)
+    TUID.is_valid(tuid)
 
     if datadir is None:
         datadir = get_datadir()
@@ -185,31 +185,7 @@ def create_exp_folder(tuid, name='', datadir=None):
     return exp_folder
 
 
-def is_valid_dset(dset):
-    """
-    Asserts if dset adheres to quantify Dataset specification.
-
-    Parameters
-    ----------
-    dset : :class:`xarray.Dataset`
-        the dataset
-    Returns
-    -------
-    bool
-        if valid
-    Raises
-    ------
-    TypeError
-        the dataset is not of type :class:`xarray.Dataset`
-    """
-    if not isinstance(dset, xr.Dataset):
-        raise TypeError
-    assert TUID.is_valid(dset.attrs['tuid'])
-
-    return True
-
-
-def initialize_dataset(settable_pars, setpoints, gettable_pars):
+def initialize_dataset(setable_pars, setpoints, getable_pars):
     """
     Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
@@ -261,7 +237,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
     return dataset
 
 
-def grow_dataset(dataset):
+def grow_dataset(dataset: xr.Dataset):
     """
     Resizes the dataset by doubling the current length of all arrays.
 
@@ -287,7 +263,7 @@ def grow_dataset(dataset):
     return dataset.merge(new_data)
 
 
-def trim_dataset(dataset):
+def trim_dataset(dataset: xr.Dataset):
     """
     Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
 
@@ -320,7 +296,7 @@ def trim_dataset(dataset):
 ########################################################################
 
 
-def get_latest_tuid(contains='') -> TUID:
+def get_latest_tuid(contains: str = '') -> TUID:
     """
     Returns the most recent tuid.
 
@@ -345,7 +321,7 @@ def get_latest_tuid(contains='') -> TUID:
     return get_tuids_containing(contains, 1)[0]
 
 
-def get_tuids_containing(contains, max_results=sys.maxsize) -> list:
+def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
     """
     Returns a list of tuids containing a specific label
 
