@@ -1,4 +1,5 @@
 import os
+import shutil
 import pytest
 import xarray as xr
 import numpy as np
@@ -57,7 +58,7 @@ def test_initialize_dataset_2D():
     getpar = ManualParameter('z', unit='V', label='Signal amplitude')
     setable_pars = [xpar, ypar]
     setpoints = np.arange(0, 100, 32)
-    setpoints = setpoints.reshape((len(setpoints)//2, 2))
+    setpoints = setpoints.reshape((len(setpoints) // 2, 2))
     getable_pars = [getpar]
 
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
@@ -139,6 +140,25 @@ def test_get_tuid_contains():
     assert len(tuids) == 2
     assert tuids[0] == '20200504-191556-002-4209ee'
     assert tuids[1] == '20200430-170837-001-315f36'
+
+
+def test_misplaced_exp_container():
+    """
+    Ensures user is warned if a dataset was misplaced
+    """
+    tmp_data_path = os.path.join(
+        test_datadir,
+        'misplaced_exp_container',
+    )
+    date = '20201006'
+    container = '20201008-191556-002-4209eg-Experiment from my colleague'
+    os.makedirs(os.path.join(tmp_data_path, date, container), exist_ok=True)
+    dh.set_datadir(tmp_data_path)
+    with pytest.raises(AssertionError):
+        dh.get_tuids_containing(contains="colleague")
+
+    # cleanup
+    shutil.rmtree(tmp_data_path)
 
 
 def test_snapshot():
