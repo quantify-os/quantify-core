@@ -64,3 +64,9 @@ setup(
     version='0.1.1',
     zip_safe=False,
 )
+
+
+from PyQt5 import QtCore
+print("XXX")
+print(QtCore.PYQT_VERSION_STR.split('.'))
+print("XXX")
