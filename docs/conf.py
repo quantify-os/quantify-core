@@ -66,7 +66,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Quantify'
+project = 'Quantify-Core'
 copyright = "2020, Qblox "
 author = "Qblox"
 
@@ -162,10 +162,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Quantify',
-     'Quantify Documentation',
+    (master_doc, 'Quantify-Core',
+     'Quantify-Core Documentation',
      author,
-     'Quantify',
+     'Quantify-Core',
      'One line description of project.',
      'Miscellaneous'),
 ]
