@@ -5,12 +5,12 @@ User guide
 Introduction
 ===============
 
-A :mod:`quantify` experiment typically consists of a data-acquisition loop in which one or more parameters are set and one or more parameters are measured.
+A :mod:`Quantify` experiment typically consists of a data-acquisition loop in which one or more parameters are set and one or more parameters are measured.
 
 Core concepts
 ====================
 
-The core of quantify can be understood by understanding the following concepts:
+The core of Quantify can be understood by understanding the following concepts:
 
 - `Parameter`_
 - `Instrument`_
@@ -191,7 +191,7 @@ A data directory with the name 'MyData' thus will look similar to:
     - 20200710
 
 .. note::
-    The root directory of all experiments being used by quantify can be retrieved with :meth:`~quantify.data.handling.get_datadir`.
+    The root directory of all experiments being used by Quantify can be retrieved with :meth:`~quantify.data.handling.get_datadir`.
 
 Dataset
 ~~~~~~~~~

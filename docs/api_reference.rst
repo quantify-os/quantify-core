@@ -30,7 +30,7 @@ utilities
 =========
 
 experiment_helpers
-~~~~~~~~~~~~~~~~~~
+------------------
 
 .. automodule:: quantify.utilities.experiment_helpers
     :members:
