@@ -27,6 +27,12 @@ The resulting dataset will look something like the following:
 
 .. jupyter-execute::
 
+
+    from PyQt5 import QtCore
+    print("XXX")
+    print(QtCore.PYQT_VERSION_STR.split('.'))
+    print("XXX")
+
     from qcodes import ManualParameter, Parameter
     from quantify.measurement.control import MeasurementControl
     import numpy as np
