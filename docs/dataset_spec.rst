@@ -30,7 +30,10 @@ The resulting dataset will look something like the following:
 
     from PyQt5 import QtCore
     print("XXX")
-    print(QtCore.PYQT_VERSION_STR.split('.'))
+    ver = QtCore.PYQT_VERSION_STR.split('.')
+    print(ver)
+    print(ver[1])
+    print(int(ver[1]))
     print("XXX")
 
     from qcodes import ManualParameter, Parameter
