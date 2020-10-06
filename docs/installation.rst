@@ -12,7 +12,7 @@ To install quantify, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install quantify
+    $ pip install quantify-core
 
 This is the preferred method to install quantify, as it will always install the most recent stable release.
 
@@ -26,9 +26,7 @@ you through the process.
 From sources
 ------------
 
-The sources for quantify can be downloaded from the `GitLab repo`_.
-
-You can either clone the public repository:
+The sources for quantify can be downloaded from the `GitLab repo`_:
 
 .. code-block:: console
 
