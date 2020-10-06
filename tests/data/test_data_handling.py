@@ -14,20 +14,8 @@ from tests.helpers import get_test_data_dir
 test_datadir = get_test_data_dir()
 
 
-def test_is_valid_dset():
-
-    test_dset = xr.Dataset()
-
-    test_dset.attrs['tuid'] = dh.gen_tuid()
-
-    # because it is not a valid dataset
-    assert dh.is_valid_dset(test_dset)
-
-
 def test_gen_tuid():
-
     ts = datetime.now()
-
     tuid = dh.gen_tuid(ts)
 
     assert TUID.is_valid(tuid)
@@ -36,7 +24,6 @@ def test_gen_tuid():
 
 
 def test_initialize_dataset():
-
     setpar = ManualParameter('x', unit='m', label='X position')
     getpar = ManualParameter('y', unit='V', label='Signal amplitude')
     setable_pars = [setpar]
