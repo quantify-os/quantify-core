@@ -23,9 +23,7 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
-   example_notebooks/MeasurementControl.ipynb
-   example_notebooks/Advanced_MC.ipynb
-   example_notebooks/Adaptive.ipynb
+
 
 API Reference
 ===================
