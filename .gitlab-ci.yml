@@ -59,7 +59,7 @@ test-latest:
   allow_failure: true
 
 flake8:
-  image: python:latest
+  image: python:3.8
   stage: Static Analysis
   allow_failure: true
   script:
@@ -80,13 +80,3 @@ run:
   artifacts:
     paths:
       - dist/*.whl
-
-pypi:
-  image: python:latest
-  stage: Deploy
-  script:
-    - pip install -U twine
-    - python setup.py sdist bdist_wheel
-    - twine upload dist/*
-  only:
-    - master
