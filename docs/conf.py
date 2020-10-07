@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# quantify documentation build configuration file, created by
+# Quantify documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  9 13:47:02 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -66,7 +66,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'quantify'
+project = 'Quantify-Core'
 copyright = "2020, Qblox "
 author = "Qblox"
 
@@ -139,8 +139,8 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'quantify.tex',
-     'quantify Documentation',
+    (master_doc, 'Quantify.tex',
+     'Quantify Documentation',
      'Qblox ', 'manual'),
 ]
 
@@ -150,8 +150,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'quantify',
-     'quantify Documentation',
+    (master_doc, 'Quantify',
+     'Quantify Documentation',
      [author], 1)
 ]
 
@@ -162,10 +162,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'quantify',
-     'quantify Documentation',
+    (master_doc, 'Quantify-Core',
+     'Quantify-Core Documentation',
      author,
-     'quantify',
+     'Quantify-Core',
      'One line description of project.',
      'Miscellaneous'),
 ]

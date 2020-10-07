@@ -1,4 +1,4 @@
-Welcome to quantify's documentation!
+Welcome to Quantify's documentation!
 ======================================
 
 

@@ -56,16 +56,8 @@ class TUID(str):
         ValueError
             Invalid format
         """
-
-        if not tuid[:8].isdigit():
-            raise ValueError('Invalid timespec {}'.format(tuid))
-        if not tuid[9:15].isdigit():
-            raise ValueError('Invalid timespec {}'.format(tuid))
-        if not tuid[16:18].isdigit():
-            raise ValueError('Invalid timespec {}'.format(tuid))
-        if not len(tuid) == 26:
-            raise ValueError('Invalid uuid {}'.format(tuid))
-
         cls.datetime(tuid)  # verify date format
+        if len(cls.uuid(tuid)) != 6:
+            raise ValueError("Invalid format")
 
         return True
