@@ -55,7 +55,7 @@ setup(
     include_package_data=True,
     keywords='quantify-core',
     name='quantify-core',
-    packages=find_packages(include=['quantify-core', 'quantify-core.*']),
+    packages=find_packages(include=['quantify', 'quantify.*']),
     package_data={'': ['*.json']},  # ensures JSON schema are included
     setup_requires=setup_requirements,
     test_suite='tests',
