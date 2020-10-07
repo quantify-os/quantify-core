@@ -742,6 +742,8 @@ class TestMeasurementControl:
         with pytest.raises(ValueError, match='Instrument "the mac" not found in snapshot'):
             load_settings_onto_instrument(non_existing, TUID('20200814-134652-492-fbf254'), test_datadir)
 
+        non_existing.close()
+
 
 def test_tile_setpoints_grid():
     x = np.arange(5)
