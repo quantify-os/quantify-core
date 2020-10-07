@@ -74,7 +74,7 @@ def set_datadir(datadir: str):
     Parameters
     ----------
     datadir : str
-            path of the data directory. If set to None, resets the datadir to the default datadir (<top_level>/data).
+            path of the data directory. If set to ``None``, resets the datadir to the default datadir (``<top_level>/data``).
     """
     this._datadir = datadir
 
@@ -86,7 +86,7 @@ def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
     daydir = os.path.join(datadir, tuid[:8])
 
     # This will raise a file not found error if no data exists on the specified date
-    exp_folders = list(filter(lambda x: tuid[9:] in x, os.listdir(daydir)))
+    exp_folders = list(filter(lambda x: tuid in x, os.listdir(daydir)))
     if len(exp_folders) == 0:
         print(os.listdir(daydir))
         raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
@@ -171,15 +171,15 @@ def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
     Returns
     -------
     str
-        full path of the experiment folder following format: ``/datadir/YYMMDD/HHMMSS-******-name/``.
+        full path of the experiment folder following format: ``/datadir/YYYYmmDD/YYYYmmDD-HHMMSS-sss-******-name/``.
     """
     TUID.is_valid(tuid)
 
     if datadir is None:
         datadir = get_datadir()
-    exp_folder = os.path.join(datadir, tuid[:8], tuid[9:])
+    exp_folder = os.path.join(datadir, tuid[:8], tuid)
     if name != '':
-        exp_folder += '-'+name
+        exp_folder += '-' + name
 
     os.makedirs(exp_folder, exist_ok=True)
     return exp_folder
@@ -352,11 +352,14 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
         raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
     tuids = []
     for dd in daydirs:
-        expdirs = list(filter(lambda x: (x[:6].isdigit() and x[6] == '-' and len(x) > 12 and contains in x),
+        expdirs = list(filter(lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
                               os.listdir(os.path.join(datadir, dd))))
         expdirs.sort(reverse=True)
         for expname in expdirs:
-            tuids.append(TUID('{}-{}'.format(dd, expname[:17])))
+            # Check for inconsistent folder structure for datasets portability
+            if dd != expname[:8]:
+                raise FileNotFoundError('Experiment container "{}" is in wrong day directory "{}" '.format(expname, dd))
+            tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
                 return tuids
     if len(tuids) == 0:

@@ -165,7 +165,7 @@ Data Directory
 ~~~~~~~~~~~~~~~~
 
 The top level directory in the file system where output is saved to. Experiments are first grouped by date -
-all experiments which take place on a certain date will be saved together in a subdirectory in the form ``YYYYMMDD``.
+all experiments which take place on a certain date will be saved together in a subdirectory in the form ``YYYYmmDD``.
 
 Experiment Container
 ~~~~~~~~~~~~~~~~~~~~
@@ -173,7 +173,7 @@ Experiment Container
 Individual experiments are saved to their own subdirectories (of the Data Directory) named based on the :class:`~quantify.data.types.TUID` and the ``<experiment name (if any)>``.
 
 .. note::
-    TUID: A Time-based Unique ID is of the form ``YYYYMMDD-HHMMSS-sss-<random 6 character string>``. However, currently the subdirectory of each experiment does not contain the full TUID. These subdirectories' names take the form ``HHMMSS-sss-<random 6 character string><experiment name (if any)>``, this might still change before a stable release.
+    TUID: A Time-based Unique ID is of the form ``YYYYmmDD-HHMMSS-sss-<random 6 character string>`` and these subdirectories' names take the form ``YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>``.
 
 These subdirectories are termed 'Experiment Containers', typical output being the Dataset in hdf5 format and a JSON format file describing Parameters, Instruments and such.
 
@@ -183,15 +183,15 @@ A data directory with the name 'MyData' thus will look similar to:
 
 - MyData
     - 20200708
-        - 145048-800-60cf37
-        - 145205-042-6d068a-bell_test
+        - 20200708-145048-800-60cf37
+        - 20200708-145205-042-6d068a-bell_test
             - dataset.hdf5
             - snapshot.json
             - lmfit.png
     - 20200710
 
 .. note::
-    The root directory of all experiments being used by quantify can be retrieved with :meth:`~quantify.data.handling.get_datadir`.
+    The root directory of all experiments being used by quantify can be retrieved/set with :meth:`~quantify.data.handling.get_datadir`/:meth:`~quantify.data.handling.set_datadir`.
 
 Dataset
 ~~~~~~~~~
