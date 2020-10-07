@@ -357,7 +357,8 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
         expdirs.sort(reverse=True)
         for expname in expdirs:
             # Check for inconsistent folder structure for datasets portability
-            assert dd == expname[:8], 'Experiment container "{}" not expected in "{}" subfolder!'.format(expname, os.path.join(dd))
+            if dd != expname[:8]:
+                raise FileNotFoundError('Experiment container "{}" is in wrong day directory "{}" '.format(expname, dd))
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
                 return tuids

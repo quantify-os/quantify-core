@@ -154,7 +154,7 @@ def test_misplaced_exp_container():
     container = '20201008-191556-002-4209eg-Experiment from my colleague'
     os.makedirs(os.path.join(tmp_data_path, date, container), exist_ok=True)
     dh.set_datadir(tmp_data_path)
-    with pytest.raises(AssertionError):
+    with pytest.raises(FileNotFoundError):
         dh.get_tuids_containing(contains="colleague")
 
     # cleanup
