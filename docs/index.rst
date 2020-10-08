@@ -23,9 +23,9 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
-   example_notebooks/MeasurementControl.ipynb
-   example_notebooks/Advanced_MC.ipynb
-   example_notebooks/Adaptive.ipynb
+   example_notebooks/Tutorial 1. Controlling a basic experiment using MeasurementControl.ipynb
+   example_notebooks/Tutorial 2. Advanced capabilities of the MeasurementControl.ipynb
+   example_notebooks/Tutorial 3. Adaptive Measurements.ipynb
 
 
 API Reference
