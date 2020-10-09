@@ -47,12 +47,13 @@ Once you have a copy of the source, you can install it with:
 If you are a developer you might want to install the package in the editable mode:
 
 .. code-block:: console
+
     $ pip install -e .
 
 .. _GitLab repo: https://gitlab.com/Quantify-os/Quantify-core
 
 PyQt5
-=====
+------
 
 Quantify-core has a dependency on the PyQt5 package, which itself has a dependency on the Qt5 runtime. On most systems,
 the standard installation process will install Qt. You may need to consult a search engine if you have a more exotic
