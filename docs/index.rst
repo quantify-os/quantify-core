@@ -1,0 +1,44 @@
+Welcome to quantify's documentation!
+======================================
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+   :glob:
+
+   readme
+   installation
+   concepts
+   toolchain
+   contributing
+   authors
+   history
+
+
+Tutorials
+==============
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   sequencer
+
+API Reference
+===================
+
+Contents:
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API reference
+
+   api_reference
+
+
+Indices and tables
+==================
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
