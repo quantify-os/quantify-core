@@ -22,7 +22,7 @@ class Rxy(Operation):
 
     """
 
-    def __init__(self, theta: float, phi: float, qubit):
+    def __init__(self, theta: float, phi: float, qubit: str):
         """
         A single qubit rotation around an axis in the equator of the Bloch sphere.
 
@@ -35,7 +35,7 @@ class Rxy(Operation):
         qubit : str
             the target qubit
         """
-        qubit = str(qubit)
+        qubit = qubit
         name = ('Rxy({:.2f}, {:.2f}) {}'.format(theta, phi, qubit))
 
         theta_r = np.deg2rad(theta)
@@ -163,10 +163,7 @@ class CNOT(Operation):
 
     """
 
-    def __init__(self, qC, qT):
-        qC = str(qC)
-        qT = str(qT)
-
+    def __init__(self, qC: str, qT: str):
         data = {'gate_info': {'unitary': np.array([[1, 0, 0, 0],
                                                    [0, 1, 0, 0],
                                                    [0, 0, 0, 1],
@@ -197,7 +194,7 @@ class CZ(Operation):
 
     """
 
-    def __init__(self, qC, qT):
+    def __init__(self, qC: str, qT: str):
         data = {'gate_info': {'unitary': np.array([[1, 0, 0, 0],
                                                    [0, 1, 0, 0],
                                                    [0, 0, 1, 0],
@@ -223,9 +220,9 @@ class Reset(Operation):
         data = {'gate_info': {'unitary': None,
                               'tex': r'$|0\rangle$',
                               'plot_func': 'quantify.visualization.circuit_diagram.reset',
-                              'qubits': [str(q) for q in qubits],
+                              'qubits': list(qubits),
                               'operation_type': 'reset'}}
-        super().__init__('Reset {}'.format([str(q) for q in qubits]), data=data)
+        super().__init__('Reset {}'.format(qubits), data=data)
 
 
 class Measure(Operation):
@@ -241,6 +238,6 @@ class Measure(Operation):
         data = {'gate_info': {'unitary': None,
                               'plot_func': 'quantify.visualization.circuit_diagram.meter',
                               'tex': r'$\langle0|$',
-                              'qubits': [str(q) for q in qubits],
+                              'qubits': list(qubits),
                               'operation_type': 'measure'}}
-        super().__init__('Measure {}'.format([str(q) for q in qubits]), data=data)
+        super().__init__('Measure {}'.format(qubits), data=data)

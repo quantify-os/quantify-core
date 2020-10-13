@@ -98,6 +98,14 @@ def _find_edge(device_cfg, q0, q1, op_name):
     return edge_cfg
 
 
+def _walk_address(device_cfg, address):
+    paths = address.split(':')
+    curr_level = device_cfg['qubits']  # todo, make this work with more than just qubits
+    for path in paths:
+        curr_level = curr_level[path]
+    return curr_level
+
+
 def _add_pulse_information_transmon(schedule, device_cfg: dict):
     """
     Adds pulse information specified in the device config to the schedule.
@@ -137,12 +145,14 @@ def _add_pulse_information_transmon(schedule, device_cfg: dict):
 
     for op in schedule.operations.values():
         if 'operation_type' not in op['gate_info'] and len(op['pulse_info']) > 0:
-            # this is a pulse operation, nothing more to be done
+            # this is a pulse operation, make sure the address is resolved
+            for pulse in op.data['pulse_info']:
+                pulse['channel'] = _walk_address(device_cfg, pulse['channel'])
             continue
 
         if op['gate_info']['operation_type'] == 'measure':
             for q in op['gate_info']['qubits']:
-                q_cfg = device_cfg['qubits'][q]
+                q_cfg = _walk_address(device_cfg, q)
                 # readout pulse
                 if q_cfg['ro_pulse_type'] == 'square':
                     op.add_pulse(ModSquarePulse(amp=q_cfg['ro_pulse_amp'],

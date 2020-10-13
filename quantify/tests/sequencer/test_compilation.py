@@ -3,9 +3,9 @@ import numpy as np
 import json
 from quantify.scheduler import Schedule
 from quantify.scheduler.gate_library import Reset, Measure, CNOT, Rxy, CZ
-from quantify.scheduler.compilation import _determine_absolute_timing, validate_config, _add_pulse_information_transmon
-from quantify.scheduler.resources import QubitResource
-from quantify.scheduler.types import Operation
+from quantify.scheduler.pulse_library import SquarePulse
+from quantify.scheduler.compilation import _determine_absolute_timing, validate_config, _add_pulse_information_transmon, qcompile
+from quantify.scheduler.types import Operation, Resource
 
 
 import pathlib
@@ -139,9 +139,22 @@ def test_bad_gate():
     }
 
     sched = Schedule('Bell experiment')
-    q0 = QubitResource('q0')
-    sched.add_resource(q0)
-    sched.add(Reset(q0.name))
-    sched.add(NotAGate(q0.name))
+    sched.add(Reset('q0'))
+    sched.add(NotAGate('q0'))
     with pytest.raises(NotImplementedError, match='Operation type "bad" not supported by backend'):
         _add_pulse_information_transmon(sched, min_config)
+
+
+def test_resource_resolution():
+    sched = Schedule('resource_resolution')
+    qcm0_s0 = Resource({'name': 'qcm0.s0', 'type': 'qcm'})
+    qrm0_s0 = Resource({'name': 'qrm0.s0', 'type': 'qrm'})
+
+    sched.add(Rxy(90, 0, 'q0'))
+    sched.add(SquarePulse(0.6, 20e-9, 'q0:mw_ch'))
+    sched.add(SquarePulse(0.4, 20e-9, 'q0:ro_ch'))
+
+    sched.add_resources([qcm0_s0, qrm0_s0])
+    sched = qcompile(sched, DEVICE_TEST_CFG)
+
+    print(sched)

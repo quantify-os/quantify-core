@@ -2,7 +2,8 @@ import pytest
 import numpy as np
 from quantify.scheduler import Schedule, Operation, Resource
 from quantify.scheduler.gate_library import Reset, Measure, CNOT, Rxy, X, X90, Y, Y90, CZ
-from quantify.scheduler.resources import QubitResource, CompositeResource, Pulsar_QCM_sequencer
+from quantify.scheduler.resources import CompositeResource, Pulsar_QCM_sequencer
+
 
 def test_schedule_Bell():
     # Create an empty schedule
@@ -56,14 +57,10 @@ def test_schedule_add_timing_constraints():
     with pytest.raises(ValueError):
         sched.add(Rxy(theta=90, phi=0, qubit='q0'), ref_op='non-existing-operation')
 
-
     assert Schedule.is_valid(sched)
 
+
 def test_valid_resources():
-
-    q0 = QubitResource('q0')
-    assert Resource.is_valid(q0)
-
     s0 = Pulsar_QCM_sequencer(name='s0', instrument_name='qcm1', seq_idx=0)
     s1 = Pulsar_QCM_sequencer(name='s1', instrument_name='qcm1', seq_idx=1)
     assert Resource.is_valid(s0)
@@ -74,7 +71,6 @@ def test_valid_resources():
 
     qcm1 = CompositeResource('qcm1', [s0.name, s1.name])
     assert Resource.is_valid(qcm1)
-
 
 
 def test_gates_valid():
@@ -99,20 +95,3 @@ def test_gates_valid():
     assert Operation.is_valid(cz)
     assert Operation.is_valid(cnot)
     assert Operation.is_valid(measure)
-
-
-
-def test_schedule_add_resource():
-
-    q0 = QubitResource('q0')
-    assert Resource.is_valid(q0)
-    s0 = Pulsar_QCM_sequencer(name='s0', instrument_name='qcm1', seq_idx=0)
-
-    sched = Schedule('my exp')
-    sched.add_resource(q0)
-    set(sched.resources.keys()) == {'q0'}
-
-
-
-
-

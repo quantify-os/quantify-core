@@ -133,8 +133,7 @@ class DRAGPulse(Operation):
            Phys. Rev. Lett. 103, 110501 (2009).*
     """
 
-    def __init__(self, G_amp: float, D_amp: float, phase: float, freq_mod: float, duration: float, ch: str,
-                 t0: float = 0):
+    def __init__(self, G_amp: float, D_amp: float, phase: float, freq_mod: float, duration: float, ch, t0: float = 0):
         """
         Parameters
         ------------
