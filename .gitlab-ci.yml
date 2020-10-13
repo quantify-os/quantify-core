@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:latest
+image: python:3.7
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -47,12 +47,19 @@ test:
       cobertura: coverage.xml
     when: always
 
+
 test-3.8:
-  extends: "test"
-  image: "python:3.8"
+  extends: test
+  image: python:3.8
+
+
+test-latest:
+  extends: test
+  image: python:latest
+
 
 flake8:
-  image: python:latest
+  image: python:3.7
   stage: Static Analysis
   allow_failure: true
   script:
@@ -87,13 +94,3 @@ pages:
   artifacts:
     paths:
       - public
-
-pypi:
-  image: python:latest
-  stage: Deploy
-  script:
-    - pip install -U twine
-    - python setup.py sdist bdist_wheel
-    - twine upload dist/*
-  only:
-    - master
