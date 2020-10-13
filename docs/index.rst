@@ -23,9 +23,9 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
-   example_notebooks/Tutorial 1. Controlling a basic experiment using MeasurementControl.ipynb
-   example_notebooks/Tutorial 2. Advanced capabilities of the MeasurementControl.ipynb
-   example_notebooks/Tutorial 3. Adaptive Measurements.ipynb
+   tutorials/Tutorial 1. Controlling a basic experiment using MeasurementControl.rst
+   tutorials/Tutorial 2. Advanced capabilities of the MeasurementControl.rst
+   tutorials/Tutorial 3. Adaptive Measurements.rst
 
 
 API Reference
