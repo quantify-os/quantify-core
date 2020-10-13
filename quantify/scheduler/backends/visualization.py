@@ -16,27 +16,30 @@ from plotly.subplots import make_subplots
 from quantify.visualization.pulse_scheme import new_pulse_fig
 from quantify.utilities.general import import_func_from_string
 from quantify.scheduler.waveforms import modulate_wave
+from quantify.scheduler.compilation import _determine_absolute_timing
 
 
 def circuit_diagram_matplotlib(schedule, figsize=None):
     """
     Creates a circuit diagram visualization of a schedule using matplotlib.
 
-    Args:
-        schedule (:class:`~quantify.scheduler.types.Schedule`) : the schedule to render.
-        figsize (tuple) : matplotlib figsize.
+    For this visualization backend to work, the schedule must contain `gate_info` for each operation in the
+    `operation_dict` as well as a value for `abs_time` for each element in the timing_constraints.
 
-    Returns:
-        (tuple): tuple containing:
-
-            fig  matplotlib figure object.
-            ax  matplotlib axis object.
-
-    For this visualization backend to work, the schedule must contain
-    `gate_info` for each operation in the `operation_dict` as well as a value
-    for `abs_time` for each element in the timing_constraints.
-
+    Parameters
+    ----------
+    schedule : :class:`~quantify.scheduler.types.Schedule`
+        the schedule to render.
+    figsize : tuple
+        matplotlib figsize.
+    Returns
+    -------
+    tuple
+        - matplotlib figure object.
+        - matplotlib axis object.
     """
+    schedule = _determine_absolute_timing(schedule, 'ideal')
+
     qubits = set()
     for _, op in schedule.operations.items():
         for qubit in op.data['gate_info']['qubits']:
@@ -87,15 +90,15 @@ def pulse_diagram_plotly(schedule,
                          fig_ch_height: float = 150,
                          fig_width: float = 1000,
                          modulation: bool = True,
-                         sampling_rate: float = 1e9,
-                         mark_labels=None,
-                         mark_interval: tuple = (-5e-6, 1e-6)):
+                         sampling_rate: float = 1e9
+                         ):
     """
     Produce a plotly visualization of the pulses used in the schedule.
 
-
     Parameters
     ------------
+    schedule : :class:`~quantify.scheduler.types.Schedule`
+        the schedule to render
     ch_list : list
         A list of channels to show. if set to `None` will use the first
         8 channels it encounters in the sequence.
@@ -107,26 +110,11 @@ def pulse_diagram_plotly(schedule,
         determines if modulation is included in the visualization
     sampling_rate : float
         the time resolution used in the visualization.
-
-
-    .. warning::
-
-        these options have not been implemented yet.
-
-
-    mark_labels : list
-        mark intervals for range selection based on labels of operations in the schedule.
-        when the label of an operation in the schedule is in the mark_labels.
-    mark_interval : tuple
-        a tuple indiciating the interval around any marked label for the range selection functionality.
-
+    Returns
+    -------
+    :class:`plotly.graph_objects.Figure`
+        the plot
     """
-
-    if mark_labels is None:
-        mark_labels = []
-    if mark_labels:
-        logging.warning("marking labels is not implemented.")
-        # rangeselector_buttons = list()
 
     if ch_list is None:  # determine the channel list automatically.
         auto_map = True
@@ -146,16 +134,6 @@ def pulse_diagram_plotly(schedule,
     col_idx = 0
 
     for pls_idx, t_constr in enumerate(schedule.timing_constraints):
-
-        # TODO: add mark_labels functionality.
-        # if t_constr['label'] in mark_labels:
-
-        #     buttons=list([
-        #         dict(count=1,
-        #              label=t_constr['label'],
-        #              step="month",
-        #              stepmode="backward"),
-
         op = schedule.operations[t_constr['operation_hash']]
 
         for p in op['pulse_info']:

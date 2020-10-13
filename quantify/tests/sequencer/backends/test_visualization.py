@@ -2,7 +2,7 @@ from quantify.scheduler.backends.visualization import pulse_diagram_plotly, circ
 from quantify.scheduler import Schedule
 from quantify.scheduler.gate_library import Reset, Measure, CZ, CNOT, Rxy
 from quantify.scheduler.pulse_library import SquarePulse
-from quantify.scheduler.compilation import _determine_absolute_timing, qcompile
+from quantify.scheduler.compilation import qcompile
 import matplotlib.pyplot as plt
 import json
 
@@ -27,7 +27,6 @@ def test_circuit_diagram_matplotlib():
     sched.add(Rxy(theta=90, phi=0, qubit=q0))
     sched.add(Measure(q0, q1), label='M0')
 
-    sched = _determine_absolute_timing(sched, clock_unit='ideal')
     f, ax = circuit_diagram_matplotlib(sched)
 
 

@@ -30,7 +30,7 @@ def drag(t,
          nr_sigma: int = 3,
          phase: float = 0,
          subtract_offset: str = 'average'):
-    '''
+    """
     Generates a DRAG pulse consisting of a Gaussian :math:`G` as the I- and a Derivative :math:`D` as the Q-component.
 
     All inputs are in s and Hz.
@@ -47,31 +47,35 @@ def drag(t,
         the pulse.
 
 
-    Args:
-        t (:py:class:`numpy.ndarray`): times at which to evaluate the function
-        G_amp (float):
-            Amplitude of the Gaussian envelope.
-        D_amp (float):
-            Amplitude of the derivative component, the DRAG-pulse parameter.
-        duration (float):
-            Duration of the pulse in seconds.
-        nr_sigma (int):
-            After how many sigma the Gaussian is cut off.
-        phase (float):
-            Phase of the pulse in degrees.
-        subtract_offset (str):
-            Instruction on how to subtract the offset in order to avoid jumps
-            in the waveform due to the cut-off.
-            'average': subtract the average of the first and last point.
-            'first': subtract the value of the waveform at the first sample.
-            'last': subtract the value of the waveform at the last sample.
-            'none', None: don't subtract any offset.
+    Parameters
+    ----------
+    t : :class:`numpy.ndarray`
+        times at which to evaluate the function
+    G_amp : float
+        Amplitude of the Gaussian envelope.
+    D_amp : float
+        Amplitude of the derivative component, the DRAG-pulse parameter.
+    duration : float
+        Duration of the pulse in seconds.
+    nr_sigma : int
+        After how many sigma the Gaussian is cut off.
+    phase : float
+        Phase of the pulse in degrees.
+    subtract_offset : str
+        Instruction on how to subtract the offset in order to avoid jumps in the waveform due to the cut-off.
 
-    :returns:
-        - rot_drag_wave (:py:class:`numpy.ndarray`) - complex waveform.
+            - 'average': subtract the average of the first and last point.
+            - 'first': subtract the value of the waveform at the first sample.
+            - 'last': subtract the value of the waveform at the last sample.
+            - 'none', None: don't subtract any offset.
+    Returns
+    ----------
+    :class:`numpy.ndarray`
+        complex waveform
 
 
-    References:
+    References
+    ----------
         1. |citation1|_
 
         .. _citation1: https://link.aps.org/doi/10.1103/PhysRevA.83.012308
@@ -86,10 +90,7 @@ def drag(t,
 
         .. |citation2| replace:: *F. Motzoi, J. M. Gambetta, P. Rebentrost, and F. K. Wilhelm
            Phys. Rev. Lett. 103, 110501 (2009).*
-
-
-    '''
-
+    """
     mu = t[0] + duration/2
 
     sigma = duration/(2*nr_sigma)
@@ -127,7 +128,6 @@ def rotate_wave(wave, phase: float):
     """
     Rotate a wave in the complex plane.
 
-
     Parameters
     -------------
     wave : :py:class:`numpy.ndarray`
@@ -141,9 +141,7 @@ def rotate_wave(wave, phase: float):
         rotated waveform.
     rot_Q : :class:`numpy.ndarray`
         rotated quadrature component of the waveform.
-
     """
-
     angle = np.deg2rad(phase)
 
     rot_I = np.cos(angle)*wave.real - np.sin(angle)*wave.imag
@@ -174,11 +172,11 @@ def modulate_wave(t, wave, freq_mod):
     mod_wave : :py:class:`numpy.ndarray`
         modulated waveform.
 
+
     .. note::
 
         Pulse modulation is generally not included when specifying waveform envelopes
         as there are many hardware backends include this capability.
-
     """
     cos_mod = np.cos(2*np.pi*freq_mod*t)
     sin_mod = np.sin(2*np.pi*freq_mod*t)

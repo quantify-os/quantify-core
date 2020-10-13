@@ -18,8 +18,8 @@ from quantify.utilities.general import make_hash, without, import_func_from_stri
 PulsarModulations = namedtuple('PulsarModulations', ['gain', 'gain_Q', 'offset', 'phase', 'phase_delta'],
                                defaults=[None, None, None, None, None])
 
-QCM_DRIVER_VER = '0.1.0'
-QRM_DRIVER_VER = '0.1.0'
+QCM_DRIVER_VER = '0.1.1'
+QRM_DRIVER_VER = '0.1.1'
 
 
 class Q1ASMBuilder:
@@ -43,8 +43,10 @@ class Q1ASMBuilder:
 
     def get_str(self):
         """
-        Returns:
-            The program in string format
+        Returns
+        -------
+        str
+            The program
         """
         return columnar(self.rows, no_borders=True)
 

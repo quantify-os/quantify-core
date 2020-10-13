@@ -231,7 +231,8 @@ def validate_config(config: dict, scheme_fn: str):
 
     Returns
     ----------
-        valid : bool
+        bool
+            True if valid
 
     """
     scheme = load_json_schema(__file__, scheme_fn)
@@ -239,7 +240,7 @@ def validate_config(config: dict, scheme_fn: str):
     return True
 
 
-def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backend: Callable = None, **kwargs):
+def qcompile(schedule: Schedule, device_cfg: dict, backend: Callable = None, **kwargs):
     """
     Compile and assemble a schedule into deployables.
 
@@ -249,11 +250,6 @@ def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backen
         To be compiled
     device_cfg : dict
         Specifying the required pulse information. The device_cfg schema is specified in
-    clock_unit : str
-        Must be ('physical', 'ideal') : whether to use physical units to determine the
-        absolute time or ideal time.
-        When clock_unit == "physical" the duration attribute is used.
-        When clock_unit == "ideal" the duration attribute is ignored and treated as if it is 1.
     backend : Callable
         To the compiler, assembles the program(s).
 
@@ -262,12 +258,14 @@ def qcompile(schedule: Schedule, device_cfg: dict, clock_unit='physical', backen
     schedule : :class:`~quantify.scheduler.Schedule`
         The prepared schedule if no backend is provided, otherwise whatever object returned by the backend
 
+
     .. rubric:: Configuration specification
+
 
     .. jsonschema:: schemas/transmon_cfg.json
     """
     schedule = _add_pulse_information_transmon(schedule=schedule, device_cfg=device_cfg)
-    schedule = _determine_absolute_timing(schedule=schedule, clock_unit=clock_unit)
+    schedule = _determine_absolute_timing(schedule=schedule, clock_unit='physical')
     if backend:
         return backend(schedule, **kwargs)
     else:
