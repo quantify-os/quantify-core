@@ -341,6 +341,7 @@ also use for demonstration purposes as part of this tutorial:
 The Pulsar QCM backend provides a method for deploying our complete configuration to all our devices at once:
 
 .. jupyter-execute::
+    :raises:
 
     if PULSAR_ASSEMBLER:
         _pulsars = []
@@ -354,6 +355,7 @@ The Pulsar QCM backend provides a method for deploying our complete configuratio
 At this point, the assembler on the device will load the waveforms into memory and verify the program can be executed. We must next arm and then start the device:
 
 .. jupyter-execute::
+    :raises:
 
     if PULSAR_ASSEMBLER:
         qcm0 = _pulsars[0]
@@ -370,6 +372,7 @@ acquisition to disk memory with a named identifier and number of samples. We the
 acquisitions over the driver so we can do some processing in Python:
 
 .. jupyter-execute::
+    :raises:
 
     if PULSAR_ASSEMBLER:
         seq_idx = 0
