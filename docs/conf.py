@@ -19,10 +19,9 @@
 #
 import os
 import sys
-import sphinx_rtd_theme
 
-sys.path.insert(0, os.path.abspath('..'))
-
+package_path = os.path.abspath('..')
+sys.path.insert(0, package_path)
 
 # -- General configuration ---------------------------------------------
 
@@ -42,8 +41,7 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.mathjax',
               'nbsphinx',
               'sphinx-jsonschema',
-              'jupyter_sphinx.execute',
-              # to be replaced with jupyter_sphinx in 0.2.4+
+              'jupyter_sphinx',
               'sphinxcontrib.blockdiag',
               ]
 
