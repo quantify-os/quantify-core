@@ -20,7 +20,7 @@ from quantify.measurement.types import Settable, Gettable, is_software_controlle
 
 class MeasurementControl(Instrument):
     """
-    Instrument responsible for controling the data acquisition loop.
+    Instrument responsible for controlling the data acquisition loop.
 
     MeasurementControl (MC) is based on the notion that every experiment consists of the following step:
 
