@@ -78,6 +78,13 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
   The docs will be located in `quantify/docs/_build`.
 
+  If you install `sphinx-autobuild` you can automatically rebuild the documentation using
+
+  .. code-block:: shell
+      $ sphinx-autobuild docs docs/_build/html
+
+  this can be convenient when developing documentation.
+
 6. Commit your changes and push your branch to GitLab::
 
     $ git add .
