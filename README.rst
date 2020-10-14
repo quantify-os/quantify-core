@@ -5,7 +5,12 @@ Quantify-core
 Quantify-core is a python based data acquisition platform focused on Quantum Computing and solid-state physics experiments.
 It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spiritual successor of `PycQED <https://github.com/DiCarloLab-Delft/PycQED_py3>`_.
 
-* Documentation: https://qblox-quantify.readthedocs-hosted.com/en/latest/
+* Documentation: https://quantify-quantify-core.readthedocs-hosted.com/en/latest/
+
+.. caution::
+
+    This is a pre-release **alpha version** and should not be used.
+
 
 Features
 --------
