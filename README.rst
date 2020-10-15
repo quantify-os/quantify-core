@@ -9,7 +9,7 @@ It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spir
 
 .. caution::
 
-    This is a pre-release **alpha version** and should not be used.
+    This is a pre-release **alpha version**, major changes are expected. Use for testing & development purposes only.
 
 
 Features
