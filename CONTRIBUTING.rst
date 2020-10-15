@@ -78,6 +78,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
   The docs will be located in `quantify/docs/_build`.
 
+
 6. Commit your changes and push your branch to GitLab::
 
     $ git add .
@@ -85,6 +86,35 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ git push origin name-of-your-bugfix-or-feature
 
 7. Submit a merge request through the GitLab website.
+
+
+.. tip:: Autobuild documentation
+
+    If you are working on documentation it can be useful to automatically rebuild
+    the docs after every change. This can be done using the `sphinx-autobuild`
+    package. Through the following command:
+
+
+    .. code-block:: shell
+
+        $ sphinx-autobuild docs docs/_build/html
+
+    The documentation will then be hosted on `localhost:8000`
+
+.. tip:: Running parts of the test suite
+
+    To run only parts of the test suite, specify the folder in which to look for
+    tests as an argument to pytest. The following example
+
+
+    .. code-block:: shell
+
+        $ py.test tests/measurement --cov quantify/measurement
+
+    will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+
+
+
 
 Merge Request Guidelines
 --------------------------
