@@ -20,6 +20,7 @@ requirements = [
     'matplotlib',
     'plotly',
     'jsonschema',
+    'quantify-core>=0.2.0',
 ]
 
 setup_requirements = ['pytest-runner', ]
