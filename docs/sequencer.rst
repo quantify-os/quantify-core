@@ -1,4 +1,4 @@
-Pulse sequencing
+Tutorial 1. Scheduler concepts
 =============================
 
 In this tutorial we explore how to program a basic experiment using the :mod:`quantify.scheduler`.
@@ -388,3 +388,13 @@ Ex: Mixing pulse and gate-level descriptions, the Chevron experiment
 -----------------------------------------------------------------------------------------
 
 In this example, we want to perform a Chevron experiment
+
+
+
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 1. Scheduler concepts`
+
+    :jupyter-download:script:`Tutorial 1. Scheduler concepts`
