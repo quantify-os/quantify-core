@@ -11,8 +11,9 @@ Quantify-core
 .. image:: https://gitlab.com/quantify-os/quantify-core/badges/develop/coverage.svg
     :target: https://gitlab.com/quantify-os/quantify-core/pipelines/
 
-.. image:: https://user-content.gitlab-static.net/7bca8a4644aa5c3a97d13bf3ecfebda668b670bb/68747470733a2f2f72656164746865646f63732e636f6d2f70726f6a656374732f7175616e746966792d7175616e746966792d636f72652f62616467652f3f76657273696f6e3d6c617465737426746f6b656e3d32663638653766633661323432366235656239623434626232663736346139643735613939333266343163333965666466306138613939626633336536613334
+.. image:: https://readthedocs.com/projects/quantify-quantify-core/badge/?version=latest&token=2f68e7fc6a2426b5eb9b44bb2f764a9d75a9932f41c39efdf0a8a99bf33e6a34
     :target: https://quantify-quantify-core.readthedocs-hosted.com/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. image:: https://img.shields.io/badge/License-BSD%204--Clause-blue.svg
     :target: https://gitlab.com/quantify-os/quantify-core/-/blob/master/LICENSE
