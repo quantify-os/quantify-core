@@ -29,9 +29,10 @@ produces synchronized pulse schedules to be distributed to control hardware.
 This includes:
 
 * Define procedures at the level of quantum Gates, arbitrary Pulses or a combination of the two.
-* Resource management
-* Hardware independent internal representation
-* Multiple frontends and backends
+* Resource management.
+* Hardware independent internal representation.
+* Multiple frontends (QASM, IBM Qiskit, etc.).
+* Multiple (hardware) backends.
 
 
 .. caution::

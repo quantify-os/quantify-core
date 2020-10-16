@@ -111,7 +111,7 @@ We will be creating this same experiment using the quantify.scheduler.
     .Measurement
     Measure_all
 
-.. figure:: /figures/bell_circuit_QI.png
+.. figure:: /images/bell_circuit_QI.png
   :figwidth: 50%
 
 Creating a schedule

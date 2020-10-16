@@ -13,7 +13,7 @@ Welcome to Quantify's documentation!
    toolchain
    contributing
    authors
-   history
+   changelog
 
 
 Tutorials
