@@ -1,19 +1,19 @@
-Welcome to quantify's documentation!
+Welcome to Quantify's documentation!
 ======================================
 
+.. include:: readme.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
    :glob:
 
-   readme
    installation
    concepts
    toolchain
    contributing
    authors
-   history
+   changelog
 
 
 Tutorials

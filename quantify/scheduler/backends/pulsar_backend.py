@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Compiler backend for the Pulsar QCM.
-# Repository:     https://gitlab.com/qblox/packages/software/quantify/
-# Copyright (C) Qblox BV (2020)
+# Repository:     https://gitlab.com/quantify-os/quantify-scheduler
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import os
 import inspect
@@ -9,6 +9,7 @@ import json
 from collections import namedtuple
 from qcodes.utils.helpers import NumpyJSONEncoder
 from columnar import columnar
+from columnar.exceptions import TableOverflowError
 from qcodes import Instrument
 import numpy as np
 from quantify.data.handling import gen_tuid, create_exp_folder
@@ -48,7 +49,11 @@ class Q1ASMBuilder:
         str
             The program
         """
-        return columnar(self.rows, no_borders=True)
+        try:
+            return columnar(self.rows, no_borders=True)
+        # running in a sphinx environment can trigger a TableOverFlowError
+        except TableOverflowError:
+            return columnar(self.rows, no_borders=True, terminal_width=120)
 
     @staticmethod
     def _iff(label):

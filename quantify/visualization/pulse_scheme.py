@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing functions for drawing pulse schemes and circuit diagrams using matplotlib.
 # Repository:     https://gitlab.com/qblox/packages/software/quantify/
-# Copyright (C) Qblox BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
 import matplotlib.pyplot as plt
