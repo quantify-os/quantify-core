@@ -50,7 +50,7 @@ setup(
     include_package_data=True,
     keywords='quantify-scheduler',
     name='quantify-scheduler',
-    packages=find_packages(include=['quantify-scheduler', 'quantify-scheduler.*']),
+    packages=find_packages(include=['quantify', 'quantify.*']),
     package_data={'': ['*.json']},  # ensures JSON schema are included
     setup_requires=setup_requirements,
     test_suite='tests',
