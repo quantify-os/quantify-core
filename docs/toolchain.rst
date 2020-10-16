@@ -24,4 +24,6 @@ itself.
 
 Quantify currently supports:
 
-- QBlox Pulsar range
+- QBlox_ Pulsar range
+
+.. _QBlox: https://www.qblox.com/
