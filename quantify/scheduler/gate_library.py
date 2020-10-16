@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Library containing a standard gateset for use with the quantify.scheduler.
-# Repository:     https://gitlab.com/qblox/packages/software/quantify/
-# Copyright (C) Qblox BV (2020)
+# Repository:     https://gitlab.com/quantify-os/quantify-scheduler
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
 from .types import Operation

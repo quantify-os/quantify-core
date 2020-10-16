@@ -3,8 +3,8 @@
 #                 These functions are intened to be used to generate waveforms defined in the :mod:`.pulse_library`.
 #                 Examples of waveforms that are too advanced are flux pulses that require knowledge of the flux
 #                 sensitivity and interaction strengths and qubit frequencies.
-# Repository:     https://gitlab.com/qblox/packages/software/quantify/
-# Copyright (C) Qblox BV (2020)
+# Repository:     https://gitlab.com/quantify-os/quantify-scheduler
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
 from scipy import signal
