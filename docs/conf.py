@@ -19,9 +19,9 @@
 #
 import os
 import sys
-import quantify
 
-sys.path.insert(0, os.path.abspath('..'))
+package_path = os.path.abspath('..')
+sys.path.insert(0, package_path)
 
 # -- General configuration ---------------------------------------------
 
@@ -41,8 +41,7 @@ extensions = ['sphinx.ext.autodoc',  # auto document docstrings
               'sphinx.ext.mathjax',
               'nbsphinx',
               'sphinx-jsonschema',
-              'jupyter_sphinx.execute',
-              # to be replaced with jupyter_sphinx in 0.2.4+
+              'jupyter_sphinx',
               'sphinxcontrib.blockdiag',
               ]
 
@@ -149,7 +148,7 @@ latex_elements = {
 latex_documents = [
     (master_doc, 'quantify.tex',
      'quantify Documentation',
-     'Qblox ', 'manual'),
+     'Quantify Consortium ', 'manual'),
 ]
 
 
@@ -170,10 +169,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'quantify',
-     'quantify Documentation',
+    (master_doc, 'Quantify-scheduler',
+     'Quantify-scheduler Documentation',
      author,
-     'quantify',
+     'Quantify-scheduler',
      'One line description of project.',
      'Miscellaneous'),
 ]
