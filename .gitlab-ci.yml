@@ -1,11 +1,12 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:latest
+image: python:3.7
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  QT_DEBUG_PLUGINS: 1
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -52,30 +53,21 @@ test-3.8:
   extends: "test"
   image: "python:3.8"
 
+test-latest:
+  extends: "test"
+  image: "python:latest"
+  allow_failure: true
+
 flake8:
-  image: python:latest
+  image: python:3.8
   stage: Static Analysis
   allow_failure: true
   script:
     - pip install -r requirements_dev.txt
-    - flake8 quantify tests --format=html --htmldir=flake-report
-
+    - flake8 quantify --format=html --htmldir=flake-report
   artifacts:
     paths:
       - flake-report
-    when: on_failure
-
-pylint:
-  image: python:latest
-  stage: Static Analysis
-  allow_failure: true
-  script:
-    - pip install -r requirements_dev.txt
-    - pylint quantify --rcfile=.pylintrc | pylint-json2html -o pylint.html
-
-  artifacts:
-    paths:
-      - pylint.html
     when: on_failure
 
 run:
@@ -88,26 +80,3 @@ run:
   artifacts:
     paths:
       - dist/*.whl
-
-pages:
-  stage: Deploy
-  script:
-    - apt install -y pandoc # required for nbsphinx plugin
-    - pip install sphinx
-    - pip install -r requirements_dev.txt
-    - cd docs ; make html
-    - mv _build/html/ ../public/
-  artifacts:
-    paths:
-      - public
-
-pypi:
-  image: python:latest
-  stage: Deploy
-  script:
-    - pip install -U twine
-    - python setup.py sdist bdist_wheel
-    - twine upload dist/*
-  only:
-    - master
-

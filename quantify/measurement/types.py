@@ -1,36 +1,47 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing the core types for use with the MeasurementControl.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# -----------------------------------------------------------------------------
+import jsonschema
+from quantify.utilities.general import load_json_schema
 
-def check_attribute(obj, attr, t):
-    if not hasattr(obj, attr):
-        raise AttributeError("{} does not have '{}'".format(obj, attr))
-    if t and not isinstance(getattr(obj, attr), t):
-        raise AttributeError("{} has attribute {} which should be of type str but is {}".format(obj, attr, t))
 
-
-class Settable(type):
+class Settable:
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
+    This object does not wrap the passed in object but simply verifies and returns it.
 
-    contains attributes
-        - set(float)
-        - name: str
-        - unit: str
+    .. jsonschema:: schemas/Settable.json#/attrs
+    .. jsonschema:: schemas/Settable.json#/methods
     """
+
+    schema = load_json_schema(__file__, 'Settable.json')
+
     def __new__(cls, obj):
-        for attr, t in {'name': str, 'unit': str, 'set': None}.items():
-            check_attribute(obj, attr, t)
+        jsonschema.validate(vars(obj), Settable.schema['attrs'])
+        jsonschema.validate(dir(obj), Settable.schema['methods'])
         return obj
 
 
-class Gettable(type):
+class Gettable:
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
+    This object does not wrap the passed in object but simply verifies and returns it.
 
-    contains attributes
-        - get()
-        - name: str
-        - unit: str
+    .. jsonschema:: schemas/Gettable.json#/attrs
+    .. jsonschema:: schemas/Gettable.json#/methods
     """
+
+    schema = load_json_schema(__file__, 'Gettable.json')
+
     def __new__(cls, obj):
-        for attr, t in {'name': str, 'unit': str, 'get': None}.items():
-            check_attribute(obj, attr, t)
+        jsonschema.validate(vars(obj), Gettable.schema['attrs'])
+        jsonschema.validate(dir(obj), Gettable.schema['methods'])
         return obj
+
+
+def is_software_controlled(obj):
+    if hasattr(obj, 'soft'):
+        return obj.soft
+    return True

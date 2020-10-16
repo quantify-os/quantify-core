@@ -1,19 +1,19 @@
-Welcome to quantify's documentation!
+Welcome to Quantify's documentation!
 ======================================
 
+.. include:: readme.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
    :glob:
 
-   readme
    installation
    usage
    dataset_spec
    contributing
    authors
-   history
+   changelog
 
 
 Tutorials
@@ -23,8 +23,9 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
-   example_notebooks/T1_MeasurementControl.ipynb
-
+   tutorials/Tutorial 1. Controlling a basic experiment using MeasurementControl.rst
+   tutorials/Tutorial 2. Advanced capabilities of the MeasurementControl.rst
+   tutorials/Tutorial 3. Adaptive Measurements.rst
 
 
 API Reference

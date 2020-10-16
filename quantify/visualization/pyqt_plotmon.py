@@ -1,6 +1,8 @@
-"""
-Module containing the pyqtgraph based plotting monitor.
-"""
+# -----------------------------------------------------------------------------
+# Description:    Module containing the pyqtgraph based plotting monitor.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# -----------------------------------------------------------------------------
 import numpy as np
 
 from qcodes import validators as vals
@@ -18,17 +20,16 @@ class PlotMonitor_pyqt(Instrument):
     Pyqtgraph based plot monitor.
 
     A plot monitor is intended to provide a real-time visualization of a dataset.
-    A plotmon should implement two methods todo what are these methods?
-
-    The interface of a plot monitor is based on the tuid. todo what does this mean?
     """
 
-    def __init__(self, name: str):  # verbose: bool = True
+    def __init__(self, name: str):
         """
         Creates an instance of the Measurement Control.
 
-        Args:
-            name (str): name
+        Parameters
+        ----------
+        name : str
+            name
         """
         super().__init__(name=name)
 
@@ -199,7 +200,6 @@ class PlotMonitor_pyqt(Instrument):
                 plot_idx += 1
 
     def update(self):
-
         if self.tuid() == 'latest':
             # this should automatically set tuid to the most recent tuid.
             tuid = get_latest_tuid()
@@ -251,9 +251,7 @@ class PlotMonitor_pyqt(Instrument):
                     # interpolation needs to be meaningful
                     if len(z) < 8:
                         break
-                    x_grid, y_grid, z_grid = interpolate_heatmap(
-                        x=x, y=y, z=z,
-                        interp_method='linear')
+                    x_grid, y_grid, z_grid = interpolate_heatmap(x=x, y=y, z=z, interp_method='linear')
 
                     trace = self._im_curves[yidx]
                     trace['config']['x'] = x_grid

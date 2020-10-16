@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Utilities for managing SI units with plotting systems.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# -----------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
@@ -12,22 +17,23 @@ def set_xlabel(axis, label, unit=None, **kw):
     """
     Add a unit aware x-label to an axis object.
 
-    Args:
-        axis: matplotlib axis object to set label on
-        label: the desired label
-        unit:  the unit
-        **kw : keyword argument to be passed to matplotlib.set_xlabel
-
+    Parameters
+    ----------
+    axis
+        matplotlib axis object to set label on
+    label
+        the desired label
+    unit
+        the unit
+    **kw
+        keyword argument to be passed to matplotlib.set_xlabel
     """
     if unit is not None and unit != '':
         xticks = axis.get_xticks()
-        scale_factor, unit = SI_prefix_and_scale_factor(
-            val=max(abs(xticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: '{:.4g}'.format(x*scale_factor))
+        scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
+        formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: '{:.4g}'.format(x*scale_factor))
 
         axis.xaxis.set_major_formatter(formatter)
-
         axis.set_xlabel(label+' ({})'.format(unit), **kw)
     else:
         axis.set_xlabel(label, **kw)
@@ -38,12 +44,16 @@ def set_ylabel(axis, label, unit=None, **kw):
     """
     Add a unit aware y-label to an axis object.
 
-    Args:
-        axis: matplotlib axis object to set label on
-        label: the desired label
-        unit:  the unit
-        **kw : keyword argument to be passed to matplotlib.set_ylabel
-
+    Parameters
+    ----------
+    axis
+        matplotlib axis object to set label on
+    label
+        the desired label
+    unit
+        the unit
+    **kw
+        keyword argument to be passed to matplotlib.set_ylabel
     """
     if unit is not None and unit != '':
         yticks = axis.get_yticks()
@@ -64,11 +74,16 @@ def set_cbarlabel(cbar, label, unit=None, **kw):
     """
     Add a unit aware z-label to a colorbar object
 
-    Args:
-        cbar: colorbar object to set label on
-        label: the desired label
-        unit:  the unit
-        **kw : keyword argument to be passed to cbar.set_label
+    Parameters
+    ----------
+    cbar
+        colorbar object to set label on
+    label
+        the desired label
+    unit
+        the unit
+    **kw
+        keyword argument to be passed to cbar.set_label
     """
     if unit is not None and unit != '':
         zticks = cbar.get_ticks()
@@ -94,14 +109,20 @@ SI_UNITS = 'm,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,' \
 def SI_prefix_and_scale_factor(val, unit=None):
     """
     Takes in a value and unit and if applicable returns the proper scale factor and SI prefix.
-    Args:
-        val (float) : the value
-        unit (str)  : the unit of the value
-    Returns:
-        scale_factor (float) : scale_factor needed to convert value
-        unit (str)           : unit including the prefix
-    """
 
+    Parameters
+    ----------
+    val : float
+        the value
+    unit : str
+        the unit of the value
+    Returns
+    -------
+    scale_factor : float
+        scale_factor needed to convert value
+    unit : str
+        unit including the prefix
+    """
     if unit in SI_UNITS:
         try:
             with np.errstate(all="ignore"):
@@ -126,7 +147,6 @@ def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
 
     the value_str is of the type specified in return_type (str) by default.
     """
-
     sc, new_unit = SI_prefix_and_scale_factor(val, unit)
     try:
         new_val = sc*val

@@ -1,13 +1,12 @@
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
 
-import os
-import quantify
+from tests.helpers import get_test_data_dir
 from quantify.data.types import TUID
-from quantify import set_datadir
+from quantify.data.handling import set_datadir
 
-test_datadir = os.path.join(os.path.split(
-    quantify.__file__)[0], '..', 'tests', 'test_data')
+
+test_datadir = get_test_data_dir()
 
 
 class TestPlotMonitor_pyqt:
