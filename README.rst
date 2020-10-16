@@ -5,8 +5,8 @@ Quantify-core
 .. image:: https://gitlab.com/quantify-os/quantify-core/badges/develop/pipeline.svg
     :target: https://gitlab.com/quantify-os/quantify-core/pipelines/
 
-.. image:: https://user-content.gitlab-static.net/c0f205074e1ccf93f0180f99a1321d989c7efb62/68747470733a2f2f696d672e736869656c64732e696f2f707970692f762f7175616e746966792e737667
-    :target: https://pypi.org/pypi/quantify
+.. image:: https://img.shields.io/pypi/v/quantify-core.svg
+    :target: https://pypi.org/pypi/quantify-core
 
 .. image:: https://gitlab.com/quantify-os/quantify-core/badges/develop/coverage.svg
     :target: https://gitlab.com/quantify-os/quantify-core/pipelines/
@@ -42,27 +42,23 @@ Quantify-core is maintained by The Quantify consortium consisting of Qblox and O
 .. |_| unicode:: 0xA0
    :trim:
 
-.. |br| raw:: html
 
-  <br/>
-
-
-.. figure:: images/Qblox_logo.svg
+.. figure:: https://cdn.sanity.io/images/ostxzp7d/production/f9ab429fc72aea1b31c4b2c7fab5e378b67d75c3-132x31.svg
     :width: 200px
     :target: https://qblox.com
     :align: left
 
-.. figure:: images/OQS_logo_with_text.svg
+.. figure:: https://orangeqs.com/OQS_logo_with_text.svg
     :width: 200px
     :target: https://orangeqs.com
     :align: left
 
 |_|
-|br|
-|br|
-|br|
+
 
 |_|
+
 The software is free to use under the conditions specified in the license.
 
-|br|
+
+--------------------------
