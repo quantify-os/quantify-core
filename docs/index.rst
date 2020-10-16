@@ -13,7 +13,7 @@ Welcome to Quantify's documentation!
    dataset_spec
    contributing
    authors
-   history
+   changelog
 
 
 Tutorials
