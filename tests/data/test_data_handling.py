@@ -143,7 +143,7 @@ def test_get_tuid_contains():
 
 
 def test_get_tuid_contains_options():
-    dh.set_datadir("/home/cattryde/PycharmProjects/quantify-core/tests/test_data")
+    dh.set_datadir(test_datadir)
 
     tuids = dh.get_tuids_containing('Cosine test', since='20200501')
     assert len(tuids) == 1
