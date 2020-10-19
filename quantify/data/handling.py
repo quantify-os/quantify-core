@@ -321,9 +321,10 @@ def get_latest_tuid(contains: str = '') -> TUID:
     return get_tuids_containing(contains, 1)[0]
 
 
-def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
+def get_tuids_containing(contains: str, max_results: int = sys.maxsize, since: datetime.date = None,
+                         until: datetime.date = None) -> list:
     """
-    Returns a list of tuids containing a specific label
+    Returns a list of tuids containing a specific label.
 
     .. tip::
 
@@ -336,6 +337,10 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
         a string contained in the experiment name.
     max_results : int
         maximum number of results to return. Defaults to unlimited.
+    since : datetime.date
+        date to search from, inclusive
+    until : datetime.date
+        date to search until, exclusive
     Returns
     -------
     list
@@ -350,6 +355,12 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
     daydirs.sort(reverse=True)
     if len(daydirs) == 0:
         raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
+
+    if since:
+        daydirs = [dd for dd in daydirs if dd >= since]
+    if until:
+        daydirs = [dd for dd in daydirs if dd < until]
+
     tuids = []
     for dd in daydirs:
         expdirs = list(filter(lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
@@ -363,7 +374,8 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
             if len(tuids) == max_results:
                 return tuids
     if len(tuids) == 0:
-        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+        raise FileNotFoundError('No experiment found containing "{}", with since={} and until={}'
+                                .format(contains, since, until))
     return tuids
 
 
