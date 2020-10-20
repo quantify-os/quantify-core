@@ -55,10 +55,11 @@ test:
 test-win:
   before_script:
     - choco install python --version=3.8.3 -y
+    - python.exe -m pip install -U pip
   extends:
     - .shared_windows_runners
     - test
   script:
-    - pip.exe install -e .
-    - pip.exe install -r requirements_dev.txt
+    - python.exe -m pip install -e .
+    - python.exe -m pip install -r requirements_dev.txt
     - py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
