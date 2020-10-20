@@ -62,4 +62,4 @@ test-win:
   script:
     - "C:\\Python38\\python.exe -m pip install -e ."
     - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov scikit-learn==0.23.1 scikit-optimize"
-    - "py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
+    - "C:\\Python38\\Scripts\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
