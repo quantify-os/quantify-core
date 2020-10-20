@@ -30,6 +30,9 @@ before_script:
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
+  - apt update
+  - apt install -y xvfb # Sets up a headless display
+  - xvfb :99 & export DISPLAY=:99
   - sleep 3
 
 stages:
@@ -38,13 +41,8 @@ stages:
 test:
   stage: Test
   script:
-    - apt update
-    - apt install -y xvfb # Sets up a headless display
-    - xvfb :99 & export DISPLAY=:99
-    - sleep 3
     - pip install -e .
     - pip install -r requirements_dev.txt
-    - apt install python3-pyqt5 -y  # install here manually due to issues
     - xvfb-run py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
   artifacts:
     paths:
@@ -55,8 +53,12 @@ test:
     when: always
 
 test-win:
+  before_script:
+    - choco install python --version=3.8.3
   extends:
     - .shared_windows_runners
     - test
-
-
+  script:
+    - pip install -e .
+    - pip install -r requirements_dev.txt
+    - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
