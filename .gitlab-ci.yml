@@ -13,6 +13,7 @@ image: python:3.7
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   QT_DEBUG_PLUGINS: 1
+  QT_QPA_PLATFORM: offscreen
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -25,24 +26,22 @@ cache:
     - venv/
 
 before_script:
-  - QT_QPA_PLATFORM=offscreen
   - python -V  # Print out python version for debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
-  - apt update
-  - apt install -y xvfb # Sets up a headless display
-  - xvfb :99 & export DISPLAY=:99
   - sleep 3
 
 stages:
-  - Static Analysis
   - Test
-  - Deploy
 
 test:
   stage: Test
   script:
+    - apt update
+    - apt install -y xvfb # Sets up a headless display
+    - xvfb :99 & export DISPLAY=:99
+    - sleep 3
     - pip install -e .
     - pip install -r requirements_dev.txt
     - apt install python3-pyqt5 -y  # install here manually due to issues
@@ -60,34 +59,4 @@ test-win:
     - .shared_windows_runners
     - test
 
-test-3.8:
-  extends: "test"
-  image: "python:3.8"
 
-test-latest:
-  extends: "test"
-  image: "python:latest"
-  allow_failure: true
-
-flake8:
-  image: python:3.8
-  stage: Static Analysis
-  allow_failure: true
-  script:
-    - pip install -r requirements_dev.txt
-    - flake8 quantify --format=html --htmldir=flake-report
-  artifacts:
-    paths:
-      - flake-report
-    when: on_failure
-
-run:
-  stage: Test
-  script:
-    - python setup.py bdist_wheel
-    # an alternative approach is to install and run:
-    - pip install dist/*
-    # run the command here
-  artifacts:
-    paths:
-      - dist/*.whl
