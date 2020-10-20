@@ -22,13 +22,11 @@ requirements = [
     'numpy',
     'scipy',
     'xarray',
-    'columnar',
     'xxhash',
     'matplotlib',
     'lmfit',
     'pyqt5==5.14.0',
     'pyqtgraph',
-    'plotly',
     'jsonschema',
     'adaptive'
 ]
