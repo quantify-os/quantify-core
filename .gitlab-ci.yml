@@ -59,6 +59,6 @@ test-win:
     - .shared_windows_runners
     - test
   script:
-    - pip install -e .
-    - pip install -r requirements_dev.txt
+    - python -m pip install -e .
+    - python -m pip install -r requirements_dev.txt
     - py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
