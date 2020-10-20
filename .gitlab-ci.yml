@@ -55,6 +55,7 @@ test:
 test-win:
   before_script:
     - choco install python --version=3.8.3 -y
+    - refreshenv
     - python.exe -m pip install -U pip
   extends:
     - .shared_windows_runners
