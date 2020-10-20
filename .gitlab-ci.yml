@@ -54,13 +54,12 @@ test:
 
 test-win:
   before_script:
-    - choco install python --version=3.8.3 -y
-    - refreshenv
-    - python3.exe -m pip install -U pip
+    - choco install python --version=3.8.3 -y -f
+    - "C:\\Python38\\python.exe -m pip install -U pip"
   extends:
     - .shared_windows_runners
     - test
   script:
-    - python3.exe -m pip install -e .
-    - python3.exe -m pip install -r requirements_dev.txt
-    - py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - "C:\\Python38\\python.exe -m pip install -e ."
+    - "C:\\Python38\\python.exe -m pip install -r requirements_dev.txt"
+    - "C:\\Python38\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
