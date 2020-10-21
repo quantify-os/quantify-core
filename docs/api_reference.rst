@@ -1,17 +1,9 @@
 
-quantify
-=============
-
-.. automodule:: quantify
-   :members:
-
-
-scheduler
-============
+quantify.scheduler
+====================
 
 .. automodule:: quantify.scheduler
     :members:
-
 
 types
 -------------------
@@ -51,6 +43,14 @@ compilation
 .. automodule:: quantify.scheduler.compilation
     :members:
 
+frontends
+---------------
+
+.. automodule:: quantify.scheduler.frontends
+    :members:
+
+
+
 backends
 ---------------
 
@@ -71,3 +71,20 @@ visualization
     :members:
 
 
+visualization
+---------------
+
+.. automodule:: quantify.scheduler.visualization
+    :members:
+
+circuit_diagram
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: quantify.scheduler.visualization.pulse_scheme
+    :members:
+
+circuit_diagram
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: quantify.scheduler.visualization.pulse_scheme
+    :members:
