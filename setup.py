@@ -55,7 +55,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='',
+    url='https://gitlab.com/quantify-os/quantify-scheduler',
     version=version,
     zip_safe=False,
 )
