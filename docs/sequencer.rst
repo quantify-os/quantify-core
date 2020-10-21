@@ -1,5 +1,8 @@
 Tutorial 1. Scheduler concepts
-=============================
+================================
+
+.. jupyter-kernel::
+  :id: Tutorial 1. Scheduler concepts
 
 In this tutorial we explore how to program a basic experiment using the :mod:`quantify.scheduler`.
 We will give an overview of the sequncer module and show different visualization backends as well as compilation onto a hardware backend.
