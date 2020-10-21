@@ -118,14 +118,14 @@ class Q1ASMBuilder:
 
     def play(self, label, I_idx, Q_idx, playtime, comment):
         for duration in self._split_playtime(playtime):
-            args = '{},{},{}'.format(I_idx, Q_idx, duration)
+            args = '{},{},{}'.format(I_idx, Q_idx, int(duration))
             row = [self._iff(label), 'play', args, comment]
             label = None
             self.rows.append(row)
 
     def acquire(self, label, I_idx, Q_idx, playtime, comment):
         for duration in self._split_playtime(playtime):
-            args = '{},{},{}'.format(I_idx, Q_idx, duration)
+            args = '{},{},{}'.format(I_idx, Q_idx, int(duration))
             row = [self._iff(label), 'acquire', args, comment]
             label = None
             self.rows.append(row)
@@ -135,7 +135,7 @@ class Q1ASMBuilder:
 
     def wait(self, label, playtime, comment):
         for duration in self._split_playtime(playtime):
-            row = [label if label else '', 'wait', self._check_playtime(duration), comment]
+            row = [label if label else '', 'wait', int(self._check_playtime(duration)), comment]
             label = None
             self.rows.append(row)
 

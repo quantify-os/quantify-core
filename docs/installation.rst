@@ -41,3 +41,14 @@ Once you have a copy of the source, you can install it with:
 
 
 .. _GitLab repo: https://gitlab.com/quantify-os/quantify-scheduler
+
+
+Jupyter and plotly
+-------------------
+
+Quantify-scheduler uses the `ploty`_ graphing framework for some components, which can require some additional set-up
+to run with a Jupyter environment - please see `this page for details.`_
+
+
+.. _ploty: https://plotly.com/
+.. _this page for details.: https://plotly.com/python/getting-started/#jupyter-notebook-support
