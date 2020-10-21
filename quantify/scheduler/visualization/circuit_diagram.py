@@ -3,7 +3,7 @@
 # Repository:     https://gitlab.com/qblox/packages/software/quantify/
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
-import quantify.visualization.pulse_scheme as ps
+import quantify.scheduler.visualization.pulse_scheme as ps
 
 
 def gate_box(ax, time: float, qubit_idxs: list, tex: str, **kw):

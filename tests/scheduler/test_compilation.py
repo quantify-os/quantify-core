@@ -126,7 +126,7 @@ def test_bad_gate():
                                                        [1, 1, 1, 1],
                                                        [1, 1, 1, 1]]),
                                   'tex': r'bad',
-                                  'plot_func': 'quantify.visualization.circuit_diagram.cnot',
+                                  'plot_func': 'quantify.scheduler.visualization.circuit_diagram.cnot',
                                   'qubits': q,
                                   'operation_type': 'bad'}}
             super().__init__('bad ({})'.format(q), data=data)

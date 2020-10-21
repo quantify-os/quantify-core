@@ -28,7 +28,7 @@
     },
     "plot_func": {
      "type": ["string","null"],
-     "description": "reference to a function for plotting this operation. If not specified, defaults to using :func:`quantify.visualization.circuit_diagram.gate_box`."
+     "description": "reference to a function for plotting this operation. If not specified, defaults to using :func:`quantify.scheduler.visualization.circuit_diagram.gate_box`."
     }
    }
   },

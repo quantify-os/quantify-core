@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from quantify.visualization.pulse_scheme import new_pulse_fig
+from quantify.scheduler.visualization.pulse_scheme import new_pulse_fig
 from quantify.utilities.general import import_func_from_string
 from quantify.scheduler.waveforms import modulate_wave
 from quantify.scheduler.compilation import _determine_absolute_timing
@@ -68,7 +68,7 @@ def circuit_diagram_matplotlib(schedule, figsize=None):
 
         # todo, hybrid visualisation
         if plot_func_name is None:
-            op['gate_info']['plot_func'] = 'quantify.visualization.circuit_diagram.gate_box'
+            op['gate_info']['plot_func'] = 'quantify.scheduler.visualization.circuit_diagram.gate_box'
             op['gate_info']['tex'] = 'Pulse'
             op['gate_info']['operation_type'] = 'Pulse'
             for pulse in op['pulse_info']:
