@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import quantify.visualization.pulse_scheme as pls
+import quantify.scheduler.visualization.pulse_scheme as pls
 import numpy as np
 
 # Simple example of how to use the pulse_scheme module
