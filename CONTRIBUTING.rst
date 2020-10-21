@@ -4,53 +4,41 @@
 Contributing
 ============
 
-Contributions are welcome, and they are greatly appreciated! Every little bit
-helps, and credit will always be given.
+Contributions are welcome and greatly appreciated! Every little bit helps, and credit will always be given.
 
 You can contribute in many ways:
 
 Types of Contributions
 ----------------------
 
-Report Bugs
-~~~~~~~~~~~
+Bugs
+~~~~
 
-Report bugs at https://gitlab.com/qblox/packages/software/quantify/issues.
+Please report bugs to `the GitLab Tracker <https://gitlab.com/quantify-os/quantify-scheduler/-/issues>`_
+using the **Bug** description template.
 
-If you are reporting a bug, please include:
+Issues on the Tracker marked with the *Bug* or *Help Wanted* labels are open to contributions. Please see the
+[Merge Request Guidelines](#merge-request-guidelines) for details on best developmental practices.
 
-* Your operating system name and version.
-* Any details about your local setup that might be helpful in troubleshooting.
-* Detailed steps to reproduce the bug.
-
-Fix Bugs
+Features
 ~~~~~~~~
 
-Look through the GitLab issues for bugs. Anything tagged with "bug" and "help
-wanted" is open to whoever wants to implement it.
+If you wish to propose a feature, please file an issue on `the GitLab Tracker <https://gitlab.com/quantify-os/quantify-scheduler/-/issues>`_
+using the **Enhancement** description template. Community members will help refine and design your idea until it is
+ready for implementation. Via these early reviews, we hope to steer contributors away from producing work outside of
+the project boundaries.
 
-Implement Features
-~~~~~~~~~~~~~~~~~~
+Issues on the Tracker marked with the *Enhancement* or *Help Wanted* labels are ready and open to contributions.
+Please see the [Merge Request Guidelines](#merge-request-guidelines) for details on best developmental practices.
 
-Look through the GitLab issues for features. Anything tagged with "enhancement"
-and "help wanted" is open to whoever wants to implement it.
+Documentation
+~~~~~~~~~~~~~
 
-Write Documentation
-~~~~~~~~~~~~~~~~~~~
+quantify could always use more documentation, whether as part of the official quantify docs, in docstrings, tutorials
+and even on the web in blog posts, articles and such. Please follow the [bugs](#bugs) workflow when contributing
+documentation changes.
 
-quantify could always use more documentation, whether as part of the
-official quantify docs, in docstrings, or even on the web in blog posts,
-articles, and such.
-
-Submit Feedback
-~~~~~~~~~~~~~~~
-
-The best way to send feedback is to file an issue at https://gitlab.com/qblox/packages/software/quantify/issues.
-
-If you are proposing a feature:
-
-* Explain in detail how it would work.
-* Keep the scope as narrow as possible, to make it easier to implement.
+For docstrings, please use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 
 Setting up quantify for local development
 ------------------------------------------------
@@ -96,65 +84,23 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitLab website.
+7. Submit a merge request through the GitLab website.
 
 Merge Request Guidelines
 --------------------------
 
+Please make merge requests into the *develop* branch (not the *master* branch). Each request should be self-contained and address a single issue on the tracker.
+
 Before you submit a merge request, check that it meets these guidelines:
 
-1. The merge request should include tests.
-2. If the merge request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring.
-3. The pipelines should pass for all merge requests.
+1. New code should be fully tested; running pytest in coverage mode can help identify gaps.
+2. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+3. The CI pipelines should pass for all merge requests.
 
-   - Check the status of the pipelines https://gitlab.com/qblox/packages/software/quantify/pipelines, the status is also reported in the merge request.
-   - Tests should pass for all versions of python.
+   - Check the status of the pipelines, the status is also reported in the merge request.
    - flake8 linter should pass.
+   - No degradation in code coverage.
    - Documentation should build.
-   - Pipeline should work for PyPy (TODO)
 
-Tips
-----
-
-.. tip::
-
-  Ensure you have installed the `requirements_dev.txt`
-
-.. tip::
-
-  To run a subset of tests::
-
-    $ pytest tests.test_quantify
-
-.. tip::
-
-  To auto rebuild docs when editing::
-
-    $ pip install sphinx-autobuild
-    $ sphinx-autobuild docs docs/_build/html
-
-    The docs will now be served on http://localhost:8000/
-
-.. tip::
-
-  To learn more about writing documentation using sphinx. Take a look at the `matplotlib sampledoc tutorial <https://matplotlib.org/sampledoc/>`_ or the `sphinx doumentation <https://www.sphinx-doc.org/en/master/>`_.
-
-
-Deploying
----------
-
-.. note::
-
-  TODO Work out how to tag versions using gitlab and deploy to PyPy
-
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
-
-  $ bump2version patch # possible: major / minor / patch
-  - $ git push
-  $ git push --tags
-
-Travis will then deploy to PyPI if tests pass.
-
-
+Congratulations! Community members will now review your work and suggest any necessary changes. Thank you very much
+for your hard work in improving quantify.

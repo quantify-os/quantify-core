@@ -1,0 +1,73 @@
+{
+ "type": "object",
+ "description": "JSON schema for a quantify sequencer operation.",
+ "additionalProperties": false,
+ "required": [
+  "name",
+  "gate_info",
+  "pulse_info",
+  "logic_info"
+ ],
+ "properties": {
+  "name": {
+   "type": "string"
+  },
+  "gate_info": {
+   "type": "object",
+   "additionalProperties": true,
+   "properties": {
+    "unitary": {
+     "description": "A unitary matrix describing the operation."
+    },
+    "qubits": {
+     "type": "array"
+    },
+    "tex": {
+     "type": "string",
+     "description": "latex snippet for plotting"
+    },
+    "plot_func": {
+     "type": ["string","null"],
+     "description": "reference to a function for plotting this operation. If not specified, defaults to using :func:`quantify.scheduler.visualization.circuit_diagram.gate_box`."
+    }
+   }
+  },
+  "pulse_info": {
+   "description": "A list containing the pulses that are part of the operation",
+   "type": "array",
+   "items": {
+    "type":"object",
+    "description": "Info to generate an individual pulse.",
+    "required": [
+      "channel",
+      "wf_func",
+      "t0",
+      "duration"
+    ],
+    "properties": {
+      "channel": {
+        "description": "A string specifying the channel used by the pulse.",
+        "type": ["string","null"]
+      },
+      "wf_func": {
+        "description": "reference to a function to generate the pulse of this operation. ",
+        "type": ["string", "null"]
+      },
+      "t0":
+      {
+        "description": "Starting time of the pulse with respect to the start of the operation in seconds.",
+        "type": "number"
+      },
+      "duration":
+      {
+        "type": "number",
+        "description": "The duration of the pulse in seconds."
+      }
+    }
+   }
+  },
+  "logic_info": {
+    "description": "Not Implemented."
+  }
+ }
+}
