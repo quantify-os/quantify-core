@@ -23,7 +23,7 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
-   sequencer
+   tutorials/Tutorial 1 scheduler concepts.rst
 
 API Reference
 ===================
