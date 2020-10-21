@@ -26,12 +26,13 @@ It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spir
 Quantify-scheduler is the module that contains a toolchain for writing quantum programs.
 It is designed for experimentalists to easily define complex experiments, and
 produces synchronized pulse schedules to be distributed to control hardware.
-This includes:
+
+The first full release will include:
 
 * Define procedures at the level of quantum Gates, arbitrary Pulses or a combination of the two.
 * Resource management.
 * Hardware independent internal representation.
-* Multiple frontends (QASM, IBM Qiskit, etc.).
+* Support for multiple frontends (QASM, IBM Qiskit, etc.).
 * Multiple (hardware) backends.
 
 
