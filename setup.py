@@ -35,7 +35,7 @@ setup_requirements = ['pytest-runner', ]
 
 setup(
     author="The Quantify consortium consisting of Qblox and Orange Quantum Systems",
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
@@ -57,7 +57,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://https://gitlab.com/quantify-os/quantify-core',
+    url='https://gitlab.com/quantify-os/quantify-core',
     version='0.2.0',
     zip_safe=False,
 )
