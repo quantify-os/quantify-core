@@ -145,30 +145,30 @@ def test_get_tuid_contains():
 def test_get_tuid_contains_options():
     dh.set_datadir(test_datadir)
 
-    tuids = dh.get_tuids_containing('Cosine test', since='20200501')
+    tuids = dh.get_tuids_containing('Cosine test', t_start='20200501')
     assert len(tuids) == 1
     assert tuids[0] == '20200504-191556-002-4209ee'
 
-    tuids = dh.get_tuids_containing('Cosine test', until='20200501')
+    tuids = dh.get_tuids_containing('Cosine test', t_end='20200501')
     assert len(tuids) == 1
     assert tuids[0] == '20200430-170837-001-315f36'
 
-    tuids = dh.get_tuids_containing('Cosine test', since='20200430')
+    tuids = dh.get_tuids_containing('Cosine test', t_start='20200430')
     assert len(tuids) == 2
     assert tuids[0] == '20200504-191556-002-4209ee'
     assert tuids[1] == '20200430-170837-001-315f36'
 
-    tuids = dh.get_tuids_containing('Cosine test', since='20200430', until='20200504')
+    tuids = dh.get_tuids_containing('Cosine test', t_start='20200430', t_end='20200504')
     assert len(tuids) == 1
     assert tuids[0] == '20200430-170837-001-315f36'
 
-    tuids = dh.get_tuids_containing('Cosine test', since='20200430', until='20200505', max_results=1)
+    tuids = dh.get_tuids_containing('Cosine test', t_start='20200430', t_end='20200505', max_results=1)
     assert len(tuids) == 1
     assert tuids[0] == '20200504-191556-002-4209ee'
 
     for empties in [('20200505', None), (None, '20200430'), ('20200410', '20200415'), ('20200510', '20200520')]:
         with pytest.raises(FileNotFoundError):
-            dh.get_tuids_containing('Cosine test', since=empties[0], until=empties[1])
+            dh.get_tuids_containing('Cosine test', t_start=empties[0], t_end=empties[1])
 
 
 def test_misplaced_exp_container():

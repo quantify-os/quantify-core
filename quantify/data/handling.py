@@ -321,7 +321,7 @@ def get_latest_tuid(contains: str = '') -> TUID:
     return get_tuids_containing(contains, max_results=1)[0]
 
 
-def get_tuids_containing(contains: str, since: datetime.date = None, until: datetime.date = None,
+def get_tuids_containing(contains: str, t_start: datetime.date = None, t_end: datetime.date = None,
                          max_results: int = sys.maxsize) -> list:
     """
     Returns a list of tuids containing a specific label.
@@ -335,9 +335,9 @@ def get_tuids_containing(contains: str, since: datetime.date = None, until: date
     ----------
     contains : str
         a string contained in the experiment name.
-    since : datetime.date
+    t_start : datetime.date
         date to search from, inclusive.
-    until : datetime.date
+    t_end : datetime.date
         date to search until, exclusive.
     max_results : int
         maximum number of results to return. Defaults to unlimited.
@@ -353,16 +353,16 @@ def get_tuids_containing(contains: str, since: datetime.date = None, until: date
     datadir = get_datadir()
 
     # date range filters, define here to make the next line more readable
-    lower_bound = lambda x: x >= since if since else True  # noqa: E731
-    upper_bound = lambda x: x < until if until else True  # noqa: E731
+    lower_bound = lambda x: x >= t_start if t_start else True  # noqa: E731
+    upper_bound = lambda x: x < t_end if t_end else True  # noqa: E731
 
     daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8 and lower_bound(x) and upper_bound(x)),
                           os.listdir(datadir)))
     daydirs.sort(reverse=True)
     if len(daydirs) == 0:
         err_msg = 'There are no valid day directories in the data folder "{}"'.format(datadir)
-        if since or until:
-            err_msg += ', for the range {}-{}'.format(since or '', until or '')
+        if t_start or t_end:
+            err_msg += ', for the range {}-{}'.format(t_start or '', t_end or '')
         raise FileNotFoundError(err_msg)
 
     tuids = []
