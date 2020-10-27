@@ -380,7 +380,7 @@ class MeasurementControl(Instrument):
         """
         Call finish() on all Settables and Gettables, if finish() exists
         """
-        for p in self._gettable_pars and self._settable_pars:
+        for p in self._gettable_pars + self._settable_pars:
             try:
                 p.finish()
             # it's fine if the parameter does not have a finish function
