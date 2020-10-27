@@ -318,12 +318,13 @@ def get_latest_tuid(contains: str = '') -> TUID:
     FileNotFoundError
         No data found
     """
-    return get_tuids_containing(contains, 1)[0]
+    return get_tuids_containing(contains, max_results=1)[0]
 
 
-def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
+def get_tuids_containing(contains: str, since: datetime.date = None, until: datetime.date = None,
+                         max_results: int = sys.maxsize) -> list:
     """
-    Returns a list of tuids containing a specific label
+    Returns a list of tuids containing a specific label.
 
     .. tip::
 
@@ -334,6 +335,10 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
     ----------
     contains : str
         a string contained in the experiment name.
+    since : datetime.date
+        date to search from, inclusive.
+    until : datetime.date
+        date to search until, exclusive.
     max_results : int
         maximum number of results to return. Defaults to unlimited.
     Returns
@@ -346,10 +351,20 @@ def get_tuids_containing(contains: str, max_results: int = sys.maxsize) -> list:
         No data found
     """
     datadir = get_datadir()
-    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8), os.listdir(datadir)))
+
+    # date range filters, define here to make the next line more readable
+    lower_bound = lambda x: x >= since if since else True  # noqa: E731
+    upper_bound = lambda x: x < until if until else True  # noqa: E731
+
+    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8 and lower_bound(x) and upper_bound(x)),
+                          os.listdir(datadir)))
     daydirs.sort(reverse=True)
     if len(daydirs) == 0:
-        raise FileNotFoundError('There are no valid day directories in the data folder "{}".'.format(datadir))
+        err_msg = 'There are no valid day directories in the data folder "{}"'.format(datadir)
+        if since or until:
+            err_msg += ', for the range {}-{}'.format(since or '', until or '')
+        raise FileNotFoundError(err_msg)
+
     tuids = []
     for dd in daydirs:
         expdirs = list(filter(lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
