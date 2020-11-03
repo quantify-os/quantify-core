@@ -87,7 +87,7 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(self, name, station,
+    def __init__(self, name,
                  figsize=(600, 600),
                  window_title='', theme=((60, 60, 60), 'w'),
                  show_window=True, remote=True, **kwargs):
@@ -95,7 +95,6 @@ class InstrumentMonitor(Instrument):
         Initializes the plotting window
         """
         super().__init__(name=name)
-        self.station = station
         self.add_parameter('update_interval',
                            unit='s',
                            vals=vals.Numbers(min_value=0.001),
