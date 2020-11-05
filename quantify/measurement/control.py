@@ -199,8 +199,7 @@ class MeasurementControl(Instrument):
             else:
                 self._run_hard()
         except KeyboardInterrupt:
-            print()
-            print("Interrupt signalled, exiting gracefully...")
+            print("\nInterrupt signaled, exiting gracefully...")
 
         self._dataset.to_netcdf(
             join(self._exp_folder, "dataset.hdf5")
@@ -287,8 +286,7 @@ class MeasurementControl(Instrument):
         try:
             subroutine()
         except KeyboardInterrupt:
-            print()
-            print("Interrupt signalled, exiting gracefully...")
+            print("\nInterrupt signaled, exiting gracefully...")
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
