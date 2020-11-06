@@ -199,8 +199,7 @@ class MeasurementControl(Instrument):
             else:
                 self._run_hard()
         except KeyboardInterrupt:
-            print()
-            print("Interrupt signalled, exiting gracefully...")
+            print("\nInterrupt signaled, exiting gracefully...")
 
         self._dataset.to_netcdf(
             join(self._exp_folder, "dataset.hdf5")
@@ -287,8 +286,7 @@ class MeasurementControl(Instrument):
         try:
             subroutine()
         except KeyboardInterrupt:
-            print()
-            print("Interrupt signalled, exiting gracefully...")
+            print("\nInterrupt signaled, exiting gracefully...")
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
@@ -392,38 +390,33 @@ class MeasurementControl(Instrument):
                 self.instr_plotmon.get_instr().update()
             self._last_upd = time.time()
 
+    def _call_if_has_method(self, obj, method: str):
+        """
+        Calls the ``method`` of the ``obj`` if it has it
+        """
+        prepare_method = getattr(obj, method, lambda: None)
+        prepare_method()
+
     def _prepare_gettable(self):
         """
         Call prepare() on the Gettable, if prepare() exists
         """
         for getpar in self._gettable_pars:
-            try:
-                getpar.prepare()
-            # it's fine if the gettable does not have a prepare function
-            except AttributeError:
-                pass
+            self._call_if_has_method(getpar, "prepare")
 
     def _prepare_settables(self):
         """
         Call prepare() on all Settable, if prepare() exists
         """
         for setpar in self._settable_pars:
-            try:
-                setpar.prepare()
-            # it's fine if the settable does not have a prepare function
-            except AttributeError:
-                pass
+            self._call_if_has_method(setpar, "prepare")
 
     def _finish(self):
         """
         Call finish() on all Settables and Gettables, if finish() exists
         """
-        for p in self._gettable_pars + self._settable_pars:
-            try:
-                p.finish()
-            # it's fine if the parameter does not have a finish function
-            except AttributeError:
-                pass
+        for par in self._gettable_pars + self._settable_pars:
+            self._call_if_has_method(par, "finish")
 
     @property
     def _is_soft(self):
