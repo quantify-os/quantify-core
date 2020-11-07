@@ -3,81 +3,10 @@ import time
 import PyQt5
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
-from pyqtgraph.Qt import QtGui
 
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
-
-
-from quantify.visualization.SI_utilities import SI_val_to_msg_str
-
-
-class QcSnaphotWidget(QtGui.QTreeWidget):
-
-    """
-    Widget for displaying QcoDes instrument snapshots.
-    Heavily inspired by the DataTreeWidget.
-    """
-
-    def __init__(self, parent=None, data=None):
-        QtGui.QTreeWidget.__init__(self, parent)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setData(data)
-        self.setColumnCount(4)
-        self.setHeaderLabels(['Name', 'Value', 'Unit', 'Last update'])
-        self.nodes = {}
-
-    def setData(self, data):
-        """
-        data should be a QCoDes snapshot of a station.
-        """
-        self.buildTreeSnapshot(snapshot=data)
-        self.resizeColumnToContents(0)
-
-    def buildTreeSnapshot(self, snapshot):
-        # exists so that function can be called with no data in construction
-        if snapshot is None:
-            return
-        parent = self.invisibleRootItem()
-
-        for ins in sorted(snapshot.keys()):
-            ins_snapshot = snapshot[ins]
-            if ins not in self.nodes:
-                self.nodes[ins] = QtGui.QTreeWidgetItem([ins, "", ""])
-                parent.addChild(self.nodes[ins])
-
-            node = self.nodes[ins]
-            for par_name in sorted(ins_snapshot['parameters'].keys()):
-                par_snap = ins_snapshot['parameters'][par_name]
-                # Depending on the type of data stored in value do different
-                # things, currently only blocks non-dicts
-                if 'value' in par_snap.keys():
-                    # Some parameters do not have a value, these are not shown
-                    # in the instrument monitor.
-                    if not isinstance(par_snap['value'], dict):
-                        value_str, unit = SI_val_to_msg_str(par_snap['value'],
-                                                            par_snap['unit'])
-
-                        # Omits printing of the date to make it more readable
-                        if par_snap['ts'] is not None:
-                            latest_str = par_snap['ts'][11:]
-                        else:
-                            latest_str = ''
-
-                        # Name of the node in the self.nodes dictionary
-                        param_node_name = '{}.{}'.format(ins, par_name)
-                        # If node does not yet exist, create a node
-                        if param_node_name not in self.nodes:
-                            param_node = QtGui.QTreeWidgetItem(
-                                [par_name, value_str, unit, latest_str])
-                            node.addChild(param_node)
-                            self.nodes[param_node_name] = param_node
-                        else:  # else update existing node
-                            param_node = self.nodes[param_node_name]
-                            param_node.setData(1, 0, value_str)
-                            param_node.setData(2, 0, unit)
-                            param_node.setData(3, 0, latest_str)
 
 
 class InstrumentMonitor(Instrument):
@@ -115,8 +44,9 @@ class InstrumentMonitor(Instrument):
         time_since_last_update = time.time()-self.last_update_time
         if time_since_last_update > self.update_interval():
             self.last_update_time = time.time()
-            snapshot = self.station.snapshot()
-            self.tree.setData(snapshot['instruments'])
+            snapshot = None #hack for now
+            # self.tree.setData(snapshot['instruments'])
+            self.tree.setData(None)
 
     def _init_qt(self):
         # starting the process for the pyqtgraph plotting
@@ -125,7 +55,7 @@ class InstrumentMonitor(Instrument):
         pg.mkQApp()
         self.__class__.proc = pgmp.QtProcess()  # pyqtgraph multiprocessing
         self.__class__.rpg = self.proc._import('pyqtgraph')
-        ins_mon_mod = 'pycqed.instrument_drivers.virtual_instruments.ins_mon.qc_snapshot_widget'
+        ins_mon_mod = 'quantify.visualization.ins_mon_widget.qc_snapshot_widget'
         self.__class__.rpg = self.proc._import(ins_mon_mod)
 
     def create_tree(self, figsize=(1000, 600)):
