@@ -8,6 +8,8 @@ from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
 
+from quantify.data.handling import snapshot
+
 
 class InstrumentMonitor(Instrument):
     """
@@ -44,9 +46,9 @@ class InstrumentMonitor(Instrument):
         time_since_last_update = time.time()-self.last_update_time
         if time_since_last_update > self.update_interval():
             self.last_update_time = time.time()
-            snapshot = None #hack for now
-            # self.tree.setData(snapshot['instruments'])
-            self.tree.setData(None)
+            snap = snapshot(update=True, clean=True)  # Take an updated, clean snapshot
+            self.tree.setData(snap['instruments'])
+
 
     def _init_qt(self):
         # starting the process for the pyqtgraph plotting
@@ -63,5 +65,5 @@ class InstrumentMonitor(Instrument):
         self.tree = self.rpg.QcSnaphotWidget()
         self.update()
         self.tree.show()
-        self.tree.setWindowTitle('Instrument Monitor')
+        self.tree.setWindowTitle(self.name)
         self.tree.resize(*figsize)

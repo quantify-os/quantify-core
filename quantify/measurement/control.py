@@ -102,6 +102,14 @@ class MeasurementControl(Instrument):
             parameter_class=InstrumentRefParameter,
         )
 
+        # TODO: Make better docstrings for ins mon
+        self.add_parameter(
+            "instrument_monitor",
+            docstring="Instrument responsible for live monitoring summarized snapshot. "
+            "Can be set to str(None) to disable monitoring of snapshot.",
+            parameter_class=InstrumentRefParameter,
+            )
+
         # TODO add update interval functionality.
         self.add_parameter(
             "update_interval",
@@ -132,6 +140,7 @@ class MeasurementControl(Instrument):
         self._exp_folder = None
         self._plotmon_name = ""
         self._plot_info = {"2D-grid": False}
+
 
     ############################################
     # Methods used to control the measurements #
@@ -173,6 +182,13 @@ class MeasurementControl(Instrument):
             self.instr_plotmon.get_instr().tuid(self._dataset.attrs["tuid"])
             # if the timestamp has changed, this will initialize the monitor
             self.instr_plotmon.get_instr().update()
+
+        # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
+        self._instrument_monitor_name = self.instrument_monitor()
+        if self._instrument_monitor_name is not None and self._instrument_monitor_name != "":
+            self.instrument_monitor.get_instr().name
+            self.instrument_monitor.get_instr().update()
+
 
     def run(self, name: str = ""):
         """
@@ -388,6 +404,10 @@ class MeasurementControl(Instrument):
             self._dataset.to_netcdf(join(self._exp_folder, "dataset.hdf5"))
             if self._plotmon_name is not None and self._plotmon_name != "":
                 self.instr_plotmon.get_instr().update()
+
+            if self._instrument_monitor_name is not None and self._instrument_monitor_name != "":
+                self.instrument_monitor.get_instr().update()
+
             self._last_upd = time.time()
 
     def _call_if_has_method(self, obj, method: str):

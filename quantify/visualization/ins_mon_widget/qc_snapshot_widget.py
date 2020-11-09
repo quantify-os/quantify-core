@@ -24,21 +24,28 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
         self.buildTreeSnapshot(snapshot=data)
         self.resizeColumnToContents(0)
 
+
     def buildTreeSnapshot(self, snapshot):
         # exists so that function can be called with no data in construction
         if snapshot is None:
             return
+
         parent = self.invisibleRootItem()
 
-        for ins in sorted(snapshot.keys()):
-            ins_snapshot = snapshot[ins]
-            if ins not in self.nodes:
-                self.nodes[ins] = QtGui.QTreeWidgetItem([ins, "", ""])
-                parent.addChild(self.nodes[ins])
+        instruments_in_snapshot = sorted(snapshot.keys())
 
-            node = self.nodes[ins]
-            for par_name in sorted(ins_snapshot['parameters'].keys()):
-                par_snap = ins_snapshot['parameters'][par_name]
+        for ins in instruments_in_snapshot:
+            current_instrument = snapshot[ins]
+            # Name of the node in the self.nodes dictionary
+            ins_name = current_instrument['name']
+            if ins_name not in self.nodes:
+                self.nodes[ins_name] = QtGui.QTreeWidgetItem([ins_name, "", ""])
+                parent.addChild(self.nodes[ins_name])
+
+            node = self.nodes[ins_name]
+
+            for par_name in sorted(current_instrument['parameters'].keys()):
+                par_snap = current_instrument['parameters'][par_name]
                 # Depending on the type of data stored in value do different
                 # things, currently only blocks non-dicts
                 if 'value' in par_snap.keys():
@@ -54,8 +61,7 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
                         else:
                             latest_str = ''
 
-                        # Name of the node in the self.nodes dictionary
-                        param_node_name = '{}.{}'.format(ins, par_name)
+                        param_node_name = '{}.{}'.format(ins_name, par_name)
                         # If node does not yet exist, create a node
                         if param_node_name not in self.nodes:
                             param_node = QtGui.QTreeWidgetItem(
