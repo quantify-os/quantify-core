@@ -100,5 +100,3 @@ class InstrumentMonitor(Instrument):
         self.tree.show()
         self.tree.setWindowTitle(self.name)
         self.tree.resize(*figsize)
-
-

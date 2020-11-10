@@ -6,6 +6,8 @@
 from pyqtgraph.Qt import QtGui
 from quantify.visualization.SI_utilities import SI_val_to_msg_str
 
+import pprint
+
 
 class QcSnaphotWidget(QtGui.QTreeWidget):
 
@@ -28,7 +30,6 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
         """
         self.buildTreeSnapshot(snapshot=data)
         self.resizeColumnToContents(0)
-
 
     def buildTreeSnapshot(self, snapshot):
         # exists so that function can be called with no data in construction
@@ -78,3 +79,6 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
                             param_node.setData(1, 0, value_str)
                             param_node.setData(2, 0, unit)
                             param_node.setData(3, 0, latest_str)
+
+    def getNodes(self):
+        return pprint.pformat(self.nodes)
