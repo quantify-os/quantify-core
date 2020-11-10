@@ -15,6 +15,7 @@ from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify.data.handling import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 from tests.helpers import get_test_data_dir
 
@@ -730,6 +731,12 @@ class TestMeasurementControl:
 
         plotmon.close()
         self.MC.instr_plotmon('')
+
+    def test_MC_insmon_integration(self):
+        inst_mon = InstrumentMonitor('insmon_MC')
+        self.MC.instrument_monitor(inst_mon.name)
+        inst_mon.close()
+        self.MC.instrument_monitor('')
 
     def test_instrument_settings_from_disk(self):
         load_settings_onto_instrument(self.dummy_parabola, TUID('20200814-134652-492-fbf254'), test_datadir)

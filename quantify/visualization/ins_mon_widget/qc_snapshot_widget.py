@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing the pyqtgraph based plotting monitor.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# -----------------------------------------------------------------------------
 from pyqtgraph.Qt import QtGui
 from quantify.visualization.SI_utilities import SI_val_to_msg_str
 
@@ -19,7 +24,7 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
 
     def setData(self, data):
         """
-        data should be a QCoDes snapshot of a station.
+        data should be a snapshot dict: See quantify.data.handling.snapshot
         """
         self.buildTreeSnapshot(snapshot=data)
         self.resizeColumnToContents(0)
