@@ -744,6 +744,53 @@ class TestMeasurementControl:
 
         non_existing.close()
 
+    def test_exception_not_silenced_set_get(self):
+        class badSetter():
+            def __init__(self, param):
+                self.name = "spec_freq"
+                self.label = "Frequency"
+                self.unit = "Hz"
+                self.soft = True
+                # simulate user mistake
+                # self.non_existing_param = param
+                pass
+
+            def prepare(self):
+                # Exception expected
+                print(self.non_existing_param)
+
+            def set(self, val):
+                pass
+
+        self.MC.settables(badSetter("badSetter"))
+        self.MC.setpoints(np.linspace(0, 1, 10))
+        self.MC.gettables(freq)
+        with pytest.raises(AttributeError, match="'badSetter' object has no attribute 'non_existing_param'"):
+            self.MC.run("This rises exception as expected")
+
+        class badGetter():
+            def __init__(self, param2):
+                self.name = "mag"
+                self.label = "Magnitude"
+                self.unit = "a.u."
+                self.soft = True
+                # self.non_existing_param = param2
+
+            def prepare(self):
+                pass
+
+            def get(self):
+                print(self.non_existing_param)
+
+            def finish(self):
+                pass
+
+        self.MC.settables(t)
+        self.MC.setpoints(np.linspace(0, 1, 10) * 1e-9)
+        self.MC.gettables(badGetter("badGetter"))
+        with pytest.raises(AttributeError, match="'badGetter' object has no attribute 'non_existing_param'"):
+            self.MC.run("This rises exception as expected")
+
 
 def test_tile_setpoints_grid():
     x = np.arange(5)
