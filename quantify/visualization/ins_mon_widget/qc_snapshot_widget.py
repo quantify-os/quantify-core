@@ -26,7 +26,7 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
 
     def setData(self, data):
         """
-        data should be a snapshot dict: See quantify.data.handling.snapshot
+        data should be a snapshot dict: See :class: `~quantify.data.handling.snapshot`
         """
         self.buildTreeSnapshot(snapshot=data)
         self.resizeColumnToContents(0)

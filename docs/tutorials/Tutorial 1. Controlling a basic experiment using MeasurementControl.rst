@@ -35,6 +35,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     from quantify.measurement import MeasurementControl
     from quantify.measurement.control import Settable, Gettable
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 .. jupyter-execute::
@@ -47,6 +48,10 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     MC.instr_plotmon(plotmon.name)
 
     MC.instr_plotmon.get_instr().tuid()
+
+    insmon = InstrumentMonitor("Instruments Monitor")
+    MC.instrument_monitor(insmon.name)
+
 
 A 1D soft(ware) controlled loop
 -------------------------------
