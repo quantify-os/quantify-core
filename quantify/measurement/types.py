@@ -43,5 +43,5 @@ class Gettable:
 
 def is_batched(obj):
     if hasattr(obj, 'batched'):
-        return obj.soft
+        return obj.batched
     return False

@@ -76,7 +76,7 @@ class MeasurementControl(Instrument):
             "on_progress_callback",
             vals=vals.Callable(),
             docstring="A callback to communicate progress. This should be a "
-            "Callable accepting ints between 0 and 100 indicating percdone.",
+                      "Callable accepting ints between 0 and 100 indicating percdone.",
             parameter_class=ManualParameter,
             initial_value=None,
         )
@@ -92,7 +92,7 @@ class MeasurementControl(Instrument):
         self.add_parameter(
             'instr_plotmon',
             docstring='Instrument responsible for live plotting. '
-            'Can be set to str(None) to disable live plotting.',
+                      'Can be set to str(None) to disable live plotting.',
             parameter_class=InstrumentRefParameter)
 
         # TODO add update interval functionality.
@@ -214,6 +214,7 @@ class MeasurementControl(Instrument):
         :class:`xarray.Dataset`
             the dataset
         """
+
         def measure(vec) -> float:
             if len(self._dataset['y0']) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
@@ -346,7 +347,7 @@ class MeasurementControl(Instrument):
         Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
         """
         update = time.time() - self._last_upd > self.update_interval() \
-            or self._nr_acquired_values == self._max_setpoints
+                 or self._nr_acquired_values == self._max_setpoints
         if update:
             self.print_progress(print_message)
             self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
@@ -388,7 +389,7 @@ class MeasurementControl(Instrument):
                 pass
 
     @property
-    def _is_batched(self):
+    def _is_batched(self) -> bool:
         if any(is_batched(gpar) for gpar in self._gettable_pars):
             if not all(is_batched(gpar) for gpar in self._gettable_pars):
                 raise Exception("Control mismatch; all Gettables must have the same Control Mode")
@@ -396,13 +397,13 @@ class MeasurementControl(Instrument):
         return False
 
     @property
-    def _max_setpoints(self):
+    def _max_setpoints(self) -> int:
         """
         The total number of setpoints to examine
         """
         return len(self._setpoints) * self.soft_avg()
 
-    def _curr_setpoint_idx(self):
+    def _curr_setpoint_idx(self) -> int:
         """
         Current position through the sweep
 
@@ -416,14 +417,14 @@ class MeasurementControl(Instrument):
         self._loop_count = acquired // len(self._setpoints)
         return setpoint_idx
 
-    def _get_fracdone(self):
+    def _get_fracdone(self) -> float:
         """
         Returns the fraction of the experiment that is completed.
         """
         return self._nr_acquired_values / self._max_setpoints
 
     def print_progress(self, progress_message: str = None):
-        percdone = self._get_fracdone()*100
+        percdone = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
         if not progress_message:
             progress_message = (
