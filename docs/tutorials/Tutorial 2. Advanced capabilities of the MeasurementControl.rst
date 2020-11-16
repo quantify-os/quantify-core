@@ -40,15 +40,17 @@ Defining a simple model
 
 In this example, we want to find the resonance of some device. We expect to find it's resonance somewhere in the low 6GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
 
-We first create ``freq``: a ``Settable`` with a ``QCodes.Parameter`` (a ``ManualParameter``) to represent the frequency of the signal probing the resonator, followed by a custom ``Gettable`` to mock (i.e. emulate) the resonating material. The Resonator will return a Lorentzian shape centered on the resonant frequency. Our ``Gettable`` will read the setpoints from ``freq``, in this case a 1D array.
+We first create `freq`: a :ref:`Settable<Settable>` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :ref:`Gettable<Gettable>` to mock (i.e. emulate) the resonating material.
+The Resonator will return a Lorentzian shape centered on the resonant frequency. Our :ref:`Gettable<Gettable>` will read the setpoints from `freq`, in this case a 1D array.
 
-Note that the ``Resonator`` ``Gettable`` has a new field ``soft`` set to ``False``. This property informs the MeasurementControl that it will not be in charge of iterating over the setpoints, instead the ``Resonator`` manages its own data acquisition.
+Note that the `Resonator` :ref:`Gettable<Gettable>` has a new field `soft` set to `False`.
+This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
 
 
 .. jupyter-execute::
 
-    # Note that in an actual experimental setup ``freq`` will be a QCoDeS parameter
-    # contained in a QCoDeS ``Instrument``
+    # Note that in an actual experimental setup `freq` will be a QCoDeS parameter
+    # contained in a QCoDeS Instrument
     freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
     # NB a QCoDeS parameter can be of many different types, e.g. floats, integers
     # but it can also be, for example, and array of floats. This is the case in a hard(ware) controlled loop
@@ -69,7 +71,6 @@ Note that the ``Resonator`` ``Gettable`` has a new field ``soft`` set to ``False
             self.test_width = 300 # FWHM in Hz
 
         def get(self):
-            print("The ``get`` method of the ``Gettable`` was called")
             # Emulation of the frequency response
             return 1-np.array(list(map(lambda x: lorenz(1, self.test_width, x, self.test_resonance), freq())))
 
@@ -77,14 +78,15 @@ Note that the ``Resonator`` ``Gettable`` has a new field ``soft`` set to ``False
 Running the experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Just like our ``soft`` 1D loop, our complete experiment is expressed in just four lines of code.
+Just like our :ref:`Soft<Control Mode>` 1D loop, our complete experiment is expressed in just four lines of code.
 
-The main difference is defining the ``soft`` property of our ``Gettable`` to False. The ``MeasurementControl`` will detect these settings and run in the appropriate``hard`` mode.
+The main difference is defining the :ref:`Soft<Control Mode>` property of our :ref:`Gettable<Gettable>` to False.
+The :class:`~quantify.measurement.MeasurementControl` will detect these settings and run in the appropriate :ref:`Hard<Control Mode>` mode.
 
 
 .. jupyter-execute::
 
-    # At this point the ``freq`` parameter is empty
+    # At this point the `freq` parameter is empty
     print(freq())
 
 
@@ -102,22 +104,15 @@ The main difference is defining the ``soft`` property of our ``Gettable`` to Fal
 
 As expected, we find a Lorentzian spike in the readout at the resonant frequency, finding the peak of which is trivial.
 
-Note that the ``get`` method of the ``Resonator`` ``Gettable`` was called only a single time since the Measurement Control is not in charge of the iteration over the setpoints. Internally, the Measurement Control limits itself to *setting* the ``setpoints`` in the ``Settable``, all at once. As we can inspect, the ``freq`` parameter is not empty anymore:
-
-
-.. jupyter-execute::
-
-    print(freq())
-
 
 Software Averaging: T1 Experiment
 ----------------------------------
 
-In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability. For this purpose, the MeasurementControl provides the ``soft_avg`` parameter. If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
+In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability. For this purpose, the :class:`~quantify.measurement.MeasurementControl` provides the `soft_avg` parameter. If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
 
-In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a ``Settable`` and ``Gettable``, representing the varying timescales we will probe through and a mock Qubit emulated in software. The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
+In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :ref:`Settable<Settable>` and :ref:`Gettable<Gettable>`, representing the varying timescales we will probe through and a mock Qubit emulated in software. The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
 
-Note that in this example MC is still running in the ``hard`` mode.
+Note that in this example MC is still running in the :ref:`Hard<Control Mode>` mode.
 
 
 .. jupyter-execute::
@@ -159,7 +154,7 @@ We will then sweep through 0 to 300ms, getting our data from the mock Qubit. Let
     MC.run('noisy')
     plotmon.main_QtPlot
 
-Alas, the noise in the signal has made this result unusable! Let's set the ``soft_avg`` parameter of the MeasurementControl to 100, averaging the results and hopefully filtering out the noise.
+Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` parameter of the :class:`~quantify.measurement.MeasurementControl` to 100, averaging the results and hopefully filtering out the noise.
 
 .. jupyter-execute::
 
@@ -184,15 +179,17 @@ Success! We now have a smooth decay curve based on the characteristics of our qu
 Interrupting
 -------------
 
-Sometimes experiments unfortunately do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration). Rather than waiting for this experiment to complete, instead we can interrupt any MeasurementControl loop using the standard interrupt signal. In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel will cause the same result.
+Sometimes experiments unfortunately do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration).
+Rather than waiting for this experiment to complete, instead we can interrupt any :class:`~quantify.measurement.MeasurementControl` loop using the standard interrupt signal.
+In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel will cause the same result.
 
-When the MeasurementControl is interrupted, it will perform a final save of the data it has gathered, call the ``finish()`` method on ``Settables`` & ``Gettables`` (if it exists) and return the partially completed dataset.
+When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it will perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
 
 .. note::
-    The exact means of triggering an interrupt will differ depending on your platform and environment; the important part is to cause a ``KeyboardInterrupt`` exception to be raised in the Python process.
+    The exact means of triggering an interrupt will differ depending on your platform and environment; the important part is to cause a `KeyboardInterrupt` exception to be raised in the Python process.
 
 .. warning::
-    Pressing ``ctrl`` + ``c`` more than once might result in the ``KeyboardInterrupt`` not being properly handled and corrupt the dataset!
+    Pressing ``ctrl`` + ``c`` more than once might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
 
 .. jupyter-execute::

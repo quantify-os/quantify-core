@@ -7,14 +7,14 @@ This tutorial covers basic usage of Quantify focusing on running basic experimen
 The :class:`~quantify.measurement.MeasurementControl` is the main :class:`~qcodes.instrument.base.Instrument` in charge of running any experiment.
 
 It takes care of saving the data in a standardized format as well as live plotting of the data during the experiment.
-Quantify makes a distinction between ``soft`` (ware) controlled measurements and ``hard`` (ware) controlled measurements.
+Quantify makes a distinction between :ref:`Soft<Control Mode>` (ware) controlled measurements and :ref:`Hard<Control Mode>` (ware) controlled measurements.
 
-In a ``soft`` measurement :class:`~quantify.measurement.MeasurementControl` is in charge of the measurement loop and consecutively sets and gets datapoints.
-A ``soft`` measurement can be 1D, 2D or higher dimensional and also supports adaptive measurements in which the datapoints are determined during the measurement loop.
+In a :ref:`Soft<Control Mode>` measurement :class:`~quantify.measurement.MeasurementControl` is in charge of the measurement loop and consecutively sets and gets datapoints.
+A :ref:`Soft<Control Mode>` measurement can be 1D, 2D or higher dimensional and also supports adaptive measurements in which the datapoints are determined during the measurement loop.
 
-In a ``hard`` measurement the hardware (such as an AWG) is in charge of the measurement loop.
+In a :ref:`Hard<Control Mode>` measurement the hardware (such as an AWG) is in charge of the measurement loop.
 In this case, the datapoints to be acquired are determined before the experiment starts and are precompiled into the hardware which is then armed and starts acquisition.
-In a ``hard`` measurement :class:`~quantify.measurement.MeasurementControl` does not take care of the measurement loop but still takes care of the data storage and live plotting of the experiment.
+In a :ref:`Hard<Control Mode>` measurement :class:`~quantify.measurement.MeasurementControl` does not take care of the measurement loop but still takes care of the data storage and live plotting of the experiment.
 
 This tutorial is structured as follows.
 In the first section we use a 1D soft(ware) controlled loop to explain the flow of a basic experiment.
@@ -88,7 +88,7 @@ We will be generating a cosine with some normally distributed noise added on top
     sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
 
 
-Many experiments involving physical instruments are much slower than the time it takes to simulate our ``cosine_model``, that is why we added a `sleep()` controlled by the ``acq_delay``.
+Many experiments involving physical instruments are much slower than the time it takes to simulate our `cosine_model`, that is why we added a `sleep()` controlled by the `acq_delay`.
 
 This allows us to exemplify (later in the tutorial) some of the features of the MC that would be imperceptible otherwise.
 
@@ -100,8 +100,8 @@ This allows us to exemplify (later in the tutorial) some of the features of the 
 Running the 1D experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time ``t`` in this case, what points to measure at, and what parameter to measure.
-We then tell the MeasurementControl ``MC`` to run which will return an :class:`~xarray.Dataset` object.
+The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time `t` in this case, what points to measure at, and what parameter to measure.
+We then tell the MeasurementControl `MC` to run which will return an :class:`~xarray.Dataset` object.
 
 We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes to ensure our parameters contain the correct attributes.
 
@@ -119,7 +119,7 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     # The name of the experiment is stored as well
     dset.attrs['tuid'], dset.attrs['name']
 
-The dataset ``dset`` is stored as an :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
+The dataset :ref:`dset<DataStorage specification>` is stored as an :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
@@ -136,7 +136,7 @@ We can play with some live plotting options to see how the MC behaves when chang
     # By default the MC updates the datafile and live plot every 0.1 seconds (and not faster) to reduce overhead.
     MC.update_interval(0.1) # Setting it even to 0.01 creates a dramatic slowdown, try it out!
 
-In order to avoid an experiment being bottlenecked by the ``update_interval`` we recommend setting it between ~0.1-1.0 s for a comfortable refresh rate and good performance.
+In order to avoid an experiment being bottlenecked by the `update_interval` we recommend setting it between ~0.1-1.0 s for a comfortable refresh rate and good performance.
 
 
 .. jupyter-execute::
