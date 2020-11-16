@@ -15,7 +15,7 @@ from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, grow_dataset, trim_dataset
-from quantify.measurement.types import Settable, Gettable, is_software_controlled
+from quantify.measurement.types import Settable, Gettable, is_batched
 
 
 class MeasurementControl(Instrument):
@@ -180,10 +180,10 @@ class MeasurementControl(Instrument):
         self._prepare_settables()
 
         try:
-            if self._is_soft:
-                self._run_soft()
+            if self._is_batched:
+                self._run_batched()
             else:
-                self._run_hard()
+                self._run_iterative()
         except KeyboardInterrupt:
             print()
             print("Interrupt signalled, exiting gracefully...")
@@ -222,7 +222,7 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._soft_set_and_get(vec, self._nr_acquired_values)
+            self._iterative_set_and_get(vec, self._nr_acquired_values)
             ret = self._dataset['y0'].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
@@ -269,16 +269,16 @@ class MeasurementControl(Instrument):
         self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
         return self._dataset
 
-    def _run_soft(self):
+    def _run_iterative(self):
         while self._get_fracdone() < 1.0:
             self._prepare_gettable()
             for row in self._setpoints:
-                self._soft_set_and_get(row, self._curr_setpoint_idx())
+                self._iterative_set_and_get(row, self._curr_setpoint_idx())
                 self._nr_acquired_values += 1
                 self._update()
             self._loop_count += 1
 
-    def _run_hard(self):
+    def _run_batched(self):
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
             for i, spar in enumerate(self._settable_pars):
@@ -307,7 +307,7 @@ class MeasurementControl(Instrument):
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _soft_set_and_get(self, setpoints: np.ndarray, idx: int):
+    def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
 
@@ -388,12 +388,9 @@ class MeasurementControl(Instrument):
                 pass
 
     @property
-    def _is_soft(self):
-        """
-        Whether this MeasurementControl controls data stepping
-        """
-        if any(is_software_controlled(gpar) for gpar in self._gettable_pars):
-            if not all(is_software_controlled(gpar) for gpar in self._gettable_pars):
+    def _is_batched(self):
+        if any(is_batched(gpar) for gpar in self._gettable_pars):
+            if not all(is_batched(gpar) for gpar in self._gettable_pars):
                 raise Exception("Control mismatch; all Gettables must have the same Control Mode")
             return True
         return False
@@ -407,8 +404,7 @@ class MeasurementControl(Instrument):
 
     def _curr_setpoint_idx(self):
         """
-        Returns the current position through the sweep
-        Updates the _soft_iterations_completed counter as it may have rolled over
+        Current position through the sweep
 
         Returns
         -------

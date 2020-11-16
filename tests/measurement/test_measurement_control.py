@@ -112,7 +112,7 @@ class DummyHardwareSettable:
         self.name = 'DummyHardwareSettable'
         self.label = 'Amp'
         self.unit = 'V'
-        self.soft = False
+        self.batched = True
         self.setpoints = []
 
     # copy what qcodes does for easy testing interop
@@ -129,7 +129,7 @@ class DummyHardwareGettable:
         self.name = ['DummyHardwareGettable_0']
         self.unit = ['W']
         self.label = ['Watts']
-        self.soft = False
+        self.batched = True
         self.settables = [settables] if not isinstance(settables, list) else settables
         self.noise = noise
         self.get_func = hardware_mock_values

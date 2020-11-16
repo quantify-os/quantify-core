@@ -35,9 +35,9 @@
                 ],
                 "description": "unit of measurement"
             },
-            "soft": {
+            "batched": {
                 "type": "boolean",
-                "description": "true if driven by the MeasurementControl software, false otherwise"
+                "description": "true if data is processed in batches, false otherwise"
             }
         }
     },

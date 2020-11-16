@@ -41,7 +41,7 @@ class Gettable:
         return obj
 
 
-def is_software_controlled(obj):
-    if hasattr(obj, 'soft'):
+def is_batched(obj):
+    if hasattr(obj, 'batched'):
         return obj.soft
-    return True
+    return False
