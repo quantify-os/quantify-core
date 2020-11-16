@@ -7,17 +7,19 @@ This tutorial covers basic usage of Quantify focusing on running basic experimen
 The :class:`~quantify.measurement.MeasurementControl` is the main :class:`~qcodes.instrument.base.Instrument` in charge of running any experiment.
 
 It takes care of saving the data in a standardized format as well as live plotting of the data during the experiment.
-Quantify makes a distinction between :ref:`Soft<Control Mode>` (ware) controlled measurements and :ref:`Hard<Control Mode>` (ware) controlled measurements.
+Quantify makes a distinction between :ref:`Iterative<Control Mode>` measurements and :ref:`Batched<Control Mode>` measurements.
 
-In a :ref:`Soft<Control Mode>` measurement :class:`~quantify.measurement.MeasurementControl` is in charge of the measurement loop and consecutively sets and gets datapoints.
-A :ref:`Soft<Control Mode>` measurement can be 1D, 2D or higher dimensional and also supports adaptive measurements in which the datapoints are determined during the measurement loop.
+In an :ref:`Iterative<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes each setpoint fully before advancing to the next.
 
-In a :ref:`Hard<Control Mode>` measurement the hardware (such as an AWG) is in charge of the measurement loop.
-In this case, the datapoints to be acquired are determined before the experiment starts and are precompiled into the hardware which is then armed and starts acquisition.
-In a :ref:`Hard<Control Mode>` measurement :class:`~quantify.measurement.MeasurementControl` does not take care of the measurement loop but still takes care of the data storage and live plotting of the experiment.
+In a :ref:`Batched<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes setpoints in batches, for example triggering 10 samples and then reading those 10 outputs.
+This is useful for avoiding the overhead of data transfer when working with physical devices.
+
+Both measurement policies can be 1D, 2D or higher dimensional. Quantify also supports adaptive measurements in which the datapoints are determined during the measurement loop, which are explored in subsequent tutorials.
+
+---
 
 This tutorial is structured as follows.
-In the first section we use a 1D soft(ware) controlled loop to explain the flow of a basic experiment.
+In the first section we use a 1D Iterative loop to explain the flow of a basic experiment.
 We start by setting up a noisy cosine model to serve as our mock setup and then use the MC to measure this.
 We then perform basic (manual) analysis on the data from this experiment. We show how to find and load a dataset, perform a basic fit, and store the results.
 
@@ -48,7 +50,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
 
     MC.instr_plotmon.get_instr().tuid()
 
-A 1D soft(ware) controlled loop
+A 1D Iterative loop
 -------------------------------
 
 Define a simple model
@@ -56,8 +58,6 @@ Define a simple model
 
 We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
 We will be generating a cosine with some normally distributed noise added on top of it.
-
-
 
 .. jupyter-execute::
 
@@ -252,7 +252,7 @@ We will want to store the figure and the results of the fit in the `experiment f
     # Save figure
     f.savefig(join(exp_folder, 'Cosine fit.png'), dpi=300, bbox_inches='tight')
 
-A 2D soft(ware) controlled loop
+A 2D Iterative loop
 ---------------------------------
 
 It is often desired to measure heatmaps (2D grids) of some parameter.

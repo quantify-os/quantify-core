@@ -30,7 +30,7 @@ A parameter represents a state variable of the system.
 Instrument
 -----------
 
-An Instrument is a container for parameters that typically (but not necesarily) corresponds to a physical piece of hardware.
+An Instrument is a container for parameters that typically (but not necessarily) corresponds to a physical piece of hardware.
 
 Instruments provide the following functionality.
 
@@ -57,11 +57,11 @@ Quantify provides two helper classes, Settable and Gettable to aid in these step
 - Standardized data storage
 - Live plotting of the experiment
 - n-dimensional sweeps
-- Data acquisition controlled by software or hardware
+- Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
 
 
-Basic example, a 1D software-controlled measurement loop
+Basic example, a 1D Iterative measurement loop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Running an experiment is simple!
@@ -88,7 +88,9 @@ A very important aspect in the usage of the MeasurementControl is the Control Mo
 The benefit provided by this differentiation is in overhead reduction; it is often costly to transmit (large) blocks of data to external devices.
 
 In *Iterative* mode, the MC steps through each setpoint one at a time, processing them one by one.
-In *Batched* mode, the MC vectorises the setpoints such that they are processed in a batch.
+
+In *Batched* mode, the MC vectorises the setpoints such that they are processed in batches.
+The size of these batches is automatically calculated but usually dependent on resource constraints; you may have a device which can hold 2000 samples but wish to sweep over 40000 points.
 
 Control mode is detected automatically based on the attributes of the Gettables; this is expanded upon in subsequent sections.
 
@@ -121,7 +123,7 @@ Depending on which Control Mode the MeasurementControl is running in, the interf
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
 In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
-Below we create a Soft Gettable which returns values in two dimensions, one Sine wave and a Cosine wave, using a QCodes Settable:
+Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave, using a QCodes Settable:
 
 .. jupyter-execute::
 
@@ -145,7 +147,9 @@ Below we create a Soft Gettable which returns values in two dimensions, one Sine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The MeasurementControl checks for 3 other optional properties on settables/gettables, the `batched` attribute and the `prepare()` and `finish()` methods.
-`batched` declares which Control Mode this parameter runs in. It defaults to `False` (i.e., iterative). Every Settable and Gettable must have the same Control Mode.
+`batched` declares which Control Mode this parameter runs in. It defaults to `False` (i.e., iterative).
+
+.. warning:: Every Settable and Gettable must have the same Control Mode.
 
 The `prepare()` and `finish()` methods are useful for performing work before each iteration of the measurement loop and once after completion.
 For example, arming a piece of hardware with data and then closing a connection upon completion.
