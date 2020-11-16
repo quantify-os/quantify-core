@@ -45,8 +45,8 @@ class MeasurementControl(Instrument):
 
     MC imposes minimal constraints and allows:
 
-    - Soft loops, experiments in which MC controlled acquisition loop.
-    - Hard loops, experiments in which MC is not in control of acquisition.
+    - Iterative loops, experiments in which setpoints are processed step by step.
+    - Batched loops, experiments in which setpoints are processed in batches.
     - Adaptive loops, setpoints are determined based on measured values.
 
     """
