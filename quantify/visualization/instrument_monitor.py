@@ -29,19 +29,19 @@ def _recreate_snapshot_dict(unpickleable_snapshot: dict):
     snap_corrected_string = pprint.pformat(unpickleable_snapshot)
     snap_corrected_string = snap_corrected_string.replace("'", "\"")
     snap_collated = {'snapshot_string':
-                            {'name': 'snapshot_string',
-                             'parameters':
-                                    {'snapshot':
-                                            {
-                                                'ts': 'latest',
-                                                'label': "",
-                                                'unit': '',
-                                                'name': 'string_representation',
-                                                'value': snap_corrected_string
-                                            }
-                                    }
-                            }
-                    }
+                     {'name': 'snapshot_string',
+                      'parameters':
+                      {'snapshot':
+                              {
+                                  'ts': 'latest',
+                                  'label': "",
+                                  'unit': '',
+                                  'name': 'string_representation',
+                                  'value': snap_corrected_string
+                              }
+                       }
+                      }
+                     }
     return snap_collated
 
 
@@ -95,7 +95,6 @@ class InstrumentMonitor(Instrument):
         self.last_update_time = 0
         self.create_tree(window_size=window_size)
 
-
     def update(self):
         """
         Updates the Qc widget with the current snapshot of the instruments.
@@ -105,15 +104,15 @@ class InstrumentMonitor(Instrument):
         time_since_last_update = time.time()-self.last_update_time
         if time_since_last_update > self.update_interval():
             self.last_update_time = time.time()
-            snap = snapshot(update=False, clean=True)  # Take an updated, clean snapshot
+            # Take an updated, clean snapshot
+            snap = snapshot(update=False, clean=True)
             try:
                 self.tree.setData(snap['instruments'])
             except AttributeError as e:
-            # This is to catch any potential pickling problems with the snapshot.
+                # This is to catch any potential pickling problems with the snapshot.
                 snap_collated = _recreate_snapshot_dict(snap['instruments'])
                 self.tree.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
-
 
     def _init_qt(self):
         # starting the process for the pyqtgraph plotting
@@ -124,7 +123,6 @@ class InstrumentMonitor(Instrument):
         self.__class__.rpg = self.proc._import('pyqtgraph')
         ins_mon_mod = 'quantify.visualization.ins_mon_widget.qc_snapshot_widget'
         self.__class__.rpg = self.proc._import(ins_mon_mod)
-
 
     def create_tree(self, window_size=(1000, 600)):
         """
