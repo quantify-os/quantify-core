@@ -11,6 +11,7 @@ In this tutorial, we explore the adaptive functionality of the ``MeasurementCont
 
     from quantify.measurement.control import MeasurementControl
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 .. jupyter-execute::
@@ -18,6 +19,9 @@ In this tutorial, we explore the adaptive functionality of the ``MeasurementCont
     MC = MeasurementControl('MC')
     plotmon = pqm.PlotMonitor_pyqt('plotmon_MC')
     MC.instr_plotmon(plotmon.name)
+    insmon = InstrumentMonitor("Instruments Monitor")
+    MC.instrument_monitor(insmon.name)
+
 
 
 Finding a minimum
