@@ -84,12 +84,12 @@ Take a look at "nonexistent_example_notebook" for a tutorial on the MeasurementC
 Control Mode
 ------------
 
-A very important aspect in the usage of the MeasurementControl is the Control Mode, which specifies whether the MC itself dictates how the setpoints are iterated through, or whether an external device does.
-These modes are referred to as *Software* in the former case and *Hardware* in the latter.
-
+A very important aspect in the usage of the MeasurementControl is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
 The benefit provided by this differentiation is in overhead reduction; it is often costly to transmit (large) blocks of data to external devices.
-In *Software* mode, the MC steps through each setpoint one at a time, processing them one by one.
-In *Hardware* mode, the MC vectorises the setpoints such that they are processed in a batch.
+
+In *Iterative* mode, the MC steps through each setpoint one at a time, processing them one by one.
+In *Batched* mode, the MC vectorises the setpoints such that they are processed in a batch.
+
 Control mode is detected automatically based on the attributes of the Gettables; this is expanded upon in subsequent sections.
 
 
@@ -102,20 +102,20 @@ These classes define a set of mandatory and optional attributes the MeasurementC
 
 Depending on which Control Mode the MeasurementControl is running in, the interfaces for Settables and Gettables are slightly different:
 
-**Software Controlled:**
+**Iterative:**
 
 - Each settable accepts a single float value.
 - Gettables return a single float value, **OR**
 - Gettables return a 1D array of floats, with each element corresponding to a *different y dimension*.
 
-**Hardware Controlled:**
+**Batched:**
 
 - Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
 - Gettables return a 1D array of float values with each element corresponding to the datapoints *in that Y dimension*, **OR**
 - Gettables return a 2D array of float values with each row representing a *different Y dimension* with the above structure, i.e. each column is a datapoint corresponding to each setpoint.
 
 .. note::
-    It is also possible for a Hard Gettables to return a partial array with length less than the input. This is helpful when working with resource constrained devices,
+    It is also possible for Batched Gettables to return a partial array with length less than the input. This is helpful when working with resource constrained devices,
     for example if you have *n* setpoints but your device can load only less than *n* datapoints into memory. In this scenario, the MC tracks how many datapoints were actually
     processed, automatically adjusting the size of the next batch.
 
@@ -141,14 +141,13 @@ Below we create a Soft Gettable which returns values in two dimensions, one Sine
             return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
 
 
-.soft, .prepare() and .finish()
+.batched, .prepare() and .finish()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The MeasurementControl checks for 3 other optional properties on settables/gettables, the ``soft`` attribute and the ``prepare()`` and ``finish()`` methods.
-``soft`` declares which Control Mode this parameter runs in. It defaults to ``True`` (i.e., software controlled). All Gettables must currently have the same setting;
-this defines which Control Mode the experiment will run in.
+The MeasurementControl checks for 3 other optional properties on settables/gettables, the `batched` attribute and the `prepare()` and `finish()` methods.
+`batched` declares which Control Mode this parameter runs in. It defaults to `False` (i.e., iterative). Every Settable and Gettable must have the same Control Mode.
 
-The ``prepare()`` and ``finish()`` methods are useful for performing work before each iteration of the measurement loop and once after completion.
+The `prepare()` and `finish()` methods are useful for performing work before each iteration of the measurement loop and once after completion.
 For example, arming a piece of hardware with data and then closing a connection upon completion.
 
 Data storage & Analysis
