@@ -203,7 +203,7 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
             self.unit = 'V'
 
         def get(self):
-            time.sleep(0.5)
+            time.sleep(0.2)
             return time_par()
 
     MC.settables(time_par)

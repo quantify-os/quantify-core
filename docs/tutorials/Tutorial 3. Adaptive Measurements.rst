@@ -74,7 +74,8 @@ Of course, this parabola has it's global minimum at the origin, thus these value
     af_pars = {
         "adaptive_function": optimize.minimize, # used by MC
         "x0": [-50, -50], # used by `optimize.minimize` (in this case)
-        "method": "Nelder-Mead" # used by `optimize.minimize` (in this case)
+        "method": "Nelder-Mead", # used by `optimize.minimize` (in this case)
+        "options": {"maxfev": 100} # limit the maximum evaluations of the gettable(s)
     }
     noise(0.5)
     MC.gettables(parabola)
@@ -115,7 +116,7 @@ We really don't want to sweep through a million points, so instead let's use an 
     resonance_freq = 6.6e9 # pretend you don't know what this value is
 
     def lorenz():
-        time.sleep(0.1)  # for display purposes, just so we can watch the graph update
+        time.sleep(0.02)  # for display purposes, just so we can watch the graph update
         return 1-(amp() * ((fwhm / 2.) ** 2) / ((freq() - resonance_freq) ** 2 + (fwhm / 2.) ** 2))
 
     resonance = Parameter('resonance', unit='V', label='Amplitude', get_cmd=lorenz)
@@ -130,7 +131,7 @@ We really don't want to sweep through a million points, so instead let's use an 
     MC.settables([freq])
     af_pars = {
         "adaptive_function": adaptive.learner.Learner1D,
-        "goal": lambda l: l.npoints > 100,
+        "goal": lambda l: l.npoints > 99,
         "bounds": (6.0e9, 7.0e9),
     }
     MC.gettables(resonance)

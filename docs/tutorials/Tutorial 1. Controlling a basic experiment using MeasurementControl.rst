@@ -274,7 +274,8 @@ Method 1 - a quick grid
 
 .. jupyter-execute::
 
-    MC.update_interval(.5)
+    acq_delay(0.0001)
+    MC.update_interval(3.0)
 
 
 .. jupyter-execute::
@@ -325,8 +326,8 @@ N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    acq_delay(0.001)
-    MC.update_interval(0.5)
+    acq_delay(0.0001)
+    MC.update_interval(3.0)
 
 
 .. jupyter-execute::
