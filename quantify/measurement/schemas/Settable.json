@@ -37,7 +37,7 @@
                 "type": "object"
             },
             "prepare": {
-                "description": "called before each iteration of the acquisition loop",
+                "description": "called once before the acquisition loop",
                 "type": "object"
             },
             "finish": {
