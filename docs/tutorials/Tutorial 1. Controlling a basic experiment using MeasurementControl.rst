@@ -122,11 +122,11 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     # The name of the experiment is stored as well
     dset.attrs['tuid'], dset.attrs['name']
 
-The dataset :ref:`dset<DataStorage specification>` is stored as an :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
+The dataset :ref:`dset<DataStorage specification>` is stored as a :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
-See :ref:`Data Storage specification` in the :ref:`User guide` for details.
+See :ref:`DataStorage specification` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
