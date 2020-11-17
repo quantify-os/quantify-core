@@ -101,7 +101,7 @@ Running the 1D experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time `t` in this case, what points to measure at, and what parameter to measure.
-We then tell the MeasurementControl `MC` to run which will return an :class:`~xarray.Dataset` object.
+We then tell the :ref:`MeasurementControl<Measurement Control>` `MC` to run which will return an :class:`~xarray.Dataset` object.
 
 We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes to ensure our parameters contain the correct attributes.
 

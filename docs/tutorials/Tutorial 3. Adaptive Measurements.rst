@@ -56,7 +56,7 @@ You can of course implement your own functions for this purpose, but for brevity
     from scipy import optimize
 
 
-Then, we set our Settables and Gettables as usual, and define a new dictionary `af_pars`.
+Then, we set our :ref:`Settables and Gettables<Settable and Gettable>` as usual, and define a new dictionary `af_pars`.
 The only required key in this object is "adaptive_function", the value of which being the adaptive function to use.
 The remaining fields in this dictionary are the arguments to the adaptive function itself. We also add some noise into the parabola to stress our adaptive function.
 

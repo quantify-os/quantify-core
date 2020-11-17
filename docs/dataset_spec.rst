@@ -23,7 +23,7 @@ Each axis type are numbered ascending from 0 (e.g. x0, x1, y0, y1, y2), and each
 such as the :class:`~quantify.data.types.TUID` of the experiment which it was generated from.
 
 For example, consider an experiment varying time and amplitude against a Cosine function.
-The resulting dataset will look something like the following:
+The resulting dataset will look similar to the following:
 
 .. jupyter-execute::
 
