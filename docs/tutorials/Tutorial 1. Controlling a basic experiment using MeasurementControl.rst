@@ -112,6 +112,9 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     MC.gettables(Gettable(sig))
     dset = MC.run('Cosine test')
 
+.. jupyter-execute::
+
+    plotmon.main_QtPlot
 
 .. jupyter-execute::
 
@@ -145,6 +148,11 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
     MC.setpoints(np.linspace(0, 50, 1000))
     MC.gettables(Gettable(sig))
     dset = MC.run('Many points live plot test')
+
+
+.. jupyter-execute::
+
+    plotmon.main_QtPlot
 
 
 .. jupyter-execute::
