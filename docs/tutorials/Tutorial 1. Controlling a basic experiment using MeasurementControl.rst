@@ -326,8 +326,8 @@ N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    acq_delay(0.0001)
-    MC.update_interval(3.0)
+    acq_delay(0.0005)
+    MC.update_interval(1.0)
 
 
 .. jupyter-execute::
