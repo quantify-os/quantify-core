@@ -4,6 +4,7 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
+from collections import deque
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -37,14 +38,24 @@ class PlotMonitor_pyqt(Instrument):
         # and intend the user to change.
 
         self.add_parameter(
-            "tuid",
+            name="tuid",
             docstring="The tuid of the dataset to monitor",
             parameter_class=ManualParameter,
             vals=vals.Strings(),
             initial_value='latest',)
+        self.add_parameter(
+            name="num_persistent_datasets",
+            docstring="The number of persistent previous datasets in the main plot monitor",
+            parameter_class=ManualParameter,
+            vals=vals.Ints(min_value=0, max_value=100),
+            initial_value=2,)
 
         # used to track if tuid changed
         self._last_tuid = None
+
+        # used to track the tuids of persistent datasets
+        # deque([<one before latest>, ..., <oldest>])
+        self._persitent_dsets = deque()
 
         self.create_plot_monitor()
 
@@ -71,6 +82,9 @@ class PlotMonitor_pyqt(Instrument):
             window_title="Secondary plotmon of {}".format(self.name),
             figsize=(600, 400))
 
+    def _get_parnames(self, dset, par_type: str = "x"):
+        return list(filter(lambda k: par_type in k, dset.keys()))
+
     def _initialize_plot_monitor(self, tuid):
         """
         Clears data in plot monitors and sets it up with the data from the dataset
@@ -88,17 +102,43 @@ class PlotMonitor_pyqt(Instrument):
         self._im_scatters = []
         self._im_scatters_last = []
 
-        # TODO add persistence based on previous dataset
         dset = load_dataset(tuid=tuid)
+        # Persistence datasets
+        if self._last_tuid is not None:
+            self._persitent_dsets.appendleft(load_dataset(self._last_tuid))
+        while len(self._persitent_dsets) > self.num_persistent_datasets():
+            self._persitent_dsets.pop()
 
-        set_parnames = list(filter(lambda k: 'x' in k, dset.keys()))
-        get_parnames = list(filter(lambda k: 'y' in k, dset.keys()))
+        set_parnames = self._get_parnames(dset, "x")
+        get_parnames = self._get_parnames(dset, "y")
 
         #############################################################
+        p_symbols = ["t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
+        n_p = len(self._persitent_dsets)
+        p_colors = [tuple([int(230 * (n_p - c_idx) / n_p)] * 3) for c_idx in range(n_p)]
+
         plot_idx = 1
-        for yi in get_parnames:
+        for yi_idx, yi in enumerate(get_parnames):
             for xi in set_parnames:
-                # TODO: add persist data here.
+                # Persistent datasets
+                for i_p_dset, p_dset in enumerate(self._persitent_dsets):
+                    has_settable = xi in self._get_parnames(p_dset, "x")
+                    has_gettable = yi in self._get_parnames(p_dset, "y")
+                    if has_settable and has_gettable:
+                        self.main_QtPlot.add(
+                            x=p_dset[xi].values, y=p_dset[yi].values,
+                            subplot=plot_idx,
+                            xlabel=p_dset[xi].attrs['long_name'],
+                            xunit=p_dset[xi].attrs['unit'],
+                            ylabel=p_dset[yi].attrs['long_name'],
+                            yunit=p_dset[yi].attrs['unit'],
+                            symbol=p_symbols[i_p_dset % len(p_symbols)],
+                            symbolSize=7,
+                            # Oldest datasets fade more
+                            color=p_colors[i_p_dset]
+                        )
+
+                # Real-time dataset
                 self.main_QtPlot.add(
                     x=dset[xi].values, y=dset[yi].values,
                     subplot=plot_idx,
@@ -106,13 +146,20 @@ class PlotMonitor_pyqt(Instrument):
                     xunit=dset[xi].attrs['unit'],
                     ylabel=dset[yi].attrs['long_name'],
                     yunit=dset[yi].attrs['unit'],
-                    symbol='o', symbolSize=5,
+                    symbol='o',
+                    symbolSize=5,
+                    color=color_cycle[yi_idx % len(color_cycle)]
                 )
+                # We keep track only of the curves that need to be
+                # updated in real-time
+                self.curves.append(self.main_QtPlot.traces[-1])
                 # Manual counter is used because we may want to add more
                 # than one quantity per panel
                 plot_idx += 1
-                self.curves.append(self.main_QtPlot.traces[-1])
             self.main_QtPlot.win.nextRow()
+
+        # We loop again so that the first self.curves are reserved for
+        # the live dataset
 
         #############################################################
         # Add a square heatmap
@@ -215,8 +262,8 @@ class PlotMonitor_pyqt(Instrument):
         # otherwise we simply update
         else:
             dset = load_dataset(tuid=tuid)
-            set_parnames = list(filter(lambda k: 'x' in k, dset.keys()))
-            get_parnames = list(filter(lambda k: 'y' in k, dset.keys()))
+            set_parnames = self._get_parnames(dset, "x")
+            get_parnames = self._get_parnames(dset, "y")
             # Only updates the main monitor currently.
 
             #############################################################
