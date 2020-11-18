@@ -108,7 +108,7 @@ Depending on which :ref:`Control Mode` the :ref:`MeasurementControl<Measurement 
 
 - Each settable accepts a single float value.
 - Gettables return a single float value, **OR**
-- Gettables return a 1D array of floats, with each element corresponding to a *different y dimension*.
+- Gettables return a 1D array of floats, with each element corresponding to a *different Y dimension*.
 
 **Batched:**
 
