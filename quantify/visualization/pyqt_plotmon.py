@@ -56,8 +56,12 @@ class PlotMonitor_pyqt(Instrument):
         self._last_tuid = None
 
         # used to track the tuids of persistent datasets
-        # deque([<one before latest>, ..., <oldest>])
+        # deque([<oldest>, ..., <one before latest>])
         self._persitent_dsets = deque()
+        # keeps track of the symbol assigned to each dataset
+        self._p_symbols = deque(
+            ["t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
+        )
 
         self.create_plot_monitor()
 
@@ -87,6 +91,9 @@ class PlotMonitor_pyqt(Instrument):
     def _get_parnames(self, dset, par_type: str = "x"):
         return list(filter(lambda k: par_type in k, dset.keys()))
 
+    def _mk_legend(self, dset):
+        return dset.attrs["tuid"].split("-")[-1] + " " + dset.attrs["name"]
+
     def _initialize_plot_monitor(self, tuid):
         """
         Clears data in plot monitors and sets it up with the data from the dataset
@@ -107,17 +114,18 @@ class PlotMonitor_pyqt(Instrument):
         dset = load_dataset(tuid=tuid)
         # Persistence datasets
         if self._last_tuid is not None:
-            self._persitent_dsets.appendleft(load_dataset(self._last_tuid))
+            self._persitent_dsets.append(load_dataset(self._last_tuid))
         while len(self._persitent_dsets) > self.num_persistent_datasets():
-            self._persitent_dsets.pop()
+            self._persitent_dsets.popleft()
+            # This ensures each datasets preserves it symbol
+            self._p_symbols.rotate(-1)
 
         set_parnames = self._get_parnames(dset, "x")
         get_parnames = self._get_parnames(dset, "y")
 
         #############################################################
-        p_symbols = ["t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
         n_p = len(self._persitent_dsets)
-        p_colors = [tuple([int(230 * (n_p - c_idx) / n_p)] * 3) for c_idx in range(n_p)]
+        p_colors = [tuple([int(200 - 100 * c_idx / n_p)] * 3) for c_idx in range(n_p)]
 
         plot_idx = 1
         for yi_idx, yi in enumerate(get_parnames):
@@ -135,10 +143,11 @@ class PlotMonitor_pyqt(Instrument):
                             xunit=p_dset[xi].attrs["unit"],
                             ylabel=p_dset[yi].attrs["long_name"],
                             yunit=p_dset[yi].attrs["unit"],
-                            symbol=p_symbols[i_p_dset % len(p_symbols)],
-                            symbolSize=7,
+                            symbol=self._p_symbols[i_p_dset % len(self._p_symbols)],
+                            symbolSize=8,
                             # Oldest datasets fade more
                             color=p_colors[i_p_dset],
+                            name=self._mk_legend(p_dset)
                         )
 
                 # Real-time dataset
@@ -153,6 +162,7 @@ class PlotMonitor_pyqt(Instrument):
                     symbol="o",
                     symbolSize=5,
                     color=color_cycle[yi_idx % len(color_cycle)],
+                    name=self._mk_legend(dset)
                 )
                 # We keep track only of the curves that need to be
                 # updated in real-time
