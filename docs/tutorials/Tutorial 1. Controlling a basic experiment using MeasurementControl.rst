@@ -37,6 +37,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     from quantify.measurement import MeasurementControl
     from quantify.measurement.control import Settable, Gettable
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 .. jupyter-execute::
@@ -48,7 +49,11 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     # Connect the live plotting monitor to the measurement control
     MC.instr_plotmon(plotmon.name)
 
-    MC.instr_plotmon.get_instr().tuid()
+    # The instrument monitor will give an overview of all parameters of all instruments
+    insmon = InstrumentMonitor("Instruments Monitor")
+    # By connecting to the MC the parameters will be updated in real-time during an experiment.
+    MC.instrument_monitor(insmon.name)
+
 
 A 1D Iterative loop
 -------------------------------

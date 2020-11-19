@@ -23,6 +23,7 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
     # %matplotlib inline
     from quantify.measurement.control import MeasurementControl
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 .. jupyter-execute::
@@ -30,6 +31,9 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
     MC = MeasurementControl('MC')
     plotmon = pqm.PlotMonitor_pyqt('plotmon_MC')
     MC.instr_plotmon(plotmon.name)
+    insmon = InstrumentMonitor("Instruments Monitor")
+    MC.instrument_monitor(insmon.name)
+
 
 
 A 1D Batched loop: Resonator Spectroscopy
