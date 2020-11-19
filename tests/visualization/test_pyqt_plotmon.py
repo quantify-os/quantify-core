@@ -64,10 +64,11 @@ class TestPlotMonitor_pyqt:
         assert cfg["zunit"] == "V"
 
     def test_persistence(self):
-        # Clear the state
+        # Clear the state to keep this test independent
         self.plotmon._last_tuid = None
         self.plotmon.tuid("latest")
         self.plotmon.num_persistent_dsets(3)
+        self.plotmon._persistent_dsets.clear()
 
         tuid1 = "20200430-170837-001-315f36"  # 1D
         tuid2 = "20200504-191556-002-4209ee"  # 2D
