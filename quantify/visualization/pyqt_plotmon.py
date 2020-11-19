@@ -45,7 +45,7 @@ class PlotMonitor_pyqt(Instrument):
             initial_value="latest",
         )
         self.add_parameter(
-            name="num_persistent_datasets",
+            name="num_persistent_dsets",
             docstring="The number of persistent previous datasets in the main plot monitor",
             parameter_class=ManualParameter,
             vals=vals.Ints(min_value=0, max_value=100),
@@ -57,11 +57,15 @@ class PlotMonitor_pyqt(Instrument):
 
         # used to track the tuids of persistent datasets
         # deque([<oldest>, ..., <one before latest>])
-        self._persitent_dsets = deque()
+        self._persistent_dsets = deque()
         # keeps track of the symbol assigned to each dataset
+        # we reserve "o" symbol for the latest dataset
         self._p_symbols = deque(
             ["t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
         )
+        # We reserve the first (blue color to the latest dataset)
+        # When it is not the latest anymore it will change color and maintain it
+        self._p_colors = deque(color_cycle[1:])
 
         self.create_plot_monitor()
 
@@ -114,24 +118,23 @@ class PlotMonitor_pyqt(Instrument):
         dset = load_dataset(tuid=tuid)
         # Persistence datasets
         if self._last_tuid is not None:
-            self._persitent_dsets.append(load_dataset(self._last_tuid))
-        while len(self._persitent_dsets) > self.num_persistent_datasets():
-            self._persitent_dsets.popleft()
+            self._persistent_dsets.append(load_dataset(self._last_tuid))
+        while len(self._persistent_dsets) > self.num_persistent_dsets():
+            self._persistent_dsets.popleft()
             # This ensures each datasets preserves it symbol
             self._p_symbols.rotate(-1)
+            self._p_colors.rotate(-1)
 
         set_parnames = self._get_parnames(dset, "x")
         get_parnames = self._get_parnames(dset, "y")
 
         #############################################################
-        n_p = len(self._persitent_dsets)
-        p_colors = [tuple([int(200 - 100 * c_idx / n_p)] * 3) for c_idx in range(n_p)]
 
         plot_idx = 1
         for yi_idx, yi in enumerate(get_parnames):
             for xi in set_parnames:
                 # Persistent datasets
-                for i_p_dset, p_dset in enumerate(self._persitent_dsets):
+                for i_p_dset, p_dset in enumerate(self._persistent_dsets):
                     has_settable = xi in self._get_parnames(p_dset, "x")
                     has_gettable = yi in self._get_parnames(p_dset, "y")
                     if has_settable and has_gettable:
@@ -146,7 +149,7 @@ class PlotMonitor_pyqt(Instrument):
                             symbol=self._p_symbols[i_p_dset % len(self._p_symbols)],
                             symbolSize=8,
                             # Oldest datasets fade more
-                            color=p_colors[i_p_dset],
+                            color=self._p_colors[i_p_dset % len(self._p_colors)],
                             name=self._mk_legend(p_dset)
                         )
 
@@ -161,7 +164,7 @@ class PlotMonitor_pyqt(Instrument):
                     yunit=dset[yi].attrs["unit"],
                     symbol="o",
                     symbolSize=5,
-                    color=color_cycle[yi_idx % len(color_cycle)],
+                    color=color_cycle[0],
                     name=self._mk_legend(dset)
                 )
                 # We keep track only of the curves that need to be
