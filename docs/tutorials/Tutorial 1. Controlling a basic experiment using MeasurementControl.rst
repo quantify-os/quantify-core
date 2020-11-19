@@ -12,7 +12,7 @@ Quantify makes a distinction between :ref:`Iterative<Control Mode>` measurements
 In an :ref:`Iterative<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes each setpoint fully before advancing to the next.
 
 In a :ref:`Batched<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes setpoints in batches, for example triggering 10 samples and then reading those 10 outputs.
-This is useful for avoiding the overhead of data transfer when working with physical devices.
+This is useful in resource constrained or overhead heavy situations.
 
 Both measurement policies can be 1D, 2D or higher dimensional. Quantify also supports adaptive measurements in which the datapoints are determined during the measurement loop, which are explored in subsequent tutorials.
 

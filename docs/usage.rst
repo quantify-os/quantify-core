@@ -78,14 +78,13 @@ In the example below we want to set frequencies on a microwave source and acquir
 
 
 The MeasurementControl can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
-Take a look at "nonexistent_example_notebook" for a tutorial on the MeasurementControl.
-
+Take a look at some of the tutorial notebooks for more in-depth examples on usage and application.
 
 Control Mode
-------------
+~~~~~~~~~~~~
 
 A very important aspect in the usage of the MeasurementControl is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
-The benefit provided by this differentiation is in overhead reduction; it is often costly to transmit (large) blocks of data to external devices.
+Batched mode can be used to deal with constraints imposed by (hardware) resources or to reduce overhead.
 
 In *Iterative* mode, the MC steps through each setpoint one at a time, processing them one by one.
 
@@ -94,9 +93,14 @@ The size of these batches is automatically calculated but usually dependent on r
 
 Control mode is detected automatically based on the attributes of the Gettables; this is expanded upon in subsequent sections.
 
+.. warning:: Every Settable and Gettable must have the same Control Mode.
+
 
 Settable and Gettable
 ----------------------
+
+Experiments typically involve varying some parameters and reading others. In Quantify we encapsulate these concepts as the Settable and as Gettable respectively.
+As their name implies, a Settable is a parameter you set values to, and a Gettable is a parameter you get values from.
 
 The interfaces for Settable and Gettable parameters are encapsulated in the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes respectively.
 We set values to Settables; these values populate an x-axis. Similarly, we get values from Gettables which populate a y-axis.
@@ -123,7 +127,7 @@ Depending on which Control Mode the MeasurementControl is running in, the interf
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
 In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
-Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave, using a QCodes Settable:
+Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave:
 
 .. jupyter-execute::
 

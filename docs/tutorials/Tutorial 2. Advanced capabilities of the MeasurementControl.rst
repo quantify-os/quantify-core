@@ -43,9 +43,7 @@ In this example, we want to find the resonance of some device. We expect to find
 We first create `freq`: a :ref:`Settable<Settable>` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :ref:`Gettable<Gettable>` to mock (i.e. emulate) the resonating material.
 The Resonator will return a Lorentzian shape centered on the resonant frequency. Our :ref:`Gettable<Gettable>` will read the setpoints from `freq`, in this case a 1D array.
 
-.. note:: The `Resonator` :ref:`Gettable<Gettable>` has a new field `batched` set to `True`.
-
-This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
+.. note:: The `Resonator` :ref:`Gettable<Gettable>` has a new field `batched` set to `True`. This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
 
 
 .. jupyter-execute::

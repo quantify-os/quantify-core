@@ -22,7 +22,7 @@ class MeasurementControl(Instrument):
     """
     Instrument responsible for controlling the data acquisition loop.
 
-    MeasurementControl (MC) is based on the notion that every experiment consists of the following step:
+    MeasurementControl (MC) is based on the notion that every experiment consists of the following steps:
 
         1. Set some parameter(s)            (settable_pars)
         2. Measure some other parameter(s)  (gettable_pars)
