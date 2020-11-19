@@ -15,6 +15,8 @@ Dataset
 
 The Dataset is implemented using the xarray :class:`xarray.Dataset` class.
 
+.. note:: To support both gridded and non-gridded data, we use Xarray using only `datavariables` and without any `coordinates`  or `dimensions` (as described below). This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome. This does mean that some of Xarray's more advanced functionality, such as the in-built graphing or query system, are unavailable without further processing.
+
 Quantify arranges data along two types of axes: X and Y.
 In each dataset there will be *n* X axes and *m* Y axes. For example, the dataset produced in an experiment where we sweep 2 parameters (settables) and measure 3 other parameters (all 3 returned by a Gettable), we will have *n* = 2 and *m* = 3.
 Each X axis represents a dimension of the setpoints provided. The Y axes represent the output of the Gettable.

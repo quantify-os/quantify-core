@@ -12,7 +12,7 @@ Quantify makes a distinction between :ref:`Iterative<Control Mode>` measurements
 In an :ref:`Iterative<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes each setpoint fully before advancing to the next.
 
 In a :ref:`Batched<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes setpoints in batches, for example triggering 10 samples and then reading those 10 outputs.
-This is useful for avoiding the overhead of data transfer when working with physical devices.
+This is useful in resource constrained or overhead heavy situations.
 
 Both measurement policies can be 1D, 2D or higher dimensional. Quantify also supports adaptive measurements in which the datapoints are determined during the measurement loop, which are explored in subsequent tutorials.
 
@@ -37,6 +37,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     from quantify.measurement import MeasurementControl
     from quantify.measurement.control import Settable, Gettable
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 .. jupyter-execute::
@@ -48,7 +49,11 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     # Connect the live plotting monitor to the measurement control
     MC.instr_plotmon(plotmon.name)
 
-    MC.instr_plotmon.get_instr().tuid()
+    # The instrument monitor will give an overview of all parameters of all instruments
+    insmon = InstrumentMonitor("Instruments Monitor")
+    # By connecting to the MC the parameters will be updated in real-time during an experiment.
+    MC.instrument_monitor(insmon.name)
+
 
 A 1D Iterative loop
 -------------------------------
