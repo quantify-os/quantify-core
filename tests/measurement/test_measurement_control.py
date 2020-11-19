@@ -15,6 +15,7 @@ from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
 from quantify.data.handling import set_datadir
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 from tests.helpers import get_test_data_dir
 
@@ -731,6 +732,13 @@ class TestMeasurementControl:
         plotmon.close()
         self.MC.instr_plotmon('')
 
+    def test_MC_insmon_integration(self):
+        inst_mon = InstrumentMonitor('insmon_MC')
+        self.MC.instrument_monitor(inst_mon.name)
+        assert self.MC.instrument_monitor.get_instr().tree.getNodes()
+        inst_mon.close()
+        self.MC.instrument_monitor('')
+
     def test_instrument_settings_from_disk(self):
         load_settings_onto_instrument(self.dummy_parabola, TUID('20200814-134652-492-fbf254'), test_datadir)
         assert self.dummy_parabola.x() == 40.0
@@ -743,6 +751,53 @@ class TestMeasurementControl:
             load_settings_onto_instrument(non_existing, TUID('20200814-134652-492-fbf254'), test_datadir)
 
         non_existing.close()
+
+    def test_exception_not_silenced_set_get(self):
+        class badSetter():
+            def __init__(self, param):
+                self.name = "spec_freq"
+                self.label = "Frequency"
+                self.unit = "Hz"
+                self.soft = True
+                # simulate user mistake
+                # self.non_existing_param = param
+                pass
+
+            def prepare(self):
+                # Exception expected
+                print(self.non_existing_param)
+
+            def set(self, val):
+                pass
+
+        self.MC.settables(badSetter("badSetter"))
+        self.MC.setpoints(np.linspace(0, 1, 10))
+        self.MC.gettables(freq)
+        with pytest.raises(AttributeError, match="'badSetter' object has no attribute 'non_existing_param'"):
+            self.MC.run("This rises exception as expected")
+
+        class badGetter():
+            def __init__(self, param2):
+                self.name = "mag"
+                self.label = "Magnitude"
+                self.unit = "a.u."
+                self.soft = True
+                # self.non_existing_param = param2
+
+            def prepare(self):
+                pass
+
+            def get(self):
+                print(self.non_existing_param)
+
+            def finish(self):
+                pass
+
+        self.MC.settables(t)
+        self.MC.setpoints(np.linspace(0, 1, 10) * 1e-9)
+        self.MC.gettables(badGetter("badGetter"))
+        with pytest.raises(AttributeError, match="'badGetter' object has no attribute 'non_existing_param'"):
+            self.MC.run("This rises exception as expected")
 
 
 def test_tile_setpoints_grid():

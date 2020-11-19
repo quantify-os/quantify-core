@@ -13,6 +13,7 @@ The `MC` will then use this function to build the sweep. We import our usual mod
 
     from quantify.measurement.control import MeasurementControl
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 .. jupyter-execute::
@@ -20,6 +21,9 @@ The `MC` will then use this function to build the sweep. We import our usual mod
     MC = MeasurementControl('MC')
     plotmon = pqm.PlotMonitor_pyqt('plotmon_MC')
     MC.instr_plotmon(plotmon.name)
+    insmon = InstrumentMonitor("Instruments Monitor")
+    MC.instrument_monitor(insmon.name)
+
 
 
 Finding a minimum
