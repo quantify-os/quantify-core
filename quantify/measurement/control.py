@@ -21,14 +21,14 @@ from quantify.data.handling import (
     grow_dataset,
     trim_dataset,
 )
-from quantify.measurement.types import Settable, Gettable, is_software_controlled
+from quantify.measurement.types import Settable, Gettable, is_batched
 
 
 class MeasurementControl(Instrument):
     """
     Instrument responsible for controlling the data acquisition loop.
 
-    MeasurementControl (MC) is based on the notion that every experiment consists of the following step:
+    MeasurementControl (MC) is based on the notion that every experiment consists of the following steps:
 
         1. Set some parameter(s)            (settable_pars)
         2. Measure some other parameter(s)  (gettable_pars)
@@ -51,8 +51,8 @@ class MeasurementControl(Instrument):
 
     MC imposes minimal constraints and allows:
 
-    - Soft loops, experiments in which MC controlled acquisition loop.
-    - Hard loops, experiments in which MC is not in control of acquisition.
+    - Iterative loops, experiments in which setpoints are processed step by step.
+    - Batched loops, experiments in which setpoints are processed in batches.
     - Adaptive loops, setpoints are determined based on measured values.
 
     """
@@ -82,7 +82,7 @@ class MeasurementControl(Instrument):
             "on_progress_callback",
             vals=vals.Callable(),
             docstring="A callback to communicate progress. This should be a "
-            "Callable accepting ints between 0 and 100 indicating percdone.",
+                      "Callable accepting floats between 0 and 100 indicating %% done.",
             parameter_class=ManualParameter,
             initial_value=None,
         )
@@ -98,7 +98,7 @@ class MeasurementControl(Instrument):
         self.add_parameter(
             "instr_plotmon",
             docstring="Instrument responsible for live plotting. "
-            "Can be set to str(None) to disable live plotting.",
+                      "Can be set to str(None) to disable live plotting.",
             parameter_class=InstrumentRefParameter,
         )
 
@@ -210,10 +210,10 @@ class MeasurementControl(Instrument):
         self._prepare_settables()
 
         try:
-            if self._is_soft:
-                self._run_soft()
+            if self._is_batched:
+                self._run_batched()
             else:
-                self._run_hard()
+                self._run_iterative()
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
@@ -256,7 +256,7 @@ class MeasurementControl(Instrument):
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._soft_set_and_get(vec, self._nr_acquired_values)
+            self._iterative_set_and_get(vec, self._nr_acquired_values)
             ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
@@ -311,16 +311,16 @@ class MeasurementControl(Instrument):
         )  # Wrap up experiment and store data
         return self._dataset
 
-    def _run_soft(self):
+    def _run_iterative(self):
         while self._get_fracdone() < 1.0:
             self._prepare_gettable()
             for row in self._setpoints:
-                self._soft_set_and_get(row, self._curr_setpoint_idx())
+                self._iterative_set_and_get(row, self._curr_setpoint_idx())
                 self._nr_acquired_values += 1
                 self._update()
             self._loop_count += 1
 
-    def _run_hard(self):
+    def _run_batched(self):
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
             for i, spar in enumerate(self._settable_pars):
@@ -355,7 +355,7 @@ class MeasurementControl(Instrument):
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _soft_set_and_get(self, setpoints: np.ndarray, idx: int):
+    def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
 
@@ -397,7 +397,7 @@ class MeasurementControl(Instrument):
         """
         update = (
             time.time() - self._last_upd > self.update_interval()
-            or self._nr_acquired_values == self._max_setpoints
+                 or self._nr_acquired_values == self._max_setpoints
         )
         if update:
             self.print_progress(print_message)
@@ -439,12 +439,9 @@ class MeasurementControl(Instrument):
             self._call_if_has_method(par, "finish")
 
     @property
-    def _is_soft(self):
-        """
-        Whether this MeasurementControl controls data stepping
-        """
-        if any(is_software_controlled(gpar) for gpar in self._gettable_pars):
-            if not all(is_software_controlled(gpar) for gpar in self._gettable_pars):
+    def _is_batched(self) -> bool:
+        if any(is_batched(gpar) for gpar in self._gettable_pars):
+            if not all(is_batched(gpar) for gpar in self._gettable_pars):
                 raise Exception(
                     "Control mismatch; all Gettables must have the same Control Mode"
                 )
@@ -452,16 +449,15 @@ class MeasurementControl(Instrument):
         return False
 
     @property
-    def _max_setpoints(self):
+    def _max_setpoints(self) -> int:
         """
         The total number of setpoints to examine
         """
         return len(self._setpoints) * self.soft_avg()
 
-    def _curr_setpoint_idx(self):
+    def _curr_setpoint_idx(self) -> int:
         """
-        Returns the current position through the sweep
-        Updates the _soft_iterations_completed counter as it may have rolled over
+        Current position through the sweep
 
         Returns
         -------
@@ -473,7 +469,7 @@ class MeasurementControl(Instrument):
         self._loop_count = acquired // len(self._setpoints)
         return setpoint_idx
 
-    def _get_fracdone(self):
+    def _get_fracdone(self) -> float:
         """
         Returns the fraction of the experiment that is completed.
         """

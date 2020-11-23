@@ -5,8 +5,8 @@ DataStorage specification
 
 Quantify experiment output storage is based on ideas from PycQED, QCoDeS and xarray. Conceptually it is divided into two parts:
 
-- Dataset, stored in ``dataset.hdf5``. This file contains the raw data with associated attributes, such as axis labels and units.
-- Metadata, stored in ``snapshot.json``. This file contains information such as when the experiment was run, what devices were in use and so on.
+- Dataset, stored in `dataset.hdf5`. This file contains the raw data with associated attributes, such as axis labels and units.
+- Metadata, stored in `snapshot.json`. This file contains information such as when the experiment was run, what devices were in use and so on.
 
 As previously described in :ref:`Data storage & Analysis`, an individual experiment is represented on disk by these two files in a directory named relative to the start time of the experiment. Experiments are grouped in directories by date. And the root directory of all experiments being used by Quantify can be retrieved with :meth:`~quantify.data.handling.get_datadir`.
 

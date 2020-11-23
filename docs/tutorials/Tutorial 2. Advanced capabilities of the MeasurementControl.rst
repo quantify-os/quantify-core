@@ -36,7 +36,7 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
 
 
 
-A 1D hard(ware) controlled loop: Resonator Spectroscopy
+A 1D Batched loop: Resonator Spectroscopy
 ------------------------------------------------------------
 
 Defining a simple model
@@ -47,8 +47,7 @@ In this example, we want to find the resonance of some device. We expect to find
 We first create `freq`: a :ref:`Settable<Settable>` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :ref:`Gettable<Gettable>` to mock (i.e. emulate) the resonating material.
 The Resonator will return a Lorentzian shape centered on the resonant frequency. Our :ref:`Gettable<Gettable>` will read the setpoints from `freq`, in this case a 1D array.
 
-Note that the `Resonator` :ref:`Gettable<Gettable>` has a new field `soft` set to `False`.
-This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
+.. note:: The `Resonator` :ref:`Gettable<Gettable>` has a new field `batched` set to `True`. This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
 
 
 .. jupyter-execute::
@@ -56,8 +55,6 @@ This property informs the :class:`~quantify.measurement.MeasurementControl` that
     # Note that in an actual experimental setup `freq` will be a QCoDeS parameter
     # contained in a QCoDeS Instrument
     freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
-    # NB a QCoDeS parameter can be of many different types, e.g. floats, integers
-    # but it can also be, for example, and array of floats. This is the case in a hard(ware) controlled loop
 
     # model of the frequency response
     def lorenz(amplitude, fwhm, x, x_0):
@@ -68,7 +65,7 @@ This property informs the :class:`~quantify.measurement.MeasurementControl` that
             self.name = 'resonator'
             self.unit = 'V'
             self.label = 'Amplitude'
-            self.soft = False
+            self.batched = True
 
             # variables specific to the emulated material
             self.test_resonance = 6.0001048e9 # in Hz
@@ -82,10 +79,10 @@ This property informs the :class:`~quantify.measurement.MeasurementControl` that
 Running the experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Just like our :ref:`Soft<Control Mode>` 1D loop, our complete experiment is expressed in just four lines of code.
+Just like our Iterative 1D loop, our complete experiment is expressed in just four lines of code.
 
-The main difference is defining the :ref:`Soft<Control Mode>` property of our :ref:`Gettable<Gettable>` to False.
-The :class:`~quantify.measurement.MeasurementControl` will detect these settings and run in the appropriate :ref:`Hard<Control Mode>` mode.
+The main difference is defining the `batched` property of our :ref:`Gettable<Gettable>` to `True`.
+The :class:`~quantify.measurement.MeasurementControl` will detect these settings and run in the appropriate mode.
 
 
 .. jupyter-execute::
@@ -112,11 +109,14 @@ As expected, we find a Lorentzian spike in the readout at the resonant frequency
 Software Averaging: T1 Experiment
 ----------------------------------
 
-In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability. For this purpose, the :class:`~quantify.measurement.MeasurementControl` provides the `soft_avg` parameter. If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
+In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability.
+For this purpose, the :class:`~quantify.measurement.MeasurementControl` provides the `soft_avg` parameter.
+If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
 
-In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :ref:`Settable<Settable>` and :ref:`Gettable<Gettable>`, representing the varying timescales we will probe through and a mock Qubit emulated in software. The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
+In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :ref:`Settable<Settable>` and :ref:`Gettable<Gettable>`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
+The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
 
-Note that in this example MC is still running in the :ref:`Hard<Control Mode>` mode.
+Note that in this example MC is still running in Batched mode.
 
 
 .. jupyter-execute::
@@ -137,7 +137,7 @@ Note that in this example MC is still running in the :ref:`Hard<Control Mode>` m
             self.name = 'qubit'
             self.unit = '%'
             self.label = 'High V'
-            self.soft = False # This is a hard(ware) controlled loop!
+            self.batched = True
 
             self.delay = 0.01 # sleep time in secs
             self.test_relaxation_time = 60e-6
