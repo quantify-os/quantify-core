@@ -15,7 +15,7 @@ from qcodes.instrument.parameter import ManualParameter
 from quantify.data.handling import snapshot
 
 import warnings
-import pprint
+from quantify.utilities import pprint_custom as pprint
 import json
 import re
 import ast
@@ -30,14 +30,29 @@ def _recreate_snapshot_dict(unpickleable_snapshot: dict):
     The snapshot string will be located in the key ['snapshot_string']['parameters']['snapshot']['value']
     """
     snap_corrected_string = pprint.pformat(unpickleable_snapshot)
-    snap_corrected_string = snap_corrected_string.replace("'", "\"")
-    snap_corrected_string = snap_corrected_string.replace("<function", "\"")
-    # snap_corrected_string = snap_corrected_string.replace(">", "\"")
-    snap_corrected_string = re.sub(r'at.*[0-9]+.*>', "\"", snap_corrected_string)
-    snap_corrected_string = re.sub(r'array\(\[', "[", snap_corrected_string)
-    snap_corrected_string = re.sub(r'\]\)', "]", snap_corrected_string)
-    # snap_corrected_string = re.sub()
-    snap_collated = ast.literal_eval(snap_corrected_string)
+    try:
+        snap_corrected_string = snap_corrected_string.replace("'", "\"")
+        snap_corrected_string = snap_corrected_string.replace("<function", "\"")
+        snap_corrected_string = re.sub(r'at.*[0-9]+.*>', "\"", snap_corrected_string)
+        snap_corrected_string = re.sub(r'array\(\[', "[", snap_corrected_string)
+        snap_corrected_string = re.sub(r'\]\)', "]", snap_corrected_string)
+        snap_collated = ast.literal_eval(snap_corrected_string)
+    except ValueError as e:
+        snap_collated = {'snapshot_string':
+                            {'name': 'snapshot_string',
+                             'parameters':
+                                 {'snapshot':
+                                     {
+                                         'ts': 'latest',
+                                         'label': "",
+                                         'unit': '',
+                                         'name': 'string_representation',
+                                         'value': snap_corrected_string
+                                     }
+                                 }
+                            }
+                        }
+        warnings.warn(f"Reverting to dump of snapshot string. Could not recreate clean snapshot: {e}", Warning)
 
     return snap_collated
 
