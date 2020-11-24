@@ -16,7 +16,8 @@ from quantify.data.handling import snapshot
 
 import warnings
 import pprint
-# from ast import literal_eval
+import json
+import re
 import ast
 
 
@@ -30,9 +31,14 @@ def _recreate_snapshot_dict(unpickleable_snapshot: dict):
     """
     snap_corrected_string = pprint.pformat(unpickleable_snapshot)
     snap_corrected_string = snap_corrected_string.replace("'", "\"")
-    snap_corrected_string = snap_corrected_string.replace("<", "\"<")
-    snap_corrected_string = snap_corrected_string.replace(">", ">\"")
+    snap_corrected_string = snap_corrected_string.replace("<function", "\"")
+    # snap_corrected_string = snap_corrected_string.replace(">", "\"")
+    snap_corrected_string = re.sub(r'at.*[0-9]+.*>', "\"", snap_corrected_string)
+    snap_corrected_string = re.sub(r'array\(\[', "[", snap_corrected_string)
+    snap_corrected_string = re.sub(r'\]\)', "]", snap_corrected_string)
+    # snap_corrected_string = re.sub()
     snap_collated = ast.literal_eval(snap_corrected_string)
+
     return snap_collated
 
 
