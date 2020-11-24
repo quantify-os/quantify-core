@@ -13,43 +13,9 @@ from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
 
 from quantify.data.handling import snapshot
+from quantify.utilities.general import traverse_dict
 
 import warnings
-from quantify.utilities import pprint_custom as pprint
-import json
-import re
-import ast
-import pickle
-
-
-def traverse(obj):
-    """
-    Traversal implementation which recursively visits each node in a dict.
-    We modify this function so that at the lowest hierarchy,
-    we convert the element to a string.
-    https://nvie.com/posts/modifying-deeply-nested-structures/
-    """
-    if isinstance(obj, dict):
-        out_dict = {}
-        for k, v in obj.items():
-            out_dict[k] = traverse(v)
-        return out_dict
-    elif isinstance(obj, list):
-        return [traverse(elem) for elem in obj]
-    else:
-        return str(obj)
-
-
-def _recreate_snapshot_dict(unpickleable_snapshot: dict):
-    """
-    This function is used internally as a fallback option if a snapshot contains
-    any entries or values which cannot be pickled. When this happens, the
-    :meth:`~quantify.visualization.instrument.instrument_monitor.update` function
-    will call this to make a string representation of the current snaphot.
-    The snapshot string will be located in the key ['snapshot_string']['parameters']['snapshot']['value']
-    """
-    snap_collated = traverse(unpickleable_snapshot)
-    return snap_collated
 
 
 class InstrumentMonitor(Instrument):
@@ -117,7 +83,8 @@ class InstrumentMonitor(Instrument):
                 self.tree.setData(snap['instruments'])
             except AttributeError as e:
                 # This is to catch any potential pickling problems with the snapshot.
-                snap_collated = _recreate_snapshot_dict(snap['instruments'])
+                # We do so by converting all lowest elements of the snapshot to string.
+                snap_collated = traverse_dict(snap['instruments'])
                 self.tree.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
