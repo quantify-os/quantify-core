@@ -106,7 +106,7 @@ Running the 1D experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time `t` in this case, what points to measure at, and what parameter to measure.
-We then tell the MeasurementControl `MC` to run which will return an :class:`~xarray.Dataset` object.
+We then tell the :ref:`MeasurementControl<Measurement Control>` `MC` to run which will return an :class:`~xarray.Dataset` object.
 
 We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes to ensure our parameters contain the correct attributes.
 
@@ -117,6 +117,9 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     MC.gettables(Gettable(sig))
     dset = MC.run('Cosine test')
 
+.. jupyter-execute::
+
+    plotmon.main_QtPlot
 
 .. jupyter-execute::
 
@@ -124,11 +127,11 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     # The name of the experiment is stored as well
     dset.attrs['tuid'], dset.attrs['name']
 
-The dataset :ref:`dset<DataStorage specification>` is stored as an :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
+The dataset :ref:`dset<DataStorage specification>` is stored as a :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
-See :ref:`Data Storage specification` in the :ref:`User guide` for details.
+See :ref:`DataStorage specification` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
@@ -150,6 +153,11 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
     MC.setpoints(np.linspace(0, 50, 1000))
     MC.gettables(Gettable(sig))
     dset = MC.run('Many points live plot test')
+
+
+.. jupyter-execute::
+
+    plotmon.main_QtPlot
 
 
 .. jupyter-execute::
@@ -271,7 +279,8 @@ Method 1 - a quick grid
 
 .. jupyter-execute::
 
-    MC.update_interval(.5)
+    acq_delay(0.0001)
+    MC.update_interval(3.0)
 
 
 .. jupyter-execute::
@@ -322,8 +331,8 @@ N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    acq_delay(0.001)
-    MC.update_interval(0.5)
+    acq_delay(0.0001)
+    MC.update_interval(3.0)
 
 
 .. jupyter-execute::
