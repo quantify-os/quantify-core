@@ -19,6 +19,25 @@ from quantify.utilities import pprint_custom as pprint
 import json
 import re
 import ast
+import pickle
+
+
+def traverse(obj):
+    """
+    Traversal implementation which recursively visits each node in a dict.
+    We modify this function so that at the lowest hierarchy,
+    we convert the element to a string.
+    https://nvie.com/posts/modifying-deeply-nested-structures/
+    """
+    if isinstance(obj, dict):
+        out_dict = {}
+        for k, v in obj.items():
+            out_dict[k] = traverse(v)
+        return out_dict
+    elif isinstance(obj, list):
+        return [traverse(elem) for elem in obj]
+    else:
+        return str(obj)
 
 
 def _recreate_snapshot_dict(unpickleable_snapshot: dict):
@@ -29,31 +48,7 @@ def _recreate_snapshot_dict(unpickleable_snapshot: dict):
     will call this to make a string representation of the current snaphot.
     The snapshot string will be located in the key ['snapshot_string']['parameters']['snapshot']['value']
     """
-    snap_corrected_string = pprint.pformat(unpickleable_snapshot)
-    try:
-        snap_corrected_string = snap_corrected_string.replace("'", "\"")
-        snap_corrected_string = snap_corrected_string.replace("<function", "\"")
-        snap_corrected_string = re.sub(r'at.*[0-9]+.*>', "\"", snap_corrected_string)
-        snap_corrected_string = re.sub(r'array\(\[', "[", snap_corrected_string)
-        snap_corrected_string = re.sub(r'\]\)', "]", snap_corrected_string)
-        snap_collated = ast.literal_eval(snap_corrected_string)
-    except ValueError as e:
-        snap_collated = {'snapshot_string':
-                            {'name': 'snapshot_string',
-                             'parameters':
-                                 {'snapshot':
-                                     {
-                                         'ts': 'latest',
-                                         'label': "",
-                                         'unit': '',
-                                         'name': 'string_representation',
-                                         'value': snap_corrected_string
-                                     }
-                                 }
-                            }
-                        }
-        warnings.warn(f"Reverting to dump of snapshot string. Could not recreate clean snapshot: {e}", Warning)
-
+    snap_collated = traverse(unpickleable_snapshot)
     return snap_collated
 
 
