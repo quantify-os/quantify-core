@@ -4,7 +4,7 @@ from quantify.visualization import PlotMonitor_pyqt
 from tests.helpers import get_test_data_dir
 from quantify.data.types import TUID
 from quantify.data.handling import set_datadir
-
+from quantify.visualization.color_utilities import darker_color_cycle
 
 test_datadir = get_test_data_dir()
 
@@ -29,6 +29,7 @@ class TestPlotMonitor_pyqt:
         self.plotmon.tuid(TUID("20200430-170837-001-315f36"))
 
     def test_basic_1D_plot(self):
+        self.plotmon.max_num_previous_dsets(0)
         # Test 1D plotting using an example dataset
         self.plotmon.tuid("20200430-170837-001-315f36")
         self.plotmon.update()
@@ -42,6 +43,7 @@ class TestPlotMonitor_pyqt:
         np.testing.assert_allclose(y, y_exp)
 
     def test_basic_2D_plot(self):
+        self.plotmon.max_num_previous_dsets(0)
         # Test 1D plotting using an example dataset
         self.plotmon.tuid("20200504-191556-002-4209ee")
         self.plotmon.update()
@@ -64,37 +66,75 @@ class TestPlotMonitor_pyqt:
         assert cfg["zunit"] == "V"
 
     def test_persistence(self):
+        """
+        NB this test reuses same too datasets, ideally the user will
+        never do this
+        """
         # Clear the state to keep this test independent
         self.plotmon._last_tuid = None
         self.plotmon.tuid("latest")
-        self.plotmon.num_persistent_dsets(3)
+        self.plotmon.max_num_previous_dsets(3)
         self.plotmon._persistent_dsets.clear()
 
         tuid1 = "20200430-170837-001-315f36"  # 1D
         tuid2 = "20200504-191556-002-4209ee"  # 2D
 
-        tuids = [tuid1, tuid2, tuid1, tuid2]
+        tuids_unique = [
+            "20201124-184709-137-8a5112",
+            "20201124-184716-237-918bee",
+            "20201124-184722-988-0463d4",
+            "20201124-184729-618-85970f",
+            "20201124-184736-341-3628d4",
+        ]
+
+        tuids = tuids_unique
         hashes = [tuid.split("-")[-1] for tuid in tuids]
 
         for tuid in tuids:
             self.plotmon.tuid(tuid)
-            self.plotmon.update()
-        assert len(self.plotmon._persistent_dsets) == 3
+
+        # Update a few times to mimic MC integration
+        [self.plotmon.update() for i in range(3)]
+
+        # Confirm persistent datasets are being accumulated
+        assert list(self.plotmon.previous_tuids()) == tuids[:-1]
+        assert len(self.plotmon._previous_dsets) == 3
 
         traces = self.plotmon.main_QtPlot.traces
-        assert traces[0]["config"]["color"] == "#ff7f0e"
-
-        labels_correct = [
-            _hash in trace["config"]["name"]
-            for trace, _hash in zip(traces, hashes + [hashes[1]] * 2)
+        # this is a bit lazy to not deal with the indices of all traces
+        # of all plots
+        names = set(trace["config"]["name"] for trace in traces)
+        labels_exist = [
+            any(_hash in name for name in names)
+            for _hash in hashes[1:]
         ]
-        assert all(labels_correct)
+        assert all(labels_exist)
 
-        self.plotmon.tuid(tuid2)
-        self.plotmon.update()
-        assert len(self.plotmon._persistent_dsets) == 3
+        self.plotmon.tuid(tuids_unique[-1])
+        assert self.plotmon.previous_tuids()[-1] == tuids_unique[-1]
+        # Confirm maximum accumulation works
+        assert len(self.plotmon._previous_dsets) == 3
 
-        self.plotmon.num_persistent_dsets(1)
-        self.plotmon.tuid(tuid1)
-        self.plotmon.update()
-        assert len(self.plotmon._persistent_dsets) == 1
+        # the latest dataset is always blue circle
+        traces = self.plotmon.main_QtPlot.traces
+        assert traces[-1]["config"]["color"] == darker_color_cycle[0]
+        assert traces[-1]["config"]["symbol"] == "o"
+
+        # test that reset works
+        self.plotmon.max_num_previous_dsets(0)
+        assert len(self.plotmon._previous_dsets) == 0
+        traces = self.plotmon.main_QtPlot.traces
+        len_tr = len(traces)
+        assert len_tr == 2
+
+        self.plotmon.persistent_tuids([tuid1, tuid2])
+        assert len(self.plotmon._persistent_dsets) == 2
+        # Confirm that all dataset are plotted even with set/get-able mismatches
+        traces = self.plotmon.main_QtPlot.traces
+        assert len(traces) > len_tr
+
+        # test reset works
+        self.plotmon.persistent_tuids([tuid1, tuid2])
+        assert len(self.plotmon._persistent_dsets) == 2
+        traces = self.plotmon.main_QtPlot.traces
+        assert len(traces) > 0

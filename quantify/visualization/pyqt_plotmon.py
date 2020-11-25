@@ -8,8 +8,9 @@ from collections import deque
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import ManualParameter
+from qcodes.instrument.parameter import ManualParameter, Parameter
 from qcodes.plots.colors import color_cycle
+from .color_utilities import faded_color_cycle, darker_color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 from quantify.data.handling import load_dataset, get_latest_tuid
@@ -34,38 +35,33 @@ class PlotMonitor_pyqt(Instrument):
         """
         super().__init__(name=name)
 
-        # Paramaters are attributes that we include in logging
-        # and intend the user to change.
-
-        self.add_parameter(
-            name="tuid",
-            docstring="The tuid of the dataset to monitor",
-            parameter_class=ManualParameter,
-            vals=vals.Strings(),
-            initial_value="latest",
-        )
-        self.add_parameter(
-            name="num_persistent_dsets",
-            docstring="The number of persistent previous datasets in the main plot monitor",
-            parameter_class=ManualParameter,
-            vals=vals.Ints(min_value=0, max_value=100),
-            initial_value=2,
-        )
-
         # used to track if tuid changed
         self._last_tuid = None
 
-        # used to track the tuids of persistent datasets
+        # used to track last tuid added to the previous dsets
+        self._last_tuid_prev = None
+
+        # used to store user-specified persistent datasets
+        self._persistent_dsets = []
+
+        # used necessary
+
+        # used to track the tuids of previous datasets
         # deque([<oldest>, ..., <one before latest>])
-        self._persistent_dsets = deque()
+        self._previous_dsets = deque()
+        self._previous_tuids = deque()
+
+        symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
         # keeps track of the symbol assigned to each dataset
         # we reserve "o" symbol for the latest dataset
-        self._p_symbols = deque(
-            ["t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
-        )
+        self._previous_symbols = deque(symbols[1:])
+        # Invert the order for less likely duplicates (in the beginning)
+        self._persistent_symbols = symbols[1:][::-1]
+
         # We reserve the first (blue color to the latest dataset)
         # When it is not the latest anymore it will change color and maintain it
-        self._p_colors = deque(color_cycle[1:])
+        self._previous_colors = deque(faded_color_cycle[1:])
+        self._persistent_colors = darker_color_cycle[1:][::-1]
 
         self.create_plot_monitor()
 
@@ -74,6 +70,111 @@ class PlotMonitor_pyqt(Instrument):
         self._im_curves = []
         self._im_scatters = []
         self._im_scatters_last = []
+
+        # Keep at the end of __init__ due to some dependencies
+        # Parameters are attributes that we include in logging
+        # and intend the user to change.
+
+        self.add_parameter(
+            name="tuid",
+            docstring="The tuid of the dataset to monitor",
+            parameter_class=Parameter,
+            vals=vals.Strings(),
+            initial_value="latest",
+            set_cmd=self._append_prev_dsets
+        )
+        self.add_parameter(
+            name="max_num_previous_dsets",
+            docstring="The maximum number of auto-accumulated persistent datasets",
+            parameter_class=Parameter,
+            vals=vals.Ints(min_value=0, max_value=100),
+            initial_value=2,
+            set_cmd=self._set_max_num_previous_dsets
+        )
+        self.add_parameter(
+            name="previous_tuids",
+            docstring=(
+                "The tuids of the auto-accumulated previous datasets.\n"
+                "Read-only. NB: does not contain the latest tuid "
+                "[which is stored in `.tuid()`].\n"
+                "See also `persistent_tuids`."
+            ),
+            parameter_class=Parameter,
+            get_cmd=self._get_previous_tuids,
+            set_cmd=self._set_previous_tuids,
+        )
+
+        self.add_parameter(
+            name="persistent_tuids",
+            docstring=(
+                "The tuids of the user-specified persistent datasets.\n"
+                "As opposed to the `previous_tuids`, these never vanish.\n"
+                "Can be reset by setting to `[]`"
+            ),
+            parameter_class=Parameter,
+            vals=vals.Lists(),
+            set_cmd=self._set_persistent_tuids,
+        )
+
+    def _set_max_num_previous_dsets(self, val):
+        """
+        used only to update relevant variables
+        """
+        # Only update when called post __init__
+        if hasattr(self, "max_num_previous_dsets"):
+            # needs to be here and inside `_initialize_plot_monitor`
+            # previous dataset might be pop due to the user or "overflow"
+            self._pop_old_prev_dsets(val)
+            self._initialize_plot_monitor()
+
+    def _append_prev_dsets(self, tuid):
+        """
+        To be called only on `.tuid()`
+        """
+        if tuid != "latest":
+            if self._last_tuid_prev is not None:
+                self._previous_tuids.append(self._last_tuid_prev)
+                self._previous_dsets.append(load_dataset(self._last_tuid_prev))
+
+            self._last_tuid_prev = tuid
+
+        # Only update when called post __init__
+        if hasattr(self, "tuid"):
+            self._pop_old_prev_dsets()
+
+    def _pop_old_prev_dsets(self, val=None):
+        val = val if val is not None else self.max_num_previous_dsets()
+        while len(self._previous_dsets) > val:
+            self._previous_dsets.popleft()
+            # This ensures each datasets preserves it symbol
+            self._previous_symbols.rotate(-1)
+            self._previous_colors.rotate(-1)
+
+    def _get_previous_tuids(self):
+        """
+        Get cmd for previous_tuids
+        """
+        return self._previous_tuids
+
+    def _set_previous_tuids(self, value):
+        """
+        Set cmd for previous_tuids
+        """
+        print(
+            "`{}` is read-only. Use `{}`.".format(
+                self.previous_tuids.name, self.persistent_tuids.name
+            )
+        )
+        return None
+
+    def _set_persistent_tuids(self, tuids):
+        """
+        Set cmd for persistent_tuids
+        Loads all the user datasets so that they can be plotted afterwards
+        """
+        self._persistent_dsets = [load_dataset(tuid) for tuid in tuids]
+        self._initialize_plot_monitor()
+        return True
 
     def create_plot_monitor(self):
         """
@@ -85,20 +186,21 @@ class PlotMonitor_pyqt(Instrument):
         if hasattr(self, "secondary_QtPlot"):
             del self.secondary_QtPlot
 
-        self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.name), figsize=(600, 400)
-        )
         self.secondary_QtPlot = QtPlot(
             window_title="Secondary plotmon of {}".format(self.name), figsize=(600, 400)
         )
+        # Create last to appear on top
+        self.main_QtPlot = QtPlot(
+            window_title="Main plotmon of {}".format(self.name), figsize=(600, 400)
+        )
 
     def _get_parnames(self, dset, par_type: str = "x"):
-        return list(filter(lambda k: par_type in k, dset.keys()))
+        return sorted(filter(lambda k: par_type in k, dset.keys()))
 
     def _mk_legend(self, dset):
         return dset.attrs["tuid"].split("-")[-1] + " " + dset.attrs["name"]
 
-    def _initialize_plot_monitor(self, tuid):
+    def _initialize_plot_monitor(self):
         """
         Clears data in plot monitors and sets it up with the data from the dataset
         """
@@ -115,63 +217,81 @@ class PlotMonitor_pyqt(Instrument):
         self._im_scatters = []
         self._im_scatters_last = []
 
-        dset = load_dataset(tuid=tuid)
-        # Persistence datasets
-        if self._last_tuid is not None:
-            self._persistent_dsets.append(load_dataset(self._last_tuid))
-        while len(self._persistent_dsets) > self.num_persistent_dsets():
-            self._persistent_dsets.popleft()
-            # This ensures each datasets preserves it symbol
-            self._p_symbols.rotate(-1)
-            self._p_colors.rotate(-1)
+        if self.tuid() != "latest":
+            dset = load_dataset(tuid=self.tuid())
+            set_parnames = self._get_parnames(dset, par_type="x")
+            get_parnames = self._get_parnames(dset, par_type="y")
+        else:
+            dset = None
 
-        set_parnames = self._get_parnames(dset, "x")
-        get_parnames = self._get_parnames(dset, "y")
+        all_dsets = sum(
+            [self._persistent_dsets, list(self._previous_dsets)], [dset] if dset else []
+        )
+        set_parnames_all = sorted(set(
+            sum((self._get_parnames(ds, par_type="x") for ds in all_dsets), [])
+        ))
+        get_parnames_all = sorted(set(
+            sum((self._get_parnames(ds, par_type="y") for ds in all_dsets), [])
+        ))
 
         #############################################################
 
         plot_idx = 1
-        for yi_idx, yi in enumerate(get_parnames):
-            for xi in set_parnames:
-                # Persistent datasets
-                for i_p_dset, p_dset in enumerate(self._persistent_dsets):
-                    has_settable = xi in self._get_parnames(p_dset, "x")
-                    has_gettable = yi in self._get_parnames(p_dset, "y")
-                    if has_settable and has_gettable:
-                        self.main_QtPlot.add(
-                            x=p_dset[xi].values,
-                            y=p_dset[yi].values,
-                            subplot=plot_idx,
-                            xlabel=p_dset[xi].attrs["long_name"],
-                            xunit=p_dset[xi].attrs["unit"],
-                            ylabel=p_dset[yi].attrs["long_name"],
-                            yunit=p_dset[yi].attrs["unit"],
-                            symbol=self._p_symbols[i_p_dset % len(self._p_symbols)],
-                            symbolSize=8,
-                            # Oldest datasets fade more
-                            color=self._p_colors[i_p_dset % len(self._p_colors)],
-                            name=self._mk_legend(p_dset)
-                        )
+        for yi in get_parnames_all:
+            for xi in set_parnames_all:
+                # Persistent datasets auto and user
+                p_dsets = (self._persistent_dsets, self._previous_dsets)
+                p_colors = (self._persistent_colors, self._previous_colors)
+                p_symbols = (self._persistent_symbols, self._previous_symbols)
+                p_symbolSizes = (10, 8)
+                p_symbolBrushes = (False, (230, 230, 230))  # gray for previous dsets
+                for colors, symbols, dsets, symbolSize, symBrush in zip(
+                    p_colors, p_symbols, p_dsets, p_symbolSizes, p_symbolBrushes
+                ):
+                    for i_p_dset, p_dset in enumerate(dsets):
+                        has_settable = xi in self._get_parnames(p_dset, "x")
+                        has_gettable = yi in self._get_parnames(p_dset, "y")
+                        if has_settable and has_gettable:
+                            self.main_QtPlot.add(
+                                x=p_dset[xi].values,
+                                y=p_dset[yi].values,
+                                subplot=plot_idx,
+                                xlabel=p_dset[xi].attrs["long_name"],
+                                xunit=p_dset[xi].attrs["unit"],
+                                ylabel=p_dset[yi].attrs["long_name"],
+                                yunit=p_dset[yi].attrs["unit"],
+                                symbol=symbols[i_p_dset % len(symbols)],
+                                symbolSize=symbolSize,
+                                # Oldest datasets fade more
+                                color=colors[i_p_dset % len(colors)],
+                                name=self._mk_legend(p_dset),
+                                # to avoid passing the argument
+                                **({"symbolBrush": symBrush} if symBrush else {})
+                            )
 
-                # Real-time dataset
-                self.main_QtPlot.add(
-                    x=dset[xi].values,
-                    y=dset[yi].values,
-                    subplot=plot_idx,
-                    xlabel=dset[xi].attrs["long_name"],
-                    xunit=dset[xi].attrs["unit"],
-                    ylabel=dset[yi].attrs["long_name"],
-                    yunit=dset[yi].attrs["unit"],
-                    symbol="o",
-                    symbolSize=5,
-                    color=color_cycle[0],
-                    name=self._mk_legend(dset)
-                )
-                # We keep track only of the curves that need to be
-                # updated in real-time
-                self.curves.append(self.main_QtPlot.traces[-1])
-                # Manual counter is used because we may want to add more
-                # than one quantity per panel
+                if dset:
+                    has_settable = xi in self._get_parnames(dset, "x")
+                    has_gettable = yi in self._get_parnames(dset, "y")
+                    if has_settable and has_gettable:
+                        # Real-time dataset
+                        self.main_QtPlot.add(
+                            x=dset[xi].values,
+                            y=dset[yi].values,
+                            subplot=plot_idx,
+                            xlabel=dset[xi].attrs["long_name"],
+                            xunit=dset[xi].attrs["unit"],
+                            ylabel=dset[yi].attrs["long_name"],
+                            yunit=dset[yi].attrs["unit"],
+                            symbol="o",
+                            symbolSize=5,
+                            color=darker_color_cycle[0],
+                            name=self._mk_legend(dset),
+                        )
+                        # We keep track only of the curves that need to be
+                        # updated in real-time
+                        self.curves.append(self.main_QtPlot.traces[-1])
+                        # Manual counter is used because we may want to add more
+                        # than one quantity per panel
                 plot_idx += 1
             self.main_QtPlot.win.nextRow()
 
@@ -180,7 +300,8 @@ class PlotMonitor_pyqt(Instrument):
 
         #############################################################
         # Add a square heatmap
-        if dset.attrs["2D-grid"]:
+
+        if dset and dset.attrs["2D-grid"]:
             plot_idx = 1
             for yi in get_parnames:
 
@@ -211,7 +332,7 @@ class PlotMonitor_pyqt(Instrument):
         #############################################################
         # if data is not on a grid but is 2D it makes sense to interpolate
 
-        elif len(set_parnames) == 2:
+        elif dset and len(set_parnames) == 2:
             plot_idx = 1
             for yi in get_parnames:
 
@@ -271,17 +392,23 @@ class PlotMonitor_pyqt(Instrument):
 
                 plot_idx += 1
 
+        # Not running this can lead to nasty memory issues due to
+        # accumulation of traces
+        self.main_QtPlot.update_plot()
+        self.secondary_QtPlot.update_plot()
+
     def update(self):
         if self.tuid() == "latest":
             # this should automatically set tuid to the most recent tuid.
             tuid = get_latest_tuid()
+            self.tuid(tuid)
         else:
             tuid = self.tuid()
 
         # If tuid has changed, we need to initialize the figure
         if tuid != self._last_tuid:
             # need to initialize the plot monitor
-            self._initialize_plot_monitor(tuid)
+            self._initialize_plot_monitor()
             self._last_tuid = tuid
 
         # otherwise we simply update
