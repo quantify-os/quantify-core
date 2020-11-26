@@ -7,19 +7,23 @@ import pathlib
 import os
 import sys
 import json
+from collections.abc import Iterable
 from datetime import datetime
 from uuid import uuid4
 import numpy as np
 import xarray as xr
 from qcodes import Instrument
 from quantify.data.types import TUID
-from quantify.utilities.general import delete_keys_from_dict
-
+from quantify.utilities.general import (
+    delete_keys_from_dict,
+    get_keys_containing,
+    make_hash,
+)
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
-_default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / 'data'
+_default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / "data"
 
 this._datadir = None
 
@@ -41,7 +45,7 @@ def gen_tuid(ts=None):
     if ts is None:
         ts = datetime.now()
     # ts gives microsecs by default
-    (dt, micro) = ts.strftime('%Y%m%d-%H%M%S-.%f').split('.')
+    (dt, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
     dt = "%s%03d-" % (dt, int(micro) / 1000)
     # the tuid is composed of the timestamp and a 6 character uuid.
@@ -125,10 +129,10 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     FileNotFoundError
         No data found for specified date.
     """
-    return xr.load_dataset(_locate_experiment_file(tuid, datadir, 'dataset.hdf5'))
+    return xr.load_dataset(_locate_experiment_file(tuid, datadir, "dataset.hdf5"))
 
 
-def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') -> dict:
+def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") -> dict:
     """
     Loads a snapshot specified by a tuid.
 
@@ -153,7 +157,7 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = 'snapshot.json') 
         return json.load(snap)
 
 
-def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
+def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     """
     Creates an empty folder to store an experiment container.
 
@@ -178,8 +182,8 @@ def create_exp_folder(tuid: TUID, name: str = '', datadir=None):
     if datadir is None:
         datadir = get_datadir()
     exp_folder = os.path.join(datadir, tuid[:8], tuid)
-    if name != '':
-        exp_folder += '-' + name
+    if name != "":
+        exp_folder += "-" + name
 
     os.makedirs(exp_folder, exist_ok=True)
     return exp_folder
@@ -204,10 +208,16 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
     """
     darrs = []
     for i, setpar in enumerate(settable_pars):
-        darrs.append(xr.DataArray(
-            data=setpoints[:, i],
-            name='x{}'.format(i),
-            attrs={'name': setpar.name, 'long_name': setpar.label, 'unit': setpar.unit})
+        darrs.append(
+            xr.DataArray(
+                data=setpoints[:, i],
+                name="x{}".format(i),
+                attrs={
+                    "name": setpar.name,
+                    "long_name": setpar.label,
+                    "unit": setpar.unit,
+                },
+            )
         )
 
     numpoints = len(setpoints[:, 0])
@@ -224,16 +234,18 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
         for idx, info in enumerate(itrbl):
             empty_arr = np.empty(numpoints)
             empty_arr[:] = np.nan
-            darrs.append(xr.DataArray(
-                data=empty_arr,
-                name='y{}'.format(j + idx),
-                attrs={'name': info[0], 'long_name': info[1], 'unit': info[2]})
+            darrs.append(
+                xr.DataArray(
+                    data=empty_arr,
+                    name="y{}".format(j + idx),
+                    attrs={"name": info[0], "long_name": info[1], "unit": info[2]},
+                )
             )
             count += 1
         j += count
 
     dataset = xr.merge(darrs)
-    dataset.attrs['tuid'] = gen_tuid()
+    dataset.attrs["tuid"] = gen_tuid()
     return dataset
 
 
@@ -253,12 +265,14 @@ def grow_dataset(dataset: xr.Dataset):
     darrs = []
     for col in dataset:
         data = dataset[col].values
-        darrs.append(xr.DataArray(
-            name=dataset[col].name,
-            data=np.pad(data, (0, len(data)), 'constant', constant_values=np.nan),
-            attrs=dataset[col].attrs
-        ))
-    dataset = dataset.drop_dims(['dim_0'])
+        darrs.append(
+            xr.DataArray(
+                name=dataset[col].name,
+                data=np.pad(data, (0, len(data)), "constant", constant_values=np.nan),
+                attrs=dataset[col].attrs,
+            )
+        )
+    dataset = dataset.drop_dims(["dim_0"])
     new_data = xr.merge(darrs)
     return dataset.merge(new_data)
 
@@ -276,27 +290,27 @@ def trim_dataset(dataset: xr.Dataset):
     :class:`xarray.Dataset`
         The dataset, trimmed and resized if necessary or unchanged.
     """
-    for i, val in enumerate(reversed(dataset['y0'].values)):
+    for i, val in enumerate(reversed(dataset["y0"].values)):
         if not np.isnan(val):
-            finish_idx = len(dataset['y0'].values) - i
+            finish_idx = len(dataset["y0"].values) - i
             darrs = []
             for col in dataset:
                 data = dataset[col].values[:finish_idx]
-                darrs.append(xr.DataArray(
-                    name=dataset[col].name,
-                    data=data,
-                    attrs=dataset[col].attrs
-                ))
-            dataset = dataset.drop_dims(['dim_0'])
+                darrs.append(
+                    xr.DataArray(
+                        name=dataset[col].name, data=data, attrs=dataset[col].attrs
+                    )
+                )
+            dataset = dataset.drop_dims(["dim_0"])
             new_data = xr.merge(darrs)
             return dataset.merge(new_data)
     return dataset
 
 
-########################################################################
+# ######################################################################
 
 
-def get_latest_tuid(contains: str = '') -> TUID:
+def get_latest_tuid(contains: str = "") -> TUID:
     """
     Returns the most recent tuid.
 
@@ -321,8 +335,12 @@ def get_latest_tuid(contains: str = '') -> TUID:
     return get_tuids_containing(contains, max_results=1)[0]
 
 
-def get_tuids_containing(contains: str, t_start: datetime.date = None, t_stop: datetime.date = None,
-                         max_results: int = sys.maxsize) -> list:
+def get_tuids_containing(
+    contains: str,
+    t_start: datetime.date = None,
+    t_stop: datetime.date = None,
+    max_results: int = sys.maxsize,
+) -> list:
     """
     Returns a list of tuids containing a specific label.
 
@@ -356,24 +374,40 @@ def get_tuids_containing(contains: str, t_start: datetime.date = None, t_stop: d
     lower_bound = lambda x: x >= t_start if t_start else True  # noqa: E731
     upper_bound = lambda x: x < t_stop if t_stop else True  # noqa: E731
 
-    daydirs = list(filter(lambda x: (x.isdigit() and len(x) == 8 and lower_bound(x) and upper_bound(x)),
-                          os.listdir(datadir)))
+    daydirs = list(
+        filter(
+            lambda x: (
+                x.isdigit() and len(x) == 8 and lower_bound(x) and upper_bound(x)
+            ),
+            os.listdir(datadir),
+        )
+    )
     daydirs.sort(reverse=True)
     if len(daydirs) == 0:
-        err_msg = 'There are no valid day directories in the data folder "{}"'.format(datadir)
+        err_msg = 'There are no valid day directories in the data folder "{}"'.format(
+            datadir
+        )
         if t_start or t_stop:
-            err_msg += ', for the range {}-{}'.format(t_start or '', t_stop or '')
+            err_msg += ", for the range {}-{}".format(t_start or "", t_stop or "")
         raise FileNotFoundError(err_msg)
 
     tuids = []
     for dd in daydirs:
-        expdirs = list(filter(lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
-                              os.listdir(os.path.join(datadir, dd))))
+        expdirs = list(
+            filter(
+                lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
+                os.listdir(os.path.join(datadir, dd)),
+            )
+        )
         expdirs.sort(reverse=True)
         for expname in expdirs:
             # Check for inconsistent folder structure for datasets portability
             if dd != expname[:8]:
-                raise FileNotFoundError('Experiment container "{}" is in wrong day directory "{}" '.format(expname, dd))
+                raise FileNotFoundError(
+                    'Experiment container "{}" is in wrong day directory "{}" '.format(
+                        expname, dd
+                    )
+                )
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
                 return tuids
@@ -396,11 +430,11 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
     """
 
     snap = {
-        'instruments': {},
-        'parameters': {},
+        "instruments": {},
+        "parameters": {},
     }
     for ins_name, ins_ref in Instrument._all_instruments.items():
-        snap['instruments'][ins_name] = ins_ref().snapshot(update=update)
+        snap["instruments"][ins_name] = ins_ref().snapshot(update=update)
 
     if clean:
         exclude_keys = {
@@ -419,3 +453,6 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         snap = delete_keys_from_dict(snap, exclude_keys)
 
     return snap
+
+
+# ######################################################################
