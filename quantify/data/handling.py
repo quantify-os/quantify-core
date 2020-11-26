@@ -17,7 +17,6 @@ from quantify.data.types import TUID
 from quantify.utilities.general import (
     delete_keys_from_dict,
     get_keys_containing,
-    make_hash,
 )
 
 # this is a pointer to the module object instance itself.
@@ -464,14 +463,16 @@ def _xi_match(dsets: Iterable):
     if not len(dsets):
         return True
 
-    def mk_hash(dset):
-        # Hash is sused in order to ensure everything matches:
+    def get_xi_attrs(dset):
+        # Hash is used in order to ensure everything matches:
         # name, long_name, unit, number of xi
         return tuple(dset[xi].attrs for xi in sorted(get_keys_containing(dset, "x")))
 
-    h0 = mk_hash(dsets[0])
+    it = map(get_xi_attrs, dsets)
+    # We can compare to the first one always
+    tup0 = next(it)
 
-    for h in map(mk_hash, dsets[1:]):
-        if h != h0:
+    for tup in it:
+        if tup != tup0:
             return False
     return True

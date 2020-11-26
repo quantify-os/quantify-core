@@ -471,6 +471,13 @@ class PlotMonitor_pyqt(Instrument):
 
                 self.secondary_QtPlot.update_plot()
 
+    def _ensure_matching_settbles(self):
+        """
+        Ensures plotting datasets are settables-compatible and discards
+        datasets if necessary according to some priorities
+        """
+        pass
+
 
 def _get_parnames(dset, par_type):
     return sorted(get_keys_containing(dset, par_type))
