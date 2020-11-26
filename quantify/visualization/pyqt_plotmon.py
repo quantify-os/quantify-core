@@ -8,7 +8,7 @@ from collections import deque
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import ManualParameter, Parameter
+from qcodes.instrument.parameter import Parameter
 from qcodes.plots.colors import color_cycle
 from .color_utilities import faded_color_cycle, darker_color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
@@ -80,7 +80,8 @@ class PlotMonitor_pyqt(Instrument):
             docstring="The tuid of the dataset to monitor",
             parameter_class=Parameter,
             vals=vals.Strings(),
-            initial_value="latest",
+            # avoid set_cmd being called at __init__
+            initial_cache_value="latest",
             set_cmd=self._append_prev_dsets
         )
         self.add_parameter(
@@ -88,7 +89,8 @@ class PlotMonitor_pyqt(Instrument):
             docstring="The maximum number of auto-accumulated persistent datasets",
             parameter_class=Parameter,
             vals=vals.Ints(min_value=0, max_value=100),
-            initial_value=2,
+            # avoid set_cmd being called at __init__
+            initial_cache_value=2,
             set_cmd=self._set_max_num_previous_dsets
         )
         self.add_parameter(
@@ -120,12 +122,10 @@ class PlotMonitor_pyqt(Instrument):
         """
         used only to update relevant variables
         """
-        # Only update when called post __init__
-        if hasattr(self, "max_num_previous_dsets"):
-            # needs to be here and inside `_initialize_plot_monitor`
-            # previous dataset might be pop due to the user or "overflow"
-            self._pop_old_prev_dsets(val)
-            self._initialize_plot_monitor()
+        # needs to be here and inside `_initialize_plot_monitor`
+        # previous dataset might be pop due to the user or "overflow"
+        self._pop_old_prev_dsets(val)
+        self._initialize_plot_monitor()
 
     def _append_prev_dsets(self, tuid):
         """
@@ -138,12 +138,9 @@ class PlotMonitor_pyqt(Instrument):
 
             self._last_tuid_prev = tuid
 
-        # Only update when called post __init__
-        if hasattr(self, "tuid"):
-            self._pop_old_prev_dsets()
+        self._pop_old_prev_dsets(val=self.max_num_previous_dsets())
 
-    def _pop_old_prev_dsets(self, val=None):
-        val = val if val is not None else self.max_num_previous_dsets()
+    def _pop_old_prev_dsets(self, val):
         while len(self._previous_dsets) > val:
             self._previous_dsets.popleft()
             # This ensures each datasets preserves it symbol
