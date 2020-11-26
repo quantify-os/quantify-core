@@ -39,6 +39,26 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
     return modified_dict
 
 
+def traverse_dict(obj, convert_to_string: bool=True):
+    """
+    Traversal implementation which recursively visits each node in a dict.
+    We modify this function so that at the lowest hierarchy,
+    we convert the element to a string.
+
+    from https://nvie.com/posts/modifying-deeply-nested-structures/
+    """
+    if isinstance(obj, dict):
+        out_dict = {}
+        for k, v in obj.items():
+            out_dict[k] = traverse_dict(v)
+        return out_dict
+    elif isinstance(obj, list):
+        return [traverse_dict(elem) for elem in obj]
+    else:
+        return_obj = str(obj) if convert_to_string else obj
+        return str(return_obj)
+
+
 def make_hash(o):
     """
     Makes a hash from a dictionary, list, tuple or set to any level, that contains
