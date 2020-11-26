@@ -39,6 +39,24 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
     return modified_dict
 
 
+def get_keys_containing(obj, key):
+    """
+    Returns a set with the keys that contain `key`
+
+    Parameters
+    -----------
+    obj: obj
+        any object
+    key:
+        the search key
+    Returns
+    -------
+    set
+        a new set containing the keys that match the search
+    """
+    return set(filter(lambda k: key in k, obj.keys()))
+
+
 def make_hash(o):
     """
     Makes a hash from a dictionary, list, tuple or set to any level, that contains
@@ -104,7 +122,7 @@ def load_json_schema(relative_to, filename):
 
 def without(d, keys):
     """
-    Utility that copies a dictionary exluding a specific list of keys.
+    Utility that copies a dictionary excluding a specific list of keys.
     """
     if not isinstance(keys, list):
         keys = [keys]
@@ -116,6 +134,6 @@ def without(d, keys):
 
 class KeyboardFinish(KeyboardInterrupt):
     """
-    Indicates the user has signalled to safely abort/finish the experiment.
+    Indicates the user has signaled to safely abort/finish the experiment.
     """
     pass

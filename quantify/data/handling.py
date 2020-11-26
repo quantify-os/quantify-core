@@ -456,3 +456,22 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 # ######################################################################
+
+def _xi_match(dsets: Iterable):
+    """
+    Checks if all the datasets have matching xi
+    """
+    if not len(dsets):
+        return True
+
+    def mk_hash(dset):
+        # Hash is sused in order to ensure everything matches:
+        # name, long_name, unit, number of xi
+        return tuple(dset[xi].attrs for xi in sorted(get_keys_containing(dset, "x")))
+
+    h0 = mk_hash(dsets[0])
+
+    for h in map(mk_hash, dsets[1:]):
+        if h != h0:
+            return False
+    return True

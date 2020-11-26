@@ -13,6 +13,7 @@ from qcodes.plots.colors import color_cycle
 from .color_utilities import faded_color_cycle, darker_color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
+from quantify.utilities.general import get_keys_containing
 from quantify.data.handling import load_dataset, get_latest_tuid
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 
@@ -191,9 +192,6 @@ class PlotMonitor_pyqt(Instrument):
             window_title="Main plotmon of {}".format(self.name), figsize=(600, 400)
         )
 
-    def _get_parnames(self, dset, par_type: str = "x"):
-        return sorted(filter(lambda k: par_type in k, dset.keys()))
-
     def _mk_legend(self, dset):
         return dset.attrs["tuid"].split("-")[-1] + " " + dset.attrs["name"]
 
@@ -216,8 +214,8 @@ class PlotMonitor_pyqt(Instrument):
 
         if self.tuid() != "latest":
             dset = load_dataset(tuid=self.tuid())
-            set_parnames = self._get_parnames(dset, par_type="x")
-            get_parnames = self._get_parnames(dset, par_type="y")
+            set_parnames = _get_parnames(dset, par_type="x")
+            get_parnames = _get_parnames(dset, par_type="y")
         else:
             dset = None
 
@@ -225,10 +223,10 @@ class PlotMonitor_pyqt(Instrument):
             [self._persistent_dsets, list(self._previous_dsets)], [dset] if dset else []
         )
         set_parnames_all = sorted(set(
-            sum((self._get_parnames(ds, par_type="x") for ds in all_dsets), [])
+            sum((_get_parnames(ds, par_type="x") for ds in all_dsets), [])
         ))
         get_parnames_all = sorted(set(
-            sum((self._get_parnames(ds, par_type="y") for ds in all_dsets), [])
+            sum((_get_parnames(ds, par_type="y") for ds in all_dsets), [])
         ))
 
         #############################################################
@@ -246,8 +244,8 @@ class PlotMonitor_pyqt(Instrument):
                     p_colors, p_symbols, p_dsets, p_symbolSizes, p_symbolBrushes
                 ):
                     for i_p_dset, p_dset in enumerate(dsets):
-                        has_settable = xi in self._get_parnames(p_dset, "x")
-                        has_gettable = yi in self._get_parnames(p_dset, "y")
+                        has_settable = xi in _get_parnames(p_dset, "x")
+                        has_gettable = yi in _get_parnames(p_dset, "y")
                         if has_settable and has_gettable:
                             self.main_QtPlot.add(
                                 x=p_dset[xi].values,
@@ -267,8 +265,8 @@ class PlotMonitor_pyqt(Instrument):
                             )
 
                 if dset:
-                    has_settable = xi in self._get_parnames(dset, "x")
-                    has_gettable = yi in self._get_parnames(dset, "y")
+                    has_settable = xi in _get_parnames(dset, "x")
+                    has_gettable = yi in _get_parnames(dset, "y")
                     if has_settable and has_gettable:
                         # Real-time dataset
                         self.main_QtPlot.add(
@@ -411,8 +409,8 @@ class PlotMonitor_pyqt(Instrument):
         # otherwise we simply update
         else:
             dset = load_dataset(tuid=tuid)
-            set_parnames = self._get_parnames(dset, "x")
-            get_parnames = self._get_parnames(dset, "y")
+            set_parnames = _get_parnames(dset, "x")
+            get_parnames = _get_parnames(dset, "y")
             # Only updates the main monitor currently.
 
             #############################################################
@@ -472,3 +470,7 @@ class PlotMonitor_pyqt(Instrument):
                     trace["config"]["y"] = y[-5:]
 
                 self.secondary_QtPlot.update_plot()
+
+
+def _get_parnames(dset, par_type):
+    return sorted(get_keys_containing(dset, par_type))
