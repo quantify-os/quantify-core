@@ -82,7 +82,7 @@ class MeasurementControl(Instrument):
             "on_progress_callback",
             vals=vals.Callable(),
             docstring="A callback to communicate progress. This should be a "
-                      "Callable accepting ints between 0 and 100 indicating percdone.",
+                      "Callable accepting floats between 0 and 100 indicating %% done.",
             parameter_class=ManualParameter,
             initial_value=None,
         )
