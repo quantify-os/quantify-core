@@ -198,7 +198,6 @@ class PlotMonitor_pyqt(Instrument):
         Loads all the user datasets so that they can be plotted afterwards
         """
         self._persistent_dsets = [load_dataset(tuid) for tuid in tuids]
-        print(len(self._persistent_dsets))
 
         # Now we ensure all datasets are compatible to be plotted together
         dset_in_list = [self._dset] if self._dset else []
