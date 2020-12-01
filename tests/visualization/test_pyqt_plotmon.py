@@ -101,10 +101,7 @@ class TestPlotMonitor_pyqt:
         # this is a bit lazy to not deal with the indices of all traces
         # of all plots
         names = set(trace["config"]["name"] for trace in traces)
-        labels_exist = [
-            any(_hash in name for name in names)
-            for _hash in hashes[1:]
-        ]
+        labels_exist = [any(_hash in name for name in names) for _hash in hashes[1:]]
         assert all(labels_exist)
 
         self.plotmon.tuid(tuids[-1])
@@ -132,6 +129,9 @@ class TestPlotMonitor_pyqt:
         self.plotmon.persistent_tuids([])
         assert len(self.plotmon._persistent_dsets) == 0
 
-        with pytest.raises(NotImplementedError, match=r"Datasets with different x and/or y variables not supported"):
+        with pytest.raises(
+            NotImplementedError,
+            match=r"Datasets with different x and/or y variables not supported",
+        ):
             # Datasets with distinct xi and/or yi variables not supported
             self.plotmon.persistent_tuids([tuid1, tuid2])
