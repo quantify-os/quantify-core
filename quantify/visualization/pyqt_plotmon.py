@@ -44,10 +44,12 @@ class PlotMonitor_pyqt(Instrument):
         self._last_tuid_prev = None
 
         # used to be able to check if dataset are compatible to plot together
+        self._tuid = None
         self._dset = None
 
         # used to store user-specified persistent datasets
         self._persistent_dsets = []
+        self._persistent_tuids = []
 
         # used to track the tuids of previous datasets
         # deque([<oldest>, ..., <one before latest>])
@@ -86,6 +88,7 @@ class PlotMonitor_pyqt(Instrument):
             # avoid set_cmd being called at __init__
             initial_cache_value=None,
             set_cmd=self._set_tuid,
+            get_cmd=lambda: self._tuid,
         )
         self.add_parameter(
             name="max_num_previous_dsets",
@@ -119,6 +122,7 @@ class PlotMonitor_pyqt(Instrument):
             parameter_class=Parameter,
             vals=vals.Lists(),
             set_cmd=self._set_persistent_tuids,
+            get_cmd=lambda: self._persistent_tuids,
             # avoid set_cmd being called at __init__
             initial_cache_value=[]
         )
@@ -134,6 +138,8 @@ class PlotMonitor_pyqt(Instrument):
         """
         To be called only on `.tuid()`
         """
+        self._tuid = tuid
+
         if self._last_tuid_prev is not None:
             self._previous_tuids.append(self._last_tuid_prev)
             self._previous_dsets.append(load_dataset(self._last_tuid_prev))
@@ -148,15 +154,16 @@ class PlotMonitor_pyqt(Instrument):
             self._dset = None
 
         # Now we ensure all datasets are compatible to be plotted together
-        dset_it = [self._dset] if self._dset else []
-        if not _xi_and_yi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
-            # Last dataset under self.tuid() has priority, reset the others
-            if not _xi_and_yi_match(chain(dset_it, self._previous_dsets)):
-                # Reset the previous datasets
-                self._pop_old_prev_dsets(val=0)
-            if not _xi_and_yi_match(chain(dset_it, self._persistent_dsets)):
-                # Reset the user-defined persistent datasets
-                self.persistent_tuids([])
+        dset_in_list = [self._dset] if self._dset else []
+        # Last dataset under self.tuid() has priority, reset the others
+        if not _xi_and_yi_match(dset_in_list + list(self._previous_dsets)):
+            # Reset the previous datasets
+            self._pop_old_prev_dsets(val=0)
+        if not _xi_and_yi_match(dset_in_list + self._persistent_dsets):
+            # Reset the user-defined persistent datasets "manually"
+            # Needs to be manual otherwise we go in circles
+            self._persistent_tuids = []
+            self._persistent_dsets = []
 
         self._pop_old_prev_dsets(val=self.max_num_previous_dsets())
 
@@ -191,20 +198,27 @@ class PlotMonitor_pyqt(Instrument):
         Loads all the user datasets so that they can be plotted afterwards
         """
         self._persistent_dsets = [load_dataset(tuid) for tuid in tuids]
+        print(len(self._persistent_dsets))
 
         # Now we ensure all datasets are compatible to be plotted together
-        dset_it = [self._dset] if self._dset else []
-        if not _xi_and_yi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
-            # persistent dataset specified by user have priority, reset the others
+        dset_in_list = [self._dset] if self._dset else []
+        # persistent dataset specified by user have priority, reset the others
+        # This check need to be the first
+        if not _xi_and_yi_match(self._persistent_dsets + dset_in_list):
+            # Reset the tuid because the user has specified persistent dsets
+            self._tuid = None
+            self._dset = None
 
-            # This check need to be the first
-            if not _xi_and_yi_match(chain(self._persistent_dsets, dset_it)):
-                # Reset the tuid because the user has specified persistent dsets
-                self.tuid(None)
+        print(len(self._persistent_dsets))
 
-            if not _xi_and_yi_match(chain(self._persistent_dsets, self._previous_dsets)):
-                # Reset the previous datasets
-                self._pop_old_prev_dsets(val=0)
+        if not _xi_and_yi_match(self._persistent_dsets + list(self._previous_dsets)):
+            # Reset the previous datasets
+            self._pop_old_prev_dsets(val=0)
+
+        print(len(self._persistent_dsets))
+
+        if not _xi_and_yi_match(self._persistent_dsets):
+            raise NotImplementedError("Datasets with different x and/or y variables not supported")
 
         self._initialize_plot_monitor()
         return True

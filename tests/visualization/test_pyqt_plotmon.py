@@ -1,6 +1,7 @@
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
 
+import pytest
 from tests.helpers import get_test_data_dir
 from quantify.data.types import TUID
 from quantify.data.handling import set_datadir
@@ -71,15 +72,12 @@ class TestPlotMonitor_pyqt:
         never do this
         """
         # Clear the state to keep this test independent
-        self.plotmon._last_tuid = None
-        self.plotmon.tuid("latest")
         self.plotmon.max_num_previous_dsets(3)
-        self.plotmon._persistent_dsets.clear()
 
         tuid1 = "20200430-170837-001-315f36"  # 1D
         tuid2 = "20200504-191556-002-4209ee"  # 2D
 
-        tuids_unique = [
+        tuids = [
             "20201124-184709-137-8a5112",
             "20201124-184716-237-918bee",
             "20201124-184722-988-0463d4",
@@ -87,7 +85,6 @@ class TestPlotMonitor_pyqt:
             "20201124-184736-341-3628d4",
         ]
 
-        tuids = tuids_unique
         hashes = [tuid.split("-")[-1] for tuid in tuids]
 
         for tuid in tuids:
@@ -97,7 +94,7 @@ class TestPlotMonitor_pyqt:
         [self.plotmon.update() for i in range(3)]
 
         # Confirm persistent datasets are being accumulated
-        assert list(self.plotmon.previous_tuids()) == tuids[:-1]
+        assert list(self.plotmon.previous_tuids()) == tuids[1:-1]
         assert len(self.plotmon._previous_dsets) == 3
 
         traces = self.plotmon.main_QtPlot.traces
@@ -110,8 +107,8 @@ class TestPlotMonitor_pyqt:
         ]
         assert all(labels_exist)
 
-        self.plotmon.tuid(tuids_unique[-1])
-        assert self.plotmon.previous_tuids()[-1] == tuids_unique[-1]
+        self.plotmon.tuid(tuids[-1])
+        assert self.plotmon.previous_tuids()[-1] == tuids[-1]
         # Confirm maximum accumulation works
         assert len(self.plotmon._previous_dsets) == 3
 
@@ -127,14 +124,14 @@ class TestPlotMonitor_pyqt:
         len_tr = len(traces)
         assert len_tr == 2
 
-        self.plotmon.persistent_tuids([tuid1, tuid2])
-        assert len(self.plotmon._persistent_dsets) == 2
-        # Confirm that all dataset are plotted even with set/get-able mismatches
-        traces = self.plotmon.main_QtPlot.traces
-        assert len(traces) > len_tr
-
         # test reset works
-        self.plotmon.persistent_tuids([tuid1, tuid2])
+        self.plotmon.persistent_tuids(tuids[0:2])
         assert len(self.plotmon._persistent_dsets) == 2
         traces = self.plotmon.main_QtPlot.traces
         assert len(traces) > 0
+        self.plotmon.persistent_tuids([])
+        assert len(self.plotmon._persistent_dsets) == 0
+
+        with pytest.raises(NotImplementedError, match=r"Datasets with different x and/or y variables not supported"):
+            # Datasets with distinct xi and/or yi variables not supported
+            self.plotmon.persistent_tuids([tuid1, tuid2])
