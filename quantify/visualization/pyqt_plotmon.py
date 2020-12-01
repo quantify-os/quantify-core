@@ -208,13 +208,9 @@ class PlotMonitor_pyqt(Instrument):
             self._tuid = None
             self._dset = None
 
-        print(len(self._persistent_dsets))
-
         if not _xi_and_yi_match(self._persistent_dsets + list(self._previous_dsets)):
             # Reset the previous datasets
             self._pop_old_prev_dsets(val=0)
-
-        print(len(self._persistent_dsets))
 
         if not _xi_and_yi_match(self._persistent_dsets):
             raise NotImplementedError("Datasets with different x and/or y variables not supported")
@@ -341,6 +337,11 @@ class PlotMonitor_pyqt(Instrument):
 
         #############################################################
         # Add a square heatmap
+
+        if dset is None and len(self._persistent_dsets):
+            # If there is not an "active" tuid we make the secundary plot
+            # do the 2D plots of the first persistent dataset of the user
+            dset = self._persistent_dsets[0]
 
         if dset and dset.attrs["2D-grid"]:
             plot_idx = 1
