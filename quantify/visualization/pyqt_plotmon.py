@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 from collections import deque
+from itertools import chain
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -14,7 +15,7 @@ from .color_utilities import faded_color_cycle, darker_color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 from quantify.utilities.general import get_keys_containing
-from quantify.data.handling import load_dataset, get_latest_tuid
+from quantify.data.handling import load_dataset, get_latest_tuid, _xi_match
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 
 
@@ -42,10 +43,11 @@ class PlotMonitor_pyqt(Instrument):
         # used to track last tuid added to the previous dsets
         self._last_tuid_prev = None
 
+        # used to be able to check if dataset are compatible to plot together
+        self._dset = None
+
         # used to store user-specified persistent datasets
         self._persistent_dsets = []
-
-        # used necessary
 
         # used to track the tuids of previous datasets
         # deque([<oldest>, ..., <one before latest>])
@@ -80,10 +82,10 @@ class PlotMonitor_pyqt(Instrument):
             name="tuid",
             docstring="The tuid of the dataset to monitor",
             parameter_class=Parameter,
-            vals=vals.Strings(),
+            vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
             # avoid set_cmd being called at __init__
-            initial_cache_value="latest",
-            set_cmd=self._append_prev_dsets
+            initial_cache_value=None,
+            set_cmd=self._set_tuid
         )
         self.add_parameter(
             name="max_num_previous_dsets",
@@ -123,27 +125,43 @@ class PlotMonitor_pyqt(Instrument):
         """
         used only to update relevant variables
         """
-        # needs to be here and inside `_initialize_plot_monitor`
-        # previous dataset might be pop due to the user or "overflow"
         self._pop_old_prev_dsets(val)
         self._initialize_plot_monitor()
 
-    def _append_prev_dsets(self, tuid):
+    def _set_tuid(self, tuid):
         """
         To be called only on `.tuid()`
         """
-        if tuid != "latest":
-            if self._last_tuid_prev is not None:
-                self._previous_tuids.append(self._last_tuid_prev)
-                self._previous_dsets.append(load_dataset(self._last_tuid_prev))
+        if self._last_tuid_prev is not None:
+            self._previous_tuids.append(self._last_tuid_prev)
+            self._previous_dsets.append(load_dataset(self._last_tuid_prev))
 
-            self._last_tuid_prev = tuid
+        self._last_tuid_prev = tuid
+
+        if tuid is not None:
+            # Load the dataset to be monitored
+            self._dset = load_dataset(tuid)
+        else:
+            # Discard the dataset
+            self._dset = None
+
+        # Now we ensure all datasets are compatible to be plotted together
+        dset_it = [self._dset] if self._dset else []
+        if not _xi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
+            # Last dataset under self.tuid() has priority, reset the others
+            if not _xi_match(chain(dset_it, self._previous_dsets)):
+                # Reset the previous datasets
+                self._pop_old_prev_dsets(val=0)
+            if not _xi_match(chain(dset_it, self._persistent_dsets)):
+                # Reset the user-defined persistent datasets
+                self.persistent_tuids([])
 
         self._pop_old_prev_dsets(val=self.max_num_previous_dsets())
 
     def _pop_old_prev_dsets(self, val):
         while len(self._previous_dsets) > val:
             self._previous_dsets.popleft()
+            self._previous_tuids.popleft()
             # This ensures each datasets preserves it symbol
             self._previous_symbols.rotate(-1)
             self._previous_colors.rotate(-1)
@@ -171,6 +189,21 @@ class PlotMonitor_pyqt(Instrument):
         Loads all the user datasets so that they can be plotted afterwards
         """
         self._persistent_dsets = [load_dataset(tuid) for tuid in tuids]
+
+        # Now we ensure all datasets are compatible to be plotted together
+        dset_it = [self._dset] if self._dset else []
+        if not _xi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
+            # persistent dataset specified by user have priority, reset the others
+
+            # This check need to be the first
+            if not _xi_match(chain(self._persistent_dsets, dset_it)):
+                # Reset the tuid because the user has specified persistent dsets
+                self.tuid(None)
+
+            if not _xi_match(chain(self._persistent_dsets, self._previous_dsets)):
+                # Reset the previous datasets
+                self._pop_old_prev_dsets(val=0)
+
         self._initialize_plot_monitor()
         return True
 
@@ -212,15 +245,8 @@ class PlotMonitor_pyqt(Instrument):
         self._im_scatters = []
         self._im_scatters_last = []
 
-        if self.tuid() != "latest":
-            dset = load_dataset(tuid=self.tuid())
-            set_parnames = _get_parnames(dset, par_type="x")
-            get_parnames = _get_parnames(dset, par_type="y")
-        else:
-            dset = None
-
         all_dsets = sum(
-            [self._persistent_dsets, list(self._previous_dsets)], [dset] if dset else []
+            [self._persistent_dsets, list(self._previous_dsets)], [self._dset] if self._dset else []
         )
         set_parnames_all = sorted(set(
             sum((_get_parnames(ds, par_type="x") for ds in all_dsets), [])
@@ -228,6 +254,13 @@ class PlotMonitor_pyqt(Instrument):
         get_parnames_all = sorted(set(
             sum((_get_parnames(ds, par_type="y") for ds in all_dsets), [])
         ))
+
+        if self.tuid() is not None:
+            dset = self._dset
+            set_parnames = _get_parnames(dset, par_type="x")
+            get_parnames = _get_parnames(dset, par_type="y")
+        else:
+            dset = None
 
         #############################################################
 
@@ -393,22 +426,18 @@ class PlotMonitor_pyqt(Instrument):
         self.secondary_QtPlot.update_plot()
 
     def update(self):
-        if self.tuid() == "latest":
-            # this should automatically set tuid to the most recent tuid.
-            tuid = get_latest_tuid()
-            self.tuid(tuid)
-        else:
-            tuid = self.tuid()
-
         # If tuid has changed, we need to initialize the figure
-        if tuid != self._last_tuid:
+        if self.tuid() != self._last_tuid:
             # need to initialize the plot monitor
             self._initialize_plot_monitor()
-            self._last_tuid = tuid
+            self._last_tuid = self.tuid()
 
         # otherwise we simply update
-        else:
-            dset = load_dataset(tuid=tuid)
+        elif self.tuid() is not None:
+            dset = load_dataset(tuid=self.tuid())
+            # This is necessary to be able to check for compatibility of
+            # plotting together with persistent/previous datasets
+            self._dset = dset
             set_parnames = _get_parnames(dset, "x")
             get_parnames = _get_parnames(dset, "y")
             # Only updates the main monitor currently.

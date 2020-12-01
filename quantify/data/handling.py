@@ -460,8 +460,6 @@ def _xi_match(dsets: Iterable):
     """
     Checks if all the datasets have matching xi
     """
-    if not len(dsets):
-        return True
 
     def get_xi_attrs(dset):
         # Hash is used in order to ensure everything matches:
@@ -470,9 +468,11 @@ def _xi_match(dsets: Iterable):
 
     it = map(get_xi_attrs, dsets)
     # We can compare to the first one always
-    tup0 = next(it)
+    tup0 = next(it, None)
 
     for tup in it:
         if tup != tup0:
             return False
+
+    # Also returns true if the dsets is empty
     return True
