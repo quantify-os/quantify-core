@@ -5,7 +5,6 @@
 # -----------------------------------------------------------------------------
 import numpy as np
 from collections import deque
-from itertools import chain
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
