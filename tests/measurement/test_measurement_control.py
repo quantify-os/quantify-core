@@ -717,7 +717,7 @@ class TestMeasurementControl:
 
         self.MC.instr_plotmon(plotmon.name)
 
-        assert plotmon.tuid() == 'latest'
+        assert plotmon.tuid() is None
 
         times = np.linspace(0, 5, 18)
         amps = np.linspace(-1, 1, 5)
@@ -727,7 +727,7 @@ class TestMeasurementControl:
         self.MC.gettables(sig)
         self.MC.run('2D Cosine test')
 
-        assert plotmon.tuid() != 'latest'
+        assert plotmon.tuid() is not None
 
         plotmon.close()
         self.MC.instr_plotmon('')
