@@ -15,7 +15,7 @@ from .color_utilities import faded_color_cycle, darker_color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 from quantify.utilities.general import get_keys_containing
-from quantify.data.handling import load_dataset, get_latest_tuid, _xi_match
+from quantify.data.handling import load_dataset, _xi_and_yi_match
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 
 
@@ -85,7 +85,7 @@ class PlotMonitor_pyqt(Instrument):
             vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
             # avoid set_cmd being called at __init__
             initial_cache_value=None,
-            set_cmd=self._set_tuid
+            set_cmd=self._set_tuid,
         )
         self.add_parameter(
             name="max_num_previous_dsets",
@@ -94,7 +94,7 @@ class PlotMonitor_pyqt(Instrument):
             vals=vals.Ints(min_value=0, max_value=100),
             # avoid set_cmd being called at __init__
             initial_cache_value=2,
-            set_cmd=self._set_max_num_previous_dsets
+            set_cmd=self._set_max_num_previous_dsets,
         )
         self.add_parameter(
             name="previous_tuids",
@@ -119,6 +119,8 @@ class PlotMonitor_pyqt(Instrument):
             parameter_class=Parameter,
             vals=vals.Lists(),
             set_cmd=self._set_persistent_tuids,
+            # avoid set_cmd being called at __init__
+            initial_cache_value=[]
         )
 
     def _set_max_num_previous_dsets(self, val):
@@ -147,12 +149,12 @@ class PlotMonitor_pyqt(Instrument):
 
         # Now we ensure all datasets are compatible to be plotted together
         dset_it = [self._dset] if self._dset else []
-        if not _xi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
+        if not _xi_and_yi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
             # Last dataset under self.tuid() has priority, reset the others
-            if not _xi_match(chain(dset_it, self._previous_dsets)):
+            if not _xi_and_yi_match(chain(dset_it, self._previous_dsets)):
                 # Reset the previous datasets
                 self._pop_old_prev_dsets(val=0)
-            if not _xi_match(chain(dset_it, self._persistent_dsets)):
+            if not _xi_and_yi_match(chain(dset_it, self._persistent_dsets)):
                 # Reset the user-defined persistent datasets
                 self.persistent_tuids([])
 
@@ -192,15 +194,15 @@ class PlotMonitor_pyqt(Instrument):
 
         # Now we ensure all datasets are compatible to be plotted together
         dset_it = [self._dset] if self._dset else []
-        if not _xi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
+        if not _xi_and_yi_match(chain(dset_it, self._previous_dsets, self._persistent_dsets)):
             # persistent dataset specified by user have priority, reset the others
 
             # This check need to be the first
-            if not _xi_match(chain(self._persistent_dsets, dset_it)):
+            if not _xi_and_yi_match(chain(self._persistent_dsets, dset_it)):
                 # Reset the tuid because the user has specified persistent dsets
                 self.tuid(None)
 
-            if not _xi_match(chain(self._persistent_dsets, self._previous_dsets)):
+            if not _xi_and_yi_match(chain(self._persistent_dsets, self._previous_dsets)):
                 # Reset the previous datasets
                 self._pop_old_prev_dsets(val=0)
 
@@ -245,28 +247,26 @@ class PlotMonitor_pyqt(Instrument):
         self._im_scatters = []
         self._im_scatters_last = []
 
-        all_dsets = sum(
-            [self._persistent_dsets, list(self._previous_dsets)], [self._dset] if self._dset else []
+        all_dsets = (
+            self._persistent_dsets
+            + list(self._previous_dsets)
+            + ([self._dset] if self._dset else [])
         )
-        set_parnames_all = sorted(set(
-            sum((_get_parnames(ds, par_type="x") for ds in all_dsets), [])
-        ))
-        get_parnames_all = sorted(set(
-            sum((_get_parnames(ds, par_type="y") for ds in all_dsets), [])
-        ))
 
-        if self.tuid() is not None:
-            dset = self._dset
-            set_parnames = _get_parnames(dset, par_type="x")
-            get_parnames = _get_parnames(dset, par_type="y")
-        else:
-            dset = None
+        if not len(all_dsets):
+            # Nothing to be done
+            return None
+
+        set_parnames = sorted(_get_parnames(all_dsets[0], par_type="x"))
+        get_parnames = sorted(_get_parnames(all_dsets[0], par_type="y"))
+
+        dset = self._dset
 
         #############################################################
 
         plot_idx = 1
-        for yi in get_parnames_all:
-            for xi in set_parnames_all:
+        for yi in get_parnames:
+            for xi in set_parnames:
                 # Persistent datasets auto and user
                 p_dsets = (self._persistent_dsets, self._previous_dsets)
                 p_colors = (self._persistent_colors, self._previous_colors)

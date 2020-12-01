@@ -455,16 +455,19 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 # ######################################################################
+def _xi_and_yi_match(dsets: Iterable):
+    return _vars_match(dsets, var_type="x") and _vars_match(dsets, var_type="y")
 
-def _xi_match(dsets: Iterable):
+
+def _vars_match(dsets: Iterable, var_type="x"):
     """
-    Checks if all the datasets have matching xi
+    Checks if all the datasets have matching xi or yi
     """
 
     def get_xi_attrs(dset):
         # Hash is used in order to ensure everything matches:
         # name, long_name, unit, number of xi
-        return tuple(dset[xi].attrs for xi in sorted(get_keys_containing(dset, "x")))
+        return tuple(dset[xi].attrs for xi in sorted(get_keys_containing(dset, var_type)))
 
     it = map(get_xi_attrs, dsets)
     # We can compare to the first one always
