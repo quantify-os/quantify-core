@@ -19,7 +19,7 @@ with open('requirements_dev.txt') as test_reqs:
 
 requirements = [
     'qcodes',
-    'numpy',
+    'numpy=<1.19.2',
     'scipy',
     'xarray',
     'xxhash',
