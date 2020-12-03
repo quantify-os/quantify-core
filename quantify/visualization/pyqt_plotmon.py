@@ -292,7 +292,6 @@ class PlotMonitor_pyqt(Instrument):
                             symbolSize=8,
                             color=darker_color_cycle[0],
                             name=self._mk_legend(dset),
-                            width=3
                         )
                         # We keep track only of the curves that need to be
                         # updated in real-time
