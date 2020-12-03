@@ -2,6 +2,25 @@
 Changelog
 ===========
 
+0.3.0 (2020-12-03)
+------------------
+
+* Instrument monitor feature added to support live snapshot monitoring during experiments.
+* Renaming of [soft, hard]-loops to [iterative, batched]-loops respectively.
+* Adds t_start and t_stop arguments to the function get_tuids_containing in quantify.data.handling.
+* Various bug fixes and improvements to documentation.
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Adds explicit numpy version number (==1.19.2) requirement for windows in the setup. (!74)
+* Closes #100 (!71)
+* Batched refactor. Closes #113 (!69)
+* Instrument monitor feature added. Closes #62 (!65)
+* Hot-fix for exception handling of gettable/settable in MC. Closes #101 (!64)
+* Added t_start and t_stop arguments to get_tuids_containing function within quantify.data.handling. Closes #69 (!57, !62)
+* Fix for the case when MC does not call finish on gettable. Closes #96 (!60)
+
+
 0.2.0 (2020-10-16)
 ------------------
 
