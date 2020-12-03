@@ -55,7 +55,7 @@ class PlotMonitor_pyqt(Instrument):
         self._previous_dsets = deque()
         self._previous_tuids = deque()
 
-        symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "+", "d"]
+        symbols = ["o", "t", "t1", "t2", "t3", "s", "p", "h", "star", "d"]
         # keeps track of the symbol assigned to each dataset
         # we reserve "o" symbol for the latest dataset
         self._previous_symbols = deque(symbols[1:])
@@ -275,11 +275,34 @@ class PlotMonitor_pyqt(Instrument):
         plot_idx = 1
         for yi in get_parnames:
             for xi in set_parnames:
+                if dset:
+                    has_settable = xi in _get_parnames(dset, "x")
+                    has_gettable = yi in _get_parnames(dset, "y")
+                    if has_settable and has_gettable:
+                        # Real-time dataset
+                        self.main_QtPlot.add(
+                            x=dset[xi].values,
+                            y=dset[yi].values,
+                            subplot=plot_idx,
+                            xlabel=dset[xi].attrs["long_name"],
+                            xunit=dset[xi].attrs["unit"],
+                            ylabel=dset[yi].attrs["long_name"],
+                            yunit=dset[yi].attrs["unit"],
+                            symbol="o",
+                            symbolSize=8,
+                            color=darker_color_cycle[0],
+                            name=self._mk_legend(dset),
+                            width=3
+                        )
+                        # We keep track only of the curves that need to be
+                        # updated in real-time
+                        self.curves.append(self.main_QtPlot.traces[-1])
+
                 # Persistent datasets auto and user
                 p_dsets = (self._persistent_dsets, self._previous_dsets)
                 p_colors = (self._persistent_colors, self._previous_colors)
                 p_symbols = (self._persistent_symbols, self._previous_symbols)
-                p_symbolSizes = (10, 8)
+                p_symbolSizes = (8, 7)
                 p_symbolBrushes = (False, (230, 230, 230))  # gray for previous dsets
                 for colors, symbols, dsets, symbolSize, symBrush in zip(
                     p_colors, p_symbols, p_dsets, p_symbolSizes, p_symbolBrushes
@@ -301,33 +324,10 @@ class PlotMonitor_pyqt(Instrument):
                                 # Oldest datasets fade more
                                 color=colors[i_p_dset % len(colors)],
                                 name=self._mk_legend(p_dset),
-                                # to avoid passing the argument
-                                **({"symbolBrush": symBrush} if symBrush else {})
                             )
 
-                if dset:
-                    has_settable = xi in _get_parnames(dset, "x")
-                    has_gettable = yi in _get_parnames(dset, "y")
-                    if has_settable and has_gettable:
-                        # Real-time dataset
-                        self.main_QtPlot.add(
-                            x=dset[xi].values,
-                            y=dset[yi].values,
-                            subplot=plot_idx,
-                            xlabel=dset[xi].attrs["long_name"],
-                            xunit=dset[xi].attrs["unit"],
-                            ylabel=dset[yi].attrs["long_name"],
-                            yunit=dset[yi].attrs["unit"],
-                            symbol="o",
-                            symbolSize=5,
-                            color=darker_color_cycle[0],
-                            name=self._mk_legend(dset),
-                        )
-                        # We keep track only of the curves that need to be
-                        # updated in real-time
-                        self.curves.append(self.main_QtPlot.traces[-1])
-                        # Manual counter is used because we may want to add more
-                        # than one quantity per panel
+                # Manual counter is used because we may want to add more
+                # than one quantity per panel
                 plot_idx += 1
             self.main_QtPlot.win.nextRow()
 

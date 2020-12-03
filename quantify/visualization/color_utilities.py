@@ -53,4 +53,4 @@ def set_lightness(color, lightness):
 darker_color_cycle, faded_color_cycle = tuple(tuple(
     tuple(int(255 * val) for val in set_lightness(color=col, lightness=lum))
     for col in color_cycle
-) for lum in (0.4, 0.8))
+) for lum in (0.4, 0.65))
