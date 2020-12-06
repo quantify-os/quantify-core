@@ -42,7 +42,6 @@ class PlotMonitor_pyqt(Instrument):
         self._last_tuid = None
 
         # used to track the tuids of previous datasets
-        # deque([<oldest>, ..., <one before latest>])
         self._tuids = deque()
         # keep all datasets in one place and update/remove as needed
         self._dsets = dict()
@@ -51,7 +50,7 @@ class PlotMonitor_pyqt(Instrument):
         self._tuids_extra = []
 
         # make sure each dataset gets a new symbol, see _get_next_symb
-        self.symbols = deque(["o", "t", "s", "t1", "p", "t2", "h", "star", "t3", "d"])
+        self.symbols = ["t", "s", "t1", "p", "t2", "h", "star", "t3", "d"]
 
         # We reserve the first (fading blues color to the latest datasets)
         self.colors = color_cycle[1:]
@@ -81,7 +80,7 @@ class PlotMonitor_pyqt(Instrument):
             docstring=(
                 "The tuids of the auto-accumulated previous datasets when "
                 "specified through `tuids_append`.\n"
-                "Can also be set to any list `['tuid1', 'tuid2', ...]`\n"
+                "Can also be set to any list `['tuid_one', 'tuid_two', ...]`\n"
                 "Can be reset by setting to `[]`\n"
                 "See also `tuids_extra`."
             ),
@@ -102,36 +101,10 @@ class PlotMonitor_pyqt(Instrument):
             set_cmd=self._set_tuids_extra,
             get_cmd=lambda: self._tuids_extra,
             # avoid set_cmd being called at __init__
-            initial_cache_value=[]
+            initial_cache_value=[],
         )
 
         self.create_plot_monitor()
-
-    def tuids_append(self, tuid):
-        """
-        FIXME TBW
-        """
-
-        # verify tuid
-        TUID(tuid)
-
-        self._tuids.append(tuid)
-        self._dsets[tuid] = load_dataset(self._last_tuid_prev)
-
-        # Now we ensure all datasets are compatible to be plotted together
-
-        # Last dataset has priority, reset the others
-        if not _xi_and_yi_match(self._dsets[t] for t in self._tuids):
-            # Reset the previous datasets
-            self._pop_old_dsets(max_tuids=1)
-        if not _xi_and_yi_match(self._dsets):
-            # Force reset the user-defined extra datasets
-            # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
-            [self.dests[t].pop() for t in self._tuids_extra]  # discard dsets
-            self._tuids_extra = []
-
-        # discard older datasets if the max_num overflows
-        self._pop_old_dsets(self.tuids_max_num())
 
     def _set_tuids_max_num(self, val):
         """
@@ -143,15 +116,38 @@ class PlotMonitor_pyqt(Instrument):
             # Only need to update if datasets were discarded
             self._initialize_plot_monitor()
 
-    def _get_next_symb(self):
-        symb = self.symbols[0]
-        self.symbols.rotate(-1)
-        return symb
-
     def _pop_old_dsets(self, max_tuids):
         while len(self._tuids) > max_tuids:
-            discard_tuid = self._tuids.popleft()
+            discard_tuid = self._tuids.pop()
             self._dsets.pop(discard_tuid)
+
+    def tuids_append(self, tuid):
+        """
+        FIXME TBW
+        """
+
+        # verify tuid
+        TUID(tuid)
+
+        self._tuids.appendleft(tuid)
+        self._dsets[tuid] = load_dataset(tuid)
+
+        # Now we ensure all datasets are compatible to be plotted together
+
+        # Last dataset has priority, reset the others
+        if not _xi_and_yi_match(self._dsets[t] for t in self._tuids):
+            # Reset the previous datasets
+            self._pop_old_dsets(max_tuids=1)
+        if not _xi_and_yi_match(self._dsets.values()):
+            # Force reset the user-defined extra datasets
+            # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
+            [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
+            self._tuids_extra = []
+
+        # discard older datasets when max_num overflows
+        self._pop_old_dsets(self.tuids_max_num())
+
+        self._initialize_plot_monitor()
 
     def _get_tuids(self):
         return list(self._tuids)
@@ -164,14 +160,20 @@ class PlotMonitor_pyqt(Instrument):
         dsets = {tuid: load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
-        if not _xi_and_yi_match(dsets):
-            raise NotImplementedError("Datasets with different x and/or y variables not supported")
+        if dsets and not _xi_and_yi_match(dsets.values()):
+            raise NotImplementedError(
+                "Datasets with different x and/or y variables not supported"
+            )
 
         # it is enough to compare one dataset from each dict
-        if not _xi_and_yi_match([next(iter(dsets.values())), next(iter(self._dsets.values()))]):
+        if dsets and not _xi_and_yi_match(
+            (next(iter(dsets.values())), next(iter(self._dsets.values())))
+        ):
             # Reset the extra tuids
-            discard_tuid = self._tuids_extra.popleft()
-            self._dsets.pop(discard_tuid)
+            [self._dsets.pop(t, None) for t in self._tuids_extra]
+
+        # Discard old dsets
+        [self._dsets.pop(t, None) for t in self._tuids]
 
         self._tuids = deque(tuids)
         self._dsets.update(dsets)
@@ -187,16 +189,28 @@ class PlotMonitor_pyqt(Instrument):
 
         # Now we ensure all datasets are compatible to be plotted together
 
-        if not _xi_and_yi_match(extra_dsets):
-            raise NotImplementedError("Datasets with different x and/or y variables not supported")
+        if extra_dsets and not _xi_and_yi_match(extra_dsets.values()):
+            raise NotImplementedError(
+                "Datasets with different x and/or y variables not supported"
+            )
 
         # it is enough to compare one dataset from each dict
-        if not _xi_and_yi_match([next(iter(extra_dsets.values())), next(iter(self._dsets.values()))]):
+        if extra_dsets and not _xi_and_yi_match(
+            dset
+            for dset in (
+                next(iter(extra_dsets.values()), False),
+                next(iter(self._dsets.values()), False),
+            )
+            if dset
+        ):
             # Reset the tuids because the user has specified persistent dsets
-            self._pop_old_dsets(val=0)
+            self._pop_old_dsets(max_tuids=0)
 
-        self._tuids_extra = tuids
+        # Discard old dsets
+        [self._dsets.pop(t, None) for t in self._tuids_extra]
+
         self._dsets.update(extra_dsets)
+        self._tuids_extra = tuids
 
         self._initialize_plot_monitor()
         return True
@@ -231,36 +245,39 @@ class PlotMonitor_pyqt(Instrument):
         if self.secondary_QtPlot.traces:
             self.secondary_QtPlot.clear()
 
-        self.curves = []
-        self._im_curves = []
-        self._im_scatters = []
-        self._im_scatters_last = []
+        self.curves = dict()
 
-        all_dsets = (
-            self._dsets_extra
-            + list(self._dsets)
-            + ([self._dset] if self._dset else [])
-        )
-
-        if not len(all_dsets):
+        if not len(self._dsets):
             # Nothing to be done
             return None
 
-        # Any can do, we have forced all xi and yi yo match
+        # we have forced all xi and yi to match so any dset will do here
         a_dset = next(iter(self._dsets.values()))
         set_parnames = sorted(_get_parnames(a_dset, par_type="x"))
         get_parnames = sorted(_get_parnames(a_dset, par_type="y"))
 
         #############################################################
 
-        fadded_colors = make_fadded_colors(num=len(self._tuids), color=color_cycle[0], to_hex=True)
-        extra_colors = (self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra)))
-        it_colors = itertools.chain(fadded_colors, extra_colors)
+        fadded_colors = make_fadded_colors(
+            num=len(self._tuids), color=color_cycle[0], to_hex=True
+        )
+        extra_colors = tuple(
+            self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra))
+        )
+        all_colors = fadded_colors + extra_colors
+        # We reserve circle for the latest dataset
+        symbols = ("o",) + tuple(
+            self.symbols[i % len(self.symbols)] for i in range(len(all_colors) - 1)
+        )
 
         plot_idx = 1
         for yi in get_parnames:
             for xi in set_parnames:
-                for tuid in itertools.chain((t for t in self._tuids), (t for t in self._tuids_extra)):
+                for i_tuid, tuid in enumerate(
+                    itertools.chain(
+                        (t for t in self._tuids), (t for t in self._tuids_extra)
+                    )
+                ):
                     dset = self._dsets[tuid]
                     self.main_QtPlot.add(
                         x=dset[xi].values,
@@ -270,200 +287,203 @@ class PlotMonitor_pyqt(Instrument):
                         xunit=dset[xi].attrs["unit"],
                         ylabel=dset[yi].attrs["long_name"],
                         yunit=dset[yi].attrs["unit"],
-                        symbol=self._get_next_symb(),
-                        symbolSize=8,
-                        color=next(it_colors),
-                        name=self._mk_legend(dset),
+                        symbol=symbols[i_tuid],
+                        symbolSize=9,
+                        color=all_colors[i_tuid],
+                        name=_mk_legend(dset),
                     )
 
                     # Keep track of all traces so that any curves can be updated
                     if tuid not in self.curves.keys():
                         self.curves[tuid] = dict()
-                    self.curves[tuid][xi + yi](self.main_QtPlot.traces[-1])
+                    self.curves[tuid][xi + yi] = self.main_QtPlot.traces[-1]
 
                 # Manual counter is used because we may want to add more
                 # than one quantity per panel
                 plot_idx += 1
             self.main_QtPlot.win.nextRow()
 
+        self.main_QtPlot.update_plot()
+
         #############################################################
+
+        # On the secondary window we plot the first dset that is 2D
+        # Below are some "extra" checks that are not currently strictly required
+
+        all_tuids_it = itertools.chain(self._tuids, self._tuids_extra)
+        self._tuids_2D = tuple(
+            tuid
+            for tuid in all_tuids_it
+            if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
+        )
+
+        dset = self._dsets.get(self._tuids_2D[0] if self._tuids_2D else "", None)
+
         # Add a square heatmap
 
-        # if dset is None and len(self._dsets_extra):
-        #     # If there is not an "active" tuid we make the secundary plot
-        #     # do the 2D plots of the first persistent dataset of the user
-        #     dset = self._dsets_extra[0]
+        self._im_curves = []
+        self._im_scatters = []
+        self._im_scatters_last = []
 
-        # if dset and dset.attrs["2D-grid"]:
-        #     plot_idx = 1
-        #     for yi in get_parnames:
+        if dset and dset.attrs["2D-grid"]:
+            plot_idx = 1
+            for yi in get_parnames:
 
-        #         cmap = "viridis"
-        #         zrange = None
+                cmap = "viridis"
+                zrange = None
 
-        #         x = dset["x0"].values[: dset.attrs["xlen"]]
-        #         y = dset["x1"].values[:: dset.attrs["xlen"]]
-        #         z = np.reshape(dset[yi].values, (len(x), len(y)), order="F").T
-        #         config_dict = {
-        #             "x": x,
-        #             "y": y,
-        #             "z": z,
-        #             "xlabel": dset["x0"].attrs["long_name"],
-        #             "xunit": dset["x0"].attrs["unit"],
-        #             "ylabel": dset["x1"].attrs["long_name"],
-        #             "yunit": dset["x1"].attrs["unit"],
-        #             "zlabel": dset[yi].attrs["long_name"],
-        #             "zunit": dset[yi].attrs["unit"],
-        #             "subplot": plot_idx,
-        #             "cmap": cmap,
-        #         }
-        #         if zrange is not None:
-        #             config_dict["zrange"] = zrange
-        #         self.secondary_QtPlot.add(**config_dict)
-        #         plot_idx += 1
+                x = dset["x0"].values[: dset.attrs["xlen"]]
+                y = dset["x1"].values[:: dset.attrs["xlen"]]
+                z = np.reshape(dset[yi].values, (len(x), len(y)), order="F").T
+                config_dict = {
+                    "x": x,
+                    "y": y,
+                    "z": z,
+                    "xlabel": dset["x0"].attrs["long_name"],
+                    "xunit": dset["x0"].attrs["unit"],
+                    "ylabel": dset["x1"].attrs["long_name"],
+                    "yunit": dset["x1"].attrs["unit"],
+                    "zlabel": dset[yi].attrs["long_name"],
+                    "zunit": dset[yi].attrs["unit"],
+                    "subplot": plot_idx,
+                    "cmap": cmap,
+                }
+                if zrange is not None:
+                    config_dict["zrange"] = zrange
+                self.secondary_QtPlot.add(**config_dict)
+                plot_idx += 1
 
         #############################################################
         # if data is not on a grid but is 2D it makes sense to interpolate
 
-        # elif dset and len(set_parnames) == 2:
-        #     plot_idx = 1
-        #     for yi in get_parnames:
+        elif dset and len(set_parnames) == 2:
+            plot_idx = 1
+            for yi in get_parnames:
 
-        #         cmap = "viridis"
-        #         zrange = None
+                cmap = "viridis"
+                zrange = None
 
-        #         config_dict = {
-        #             "x": [0, 1],
-        #             "y": [0, 1],
-        #             "z": np.zeros([2, 2]),
-        #             "xlabel": dset["x0"].attrs["long_name"],
-        #             "xunit": dset["x0"].attrs["unit"],
-        #             "ylabel": dset["x1"].attrs["long_name"],
-        #             "yunit": dset["x1"].attrs["unit"],
-        #             "zlabel": dset[yi].attrs["long_name"],
-        #             "zunit": dset[yi].attrs["unit"],
-        #             "subplot": plot_idx,
-        #             "cmap": cmap,
-        #         }
-        #         if zrange is not None:
-        #             config_dict["zrange"] = zrange
-        #         self.secondary_QtPlot.add(**config_dict)
-        #         self._im_curves.append(self.secondary_QtPlot.traces[-1])
+                config_dict = {
+                    "x": [0, 1],
+                    "y": [0, 1],
+                    "z": np.zeros([2, 2]),
+                    "xlabel": dset["x0"].attrs["long_name"],
+                    "xunit": dset["x0"].attrs["unit"],
+                    "ylabel": dset["x1"].attrs["long_name"],
+                    "yunit": dset["x1"].attrs["unit"],
+                    "zlabel": dset[yi].attrs["long_name"],
+                    "zunit": dset[yi].attrs["unit"],
+                    "subplot": plot_idx,
+                    "cmap": cmap,
+                }
+                if zrange is not None:
+                    config_dict["zrange"] = zrange
+                self.secondary_QtPlot.add(**config_dict)
+                self._im_curves.append(self.secondary_QtPlot.traces[-1])
 
-        #         # used to mark the interpolation points
-        #         self.secondary_QtPlot.add(
-        #             x=[],
-        #             y=[],
-        #             pen=None,
-        #             color=1.0,
-        #             width=0,
-        #             symbol="o",
-        #             symbolSize=4,
-        #             subplot=plot_idx,
-        #             xlabel=dset["x0"].attrs["long_name"],
-        #             xunit=dset["x0"].attrs["unit"],
-        #             ylabel=dset["x1"].attrs["long_name"],
-        #             yunit=dset["x1"].attrs["unit"],
-        #         )
-        #         self._im_scatters.append(self.secondary_QtPlot.traces[-1])
+                # used to mark the interpolation points
+                self.secondary_QtPlot.add(
+                    x=[],
+                    y=[],
+                    pen=None,
+                    color=1.0,
+                    width=0,
+                    symbol="o",
+                    symbolSize=4,
+                    subplot=plot_idx,
+                    xlabel=dset["x0"].attrs["long_name"],
+                    xunit=dset["x0"].attrs["unit"],
+                    ylabel=dset["x1"].attrs["long_name"],
+                    yunit=dset["x1"].attrs["unit"],
+                )
+                self._im_scatters.append(self.secondary_QtPlot.traces[-1])
 
-        #         # used to mark the last N-interpolation points
-        #         self.secondary_QtPlot.add(
-        #             x=[],
-        #             y=[],
-        #             color=color_cycle[3],  # marks the point red
-        #             width=0,
-        #             symbol="o",
-        #             symbolSize=7,
-        #             subplot=plot_idx,
-        #             xlabel=dset["x0"].attrs["long_name"],
-        #             xunit=dset["x0"].attrs["unit"],
-        #             ylabel=dset["x1"].attrs["long_name"],
-        #             yunit=dset["x1"].attrs["unit"],
-        #         )
-        #         self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
+                # used to mark the last N-interpolation points
+                self.secondary_QtPlot.add(
+                    x=[],
+                    y=[],
+                    color=color_cycle[3],  # marks the point red
+                    width=0,
+                    symbol="o",
+                    symbolSize=7,
+                    subplot=plot_idx,
+                    xlabel=dset["x0"].attrs["long_name"],
+                    xunit=dset["x0"].attrs["unit"],
+                    ylabel=dset["x1"].attrs["long_name"],
+                    yunit=dset["x1"].attrs["unit"],
+                )
+                self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
 
-        #         plot_idx += 1
+                plot_idx += 1
 
-        # # Not running this can lead to nasty memory issues due to
-        # # accumulation of traces
-        # self.main_QtPlot.update_plot()
-        # self.secondary_QtPlot.update_plot()
+        self.secondary_QtPlot.update_plot()
 
-    # def update(self):
-    #     # If tuid has changed, we need to initialize the figure
-    #     if self.tuid() != self._last_tuid:
-    #         # need to initialize the plot monitor
-    #         self._initialize_plot_monitor()
-    #         self._last_tuid = self.tuid()
+    def update(self, tuid):
+        dset = load_dataset(tuid)
+        self._dsets[tuid] = dset
 
-    #     # otherwise we simply update
-    #     elif self.tuid() is not None:
-    #         dset = load_dataset(tuid=self.tuid())
-    #         # This is necessary to be able to check for compatibility of
-    #         # plotting together with persistent/previous datasets
-    #         self._dset = dset
-    #         set_parnames = _get_parnames(dset, "x")
-    #         get_parnames = _get_parnames(dset, "y")
-    #         # Only updates the main monitor currently.
+        set_parnames = _get_parnames(dset, "x")
+        get_parnames = _get_parnames(dset, "y")
 
-    #         #############################################################
-    #         i = 0
-    #         for yi in get_parnames:
-    #             for xi in set_parnames:
-    #                 self.curves[i]["config"]["x"] = dset[xi].values
-    #                 self.curves[i]["config"]["y"] = dset[yi].values
-    #                 i += 1
-    #         self.main_QtPlot.update_plot()
+        update_2D = tuid == self._tuids_2D
 
-    #         #############################################################
-    #         # Add a square heatmap
-    #         if dset.attrs["2D-grid"]:
-    #             for yidx, yi in enumerate(get_parnames):
-    #                 Z = np.reshape(
-    #                     dset[yi].values,
-    #                     (dset.attrs["xlen"], dset.attrs["ylen"]),
-    #                     order="F",
-    #                 ).T
-    #                 self.secondary_QtPlot.traces[yidx]["config"]["z"] = Z
-    #             self.secondary_QtPlot.update_plot()
+        #############################################################
 
-    #         #############################################################
-    #         # if data is not on a grid but is 2D it makes sense to interpolate
-    #         elif len(set_parnames) == 2:
-    #             for yidx, yi in enumerate(get_parnames):
-    #                 # exists to force reset the x- and y-axis scale
-    #                 new_sc = TransformState(0, 1, True)
+        for yi in get_parnames:
+            for xi in set_parnames:
+                key = xi + yi
+                self.curves[tuid][key]["config"]["x"] = dset[xi].values
+                self.curves[tuid][key]["config"]["y"] = dset[yi].values
+        self.main_QtPlot.update_plot()
 
-    #                 x = dset["x0"].values[~np.isnan(dset)["y0"]]
-    #                 y = dset["x1"].values[~np.isnan(dset)["y0"]]
-    #                 z = dset[yi].values[~np.isnan(dset)["y0"]]
-    #                 # interpolation needs to be meaningful
-    #                 if len(z) < 8:
-    #                     break
-    #                 x_grid, y_grid, z_grid = interpolate_heatmap(
-    #                     x=x, y=y, z=z, interp_method="linear"
-    #                 )
+        #############################################################
+        # Add a square heatmap
+        if update_2D and dset.attrs["2D-grid"]:
+            for yidx, yi in enumerate(get_parnames):
+                Z = np.reshape(
+                    dset[yi].values,
+                    (dset.attrs["xlen"], dset.attrs["ylen"]),
+                    order="F",
+                ).T
+                self.secondary_QtPlot.traces[yidx]["config"]["z"] = Z
+            self.secondary_QtPlot.update_plot()
 
-    #                 trace = self._im_curves[yidx]
-    #                 trace["config"]["x"] = x_grid
-    #                 trace["config"]["y"] = y_grid
-    #                 trace["config"]["z"] = z_grid
-    #                 # force rescale axis so marking datapoints works
-    #                 trace["plot_object"]["scales"]["x"] = new_sc
-    #                 trace["plot_object"]["scales"]["y"] = new_sc
+        #############################################################
+        # if data is not on a grid but is 2D it makes sense to interpolate
+        elif update_2D and len(set_parnames) == 2:
+            for yidx, yi in enumerate(get_parnames):
+                # exists to force reset the x- and y-axis scale
+                new_sc = TransformState(0, 1, True)
 
-    #                 # Mark all measured points on which the interpolation
-    #                 # is based
-    #                 trace = self._im_scatters[yidx]
-    #                 trace["config"]["x"] = x
-    #                 trace["config"]["y"] = y
+                x = dset["x0"].values[~np.isnan(dset)["y0"]]
+                y = dset["x1"].values[~np.isnan(dset)["y0"]]
+                z = dset[yi].values[~np.isnan(dset)["y0"]]
+                # interpolation needs to be meaningful
+                if len(z) < 8:
+                    break
+                x_grid, y_grid, z_grid = interpolate_heatmap(
+                    x=x, y=y, z=z, interp_method="linear"
+                )
 
-    #                 trace = self._im_scatters_last[yidx]
-    #                 trace["config"]["x"] = x[-5:]
-    #                 trace["config"]["y"] = y[-5:]
+                trace = self._im_curves[yidx]
+                trace["config"]["x"] = x_grid
+                trace["config"]["y"] = y_grid
+                trace["config"]["z"] = z_grid
+                # force rescale axis so marking datapoints works
+                trace["plot_object"]["scales"]["x"] = new_sc
+                trace["plot_object"]["scales"]["y"] = new_sc
 
-    #             self.secondary_QtPlot.update_plot()
+                # Mark all measured points on which the interpolation
+                # is based
+                trace = self._im_scatters[yidx]
+                trace["config"]["x"] = x
+                trace["config"]["y"] = y
+
+                trace = self._im_scatters_last[yidx]
+                trace["config"]["x"] = x[-5:]
+                trace["config"]["y"] = y[-5:]
+
+            self.secondary_QtPlot.update_plot()
 
 
 def _get_parnames(dset, par_type):
