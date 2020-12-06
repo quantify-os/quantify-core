@@ -294,7 +294,7 @@ class PlotMonitor_pyqt(Instrument):
                         ylabel=dset[yi].attrs["long_name"],
                         yunit=dset[yi].attrs["unit"],
                         symbol=symbols[i_tuid],
-                        symbolSize=9,
+                        symbolSize=7,
                         symbolPen=all_colors[i_tuid],
                         symbolBrush=symbolsBrush[i_tuid],
                         color=all_colors[i_tuid],
@@ -324,8 +324,9 @@ class PlotMonitor_pyqt(Instrument):
             for tuid in all_tuids_it
             if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
         )
+        self._tuids_2D = self._tuids_2D[0] if self._tuids_2D else None
 
-        dset = self._dsets.get(self._tuids_2D[0] if self._tuids_2D else "", None)
+        dset = self._dsets[self._tuids_2D] if self._tuids_2D else None
 
         # Add a square heatmap
 
@@ -426,7 +427,9 @@ class PlotMonitor_pyqt(Instrument):
 
         self.secondary_QtPlot.update_plot()
 
-    def update(self, tuid):
+    def update(self, tuid: str = None):
+        tuid = self._tuids[0] if tuid is None else tuid
+
         dset = load_dataset(tuid)
         self._dsets[tuid] = dset
 
