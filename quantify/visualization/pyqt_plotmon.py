@@ -119,7 +119,7 @@ class PlotMonitor_pyqt(Instrument):
     def _pop_old_dsets(self, max_tuids):
         while len(self._tuids) > max_tuids:
             discard_tuid = self._tuids.pop()
-            self._dsets.pop(discard_tuid)
+            self._dsets.pop(discard_tuid, None)
 
     def tuids_append(self, tuid):
         """
@@ -144,11 +144,11 @@ class PlotMonitor_pyqt(Instrument):
             [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
             self._tuids_extra = []
 
-        # discard older datasets when max_num overflows
-        self._pop_old_dsets(self.tuids_max_num())
-
         self._tuids.appendleft(tuid)
         self._dsets[tuid] = dset
+
+        # discard older datasets when max_num overflows
+        self._pop_old_dsets(self.tuids_max_num())
 
         self._initialize_plot_monitor()
 

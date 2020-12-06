@@ -5,7 +5,6 @@ import pytest
 from tests.helpers import get_test_data_dir
 from quantify.data.types import TUID
 from quantify.data.handling import set_datadir
-from quantify.visualization.color_utilities import darker_color_cycle
 
 test_datadir = get_test_data_dir()
 
@@ -27,30 +26,34 @@ class TestPlotMonitor_pyqt:
         hasattr(self.plotmon, "secondary_QtPlot")
 
     def test_validator_accepts_TUID_objects(self):
-        self.plotmon.tuid(TUID("20200430-170837-001-315f36"))
+        self.plotmon.tuids_append(TUID("20200430-170837-001-315f36"))
+        self.plotmon.tuids([])  # reset for next tests
 
     def test_basic_1D_plot(self):
-        self.plotmon.max_num_previous_dsets(0)
+        self.plotmon.tuids_max_num(1)
         # Test 1D plotting using an example dataset
-        self.plotmon.tuid("20200430-170837-001-315f36")
+        tuid = "20200430-170837-001-315f36"
+        self.plotmon.tuids_append(tuid)
         self.plotmon.update()
 
-        x = self.plotmon.curves[0]["config"]["x"]
-        y = self.plotmon.curves[0]["config"]["y"]
+        x = self.plotmon.curves[tuid]["x0y0"]["config"]["x"]
+        y = self.plotmon.curves[tuid]["x0y0"]["config"]["y"]
 
         x_exp = np.linspace(0, 5, 50)
         y_exp = np.cos(np.pi * x_exp)
         np.testing.assert_allclose(x, x_exp)
         np.testing.assert_allclose(y, y_exp)
+        self.plotmon.tuids([])  # reset for next tests
 
     def test_basic_2D_plot(self):
-        self.plotmon.max_num_previous_dsets(0)
+        self.plotmon.tuids_max_num(1)
         # Test 1D plotting using an example dataset
-        self.plotmon.tuid("20200504-191556-002-4209ee")
+        tuid = "20200504-191556-002-4209ee"
+        self.plotmon.tuids_append(tuid)
         self.plotmon.update()
 
-        x = self.plotmon.curves[0]["config"]["x"]
-        y = self.plotmon.curves[0]["config"]["y"]
+        x = self.plotmon.curves[tuid]["x0y0"]["config"]["x"]
+        y = self.plotmon.curves[tuid]["x0y0"]["config"]["y"]
 
         x_exp = np.linspace(0, 5, 50)
         y_exp = np.cos(np.pi * x_exp) * -1
@@ -65,6 +68,7 @@ class TestPlotMonitor_pyqt:
         assert cfg["yunit"] == "V"
         assert cfg["zlabel"] == "Signal level"
         assert cfg["zunit"] == "V"
+        self.plotmon.tuids([])  # reset for next tests
 
     def test_persistence(self):
         """
@@ -72,7 +76,7 @@ class TestPlotMonitor_pyqt:
         never do this
         """
         # Clear the state to keep this test independent
-        self.plotmon.max_num_previous_dsets(3)
+        self.plotmon.tuids_max_num(3)
 
         tuid1 = "20200430-170837-001-315f36"  # 1D
         tuid2 = "20200504-191556-002-4209ee"  # 2D
@@ -88,50 +92,55 @@ class TestPlotMonitor_pyqt:
         hashes = [tuid.split("-")[-1] for tuid in tuids]
 
         for tuid in tuids:
-            self.plotmon.tuid(tuid)
+            self.plotmon.tuids_append(tuid)
 
         # Update a few times to mimic MC integration
         [self.plotmon.update() for i in range(3)]
 
         # Confirm persistent datasets are being accumulated
-        assert list(self.plotmon.previous_tuids()) == tuids[1:-1]
-        assert len(self.plotmon._previous_dsets) == 3
+        assert self.plotmon.tuids()[::-1] == tuids[2:]
 
         traces = self.plotmon.main_QtPlot.traces
         # this is a bit lazy to not deal with the indices of all traces
         # of all plots
         names = set(trace["config"]["name"] for trace in traces)
-        labels_exist = [any(_hash in name for name in names) for _hash in hashes[1:]]
+        labels_exist = [any(_hash in name for name in names) for _hash in hashes[2:]]
         assert all(labels_exist)
 
-        self.plotmon.tuid(tuids[-1])
-        assert self.plotmon.previous_tuids()[-1] == tuids[-1]
+        self.plotmon.tuids_append(tuids[0])
+        assert self.plotmon.tuids()[0] == tuids[0]
         # Confirm maximum accumulation works
-        assert len(self.plotmon._previous_dsets) == 3
+        assert len(self.plotmon.tuids()) == 3
 
         # the latest dataset is always blue circle
         traces = self.plotmon.main_QtPlot.traces
-        assert traces[-1]["config"]["color"] == darker_color_cycle[0]
-        assert traces[-1]["config"]["symbol"] == "o"
-
-        # test that reset works
-        self.plotmon.max_num_previous_dsets(0)
-        assert len(self.plotmon._previous_dsets) == 0
-        traces = self.plotmon.main_QtPlot.traces
-        len_tr = len(traces)
-        assert len_tr == 2
+        assert traces[0]["config"]["color"] == (31, 119, 180, 255)
+        assert traces[0]["config"]["symbol"] == "o"
 
         # test reset works
-        self.plotmon.persistent_tuids(tuids[0:2])
-        assert len(self.plotmon._persistent_dsets) == 2
+        self.plotmon.tuids_max_num(0)
+        assert self.plotmon.tuids() == []
+
+        self.plotmon.tuids_extra(tuids[1:3])
+        assert len(self.plotmon.tuids_extra()) == 2
         traces = self.plotmon.main_QtPlot.traces
         assert len(traces) > 0
-        self.plotmon.persistent_tuids([])
-        assert len(self.plotmon._persistent_dsets) == 0
+
+        self.plotmon.tuids_extra([])
+        assert self.plotmon.tuids_extra() == []
 
         with pytest.raises(
             NotImplementedError,
             match=r"Datasets with different x and/or y variables not supported",
         ):
             # Datasets with distinct xi and/or yi variables not supported
-            self.plotmon.persistent_tuids([tuid1, tuid2])
+            self.plotmon.tuids_extra([tuid1, tuid2])
+
+        with pytest.raises(
+            NotImplementedError,
+            match=r"Datasets with different x and/or y variables not supported",
+        ):
+            # Datasets with distinct xi and/or yi variables not supported
+            self.plotmon.tuids([tuid1, tuid2])
+
+        self.plotmon.tuids([])  # reset for next tests
