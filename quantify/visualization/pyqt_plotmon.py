@@ -7,6 +7,7 @@
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter
+
 # from qcodes.utils.helpers import strip_attrs
 import pyqtgraph.multiprocess as pgmp
 from quantify.data.handling import get_datadir
@@ -86,7 +87,9 @@ class PlotMonitor_pyqt(Instrument):
         # Jupyter notebook support
 
         self.main_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "main_QtPlot")
-        self.secondary_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "secondary_QtPlot")
+        self.secondary_QtPlot = QtPlotObjForJupyter(
+            self.remote_plotmon, "secondary_QtPlot"
+        )
 
     # Wrappers for the remote methods
     # _callSync="off" avoids waiting for a return
@@ -145,6 +148,7 @@ class QtPlotObjForJupyter:
     """
     A wrapper to be able to display a QtPlot window in Jupyter notebooks
     """
+
     def __init__(self, remote_plotmon, attr_name):
         # Save reference of the remote object
         self.remote_plotmon = remote_plotmon
