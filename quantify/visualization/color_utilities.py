@@ -5,22 +5,32 @@
 # -----------------------------------------------------------------------------
 
 import matplotlib.colors as mplc
+import numpy as np
 import colorsys
-from qcodes.plots.colors import color_cycle
 
 
-def set_lightness(color, lightness):
+def clip(x, vmin=0.0, vmax=1.0):
+    return max(min(x, vmax), vmin)
+
+
+def set_hlsa(
+    color,
+    h: float = None,
+    l: float = None,
+    s: float = None,
+    a: float = None,
+    to_hex: bool = False,
+):
     """
-    Accepts a `matplotlib` color specification and return an rgb color
-    with the specified `lightness`
-
-    Args:
-        color: e.g. "C0", "red", (40, 40, 40)
-        lightness: value between 0 and 1
+    Accepts a `matplotlib` color specification and returns an RGB color
+    with the specified HLS values plus an optional alpha
 
     Example:
+
         import seaborn as sns
         from matplotlib.colors import ListedColormap
+        import numpy as np
+
         color_cycle = [
             '#1f77b4',
             '#ff7f0e',
@@ -34,23 +44,40 @@ def set_lightness(color, lightness):
             '#17becf'
         ]
         all_colors = []
-        for col in color_cycle[1:]:
-            ls = np.linspace(0., 1., 20)
-            colors = [list(set_lightness(col, l)) for l in ls]
+        for col in color_cycle[:2]:
+            hls = colorsys.rgb_to_hls(*mplc.to_rgb(mplc.to_rgb(col)))
+            sat_vals = (np.linspace(0., 1.0, 20) ** 2) * hls[2]
+            alpha_vals = np.linspace(0.4, 1.0, 20)
+
+            colors = [list(set_hlsa(col, s=s)) for s, a in zip(sat_vals, alpha_vals)]
             all_colors += colors
 
-        cmap = ListedColormap(all_colors)
-        sns.palplot(all_colors)
+        def plot_colors(colors):
+            cmap = ListedColormap(colors)
+            sns.palplot(colors)
+
+        plot_colors(all_colors)
     """
     rgb = mplc.to_rgb(color)
-    hls_col = list(colorsys.rgb_to_hls(*mplc.to_rgb(rgb)))
-    hls_col[1] = lightness
-    return colorsys.hls_to_rgb(*hls_col)
+    hls = colorsys.rgb_to_hls(*mplc.to_rgb(rgb))
+    new_hls = (old if new is None else clip(new) for old, new in zip(hls, (h, l, s)))
+    col = colorsys.hls_to_rgb(*new_hls)
+
+    # append alpha to tuple
+    col = col if a is None else col + (clip(a),)
+    # convert to int 255 range
+    col = col if not to_hex else tuple(round(255 * x) for x in col)
+
+    return col
 
 
-# Create a "faded" version of the color_cycle
-# NB pyqtgraph requires colors in [0, 255] range
-darker_color_cycle, faded_color_cycle = tuple(tuple(
-    tuple(int(255 * val) for val in set_lightness(color=col, lightness=lum))
-    for col in color_cycle
-) for lum in (0.4, 0.65))
+def make_fadded_colors(
+    num=5, color="#1f77b4", min_alpha=0.3, sat_power=2, to_hex=False
+):
+    hls = colorsys.rgb_to_hls(*mplc.to_rgb(mplc.to_rgb(color)))
+    sat_vals = (np.linspace(1.0, 0.0, num) ** sat_power) * hls[2]
+    alpha_vals = np.linspace(1.0, min_alpha, num)
+    colors = tuple(
+        set_hlsa(color, s=s, a=a, to_hex=to_hex) for s, a in zip(sat_vals, alpha_vals)
+    )
+    return colors
