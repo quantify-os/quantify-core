@@ -7,6 +7,7 @@
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter
+# from qcodes.utils.helpers import strip_attrs
 import pyqtgraph.multiprocess as pgmp
 from quantify.data.handling import get_datadir
 
@@ -29,7 +30,8 @@ class PlotMonitor_pyqt(Instrument):
         """
         super().__init__(name=name)
 
-        self.proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
+        # pyqtgraph multiprocessing
+        self.proc = pgmp.QtProcess(processRequests=False)
         # quantify module in the remote process
         self.remote_quantify = self.proc._import("quantify")
         self.remote_ppr = self.proc._import(
@@ -93,9 +95,11 @@ class PlotMonitor_pyqt(Instrument):
         self.remote_plotmon.create_plot_monitor(_callSync="off")
 
     def update(self, tuid: str = None):
+        # return None
         self.remote_plotmon.update(tuid, _callSync="off")
 
     def tuids_append(self, tuid):
+        # return None
         self.remote_plotmon.tuids_append(tuid, _callSync="off")
 
     def _get_tuids_max_num(self):
@@ -108,13 +112,33 @@ class PlotMonitor_pyqt(Instrument):
         return self.remote_plotmon._get_tuids()
 
     def _set_tuids(self, tuids):
+        # return None
         self.remote_plotmon._set_tuids(tuids, _callSync="off")
 
     def _get_tuids_extra(self):
         return self.remote_plotmon._get_tuids_extra()
 
     def _set_tuids_extra(self, tuids):
+        # return None
         self.remote_plotmon._set_tuids_extra(tuids, _callSync="off")
+
+    # Not sure if this is necessary at the moment, might kill QT parent process
+    # that are still needed
+    # def close(self) -> None:
+    #     """
+    #     (Modified form Instrument class)
+
+    #     Irreversibly stop this instrument and free its resources.
+
+    #     Subclasses should override this if they have other specific
+    #     resources to close.
+    #     """
+
+    #     # Closing the process
+    #     self.proc.join()
+
+    #     strip_attrs(self, whitelist=['_name'])
+    #     self.remove_instance(self)
 
 
 class QtPlotObjForJupyter:

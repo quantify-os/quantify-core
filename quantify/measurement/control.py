@@ -7,6 +7,7 @@ import time
 import json
 import types
 from os.path import join
+from filelock import FileLock
 
 import numpy as np
 import adaptive
@@ -22,6 +23,8 @@ from quantify.data.handling import (
     trim_dataset,
 )
 from quantify.measurement.types import Settable, Gettable, is_batched
+
+_dataset_name = "dataset.hdf5"
 
 
 class MeasurementControl(Instrument):
@@ -169,16 +172,17 @@ class MeasurementControl(Instrument):
         self._exp_folder = create_exp_folder(
             tuid=self._dataset.attrs["tuid"], name=self._dataset.attrs["name"]
         )
-        self._dataset.to_netcdf(
-            join(self._exp_folder, "dataset.hdf5")
-        )  # Write the empty dataset
+        filename = join(self._exp_folder, _dataset_name)
+        # Multiprocess safe
+        with FileLock(filename + ".lock", 5):
+            self._dataset.to_netcdf(filename)  # Write the empty dataset
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
         self._plotmon_name = self.instr_plotmon()
-        if self._plotmon_name is not None and self._plotmon_name != "":
-            self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
+        # if self._plotmon_name is not None and self._plotmon_name != "":
+        #     self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
 
         # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
         self._instrument_monitor_name = self.instrument_monitor()
@@ -215,9 +219,10 @@ class MeasurementControl(Instrument):
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
-        self._dataset.to_netcdf(
-            join(self._exp_folder, "dataset.hdf5")
-        )  # Wrap up experiment and store data
+        filename = join(self._exp_folder, _dataset_name)
+        # Multiprocess safe
+        with FileLock(filename + ".lock", 5):
+            self._dataset.to_netcdf(filename)  # Wrap up experiment and store data
         self._finish()
         self._plot_info = {
             "2D-grid": False
@@ -305,7 +310,7 @@ class MeasurementControl(Instrument):
         self._finish()
         self._dataset = trim_dataset(self._dataset)
         self._dataset.to_netcdf(
-            join(self._exp_folder, "dataset.hdf5")
+            join(self._exp_folder, _dataset_name)
         )  # Wrap up experiment and store data
         return self._dataset
 
@@ -399,9 +404,15 @@ class MeasurementControl(Instrument):
         )
         if update:
             self.print_progress(print_message)
-            self._dataset.to_netcdf(join(self._exp_folder, "dataset.hdf5"))
+
+            filename = join(self._exp_folder, _dataset_name)
+            # Multiprocess safe
+            with FileLock(filename + ".lock", 5):
+                self._dataset.to_netcdf(filename)
+
             if self._plotmon_name is not None and self._plotmon_name != "":
-                self.instr_plotmon.get_instr().update()
+                # Plotmon requires to know which dataset was modified
+                self.instr_plotmon.get_instr().update(tuid=self._dataset.attrs["tuid"])
 
             if (
                 self._instrument_monitor_name is not None

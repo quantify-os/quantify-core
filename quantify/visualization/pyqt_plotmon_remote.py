@@ -6,15 +6,23 @@
 import numpy as np
 from collections import deque
 import itertools
+# import psutil
+from filelock import FileLock
 
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 
 from quantify.utilities.general import get_keys_containing
-from quantify.data.handling import load_dataset, _xi_and_yi_match, set_datadir
+from quantify.data.handling import (
+    load_dataset,
+    _xi_and_yi_match,
+    set_datadir,
+    _locate_experiment_file,
+)
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from .color_utilities import make_fadded_colors
+from quantify.measurement.control import _dataset_name
 
 
 class RemotePlotmon:
@@ -55,6 +63,7 @@ class RemotePlotmon:
 
         # Set datadir in this process to match the process in
         # which the plotmon instrument lives
+        self.datadir = datadir
         set_datadir(datadir)
 
         self.create_plot_monitor()
@@ -85,7 +94,7 @@ class RemotePlotmon:
         # verify tuid
         TUID(tuid)
 
-        dset = load_dataset(tuid)
+        dset = _safe_load_dataset(tuid, self.datadir)
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -118,7 +127,7 @@ class RemotePlotmon:
         Set cmd for tuids
         """
 
-        dsets = {tuid: load_dataset(tuid) for tuid in tuids}
+        dsets = {tuid: _safe_load_dataset(tuid, self.datadir) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
         if dsets and not _xi_and_yi_match(dsets.values()):
@@ -152,7 +161,9 @@ class RemotePlotmon:
         """
         Set cmd for tuids_extra
         """
-        extra_dsets = {tuid: load_dataset(tuid) for tuid in tuids}
+        extra_dsets = {
+            tuid: _safe_load_dataset(tuid, self.datasdir) for tuid in tuids
+        }
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -188,11 +199,13 @@ class RemotePlotmon:
             del self.secondary_QtPlot
 
         self.secondary_QtPlot = QtPlot(
-            window_title="Secondary plotmon of {}".format(self.instr_name), figsize=(600, 400)
+            window_title="Secondary plotmon of {}".format(self.instr_name),
+            figsize=(600, 400),
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.instr_name), figsize=(600, 400)
+            window_title="Main plotmon of {}".format(self.instr_name),
+            figsize=(600, 400),
         )
 
     def _initialize_plot_monitor(self):
@@ -387,13 +400,19 @@ class RemotePlotmon:
         self.secondary_QtPlot.update_plot()
 
     def update(self, tuid: str = None):
+
+        if tuid and tuid not in self._dsets.keys():
+            # makes it easy to directly add a dataset and monitor it
+            # this avoids having to set the tuid before the file was created
+            self.tuids_append(tuid)
+
         if not self._dsets:
             # Nothing to update
             return
 
         tuid = self._tuids[0] if tuid is None else tuid
 
-        dset = load_dataset(tuid)
+        dset = _safe_load_dataset(tuid, self.datadir)
         self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")
@@ -458,6 +477,31 @@ class RemotePlotmon:
                 trace["config"]["y"] = y[-5:]
 
             self.secondary_QtPlot.update_plot()
+
+
+# def _get_proc_opened_files(pid):
+#     proc = psutil.Process(pid)
+#     flist = (file.path for file in proc.open_files())
+#     return flist
+
+
+def _safe_load_dataset(tuid, datadir):
+    # files = tuple(_get_proc_opened_files(MC_proc_pid))
+    # print(files)
+    # while any(tuid in fp for fp in _get_proc_opened_files(MC_proc_pid)):
+    #     # We wait until the file is not in use in the main process
+    #     time.sleep(0.005)
+
+    # filename = os.path.join(create_exp_folder(tuid), _dataset_name)
+    filename = _locate_experiment_file(tuid, datadir=datadir, name=_dataset_name)
+    with FileLock(filename + ".lock", 5):
+        dset = load_dataset(tuid)
+
+    # if not os.path.exists(filename) or not os.path.getsize(filename):
+    #     # In case the dataset does not exist or was not populated yet
+    #     return None
+
+    return dset
 
 
 def _get_parnames(dset, par_type):
