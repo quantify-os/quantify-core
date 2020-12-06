@@ -13,6 +13,8 @@ from filelock import FileLock
 
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
+from pyqtgraph.Qt import QtCore
+from multiprocessing import Queue
 
 from quantify.utilities.general import get_keys_containing
 from quantify.data.handling import (
@@ -64,10 +66,40 @@ class RemotePlotmon:
 
         # Set datadir in this process to match the process in
         # which the plotmon instrument lives
-        self.datadir = datadir
         set_datadir(datadir)
 
+        self.queue = Queue()
+
+        # Create plotting windows and start listening to commands on the
+        # queue
         self.create_plot_monitor()
+
+    # ##################################################################
+    # Multiprocessing communication and logic
+    # ##################################################################
+
+    # This is intended to be able to instantly liberate the main process
+
+    def _run(self):
+        """
+        Start a timer in this process that calls `self._exec_queue`
+        periodically
+        """
+        # This line requires the QtPlot's to be created with `remote=False`
+        timer = QtCore.QTimer(self.main_QtPlot.win)
+        timer.timeout.connect(self._exec_queue)
+        timer.start(50)  # milliseconds
+
+    def _exec_queue(self):
+        """
+        To be called periodically by `_run` in order to execute the pending
+        commands in `self.queue`
+        """
+        while not self.queue.empty():
+            attr_name, args = self.queue.get()
+            getattr(self, attr_name)(*args)
+
+    # ##################################################################
 
     def _get_tuids_max_num(self):
         return self._tuids_max_num
@@ -88,10 +120,6 @@ class RemotePlotmon:
             self._dsets.pop(discard_tuid, None)
 
     def tuids_append(self, tuid):
-        """
-        FIXME TBW
-        """
-
         # verify tuid
         TUID(tuid)
 
@@ -200,12 +228,23 @@ class RemotePlotmon:
         self.secondary_QtPlot = QtPlot(
             window_title="Secondary plotmon of {}".format(self.instr_name),
             figsize=(600, 400),
+            # We want the process to run locally to be able to
+            # attach a QtTimer for the main loop of this process
+            remote=False,
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
             window_title="Main plotmon of {}".format(self.instr_name),
-            figsize=(600, 400),
+            figsize=(600, 400), remote=False
         )
+
+        # This will start a timer and periodically take care of the queue
+        # of commands sent from the main process
+        # This is based on Qt timer and needs to be attached to a QtObject
+
+        # We attach it to the main window
+        # This likely requires to not close the main window
+        self._run()
 
     def _initialize_plot_monitor(self):
         """
