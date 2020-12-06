@@ -6,8 +6,9 @@
 import time
 import json
 import types
-from os.path import join
+from os.path import join, basename
 from filelock import FileLock
+import tempfile
 
 import numpy as np
 import adaptive
@@ -24,7 +25,9 @@ from quantify.data.handling import (
 )
 from quantify.measurement.types import Settable, Gettable, is_batched
 
+# Intended for plotting monitors that run in separate processes
 _dataset_name = "dataset.hdf5"
+_dataset_locks_dir = tempfile.gettempdir()
 
 
 class MeasurementControl(Instrument):
@@ -172,10 +175,8 @@ class MeasurementControl(Instrument):
         self._exp_folder = create_exp_folder(
             tuid=self._dataset.attrs["tuid"], name=self._dataset.attrs["name"]
         )
-        filename = join(self._exp_folder, _dataset_name)
-        # Multiprocess safe
-        with FileLock(filename + ".lock", 5):
-            self._dataset.to_netcdf(filename)  # Write the empty dataset
+        self._safe_write_dataset()  # Write the empty dataset
+
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
@@ -219,10 +220,8 @@ class MeasurementControl(Instrument):
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
-        filename = join(self._exp_folder, _dataset_name)
-        # Multiprocess safe
-        with FileLock(filename + ".lock", 5):
-            self._dataset.to_netcdf(filename)  # Wrap up experiment and store data
+        self._safe_write_dataset()  # Wrap up experiment and store data
+
         self._finish()
         self._plot_info = {
             "2D-grid": False
@@ -309,9 +308,7 @@ class MeasurementControl(Instrument):
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
-        self._dataset.to_netcdf(
-            join(self._exp_folder, _dataset_name)
-        )  # Wrap up experiment and store data
+        self._safe_write_dataset()  # Wrap up experiment and store data
         return self._dataset
 
     def _run_iterative(self):
@@ -405,10 +402,7 @@ class MeasurementControl(Instrument):
         if update:
             self.print_progress(print_message)
 
-            filename = join(self._exp_folder, _dataset_name)
-            # Multiprocess safe
-            with FileLock(filename + ".lock", 5):
-                self._dataset.to_netcdf(filename)
+            self._safe_write_dataset()
 
             if self._plotmon_name is not None and self._plotmon_name != "":
                 # Plotmon requires to know which dataset was modified
@@ -509,6 +503,21 @@ class MeasurementControl(Instrument):
             end_char = "\n"
         if self.verbose():
             print("\r", progress_message, end=end_char)
+
+    def _safe_write_dataset(self):
+        """
+        Uses a lock when writing the file to stay safe for multiprocessing.
+        Locking files are written into a temporary dir to avoid polluting
+        the experiment container.
+        """
+        filename = join(self._exp_folder, _dataset_name)
+        # Multiprocess safe
+        lockfile = join(
+            _dataset_locks_dir,
+            self._dataset.attrs["tuid"] + "-" + _dataset_name + ".lock",
+        )
+        with FileLock(lockfile, 5):
+            self._dataset.to_netcdf(filename)
 
     ####################################
     # Non-parameter get/set functions  #
