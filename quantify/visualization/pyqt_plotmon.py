@@ -125,24 +125,6 @@ class PlotMonitor_pyqt(Instrument):
         # return None
         self.remote_plotmon._set_tuids_extra(tuids, _callSync="off")
 
-    # Not sure if this is necessary at the moment, might kill QT parent process
-    # that are still needed
-    # def close(self) -> None:
-    #     """
-    #     (Modified form Instrument class)
-
-    #     Irreversibly stop this instrument and free its resources.
-
-    #     Subclasses should override this if they have other specific
-    #     resources to close.
-    #     """
-
-    #     # Closing the process
-    #     self.proc.join()
-
-    #     strip_attrs(self, whitelist=['_name'])
-    #     self.remove_instance(self)
-
 
 class QtPlotObjForJupyter:
     """
@@ -155,4 +137,5 @@ class QtPlotObjForJupyter:
         self.attr_name = attr_name
 
     def _repr_png_(self):
+        # always get the remote object, avoid keeping object references
         return getattr(self.remote_plotmon, self.attr_name)._repr_png_()

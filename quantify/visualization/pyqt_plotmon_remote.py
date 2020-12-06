@@ -33,7 +33,7 @@ class RemotePlotmon:
     We make it remote to avoid bottlenecks with updates and initialization of
     the plots/windows.
 
-    A plot monitor is intended to provide a real-time visualization of a dataset.
+    A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
     def __init__(self, instr_name: str, datadir: str):
@@ -95,7 +95,7 @@ class RemotePlotmon:
         # verify tuid
         TUID(tuid)
 
-        dset = _safe_load_dataset(tuid, self.datadir)
+        dset = _safe_load_dataset(tuid)
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -128,7 +128,7 @@ class RemotePlotmon:
         Set cmd for tuids
         """
 
-        dsets = {tuid: _safe_load_dataset(tuid, self.datadir) for tuid in tuids}
+        dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
         if dsets and not _xi_and_yi_match(dsets.values()):
@@ -411,7 +411,7 @@ class RemotePlotmon:
 
         tuid = self._tuids[0] if tuid is None else tuid
 
-        dset = _safe_load_dataset(tuid, self.datadir)
+        dset = _safe_load_dataset(tuid)
         self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")
@@ -478,28 +478,12 @@ class RemotePlotmon:
             self.secondary_QtPlot.update_plot()
 
 
-# def _get_proc_opened_files(pid):
-#     proc = psutil.Process(pid)
-#     flist = (file.path for file in proc.open_files())
-#     return flist
-
-
-def _safe_load_dataset(tuid, datadir):
-    # files = tuple(_get_proc_opened_files(MC_proc_pid))
-    # print(files)
-    # while any(tuid in fp for fp in _get_proc_opened_files(MC_proc_pid)):
-    #     # We wait until the file is not in use in the main process
-    #     time.sleep(0.005)
-
-    # filename = os.path.join(create_exp_folder(tuid), _dataset_name)
-    # filename = _locate_experiment_file(tuid, datadir=datadir, name=_dataset_name)
-    lockfile = os.path.join(_dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock")
+def _safe_load_dataset(tuid):
+    lockfile = os.path.join(
+        _dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock"
+    )
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
-
-    # if not os.path.exists(filename) or not os.path.getsize(filename):
-    #     # In case the dataset does not exist or was not populated yet
-    #     return None
 
     return dset
 
