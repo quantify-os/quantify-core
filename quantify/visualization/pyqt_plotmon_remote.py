@@ -6,6 +6,8 @@
 import numpy as np
 from collections import deque
 import itertools
+import os
+
 # import psutil
 from filelock import FileLock
 
@@ -17,12 +19,11 @@ from quantify.data.handling import (
     load_dataset,
     _xi_and_yi_match,
     set_datadir,
-    _locate_experiment_file,
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from .color_utilities import make_fadded_colors
-from quantify.measurement.control import _dataset_name
+from quantify.measurement.control import _dataset_name, _dataset_locks_dir
 
 
 class RemotePlotmon:
@@ -161,9 +162,7 @@ class RemotePlotmon:
         """
         Set cmd for tuids_extra
         """
-        extra_dsets = {
-            tuid: _safe_load_dataset(tuid, self.datasdir) for tuid in tuids
-        }
+        extra_dsets = {tuid: _safe_load_dataset(tuid, self.datasdir) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -493,8 +492,9 @@ def _safe_load_dataset(tuid, datadir):
     #     time.sleep(0.005)
 
     # filename = os.path.join(create_exp_folder(tuid), _dataset_name)
-    filename = _locate_experiment_file(tuid, datadir=datadir, name=_dataset_name)
-    with FileLock(filename + ".lock", 5):
+    # filename = _locate_experiment_file(tuid, datadir=datadir, name=_dataset_name)
+    lockfile = os.path.join(_dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock")
+    with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
 
     # if not os.path.exists(filename) or not os.path.getsize(filename):
