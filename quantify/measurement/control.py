@@ -178,9 +178,7 @@ class MeasurementControl(Instrument):
 
         self._plotmon_name = self.instr_plotmon()
         if self._plotmon_name is not None and self._plotmon_name != "":
-            self.instr_plotmon.get_instr().tuid(self._dataset.attrs["tuid"])
-            # if the timestamp has changed, this will initialize the monitor
-            self.instr_plotmon.get_instr().update()
+            self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
 
         # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
         self._instrument_monitor_name = self.instrument_monitor()
@@ -188,7 +186,6 @@ class MeasurementControl(Instrument):
             self._instrument_monitor_name is not None
             and self._instrument_monitor_name != ""
         ):
-            self.instrument_monitor.get_instr().name
             self.instrument_monitor.get_instr().update()
 
     def run(self, name: str = ""):

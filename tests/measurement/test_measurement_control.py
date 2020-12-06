@@ -754,7 +754,7 @@ class TestMeasurementControl:
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": adaptive.SKOptLearner,
-            "goal": lambda l: l.npoints > 30,
+            "goal": lambda l: l.npoints > 15,
             "dimensions": [(-50.0, +50.0), (-20.0, +30.0)],
             "base_estimator": "gp",
             "acq_func": "EI",
@@ -786,7 +786,7 @@ class TestMeasurementControl:
 
         self.MC.instr_plotmon(plotmon.name)
 
-        assert plotmon.tuid() is None
+        assert len(plotmon.tuids()) == 0
 
         times = np.linspace(0, 5, 18)
         amps = np.linspace(-1, 1, 5)
@@ -796,7 +796,7 @@ class TestMeasurementControl:
         self.MC.gettables(sig)
         self.MC.run("2D Cosine test")
 
-        assert plotmon.tuid() is not None
+        assert len(plotmon.tuids()) > 0
 
         plotmon.close()
         self.MC.instr_plotmon("")
