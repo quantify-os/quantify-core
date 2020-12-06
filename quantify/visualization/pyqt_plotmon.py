@@ -72,7 +72,7 @@ class PlotMonitor_pyqt(Instrument):
             parameter_class=Parameter,
             vals=vals.Ints(min_value=0, max_value=100),
             # avoid set_cmd being called at __init__
-            initial_cache_value=2,
+            initial_cache_value=3,
             set_cmd=self._set_tuids_max_num,
         )
         self.add_parameter(
@@ -129,16 +129,16 @@ class PlotMonitor_pyqt(Instrument):
         # verify tuid
         TUID(tuid)
 
-        self._tuids.appendleft(tuid)
-        self._dsets[tuid] = load_dataset(tuid)
+        dset = load_dataset(tuid)
 
         # Now we ensure all datasets are compatible to be plotted together
 
         # Last dataset has priority, reset the others
-        if not _xi_and_yi_match(self._dsets[t] for t in self._tuids):
+        if not _xi_and_yi_match(tuple(self._dsets[t] for t in self._tuids) + (dset,)):
             # Reset the previous datasets
-            self._pop_old_dsets(max_tuids=1)
-        if not _xi_and_yi_match(self._dsets.values()):
+            self._pop_old_dsets(max_tuids=0)
+
+        if not _xi_and_yi_match(tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)):
             # Force reset the user-defined extra datasets
             # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
             [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
@@ -146,6 +146,9 @@ class PlotMonitor_pyqt(Instrument):
 
         # discard older datasets when max_num overflows
         self._pop_old_dsets(self.tuids_max_num())
+
+        self._tuids.appendleft(tuid)
+        self._dsets[tuid] = dset
 
         self._initialize_plot_monitor()
 
@@ -265,10 +268,13 @@ class PlotMonitor_pyqt(Instrument):
             self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra))
         )
         all_colors = fadded_colors + extra_colors
-        # We reserve circle for the latest dataset
-        symbols = ("o",) + tuple(
-            self.symbols[i % len(self.symbols)] for i in range(len(all_colors) - 1)
+        # We reserve "o" symbol for the latest dataset
+        symbols = tuple(
+            self.symbols[i % len(self.symbols)] for i in range(len(all_colors))
         )
+        # In case only extra datasets are present
+        symbols = ("o",) + symbols if len(fadded_colors) else symbols
+        symbolsBrush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
 
         plot_idx = 1
         for yi in get_parnames:
@@ -289,6 +295,8 @@ class PlotMonitor_pyqt(Instrument):
                         yunit=dset[yi].attrs["unit"],
                         symbol=symbols[i_tuid],
                         symbolSize=9,
+                        symbolPen=all_colors[i_tuid],
+                        symbolBrush=symbolsBrush[i_tuid],
                         color=all_colors[i_tuid],
                         name=_mk_legend(dset),
                     )
