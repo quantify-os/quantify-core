@@ -138,7 +138,9 @@ class PlotMonitor_pyqt(Instrument):
             # Reset the previous datasets
             self._pop_old_dsets(max_tuids=0)
 
-        if not _xi_and_yi_match(tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)):
+        if not _xi_and_yi_match(
+            tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)
+        ):
             # Force reset the user-defined extra datasets
             # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
             [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
@@ -170,7 +172,7 @@ class PlotMonitor_pyqt(Instrument):
 
         # it is enough to compare one dataset from each dict
         if dsets and not _xi_and_yi_match(
-            (next(iter(dsets.values())), next(iter(self._dsets.values())))
+            itertools.chain(dsets.values(), self._dsets.values())
         ):
             # Reset the extra tuids
             [self._dsets.pop(t, None) for t in self._tuids_extra]
@@ -199,12 +201,7 @@ class PlotMonitor_pyqt(Instrument):
 
         # it is enough to compare one dataset from each dict
         if extra_dsets and not _xi_and_yi_match(
-            dset
-            for dset in (
-                next(iter(extra_dsets.values()), False),
-                next(iter(self._dsets.values()), False),
-            )
-            if dset
+            itertools.chain(extra_dsets.values(), self._dsets.values())
         ):
             # Reset the tuids because the user has specified persistent dsets
             self._pop_old_dsets(max_tuids=0)
