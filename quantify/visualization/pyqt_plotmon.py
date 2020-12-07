@@ -176,13 +176,30 @@ class PlotMonitor_pyqt(Instrument):
     # For this ones we wait to get the return
 
     def _get_tuids_max_num(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
         return self.remote_plotmon._get_tuids_max_num()
 
     def _get_tuids(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
         return self.remote_plotmon._get_tuids()
 
     def _get_tuids_extra(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
         return self.remote_plotmon._get_tuids_extra()
+
+    # Workaround for test due to pickling issues of certain objects
+    def _get_curves_config(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_curves_config()
+
+    def _get_traces_config(self, which="main_QtPlot"):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_traces_config(which)
 
 
 class QtPlotObjForJupyter:

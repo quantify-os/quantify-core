@@ -287,7 +287,8 @@ class RemotePlotmon:
         all_colors = tuple(reversed(all_colors))
         # We reserve "o" symbol for the latest dataset
         symbols = tuple(
-            self.symbols[i % len(self.symbols)] for i in range(len(all_colors) - bool(len(fadded_colors)))
+            self.symbols[i % len(self.symbols)]
+            for i in range(len(all_colors) - bool(len(fadded_colors)))
         )
         # In case only extra datasets are present
         symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
@@ -524,6 +525,34 @@ class RemotePlotmon:
                 trace["config"]["y"] = y[-5:]
 
             self.secondary_QtPlot.update_plot()
+
+    def _get_curves_config(self):
+        """
+        For testing purposes only, some objects cannot be pickled to
+        be sent
+        """
+        # from pprint import pprint
+        # pprint(self.curves)
+        # pprint(self.curves.items())
+        curves_dict = dict()
+        for tuid, xiyi_dict in self.curves.items():
+            curves_dict[tuid] = dict()
+            for xiyi, items in xiyi_dict.items():
+                curves_dict[tuid][xiyi] = {"config": items["config"]}
+
+        return curves_dict
+
+    def _get_traces_config(self, which="main_QtPlot"):
+        """
+        For testing purposes only, some objects cannot be pickled to
+        be sent
+        """
+        traces = [
+            {"config": trace["config"]}
+            for trace in getattr(self, which).traces
+        ]
+
+        return traces
 
 
 def _safe_load_dataset(tuid):
