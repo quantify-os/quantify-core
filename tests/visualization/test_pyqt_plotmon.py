@@ -83,8 +83,6 @@ class TestPlotMonitor_pyqt:
         self.plotmon.tuids([])
         self.plotmon.tuids_max_num(3)
 
-        tuid1 = "20200430-170837-001-315f36"  # 1D
-        tuid2 = "20200504-191556-002-4209ee"  # 2D
 
         tuids = [
             "20201124-184709-137-8a5112",
@@ -138,6 +136,8 @@ class TestPlotMonitor_pyqt:
         # process, some more work is needed to propagate exceptions
         # This is not a severe one though, the code will do nothing
         # and keep working
+        # tuid1 = "20200430-170837-001-315f36"  # 1D
+        # tuid2 = "20200504-191556-002-4209ee"  # 2D
         # with pytest.raises(
         #     NotImplementedError,
         #     match=r"Datasets with different x and/or y variables not supported",
