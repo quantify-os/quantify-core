@@ -39,18 +39,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     import quantify.visualization.pyqt_plotmon as pqm
     from quantify.visualization.instrument_monitor import InstrumentMonitor
 
-
-Before starting the measurement we change the directory experiments data will be saved. For this Quantify provides the :meth:`~quantify.data.handling.get_datadir`/:meth:`~quantify.data.handling.set_datadir` functions.
-
-
-.. jupyter-execute::
-
-    import os
-    from quantify.data.handling import get_datadir, set_datadir
-
-    my_data_dir = os.path.join(os.path.dirname(get_datadir()), "my_data_tutorial_1")
-    set_datadir(my_data_dir)
-    os.path.basename(get_datadir())
+.. include:: set_data_dir.rst
 
 
 .. jupyter-execute::
@@ -293,7 +282,7 @@ Method 1 - a quick grid
 .. jupyter-execute::
 
     acq_delay(0.0001)
-    MC.update_interval(3.0)
+    MC.update_interval(1.0)
 
 
 .. jupyter-execute::
