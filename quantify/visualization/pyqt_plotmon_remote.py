@@ -44,6 +44,11 @@ class RemotePlotmon:
 
         # used to track the tuids of previous datasets
         self._tuids = deque()
+
+        # Used to assign which dataset will be plotted on the secondary
+        # window
+        self._tuid_2D = None
+
         # keep all datasets in one place and update/remove as needed
         self._dsets = dict()
 
@@ -190,7 +195,7 @@ class RemotePlotmon:
         """
         Set cmd for tuids_extra
         """
-        extra_dsets = {tuid: _safe_load_dataset(tuid, self.datasdir) for tuid in tuids}
+        extra_dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -235,7 +240,8 @@ class RemotePlotmon:
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
             window_title="Main plotmon of {}".format(self.instr_name),
-            figsize=(600, 400), remote=False
+            figsize=(600, 400),
+            remote=False,
         )
 
         # This will start a timer and periodically take care of the queue
@@ -278,21 +284,24 @@ class RemotePlotmon:
             self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra))
         )
         all_colors = fadded_colors + extra_colors
+        all_colors = tuple(reversed(all_colors))
         # We reserve "o" symbol for the latest dataset
         symbols = tuple(
-            self.symbols[i % len(self.symbols)] for i in range(len(all_colors))
+            self.symbols[i % len(self.symbols)] for i in range(len(all_colors) - bool(len(fadded_colors)))
         )
         # In case only extra datasets are present
-        symbols = ("o",) + symbols if len(fadded_colors) else symbols
+        symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
         symbolsBrush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
+        symbolsBrush = tuple(reversed(symbolsBrush))
 
         plot_idx = 1
         for yi in get_parnames:
             for xi in set_parnames:
-                for i_tuid, tuid in enumerate(
-                    itertools.chain(
-                        (t for t in self._tuids), (t for t in self._tuids_extra)
-                    )
+                for tuid, symb, symbBrush, color in zip(
+                    itertools.chain(reversed(self._tuids_extra), reversed(self._tuids)),
+                    symbols,
+                    symbolsBrush,
+                    all_colors,
                 ):
                     dset = self._dsets[tuid]
                     self.main_QtPlot.add(
@@ -303,11 +312,11 @@ class RemotePlotmon:
                         xunit=dset[xi].attrs["unit"],
                         ylabel=dset[yi].attrs["long_name"],
                         yunit=dset[yi].attrs["unit"],
-                        symbol=symbols[i_tuid],
-                        symbolSize=7,
-                        symbolPen=all_colors[i_tuid],
-                        symbolBrush=symbolsBrush[i_tuid],
-                        color=all_colors[i_tuid],
+                        symbol=symb,
+                        symbolSize=6,
+                        symbolPen=color,
+                        symbolBrush=symbBrush,
+                        color=color,
                         name=_mk_legend(dset),
                     )
 
@@ -334,9 +343,9 @@ class RemotePlotmon:
             for tuid in all_tuids_it
             if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
         )
-        self._tuids_2D = self._tuids_2D[0] if self._tuids_2D else None
+        self._tuid_2D = self._tuids_2D[0] if self._tuids_2D else None
 
-        dset = self._dsets[self._tuids_2D] if self._tuids_2D else None
+        dset = self._dsets[self._tuid_2D] if self._tuid_2D else None
 
         # Add a square heatmap
 
@@ -456,7 +465,7 @@ class RemotePlotmon:
         set_parnames = _get_parnames(dset, "x")
         get_parnames = _get_parnames(dset, "y")
 
-        update_2D = tuid == self._tuids_2D
+        update_2D = tuid is not None and tuid == self._tuid_2D
 
         #############################################################
 
