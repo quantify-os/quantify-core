@@ -26,6 +26,9 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
     from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
+.. include:: set_data_dir.rst
+
+
 .. jupyter-execute::
 
     MC = MeasurementControl('MC')
