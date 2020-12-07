@@ -16,6 +16,9 @@ The `MC` will then use this function to build the sweep. We import our usual mod
     from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
+.. include:: set_data_dir.rst
+
+
 .. jupyter-execute::
 
     MC = MeasurementControl('MC')
