@@ -118,7 +118,8 @@ class TestPlotMonitor_pyqt:
         assert traces[0]["config"]["symbol"] == "o"
 
         # test reset works
-        self.plotmon.tuids_max_num(0)
+        self.plotmon.tuids([])
+
         assert self.plotmon.tuids() == []
 
         self.plotmon.tuids_extra(tuids[1:3])
