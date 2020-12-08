@@ -7,6 +7,7 @@
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter
+from qcodes.utils.helpers import strip_attrs
 
 # from qcodes.utils.helpers import strip_attrs
 import pyqtgraph.multiprocess as pgmp
@@ -200,6 +201,24 @@ class PlotMonitor_pyqt(Instrument):
         # wait to finish the queue
         self.remote_plotmon._exec_queue()
         return self.remote_plotmon._get_traces_config(which)
+
+    def close(self) -> None:
+        """
+        (Modified form Instrument class)
+
+        Irreversibly stop this instrument and free its resources.
+
+        Subclasses should override this if they have other specific
+        resources to close.
+        """
+        if hasattr(self, 'connection') and hasattr(self.connection, 'close'):
+            self.connection.close()
+
+        # Closing the process
+        self.proc.join()
+
+        strip_attrs(self, whitelist=['_name'])
+        self.remove_instance(self)
 
 
 class QtPlotObjForJupyter:
