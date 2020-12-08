@@ -1,6 +1,10 @@
-Tutorial 1. Controlling a basic experiment using MeasurementControl
+Tutorial 4. Plot monitor
 =====================================================================
 
+In this tutorial we dive into the capabilities of the plot monitor.
+We will create a fictional setup and showcase how the plot monitor can be used. Enjoy!
+
+P.S. Try it yourself, Jupyter notebooks available at the end of the page.
 
 .. jupyter-execute::
 
@@ -191,7 +195,7 @@ Instantiate the instruments
     station.add_component(source)
 
 
-Run some experiment
+Run some experiments
 ----------------------
 
 .. jupyter-execute::
@@ -231,6 +235,7 @@ Run some experiment
 
     plotmon.main_QtPlot
 
+Now the oldest dataset will vanish from the plot:
 
 .. jupyter-execute::
 
@@ -245,6 +250,7 @@ Run some experiment
 
     plotmon.main_QtPlot
 
+We can accumulate more datasets on the plot if we want to:
 
 .. jupyter-execute::
 
@@ -259,6 +265,7 @@ Run some experiment
 
     plotmon.main_QtPlot
 
+Or we can disable the accumulation and plot a single dataset:
 
 .. jupyter-execute::
 
@@ -267,6 +274,7 @@ Run some experiment
 
     plotmon.main_QtPlot
 
+This can also be reset:
 
 .. jupyter-execute::
 
@@ -275,16 +283,18 @@ Run some experiment
 
     plotmon.main_QtPlot # The plotting window will vanish, it is supposed to
 
+For now, we will allow two datasets on the plot monitor.
 
 .. jupyter-execute::
 
-    # For now we will allow two dataseta on the plot monitor
+    # For now we will allow two datasets on the plot monitor
     plotmon.tuids_max_num(2)
 
+Now let's imagine that something strange is happening with our setup...
 
 .. jupyter-execute::
 
-    # Now let's imagine that something strange is happanening with out setup
+    # Now let's imagine that something strange is happening with our setup
     physical_world["offset"] = 1.5
 
     n_pnts = 40
@@ -295,6 +305,7 @@ Run some experiment
 
     plotmon.main_QtPlot
 
+We would like to compare if the current behavior matches for example what we got a few minutes ago:
 
 .. jupyter-execute::
 
@@ -306,6 +317,7 @@ Run some experiment
     plotmon.tuids_extra(reference_tuids)
     plotmon.main_QtPlot
 
+OK... that cable was not connected in the right place...
 
 .. jupyter-execute::
 
@@ -329,12 +341,17 @@ Run some experiment
     print("Yey! We have recovered our setup!")
     plotmon.main_QtPlot
 
+We do not need the reference datasets anymore
 
 .. jupyter-execute::
 
     # We do not need the reference datasets anymore
     plotmon.tuids_extra([])
     plotmon.main_QtPlot
+
+.. note::
+
+    both `plotmon.tuids_extra` and `plotmon.tuids` can be used. The interface is the same. But keep in mind that MC also uses the `plotmon.tuids` when a plot monitor is connected to it!
 
 
 .. jupyter-execute::
@@ -355,10 +372,11 @@ Run some experiment
 
     plotmon.main_QtPlot
 
+When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tuids_extra` will be plotted in the secondary window, in that order of priority.
 
 .. jupyter-execute::
 
-    # When we have 2D plots only the first dataset from plotmon.tuids or plotmon.tuids_extra
+    # When we have 2D plots only the first dataset from plotmon.tuids or plotmon.tuids_extra, in that order of priority.
     # will be plotted in the secondary window
 
     MC.settables([source.amp_0, source.amp_1])
@@ -412,3 +430,15 @@ Run some experiment
     plotmon.tuids_extra(get_tuids_containing("2D")[0:1])
 
     plotmon.secondary_QtPlot
+
+
+Now your life will never be the same again ;)
+
+
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 4. Plot monitor`
+
+    :jupyter-download:script:`Tutorial 4. Plot monitor`
