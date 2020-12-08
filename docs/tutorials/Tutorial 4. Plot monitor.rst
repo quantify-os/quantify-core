@@ -63,7 +63,7 @@ QCoDeS drivers for our instruments
 
             self.add_parameter(
                 name="amp_0",
-                label="Amplitude pin 0",
+                label="Current pin 0",
                 unit="A",
                 docstring="Controls the current on pin 0",
                 parameter_class=Parameter,
@@ -76,7 +76,7 @@ QCoDeS drivers for our instruments
 
             self.add_parameter(
                 name="amp_1",
-                label="Amplitude pin 1",
+                label="Current pin 1",
                 unit="A",
                 docstring="Controls the current on pin 1",
                 parameter_class=Parameter,
@@ -126,14 +126,14 @@ QCoDeS drivers for our instruments
             self.physical_world = physical_world
 
             # Mimic a communication delay
-            self._com_delay = 0.005
+            self._com_delay = 0.0001
 
             # Parameters are attributes that are logged along with the dataset
             # and in realtime in the intrument monitor
 
             self.add_parameter(
                 name="adc",
-                label="ADC voltage",
+                label="ADC input",
                 unit="V",
                 docstring="Returns the voltage at the ADC input",
                 parameter_class=Parameter,
@@ -351,11 +351,10 @@ We do not need the reference datasets anymore
 
 .. note::
 
-    both `plotmon.tuids_extra` and `plotmon.tuids` can be used. The interface is the same. But keep in mind that MC also uses the `plotmon.tuids` when a plot monitor is connected to it!
+    Both `plotmon.tuids_extra` and `plotmon.tuids` can be used. The interface is the same. But keep in mind that MC also uses the `plotmon.tuids` when a plot monitor is connected to it!
 
 
 .. jupyter-execute::
-
 
     # Note: both plotmon.tuids_extra and plotmon.tuids can be used
     # but keep in mind that MC also uses the plotmon.tuids
@@ -383,12 +382,15 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
     MC.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
     MC.gettables(adc_instr.adc)
     dset = MC.run('ADC scan 2D')
+    reference_tuid_2D = dset.attrs["tuid"]
+
     plotmon.main_QtPlot
 
 .. jupyter-execute::
 
     plotmon.secondary_QtPlot
 
+We still have the persistence of the previous dataset on the main window:
 
 .. jupyter-execute::
 
@@ -399,17 +401,18 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
 
     plotmon.main_QtPlot
 
+And the secondary window plots the latest dataset:
 
 .. jupyter-execute::
 
-
     plotmon.secondary_QtPlot
 
+We can still have a permanent dataset as a reference in the main window:
 
 .. jupyter-execute::
 
     physical_world["offset"] = 2.03
-    plotmon.tuids_extra([dset.attrs["tuid"]])
+    plotmon.tuids_extra([reference_tuid_2D])
 
     MC.settables([source.amp_0, source.amp_1])
     MC.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
@@ -420,14 +423,16 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
 
 .. jupyter-execute::
 
-
     plotmon.secondary_QtPlot
 
+
+But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 
 .. jupyter-execute::
 
     plotmon.tuids([])
-    plotmon.tuids_extra(get_tuids_containing("2D")[0:1])
+    plotmon.tuids_extra([]])
+    plotmon.tuids_extra([reference_tuid_2D]])
 
     plotmon.secondary_QtPlot
 
