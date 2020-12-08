@@ -6,7 +6,7 @@
 import time
 import json
 import types
-from os.path import join, basename
+from os.path import join
 from filelock import FileLock
 import tempfile
 
@@ -108,7 +108,6 @@ class MeasurementControl(Instrument):
             parameter_class=InstrumentRefParameter,
         )
 
-        # TODO: Make better docstrings for ins mon
         self.add_parameter(
             "instrument_monitor",
             docstring="Instrument responsible for live monitoring summarized snapshot. "
@@ -116,15 +115,14 @@ class MeasurementControl(Instrument):
             parameter_class=InstrumentRefParameter,
         )
 
-        # TODO add update interval functionality.
         self.add_parameter(
             "update_interval",
             initial_value=0.1,
             docstring=(
                 "Interval for updates during the data acquisition loop,"
-                + " everytime more than `update_interval` time has elapsed "
-                + "when acquiring new data points, data is written to file "
-                + "and the live monitoring is updated."
+                " everytime more than `update_interval` time has elapsed "
+                "when acquiring new data points, data is written to file "
+                "and the live monitoring is updated."
             ),
             parameter_class=ManualParameter,
             vals=vals.Numbers(min_value=0),
@@ -182,6 +180,8 @@ class MeasurementControl(Instrument):
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
         self._plotmon_name = self.instr_plotmon()
+
+        # This is not necessary anymore with the new remote plotmon
         # if self._plotmon_name is not None and self._plotmon_name != "":
         #     self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
 
