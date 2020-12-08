@@ -4,7 +4,7 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import numpy as np
-from collections import deque
+from collections import deque, OrderedDict
 import itertools
 import os
 
@@ -74,6 +74,8 @@ class RemotePlotmon:
         set_datadir(datadir)
 
         self.queue = Queue()
+        self.timer_queue = None
+        self._queue_refresh_ms = 10
 
         # Create plotting windows and start listening to commands on the
         # queue
@@ -91,18 +93,31 @@ class RemotePlotmon:
         periodically
         """
         # This line requires the QtPlot's to be created with `remote=False`
-        timer = QtCore.QTimer(self.main_QtPlot.win)
-        timer.timeout.connect(self._exec_queue)
-        timer.start(50)  # milliseconds
+        self.timer_queue = QtCore.QTimer(self.main_QtPlot.win)
+        self.timer_queue.timeout.connect(self._exec_queue)
+        self.timer_queue.start(self._queue_refresh_ms)  # milliseconds
 
     def _exec_queue(self):
         """
         To be called periodically by `_run` in order to execute the pending
         commands in `self.queue`
         """
+        # Do not call again while processing
+        self.timer_queue.stop()
+        unique_updates = OrderedDict()
         while not self.queue.empty():
             attr_name, args = self.queue.get()
+            # collect unique update calls
+            if attr_name != "update":
+                getattr(self, attr_name)(*args)
+            else:
+                # Abusing ordered dict to get an ordered set
+                unique_updates[(attr_name, args)] = None
+
+        for attr_name, args in unique_updates.keys():
             getattr(self, attr_name)(*args)
+
+        self.timer_queue.start(self._queue_refresh_ms)
 
     # ##################################################################
 
