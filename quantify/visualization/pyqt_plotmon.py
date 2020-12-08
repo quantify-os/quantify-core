@@ -214,7 +214,8 @@ class PlotMonitor_pyqt(Instrument):
         if hasattr(self, 'connection') and hasattr(self.connection, 'close'):
             self.connection.close()
 
-        # Closing the process
+        # Essential!!!
+        # Close the process
         self.proc.join()
 
         strip_attrs(self, whitelist=['_name'])
