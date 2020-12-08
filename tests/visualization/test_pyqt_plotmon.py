@@ -83,7 +83,6 @@ class TestPlotMonitor_pyqt:
         self.plotmon.tuids([])
         self.plotmon.tuids_max_num(3)
 
-
         tuids = [
             "20201124-184709-137-8a5112",
             "20201124-184716-237-918bee",
@@ -121,7 +120,7 @@ class TestPlotMonitor_pyqt:
         assert traces[-1]["config"]["symbol"] == "o"
 
         # test reset works
-        self.plotmon.tuids_max_num(0)
+        self.plotmon.tuids([])
         assert self.plotmon.tuids() == []
 
         self.plotmon.tuids_extra(tuids[1:3])

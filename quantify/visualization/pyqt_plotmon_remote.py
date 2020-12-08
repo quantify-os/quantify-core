@@ -122,7 +122,8 @@ class RemotePlotmon:
     def _pop_old_dsets(self, max_tuids):
         while len(self._tuids) > max_tuids:
             discard_tuid = self._tuids.pop()
-            self._dsets.pop(discard_tuid, None)
+            if discard_tuid not in self._tuids_extra:
+                self._dsets.pop(discard_tuid, None)
 
     def tuids_append(self, tuid):
         # verify tuid
@@ -174,10 +175,10 @@ class RemotePlotmon:
             itertools.chain(dsets.values(), self._dsets.values())
         ):
             # Reset the extra tuids
-            [self._dsets.pop(t, None) for t in self._tuids_extra]
+            [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
 
         # Discard old dsets
-        [self._dsets.pop(t, None) for t in self._tuids]
+        [self._dsets.pop(t, None) for t in self._tuids if t not in self._tuids_extra]
 
         self._tuids = deque(tuids)
         self._dsets.update(dsets)
@@ -212,7 +213,7 @@ class RemotePlotmon:
             self._pop_old_dsets(max_tuids=0)
 
         # Discard old dsets
-        [self._dsets.pop(t, None) for t in self._tuids_extra]
+        [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
 
         self._dsets.update(extra_dsets)
         self._tuids_extra = tuids
