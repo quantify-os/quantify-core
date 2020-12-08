@@ -80,7 +80,7 @@ class PlotMonitor_pyqt(Instrument):
                 "called [directly or from `.update(tuid)`]"
             ),
             parameter_class=Parameter,
-            vals=vals.Ints(min_value=0, max_value=100),
+            vals=vals.Ints(min_value=1, max_value=100),
             set_cmd=self._set_tuids_max_num,
             # avoid set_cmd being called at __init__
             initial_cache_value=3,
