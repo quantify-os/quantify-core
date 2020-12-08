@@ -43,6 +43,11 @@ class PlotMonitor_pyqt(Instrument):
 
         # used to track the tuids of previous datasets
         self._tuids = deque()
+
+        # Used to assign which dataset will be plotted on the secondary
+        # window
+        self._tuid_2D = None
+
         # keep all datasets in one place and update/remove as needed
         self._dsets = dict()
 
@@ -68,18 +73,23 @@ class PlotMonitor_pyqt(Instrument):
 
         self.add_parameter(
             name="tuids_max_num",
-            docstring="The maximum number of auto-accumulated datasets in `tuids`",
+            docstring=(
+                "The maximum number of auto-accumulated datasets in "
+                "`.tuids()`.\n"
+                "Older dataset are discarded when `.tuids_append()` is "
+                "called [directly or from `.update(tuid)`]"
+            ),
             parameter_class=Parameter,
             vals=vals.Ints(min_value=0, max_value=100),
+            set_cmd=self._set_tuids_max_num,
             # avoid set_cmd being called at __init__
             initial_cache_value=3,
-            set_cmd=self._set_tuids_max_num,
         )
         self.add_parameter(
             name="tuids",
             docstring=(
                 "The tuids of the auto-accumulated previous datasets when "
-                "specified through `tuids_append`.\n"
+                "specified through `.tuids_append()`.\n"
                 "Can also be set to any list `['tuid_one', 'tuid_two', ...]`\n"
                 "Can be reset by setting to `[]`\n"
                 "See also `tuids_extra`."
@@ -87,14 +97,19 @@ class PlotMonitor_pyqt(Instrument):
             parameter_class=Parameter,
             get_cmd=self._get_tuids,
             set_cmd=self._set_tuids,
+            # avoid set_cmd being called at __init__
+            initial_cache_value=[],
         )
 
         self.add_parameter(
             name="tuids_extra",
             docstring=(
-                "Extra tuids whose datasets are never affected by `tuids_append` or `tuids_max_num`.\n"
-                "As opposed to the `tuids`, these never vanish.\n"
-                "Can be reset by setting to `[]`"
+                "Extra tuids whose datasets are never affected by "
+                "`.tuids_append()` or `.tuids_max_num()`.\n"
+                "As opposed to the `.tuids()`, these ones never vanish.\n"
+                "Can be reset by setting to `[]`.\n"
+                "Intended to perform realtime measurements and have a "
+                "live comparison with previously measured datasets."
             ),
             parameter_class=Parameter,
             vals=vals.Lists(),
@@ -123,7 +138,14 @@ class PlotMonitor_pyqt(Instrument):
 
     def tuids_append(self, tuid):
         """
-        FIXME TBW
+        Appends a tuid to `.tuids()` and also discards older datasets
+        according to `.tuids_max_num()`.
+
+        The the corresponding data will be plotted in the main window
+        with blue circles.
+
+        NB: do not call before the corresponding dataset file was created and filled
+        with data
         """
 
         # verify tuid
@@ -321,9 +343,9 @@ class PlotMonitor_pyqt(Instrument):
             for tuid in all_tuids_it
             if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
         )
-        self._tuids_2D = self._tuids_2D[0] if self._tuids_2D else None
+        self._tuid_2D = self._tuids_2D[0] if self._tuids_2D else None
 
-        dset = self._dsets[self._tuids_2D] if self._tuids_2D else None
+        dset = self._dsets[self._tuid_2D] if self._tuid_2D else None
 
         # Add a square heatmap
 
@@ -425,6 +447,17 @@ class PlotMonitor_pyqt(Instrument):
         self.secondary_QtPlot.update_plot()
 
     def update(self, tuid: str = None):
+        """
+        Updates the curves/heatmaps of a specific dataset.
+
+        If the dataset is not specified the latest on in `.tuids()`
+        is used.
+
+        If `.tuids()` is empty and `tuid` is provided
+        then `.tuids_append(tuid)` will be called.
+        NB: this is intended mainly for MC to avoid issues when the file
+        was not yet created or is empty.
+        """
         tuid = self._tuids[0] if tuid is None else tuid
 
         dset = load_dataset(tuid)
@@ -433,7 +466,7 @@ class PlotMonitor_pyqt(Instrument):
         set_parnames = _get_parnames(dset, "x")
         get_parnames = _get_parnames(dset, "y")
 
-        update_2D = tuid == self._tuids_2D
+        update_2D = tuid is not None and tuid == self._tuid_2D
 
         #############################################################
 
