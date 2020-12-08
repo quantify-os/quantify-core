@@ -431,8 +431,7 @@ But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 .. jupyter-execute::
 
     plotmon.tuids([])
-    plotmon.tuids_extra([]])
-    plotmon.tuids_extra([reference_tuid_2D]])
+    plotmon.tuids_extra([reference_tuid_2D])
 
     plotmon.secondary_QtPlot
 
