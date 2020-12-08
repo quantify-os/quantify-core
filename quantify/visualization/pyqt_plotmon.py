@@ -313,7 +313,7 @@ class PlotMonitor_pyqt(Instrument):
                         ylabel=dset[yi].attrs["long_name"],
                         yunit=dset[yi].attrs["unit"],
                         symbol=symbols[i_tuid],
-                        symbolSize=7,
+                        symbolSize=6,
                         symbolPen=all_colors[i_tuid],
                         symbolBrush=symbolsBrush[i_tuid],
                         color=all_colors[i_tuid],
@@ -433,7 +433,7 @@ class PlotMonitor_pyqt(Instrument):
                     color=color_cycle[3],  # marks the point red
                     width=0,
                     symbol="o",
-                    symbolSize=7,
+                    symbolSize=6,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
                     xunit=dset["x0"].attrs["unit"],
