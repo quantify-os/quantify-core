@@ -75,7 +75,7 @@ class RemotePlotmon:
 
         self.queue = Queue()
         self.timer_queue = None
-        self._queue_refresh_ms = 10
+        self._queue_refresh_ms = 50
 
         # Create plotting windows and start listening to commands on the
         # queue
