@@ -181,10 +181,6 @@ class MeasurementControl(Instrument):
 
         self._plotmon_name = self.instr_plotmon()
 
-        # This is not necessary anymore with the new remote plotmon
-        # if self._plotmon_name is not None and self._plotmon_name != "":
-        #     self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
-
         # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
         self._instrument_monitor_name = self.instrument_monitor()
         if (

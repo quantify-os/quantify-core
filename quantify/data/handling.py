@@ -455,11 +455,23 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 # ######################################################################
-def _xi_and_yi_match(dsets: Iterable):
+def _xi_and_yi_match(dsets: Iterable) -> bool:
+    """
+    Checks if all xi and yi data variables in `dsets` match:
+
+    Returns `True` only when all these conditions are met:
+        - Same number of xi's
+        - Same number of yi's
+        - Same attributes for xi's across `dsets`
+        - Same attributes for yi's across `dsets`
+        - Same order of the xi's across `dsets`
+        - Same order of the yi's across `dsets`
+    Otherwise returns `False`
+    """
     return _vars_match(dsets, var_type="x") and _vars_match(dsets, var_type="y")
 
 
-def _vars_match(dsets: Iterable, var_type="x"):
+def _vars_match(dsets: Iterable, var_type="x") -> bool:
     """
     Checks if all the datasets have matching xi or yi
     """
