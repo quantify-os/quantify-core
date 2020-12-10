@@ -358,7 +358,7 @@ Now your life will never be the same again ;)
 
 .. seealso::
 
-    The complete device code of this tutorial can be found in
+    The complete source code of this tutorial can be found in
 
     :jupyter-download:notebook:`Tutorial 4. Plot monitor`
 
