@@ -533,4 +533,6 @@ def _get_parnames(dset, par_type):
 
 
 def _mk_legend(dset):
-    return dset.attrs["tuid"].split("-")[-1] + " " + dset.attrs["name"]
+    HHMMSS = dset.attrs["tuid"].split("-")[-3]
+    # HH:mm:SS
+    return ":".join([HHMMSS[:2], HHMMSS[2:4], HHMMSS[4:]]) + " " + dset.attrs["name"]
