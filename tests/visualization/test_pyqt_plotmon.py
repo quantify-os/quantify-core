@@ -89,7 +89,7 @@ class TestPlotMonitor_pyqt:
             "20201124-184736-341-3628d4",
         ]
 
-        hashes = [tuid.split("-")[-1] for tuid in tuids]
+        time_tags = time_tags = [":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2)) for tuid in tuids]
 
         for tuid in tuids:
             self.plotmon.tuids_append(tuid)
@@ -104,7 +104,7 @@ class TestPlotMonitor_pyqt:
         # this is a bit lazy to not deal with the indices of all traces
         # of all plots
         names = set(trace["config"]["name"] for trace in traces)
-        labels_exist = [any(_hash in name for name in names) for _hash in hashes[2:]]
+        labels_exist = [any(tt in name for name in names) for tt in time_tags[2:]]
         assert all(labels_exist)
 
         self.plotmon.tuids_append(tuids[0])
