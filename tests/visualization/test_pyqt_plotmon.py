@@ -89,7 +89,7 @@ class TestPlotMonitor_pyqt:
             "20201124-184736-341-3628d4",
         ]
 
-        time_tags = time_tags = [":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2)) for tuid in tuids]
+        time_tags = [":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2)) for tuid in tuids]
 
         for tuid in tuids:
             self.plotmon.tuids_append(tuid)
