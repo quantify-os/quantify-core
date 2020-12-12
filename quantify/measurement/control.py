@@ -82,7 +82,7 @@ class MeasurementControl(Instrument):
             "on_progress_callback",
             vals=vals.Callable(),
             docstring="A callback to communicate progress. This should be a "
-                      "Callable accepting floats between 0 and 100 indicating %% done.",
+            "Callable accepting floats between 0 and 100 indicating %% done.",
             parameter_class=ManualParameter,
             initial_value=None,
         )
@@ -98,7 +98,7 @@ class MeasurementControl(Instrument):
         self.add_parameter(
             "instr_plotmon",
             docstring="Instrument responsible for live plotting. "
-                      "Can be set to str(None) to disable live plotting.",
+            "Can be set to str(None) to disable live plotting.",
             parameter_class=InstrumentRefParameter,
         )
 
@@ -108,7 +108,7 @@ class MeasurementControl(Instrument):
             docstring="Instrument responsible for live monitoring summarized snapshot. "
             "Can be set to str(None) to disable monitoring of snapshot.",
             parameter_class=InstrumentRefParameter,
-            )
+        )
 
         # TODO add update interval functionality.
         self.add_parameter(
@@ -140,7 +140,6 @@ class MeasurementControl(Instrument):
         self._exp_folder = None
         self._plotmon_name = ""
         self._plot_info = {"2D-grid": False}
-
 
     ############################################
     # Methods used to control the measurements #
@@ -179,16 +178,15 @@ class MeasurementControl(Instrument):
 
         self._plotmon_name = self.instr_plotmon()
         if self._plotmon_name is not None and self._plotmon_name != "":
-            self.instr_plotmon.get_instr().tuid(self._dataset.attrs["tuid"])
-            # if the timestamp has changed, this will initialize the monitor
-            self.instr_plotmon.get_instr().update()
+            self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
 
         # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
         self._instrument_monitor_name = self.instrument_monitor()
-        if self._instrument_monitor_name is not None and self._instrument_monitor_name != "":
-            self.instrument_monitor.get_instr().name
+        if (
+            self._instrument_monitor_name is not None
+            and self._instrument_monitor_name != ""
+        ):
             self.instrument_monitor.get_instr().update()
-
 
     def run(self, name: str = ""):
         """
@@ -397,7 +395,7 @@ class MeasurementControl(Instrument):
         """
         update = (
             time.time() - self._last_upd > self.update_interval()
-                 or self._nr_acquired_values == self._max_setpoints
+            or self._nr_acquired_values == self._max_setpoints
         )
         if update:
             self.print_progress(print_message)
@@ -405,7 +403,10 @@ class MeasurementControl(Instrument):
             if self._plotmon_name is not None and self._plotmon_name != "":
                 self.instr_plotmon.get_instr().update()
 
-            if self._instrument_monitor_name is not None and self._instrument_monitor_name != "":
+            if (
+                self._instrument_monitor_name is not None
+                and self._instrument_monitor_name != ""
+            ):
                 self.instrument_monitor.get_instr().update()
 
             self._last_upd = time.time()

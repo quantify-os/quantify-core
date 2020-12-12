@@ -148,7 +148,7 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
 
 
 .batched, .prepare() and .finish()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The MeasurementControl checks for 3 other optional properties on settables/gettables, the `batched` attribute and the `prepare()` and `finish()` methods.
 `batched` declares which Control Mode this parameter runs in. It defaults to `False` (i.e., iterative).

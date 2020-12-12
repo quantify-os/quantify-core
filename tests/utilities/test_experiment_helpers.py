@@ -9,10 +9,11 @@ test_datadir = get_test_data_dir()
 
 def test_create_plotmon_from_historical():
     set_datadir(test_datadir)
-    plotmon = create_plotmon_from_historical('20200504-191556-002-4209ee')
+    tuid = '20200504-191556-002-4209ee'
+    plotmon = create_plotmon_from_historical(tuid)
 
-    x = plotmon.curves[0]['config']['x']
-    y = plotmon.curves[0]['config']['y']
+    x = plotmon.curves[tuid]["x0y0"]['config']['x']
+    y = plotmon.curves[tuid]["x0y0"]['config']['y']
 
     x_exp = np.linspace(0, 5, 50)
     y_exp = np.cos(np.pi * x_exp) * -1
