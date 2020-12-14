@@ -7,8 +7,10 @@ Installation
 Stable release
 --------------
 
-On Windows
-~~~~~~~~~~~~
+This is the preferred method to install Quantify, as it will always install the most recent stable release.
+
+On Windows (Anaconda)
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Quantify-core has third party dependencies that need to be compiled.
 The default build process can introduce hard to debug and environment specific problems.
@@ -46,7 +48,7 @@ Verify that the installation was succesful by running the test suite.
 
 
 
-On all other systems (Linux, MacOS)
+On all other systems (pip)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To install Quantify, run this command in your terminal:
@@ -55,7 +57,6 @@ To install Quantify, run this command in your terminal:
 
     $ pip install quantify-core
 
-This is the preferred method to install Quantify, as it will always install the most recent stable release.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -64,7 +65,16 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
-From sources
+Verify that the installation was succesful by running the test suite.
+
+.. code-block::
+
+    $ pip show quantify-core        # shows the path where quantify-core was installed as "location".
+    $ pytest path_to_quantify_core  # run pytest on tests in the quantify-core repository.
+
+
+
+From source
 ------------
 
 The sources for Quantify can be downloaded from the `GitLab repo`_:
