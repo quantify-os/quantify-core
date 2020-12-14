@@ -7,6 +7,8 @@ import time
 import json
 import types
 from os.path import join
+from filelock import FileLock
+import tempfile
 
 import numpy as np
 import adaptive
@@ -22,6 +24,10 @@ from quantify.data.handling import (
     trim_dataset,
 )
 from quantify.measurement.types import Settable, Gettable, is_batched
+
+# Intended for plotting monitors that run in separate processes
+_dataset_name = "dataset.hdf5"
+_dataset_locks_dir = tempfile.gettempdir()
 
 
 class MeasurementControl(Instrument):
@@ -102,7 +108,6 @@ class MeasurementControl(Instrument):
             parameter_class=InstrumentRefParameter,
         )
 
-        # TODO: Make better docstrings for ins mon
         self.add_parameter(
             "instrument_monitor",
             docstring="Instrument responsible for live monitoring summarized snapshot. "
@@ -110,18 +115,18 @@ class MeasurementControl(Instrument):
             parameter_class=InstrumentRefParameter,
         )
 
-        # TODO add update interval functionality.
         self.add_parameter(
             "update_interval",
-            initial_value=0.1,
+            initial_value=0.5,
             docstring=(
                 "Interval for updates during the data acquisition loop,"
-                + " everytime more than `update_interval` time has elapsed "
-                + "when acquiring new data points, data is written to file "
-                + "and the live monitoring is updated."
+                " everytime more than `update_interval` time has elapsed "
+                "when acquiring new data points, data is written to file "
+                "and the live monitoring is updated."
             ),
             parameter_class=ManualParameter,
-            vals=vals.Numbers(min_value=0),
+            # minimum value set to avoid performance issues
+            vals=vals.Numbers(min_value=0.1),
         )
 
         # variables that are set before the start of any experiment.
@@ -169,16 +174,13 @@ class MeasurementControl(Instrument):
         self._exp_folder = create_exp_folder(
             tuid=self._dataset.attrs["tuid"], name=self._dataset.attrs["name"]
         )
-        self._dataset.to_netcdf(
-            join(self._exp_folder, "dataset.hdf5")
-        )  # Write the empty dataset
+        self._safe_write_dataset()  # Write the empty dataset
+
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
         self._plotmon_name = self.instr_plotmon()
-        if self._plotmon_name is not None and self._plotmon_name != "":
-            self.instr_plotmon.get_instr().tuids_append(self._dataset.attrs["tuid"])
 
         # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
         self._instrument_monitor_name = self.instrument_monitor()
@@ -215,9 +217,8 @@ class MeasurementControl(Instrument):
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
-        self._dataset.to_netcdf(
-            join(self._exp_folder, "dataset.hdf5")
-        )  # Wrap up experiment and store data
+        self._safe_write_dataset()  # Wrap up experiment and store data
+
         self._finish()
         self._plot_info = {
             "2D-grid": False
@@ -304,9 +305,7 @@ class MeasurementControl(Instrument):
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
-        self._dataset.to_netcdf(
-            join(self._exp_folder, "dataset.hdf5")
-        )  # Wrap up experiment and store data
+        self._safe_write_dataset()  # Wrap up experiment and store data
         return self._dataset
 
     def _run_iterative(self):
@@ -399,9 +398,12 @@ class MeasurementControl(Instrument):
         )
         if update:
             self.print_progress(print_message)
-            self._dataset.to_netcdf(join(self._exp_folder, "dataset.hdf5"))
+
+            self._safe_write_dataset()
+
             if self._plotmon_name is not None and self._plotmon_name != "":
-                self.instr_plotmon.get_instr().update()
+                # Plotmon requires to know which dataset was modified
+                self.instr_plotmon.get_instr().update(tuid=self._dataset.attrs["tuid"])
 
             if (
                 self._instrument_monitor_name is not None
@@ -498,6 +500,21 @@ class MeasurementControl(Instrument):
             end_char = "\n"
         if self.verbose():
             print("\r", progress_message, end=end_char)
+
+    def _safe_write_dataset(self):
+        """
+        Uses a lock when writing the file to stay safe for multiprocessing.
+        Locking files are written into a temporary dir to avoid polluting
+        the experiment container.
+        """
+        filename = join(self._exp_folder, _dataset_name)
+        # Multiprocess safe
+        lockfile = join(
+            _dataset_locks_dir,
+            self._dataset.attrs["tuid"] + "-" + _dataset_name + ".lock",
+        )
+        with FileLock(lockfile, 5):
+            self._dataset.to_netcdf(filename)
 
     ####################################
     # Non-parameter get/set functions  #

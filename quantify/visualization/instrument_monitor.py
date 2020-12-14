@@ -4,7 +4,6 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
 import time
-import PyQt5
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
 
@@ -36,6 +35,7 @@ class InstrumentMonitor(Instrument):
 
 
     """
+
     proc = None
     rpg = None
 
@@ -53,11 +53,13 @@ class InstrumentMonitor(Instrument):
             Switch to use a remote instance of the pyqtgraph class
         """
         super().__init__(name=name)
-        self.add_parameter('update_interval',
-                           unit='s',
-                           vals=vals.Numbers(min_value=0.001),
-                           initial_value=5,
-                           parameter_class=ManualParameter)
+        self.add_parameter(
+            "update_interval",
+            unit="s",
+            vals=vals.Numbers(min_value=0.001),
+            initial_value=5,
+            parameter_class=ManualParameter,
+        )
         if remote:
             if not self.__class__.proc:
                 self._init_qt()
@@ -74,17 +76,17 @@ class InstrumentMonitor(Instrument):
         This function is also called within the class :class:`~quantify.measurement.control.MeasurementControl`
         in the function :meth:`~quantify.measurement.control.MeasurementControl.run`.
         """
-        time_since_last_update = time.time()-self.last_update_time
+        time_since_last_update = time.time() - self.last_update_time
         if time_since_last_update > self.update_interval():
             self.last_update_time = time.time()
             # Take an updated, clean snapshot
             snap = snapshot(update=False, clean=True)
             try:
-                self.tree.setData(snap['instruments'])
+                self.tree.setData(snap["instruments"])
             except AttributeError as e:
                 # This is to catch any potential pickling problems with the snapshot.
                 # We do so by converting all lowest elements of the snapshot to string.
-                snap_collated = traverse_dict(snap['instruments'])
+                snap_collated = traverse_dict(snap["instruments"])
                 self.tree.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
@@ -94,8 +96,8 @@ class InstrumentMonitor(Instrument):
         # run, so this only starts once and stores the process in the class
         pg.mkQApp()
         self.__class__.proc = pgmp.QtProcess()  # pyqtgraph multiprocessing
-        self.__class__.rpg = self.proc._import('pyqtgraph')
-        ins_mon_mod = 'quantify.visualization.ins_mon_widget.qc_snapshot_widget'
+        self.__class__.rpg = self.proc._import("pyqtgraph")
+        ins_mon_mod = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
         self.__class__.rpg = self.proc._import(ins_mon_mod)
 
     def create_tree(self, window_size=(1000, 600)):
