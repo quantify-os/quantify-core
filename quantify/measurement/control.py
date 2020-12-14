@@ -117,7 +117,7 @@ class MeasurementControl(Instrument):
 
         self.add_parameter(
             "update_interval",
-            initial_value=0.1,
+            initial_value=0.5,
             docstring=(
                 "Interval for updates during the data acquisition loop,"
                 " everytime more than `update_interval` time has elapsed "
@@ -125,7 +125,8 @@ class MeasurementControl(Instrument):
                 "and the live monitoring is updated."
             ),
             parameter_class=ManualParameter,
-            vals=vals.Numbers(min_value=0),
+            # minimum value set to avoid performance issues
+            vals=vals.Numbers(min_value=0.1),
         )
 
         # variables that are set before the start of any experiment.
