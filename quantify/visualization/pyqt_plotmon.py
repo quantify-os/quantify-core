@@ -9,9 +9,10 @@ from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter
 from qcodes.utils.helpers import strip_attrs
 
-# from qcodes.utils.helpers import strip_attrs
 import pyqtgraph.multiprocess as pgmp
 from quantify.data.handling import get_datadir
+
+import warnings
 
 
 class PlotMonitor_pyqt(Instrument):
@@ -36,7 +37,7 @@ class PlotMonitor_pyqt(Instrument):
         super().__init__(name=name)
 
         # pyqtgraph multiprocessing
-        # We setup a remote process which create a queue to which
+        # We setup a remote process which creates a queue to which
         # "commands" will be sent
         self.proc = pgmp.QtProcess(processRequests=False)
         # quantify module(s) in the remote process
@@ -102,9 +103,7 @@ class PlotMonitor_pyqt(Instrument):
         # Jupyter notebook support
 
         self.main_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "main_QtPlot")
-        self.secondary_QtPlot = QtPlotObjForJupyter(
-            self.remote_plotmon, "secondary_QtPlot"
-        )
+        self.secondary_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "secondary_QtPlot")
 
     # Wrappers for the remote methods
     # We just put "commands" on a queue that will be consumed by the
@@ -144,8 +143,11 @@ class PlotMonitor_pyqt(Instrument):
         NB: this is intended mainly for MC to avoid issues when the file
         was not yet created or is empty.
         """
-        self.remote_plotmon.queue.put(("update", (tuid,)))
-        # self.remote_plotmon.update(tuid)
+        try:
+            self.remote_plotmon.queue.put(("update", (tuid,)))
+            # self.remote_plotmon.update(tuid)
+        except Exception as e:
+            warnings.warn(f"At update encountered: {e}", Warning)
 
     def tuids_append(self, tuid: str = None):
         """
