@@ -18,28 +18,53 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
 1. Install `Anaconda <https://www.anaconda.com/products/individual#Downloads>`_.
 2. Install `Git BASH <https://gitforwindows.org/>`_ to have a unix shell.
-3. Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `bash_profile <https://superuser.com/questions/602872/how-do-i-modify-my-git-bash-profile-in-windows>`_  to expose the anaconda in Git Bash.
-4. Install jupyter-lab using :code:`conda install -c conda-forge jupyterlab`.
+
+    .. tip::
+
+        Users can right click any folder in windows and open Git BASH in that location.
+
+4. Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `bash_profile <https://superuser.com/questions/602872/how-do-i-modify-my-git-bash-profile-in-windows>`_  to expose the anaconda in Git Bash.
+5. Install jupyter-lab using
+
+    .. code-block:: console
+
+        $ conda install -c conda-forge jupyterlab                   # install jupyter lab
+
+
+
 5. Create a conda environment, see also the `Conda cheat sheet <https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html>`_.
-6. Install quantify-core using pypi :code:`pip install quantify-core`.
-7. Add the conda environment as a kernel to jupyter.
+
+    .. code-block:: console
+
+        $ conda install -c conda-forge jupyterlab                   # install jupyter lab
+        $ conda create --name quantify-env python=3.8               # create the conda environment
+        $ conda activate quantify-env                               # activates the conda environment
 
 
-.. code-block:: console
 
-    $ conda install -c conda-forge jupyterlab                   # install jupyter lab
-    $ conda create --name quantify-env python=3.8               # create the conda environment
-    $ conda activate quantify-env                               # activates the conda environment
-    $ pip install quantify-core                                 # install the package into
-    $ pip install quantify-...                                  # optionally install other quantify modules
-    $ python -m ipykernel install --user --name=quantify-env    # adds the environment as a kernel to start a notebook from in jupyter-lab.
+7. Install quantify-core using pypi :code:`pip install quantify-core`.
+
+    .. code-block:: console
+
+
+
+        $ pip install quantify-core     # install the package into
+        $ pip install quantify-...      # optionally install other quantify modules
+
+
+8. Add the conda environment as a kernel to jupyter.
+
+    .. code-block:: console
+
+        $ python -m ipykernel install --user --name=quantify-env    # adds the environment as a kernel to start a notebook from in jupyter-lab.
 
 Verify that the installation was succesful by running the test suite.
 
 .. code-block::
 
     $ pip show quantify-core        # shows the path where quantify-core was installed as "location".
-    $ pytest path_to_quantify_core  # run pytest on tests in the quantify-core repository.
+    $ cd path_to_quantify_core      # navigate to the directory where quantify-core is installed.
+    $ pytest                        # run pytest and verify that all tests pass.
 
 
 .. note::
@@ -112,7 +137,7 @@ You may need to consult a search engine if you have a more exotic system.
 
 .. warning::
 
-    We use the pyqtgraph library which contains an `issue with venv on Windows`_. Windows users should see the linked
-    issue for details and prefer `virtualenv` over `python -m venv`.
+    We use the pyqtgraph library which contains an `issue with venv on Windows <https://github.com/pyqtgraph/pyqtgraph/issues/1052>`_.
+    If Windows users are using virtual environements (as opposed to the recommended Anaconda install)
+    they should see the linked issue for details and prefer `virtualenv` over `python -m venv`.
 
-.. _issue with venv on Windows: https://github.com/pyqtgraph/pyqtgraph/issues/1052
