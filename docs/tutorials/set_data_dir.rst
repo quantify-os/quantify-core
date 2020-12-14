@@ -1,4 +1,6 @@
-Before starting the measurement we change the directory in which the experiments data will be saved. For this Quantify provides the :meth:`~quantify.data.handling.get_datadir`/:meth:`~quantify.data.handling.set_datadir` functions.
+
+**Before instantiating any instruments or starting a measurement** we change the directory in which the experiments data will be saved. For this Quantify provides the :meth:`~quantify.data.handling.get_datadir`/:meth:`~quantify.data.handling.set_datadir` functions.
+
 
 .. tip::
 

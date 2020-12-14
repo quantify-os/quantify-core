@@ -39,7 +39,7 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
     return modified_dict
 
 
-def traverse_dict(obj, convert_to_string: bool=True):
+def traverse_dict(obj, convert_to_string: bool = True):
     """
     Traversal implementation which recursively visits each node in a dict.
     We modify this function so that at the lowest hierarchy,
@@ -63,15 +63,26 @@ def get_keys_containing(obj, key):
     """
     Returns a set with the keys that contain `key`
 
+    Example:
+
+    .. code-block:: python
+
+        from quantify.utilities.general import get_keys_containing
+        dict_obj = {"x0": [1, 2, 3], "y0": [4, 5, 6], "other_key": 79}
+        get_keys_containing(dict_obj, "x")
+
+        # Return:
+        # {"x0"}
+
     Parameters
     -----------
     obj: obj
-        any object
+        any object with a `.keys()` attribute, usually a dictionary
     key:
-        the search key
+        the search key, usually a string
     Returns
     -------
-    set
+    set:
         a new set containing the keys that match the search
     """
     return set(filter(lambda k: key in k, obj.keys()))
