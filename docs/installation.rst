@@ -87,7 +87,7 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
     .. code-block:: console
 
-        $ python -m ipykernel install --user --name=quantify-env    # adds the environment as an available kernel for jupyter notebook within  jupyter-lab.
+        $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"  # adds the environment as an available kernel for jupyter notebook within  jupyter-lab.
 
     .. note::
 
