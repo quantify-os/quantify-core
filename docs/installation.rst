@@ -10,13 +10,8 @@ This is the preferred method to install Quantify, as it will always install the 
 If you want to contribute to quantify, also check out :ref:`Setting up quantify for local development` in the contributing section.
 
 
-All systems except Windows (pip)
+All systems except Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-We recommend using a `virtual environment <https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/>`_ ::
-
-    $ virtualenv venv           # Creates a virtual environment
-    $ source venv/bin/activate  # activates the virtual environment
 
 To install Quantify::
 
@@ -125,25 +120,6 @@ If you are a developer you might want to install the package in the editable mod
 See also :ref:`Setting up quantify for local development` in the contributing section.
 
 
-Potential issues
--------------------
-
-PyQtGraph and PyQt5
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Quantify-core has a dependency on the PyQt5 package, which itself has a dependency on the Qt5 runtime.
-On most systems, the standard installation process will correctly install Qt.
-The Anaconda installation should resolve issues with installation on Windows.
-You may need to consult a search engine if you have a more exotic system.
-
-
-.. warning::
-
-    We use the pyqtgraph library which contains an `issue with venv on Windows <https://github.com/pyqtgraph/pyqtgraph/issues/1052>`_.
-    If Windows users are using virtual environements (as opposed to the recommended Anaconda install)
-    they should see the linked issue for details and prefer `virtualenv` over `python -m venv`. Additionally you may need to install PyQt5 in the base environment.
-
-
 Troubleshooting
 -------------------
 
@@ -165,3 +141,15 @@ If for some reason you are not able to install or use Quantify using the prescri
         $ pytest
 
 #. The tests will either pass or not. In any case, please report your experience and which test do not pass by creating a `New issue` on the `issue tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_, your efforts are much appreciated and will help us to understand the problems you might be facing.
+
+
+Potential issues
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+PyQtGraph and PyQt5
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Quantify-core has a dependency on the PyQt5 package, which itself has a dependency on the Qt5 runtime.
+On most systems, the standard installation process will correctly install Qt.
+The Anaconda installation should resolve issues with installation on Windows.
+You may need to consult a search engine if you have a more exotic system.

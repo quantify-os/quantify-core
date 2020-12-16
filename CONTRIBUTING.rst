@@ -75,37 +75,23 @@ Setting up quantify for local development
 Ready to contribute? Here's how to set up `quantify` for local development.
 
 1. Fork the `quantify` repo on GitLab.
-2. Clone your fork locally::
+#. Clone your fork locally::
 
     $ git clone git@gitlab.com:your_name_here/quantify-core.git
 
-
-3. We recommend using a `virtual environment <https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/>`_ ::
-
-    $ virtualenv venv           # Creates a virtual environment
-    $ source venv/bin/activate  # activates the virtual environment
-
-  or on windows using Conda::
-
-    $ conda create --name quantify-env python=3.8   # create the conda environment, you can replace `quantify-env` if you wish
-    $ conda activate quantify-env                   # activates the conda environment
-
-
-
-
-4. Install quantify locally::
+#. Install quantify locally::
 
     $ cd quantify-core/
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
-5. Create a branch for local development::
+#. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-6. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
+#. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
 
     $ flake8 quantify tests
     $ pytest --cov
@@ -124,7 +110,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
       will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
 
 
-7. Building the documentation
+#. Building the documentation
 
   If you have worked on documentation instead of code you may want to preview how your docs look locally.
   You can build the docs locally using:
@@ -148,13 +134,13 @@ Ready to contribute? Here's how to set up `quantify` for local development.
       The documentation will then be hosted on `localhost:8000`
 
 
-8. Commit your changes and push your branch to GitLab::
+#. Commit your changes and push your branch to GitLab::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-9. Submit a merge request through the GitLab website.
+#. Submit a merge request through the GitLab website.
 
 
 
