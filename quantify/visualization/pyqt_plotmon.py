@@ -3,23 +3,26 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
-import numpy as np
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import ManualParameter
-from qcodes.plots.colors import color_cycle
-from qcodes.plots.pyqtgraph import QtPlot, TransformState
+from qcodes.instrument.parameter import Parameter
+from qcodes.utils.helpers import strip_attrs
 
-from quantify.data.handling import load_dataset, get_latest_tuid
-from quantify.visualization.plot_interpolation import interpolate_heatmap
+import pyqtgraph.multiprocess as pgmp
+from quantify.data.handling import get_datadir
+
+import warnings
 
 
 class PlotMonitor_pyqt(Instrument):
     """
-    Pyqtgraph based plot monitor.
+    Pyqtgraph based plot monitor instrument.
 
     A plot monitor is intended to provide a real-time visualization of a dataset.
+
+    The interaction with this virtual instrument are virtually instantaneous.
+    All the heavier computations and plotting happens in a separate QtProcess.
     """
 
     def __init__(self, name: str):
@@ -33,242 +36,204 @@ class PlotMonitor_pyqt(Instrument):
         """
         super().__init__(name=name)
 
-        # Paramaters are attributes that we include in logging
-        # and intend the user to change.
+        # pyqtgraph multiprocessing
+        # We setup a remote process which creates a queue to which
+        # "commands" will be sent
+        self.proc = pgmp.QtProcess(processRequests=False)
+        # quantify module(s) in the remote process
+        self.remote_quantify = self.proc._import("quantify")
+        self.remote_ppr = self.proc._import(
+            "quantify.visualization.pyqt_plotmon_remote"
+        )
+        datadir = get_datadir()
+        # the interface to the remote object
+        self.remote_plotmon = self.remote_ppr.RemotePlotmon(
+            instr_name=self.name, datadir=datadir
+        )
 
         self.add_parameter(
-            "tuid",
-            docstring="The tuid of the dataset to monitor",
-            parameter_class=ManualParameter,
-            vals=vals.Strings(),
-            initial_value='latest',)
+            name="tuids_max_num",
+            docstring=(
+                "The maximum number of auto-accumulated datasets in "
+                "`.tuids()`.\n"
+                "Older dataset are discarded when `.tuids_append()` is "
+                "called [directly or from `.update(tuid)`]"
+            ),
+            parameter_class=Parameter,
+            vals=vals.Ints(min_value=1, max_value=100),
+            set_cmd=self._set_tuids_max_num,
+            get_cmd=self._get_tuids_max_num,
+            # avoid set_cmd being called at __init__
+            initial_cache_value=3,
+        )
+        self.add_parameter(
+            name="tuids",
+            docstring=(
+                "The tuids of the auto-accumulated previous datasets when "
+                "specified through `.tuids_append()`.\n"
+                "Can also be set to any list `['tuid_one', 'tuid_two', ...]`\n"
+                "Can be reset by setting to `[]`\n"
+                "See also `tuids_extra`."
+            ),
+            parameter_class=Parameter,
+            get_cmd=self._get_tuids,
+            set_cmd=self._set_tuids,
+            # avoid set_cmd being called at __init__
+            initial_cache_value=[],
+        )
 
-        # used to track if tuid changed
-        self._last_tuid = None
+        self.add_parameter(
+            name="tuids_extra",
+            docstring=(
+                "Extra tuids whose datasets are never affected by "
+                "`.tuids_append()` or `.tuids_max_num()`.\n"
+                "As opposed to the `.tuids()`, these ones never vanish.\n"
+                "Can be reset by setting to `[]`.\n"
+                "Intended to perform realtime measurements and have a "
+                "live comparison with previously measured datasets."
+            ),
+            parameter_class=Parameter,
+            vals=vals.Lists(),
+            set_cmd=self._set_tuids_extra,
+            get_cmd=self._get_tuids_extra,
+            # avoid set_cmd being called at __init__
+            initial_cache_value=[],
+        )
 
-        self.create_plot_monitor()
+        # Jupyter notebook support
 
-        # convenient access to curve variable for updating
-        self.curves = []
-        self._im_curves = []
-        self._im_scatters = []
-        self._im_scatters_last = []
+        self.main_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "main_QtPlot")
+        self.secondary_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "secondary_QtPlot")
+
+    # Wrappers for the remote methods
+    # We just put "commands" on a queue that will be consumed by the
+    # remote_plotmon
+    # the commands are just a tuple:
+    # (
+    #   <str: attr to be called in the remote process>,
+    #   <tuple: a tuple with the arguments passed to the attr>
+    # )
+    # see `remote_plotmon._exec_queue`
+
+    # For consistency we mirror the label of all methods and set_cmd/get_cmd's
+    # with the remote_plotmon
+
+    # NB: before implementing the queue, _callSync="off" could be used
+    # to avoid waiting for a return
+    # e.g. self.remote_plotmon.update(tuid, _callSync="off")
 
     def create_plot_monitor(self):
         """
         Creates the PyQtGraph plotting monitors.
         Can also be used to recreate these when plotting has crashed.
         """
-        if hasattr(self, "main_QtPlot"):
-            del self.main_QtPlot
-        if hasattr(self, "secondary_QtPlot"):
-            del self.secondary_QtPlot
+        self.remote_plotmon.queue.put(("create_plot_monitor", tuple()))
+        # Without queue it will be:
+        # self.remote_plotmon.create_plot_monitor()
 
-        self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.name),
-            figsize=(600, 400))
-        self.secondary_QtPlot = QtPlot(
-            window_title="Secondary plotmon of {}".format(self.name),
-            figsize=(600, 400))
-
-    def _initialize_plot_monitor(self, tuid):
+    def update(self, tuid: str = None):
         """
-        Clears data in plot monitors and sets it up with the data from the dataset
+        Updates the curves/heatmaps os a specific dataset.
+
+        If the dataset is not specified the latest on in `.tuids()`
+        is used.
+
+        If `.tuids()` is empty and `tuid` is provided
+        then `.tuids_append(tuid)` will be called.
+        NB: this is intended mainly for MC to avoid issues when the file
+        was not yet created or is empty.
         """
+        try:
+            self.remote_plotmon.queue.put(("update", (tuid,)))
+            # self.remote_plotmon.update(tuid)
+        except Exception as e:
+            warnings.warn(f"At update encountered: {e}", Warning)
 
-        # Clear the plot monitors if required.
-        if self.main_QtPlot.traces:
-            self.main_QtPlot.clear()
+    def tuids_append(self, tuid: str = None):
+        """
+        Appends a tuid to `.tuids()` and also discards older datasets
+        according to `.tuids_max_num()`.
 
-        if self.secondary_QtPlot.traces:
-            self.secondary_QtPlot.clear()
+        The the corresponding data will be plotted in the main window
+        with blue circles.
 
-        self.curves = []
-        self._im_curves = []
-        self._im_scatters = []
-        self._im_scatters_last = []
+        NB: do not call before the corresponding dataset file was created and filled
+        with data
+        """
+        self.remote_plotmon.queue.put(("tuids_append", (tuid,)))
+        # self.remote_plotmon.tuids_append(tuid)
 
-        # TODO add persistence based on previous dataset
-        dset = load_dataset(tuid=tuid)
+    def _set_tuids_max_num(self, val):
+        self.remote_plotmon.queue.put(("_set_tuids_max_num", (val,)))
+        # self.remote_plotmon._set_tuids_max_num(val)
 
-        set_parnames = list(filter(lambda k: 'x' in k, dset.keys()))
-        get_parnames = list(filter(lambda k: 'y' in k, dset.keys()))
+    def _set_tuids(self, tuids: list):
+        self.remote_plotmon.queue.put(("_set_tuids", (tuids,)))
+        # self.remote_plotmon._set_tuids(tuids)
 
-        #############################################################
-        plot_idx = 1
-        for yi in get_parnames:
-            for xi in set_parnames:
-                # TODO: add persist data here.
-                self.main_QtPlot.add(
-                    x=dset[xi].values, y=dset[yi].values,
-                    subplot=plot_idx,
-                    xlabel=dset[xi].attrs['long_name'],
-                    xunit=dset[xi].attrs['unit'],
-                    ylabel=dset[yi].attrs['long_name'],
-                    yunit=dset[yi].attrs['unit'],
-                    symbol='o', symbolSize=5,
-                )
-                # Manual counter is used because we may want to add more
-                # than one quantity per panel
-                plot_idx += 1
-                self.curves.append(self.main_QtPlot.traces[-1])
-            self.main_QtPlot.win.nextRow()
+    def _set_tuids_extra(self, tuids: list):
+        self.remote_plotmon.queue.put(("_set_tuids_extra", (tuids,)))
+        # self.remote_plotmon._set_tuids_extra(tuids)
 
-        #############################################################
-        # Add a square heatmap
-        if dset.attrs['2D-grid']:
-            plot_idx = 1
-            for yi in get_parnames:
+    # Blocking calls
+    # For this ones we wait to get the return
 
-                cmap = 'viridis'
-                zrange = None
+    def _get_tuids_max_num(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_tuids_max_num()
 
-                x = dset['x0'].values[:dset.attrs['xlen']]
-                y = dset['x1'].values[::dset.attrs['xlen']]
-                z = np.reshape(dset[yi].values,
-                               (len(x), len(y)), order='F').T
-                config_dict = {
-                    "x": x,
-                    "y": y,
-                    "z": z,
-                    "xlabel": dset['x0'].attrs['long_name'],
-                    "xunit": dset['x0'].attrs['unit'],
-                    "ylabel": dset['x1'].attrs['long_name'],
-                    "yunit": dset['x1'].attrs['unit'],
-                    "zlabel": dset[yi].attrs['long_name'],
-                    "zunit": dset[yi].attrs['unit'],
-                    "subplot": plot_idx,
-                    "cmap": cmap,
-                }
-                if zrange is not None:
-                    config_dict["zrange"] = zrange
-                self.secondary_QtPlot.add(**config_dict)
-                plot_idx += 1
+    def _get_tuids(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_tuids()
 
-        #############################################################
-        # if data is not on a grid but is 2D it makes sense to interpolate
+    def _get_tuids_extra(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_tuids_extra()
 
-        elif len(set_parnames) == 2:
-            plot_idx = 1
-            for yi in get_parnames:
+    # Workaround for test due to pickling issues of certain objects
+    def _get_curves_config(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_curves_config()
 
-                cmap = 'viridis'
-                zrange = None
+    def _get_traces_config(self, which="main_QtPlot"):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        return self.remote_plotmon._get_traces_config(which)
 
-                config_dict = {
-                    "x": [0, 1],
-                    "y": [0, 1],
-                    "z": np.zeros([2, 2]),
-                    "xlabel": dset['x0'].attrs['long_name'],
-                    "xunit": dset['x0'].attrs['unit'],
-                    "ylabel": dset['x1'].attrs['long_name'],
-                    "yunit": dset['x1'].attrs['unit'],
-                    "zlabel": dset[yi].attrs['long_name'],
-                    "zunit": dset[yi].attrs['unit'],
-                    "subplot": plot_idx,
-                    "cmap": cmap,
-                }
-                if zrange is not None:
-                    config_dict["zrange"] = zrange
-                self.secondary_QtPlot.add(**config_dict)
-                self._im_curves.append(self.secondary_QtPlot.traces[-1])
+    def close(self) -> None:
+        """
+        (Modified form Instrument class)
 
-                # used to mark the interpolation points
-                self.secondary_QtPlot.add(
-                    x=[], y=[],
-                    pen=None,
-                    color=1.0, width=0, symbol="o", symbolSize=4,
-                    subplot=plot_idx,
-                    xlabel=dset['x0'].attrs['long_name'],
-                    xunit=dset['x0'].attrs['unit'],
-                    ylabel=dset['x1'].attrs['long_name'],
-                    yunit=dset['x1'].attrs['unit'],)
-                self._im_scatters.append(self.secondary_QtPlot.traces[-1])
+        Irreversibly stop this instrument and free its resources.
 
-                # used to mark the last N-interpolation points
-                self.secondary_QtPlot.add(
-                    x=[], y=[],
-                    color=color_cycle[3],  # marks the point red
-                    width=0, symbol="o", symbolSize=7,
-                    subplot=plot_idx,
-                    xlabel=dset['x0'].attrs['long_name'],
-                    xunit=dset['x0'].attrs['unit'],
-                    ylabel=dset['x1'].attrs['long_name'],
-                    yunit=dset['x1'].attrs['unit'],)
-                self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
+        Subclasses should override this if they have other specific
+        resources to close.
+        """
+        if hasattr(self, 'connection') and hasattr(self.connection, 'close'):
+            self.connection.close()
 
-                plot_idx += 1
+        # Essential!!!
+        # Close the process
+        self.proc.join()
 
-    def update(self):
-        if self.tuid() == 'latest':
-            # this should automatically set tuid to the most recent tuid.
-            tuid = get_latest_tuid()
-        else:
-            tuid = self.tuid()
+        strip_attrs(self, whitelist=['_name'])
+        self.remove_instance(self)
 
-        # If tuid has changed, we need to initialize the figure
-        if tuid != self._last_tuid:
-            # need to initialize the plot monitor
-            self._initialize_plot_monitor(tuid)
-            self._last_tuid = tuid
 
-        # otherwise we simply update
-        else:
-            dset = load_dataset(tuid=tuid)
-            set_parnames = list(filter(lambda k: 'x' in k, dset.keys()))
-            get_parnames = list(filter(lambda k: 'y' in k, dset.keys()))
-            # Only updates the main monitor currently.
+class QtPlotObjForJupyter:
+    """
+    A wrapper to be able to display a QtPlot window in Jupyter notebooks
+    """
 
-            #############################################################
-            i = 0
-            for yi in get_parnames:
-                for xi in set_parnames:
-                    self.curves[i]["config"]["x"] = dset[xi].values
-                    self.curves[i]["config"]["y"] = dset[yi].values
-                    i += 1
-            self.main_QtPlot.update_plot()
+    def __init__(self, remote_plotmon, attr_name):
+        # Save reference of the remote object
+        self.remote_plotmon = remote_plotmon
+        self.attr_name = attr_name
 
-            #############################################################
-            # Add a square heatmap
-            if dset.attrs['2D-grid']:
-                for yidx, yi in enumerate(get_parnames):
-                    Z = np.reshape(dset[yi].values,
-                                   (dset.attrs['xlen'], dset.attrs['ylen']),
-                                   order='F').T
-                    self.secondary_QtPlot.traces[yidx]['config']['z'] = Z
-                self.secondary_QtPlot.update_plot()
-
-            #############################################################
-            # if data is not on a grid but is 2D it makes sense to interpolate
-            elif len(set_parnames) == 2:
-                for yidx, yi in enumerate(get_parnames):
-                    # exists to force reset the x- and y-axis scale
-                    new_sc = TransformState(0, 1, True)
-
-                    x = dset['x0'].values[~np.isnan(dset)['y0']]
-                    y = dset['x1'].values[~np.isnan(dset)['y0']]
-                    z = dset[yi].values[~np.isnan(dset)['y0']]
-                    # interpolation needs to be meaningful
-                    if len(z) < 8:
-                        break
-                    x_grid, y_grid, z_grid = interpolate_heatmap(x=x, y=y, z=z, interp_method='linear')
-
-                    trace = self._im_curves[yidx]
-                    trace['config']['x'] = x_grid
-                    trace['config']['y'] = y_grid
-                    trace['config']['z'] = z_grid
-                    # force rescale axis so marking datapoints works
-                    trace["plot_object"]["scales"]["x"] = new_sc
-                    trace["plot_object"]["scales"]["y"] = new_sc
-
-                    # Mark all measured points on which the interpolation
-                    # is based
-                    trace = self._im_scatters[yidx]
-                    trace['config']['x'] = x
-                    trace['config']['y'] = y
-
-                    trace = self._im_scatters_last[yidx]
-                    trace['config']['x'] = x[-5:]
-                    trace['config']['y'] = y[-5:]
-
-                self.secondary_QtPlot.update_plot()
+    def _repr_png_(self):
+        # always get the remote object, avoid keeping object references
+        return getattr(self.remote_plotmon, self.attr_name)._repr_png_()

@@ -51,6 +51,5 @@ def create_plotmon_from_historical(tuid: TUID):
         the plot
     """
     plot = PlotMonitor_pyqt(tuid)
-    plot.tuid(tuid)
-    plot.update()
+    plot.tuids_append(tuid)
     return plot

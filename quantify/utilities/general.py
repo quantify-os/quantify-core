@@ -39,7 +39,7 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
     return modified_dict
 
 
-def traverse_dict(obj, convert_to_string: bool=True):
+def traverse_dict(obj, convert_to_string: bool = True):
     """
     Traversal implementation which recursively visits each node in a dict.
     We modify this function so that at the lowest hierarchy,
@@ -57,6 +57,35 @@ def traverse_dict(obj, convert_to_string: bool=True):
     else:
         return_obj = str(obj) if convert_to_string else obj
         return str(return_obj)
+
+
+def get_keys_containing(obj, key):
+    """
+    Returns a set with the keys that contain `key`
+
+    Example:
+
+    .. code-block:: python
+
+        from quantify.utilities.general import get_keys_containing
+        dict_obj = {"x0": [1, 2, 3], "y0": [4, 5, 6], "other_key": 79}
+        get_keys_containing(dict_obj, "x")
+
+        # Return:
+        # {"x0"}
+
+    Parameters
+    -----------
+    obj: obj
+        any object with a `.keys()` attribute, usually a dictionary
+    key:
+        the search key, usually a string
+    Returns
+    -------
+    set:
+        a new set containing the keys that match the search
+    """
+    return set(filter(lambda k: key in k, obj.keys()))
 
 
 def make_hash(o):
@@ -124,7 +153,7 @@ def load_json_schema(relative_to, filename):
 
 def without(d, keys):
     """
-    Utility that copies a dictionary exluding a specific list of keys.
+    Utility that copies a dictionary excluding a specific list of keys.
     """
     if not isinstance(keys, list):
         keys = [keys]
@@ -136,6 +165,6 @@ def without(d, keys):
 
 class KeyboardFinish(KeyboardInterrupt):
     """
-    Indicates the user has signalled to safely abort/finish the experiment.
+    Indicates the user has signaled to safely abort/finish the experiment.
     """
     pass
