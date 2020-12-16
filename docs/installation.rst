@@ -7,6 +7,28 @@ Stable release
 --------------
 
 This is the preferred method to install Quantify, as it will always install the most recent stable release.
+If you want to contribute to quantify, also check out :ref:`Setting up quantify for local development` in the contributing section.
+
+
+All systems except Windows (pip)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend using a `virtual environment <https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/>`_ ::
+
+    $ virtualenv venv           # Creates a virtual environment
+    $ source venv/bin/activate  # activates the virtual environment
+
+To install Quantify::
+
+    $ pip install quantify-core
+
+
+If you don't have `pip`_ installed, this `Python installation guide`_ can guide
+you through the process.
+
+.. _pip: https://pip.pypa.io
+.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+
 
 On Windows (Anaconda)
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,21 +100,6 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
 
 
-On all other systems (pip)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To install Quantify, run this command in your terminal:
-
-.. code-block:: console
-
-    $ pip install quantify-core
-
-
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
-
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 From source
 ------------
@@ -114,6 +121,8 @@ If you are a developer you might want to install the package in the editable mod
 .. code-block:: console
 
     $ pip install -e .
+
+See also :ref:`Setting up quantify for local development` in the contributing section.
 
 
 Potential issues
