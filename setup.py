@@ -19,13 +19,13 @@ with open('requirements_dev.txt') as test_reqs:
 
 requirements = [
     'qcodes',
-    'numpy==1.19.2',
+    'numpy==1.19.2',  # Version pinned because of a bug in 1.19.4 on windows https://github.com/numpy/numpy/issues/17726
     'scipy',
     'xarray',
     'xxhash',
     'matplotlib',
     'lmfit',
-    'pyqt5==5.14.0',
+    'pyqt5>=5.15.2',
     'pyqtgraph',
     'jsonschema',
     'adaptive',

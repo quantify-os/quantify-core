@@ -2,11 +2,8 @@ import time
 import random
 import xarray as xr
 import numpy as np
-import pickle
 import pytest
 import adaptive
-import os
-from threading import Timer
 from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
@@ -18,7 +15,11 @@ from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 from tests.helpers import get_test_data_dir
-
+try:
+    from adaptive import SKOptLearner
+    with_skoptlearner = True
+except ImportError:
+    with_skoptlearner = False
 
 test_datadir = get_test_data_dir()
 
@@ -749,11 +750,12 @@ class TestMeasurementControl:
         dset = self.MC.run_adaptive("adaptive sample", af_pars)
         # todo pycqed has no verification step here, what should we do?
 
+    @pytest.mark.skipif(not with_skoptlearner, reason="scikit-optimize is not installed")
     def test_adaptive_skoptlearner(self):
         self.dummy_parabola.noise(0)
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
-            "adaptive_function": adaptive.SKOptLearner,
+            "adaptive_function": SKOptLearner,
             "goal": lambda l: l.npoints > 15,
             "dimensions": [(-50.0, +50.0), (-20.0, +30.0)],
             "base_estimator": "gp",

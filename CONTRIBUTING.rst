@@ -75,27 +75,41 @@ Setting up quantify for local development
 Ready to contribute? Here's how to set up `quantify` for local development.
 
 1. Fork the `quantify` repo on GitLab.
-2. Clone your fork locally::
+#. Clone your fork locally::
 
-    $ git clone git@gitlab.com:your_name_here/quantify.git
+    $ git clone git@gitlab.com:your_name_here/quantify-core.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+#. Install quantify locally::
 
-    $ mkvirtualenv quantify
-    $ cd quantify/
+    $ cd quantify-core/
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
-4. Create a branch for local development::
+#. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
+#. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
 
     $ flake8 quantify tests
     $ pytest --cov
+
+
+  .. tip:: Running parts of the test suite
+
+      To run only parts of the test suite, specify the folder in which to look for
+      tests as an argument to pytest. The following example
+
+
+      .. code-block:: shell
+
+          $ py.test tests/measurement --cov quantify/measurement
+
+      will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+
+6. Building the documentation
 
   If you have worked on documentation instead of code you may want to preview how your docs look locally.
   You can build the docs locally using:
@@ -107,39 +121,26 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
   The docs will be located in `quantify/docs/_build`.
 
+  .. tip::
 
-6. Commit your changes and push your branch to GitLab::
+      If you are working on documentation it can be useful to automatically rebuild the docs after every change.
+      This can be done using the `sphinx-autobuild` package. Through the following command:
+
+      .. code-block:: shell
+
+          $ sphinx-autobuild docs docs/_build/html
+
+      The documentation will then be hosted on `localhost:8000`
+
+
+7. Commit your changes and push your branch to GitLab::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a merge request through the GitLab website.
+#. Submit a merge request through the GitLab website.
 
 
-.. tip:: Autobuild documentation
-
-    If you are working on documentation it can be useful to automatically rebuild
-    the docs after every change. This can be done using the `sphinx-autobuild`
-    package. Through the following command:
-
-
-    .. code-block:: shell
-
-        $ sphinx-autobuild docs docs/_build/html
-
-    The documentation will then be hosted on `localhost:8000`
-
-.. tip:: Running parts of the test suite
-
-    To run only parts of the test suite, specify the folder in which to look for
-    tests as an argument to pytest. The following example
-
-
-    .. code-block:: shell
-
-        $ py.test tests/measurement --cov quantify/measurement
-
-    will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
 
 
