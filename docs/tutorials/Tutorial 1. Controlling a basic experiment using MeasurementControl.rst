@@ -173,7 +173,8 @@ Loading the data
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
-We can alternatively load the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`. See the data storage documentation for more details on the folder structure and files contained in the data directory.
+We can alternatively load the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
+See the data storage documentation for more details on the folder structure and files contained in the data directory.
 
 .. jupyter-execute::
 
