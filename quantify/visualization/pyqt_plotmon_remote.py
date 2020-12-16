@@ -22,7 +22,8 @@ from quantify.data.handling import (
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
-from .color_utilities import make_fadded_colors
+from quantify.visualization.color_utilities import make_fadded_colors
+from quantify.visualization import _appnope
 from quantify.measurement.control import _dataset_name, _dataset_locks_dir
 
 
@@ -75,9 +76,20 @@ class RemotePlotmon:
         self.timer_queue = None
         self._queue_refresh_ms = 50
 
+        self.timer_appnope = None
+        self._appnope_refresh_ms = 30
+
         # Create plotting windows and start listening to commands on the
         # queue
         self.create_plot_monitor()
+
+        # This will start a timer and periodically take care of the queue
+        # of commands sent from the main process
+        # This is based on Qt timer and needs to be attached to a QtObject
+
+        # We attach it to the main window
+        # This likely requires to not close the main window
+        self._run()
 
     # ##################################################################
     # Multiprocessing communication and logic
@@ -94,6 +106,18 @@ class RemotePlotmon:
         self.timer_queue = QtCore.QTimer(self.main_QtPlot.win)
         self.timer_queue.timeout.connect(self._exec_queue)
         self.timer_queue.start(self._queue_refresh_ms)  # milliseconds
+
+        if _appnope.requires_appnope():
+            # Start a timer to ensure the App Nap of macOS does not idle this process.
+            # The process is sent to App Nap after a window is minimized or not
+            # visible for a few seconds, this ensure we avoid that.
+            # If this is not performed very long and cryptic errors will rise
+            # (which is fatal for a running measurement)
+
+            # This line requires the QtPlot's to be created with `remote=False`
+            self.timer_appnope = QtCore.QTimer(self.main_QtPlot.win)
+            self.timer_appnope.timeout.connect(_appnope.refresh_nope)
+            self.timer_appnope.start(self._appnope_refresh_ms)  # milliseconds
 
     def _exec_queue(self):
         """
@@ -243,18 +267,8 @@ class RemotePlotmon:
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.instr_name),
-            figsize=(600, 400),
-            remote=False,
+            window_title="Main plotmon of {}".format(self.instr_name), figsize=(600, 400), remote=False,
         )
-
-        # This will start a timer and periodically take care of the queue
-        # of commands sent from the main process
-        # This is based on Qt timer and needs to be attached to a QtObject
-
-        # We attach it to the main window
-        # This likely requires to not close the main window
-        self._run()
 
     def _initialize_plot_monitor(self):
         """

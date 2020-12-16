@@ -3,10 +3,11 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
 # -----------------------------------------------------------------------------
-from pyqtgraph.Qt import QtGui
+from pyqtgraph.Qt import QtGui, QtCore
 from quantify.visualization.SI_utilities import SI_val_to_msg_str
 
 import pprint
+from quantify.visualization import _appnope
 
 
 class QcSnaphotWidget(QtGui.QTreeWidget):
@@ -23,6 +24,18 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
         self.setColumnCount(4)
         self.setHeaderLabels(['Name', 'Value', 'Unit', 'Last update'])
         self.nodes = {}
+        self.timer_appnope = None
+
+        if _appnope.requires_appnope():
+            # Start a timer to ensure the App Nap of macOS does not idle this process.
+            # The process is sent to App Nap after a window is minimized or not
+            # visible for a few seconds, this ensure we avoid that.
+            # If this is not performed very long and cryptic errors will rise
+            # (which is fatal for a running measurement)
+
+            self.timer_appnope = QtCore.QTimer(self)
+            self.timer_appnope.timeout.connect(_appnope.refresh_nope)
+            self.timer_appnope.start(30)  # milliseconds
 
     def setData(self, data):
         """
