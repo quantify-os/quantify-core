@@ -109,8 +109,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
       will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
 
-
-#. Building the documentation
+6. Building the documentation
 
   If you have worked on documentation instead of code you may want to preview how your docs look locally.
   You can build the docs locally using:
@@ -134,7 +133,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
       The documentation will then be hosted on `localhost:8000`
 
 
-#. Commit your changes and push your branch to GitLab::
+7. Commit your changes and push your branch to GitLab::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
