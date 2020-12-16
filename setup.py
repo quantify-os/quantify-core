@@ -25,7 +25,7 @@ requirements = [
     'xxhash',
     'matplotlib',
     'lmfit',
-    'pyqt5>=5.14.0',
+    'pyqt5>=5.15.2',
     'pyqtgraph',
     'jsonschema',
     'adaptive'
