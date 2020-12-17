@@ -29,7 +29,8 @@ requirements = [
     'pyqtgraph',
     'jsonschema',
     'adaptive',
-    'filelock'
+    'filelock',
+    'appnope',
 ]
 
 setup_requirements = ['pytest-runner', ]
