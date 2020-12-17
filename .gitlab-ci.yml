@@ -1,3 +1,9 @@
+.shared_windows_runners:
+  tags:
+  - shared-windows
+  - windows
+  - windows-1809
+
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
 image: python:3.7
@@ -7,6 +13,7 @@ image: python:3.7
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   QT_DEBUG_PLUGINS: 1
+  QT_QPA_PLATFORM: offscreen
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -19,14 +26,12 @@ cache:
     - venv/
 
 before_script:
-  - QT_QPA_PLATFORM=offscreen
   - python -V  # Print out python version for debugging
   - pip install virtualenv
   - virtualenv venv
   - source venv/bin/activate
   - apt update
   - apt install -y xvfb # Sets up a headless display
-  - xvfb :99 & export DISPLAY=:99
   - sleep 3
 
 stages:
@@ -39,7 +44,6 @@ test:
   script:
     - pip install -e .
     - pip install -r requirements_dev.txt
-    - apt install python3-pyqt5 -y  # install here manually due to issues
     - xvfb-run py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
   artifacts:
     paths:
@@ -48,6 +52,20 @@ test:
     reports:
       cobertura: coverage.xml
     when: always
+
+test-win-3.8:
+  before_script:
+    - choco install python --version=3.8.3 -y -f
+    - "C:\\Python38\\python.exe -m pip install -U pip"
+  extends:
+    - .shared_windows_runners
+    - test
+  script:
+    - "C:\\Python38\\python.exe -m pip install -e ."
+    - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov scikit-learn==0.23.1 scikit-optimize"
+    - "C:\\Python38\\Scripts\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
+  only:
+    - develop
 
 test-3.8:
   extends: "test"

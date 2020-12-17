@@ -19,25 +19,25 @@ with open('requirements_dev.txt') as test_reqs:
 
 requirements = [
     'qcodes',
-    'numpy',
+    'numpy==1.19.2',  # Version pinned because of a bug in 1.19.4 on windows https://github.com/numpy/numpy/issues/17726
     'scipy',
     'xarray',
-    'columnar',
     'xxhash',
     'matplotlib',
     'lmfit',
-    'pyqt5==5.14.0',
+    'pyqt5>=5.15.2',
     'pyqtgraph',
-    'plotly',
     'jsonschema',
-    'adaptive'
+    'adaptive',
+    'filelock',
+    'appnope',
 ]
 
 setup_requirements = ['pytest-runner', ]
 
 setup(
     author="The Quantify consortium consisting of Qblox and Orange Quantum Systems",
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
@@ -59,7 +59,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://https://gitlab.com/quantify-os/quantify-core',
-    version='0.2.0',
+    url='https://gitlab.com/quantify-os/quantify-core',
+    version='0.3.0',
     zip_safe=False,
 )

@@ -7,6 +7,8 @@ import time
 import json
 import types
 from os.path import join
+from filelock import FileLock
+import tempfile
 
 import numpy as np
 import adaptive
@@ -14,15 +16,25 @@ from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.data.handling import initialize_dataset, create_exp_folder, snapshot, grow_dataset, trim_dataset
-from quantify.measurement.types import Settable, Gettable, is_software_controlled
+from quantify.data.handling import (
+    initialize_dataset,
+    create_exp_folder,
+    snapshot,
+    grow_dataset,
+    trim_dataset,
+)
+from quantify.measurement.types import Settable, Gettable, is_batched
+
+# Intended for plotting monitors that run in separate processes
+_dataset_name = "dataset.hdf5"
+_dataset_locks_dir = tempfile.gettempdir()
 
 
 class MeasurementControl(Instrument):
     """
     Instrument responsible for controlling the data acquisition loop.
 
-    MeasurementControl (MC) is based on the notion that every experiment consists of the following step:
+    MeasurementControl (MC) is based on the notion that every experiment consists of the following steps:
 
         1. Set some parameter(s)            (settable_pars)
         2. Measure some other parameter(s)  (gettable_pars)
@@ -45,8 +57,8 @@ class MeasurementControl(Instrument):
 
     MC imposes minimal constraints and allows:
 
-    - Soft loops, experiments in which MC controlled acquisition loop.
-    - Hard loops, experiments in which MC is not in control of acquisition.
+    - Iterative loops, experiments in which setpoints are processed step by step.
+    - Batched loops, experiments in which setpoints are processed in batches.
     - Adaptive loops, setpoints are determined based on measured values.
 
     """
@@ -76,7 +88,7 @@ class MeasurementControl(Instrument):
             "on_progress_callback",
             vals=vals.Callable(),
             docstring="A callback to communicate progress. This should be a "
-            "Callable accepting ints between 0 and 100 indicating percdone.",
+            "Callable accepting floats between 0 and 100 indicating %% done.",
             parameter_class=ManualParameter,
             initial_value=None,
         )
@@ -90,22 +102,31 @@ class MeasurementControl(Instrument):
         )
 
         self.add_parameter(
-            'instr_plotmon',
-            docstring='Instrument responsible for live plotting. '
-            'Can be set to str(None) to disable live plotting.',
-            parameter_class=InstrumentRefParameter)
+            "instr_plotmon",
+            docstring="Instrument responsible for live plotting. "
+            "Can be set to str(None) to disable live plotting.",
+            parameter_class=InstrumentRefParameter,
+        )
 
-        # TODO add update interval functionality.
         self.add_parameter(
-            'update_interval',
-            initial_value=0.1,
+            "instrument_monitor",
+            docstring="Instrument responsible for live monitoring summarized snapshot. "
+            "Can be set to str(None) to disable monitoring of snapshot.",
+            parameter_class=InstrumentRefParameter,
+        )
+
+        self.add_parameter(
+            "update_interval",
+            initial_value=0.5,
             docstring=(
-                'Interval for updates during the data acquisition loop,' +
-                ' everytime more than `update_interval` time has elapsed ' +
-                'when acquiring new data points, data is written to file ' +
-                'and the live monitoring is updated.'),
+                "Interval for updates during the data acquisition loop,"
+                " everytime more than `update_interval` time has elapsed "
+                "when acquiring new data points, data is written to file "
+                "and the live monitoring is updated."
+            ),
             parameter_class=ManualParameter,
-            vals=vals.Numbers(min_value=0)
+            # minimum value set to avoid performance issues
+            vals=vals.Numbers(min_value=0.1),
         )
 
         # variables that are set before the start of any experiment.
@@ -122,8 +143,8 @@ class MeasurementControl(Instrument):
         # variables used for persistence and plotting
         self._dataset = None
         self._exp_folder = None
-        self._plotmon_name = ''
-        self._plot_info = {'2D-grid': False}
+        self._plotmon_name = ""
+        self._plot_info = {"2D-grid": False}
 
     ############################################
     # Methods used to control the measurements #
@@ -142,25 +163,34 @@ class MeasurementControl(Instrument):
         Initializes MC, such as creating the Dataset, experiment folder and such.
         """
         # initialize an empty dataset
-        self._dataset = initialize_dataset(self._settable_pars, self._setpoints, self._gettable_pars)
+        self._dataset = initialize_dataset(
+            self._settable_pars, self._setpoints, self._gettable_pars
+        )
 
         # cannot add it as a separate (nested) dict so make it flat.
-        self._dataset.attrs['name'] = name
+        self._dataset.attrs["name"] = name
         self._dataset.attrs.update(self._plot_info)
 
-        self._exp_folder = create_exp_folder(tuid=self._dataset.attrs['tuid'], name=self._dataset.attrs['name'])
-        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Write the empty dataset
+        self._exp_folder = create_exp_folder(
+            tuid=self._dataset.attrs["tuid"], name=self._dataset.attrs["name"]
+        )
+        self._safe_write_dataset()  # Write the empty dataset
+
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        with open(join(self._exp_folder, 'snapshot.json'), 'w') as file:
+        with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
         self._plotmon_name = self.instr_plotmon()
-        if self._plotmon_name is not None and self._plotmon_name != '':
-            self.instr_plotmon.get_instr().tuid(self._dataset.attrs['tuid'])
-            # if the timestamp has changed, this will initialize the monitor
-            self.instr_plotmon.get_instr().update()
 
-    def run(self, name: str = ''):
+        # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
+        self._instrument_monitor_name = self.instrument_monitor()
+        if (
+            self._instrument_monitor_name is not None
+            and self._instrument_monitor_name != ""
+        ):
+            self.instrument_monitor.get_instr().update()
+
+    def run(self, name: str = ""):
         """
         Starts a data acquisition loop.
 
@@ -180,17 +210,19 @@ class MeasurementControl(Instrument):
         self._prepare_settables()
 
         try:
-            if self._is_soft:
-                self._run_soft()
+            if self._is_batched:
+                self._run_batched()
             else:
-                self._run_hard()
+                self._run_iterative()
         except KeyboardInterrupt:
-            print()
-            print("Interrupt signalled, exiting gracefully...")
+            print("\nInterrupt signaled, exiting gracefully...")
 
-        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
+        self._safe_write_dataset()  # Wrap up experiment and store data
+
         self._finish()
-        self._plot_info = {'2D-grid': False}  # reset the plot info for the next experiment.
+        self._plot_info = {
+            "2D-grid": False
+        }  # reset the plot info for the next experiment.
         self.soft_avg(1)  # reset software averages back to 1
 
         return self._dataset
@@ -214,16 +246,17 @@ class MeasurementControl(Instrument):
         :class:`xarray.Dataset`
             the dataset
         """
+
         def measure(vec) -> float:
-            if len(self._dataset['y0']) == self._nr_acquired_values:
+            if len(self._dataset["y0"]) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
 
             #  1D sweeps return single values, wrap in a list
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._soft_set_and_get(vec, self._nr_acquired_values)
-            ret = self._dataset['y0'].values[self._nr_acquired_values]
+            self._iterative_set_and_get(vec, self._nr_acquired_values)
+            ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update("Running adaptively")
             return ret
@@ -236,8 +269,10 @@ class MeasurementControl(Instrument):
             af_pars_copy = dict(params)
 
             # leveraging the adaptive library
-            if isinstance(adaptive_function, type) and issubclass(adaptive_function, adaptive.learner.BaseLearner):
-                goal = af_pars_copy['goal']
+            if isinstance(adaptive_function, type) and issubclass(
+                adaptive_function, adaptive.learner.BaseLearner
+            ):
+                goal = af_pars_copy["goal"]
                 unusued_pars = ["adaptive_function", "goal"]
                 for unusued_par in unusued_pars:
                     af_pars_copy.pop(unusued_par, None)
@@ -252,33 +287,37 @@ class MeasurementControl(Instrument):
                 adaptive_function(measure, **af_pars_copy)
 
         if self.soft_avg() != 1:
-            raise ValueError("software averaging not allowed in adaptive loops; currently set to {}."
-                             .format(self.soft_avg()))
+            raise ValueError(
+                "software averaging not allowed in adaptive loops; currently set to {}.".format(
+                    self.soft_avg()
+                )
+            )
 
         self._reset()
-        self.setpoints(np.empty((64, len(self._settable_pars))))  # block out some space in the dataset
+        self.setpoints(
+            np.empty((64, len(self._settable_pars)))
+        )  # block out some space in the dataset
         self._init(name)
         try:
             subroutine()
         except KeyboardInterrupt:
-            print()
-            print('Interrupt signalled, exiting gracefully...')
+            print("\nInterrupt signaled, exiting gracefully...")
 
         self._finish()
         self._dataset = trim_dataset(self._dataset)
-        self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))  # Wrap up experiment and store data
+        self._safe_write_dataset()  # Wrap up experiment and store data
         return self._dataset
 
-    def _run_soft(self):
+    def _run_iterative(self):
         while self._get_fracdone() < 1.0:
             self._prepare_gettable()
             for row in self._setpoints:
-                self._soft_set_and_get(row, self._curr_setpoint_idx())
+                self._iterative_set_and_get(row, self._curr_setpoint_idx())
                 self._nr_acquired_values += 1
                 self._update()
             self._loop_count += 1
 
-    def _run_hard(self):
+    def _run_batched(self):
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
             for i, spar in enumerate(self._settable_pars):
@@ -294,9 +333,15 @@ class MeasurementControl(Instrument):
 
                 for row in new_data:
                     slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = self._dataset['y{}'.format(y_off)].values[setpoint_idx:slice_len]
-                    old_vals[np.isnan(old_vals)] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset['y{}'.format(y_off)].values[setpoint_idx:slice_len] = self._build_data(row, old_vals)
+                    old_vals = self._dataset["y{}".format(y_off)].values[
+                        setpoint_idx:slice_len
+                    ]
+                    old_vals[
+                        np.isnan(old_vals)
+                    ] = 0  # will be full of NaNs on the first iteration, change to 0
+                    self._dataset["y{}".format(y_off)].values[
+                        setpoint_idx:slice_len
+                    ] = self._build_data(row, old_vals)
                     y_off += 1
                 self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
@@ -307,7 +352,7 @@ class MeasurementControl(Instrument):
         else:
             return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _soft_set_and_get(self, setpoints: np.ndarray, idx: int):
+    def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
 
@@ -318,7 +363,7 @@ class MeasurementControl(Instrument):
         """
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
-            self._dataset['x{}'.format(setpar_idx)].values[idx] = spt
+            self._dataset["x{}".format(setpar_idx)].values[idx] = spt
             spar.set(spt)  # TODO add smartness to avoid setting if unchanged
         # get all data points
         y_offset = 0
@@ -329,12 +374,14 @@ class MeasurementControl(Instrument):
                 new_data = [new_data]
             # iterate through the data list, each element is different y for these x coordinates
             for val in new_data:
-                old_val = self._dataset['y{}'.format(y_offset)].values[idx]
+                old_val = self._dataset["y{}".format(y_offset)].values[idx]
                 if self.soft_avg() == 1 or np.isnan(old_val):
-                    self._dataset['y{}'.format(y_offset)].values[idx] = val
+                    self._dataset["y{}".format(y_offset)].values[idx] = val
                 else:
-                    averaged = (val + old_val * self._loop_count) / (1 + self._loop_count)
-                    self._dataset['y{}'.format(y_offset)].values[idx] = averaged
+                    averaged = (val + old_val * self._loop_count) / (
+                        1 + self._loop_count
+                    )
+                    self._dataset["y{}".format(y_offset)].values[idx] = averaged
                 y_offset += 1
 
     ############################################
@@ -345,70 +392,75 @@ class MeasurementControl(Instrument):
         """
         Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
         """
-        update = time.time() - self._last_upd > self.update_interval() \
+        update = (
+            time.time() - self._last_upd > self.update_interval()
             or self._nr_acquired_values == self._max_setpoints
+        )
         if update:
             self.print_progress(print_message)
-            self._dataset.to_netcdf(join(self._exp_folder, 'dataset.hdf5'))
-            if self._plotmon_name is not None and self._plotmon_name != '':
-                self.instr_plotmon.get_instr().update()
+
+            self._safe_write_dataset()
+
+            if self._plotmon_name is not None and self._plotmon_name != "":
+                # Plotmon requires to know which dataset was modified
+                self.instr_plotmon.get_instr().update(tuid=self._dataset.attrs["tuid"])
+
+            if (
+                self._instrument_monitor_name is not None
+                and self._instrument_monitor_name != ""
+            ):
+                self.instrument_monitor.get_instr().update()
+
             self._last_upd = time.time()
+
+    def _call_if_has_method(self, obj, method: str):
+        """
+        Calls the ``method`` of the ``obj`` if it has it
+        """
+        prepare_method = getattr(obj, method, lambda: None)
+        prepare_method()
 
     def _prepare_gettable(self):
         """
         Call prepare() on the Gettable, if prepare() exists
         """
         for getpar in self._gettable_pars:
-            try:
-                getpar.prepare()
-            # it's fine if the gettable does not have a prepare function
-            except AttributeError:
-                pass
+            self._call_if_has_method(getpar, "prepare")
 
     def _prepare_settables(self):
         """
         Call prepare() on all Settable, if prepare() exists
         """
         for setpar in self._settable_pars:
-            try:
-                setpar.prepare()
-            # it's fine if the settable does not have a prepare function
-            except AttributeError:
-                pass
+            self._call_if_has_method(setpar, "prepare")
 
     def _finish(self):
         """
         Call finish() on all Settables and Gettables, if finish() exists
         """
-        for p in self._gettable_pars and self._settable_pars:
-            try:
-                p.finish()
-            # it's fine if the parameter does not have a finish function
-            except AttributeError:
-                pass
+        for par in self._gettable_pars + self._settable_pars:
+            self._call_if_has_method(par, "finish")
 
     @property
-    def _is_soft(self):
-        """
-        Whether this MeasurementControl controls data stepping
-        """
-        if any(is_software_controlled(gpar) for gpar in self._gettable_pars):
-            if not all(is_software_controlled(gpar) for gpar in self._gettable_pars):
-                raise Exception("Control mismatch; all Gettables must have the same Control Mode")
+    def _is_batched(self) -> bool:
+        if any(is_batched(gpar) for gpar in self._gettable_pars):
+            if not all(is_batched(gpar) for gpar in self._gettable_pars):
+                raise Exception(
+                    "Control mismatch; all Gettables must have the same Control Mode"
+                )
             return True
         return False
 
     @property
-    def _max_setpoints(self):
+    def _max_setpoints(self) -> int:
         """
         The total number of setpoints to examine
         """
         return len(self._setpoints) * self.soft_avg()
 
-    def _curr_setpoint_idx(self):
+    def _curr_setpoint_idx(self) -> int:
         """
-        Returns the current position through the sweep
-        Updates the _soft_iterations_completed counter as it may have rolled over
+        Current position through the sweep
 
         Returns
         -------
@@ -420,14 +472,14 @@ class MeasurementControl(Instrument):
         self._loop_count = acquired // len(self._setpoints)
         return setpoint_idx
 
-    def _get_fracdone(self):
+    def _get_fracdone(self) -> float:
         """
         Returns the fraction of the experiment that is completed.
         """
         return self._nr_acquired_values / self._max_setpoints
 
     def print_progress(self, progress_message: str = None):
-        percdone = self._get_fracdone()*100
+        percdone = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
         if not progress_message:
             progress_message = (
@@ -448,6 +500,21 @@ class MeasurementControl(Instrument):
             end_char = "\n"
         if self.verbose():
             print("\r", progress_message, end=end_char)
+
+    def _safe_write_dataset(self):
+        """
+        Uses a lock when writing the file to stay safe for multiprocessing.
+        Locking files are written into a temporary dir to avoid polluting
+        the experiment container.
+        """
+        filename = join(self._exp_folder, _dataset_name)
+        # Multiprocess safe
+        lockfile = join(
+            _dataset_locks_dir,
+            self._dataset.attrs["tuid"] + "-" + _dataset_name + ".lock",
+        )
+        with FileLock(lockfile, 5):
+            self._dataset.to_netcdf(filename)
 
     ####################################
     # Non-parameter get/set functions  #
@@ -494,7 +561,7 @@ class MeasurementControl(Instrument):
 
         # set to False whenever new setpoints are defined.
         # this gets updated after calling setpoints_2D.
-        self._plot_info['2D-grid'] = False
+        self._plot_info["2D-grid"] = False
 
     def setpoints_grid(self, setpoints):
         """
@@ -507,9 +574,9 @@ class MeasurementControl(Instrument):
             The values to loop over in the experiment. The grid is reshaped in this order.
         """
         if len(setpoints) == 2:
-            self._plot_info['xlen'] = len(setpoints[0])
-            self._plot_info['ylen'] = len(setpoints[1])
-            self._plot_info['2D-grid'] = True
+            self._plot_info["xlen"] = len(setpoints[0])
+            self._plot_info["ylen"] = len(setpoints[1])
+            self._plot_info["2D-grid"] = True
         self._setpoints = tile_setpoints_grid(setpoints)
 
     def gettables(self, gettable_pars):

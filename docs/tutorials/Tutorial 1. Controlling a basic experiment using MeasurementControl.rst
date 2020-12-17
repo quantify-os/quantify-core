@@ -4,21 +4,23 @@ Tutorial 1. Controlling a basic experiment using MeasurementControl
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the :ref:`User guide` !
 
 This tutorial covers basic usage of Quantify focusing on running basic experiments using :class:`~quantify.measurement.MeasurementControl`.
-The ``MeasurementControl`` is the main ``Instrument`` in charge of running any experiment.
+The :class:`~quantify.measurement.MeasurementControl` is the main :class:`~qcodes.instrument.base.Instrument` in charge of running any experiment.
 
 It takes care of saving the data in a standardized format as well as live plotting of the data during the experiment.
-Quantify makes a distinction between ``soft`` (ware) controlled measurements and ``hard`` (ware) controlled measurements.
+Quantify makes a distinction between :ref:`Iterative<Control Mode>` measurements and :ref:`Batched<Control Mode>` measurements.
 
-In a ``soft`` measurement ``MeasurementControl`` is in charge of the measurement loop and consecutively sets and gets datapoints.
-A ``soft`` measurement can be 1D, 2D or higher dimensional and also supports adaptive measurements in which the datapoints are determined during the measurement loop.
+In an :ref:`Iterative<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes each setpoint fully before advancing to the next.
 
-In a ``hard`` measurement the hardware (such as an AWG) is in charge of the measurement loop.
-In this case, the datapoints to be acquired are determined before the experiment starts and are precompiled into the hardware which is then armed and starts acquisition.
-In a ``hard`` measurement ``MeasurementControl`` does not take care of the measurement loop but still takes care of the data storage and live plotting of the experiment.
+In a :ref:`Batched<Control Mode>` measurement, the :class:`~quantify.measurement.MeasurementControl` processes setpoints in batches, for example triggering 10 samples and then reading those 10 outputs.
+This is useful in resource constrained or overhead heavy situations.
+
+Both measurement policies can be 1D, 2D or higher dimensional. Quantify also supports adaptive measurements in which the datapoints are determined during the measurement loop, which are explored in subsequent tutorials.
+
+---
 
 This tutorial is structured as follows.
-In the first section we use a 1D soft(ware) controlled loop to explain the flow of a basic experiment.
-We start by setting up a noisy cosine model to serve as our mock setup and then use the ``MC`` to measure this.
+In the first section we use a 1D Iterative loop to explain the flow of a basic experiment.
+We start by setting up a noisy cosine model to serve as our mock setup and then use the MC to measure this.
 We then perform basic (manual) analysis on the data from this experiment. We show how to find and load a dataset, perform a basic fit, and store the results.
 
 .. jupyter-execute::
@@ -35,6 +37,9 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     from quantify.measurement import MeasurementControl
     from quantify.measurement.control import Settable, Gettable
     import quantify.visualization.pyqt_plotmon as pqm
+    from quantify.visualization.instrument_monitor import InstrumentMonitor
+
+.. include:: set_data_dir.rst
 
 
 .. jupyter-execute::
@@ -46,9 +51,13 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     # Connect the live plotting monitor to the measurement control
     MC.instr_plotmon(plotmon.name)
 
-    MC.instr_plotmon.get_instr().tuid()
+    # The instrument monitor will give an overview of all parameters of all instruments
+    insmon = InstrumentMonitor("Instruments Monitor")
+    # By connecting to the MC the parameters will be updated in real-time during an experiment.
+    MC.instrument_monitor(insmon.name)
 
-A 1D soft(ware) controlled loop
+
+A 1D Iterative loop
 -------------------------------
 
 Define a simple model
@@ -56,8 +65,6 @@ Define a simple model
 
 We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
 We will be generating a cosine with some normally distributed noise added on top of it.
-
-
 
 .. jupyter-execute::
 
@@ -88,9 +95,9 @@ We will be generating a cosine with some normally distributed noise added on top
     sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
 
 
-Many experiments involving physical instruments are much slower than the time it takes to simulate our ``cosine_model``, that is way we added a ``sleep()`` controlled by the ``acq_delay``.
+Many experiments involving physical instruments are much slower than the time it takes to simulate our `cosine_model`, that is why we added a `sleep()` controlled by the `acq_delay`.
 
-This allows us to exemplify (later in the tutorial) some of the features of the MC that would be inperceptible otherwise.
+This allows us to exemplify (later in the tutorial) some of the features of the MC that would be imperceptible otherwise.
 
 .. jupyter-execute::
 
@@ -100,8 +107,8 @@ This allows us to exemplify (later in the tutorial) some of the features of the 
 Running the 1D experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time ``t`` in this case, what points to measure at, and what parameter to measure.
-We then tell the MeasurementControl ``MC`` to run which will return an ``xarray:Dataset`` object.
+The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time `t` in this case, what points to measure at, and what parameter to measure.
+We then tell the :ref:`MeasurementControl<Measurement Control>` `MC` to run which will return an :class:`~xarray.Dataset` object.
 
 We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes to ensure our parameters contain the correct attributes.
 
@@ -112,6 +119,9 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     MC.gettables(Gettable(sig))
     dset = MC.run('Cosine test')
 
+.. jupyter-execute::
+
+    plotmon.main_QtPlot
 
 .. jupyter-execute::
 
@@ -119,13 +129,11 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     # The name of the experiment is stored as well
     dset.attrs['tuid'], dset.attrs['name']
 
-The dataset ``dset`` is stored as an ``xarray.Dataset`` (you can read more about xarray project at http://xarray.pydata.org/).
-
-This choice of the data structure comes with all the conveniences of xarray, e.g. the visualization in Jupyter Notebooks.
+The dataset :ref:`dset<DataStorage specification>` is stored as a :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
-See :ref:`Data Storage specification` in the :ref:`User guide` for details.
+See :ref:`DataStorage specification` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
@@ -138,7 +146,7 @@ We can play with some live plotting options to see how the MC behaves when chang
     # By default the MC updates the datafile and live plot every 0.1 seconds (and not faster) to reduce overhead.
     MC.update_interval(0.1) # Setting it even to 0.01 creates a dramatic slowdown, try it out!
 
-In order to avoid an experiment being bottlenecked by the ``update_interval`` we recommend setting it between ~0.1-1.0 s for a comfortable refresh rate and good performance.
+In order to avoid an experiment being bottlenecked by the `update_interval` we recommend setting it between ~0.1-1.0 s for a comfortable refresh rate and good performance.
 
 
 .. jupyter-execute::
@@ -151,6 +159,11 @@ In order to avoid an experiment being bottlenecked by the ``update_interval`` we
 
 .. jupyter-execute::
 
+    plotmon.main_QtPlot
+
+
+.. jupyter-execute::
+
     noise_level(0) #let's disable noise from here on to get prettier figures
 
 Analyzing the experiment
@@ -159,8 +172,9 @@ Analyzing the experiment
 Loading the data
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``Dataset`` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
-We can alternatively load the dataset from disk based on it's ``tuid``, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using ``quantify.data_handling.get_latest_tuid``. See the data storage documentation for more details on the folder structure and files contained in the data directory.
+The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
+We can alternatively load the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
+See the data storage documentation for more details on the folder structure and files contained in the data directory.
 
 .. jupyter-execute::
 
@@ -178,7 +192,7 @@ Performing fits and extracting quantities of interest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We have used a cosine function to "mock" an experiment, the goal of the experiment is to find the underlying parameters.
-We extract these parameters by performing a fit to a model, which coincidently, is based on the same cosine function.
+We extract these parameters by performing a fit to a model, which coincidentally, is based on the same cosine function.
 For fitting we recommend using the lmfit library.  See https://lmfit.github.io/lmfit-py/model.html on how to fit data to a custom model.
 
 .. jupyter-execute::
@@ -234,7 +248,7 @@ Plotting and saving the results of the analysis
     ax.set_title('{}\n{}'.format(tuid, 'Cosine test'))
 
 Now that we have analyzed our data and created a figure, we probably want to store the results of our analysis.
-We will want to store the figure and the results of the fit in the ``experiment folder``.
+We will want to store the figure and the results of the fit in the `experiment folder`.
 
 
 .. jupyter-execute::
@@ -254,7 +268,7 @@ We will want to store the figure and the results of the fit in the ``experiment 
     # Save figure
     f.savefig(join(exp_folder, 'Cosine fit.png'), dpi=300, bbox_inches='tight')
 
-A 2D soft(ware) controlled loop
+A 2D Iterative loop
 ---------------------------------
 
 It is often desired to measure heatmaps (2D grids) of some parameter.
@@ -268,7 +282,8 @@ Method 1 - a quick grid
 
 .. jupyter-execute::
 
-    MC.update_interval(.5)
+    acq_delay(0.0001)
+    MC.update_interval(2.0)
 
 
 .. jupyter-execute::
@@ -319,8 +334,8 @@ N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    acq_delay(0.001)
-    MC.update_interval(0.5)
+    acq_delay(0.0001)
+    MC.update_interval(2.0)
 
 
 .. jupyter-execute::

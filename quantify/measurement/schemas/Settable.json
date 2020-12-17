@@ -15,9 +15,9 @@
                 "type": "string",
                 "description": "unit of measurement"
             },
-            "soft": {
+            "batched": {
                 "type": "boolean",
-                "description": "true if driven by the MeasurementControl software, false otherwise"
+                "description": "true if data is processed in batches, false otherwise"
             }
         }
     },
@@ -37,7 +37,7 @@
                 "type": "object"
             },
             "prepare": {
-                "description": "called before each iteration of the acquisition loop",
+                "description": "called before the acquisition loop",
                 "type": "object"
             },
             "finish": {

@@ -139,7 +139,7 @@ latex_elements = {
 latex_documents = [
     (master_doc, 'Quantify.tex',
      'Quantify Documentation',
-     'Qblox ', 'manual'),
+     'Quantify consortium ', 'manual'),
 ]
 
 
