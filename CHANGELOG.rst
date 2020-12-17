@@ -2,7 +2,7 @@
 Changelog
 ===========
 
-0.3.0 (2020-12-03)
+0.3.0 (2020-12-17)
 ------------------
 
 * Persistence mode feature added to the plotting monitor responsible for visualization during experiments, see also tutorial 4 in the docs.
