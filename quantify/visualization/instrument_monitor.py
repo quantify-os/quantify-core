@@ -13,6 +13,7 @@ from qcodes.instrument.parameter import ManualParameter
 
 from quantify.data.handling import snapshot
 from quantify.utilities.general import traverse_dict
+from quantify.visualization.ins_mon_widget import qc_snapshot_widget
 
 import warnings
 
@@ -64,8 +65,10 @@ class InstrumentMonitor(Instrument):
             if not self.__class__.proc:
                 self._init_qt()
         else:
-            # overrule the remote pyqtgraph class
+            # overrule the remote modules
             self.rpg = pg
+            self.rwidget = qc_snapshot_widget
+
         # initial value is fake but ensures it will update the first time
         self.last_update_time = 0
         self.create_tree(window_size=window_size)
@@ -94,11 +97,10 @@ class InstrumentMonitor(Instrument):
         # starting the process for the pyqtgraph plotting
         # You do not want a new process to be created every time you start a
         # run, so this only starts once and stores the process in the class
-        pg.mkQApp()
-        self.__class__.proc = pgmp.QtProcess()  # pyqtgraph multiprocessing
+        self.__class__.proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
         self.__class__.rpg = self.proc._import("pyqtgraph")
-        ins_mon_mod = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        self.__class__.rpg = self.proc._import(ins_mon_mod)
+        qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
+        self.__class__.rwidget = self.proc._import(qc_widget)
 
     def create_tree(self, window_size=(1000, 600)):
         """
@@ -112,7 +114,7 @@ class InstrumentMonitor(Instrument):
             The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
         """
 
-        self.tree = self.rpg.QcSnaphotWidget()
+        self.tree = self.rwidget.QcSnaphotWidget()
         self.update()
         self.tree.show()
         self.tree.setWindowTitle(self.name)

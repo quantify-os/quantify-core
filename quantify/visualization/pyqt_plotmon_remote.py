@@ -7,8 +7,6 @@ import numpy as np
 from collections import deque, OrderedDict
 import itertools
 import os
-
-# import psutil
 from filelock import FileLock
 
 from qcodes.plots.colors import color_cycle
@@ -24,7 +22,8 @@ from quantify.data.handling import (
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
-from .color_utilities import make_fadded_colors
+from quantify.visualization.color_utilities import make_fadded_colors
+from quantify.visualization import _appnope
 from quantify.measurement.control import _dataset_name, _dataset_locks_dir
 
 
@@ -77,9 +76,20 @@ class RemotePlotmon:
         self.timer_queue = None
         self._queue_refresh_ms = 50
 
+        self.timer_appnope = None
+        self._appnope_refresh_ms = 30
+
         # Create plotting windows and start listening to commands on the
         # queue
         self.create_plot_monitor()
+
+        # This will start a timer and periodically take care of the queue
+        # of commands sent from the main process
+        # This is based on Qt timer and needs to be attached to a QtObject
+
+        # We attach it to the main window
+        # This likely requires to not close the main window
+        self._run()
 
     # ##################################################################
     # Multiprocessing communication and logic
@@ -96,6 +106,18 @@ class RemotePlotmon:
         self.timer_queue = QtCore.QTimer(self.main_QtPlot.win)
         self.timer_queue.timeout.connect(self._exec_queue)
         self.timer_queue.start(self._queue_refresh_ms)  # milliseconds
+
+        if _appnope.requires_appnope():
+            # Start a timer to ensure the App Nap of macOS does not idle this process.
+            # The process is sent to App Nap after a window is minimized or not
+            # visible for a few seconds, this ensure we avoid that.
+            # If this is not performed very long and cryptic errors will rise
+            # (which is fatal for a running measurement)
+
+            # This line requires the QtPlot's to be created with `remote=False`
+            self.timer_appnope = QtCore.QTimer(self.main_QtPlot.win)
+            self.timer_appnope.timeout.connect(_appnope.refresh_nope)
+            self.timer_appnope.start(self._appnope_refresh_ms)  # milliseconds
 
     def _exec_queue(self):
         """
@@ -153,9 +175,7 @@ class RemotePlotmon:
             # Reset the previous datasets
             self._pop_old_dsets(max_tuids=0)
 
-        if not _xi_and_yi_match(
-            tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)
-        ):
+        if not _xi_and_yi_match(tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)):
             # Force reset the user-defined extra datasets
             # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
             [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
@@ -181,14 +201,10 @@ class RemotePlotmon:
 
         # Now we ensure all datasets are compatible to be plotted together
         if dsets and not _xi_and_yi_match(dsets.values()):
-            raise NotImplementedError(
-                "Datasets with different x and/or y variables not supported"
-            )
+            raise NotImplementedError("Datasets with different x and/or y variables not supported")
 
         # it is enough to compare one dataset from each dict
-        if dsets and not _xi_and_yi_match(
-            itertools.chain(dsets.values(), self._dsets.values())
-        ):
+        if dsets and not _xi_and_yi_match(itertools.chain(dsets.values(), self._dsets.values())):
             # Reset the extra tuids
             [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
 
@@ -216,14 +232,10 @@ class RemotePlotmon:
         # Now we ensure all datasets are compatible to be plotted together
 
         if extra_dsets and not _xi_and_yi_match(extra_dsets.values()):
-            raise NotImplementedError(
-                "Datasets with different x and/or y variables not supported"
-            )
+            raise NotImplementedError("Datasets with different x and/or y variables not supported")
 
         # it is enough to compare one dataset from each dict
-        if extra_dsets and not _xi_and_yi_match(
-            itertools.chain(extra_dsets.values(), self._dsets.values())
-        ):
+        if extra_dsets and not _xi_and_yi_match(itertools.chain(extra_dsets.values(), self._dsets.values())):
             # Reset the tuids because the user has specified persistent dsets
             self._pop_old_dsets(max_tuids=0)
 
@@ -255,18 +267,8 @@ class RemotePlotmon:
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.instr_name),
-            figsize=(600, 400),
-            remote=False,
+            window_title="Main plotmon of {}".format(self.instr_name), figsize=(600, 400), remote=False,
         )
-
-        # This will start a timer and periodically take care of the queue
-        # of commands sent from the main process
-        # This is based on Qt timer and needs to be attached to a QtObject
-
-        # We attach it to the main window
-        # This likely requires to not close the main window
-        self._run()
 
     def _initialize_plot_monitor(self):
         """
@@ -293,19 +295,12 @@ class RemotePlotmon:
 
         #############################################################
 
-        fadded_colors = make_fadded_colors(
-            num=len(self._tuids), color=color_cycle[0], to_hex=True
-        )
-        extra_colors = tuple(
-            self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra))
-        )
+        fadded_colors = make_fadded_colors(num=len(self._tuids), color=color_cycle[0], to_hex=True)
+        extra_colors = tuple(self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra)))
         all_colors = fadded_colors + extra_colors
         all_colors = tuple(reversed(all_colors))
         # We reserve "o" symbol for the latest dataset
-        symbols = tuple(
-            self.symbols[i % len(self.symbols)]
-            for i in range(len(all_colors) - bool(len(fadded_colors)))
-        )
+        symbols = tuple(self.symbols[i % len(self.symbols)] for i in range(len(all_colors) - bool(len(fadded_colors))))
         # In case only extra datasets are present
         symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
         symbolsBrush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
@@ -355,11 +350,7 @@ class RemotePlotmon:
         # Below are some "extra" checks that are not currently strictly required
 
         all_tuids_it = itertools.chain(self._tuids, self._tuids_extra)
-        self._tuids_2D = tuple(
-            tuid
-            for tuid in all_tuids_it
-            if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
-        )
+        self._tuids_2D = tuple(tuid for tuid in all_tuids_it if (len(_get_parnames(self._dsets[tuid], "x")) == 2))
         self._tuid_2D = self._tuids_2D[0] if self._tuids_2D else None
 
         dset = self._dsets[self._tuid_2D] if self._tuid_2D else None
@@ -497,11 +488,7 @@ class RemotePlotmon:
         # Add a square heatmap
         if update_2D and dset.attrs["2D-grid"]:
             for yidx, yi in enumerate(get_parnames):
-                Z = np.reshape(
-                    dset[yi].values,
-                    (dset.attrs["xlen"], dset.attrs["ylen"]),
-                    order="F",
-                ).T
+                Z = np.reshape(dset[yi].values, (dset.attrs["xlen"], dset.attrs["ylen"]), order="F",).T
                 self.secondary_QtPlot.traces[yidx]["config"]["z"] = Z
             self.secondary_QtPlot.update_plot()
 
@@ -518,9 +505,7 @@ class RemotePlotmon:
                 # interpolation needs to be meaningful
                 if len(z) < 8:
                     break
-                x_grid, y_grid, z_grid = interpolate_heatmap(
-                    x=x, y=y, z=z, interp_method="linear"
-                )
+                x_grid, y_grid, z_grid = interpolate_heatmap(x=x, y=y, z=z, interp_method="linear")
 
                 trace = self._im_curves[yidx]
                 trace["config"]["x"] = x_grid
@@ -563,18 +548,13 @@ class RemotePlotmon:
         For testing purposes only, some objects cannot be pickled to
         be sent
         """
-        traces = [
-            {"config": trace["config"]}
-            for trace in getattr(self, which).traces
-        ]
+        traces = [{"config": trace["config"]} for trace in getattr(self, which).traces]
 
         return traces
 
 
 def _safe_load_dataset(tuid):
-    lockfile = os.path.join(
-        _dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock"
-    )
+    lockfile = os.path.join(_dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock")
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
 
