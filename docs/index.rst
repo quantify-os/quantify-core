@@ -10,7 +10,6 @@ Welcome to Quantify's documentation!
 
    installation
    usage
-   dataset_spec
    contributing
    authors
    changelog

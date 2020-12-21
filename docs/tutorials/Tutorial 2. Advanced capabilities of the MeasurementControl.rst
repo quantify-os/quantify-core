@@ -47,10 +47,10 @@ Defining a simple model
 
 In this example, we want to find the resonance of some device. We expect to find it's resonance somewhere in the low 6GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
 
-We first create `freq`: a :ref:`Settable<Settable>` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :ref:`Gettable<Gettable>` to mock (i.e. emulate) the resonating material.
-The Resonator will return a Lorentzian shape centered on the resonant frequency. Our :ref:`Gettable<Gettable>` will read the setpoints from `freq`, in this case a 1D array.
+We first create `freq`: a :class:`~quantify.measurement.Settable` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :class:`~quantify.measurement.Gettable` to mock (i.e. emulate) the resonator.
+The Resonator will return a Lorentzian shape centered on the resonant frequency. Our :class:`~quantify.measurement.Gettable` will read the setpoints from `freq`, in this case a 1D array.
 
-.. note:: The `Resonator` :ref:`Gettable<Gettable>` has a new field `batched` set to `True`. This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
+.. note:: The `Resonator` :class:`~quantify.measurement.Gettable` has a new field `batched` set to `True`. This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
 
 
 .. jupyter-execute::
@@ -60,23 +60,30 @@ The Resonator will return a Lorentzian shape centered on the resonant frequency.
     freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
 
     # model of the frequency response
-    def lorenz(amplitude, fwhm, x, x_0):
+    def lorenz(amplitude: float, fwhm: float, x: int, x_0: float):
         return (amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.) ** 2))
 
+    # note that the Resonator is a valid Gettable not because of inheritance, but because it has the expected attributes and methods.
     class Resonator:
-        def __init__(self):
+        def __init__(self) -> None:
             self.name = 'resonator'
             self.unit = 'V'
             self.label = 'Amplitude'
             self.batched = True
 
-            # variables specific to the emulated material
-            self.test_resonance = 6.0001048e9 # in Hz
-            self.test_width = 300 # FWHM in Hz
+            # hidden variables specifying the resonance
+            self._test_resonance = 6.0001048e9 # in Hz
+            self._test_width = 300 # FWHM in Hz
 
-        def get(self):
+        def get(self) -> float:
             # Emulation of the frequency response
-            return 1-np.array(list(map(lambda x: lorenz(1, self.test_width, x, self.test_resonance), freq())))
+            return 1-np.array(list(map(lambda x: lorenz(1, self._test_width, x, self._test_resonance), freq())))
+
+        def prepare(self) -> None:
+            print('Prepared Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
+
+        def finish(self) -> None:
+            print('Finished Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
 
 
 Running the experiment
@@ -84,7 +91,7 @@ Running the experiment
 
 Just like our Iterative 1D loop, our complete experiment is expressed in just four lines of code.
 
-The main difference is defining the `batched` property of our :ref:`Gettable<Gettable>` to `True`.
+The main difference is defining the `batched` property of our :class:`~quantify.measurement.Gettable` to `True`.
 The :class:`~quantify.measurement.MeasurementControl` will detect these settings and run in the appropriate mode.
 
 
@@ -116,7 +123,7 @@ In many cases it is desirable to run an experiment many times and average the re
 For this purpose, the :class:`~quantify.measurement.MeasurementControl` provides the `soft_avg` parameter.
 If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
 
-In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :ref:`Settable<Settable>` and :ref:`Gettable<Gettable>`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
+In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
 The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
 
 Note that in this example MC is still running in Batched mode.
@@ -208,11 +215,15 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
             self.unit = 'V'
 
         def get(self):
-            time.sleep(0.5)
+            time.sleep(1.0)
+            if time_par() == 8:
+                # This same exception rises when pressing `ctrl` + `c`
+                # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
+                raise KeyboardInterrupt
             return time_par()
 
     MC.settables(time_par)
-    MC.setpoints(np.arange(20))
+    MC.setpoints(np.arange(10))
     MC.gettables(SlowGettable())
     # Try interrupting me!
     dset = MC.run('slow')

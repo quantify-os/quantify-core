@@ -21,7 +21,10 @@
     import os # path utilities
     from quantify.data.handling import get_datadir, set_datadir
 
-    # we set the datadir inside the default one, FOR TUTORIAL PURPOSES ONLY!!!
-    datadir = os.path.join(get_datadir(), "Data") # CHANGE ME!!!
+    # we set the datadir to the default one FOR TUTORIAL PURPOSES ONLY!!!
+    # we highly recommend to change it! See note above.
+
+    datadir = get_datadir() # CHANGE ME!!!
     set_datadir(datadir)
-    os.path.basename(get_datadir())
+
+    print("Data will be saved in \n" + os.path.abspath(get_datadir()))

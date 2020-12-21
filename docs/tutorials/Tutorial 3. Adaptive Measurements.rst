@@ -43,15 +43,22 @@ We will create a mock Instrument our `MC` will interact with. In this case, it i
     import time
     import numpy as np
 
-    x = ManualParameter('x', unit='m', label='X')
-    y = ManualParameter('y', unit='m', label='Y')
-    noise = ManualParameter('noise', unit='V', label='white noise amplitude')
+    para = Instrument('parabola')
 
-    def parabola_model():
-        time.sleep(0.01)  # for display purposes, just so we can watch the live plot update
-        return x() ** 2 + y() ** 2 + noise() * np.random.rand(1)
+    para.add_parameter('x', unit='m', label='X', parameter_class=ManualParameter)
+    para.add_parameter('y', unit='m', label='Y', parameter_class=ManualParameter)
 
-    parabola = Parameter('parabola', unit='V', label='Parabola', get_cmd=parabola_model)
+    para.add_parameter('noise', unit='V', label='white noise amplitude',
+                           parameter_class=ManualParameter)
+    para.add_parameter('acq_delay', initial_value=.1, unit='s', parameter_class=ManualParameter)
+
+
+    def _amp_model():
+        time.sleep(para.acq_delay())  # for display purposes, just so we can watch the live plot update
+        return para.x() ** 2 + para.y() ** 2 + para.noise() * np.random.rand(1)
+
+
+    para.add_parameter('amp', unit='V', label='Amplitude', get_cmd=_amp_model)
 
 
 Next, we will use the `optimize` package from `scipy` to provide our adaptive function.
@@ -63,7 +70,7 @@ You can of course implement your own functions for this purpose, but for brevity
     from scipy import optimize
 
 
-Then, we set our :ref:`Settables and Gettables<Settable and Gettable>` as usual, and define a new dictionary `af_pars`.
+Then, we set our :ref:`Settables and Gettables<Settables and Gettables>` as usual, and define a new dictionary `af_pars`.
 The only required key in this object is "adaptive_function", the value of which being the adaptive function to use.
 The remaining fields in this dictionary are the arguments to the adaptive function itself. We also add some noise into the parabola to stress our adaptive function.
 
@@ -77,15 +84,15 @@ Of course, this parabola has it's global minimum at the origin, thus these value
 .. jupyter-execute::
     :hide-output:
 
-    MC.settables([x, y])
+    MC.settables([para.x, para.y])
     af_pars = {
         "adaptive_function": optimize.minimize, # used by MC
         "x0": [-50, -50], # used by `optimize.minimize` (in this case)
         "method": "Nelder-Mead", # used by `optimize.minimize` (in this case)
         "options": {"maxfev": 100} # limit the maximum evaluations of the gettable(s)
     }
-    noise(0.5)
-    MC.gettables(parabola)
+    para.noise(0.5)
+    MC.gettables(para.amp)
     dset = MC.run_adaptive('nelder_mead_optimization', af_pars)
 
 
@@ -117,16 +124,21 @@ We really don't want to sweep through a million points, so instead let's use an 
 
 .. jupyter-execute::
 
-    freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
-    amp = ManualParameter(name='amp', unit='V', label='Amplitude')
-    fwhm = 3e6
-    resonance_freq = 6.6e9 # pretend you don't know what this value is
+
+    res = Instrument('Resonator')
+
+    res.add_parameter('freq',  unit='Hz', label='Frequency', parameter_class=ManualParameter)
+    res.add_parameter('amp',  unit='V', label='Amplitude', parameter_class=ManualParameter)
+    res._fwhm = 15e6        # pretend you don't know what this value is
+    res._res_freq = 6.78e9  # pretend you don't know what this value is
+    res._noise_level = 0.1
 
     def lorenz():
         time.sleep(0.02)  # for display purposes, just so we can watch the graph update
-        return 1-(amp() * ((fwhm / 2.) ** 2) / ((freq() - resonance_freq) ** 2 + (fwhm / 2.) ** 2))
+        return 1-(res.amp() * ((res._fwhm / 2.) ** 2) / ((res.freq() - res._res_freq) ** 2 + (res._fwhm / 2.) ** 2)) + res._noise_level * np.random.rand(1)
 
-    resonance = Parameter('resonance', unit='V', label='Amplitude', get_cmd=lorenz)
+    res.add_parameter('S21', unit='V', label='Transmission amp. S21', get_cmd=lorenz)
+
 
 
 .. jupyter-execute::
@@ -134,14 +146,14 @@ We really don't want to sweep through a million points, so instead let's use an 
 
     import adaptive
 
-    amp(1)
-    MC.settables([freq])
+    res.amp(1)
+    MC.settables([res.freq])
     af_pars = {
         "adaptive_function": adaptive.learner.Learner1D,
         "goal": lambda l: l.npoints > 99,
         "bounds": (6.0e9, 7.0e9),
     }
-    MC.gettables(resonance)
+    MC.gettables(res.S21)
     dset = MC.run_adaptive('adaptive sample', af_pars)
 
 
