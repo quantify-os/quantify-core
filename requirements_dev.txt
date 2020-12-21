@@ -12,6 +12,7 @@ sphinx-rtd-theme==0.5.0rc2
 sphinxcontrib-blockdiag
 jupyter_sphinx==0.3.2
 sphinx-jsonschema>=1.15
+sphinx-autobuild
 twine==1.14.0
 pytest
 pytest-runner

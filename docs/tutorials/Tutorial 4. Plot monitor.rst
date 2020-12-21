@@ -9,8 +9,6 @@ We will create a fictional device and showcase how the plot monitor can be used.
     import random
     import numpy as np
     import time
-
-    from qcodes import Station
     from qcodes.instrument.base import Instrument
     from qcodes.instrument.parameter import Parameter, ManualParameter
 
@@ -35,30 +33,11 @@ QCoDeS drivers for our instruments
         def __init__(self, name: str):
             super().__init__(name=name)
 
-            self.add_parameter(
-                name="amp_0",
-                unit="A",
-                parameter_class=ManualParameter,
-                initial_value=0)
+            self.add_parameter( name="amp_0", unit="A", parameter_class=ManualParameter, initial_value=0)
+            self.add_parameter( name="amp_1", unit="A", parameter_class=ManualParameter, initial_value=0)
+            self.add_parameter( name="offset", unit="A", parameter_class=ManualParameter, initial_value=0)
 
-            self.add_parameter(
-                name="amp_1",
-                unit="A",
-                parameter_class=ManualParameter,
-                initial_value=0)
-
-            self.add_parameter(
-                name="offset",
-                unit="A",
-                parameter_class=ManualParameter,
-                initial_value=0)
-
-            self.add_parameter(
-                name="adc",
-                label="ADC input",
-                unit="V",
-                parameter_class=Parameter,
-                get_cmd=self._get_dac_value)
+            self.add_parameter(name="adc", label="ADC input", unit="V", get_cmd=self._get_dac_value)
 
         def _get_dac_value(self):
             s1 = np.exp(-3 * self.amp_0()) * np.sin(self.amp_0() * 2 * np.pi * 3)
@@ -72,19 +51,10 @@ Instantiate the instruments
 
 .. jupyter-execute::
 
-    if "station" not in dir():
-        station = Station()
-
-    for instr in list(station.components):
-        station.close_and_remove_instrument(instr)
-
     MC = MeasurementControl('MC')
-    station.add_component(MC)
     plotmon = PlotMonitor_pyqt('Plot Monitor')
-    station.add_component(plotmon)
     MC.instr_plotmon(plotmon.name)
     device = Device("Device")
-    station.add_component(device)
 
 Overview
 ----------

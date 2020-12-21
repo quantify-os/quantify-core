@@ -66,33 +66,35 @@ Define a simple model
 We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
 We will be generating a cosine with some normally distributed noise added on top of it.
 
+
 .. jupyter-execute::
 
     from time import sleep
+
+    # We create an instrument to contain all the parameters of our model to ensure we have proper data logging.
+    from qcodes.instrument import Instrument
+
+    pars = Instrument('ParameterHolder')
+
+    # ManualParameter's is a handy class that preserves the QCoDeS' Parameter
+    # structure without necessarily having a connection to the physical world
+    pars.add_parameter('amp', initial_value=1, unit='V', label='Amplitude', parameter_class=ManualParameter)
+    pars.add_parameter('freq', initial_value=.5, unit='Hz', label='Frequency', parameter_class=ManualParameter)
+    pars.add_parameter('t', initial_value=1, unit='s', label='Time', parameter_class=ManualParameter)
+    pars.add_parameter('phi', initial_value=0, unit='Rad', label='Phase', parameter_class=ManualParameter)
+    pars.add_parameter('noise_level', initial_value=0.05, unit='V', label='Noise level', parameter_class=ManualParameter)
+    pars.add_parameter('acq_delay', initial_value=.1, unit='s', parameter_class=ManualParameter)
 
     def cos_func(t, amplitude, frequency, phase, offset):
         """A simple cosine function"""
         return amplitude * np.cos(2 * np.pi * frequency * t + phase) + offset
 
-    # Parameters are created to emulate a system being measured
-    # ManualParameter's is a handy class that preserves the QCoDeS' Parameter
-    # structure without necessarily having a connection to the physical world
-    amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
-    freq = ManualParameter('freq', initial_value=.5, unit='Hz', label='Frequency')
-    t = ManualParameter('t', initial_value=1, unit='s', label='Time')
-    phi = ManualParameter('phi', initial_value=0, unit='Rad', label='Phase')
-
-    # we add in some noise to make the fitting example later on more interesting
-    noise_level = ManualParameter('noise_level', initial_value=0.05, unit='V', label='Noise level')
-
-    acq_delay = ManualParameter('acq_delay', initial_value=.1, unit='s')
-
     def cosine_model():
-        sleep(acq_delay()) # simulates the acquisition delay of an instrument
-        return cos_func(t(), amp(), freq(), phase=phi(), offset=0) + np.random.randn() * noise_level()
+        sleep(pars.acq_delay()) # simulates the acquisition delay of an instrument
+        return cos_func(pars.t(), pars.amp(), pars.freq(), phase=pars.phi(), offset=0) + np.random.randn() * pars.noise_level()
 
     # We wrap our function in a Parameter to be able to associate metadata to it, e.g. units
-    sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
+    sig = pars.add_parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
 
 
 Many experiments involving physical instruments are much slower than the time it takes to simulate our `cosine_model`, that is why we added a `sleep()` controlled by the `acq_delay`.
@@ -102,7 +104,7 @@ This allows us to exemplify (later in the tutorial) some of the features of the 
 .. jupyter-execute::
 
     # by setting this to a non-zero value we can see the live plotting in action for a slower experiment
-    acq_delay(0.0)
+    pars.acq_delay(0.0)
 
 Running the 1D experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,9 +116,9 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
 
 .. jupyter-execute::
 
-    MC.settables(Settable(t))
+    MC.settables(pars.t)                     # as a QCoDeS parameter, 't' obeys the JSON schema for a valid Settable and can be passed to the MC directly.
     MC.setpoints(np.linspace(0, 5, 50))
-    MC.gettables(Gettable(sig))
+    MC.gettables(pars.sig)                   # as a QCoDeS parameter, 'sig' obeys the JSON schema for a valid Gettable and can be passed to the MC directly.
     dset = MC.run('Cosine test')
 
 .. jupyter-execute::
@@ -129,11 +131,11 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     # The name of the experiment is stored as well
     dset.attrs['tuid'], dset.attrs['name']
 
-The dataset :ref:`dset<DataStorage specification>` is stored as a :class:`~xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
+The :ref:`dataset<Dataset>` is stored as a :class:`xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
-See :ref:`DataStorage specification` in the :ref:`User guide` for details.
+See :ref:`Data storage & Analysis` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
@@ -151,9 +153,9 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
 
 .. jupyter-execute::
 
-    MC.settables(Settable(t))
+    MC.settables(pars.t)
     MC.setpoints(np.linspace(0, 50, 1000))
-    MC.gettables(Gettable(sig))
+    MC.gettables(pars.sig)
     dset = MC.run('Many points live plot test')
 
 
@@ -164,7 +166,7 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
 
 .. jupyter-execute::
 
-    noise_level(0) #let's disable noise from here on to get prettier figures
+    pars.noise_level(0) #let's disable noise from here on to get prettier figures
 
 Analyzing the experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -282,7 +284,7 @@ Method 1 - a quick grid
 
 .. jupyter-execute::
 
-    acq_delay(0.0001)
+    pars.acq_delay(0.0001)
     MC.update_interval(2.0)
 
 
@@ -291,10 +293,10 @@ Method 1 - a quick grid
     times = np.linspace(0, 5, 500)
     amps = np.linspace(-1, 1, 31)
 
-    MC.settables([Settable(t), Settable(amp)])
+    MC.settables([pars.t, pars.amp])
     # MC takes care of creating a meshgrid
     MC.setpoints_grid([times, amps])
-    MC.gettables(Gettable(sig))
+    MC.gettables(pars.sig)
     dset = MC.run('2D Cosine test')
 
 
@@ -334,15 +336,15 @@ N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    acq_delay(0.0001)
+    pars.acq_delay(0.0001)
     MC.update_interval(2.0)
 
 
 .. jupyter-execute::
 
-    MC.settables([t, amp])
+    MC.settables([pars.t, pars.amp])
     MC.setpoints(setpoints)
-    MC.gettables(sig)
+    MC.gettables(pars.sig)
     dset = MC.run('2D radial setpoints')
 
 
