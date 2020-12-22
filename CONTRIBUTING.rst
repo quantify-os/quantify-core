@@ -56,10 +56,10 @@ Before you submit a merge request, check that it meets these guidelines:
 2. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 3. The CI pipelines should pass for all merge requests.
 
-   - Check the status of the pipelines, the status is also reported in the merge request.
-   - flake8 linter should pass.
-   - No degradation in code coverage.
-   - Documentation should build.
+    - Check the status of the pipelines, the status is also reported in the merge request.
+    - flake8 linter should pass.
+    - No degradation in code coverage.
+    - Documentation should build.
 4. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
 
 Congratulations! The maintainers will now review your work and suggest any necessary changes.
@@ -97,50 +97,52 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ pytest --cov
 
 
-  .. tip:: Running parts of the test suite
+    .. tip:: Running parts of the test suite
 
-      To run only parts of the test suite, specify the folder in which to look for
-      tests as an argument to pytest. The following example
-
-
-      .. code-block:: shell
-
-          $ py.test tests/measurement --cov quantify/measurement
-
-      will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
-
-6. Building the documentation
-
-  If you have worked on documentation instead of code you may want to preview how your docs look locally.
-  You can build the docs locally using:
-
-  .. code-block:: shell
-
-      $ cd docs
-      $ make html
-
-  The docs will be located in `quantify/docs/_build`.
-
-  .. tip::
-
-      If you are working on documentation it can be useful to automatically rebuild the docs after every change.
-      This can be done using the `sphinx-autobuild` package. Through the following command:
-
-      .. code-block:: shell
-
-          $ sphinx-autobuild docs docs/_build/html
-
-      The documentation will then be hosted on `localhost:8000`
+        To run only parts of the test suite, specify the folder in which to look for
+        tests as an argument to pytest. The following example
 
 
-7. Commit your changes and push your branch to GitLab::
+    .. code-block:: shell
+
+        $ py.test tests/measurement --cov quantify/measurement
+
+    will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+
+#. Building the documentation
+
+    If you have worked on documentation instead of code you may want to preview how your docs look locally.
+    You can build the docs locally using:
+
+    .. code-block:: shell
+
+        $ cd docs
+
+        # unix
+        $ make html
+
+        # windows
+        $ ./make.bat html
+
+    The docs will be located in `quantify/docs/_build`.
+
+    .. tip::
+
+        If you are working on documentation it can be useful to automatically rebuild the docs after every change.
+        This can be done using the `sphinx-autobuild` package. Through the following command:
+
+        .. code-block:: shell
+
+            $ sphinx-autobuild docs docs/_build/html
+
+        The documentation will then be hosted on `localhost:8000`
+
+
+#. Commit your changes and push your branch to GitLab::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
 #. Submit a merge request through the GitLab website.
-
-
-
 
