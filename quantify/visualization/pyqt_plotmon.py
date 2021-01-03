@@ -235,5 +235,7 @@ class QtPlotObjForJupyter:
         self.attr_name = attr_name
 
     def _repr_png_(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
         # always get the remote object, avoid keeping object references
         return getattr(self.remote_plotmon, self.attr_name)._repr_png_()
