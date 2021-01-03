@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Utilities for managing SI units with plotting systems.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import matplotlib

@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing the pyqtgraph-based remote plotting monitor manager.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import numpy as np
 from collections import deque, OrderedDict
