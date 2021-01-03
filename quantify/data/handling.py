@@ -63,9 +63,18 @@ def get_datadir():
     str
         the current data directory
     """
+    set_datadir_import = "from " + this.__name__ + " import set_datadir"
 
-    if this._datadir is None:
-        this._datadir = this._default_datadir
+    if this._datadir is None or not os.path.isdir(this._datadir):
+        raise ValueError(
+            "The datadir is not valid. Please set the datadir after importing Quantify.\n"
+            "We recommend to settle for a single common data directory for all \n"
+            "notebooks/experiments within your measurement setup/PC.\n"
+            "E.g. 'D:\\Data', or '/d/Data' for a unix-like shell on Windows.\n"
+            "The datadir can be changed as follows:\n\n"
+            f"    {set_datadir_import}\n"
+            "    set_datadir('/path/to/datadir')"
+        )
 
     return this._datadir
 
