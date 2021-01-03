@@ -23,6 +23,8 @@ from quantify.utilities.general import (
 this = sys.modules[__name__]
 
 _default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / "data"
+if not os.path.isdir(_default_datadir):
+    os.mkdir(_default_datadir)
 
 this._datadir = None
 
@@ -66,7 +68,7 @@ def get_datadir():
     set_datadir_import = "from " + this.__name__ + " import set_datadir"
 
     if this._datadir is None or not os.path.isdir(this._datadir):
-        raise ValueError(
+        raise NotADirectoryError(
             "The datadir is not valid. Please set the datadir after importing Quantify.\n"
             "We recommend to settle for a single common data directory for all \n"
             "notebooks/experiments within your measurement setup/PC.\n"

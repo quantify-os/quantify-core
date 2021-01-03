@@ -9,7 +9,7 @@ from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
-from quantify.data.handling import set_datadir
+import quantify.data.handling as dh
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
@@ -21,6 +21,7 @@ try:
 except ImportError:
     with_skoptlearner = False
 
+dh.set_datadir(dh._default_datadir)
 test_datadir = get_test_data_dir()
 
 
@@ -158,16 +159,16 @@ class DummyHardwareGettable:
 class TestMeasurementControl:
     @classmethod
     def setup_class(cls):
+        dh.set_datadir(dh._default_datadir)
         cls.MC = MeasurementControl(name="MC")
         # ensures the default datadir is used which is excluded from git
         cls.dummy_parabola = DummyParHolder("parabola")
-        set_datadir(None)
 
     @classmethod
     def teardown_class(cls):
         cls.MC.close()
         cls.dummy_parabola.close()
-        set_datadir(None)
+        dh.set_datadir(None)
 
     def test_MeasurementControl_name(self):
         assert self.MC.name == "MC"

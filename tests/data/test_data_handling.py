@@ -11,7 +11,7 @@ from qcodes import ManualParameter
 import pathlib
 from tests.helpers import get_test_data_dir
 
-
+dh.set_datadir(dh._default_datadir)
 test_datadir = get_test_data_dir()
 
 
@@ -73,18 +73,26 @@ def test_getset_datadir():
     # here to ensure we always start with default datadir
     dh.set_datadir(None)
 
-    default_datadir = dh.get_datadir()
-    dd = os.path.split(default_datadir)
+    with pytest.raises(NotADirectoryError):
+        # Ensure users are forced to pick a datadir in order to avoid
+        # potential dataloss
+        dh.get_datadir()
+
+    dd = os.path.split(dh._default_datadir)
     assert dd[-1] == 'data'
     top_level = pathlib.Path(__file__).parent.parent.parent.resolve().name
     assert os.path.split(dd[-2])[-1] == top_level
 
-    dh.set_datadir('my_ddir')
-    assert dh.get_datadir() == 'my_ddir'
+    new_dir_path = os.path.join(*dd, '..', 'my_ddir')
+    os.mkdir(new_dir_path)
+    dh.set_datadir(new_dir_path)
+    assert os.path.split(dh.get_datadir())[-1] == 'my_ddir'
+    os.rmdir(new_dir_path)
 
     # Test resetting to default
     dh.set_datadir(None)
-    assert dh.get_datadir() == default_datadir
+    with pytest.raises(NotADirectoryError):
+        dh.get_datadir()
 
 
 def test_load_dataset():
@@ -108,7 +116,7 @@ def test_load_dataset():
 
 def test_get_latest_tuid_invalid_datadir():
     dh.set_datadir('some_invalid_datadir')
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(NotADirectoryError):
         dh.get_latest_tuid()
 
 
