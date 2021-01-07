@@ -1,9 +1,11 @@
 # Minimal makefile for Sphinx documentation
-#
+# UNIX ONLY!
+# Usage: make html
+# Cleanup: make clean
 
 # You can set these variables from the command line.
 SPHINXOPTS    = -W --keep-going -n
-SPHINXBUILD   = python3 -msphinx
+SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = quantify
 SOURCEDIR     = .
 BUILDDIR      = _build
