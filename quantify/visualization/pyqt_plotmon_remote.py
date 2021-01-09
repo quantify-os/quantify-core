@@ -155,6 +155,7 @@ class RemotePlotmon:
         if init:
             # Only need to update if datasets were discarded
             self._initialize_plot_monitor()
+        self._tuids_max_num = val
 
     def _pop_old_dsets(self, max_tuids):
         while len(self._tuids) > max_tuids:
