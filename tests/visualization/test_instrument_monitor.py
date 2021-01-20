@@ -18,6 +18,9 @@ class TestInstrumentMonitor:
     def test_update_function(self):
         self.inst_mon.update()
 
+    def test_setGeometry_function(self):
+        self.inst_mon.setGeometry(10, 20, 200, 300)
+
 
 class TestQcSnapshotWidget:
     @classmethod
