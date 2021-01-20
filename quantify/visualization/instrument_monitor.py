@@ -120,9 +120,9 @@ class InstrumentMonitor(Instrument):
         self.tree.setWindowTitle(self.name)
         self.tree.resize(*window_size)
 
-    def setGeometry(self, x : int, y : int, w : int, h : int):
+    def setGeometry(self, x: int, y: int, w: int, h: int):
         """ Set the geometry of the main widget
-        
+
         Args:
             x: Horizontal position of the top-left corner of the widget
             y: Vertical position of the top-left corner of the widget
@@ -130,4 +130,3 @@ class InstrumentMonitor(Instrument):
             h: Height of the widget
         """
         self.tree.setGeometry(x, y, w, h)
-        
