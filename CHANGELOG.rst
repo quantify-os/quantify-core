@@ -2,6 +2,18 @@
 Changelog
 ===========
 
+
+
+Unreleased
+----------
+
+* ...
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Add setGeometry method to instrument monitor (!88)
+
 0.3.0 (2020-12-17)
 ------------------
 
