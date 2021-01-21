@@ -105,3 +105,6 @@ tmp_disasm.q1asm
 # only ignore data in the root folder, not the data module
 !/quantify/data/
 !/tests/data/
+
+*.png
+*.svg
