@@ -16,7 +16,7 @@ def clip(x, vmin=0.0, vmax=1.0):
 def set_hlsa(
     color,
     h: float = None,
-    l: float = None,
+    l: float = None,  # noqa: E741
     s: float = None,
     a: float = None,
     to_hex: bool = False,

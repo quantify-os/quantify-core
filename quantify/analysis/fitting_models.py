@@ -45,7 +45,8 @@ def hanger_func_complex_SI(f: float, fr: float, Ql: float, Qe: float,
     .. math::
 
         S_{21} = A \\left(1+\\alpha \\frac{f-f_r}{f_r} \\right)
-        \\left(1- \\frac{\\frac{Q_l}{|Q_e|}e^{i\\theta} }{1+2iQ_l \\frac{f-f_r}{f_r}} \\right) e^{i (\\phi_v f + \\phi_0)}
+        \\left(1- \\frac{\\frac{Q_l}{|Q_e|}e^{i\\theta} }{1+2iQ_l \\frac{f-f_r}{f_r}} \\right)
+        e^{i (\\phi_v f + \\phi_0)}
 
     The loaded and extrinsic quality factors are related to the internal and coupled Q according to:
 
