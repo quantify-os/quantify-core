@@ -9,19 +9,19 @@ from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
-from quantify.data.handling import set_datadir
+import quantify.data.handling as dh
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
-from tests.helpers import get_test_data_dir
+
 try:
     from adaptive import SKOptLearner
     with_skoptlearner = True
 except ImportError:
     with_skoptlearner = False
 
-test_datadir = get_test_data_dir()
+
 
 
 def CosFunc(t, amplitude, frequency, phase):
@@ -161,13 +161,13 @@ class TestMeasurementControl:
         cls.MC = MeasurementControl(name="MC")
         # ensures the default datadir is used which is excluded from git
         cls.dummy_parabola = DummyParHolder("parabola")
-        set_datadir(None)
+        dh.set_datadir(None)
 
     @classmethod
     def teardown_class(cls):
         cls.MC.close()
         cls.dummy_parabola.close()
-        set_datadir(None)
+        dh.set_datadir(None)
 
     def test_MeasurementControl_name(self):
         assert self.MC.name == "MC"
@@ -812,7 +812,7 @@ class TestMeasurementControl:
 
     def test_instrument_settings_from_disk(self):
         load_settings_onto_instrument(
-            self.dummy_parabola, TUID("20200814-134652-492-fbf254"), test_datadir
+            self.dummy_parabola, TUID("20200814-134652-492-fbf254"), dh._test_dir
         )
         assert self.dummy_parabola.x() == 40.0
         assert self.dummy_parabola.y() == 90.0
@@ -824,7 +824,7 @@ class TestMeasurementControl:
             ValueError, match='Instrument "the mac" not found in snapshot'
         ):
             load_settings_onto_instrument(
-                non_existing, TUID("20200814-134652-492-fbf254"), test_datadir
+                non_existing, TUID("20200814-134652-492-fbf254"), dh._test_dir
             )
 
         non_existing.close()

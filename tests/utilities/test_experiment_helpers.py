@@ -1,15 +1,11 @@
 import numpy as np
 from quantify.utilities.experiment_helpers import create_plotmon_from_historical
-from quantify.data.handling import set_datadir
-from tests.helpers import get_test_data_dir
-
-
-test_datadir = get_test_data_dir()
+import quantify.data.handling as dh
 
 
 def test_create_plotmon_from_historical():
     # Always set datadir before instruments
-    set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
     tuid = '20200504-191556-002-4209ee'
     plotmon = create_plotmon_from_historical(tuid)
 
@@ -32,4 +28,4 @@ def test_create_plotmon_from_historical():
     assert cfg['zunit'] == 'V'
 
     plotmon.close()
-    set_datadir(None)
+    dh.set_datadir(None)

@@ -9,10 +9,10 @@ from quantify.measurement.control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
 import pathlib
-from tests.helpers import get_test_data_dir
 
 
-test_datadir = get_test_data_dir()
+
+
 
 
 def test_gen_tuid():
@@ -88,7 +88,7 @@ def test_getset_datadir():
 
 
 def test_load_dataset():
-    dh.set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
     tuid = '20200430-170837-001-315f36'
     dataset = dh.load_dataset(tuid=tuid)
     assert dataset.attrs['tuid'] == tuid
@@ -113,7 +113,7 @@ def test_get_latest_tuid_invalid_datadir():
 
 
 def test_get_latest_tuid_empty_datadir():
-    valid_dir_but_no_data = get_test_data_dir() / 'empty'
+    valid_dir_but_no_data = os.path.join(dh._test_dir, 'empty')
     dh.set_datadir(valid_dir_but_no_data)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid()
@@ -121,21 +121,21 @@ def test_get_latest_tuid_empty_datadir():
 
 
 def test_get_latest_tuid_no_match():
-    dh.set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid(contains='nonexisting_label')
     assert "No experiment found containing" in str(excinfo.value)
 
 
 def test_get_latest_tuid_correct_tuid():
-    dh.set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
     tuid = dh.get_latest_tuid(contains='36-Cosine')
     exp_tuid = '20200430-170837-001-315f36'
     assert tuid == exp_tuid
 
 
 def test_get_tuids_containing():
-    dh.set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
     tuids = dh.get_tuids_containing('Cosine test')
     assert len(tuids) == 2
     assert tuids[0] == '20200504-191556-002-4209ee'
@@ -143,7 +143,7 @@ def test_get_tuids_containing():
 
 
 def test_get_tuids_containing_options():
-    dh.set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
 
     tuids = dh.get_tuids_containing('Cosine test', t_start='20200501')
     assert len(tuids) == 1
@@ -176,7 +176,7 @@ def test_misplaced_exp_container():
     Ensures user is warned if a dataset was misplaced
     """
     tmp_data_path = os.path.join(
-        test_datadir,
+        dh._test_dir,
         'misplaced_exp_container',
     )
     date = '20201006'

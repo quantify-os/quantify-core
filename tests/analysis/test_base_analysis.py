@@ -1,15 +1,15 @@
 import quantify.data.handling as dh
-from tests.helpers import get_test_data_dir
+
 
 from quantify.analysis import base_analysis as ba
 
 
-test_datadir = get_test_data_dir()
+
 
 
 
 def test_load_dataset():
-    dh.set_datadir(test_datadir)
+    dh.set_datadir(dh._test_dir)
 
     tuid = '20200430-170837-001-315f36'
     a = ba.Basic1DAnalysis(tuid=tuid)

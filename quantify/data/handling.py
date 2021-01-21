@@ -22,7 +22,8 @@ from quantify.utilities.general import (
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
-_default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / "data"
+_default_datadir = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "data")
+_test_dir = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "tests", "test_data")
 
 this._datadir = None
 
