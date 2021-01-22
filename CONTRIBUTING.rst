@@ -53,20 +53,20 @@ Please make merge requests into the *develop* branch (not the *master* branch). 
 Before you submit a merge request, check that it meets these guidelines:
 
 1. New code should be fully tested; running pytest in coverage mode can help identify gaps.
-2. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
-3. The CI pipelines should pass for all merge requests.
+#. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+#. The CI pipelines should pass for all merge requests.
 
     - Check the status of the pipelines, the status is also reported in the merge request.
     - flake8 linter should pass.
     - No degradation in code coverage.
     - Documentation should build.
-4. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
+#. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
+#. Make sure to keep selected the checkbox `Allow commits from members who can merge to the target branch`. This allows maintainers to `collaborate across forks <https://docs.gitlab.com/ee/user/project/merge_requests/allow_collaboration.html>`_ for fine tunning and small fixes before the merge request is accepted.
 
 Congratulations! The maintainers will now review your work and suggest any necessary changes.
-If no changes are required, a maintainer will "approve" the review.
-If you are
-Thank you very much
-for your hard work in improving quantify.
+If no changes are required, a maintainer will "approve" the merge request.
+When your merge request is approved, feel free to add yourself to the list of contributors.
+Thank you very much for your hard work in improving quantify!
 
 
 Setting up quantify for local development
