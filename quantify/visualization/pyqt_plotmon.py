@@ -31,7 +31,7 @@ class PlotMonitor_pyqt(Instrument):
 
         Parameters
         ----------
-        name : str
+        name :
             name
         """
         super().__init__(name=name)
@@ -228,13 +228,13 @@ class PlotMonitor_pyqt(Instrument):
 
         Parameters
         ----------
-        x : int
+        x :
             Horizontal position of the top-left corner of the window
-        y : int
+        y :
             Vertical position of the top-left corner of the window
-        w : int
+        w :
             Width of the window
-        h : int
+        h :
             Height of the window
         """
         # wait to finish the queue
@@ -246,13 +246,13 @@ class PlotMonitor_pyqt(Instrument):
 
         Parameters
         ----------
-        x : int
+        x :
             Horizontal position of the top-left corner of the window
-        y : int
+        y :
             Vertical position of the top-left corner of the window
-        w : int
+        w :
             Width of the window
-        h : int
+        h :
             Height of the window
         """
         # wait to finish the queue
