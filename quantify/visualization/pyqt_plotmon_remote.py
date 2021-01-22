@@ -530,12 +530,8 @@ class RemotePlotmon:
 
     def _get_curves_config(self):
         """
-        For testing purposes only, some objects cannot be pickled to
-        be sent
+        For testing purposes only, some objects cannot be pickled to be retrieved
         """
-        # from pprint import pprint
-        # pprint(self.curves)
-        # pprint(self.curves.items())
         curves_dict = dict()
         for tuid, xiyi_dict in self.curves.items():
             curves_dict[tuid] = dict()
@@ -546,12 +542,24 @@ class RemotePlotmon:
 
     def _get_traces_config(self, which="main_QtPlot"):
         """
-        For testing purposes only, some objects cannot be pickled to
-        be sent
+        For testing purposes only, some objects cannot be pickled to be sent
         """
         traces = [{"config": trace["config"]} for trace in getattr(self, which).traces]
 
         return traces
+
+    def _set_QtPlot_geometry(self, x, y, w, h, which="main_QtPlot"):
+        """
+        Sets position and size of the window on screen
+        """
+        getattr(self, which).win.setGeometry(x, y, w, h)
+
+    def _get_QtPlot_geometry(self, which="main_QtPlot"):
+        """
+        Gets position and size of the window on screen
+        """
+        win = getattr(self, which).win
+        return win.x(), win.y(), win.width(), win.height()
 
 
 def _safe_load_dataset(tuid):

@@ -223,6 +223,42 @@ class PlotMonitor_pyqt(Instrument):
         strip_attrs(self, whitelist=['_name'])
         self.remove_instance(self)
 
+    def setGometry_main(self, x: int, y: int, w: int, h: int):
+        """Set the geometry of the main plotmon
+
+        Parameters
+        ----------
+        x : int
+            Horizontal position of the top-left corner of the window
+        y : int
+            Vertical position of the top-left corner of the window
+        w : int
+            Width of the window
+        h : int
+            Height of the window
+        """
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="main_QtPlot")
+
+    def setGometry_secondary(self, x: int, y: int, w: int, h: int):
+        """Set the geometry of the secondary plotmon
+
+        Parameters
+        ----------
+        x : int
+            Horizontal position of the top-left corner of the window
+        y : int
+            Vertical position of the top-left corner of the window
+        w : int
+            Width of the window
+        h : int
+            Height of the window
+        """
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="secondary_QtPlot")
+
 
 class QtPlotObjForJupyter:
     """
