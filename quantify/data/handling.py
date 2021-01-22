@@ -90,6 +90,8 @@ def set_datadir(datadir: str):
     datadir : str
             path of the data directory. If set to ``None``, resets the datadir to the default datadir (``<top_level>/data``).
     """
+    if not os.path.isdir(datadir):
+        os.mkdir(datadir)
     this._datadir = datadir
 
 
