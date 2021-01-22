@@ -32,4 +32,3 @@ def test_create_plotmon_from_historical():
     assert cfg['zunit'] == 'V'
 
     plotmon.close()
-    set_datadir(None)

@@ -5,6 +5,7 @@ import pytest
 from tests.helpers import get_test_data_dir
 from quantify.data.types import TUID
 from quantify.data.handling import set_datadir
+import quantify.data.handling as dh
 
 test_datadir = get_test_data_dir()
 
@@ -21,7 +22,7 @@ class TestPlotMonitor_pyqt:
     @classmethod
     def teardown_class(cls):
         cls.plotmon.close()
-        set_datadir(None)
+        dh._datadir = None
 
     def test_attributes_created_during_init(self):
         hasattr(self.plotmon, "main_QtPlot")

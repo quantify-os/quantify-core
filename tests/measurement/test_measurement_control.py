@@ -168,7 +168,7 @@ class TestMeasurementControl:
     def teardown_class(cls):
         cls.MC.close()
         cls.dummy_parabola.close()
-        dh.set_datadir(None)
+        dh._datadir = None
 
     def test_MeasurementControl_name(self):
         assert self.MC.name == "MC"
