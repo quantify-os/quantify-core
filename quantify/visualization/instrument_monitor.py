@@ -123,10 +123,15 @@ class InstrumentMonitor(Instrument):
     def setGeometry(self, x: int, y: int, w: int, h: int):
         """ Set the geometry of the main widget window
 
-        Args:
-            x: Horizontal position of the top-left corner of the window
-            y: Vertical position of the top-left corner of the window
-            w: Width of the window
-            h: Height of the window
+        Parameters
+        ----------
+        x : int
+            Horizontal position of the top-left corner of the window
+        y : int
+            Vertical position of the top-left corner of the window
+        w : int
+            Width of the window
+        h : int
+            Height of the window
         """
         self.widget.setGeometry(x, y, w, h)
