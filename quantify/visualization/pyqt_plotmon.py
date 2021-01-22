@@ -224,28 +224,36 @@ class PlotMonitor_pyqt(Instrument):
         self.remove_instance(self)
 
     def setGometry_main(self, x: int, y: int, w: int, h: int):
-        """
-        Set the geometry of the main plotmon
+        """Set the geometry of the main plotmon
 
-        Args:
-            x: Horizontal position of the top-left corner of the window
-            y: Vertical position of the top-left corner of the window
-            w: Width of the window
-            h: Height of the window
+        Parameters
+        ----------
+        x : int
+            Horizontal position of the top-left corner of the window
+        y : int
+            Vertical position of the top-left corner of the window
+        w : int
+            Width of the window
+        h : int
+            Height of the window
         """
         # wait to finish the queue
         self.remote_plotmon._exec_queue()
         self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="main_QtPlot")
 
     def setGometry_secondary(self, x: int, y: int, w: int, h: int):
-        """
-        Set the geometry of the secondary plotmon
+        """Set the geometry of the secondary plotmon
 
-        Args:
-            x: Horizontal position of the top-left corner of the window
-            y: Vertical position of the top-left corner of the window
-            w: Width of the window
-            h: Height of the window
+        Parameters
+        ----------
+        x : int
+            Horizontal position of the top-left corner of the window
+        y : int
+            Vertical position of the top-left corner of the window
+        w : int
+            Width of the window
+        h : int
+            Height of the window
         """
         # wait to finish the queue
         self.remote_plotmon._exec_queue()
