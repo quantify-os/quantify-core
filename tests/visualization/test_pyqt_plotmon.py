@@ -152,3 +152,13 @@ class TestPlotMonitor_pyqt:
         #     self.plotmon.tuids([tuid1, tuid2])
 
         self.plotmon.tuids([])  # reset for next tests
+
+    def test_setGeometry(self):
+        # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
+        xywh = (300, 300, 600, 800)
+
+        self.plotmon.setGometry_main(*xywh)
+        assert xywh[-2:] == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")[-2:]
+
+        self.plotmon.setGometry_secondary(*xywh)
+        assert xywh[-2:] == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="secondary_QtPlot")[-2:]

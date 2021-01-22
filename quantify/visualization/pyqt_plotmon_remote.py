@@ -553,6 +553,19 @@ class RemotePlotmon:
 
         return traces
 
+    def _set_QtPlot_geometry(self, x, y, w, h, which="main_QtPlot"):
+        """
+        Sets position and size of the window on screen
+        """
+        getattr(self, which).win.setGeometry(x, y, w, h)
+
+    def _get_QtPlot_geometry(self, which="main_QtPlot"):
+        """
+        Gets position and size of the window on screen
+        """
+        win = getattr(self, which).win
+        return win.x(), win.y(), win.width(), win.height()
+
 
 def _safe_load_dataset(tuid):
     lockfile = os.path.join(_dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock")
