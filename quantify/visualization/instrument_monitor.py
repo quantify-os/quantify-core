@@ -40,17 +40,17 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(self, name, window_size=(600, 600), remote=True, **kwargs):
+    def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs):
         """
         Initializes the pyqtgraph window
 
         Parameters
         ----------
-        name : str
+        name
             name of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` object
-        window_size : tuple (width, height)
+        window_size
             The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
-        remote : bool
+        remote
             Switch to use a remote instance of the pyqtgraph class
         """
         super().__init__(name=name)
@@ -102,7 +102,7 @@ class InstrumentMonitor(Instrument):
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
         self.__class__.rwidget = self.proc._import(qc_widget)
 
-    def create_widget(self, window_size=(1000, 600)):
+    def create_widget(self, window_size: tuple = (1000, 600)):
         """
         Saves an instance of the :class:`~quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
         class during startup. Creates the :class:`~quantify.data.handling.snapshot` tree to display within the
@@ -110,7 +110,7 @@ class InstrumentMonitor(Instrument):
 
         Parameters
         ----------
-        window_size : tuple (width, height)
+        window_size
             The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
         """
 
@@ -125,13 +125,13 @@ class InstrumentMonitor(Instrument):
 
         Parameters
         ----------
-        x : int
+        x
             Horizontal position of the top-left corner of the window
-        y : int
+        y
             Vertical position of the top-left corner of the window
-        w : int
+        w
             Width of the window
-        h : int
+        h
             Height of the window
         """
         self.widget.setGeometry(x, y, w, h)
