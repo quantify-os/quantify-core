@@ -71,7 +71,7 @@ def test_initialize_dataset_2D():
 
 def test_getset_datadir():
     # here to ensure we always start with default datadir
-    dh.set_datadir(None)
+    dh._datadir = None
 
     with pytest.raises(NotADirectoryError):
         # Ensure users are forced to pick a datadir in order to avoid
@@ -90,7 +90,7 @@ def test_getset_datadir():
     os.rmdir(new_dir_path)
 
     # Test resetting to default
-    dh.set_datadir(None)
+    dh._datadir = None
     with pytest.raises(NotADirectoryError):
         dh.get_datadir()
 
@@ -112,12 +112,6 @@ def test_load_dataset():
     with pytest.raises(FileNotFoundError):
         tuid = '20200230-001-170837'
         dh.load_dataset(tuid=tuid)
-
-
-def test_get_latest_tuid_invalid_datadir():
-    dh.set_datadir('some_invalid_datadir')
-    with pytest.raises(NotADirectoryError):
-        dh.get_latest_tuid()
 
 
 def test_get_latest_tuid_empty_datadir():
