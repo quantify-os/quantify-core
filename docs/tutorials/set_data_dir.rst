@@ -10,20 +10,15 @@
 .. jupyter-execute::
     :hide-code:
 
-    from quantify.data import handling
-    # FOR TUTORIAL PURPOSES ONLY!!!
-    # DO NOT RUN THIS CELL, YOU RISK TO LOSE YOUR DATA!
-    import quantify.data.handling as dh
-    datadir = dh._default_datadir
+    # We recommend to always set the directory at the start of the python kernel
+    # and stick to a single common data directory for all
+    # notebooks/experiments within your measurement setup/PC
 
 .. jupyter-execute::
 
-    # Always set the directory at the start of the python kernel
-    # And stick to a single common data directory for all
-    # notebooks/experiments within your measurement setup/PC
-    import os # path utilities
+    # This sets a default data directory for tutorial purposes. Change it to your desired data directory.
+    from pathlib import Path
+    from os.path import join
     from quantify.data.handling import get_datadir, set_datadir
-
-    # datadir = "/path/to/your/datadir" # UNCOMMENT AND CHANGE ME!!!
-    set_datadir(datadir)
-    print("Data will be saved in \n" + os.path.abspath(get_datadir()))
+    set_datadir(join(Path.home(), 'quantify-data')) # change me!
+    print(f"Data will be saved in:\n{get_datadir()}")
