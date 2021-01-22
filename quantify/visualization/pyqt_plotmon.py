@@ -31,8 +31,8 @@ class PlotMonitor_pyqt(Instrument):
 
         Parameters
         ----------
-        name :
-            name
+        name
+            Name of this instrument instance
         """
         super().__init__(name=name)
 
@@ -223,36 +223,36 @@ class PlotMonitor_pyqt(Instrument):
         strip_attrs(self, whitelist=['_name'])
         self.remove_instance(self)
 
-    def setGometry_main(self, x: int, y: int, w: int, h: int):
+    def setGeometry_main(self, x: int, y: int, w: int, h: int):
         """Set the geometry of the main plotmon
 
         Parameters
         ----------
-        x :
+        x
             Horizontal position of the top-left corner of the window
-        y :
+        y
             Vertical position of the top-left corner of the window
-        w :
+        w
             Width of the window
-        h :
+        h
             Height of the window
         """
         # wait to finish the queue
         self.remote_plotmon._exec_queue()
         self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="main_QtPlot")
 
-    def setGometry_secondary(self, x: int, y: int, w: int, h: int):
+    def setGeometry_secondary(self, x: int, y: int, w: int, h: int):
         """Set the geometry of the secondary plotmon
 
         Parameters
         ----------
-        x :
+        x
             Horizontal position of the top-left corner of the window
-        y :
+        y
             Vertical position of the top-left corner of the window
-        w :
+        w
             Width of the window
-        h :
+        h
             Height of the window
         """
         # wait to finish the queue

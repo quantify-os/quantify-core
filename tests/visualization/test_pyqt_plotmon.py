@@ -157,8 +157,8 @@ class TestPlotMonitor_pyqt:
         # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
         xywh = (300, 300, 600, 800)
 
-        self.plotmon.setGometry_main(*xywh)
+        self.plotmon.setGeometry_main(*xywh)
         assert xywh[-2:] == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")[-2:]
 
-        self.plotmon.setGometry_secondary(*xywh)
+        self.plotmon.setGeometry_secondary(*xywh)
         assert xywh[-2:] == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="secondary_QtPlot")[-2:]

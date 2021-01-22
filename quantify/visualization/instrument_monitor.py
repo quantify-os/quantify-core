@@ -46,11 +46,11 @@ class InstrumentMonitor(Instrument):
 
         Parameters
         ----------
-        name :
+        name
             name of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` object
-        window_size :
+        window_size
             The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
-        remote :
+        remote
             Switch to use a remote instance of the pyqtgraph class
         """
         super().__init__(name=name)
@@ -110,7 +110,7 @@ class InstrumentMonitor(Instrument):
 
         Parameters
         ----------
-        window_size : tuple (width, height)
+        window_size
             The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
         """
 
@@ -125,13 +125,13 @@ class InstrumentMonitor(Instrument):
 
         Parameters
         ----------
-        x :
+        x
             Horizontal position of the top-left corner of the window
-        y :
+        y
             Vertical position of the top-left corner of the window
-        w :
+        w
             Width of the window
-        h :
+        h
             Height of the window
         """
         self.widget.setGeometry(x, y, w, h)
