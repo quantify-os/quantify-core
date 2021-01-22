@@ -71,7 +71,7 @@ class InstrumentMonitor(Instrument):
 
         # initial value is fake but ensures it will update the first time
         self.last_update_time = 0
-        self.create_tree(window_size=window_size)
+        self.create_widget(window_size=window_size)
 
     def update(self):
         """
@@ -85,12 +85,12 @@ class InstrumentMonitor(Instrument):
             # Take an updated, clean snapshot
             snap = snapshot(update=False, clean=True)
             try:
-                self.tree.setData(snap["instruments"])
+                self.widget.setData(snap["instruments"])
             except AttributeError as e:
                 # This is to catch any potential pickling problems with the snapshot.
                 # We do so by converting all lowest elements of the snapshot to string.
                 snap_collated = traverse_dict(snap["instruments"])
-                self.tree.setData(snap_collated)
+                self.widget.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
     def _init_qt(self):
@@ -102,7 +102,7 @@ class InstrumentMonitor(Instrument):
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
         self.__class__.rwidget = self.proc._import(qc_widget)
 
-    def create_tree(self, window_size=(1000, 600)):
+    def create_widget(self, window_size=(1000, 600)):
         """
         Saves an instance of the :class:`~quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
         class during startup. Creates the :class:`~quantify.data.handling.snapshot` tree to display within the
@@ -114,8 +114,24 @@ class InstrumentMonitor(Instrument):
             The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
         """
 
-        self.tree = self.rwidget.QcSnaphotWidget()
+        self.widget = self.rwidget.QcSnaphotWidget()
         self.update()
-        self.tree.show()
-        self.tree.setWindowTitle(self.name)
-        self.tree.resize(*window_size)
+        self.widget.show()
+        self.widget.setWindowTitle(self.name)
+        self.widget.resize(*window_size)
+
+    def setGeometry(self, x: int, y: int, w: int, h: int):
+        """ Set the geometry of the main widget window
+
+        Parameters
+        ----------
+        x : int
+            Horizontal position of the top-left corner of the window
+        y : int
+            Vertical position of the top-left corner of the window
+        w : int
+            Width of the window
+        h : int
+            Height of the window
+        """
+        self.widget.setGeometry(x, y, w, h)

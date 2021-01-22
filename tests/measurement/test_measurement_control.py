@@ -807,7 +807,7 @@ class TestMeasurementControl:
     def test_MC_insmon_integration(self):
         inst_mon = InstrumentMonitor("insmon_MC")
         self.MC.instrument_monitor(inst_mon.name)
-        assert self.MC.instrument_monitor.get_instr().tree.getNodes()
+        assert self.MC.instrument_monitor.get_instr().widget.getNodes()
         inst_mon.close()
         self.MC.instrument_monitor("")
 

@@ -15,4 +15,4 @@ Developers
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Pieter Eendebak <pieter.eendebak@tno.nl>
