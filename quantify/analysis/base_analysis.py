@@ -110,14 +110,8 @@ class BaseAnalysis(ABC):
             if self.close_figs:
                 plt.close(fig)
 
-    @abstractmethod
-    def prepare_figures(self):
-        """
-
-        """
-        pass
-
     def create_figures(self):
+        # FIXME: in the simpler world, this will be overwritten.
 
         # Set up figures and axes
         if not hasattr(self, 'figs'):
@@ -147,6 +141,31 @@ class BaseAnalysis(ABC):
 
 
 class Basic1DAnalysis(BaseAnalysis):
+    """
+    A basic analysis that extracts the data from the latest file matching the label
+    and plots and stores the data in the experiment container.
+    """
+
+    def prepare_figures(self):
+
+        self.plot_dicts = {}
+
+        # iterate over
+        for i in range(len(self.dset.keys())-1):
+            self.plot_dicts['x0-y{}'.format(i)] = {
+                'plot_fn': plot_basic1D,
+                'x': self.dset['x0'].values,
+                'xlabel': self.dset['x0'].attrs['long_name'],
+                'xunit': self.dset['x0'].attrs['unit'],
+                'y': self.dset['y{}'.format(i)].values,
+                'ylabel': self.dset['y{}'.format(i)].attrs['long_name'],
+                'yunit': self.dset['y{}'.format(i)].attrs['unit'],
+                'title': 'x0-y{} {}\ntuid: {}'.format(
+                    i, self.dset.attrs['name'], self.dset.attrs['tuid'])
+            }
+
+
+class Basic2DAnalysis(BaseAnalysis):
     """
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.

@@ -40,3 +40,40 @@ visualization
 
 .. automodule:: quantify.visualization
     :members:
+
+color_utilities
+------------------
+
+.. automodule:: quantify.visualization.color_utilities
+    :members:
+
+
+instrument_monitor
+------------------
+
+.. automodule:: quantify.visualization.instrument_monitor
+    :members:
+
+mpl_plotting
+------------------
+
+.. automodule:: quantify.visualization.mpl_plotting
+    :members:
+
+plot_interpolation
+------------------
+
+.. automodule:: quantify.visualization.plot_interpolation
+    :members:
+
+pyqt_plotmon
+------------------
+
+.. automodule:: quantify.visualization.pyqt_plotmon
+    :members:
+
+SI_utilities
+------------------
+
+.. automodule:: quantify.visualization.SI_utilities
+    :members:
