@@ -1,14 +1,20 @@
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
+
+import pytest
+from tests.helpers import get_test_data_dir
 from quantify.data.types import TUID
+from quantify.data.handling import set_datadir
 import quantify.data.handling as dh
+
+test_datadir = get_test_data_dir()
 
 
 class TestPlotMonitor_pyqt:
     @classmethod
     def setup_class(cls):
         # ensures the default datadir is used which is excluded from git
-        dh.set_datadir(dh._test_dir)
+        set_datadir(test_datadir)
         # directory needs to be set before creating the plotting monitor
         # this avoids having to pass around the datadir between processes
         cls.plotmon = PlotMonitor_pyqt(name="plotmon")
@@ -16,7 +22,7 @@ class TestPlotMonitor_pyqt:
     @classmethod
     def teardown_class(cls):
         cls.plotmon.close()
-        dh.set_datadir(None)
+        dh._datadir = None
 
     def test_attributes_created_during_init(self):
         hasattr(self.plotmon, "main_QtPlot")
@@ -59,8 +65,7 @@ class TestPlotMonitor_pyqt:
         np.testing.assert_allclose(x[:50], x_exp)
         np.testing.assert_allclose(y[:50], y_exp)
 
-        cfg = self.plotmon._get_traces_config(
-            which="secondary_QtPlot")[0]["config"]
+        cfg = self.plotmon._get_traces_config(which="secondary_QtPlot")[0]["config"]
         assert np.shape(cfg["z"]) == (11, 50)
         assert cfg["xlabel"] == "Time"
         assert cfg["xunit"] == "s"
@@ -87,8 +92,7 @@ class TestPlotMonitor_pyqt:
             "20201124-184736-341-3628d4",
         ]
 
-        time_tags = [":".join(tuid.split("-")[1][i: i + 2]
-                              for i in range(0, 6, 2)) for tuid in tuids]
+        time_tags = [":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2)) for tuid in tuids]
 
         for tuid in tuids:
             self.plotmon.tuids_append(tuid)
@@ -103,8 +107,7 @@ class TestPlotMonitor_pyqt:
         # this is a bit lazy to not deal with the indices of all traces
         # of all plots
         names = set(trace["config"]["name"] for trace in traces)
-        labels_exist = [any(tt in name for name in names)
-                        for tt in time_tags[2:]]
+        labels_exist = [any(tt in name for name in names) for tt in time_tags[2:]]
         assert all(labels_exist)
 
         self.plotmon.tuids_append(tuids[0])

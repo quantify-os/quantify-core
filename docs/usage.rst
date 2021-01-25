@@ -133,10 +133,17 @@ In addition to using a library which fits these contracts (such as the QCodes.Pa
 Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave:
 
 .. jupyter-execute::
+    :hide-code:
+
+    from pathlib import Path
+    from os.path import join
+    from quantify.data.handling import set_datadir
+    set_datadir(join(Path.home(), 'quantify-data'))
+
+.. jupyter-execute::
 
     import numpy as np
     from qcodes import ManualParameter
-
 
     t = ManualParameter('time', label='Time', unit='s')
 
@@ -164,7 +171,7 @@ Setting the `batched` property to `True` enables the batch Control Mode in the M
 
 .. note:: Note that all :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` entities must have the same Control Mode.
 
-Optionally the :py:func:`~quantify.measurement.Gettable.prepare` and :py:func:`~quantify.measurement.Gettable.finish` can be added and are run before and after each MeasurementControl loop.
+Optionally the :meth:`!prepare` and :meth:`!finish` can be added and are run before and after each MeasurementControl loop.
 These methods can be used to setup and teardown work. For example, arming a piece of hardware with data and then closing a connection upon completion.
 
 Data storage & Analysis
@@ -179,7 +186,7 @@ Data Directory
 The top level directory in the file system where output is saved to.
 This directory can be controlled using the :meth:`~quantify.data.handling.get_datadir` and :meth:`~quantify.data.handling.set_datadir` functions.
 
-We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:/Data*).
+We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:\Data*).
 
 Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
 

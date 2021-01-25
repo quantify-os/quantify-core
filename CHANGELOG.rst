@@ -13,6 +13,7 @@ Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Add setGeometry method to instrument monitor and plotmon (!88)
+* Enforce a datadir choice to avoid potential data loss (!86)
 
 0.3.0 (2020-12-17)
 ------------------

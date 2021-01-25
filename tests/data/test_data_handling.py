@@ -8,11 +8,10 @@ import quantify.data.handling as dh
 from quantify.measurement.control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
-import pathlib
+from tests.helpers import get_test_data_dir
 
 
-
-
+test_datadir = get_test_data_dir()
 
 
 def test_gen_tuid():
@@ -71,24 +70,30 @@ def test_initialize_dataset_2D():
 
 def test_getset_datadir():
     # here to ensure we always start with default datadir
-    dh.set_datadir(None)
+    dh._datadir = None
 
-    default_datadir = dh.get_datadir()
-    dd = os.path.split(default_datadir)
-    assert dd[-1] == 'data'
-    top_level = pathlib.Path(__file__).parent.parent.parent.resolve().name
-    assert os.path.split(dd[-2])[-1] == top_level
+    with pytest.raises(NotADirectoryError):
+        # Ensure users are forced to pick a datadir in order to avoid
+        # potential dataloss
+        dh.get_datadir()
 
-    dh.set_datadir('my_ddir')
-    assert dh.get_datadir() == 'my_ddir'
+    new_dir_path = os.path.join(test_datadir, 'test_datadir2')
+    os.mkdir(new_dir_path)
+    dh.set_datadir(new_dir_path)
+    assert os.path.split(dh.get_datadir())[-1] == 'test_datadir2'
+    os.rmdir(new_dir_path)
 
-    # Test resetting to default
-    dh.set_datadir(None)
-    assert dh.get_datadir() == default_datadir
+    # Test setting to None
+    with pytest.raises(TypeError):
+        dh.set_datadir(None)
+
+    # Test setting to empty str
+    with pytest.raises(FileNotFoundError):
+        dh.set_datadir("")
 
 
 def test_load_dataset():
-    dh.set_datadir(dh._test_dir)
+    dh.set_datadir(test_datadir)
     tuid = '20200430-170837-001-315f36'
     dataset = dh.load_dataset(tuid=tuid)
     assert dataset.attrs['tuid'] == tuid
@@ -106,14 +111,8 @@ def test_load_dataset():
         dh.load_dataset(tuid=tuid)
 
 
-def test_get_latest_tuid_invalid_datadir():
-    dh.set_datadir('some_invalid_datadir')
-    with pytest.raises(FileNotFoundError):
-        dh.get_latest_tuid()
-
-
 def test_get_latest_tuid_empty_datadir():
-    valid_dir_but_no_data = os.path.join(dh._test_dir, 'empty')
+    valid_dir_but_no_data = get_test_data_dir() / 'empty'
     dh.set_datadir(valid_dir_but_no_data)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid()
@@ -121,21 +120,21 @@ def test_get_latest_tuid_empty_datadir():
 
 
 def test_get_latest_tuid_no_match():
-    dh.set_datadir(dh._test_dir)
+    dh.set_datadir(test_datadir)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid(contains='nonexisting_label')
     assert "No experiment found containing" in str(excinfo.value)
 
 
 def test_get_latest_tuid_correct_tuid():
-    dh.set_datadir(dh._test_dir)
+    dh.set_datadir(test_datadir)
     tuid = dh.get_latest_tuid(contains='36-Cosine')
     exp_tuid = '20200430-170837-001-315f36'
     assert tuid == exp_tuid
 
 
 def test_get_tuids_containing():
-    dh.set_datadir(dh._test_dir)
+    dh.set_datadir(test_datadir)
     tuids = dh.get_tuids_containing('Cosine test')
     assert len(tuids) == 2
     assert tuids[0] == '20200504-191556-002-4209ee'
@@ -143,7 +142,7 @@ def test_get_tuids_containing():
 
 
 def test_get_tuids_containing_options():
-    dh.set_datadir(dh._test_dir)
+    dh.set_datadir(test_datadir)
 
     tuids = dh.get_tuids_containing('Cosine test', t_start='20200501')
     assert len(tuids) == 1
@@ -176,7 +175,7 @@ def test_misplaced_exp_container():
     Ensures user is warned if a dataset was misplaced
     """
     tmp_data_path = os.path.join(
-        dh._test_dir,
+        test_datadir,
         'misplaced_exp_container',
     )
     date = '20201006'

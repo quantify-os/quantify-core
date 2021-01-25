@@ -1,8 +1,3 @@
-:: Minimal makefile for Sphinx documentation
-:: Windows ONLY!
-:: Usage: ./make.bat html
-:: Cleanup: ./make.bat clean
-
 @ECHO OFF
 
 pushd %~dp0
@@ -10,7 +5,7 @@ pushd %~dp0
 REM Command file for Sphinx documentation
 
 if "%SPHINXBUILD%" == "" (
-	set SPHINXBUILD=sphinx-build
+	set SPHINXBUILD=python3 -msphinx
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
