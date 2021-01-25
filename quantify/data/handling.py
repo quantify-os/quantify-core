@@ -22,6 +22,7 @@ from quantify.utilities.general import (
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
+# N.B. for tests purposes only
 _default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / "data"
 if not os.path.isdir(_default_datadir):
     os.mkdir(_default_datadir)
