@@ -8,7 +8,6 @@ import quantify.data.handling as dh
 from quantify.measurement.control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
-import pathlib
 from tests.helpers import get_test_data_dir
 
 
@@ -71,20 +70,26 @@ def test_initialize_dataset_2D():
 
 def test_getset_datadir():
     # here to ensure we always start with default datadir
-    dh.set_datadir(None)
+    dh._datadir = None
 
-    default_datadir = dh.get_datadir()
-    dd = os.path.split(default_datadir)
-    assert dd[-1] == 'data'
-    top_level = pathlib.Path(__file__).parent.parent.parent.resolve().name
-    assert os.path.split(dd[-2])[-1] == top_level
+    with pytest.raises(NotADirectoryError):
+        # Ensure users are forced to pick a datadir in order to avoid
+        # potential dataloss
+        dh.get_datadir()
 
-    dh.set_datadir('my_ddir')
-    assert dh.get_datadir() == 'my_ddir'
+    new_dir_path = os.path.join(test_datadir, 'test_datadir2')
+    os.mkdir(new_dir_path)
+    dh.set_datadir(new_dir_path)
+    assert os.path.split(dh.get_datadir())[-1] == 'test_datadir2'
+    os.rmdir(new_dir_path)
 
-    # Test resetting to default
-    dh.set_datadir(None)
-    assert dh.get_datadir() == default_datadir
+    # Test setting to None
+    with pytest.raises(TypeError):
+        dh.set_datadir(None)
+
+    # Test setting to empty str
+    with pytest.raises(FileNotFoundError):
+        dh.set_datadir("")
 
 
 def test_load_dataset():
@@ -104,12 +109,6 @@ def test_load_dataset():
     with pytest.raises(FileNotFoundError):
         tuid = '20200230-001-170837'
         dh.load_dataset(tuid=tuid)
-
-
-def test_get_latest_tuid_invalid_datadir():
-    dh.set_datadir('some_invalid_datadir')
-    with pytest.raises(FileNotFoundError):
-        dh.get_latest_tuid()
 
 
 def test_get_latest_tuid_empty_datadir():

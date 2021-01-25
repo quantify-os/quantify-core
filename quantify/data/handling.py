@@ -3,7 +3,6 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-import pathlib
 import os
 import sys
 import json
@@ -21,8 +20,6 @@ from quantify.utilities.general import (
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
-
-_default_datadir = pathlib.Path(__file__).parent.parent.parent.absolute() / "data"
 
 this._datadir = None
 
@@ -63,9 +60,18 @@ def get_datadir():
     str
         the current data directory
     """
+    set_datadir_import = "from " + this.__name__ + " import set_datadir"
 
-    if this._datadir is None:
-        this._datadir = this._default_datadir
+    if this._datadir is None or not os.path.isdir(this._datadir):
+        raise NotADirectoryError(
+            "The datadir is not valid. Please set the datadir after importing Quantify.\n"
+            "We recommend to settle for a single common data directory for all \n"
+            "notebooks/experiments within your measurement setup/PC.\n"
+            "E.g. '~/quantify-data' (unix), or 'D:\\Data\\quantify-data' (Windows).\n"
+            "The datadir can be changed as follows:\n\n"
+            f"    {set_datadir_import}\n"
+            "    set_datadir('path_to_datadir')"
+        )
 
     return this._datadir
 
@@ -79,6 +85,8 @@ def set_datadir(datadir: str):
     datadir : str
             path of the data directory. If set to ``None``, resets the datadir to the default datadir (``<top_level>/data``).
     """
+    if not os.path.isdir(datadir):
+        os.mkdir(datadir)
     this._datadir = datadir
 
 
