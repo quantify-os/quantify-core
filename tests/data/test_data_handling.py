@@ -8,10 +8,9 @@ import quantify.data.handling as dh
 from quantify.measurement.control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
-import pathlib
 from tests.helpers import get_test_data_dir
 
-dh.set_datadir(dh._default_datadir)
+
 test_datadir = get_test_data_dir()
 
 
@@ -78,21 +77,19 @@ def test_getset_datadir():
         # potential dataloss
         dh.get_datadir()
 
-    dd = os.path.split(dh._default_datadir)
-    assert dd[-1] == 'data'
-    top_level = pathlib.Path(__file__).parent.parent.parent.resolve().name
-    assert os.path.split(dd[-2])[-1] == top_level
-
-    new_dir_path = os.path.join(*dd, '..', 'my_ddir')
+    new_dir_path = os.path.join(test_datadir, 'test_datadir2')
     os.mkdir(new_dir_path)
     dh.set_datadir(new_dir_path)
-    assert os.path.split(dh.get_datadir())[-1] == 'my_ddir'
+    assert os.path.split(dh.get_datadir())[-1] == 'test_datadir2'
     os.rmdir(new_dir_path)
 
-    # Test resetting to default
-    dh._datadir = None
-    with pytest.raises(NotADirectoryError):
-        dh.get_datadir()
+    # Test setting to None
+    with pytest.raises(TypeError):
+        dh.set_datadir(None)
+
+    # Test setting to empty str
+    with pytest.raises(FileNotFoundError):
+        dh.set_datadir("")
 
 
 def test_load_dataset():

@@ -135,8 +135,10 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
 .. jupyter-execute::
     :hide-code:
 
-    import quantify.data.handling as dh
-    dh.set_datadir(dh._default_datadir)
+    from pathlib import Path
+    from os.path import join
+    from quantify.data.handling import set_datadir
+    set_datadir(join(Path.home(), 'quantify-data'))
 
 .. jupyter-execute::
 
