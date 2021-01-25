@@ -4,7 +4,7 @@
 
 .. tip::
 
-    We **highly recommended to** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:\\Data\\quantify-data*, or */d/Data/quantify-data* for a unix-like shell on Windows).
+    We **highly recommended to** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *~/quantify-data* (unix) or *D:\\Data\\quantify-data* (Windows).
     The utilities to find/search/extract data only work if all the experiment containers are located within the same directory.
 
 .. jupyter-execute::
