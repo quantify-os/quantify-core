@@ -72,10 +72,10 @@ def get_datadir():
             "The datadir is not valid. Please set the datadir after importing Quantify.\n"
             "We recommend to settle for a single common data directory for all \n"
             "notebooks/experiments within your measurement setup/PC.\n"
-            "E.g. 'D:\\Data', or '/d/Data' for a unix-like shell on Windows.\n"
+            "E.g. '~/quantify-data' (unix), or 'D:\\Data\\quantify-data' (Windows).\n"
             "The datadir can be changed as follows:\n\n"
             f"    {set_datadir_import}\n"
-            "    set_datadir('/path/to/datadir')"
+            "    set_datadir('path_to_datadir')"
         )
 
     return this._datadir
