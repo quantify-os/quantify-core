@@ -52,7 +52,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                        'qcodes': ('https://qcodes.github.io/Qcodes/', None),
                        'xarray': ('https://xarray.pydata.org/en/stable/', None),
                        'numpy': ('https://numpy.org/doc/stable/', None),
-                       'matplotlib': ('https://matplotlib.org/stable/contents.html', None), }
+                       'matplotlib': ('https://matplotlib.org/stable/', None), }
 
 
 # The suffix(es) of source filenames.

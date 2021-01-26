@@ -4,6 +4,7 @@ This module should contain different analyses corresponding to discrete experime
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
+from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import load_dataset, get_latest_tuid, _locate_experiment_file, get_datadir
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 
@@ -152,7 +153,7 @@ class Basic1DAnalysis(BaseAnalysis):
 
         # iterate over
         for i in range(len(self.dset.keys())-1):
-            self.plot_dicts['x0-y{}'.format(i)] = {
+            self.plot_dicts['Line plot x0-y{}'.format(i)] = {
                 'plot_fn': plot_basic1D,
                 'x': self.dset['x0'].values,
                 'xlabel': self.dset['x0'].attrs['long_name'],
@@ -172,22 +173,28 @@ class Basic2DAnalysis(BaseAnalysis):
     """
 
     def prepare_figures(self):
+        pass
 
-        self.plot_dicts = {}
+    def create_figures(self):
 
-        # iterate over
-        for i in range(len(self.dset.keys())-1):
-            self.plot_dicts['x0-y{}'.format(i)] = {
-                'plot_fn': plot_basic1D,
-                'x': self.dset['x0'].values,
-                'xlabel': self.dset['x0'].attrs['long_name'],
-                'xunit': self.dset['x0'].attrs['unit'],
-                'y': self.dset['y{}'.format(i)].values,
-                'ylabel': self.dset['y{}'.format(i)].attrs['long_name'],
-                'yunit': self.dset['y{}'.format(i)].attrs['unit'],
-                'title': 'x0-y{} {}\ntuid: {}'.format(
-                    i, self.dset.attrs['name'], self.dset.attrs['tuid'])
-            }
+        self.figs = {}
+        # # iterate over
+        for i in range(len(self.dset.keys())-2):
+            f, ax = plt.subplots()
+            f.patch.set_alpha(0)
+
+            qpl.plot_2D_grid(x=self.dset['x0'], y=self.dset['x1'], z=self.dset['y{}'.format(i)],
+                             xlabel=self.dset['x0'].attrs['long_name'],
+                             xunit=self.dset['x0'].attrs['unit'],
+                             ylabel=self.dset['x1'].attrs['long_name'],
+                             yunit=self.dset['x1'].attrs['unit'],
+                             zlabel=self.dset['y{}'.format(i)].attrs['long_name'],
+                             zunit=self.dset['y{}'.format(i)].attrs['unit'],
+                             title='x0x1-y{} {}\ntuid: {}'.format(
+                                i, self.dset.attrs['name'], self.dset.attrs['tuid']),
+                             ax=ax)
+
+            self.figs['Heatmap x0x1-y{}'.format(i)] = f
 
 
 def plot_basic1D(x, y, xlabel, xunit, ylabel, yunit, ax, title=None, plot_kw=None, **kw):
