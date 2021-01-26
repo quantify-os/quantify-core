@@ -85,6 +85,7 @@ class BaseAnalysis(ABC):
         """
         pass
 
+
     def prepare_fitting(self):
         pass
 
@@ -100,6 +101,9 @@ class BaseAnalysis(ABC):
 
     def save_quantities_of_interest(self):
         pass
+
+    def prepare_figures(self):
+        pass #TODO deprecated, to be removed
 
     def save_figures(self):
 
@@ -171,10 +175,6 @@ class Basic2DAnalysis(BaseAnalysis):
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
     """
-
-    def prepare_figures(self):
-        pass
-
     def create_figures(self):
 
         self.figs = {}
@@ -195,6 +195,8 @@ class Basic2DAnalysis(BaseAnalysis):
                              ax=ax)
 
             self.figs['Heatmap x0x1-y{}'.format(i)] = f
+
+            # TODO: add linecuts for the grid like measurement.
 
 
 def plot_basic1D(x, y, xlabel, xunit, ylabel, yunit, ax, title=None, plot_kw=None, **kw):
