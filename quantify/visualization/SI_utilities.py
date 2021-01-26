@@ -30,8 +30,10 @@ def set_xlabel(axis, label, unit=None, **kw):
     """
     if unit is not None and unit != '':
         xticks = axis.get_xticks()
-        scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: '{:.4g}'.format(x*scale_factor))
+        scale_factor, unit = SI_prefix_and_scale_factor(
+            val=max(abs(xticks)), unit=unit)
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: '{:.4g}'.format(x*scale_factor))
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label+' ({})'.format(unit), **kw)
@@ -89,8 +91,9 @@ def set_cbarlabel(cbar, label, unit=None, **kw):
         zticks = cbar.get_ticks()
         scale_factor, unit = SI_prefix_and_scale_factor(
             val=max(abs(zticks)), unit=unit)
-        cbar.set_ticks(zticks)
-        cbar.set_ticklabels(zticks*scale_factor)
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: '{:.6g}'.format(x*scale_factor))
+        cbar.ax.yaxis.set_major_formatter(formatter)
         cbar.set_label(label + ' ({})'.format(unit))
 
     else:
