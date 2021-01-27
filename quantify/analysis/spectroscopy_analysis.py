@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
 
@@ -29,26 +30,23 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         self.fit_res = {"hanger_func_complex_SI": fit_res}
 
-    def prepare_figures(self):
+    def create_figures(self):
 
-        self.plot_dicts = {}
+        f, ax = plt.subplots()
+        fig_id = "S21"
+        self.figs_mpl[fig_id] = f
+        self.axs_mpl[fig_id] = ax
+        f.suptitle(f"S21 {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
 
-        # iterate over
-        self.plot_dicts["S21"] = {
-            "plot_fn": ba.plot_basic1D,
-            "x": self.dset["x0"].values,
-            "xlabel": self.dset["x0"].attrs["long_name"],
-            "xunit": self.dset["x0"].attrs["unit"],
-            "y": self.dset["S21"].values,
-            "ylabel": self.dset["S21"].attrs["long_name"],
-            "yunit": self.dset["S21"].attrs["unit"],
-            "plot_kw": {"marker": ".", "label": "data"},
-            "title": f"S21 {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}",
-        }
+        ba.plot_basic1D(
+            ax=ax,
+            x=self.dset["x0"].values,
+            xlabel=self.dset["x0"].attrs["long_name"],
+            xunit=self.dset["x0"].attrs["unit"],
+            y=self.dset["S21"].values,
+            ylabel=self.dset["S21"].attrs["long_name"],
+            yunit=self.dset["S21"].attrs["unit"],
+            plot_kw={"marker": ".", "label": "data"},
+        )
 
-        self.plot_dicts["S21-fit"] = {
-            "plot_fn": ba.plot_fit,
-            "ax_id": "S21",
-            "fit_res": self.fit_res["hanger_func_complex_SI"],
-            "plot_init": True,
-        }
+        ba.plot_fit(ax=ax, fit_res=self.fit_res["hanger_func_complex_SI"], plot_init=True)

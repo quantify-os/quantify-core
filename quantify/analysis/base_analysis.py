@@ -132,7 +132,7 @@ class BaseAnalysis(ABC):
         Saves all the figures in the :code:`figs_mpl` dict
         """
         DPI = this.settings["DPI"]
-        formats = this.settings["output_formats"]
+        formats = this.settings["fig_formats"]
 
         for figname, fig in self.figs_mpl.items():
             filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
