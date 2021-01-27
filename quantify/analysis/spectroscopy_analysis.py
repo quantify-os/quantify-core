@@ -32,6 +32,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
     def create_figures(self):
 
+        # TODO missing complex plot (phase)
+
         f, ax = plt.subplots()
         fig_id = "S21"
         self.figs_mpl[fig_id] = f

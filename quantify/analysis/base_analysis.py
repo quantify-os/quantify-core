@@ -86,7 +86,7 @@ class BaseAnalysis(ABC):
         self.save_quantities_of_interest()
 
         self.create_figures()
-        self.ajust_figures()
+        self.adjust_figures()
         self.save_figures()
 
     def process_data(self):
@@ -114,7 +114,7 @@ class BaseAnalysis(ABC):
     def create_figures(self):
         pass
 
-    def ajust_figures(self):
+    def adjust_figures(self):
         """
         Perform global adjustments after creating the figures but
         before saving them
@@ -205,13 +205,6 @@ class Basic2DAnalysis(BaseAnalysis):
             f.suptitle(f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
 
 
-class Basic2DLineCuts(BaseAnalysis):
-    """
-    TODO: add linecuts for the grid like measurement.
-    """
-    pass
-
-
 def plot_basic1D(
     x, y, xlabel: str, xunit: str, ylabel: str, yunit: str, ax, title: str = None, plot_kw: dict = {}, **kw
 ):
@@ -222,7 +215,7 @@ def plot_basic1D(
     set_ylabel(ax, ylabel, yunit)
 
 
-def plot_fit(ax, fit_res, plot_numpoints: int = 1000, **kw):
+def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **kw):
     model = fit_res.model
 
     if len(model.independent_vars) == 1:
@@ -235,6 +228,7 @@ def plot_fit(ax, fit_res, plot_numpoints: int = 1000, **kw):
     y = model.eval(fit_res.params, **{independent_var: x})
     ax.plot(x, y, label="Fit", c="C3")
 
-    x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-    y = model.eval(fit_res.init_params, **{independent_var: x})
-    ax.plot(x, y, ls="--", c="grey", label="Guess")
+    if plot_init:
+        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+        y = model.eval(fit_res.init_params, **{independent_var: x})
+        ax.plot(x, y, ls="--", c="grey", label="Guess")
