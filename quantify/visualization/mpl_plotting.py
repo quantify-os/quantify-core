@@ -4,11 +4,17 @@ import numpy as np
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
 
 
-def flex_colormesh_plot_vs_xy(xvals: np.ndarray, yvals: np.ndarray,
-                              zvals: np.ndarray, ax: plt.Axes = None,
-                              normalize: bool = False, log: bool = False,
-                              cmap: str = 'viridis', vlim: list = (None, None),
-                              transpose: bool = False) -> dict:
+def flex_colormesh_plot_vs_xy(
+    xvals: np.ndarray,
+    yvals: np.ndarray,
+    zvals: np.ndarray,
+    ax: plt.Axes = None,
+    normalize: bool = False,
+    log: bool = False,
+    cmap: str = "viridis",
+    vlim: list = (None, None),
+    transpose: bool = False,
+) -> dict:
     """
     Add a rectangular block to a color plot using pcolormesh.
 
@@ -60,7 +66,7 @@ def flex_colormesh_plot_vs_xy(xvals: np.ndarray, yvals: np.ndarray,
     xvals = xvals[sorted_x_arguments]
     sorted_y_arguments = yvals.argsort()
     yvals = yvals[sorted_y_arguments]
-    zvals = zvals[:,  sorted_x_arguments]
+    zvals = zvals[:, sorted_x_arguments]
     zvals = zvals[sorted_y_arguments, :]
 
     # convert xvals and yvals to single dimension arrays
@@ -69,15 +75,15 @@ def flex_colormesh_plot_vs_xy(xvals: np.ndarray, yvals: np.ndarray,
 
     # calculate coordinates for corners of color blocks
     # x coordinates
-    xvertices = np.zeros(np.array(xvals.shape)+1)
-    xvertices[1:-1] = (xvals[:-1]+xvals[1:])/2.
-    xvertices[0] = xvals[0] - (xvals[1]-xvals[0])/2
-    xvertices[-1] = xvals[-1] + (xvals[-1]-xvals[-2])/2
+    xvertices = np.zeros(np.array(xvals.shape) + 1)
+    xvertices[1:-1] = (xvals[:-1] + xvals[1:]) / 2.0
+    xvertices[0] = xvals[0] - (xvals[1] - xvals[0]) / 2
+    xvertices[-1] = xvals[-1] + (xvals[-1] - xvals[-2]) / 2
     # y coordinates
-    yvertices = np.zeros(np.array(yvals.shape)+1)
-    yvertices[1:-1] = (yvals[:-1]+yvals[1:])/2.
-    yvertices[0] = yvals[0] - (yvals[1]-yvals[0])/2
-    yvertices[-1] = yvals[-1] + (yvals[-1]-yvals[-2])/2
+    yvertices = np.zeros(np.array(yvals.shape) + 1)
+    yvertices[1:-1] = (yvals[:-1] + yvals[1:]) / 2.0
+    yvertices[0] = yvals[0] - (yvals[1] - yvals[0]) / 2
+    yvertices[-1] = yvals[-1] + (yvals[-1] - yvals[-2]) / 2
 
     xgrid, ygrid = np.meshgrid(xvertices, yvertices)
 
@@ -87,28 +93,39 @@ def flex_colormesh_plot_vs_xy(xvals: np.ndarray, yvals: np.ndarray,
     # logarithmic plot
     if log:
         for xx in range(len(xvals)):
-            zvals[xx] = np.log(zvals[xx])/np.log(10)
+            zvals[xx] = np.log(zvals[xx]) / np.log(10)
 
     # add blocks to plot
     if transpose:
-        colormap = ax.pcolormesh(ygrid.transpose(),
-                                 xgrid.transpose(),
-                                 zvals.transpose(),
-                                 cmap=cmap, vmin=vlim[0], vmax=vlim[1])
+        colormap = ax.pcolormesh(
+            ygrid.transpose(), xgrid.transpose(), zvals.transpose(), cmap=cmap, vmin=vlim[0], vmax=vlim[1]
+        )
     else:
-        colormap = ax.pcolormesh(xgrid, ygrid, zvals, cmap=cmap,
-                                 vmin=vlim[0], vmax=vlim[1])
+        colormap = ax.pcolormesh(xgrid, ygrid, zvals, cmap=cmap, vmin=vlim[0], vmax=vlim[1])
 
-    return {'fig': ax.figure, 'ax': ax, 'cmap': colormap}
+    return {"fig": ax.figure, "ax": ax, "cmap": colormap}
 
 
-def plot_2D_grid(x, y, z,
-                 xlabel: str, xunit: str, ylabel: str, yunit: str, zlabel: str, zunit: str,
-                 ax: plt.Axes, cax: plt.Axes = None, add_cbar: bool = True,
-                 title: str = None,
-                 normalize: bool = False, log: bool = False,
-                 cmap: str = 'viridis', vlim: list = (None, None),
-                 transpose: bool = False) -> dict:
+def plot_2D_grid(
+    x,
+    y,
+    z,
+    xlabel: str,
+    xunit: str,
+    ylabel: str,
+    yunit: str,
+    zlabel: str,
+    zunit: str,
+    ax: plt.Axes,
+    cax: plt.Axes = None,
+    add_cbar: bool = True,
+    title: str = None,
+    normalize: bool = False,
+    log: bool = False,
+    cmap: str = "viridis",
+    vlim: list = (None, None),
+    transpose: bool = False,
+) -> dict:
     """
     Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns" of data of equal length.
 
@@ -162,10 +179,10 @@ def plot_2D_grid(x, y, z,
     # to account for matlab style column ordering of pcolormesh
     zi = np.reshape(zarr, newshape=(len(yi), len(xi)))
 
-    p = flex_colormesh_plot_vs_xy(xi, yi, zi, ax=ax,
-                                  normalize=normalize, log=log, cmap=cmap,
-                                  vlim=vlim, transpose=transpose)
-    cmap = p['cmap']
+    p = flex_colormesh_plot_vs_xy(
+        xi, yi, zi, ax=ax, normalize=normalize, log=log, cmap=cmap, vlim=vlim, transpose=transpose
+    )
+    cmap = p["cmap"]
 
     if title is not None:
         ax.set_title(title)
@@ -176,9 +193,9 @@ def plot_2D_grid(x, y, z,
         # colorbar is added here.
         if cax is None:
             ax_divider = make_axes_locatable(ax)
-            cax = ax_divider.append_axes('right', size='5%', pad='2%')
-        cbar = plt.colorbar(cmap, cax=cax, orientation='vertical')
+            cax = ax_divider.append_axes("right", size="5%", pad="2%")
+        cbar = plt.colorbar(cmap, cax=cax, orientation="vertical")
         set_cbarlabel(cbar, zlabel, zunit)
-        p['cbar'] = cbar
+        p["cbar"] = cbar
 
     return p
