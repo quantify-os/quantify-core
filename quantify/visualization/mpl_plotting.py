@@ -61,7 +61,7 @@ def flex_colormesh_plot_vs_xy(
     yvals = np.array(yvals)
 
     # First, we need to sort the data as otherwise we get odd plotting
-    # artefacts. An example is e.g., plotting a fourier transform
+    # artifacts. An example is e.g., plotting a Fourier transform
     sorted_x_arguments = xvals.argsort()
     xvals = xvals[sorted_x_arguments]
     sorted_y_arguments = yvals.argsort()
