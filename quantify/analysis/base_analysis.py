@@ -1,6 +1,7 @@
 """
 This module should contain different analyses corresponding to discrete experiments
 """
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -8,7 +9,16 @@ from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import load_dataset, get_latest_tuid, _locate_experiment_file, get_datadir
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 
-DPI = 600  # define a constant for data saving
+# this is a pointer to the module object instance itself.
+this = sys.modules[__name__]
+
+# global configurations at the level of the analysis module
+this.settings = {
+    "DPI": 600,  # define resolution of some matplotlib output formats
+    "fig_formats": ("png", "svg"),
+    "presentation_mode": False,
+    "transparent_background": False
+}
 
 
 class BaseAnalysis(ABC):
@@ -17,8 +27,7 @@ class BaseAnalysis(ABC):
     inherit when doing any analysis.
     """
 
-    def __init__(self, label: str = '', tuid: str = None,
-                 close_figs: bool = True):
+    def __init__(self, label: str = "", tuid: str = None, close_figs: bool = True):
         """
         Initializes the variables that are used in the analysis and to which data is stored.
 
@@ -38,6 +47,9 @@ class BaseAnalysis(ABC):
 
         # This will be overwritten
         self.dset = None
+        # To be populated by a subclass
+        self.figs_mpl = dict()
+        self.axs_mpl = dict()
 
         self.fit_res = None
         self.run_analysis()
@@ -73,9 +85,8 @@ class BaseAnalysis(ABC):
 
         self.save_quantities_of_interest()
 
-        self.prepare_figures()
         self.create_figures()
-        # save stuff
+        self.adjust_figures()
         self.save_figures()
 
     def process_data(self):
@@ -85,7 +96,6 @@ class BaseAnalysis(ABC):
         """
         pass
 
-
     def prepare_fitting(self):
         pass
 
@@ -93,56 +103,43 @@ class BaseAnalysis(ABC):
         pass
 
     def save_fit_results(self):
-
         pass
 
-    def analyze_fit_results(self):  # analyzing the results of the fits
+    def analyze_fit_results(self):
         pass
 
     def save_quantities_of_interest(self):
         pass
 
-    def prepare_figures(self):
-        pass #TODO deprecated, to be removed
+    def create_figures(self):
+        pass
+
+    def adjust_figures(self):
+        """
+        Perform global adjustments after creating the figures but
+        before saving them
+        """
+        for fig in self.figs_mpl.values():
+            if this.settings["presentation_mode"]:
+                # Remove the experiment name and tuid from figures
+                fig.suptitle(r"")
+            if this.settings["transparent_background"]:
+                # Set transparent background on figures
+                fig.patch.set_alpha(0)
 
     def save_figures(self):
+        """
+        Saves all the figures in the :code:`figs_mpl` dict
+        """
+        DPI = this.settings["DPI"]
+        formats = this.settings["fig_formats"]
 
-        for figname, fig in self.figs.items():
-            filename = _locate_experiment_file(
-                self.tuid, get_datadir(), '{}'.format(figname))
-            fig.savefig(filename+'.png', bbox_inches='tight', dpi=DPI)
-            fig.savefig(filename+'.svg', bbox_inches='tight')
+        for figname, fig in self.figs_mpl.items():
+            filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
+            for form in formats:
+                fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
             if self.close_figs:
                 plt.close(fig)
-
-    def create_figures(self):
-        # FIXME: in the simpler world, this will be overwritten.
-
-        # Set up figures and axes
-        if not hasattr(self, 'figs'):
-            self.figs = {}
-
-        # if no custom axs_dict is provided, create them based on the keys
-        # in the axs_dict
-
-        # Auto generate the figures and axes.
-        if not hasattr(self, 'axs_dict'):
-            self.axs_dict = {}
-
-            for key, pdict in self.plot_dicts.items():
-                # If no ax_id is specified, a new figure needs to be set up.
-                if 'ax_id' not in pdict.keys():
-                    f, ax = plt.subplots(
-                        figsize=pdict.get('figsize', None))
-                    # transparent background around axes for presenting data
-                    self.figs[key] = f
-                    self.axs_dict[key] = ax
-                    f.patch.set_alpha(0)
-
-        for key, pdict in self.plot_dicts.items():
-            ax_id = pdict.get('ax_id', key)
-            ax = self.axs_dict[ax_id]
-            pdict['plot_fn'](ax=ax, **pdict)
 
 
 class Basic1DAnalysis(BaseAnalysis):
@@ -151,23 +148,27 @@ class Basic1DAnalysis(BaseAnalysis):
     and plots and stores the data in the experiment container.
     """
 
-    def prepare_figures(self):
+    def create_figures(self):
 
-        self.plot_dicts = {}
+        ys = set(self.dset.keys())
+        ys.discard("x0")
+        for yi in ys:
+            f, ax = plt.subplots()
+            fig_id = f"Line plot x0-{yi}"
+            self.figs_mpl[fig_id] = f
+            self.axs_mpl[fig_id] = ax
 
-        # iterate over
-        for i in range(len(self.dset.keys())-1):
-            self.plot_dicts['Line plot x0-y{}'.format(i)] = {
-                'plot_fn': plot_basic1D,
-                'x': self.dset['x0'].values,
-                'xlabel': self.dset['x0'].attrs['long_name'],
-                'xunit': self.dset['x0'].attrs['unit'],
-                'y': self.dset['y{}'.format(i)].values,
-                'ylabel': self.dset['y{}'.format(i)].attrs['long_name'],
-                'yunit': self.dset['y{}'.format(i)].attrs['unit'],
-                'title': 'x0-y{} {}\ntuid: {}'.format(
-                    i, self.dset.attrs['name'], self.dset.attrs['tuid'])
-            }
+            plot_basic1D(
+                ax=ax,
+                x=self.dset["x0"].values,
+                xlabel=self.dset["x0"].attrs["long_name"],
+                xunit=self.dset["x0"].attrs["unit"],
+                y=self.dset[f"{yi}"].values,
+                ylabel=self.dset[f"{yi}"].attrs["long_name"],
+                yunit=self.dset[f"{yi}"].attrs["unit"],
+            )
+
+            f.suptitle(f"x0-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
 
 
 class Basic2DAnalysis(BaseAnalysis):
@@ -175,36 +176,38 @@ class Basic2DAnalysis(BaseAnalysis):
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
     """
+
     def create_figures(self):
+        ys = set(self.dset.keys())
+        ys.discard("x0")
+        ys.discard("x1")
 
-        self.figs = {}
-        # # iterate over
-        for i in range(len(self.dset.keys())-2):
+        for yi in ys:
             f, ax = plt.subplots()
-            f.patch.set_alpha(0)
+            fig_id = f"Heatmap x0x1-{yi}"
 
-            qpl.plot_2D_grid(x=self.dset['x0'], y=self.dset['x1'], z=self.dset['y{}'.format(i)],
-                             xlabel=self.dset['x0'].attrs['long_name'],
-                             xunit=self.dset['x0'].attrs['unit'],
-                             ylabel=self.dset['x1'].attrs['long_name'],
-                             yunit=self.dset['x1'].attrs['unit'],
-                             zlabel=self.dset['y{}'.format(i)].attrs['long_name'],
-                             zunit=self.dset['y{}'.format(i)].attrs['unit'],
-                             title='x0x1-y{} {}\ntuid: {}'.format(
-                                i, self.dset.attrs['name'], self.dset.attrs['tuid']),
-                             ax=ax)
+            self.figs_mpl[fig_id] = f
+            self.axs_mpl[fig_id] = ax
 
-            self.figs['Heatmap x0x1-y{}'.format(i)] = f
+            qpl.plot_2D_grid(
+                x=self.dset["x0"],
+                y=self.dset["x1"],
+                z=self.dset[f"{yi}"],
+                xlabel=self.dset["x0"].attrs["long_name"],
+                xunit=self.dset["x0"].attrs["unit"],
+                ylabel=self.dset["x1"].attrs["long_name"],
+                yunit=self.dset["x1"].attrs["unit"],
+                zlabel=self.dset[f"{yi}"].attrs["long_name"],
+                zunit=self.dset[f"{yi}"].attrs["unit"],
+                ax=ax,
+            )
 
-            # TODO: add linecuts for the grid like measurement.
+            f.suptitle(f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
 
 
-def plot_basic1D(x, y, xlabel, xunit, ylabel, yunit, ax, title=None, plot_kw=None, **kw):
-    if plot_kw is None:
-        plot_kw = {}  # to prevent introducing memory bug
-
-    if ax is None:
-        f, ax = plt.subplots()
+def plot_basic1D(
+    x, y, xlabel: str, xunit: str, ylabel: str, yunit: str, ax, title: str = None, plot_kw: dict = {}, **kw
+):
     ax.plot(x, y, **plot_kw)
     if title is not None:
         ax.set_title(title)
@@ -212,20 +215,20 @@ def plot_basic1D(x, y, xlabel, xunit, ylabel, yunit, ax, title=None, plot_kw=Non
     set_ylabel(ax, ylabel, yunit)
 
 
-def plot_fit(ax, fit_res, plot_init=True, plot_numpoints=1000, **kw):
+def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **kw):
     model = fit_res.model
 
     if len(model.independent_vars) == 1:
         independent_var = model.independent_vars[0]
     else:
-        raise ValueError('Fit can only be plotted if the model function'
-                         ' has one independent variable.')
+        raise ValueError("Fit can only be plotted if the model function" " has one independent variable.")
 
     x_arr = fit_res.userkws[independent_var]
     x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
     y = model.eval(fit_res.params, **{independent_var: x})
-    ax.plot(x, y, label='Fit', c='C3')
+    ax.plot(x, y, label="Fit", c="C3")
 
-    x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-    y = model.eval(fit_res.init_params, **{independent_var: x})
-    ax.plot(x, y, ls='--', c='grey', label='Guess')
+    if plot_init:
+        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+        y = model.eval(fit_res.init_params, **{independent_var: x})
+        ax.plot(x, y, ls="--", c="grey", label="Guess")

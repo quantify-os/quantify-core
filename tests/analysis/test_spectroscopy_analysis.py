@@ -10,4 +10,4 @@ def test_load_dataset():
     a = sa.ResonatorSpectroscopyAnalysis(tuid=tuid)
 
     # test that the right figures get created.
-    assert list(a.figs.keys()) == ['S21']
+    assert set(a.figs_mpl.keys()) == {'S21'}
