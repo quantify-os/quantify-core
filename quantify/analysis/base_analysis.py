@@ -6,7 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from quantify.visualization import mpl_plotting as qpl
-from quantify.data.handling import load_dataset, get_latest_tuid, _locate_experiment_file, get_datadir
+from quantify.data.handling import (
+    load_dataset,
+    get_latest_tuid,
+    _locate_experiment_file,
+    get_datadir,
+)
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 
 # this is a pointer to the module object instance itself.
@@ -17,7 +22,7 @@ this.settings = {
     "DPI": 600,  # define resolution of some matplotlib output formats
     "fig_formats": ("png", "svg"),
     "presentation_mode": False,
-    "transparent_background": False
+    "transparent_background": False,
 }
 
 
@@ -168,7 +173,9 @@ class Basic1DAnalysis(BaseAnalysis):
                 yunit=self.dset[f"{yi}"].attrs["unit"],
             )
 
-            f.suptitle(f"x0-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
+            f.suptitle(
+                f"x0-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
+            )
 
 
 class Basic2DAnalysis(BaseAnalysis):
@@ -202,11 +209,22 @@ class Basic2DAnalysis(BaseAnalysis):
                 ax=ax,
             )
 
-            f.suptitle(f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
+            f.suptitle(
+                f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
+            )
 
 
 def plot_basic1D(
-    x, y, xlabel: str, xunit: str, ylabel: str, yunit: str, ax, title: str = None, plot_kw: dict = {}, **kw
+    x,
+    y,
+    xlabel: str,
+    xunit: str,
+    ylabel: str,
+    yunit: str,
+    ax,
+    title: str = None,
+    plot_kw: dict = {},
+    **kw,
 ):
     ax.plot(x, y, **plot_kw)
     if title is not None:
@@ -221,7 +239,10 @@ def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **
     if len(model.independent_vars) == 1:
         independent_var = model.independent_vars[0]
     else:
-        raise ValueError("Fit can only be plotted if the model function" " has one independent variable.")
+        raise ValueError(
+            "Fit can only be plotted if the model function"
+            " has one independent variable."
+        )
 
     x_arr = fit_res.userkws[independent_var]
     x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)

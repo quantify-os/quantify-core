@@ -9,7 +9,15 @@ import lmfit
 
 
 def hanger_func_complex_SI(
-    f: float, fr: float, Ql: float, Qe: float, A: float, theta: float, phi_v: float, phi_0: float, alpha: float = 1
+    f: float,
+    fr: float,
+    Ql: float,
+    Qe: float,
+    A: float,
+    theta: float,
+    phi_v: float,
+    phi_0: float,
+    alpha: float = 1,
 ) -> float:
     """
     This is the complex function for a hanger (lamda/4 resonator).
@@ -64,7 +72,9 @@ def hanger_func_complex_SI(
     """
     slope_corr = 1 + alpha * (f - fr) / fr
 
-    hanger_contribution = 1 - Ql / Qe * np.exp(1j * theta) / (1 + 2.0j * Ql * (f - fr) / fr)
+    hanger_contribution = 1 - Ql / Qe * np.exp(1j * theta) / (
+        1 + 2.0j * Ql * (f - fr) / fr
+    )
 
     propagation_delay_corr = np.exp(1j * (phi_v * f + phi_0))
     S21 = A * slope_corr * hanger_contribution * propagation_delay_corr
@@ -100,7 +110,9 @@ class ResonatorModel(lmfit.model.Model):
         Q_min = 0.1 * (fr_guess / (fmax - fmin))
         delta_f = np.diff(f)  # assume f is sorted
         min_delta_f = delta_f[delta_f > 0].min()
-        Q_max = fr_guess / min_delta_f  # assume data actually samples the resonance reasonably
+        Q_max = (
+            fr_guess / min_delta_f
+        )  # assume data actually samples the resonance reasonably
         Q_guess = np.sqrt(Q_min * Q_max)  # geometric mean, why not?
 
         self.set_param_hint("fr", value=fr_guess, min=fmin, max=fmax)

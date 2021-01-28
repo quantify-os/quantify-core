@@ -66,14 +66,16 @@ def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
     # to an assumption in the interpolation that the scale of the experiment
     # is chosen sensibly. N.B. even if interp_method == "nearest" the linear
     # interpolation is used to determine the amount of grid points.
-    ip = interpolate.LinearNDInterpolator(scale(points, xy_mean=xy_mean, xy_scale=xy_scale), z)
+    ip = interpolate.LinearNDInterpolator(
+        scale(points, xy_mean=xy_mean, xy_scale=xy_scale), z
+    )
 
     if n is None:
         # Calculate how many grid points are needed.
         # factor from A=√3/4 * a² (equilateral triangle)
         # N.B. a factor 4 was added as there were to few points for uniform grid otherwise.
         all_areas = areas(ip)
-        area_min = all_areas[all_areas > 0.].min()
+        area_min = all_areas[all_areas > 0.0].min()
         n = int(0.658 / np.sqrt(area_min)) * 4
         n = max(n, 10)
         if n > 500:
@@ -85,7 +87,9 @@ def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
     if interp_method == "linear":
         z_grid = ip(x_lin[:, None], y_lin[None, :]).squeeze()
     elif interp_method == "nearest":
-        ip = interpolate.NearestNDInterpolator(scale(points, xy_mean=xy_mean, xy_scale=xy_scale), z)
+        ip = interpolate.NearestNDInterpolator(
+            scale(points, xy_mean=xy_mean, xy_scale=xy_scale), z
+        )
         z_grid = ip(x_lin[:, None], y_lin[None, :]).squeeze()
     elif interp_method == "deg":
         # Circular interpolation in deg units
@@ -93,10 +97,14 @@ def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
         newdata_cos = np.cos(phases)
         newdata_sin = np.sin(phases)
 
-        ip_cos = interpolate.LinearNDInterpolator(scale(points, xy_mean=xy_mean, xy_scale=xy_scale), newdata_cos)
+        ip_cos = interpolate.LinearNDInterpolator(
+            scale(points, xy_mean=xy_mean, xy_scale=xy_scale), newdata_cos
+        )
         newdata_cos = ip_cos(x_lin[:, None], y_lin[None, :]).squeeze()
 
-        ip_sin = interpolate.LinearNDInterpolator(scale(points, xy_mean=xy_mean, xy_scale=xy_scale), newdata_sin)
+        ip_sin = interpolate.LinearNDInterpolator(
+            scale(points, xy_mean=xy_mean, xy_scale=xy_scale), newdata_sin
+        )
         newdata_sin = ip_sin(x_lin[:, None], y_lin[None, :]).squeeze()
 
         z_grid = (np.rad2deg(np.arctan2(newdata_sin, newdata_cos)) % 360).squeeze()

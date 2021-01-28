@@ -11,9 +11,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         # y1 = phase in deg, this unit should always be correct
         assert self.dset["y1"].attrs["unit"] == "deg"
 
-        S21 = self.dset["y0"] * np.cos(np.deg2rad(self.dset["y1"])) + 1j * self.dset["y0"] * np.sin(
-            np.deg2rad(self.dset["y1"])
-        )
+        S21 = self.dset["y0"] * np.cos(np.deg2rad(self.dset["y1"])) + 1j * self.dset[
+            "y0"
+        ] * np.sin(np.deg2rad(self.dset["y1"]))
         self.dset["S21"] = S21
         self.dset["S21"].attrs["name"] = "S21"
         self.dset["S21"].attrs["unit"] = self.dset["y0"].attrs["unit"]
@@ -51,4 +51,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             plot_kw={"marker": ".", "label": "data"},
         )
 
-        ba.plot_fit(ax=ax, fit_res=self.fit_res["hanger_func_complex_SI"], plot_init=True)
+        ba.plot_fit(
+            ax=ax, fit_res=self.fit_res["hanger_func_complex_SI"], plot_init=True
+        )

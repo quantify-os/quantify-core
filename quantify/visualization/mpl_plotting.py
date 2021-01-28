@@ -98,10 +98,17 @@ def flex_colormesh_plot_vs_xy(
     # add blocks to plot
     if transpose:
         colormap = ax.pcolormesh(
-            ygrid.transpose(), xgrid.transpose(), zvals.transpose(), cmap=cmap, vmin=vlim[0], vmax=vlim[1]
+            ygrid.transpose(),
+            xgrid.transpose(),
+            zvals.transpose(),
+            cmap=cmap,
+            vmin=vlim[0],
+            vmax=vlim[1],
         )
     else:
-        colormap = ax.pcolormesh(xgrid, ygrid, zvals, cmap=cmap, vmin=vlim[0], vmax=vlim[1])
+        colormap = ax.pcolormesh(
+            xgrid, ygrid, zvals, cmap=cmap, vmin=vlim[0], vmax=vlim[1]
+        )
 
     return {"fig": ax.figure, "ax": ax, "cmap": colormap}
 
@@ -180,7 +187,15 @@ def plot_2D_grid(
     zi = np.reshape(zarr, newshape=(len(yi), len(xi)))
 
     p = flex_colormesh_plot_vs_xy(
-        xi, yi, zi, ax=ax, normalize=normalize, log=log, cmap=cmap, vlim=vlim, transpose=transpose
+        xi,
+        yi,
+        zi,
+        ax=ax,
+        normalize=normalize,
+        log=log,
+        cmap=cmap,
+        vlim=vlim,
+        transpose=transpose,
     )
     cmap = p["cmap"]
 

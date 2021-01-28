@@ -14,7 +14,12 @@ def clip(x, vmin=0.0, vmax=1.0):
 
 
 def set_hlsa(
-    color, h: float = None, l: float = None, s: float = None, a: float = None, to_hex: bool = False,  # noqa: E741
+    color,
+    h: float = None,
+    l: float = None,
+    s: float = None,
+    a: float = None,
+    to_hex: bool = False,  # noqa: E741
 ):
     """
     Accepts a `matplotlib` color specification and returns an RGB color
@@ -66,9 +71,13 @@ def set_hlsa(
     return col
 
 
-def make_fadded_colors(num=5, color="#1f77b4", min_alpha=0.3, sat_power=2, to_hex=False):
+def make_fadded_colors(
+    num=5, color="#1f77b4", min_alpha=0.3, sat_power=2, to_hex=False
+):
     hls = colorsys.rgb_to_hls(*mplc.to_rgb(mplc.to_rgb(color)))
     sat_vals = (np.linspace(1.0, 0.0, num) ** sat_power) * hls[2]
     alpha_vals = np.linspace(1.0, min_alpha, num)
-    colors = tuple(set_hlsa(color, s=s, a=a, to_hex=to_hex) for s, a in zip(sat_vals, alpha_vals))
+    colors = tuple(
+        set_hlsa(color, s=s, a=a, to_hex=to_hex) for s, a in zip(sat_vals, alpha_vals)
+    )
     return colors

@@ -31,7 +31,9 @@ def set_xlabel(axis, label, unit=None, **kw):
     if unit is not None and unit != "":
         xticks = axis.get_xticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: f"{x * scale_factor:.4g}")
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: f"{x * scale_factor:.4g}"
+        )
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" ({unit})", **kw)
@@ -58,7 +60,9 @@ def set_ylabel(axis, label, unit=None, **kw):
     if unit is not None and unit != "":
         yticks = axis.get_yticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(yticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: f"{x * scale_factor:.6g}")
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: f"{x * scale_factor:.6g}"
+        )
 
         axis.yaxis.set_major_formatter(formatter)
 
@@ -86,7 +90,9 @@ def set_cbarlabel(cbar, label, unit=None, **kw):
     if unit is not None and unit != "":
         zticks = cbar.get_ticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(zticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(lambda x, pos: f"{x * scale_factor:.6g}")
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: f"{x * scale_factor:.6g}"
+        )
         cbar.ax.yaxis.set_major_formatter(formatter)
         cbar.set_label(label + f" ({unit})")
 
@@ -99,7 +105,10 @@ SI_PREFIXES = dict(zip(range(-24, 25, 3), "yzafpnμm kMGTPEZY"))
 SI_PREFIXES[0] = ""
 
 # N.B. not all of these are SI units, however, all of these support SI prefixes
-SI_UNITS = "m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar," "Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")  # noqa: W605
+SI_UNITS = (
+    "m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
+    "Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
+)  # noqa: W605
 
 
 def SI_prefix_and_scale_factor(val, unit=None):

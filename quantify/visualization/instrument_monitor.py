@@ -40,7 +40,9 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs):
+    def __init__(
+        self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs
+    ):
         """
         Initializes the pyqtgraph window
 
@@ -97,7 +99,9 @@ class InstrumentMonitor(Instrument):
         # starting the process for the pyqtgraph plotting
         # You do not want a new process to be created every time you start a
         # run, so this only starts once and stores the process in the class
-        self.__class__.proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
+        self.__class__.proc = pgmp.QtProcess(
+            processRequests=False
+        )  # pyqtgraph multiprocessing
         self.__class__.rpg = self.proc._import("pyqtgraph")
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
         self.__class__.rwidget = self.proc._import(qc_widget)
@@ -121,7 +125,7 @@ class InstrumentMonitor(Instrument):
         self.widget.resize(*window_size)
 
     def setGeometry(self, x: int, y: int, w: int, h: int):
-        """ Set the geometry of the main widget window
+        """Set the geometry of the main widget window
 
         Parameters
         ----------

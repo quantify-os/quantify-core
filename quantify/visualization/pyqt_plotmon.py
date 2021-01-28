@@ -103,7 +103,9 @@ class PlotMonitor_pyqt(Instrument):
         # Jupyter notebook support
 
         self.main_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "main_QtPlot")
-        self.secondary_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "secondary_QtPlot")
+        self.secondary_QtPlot = QtPlotObjForJupyter(
+            self.remote_plotmon, "secondary_QtPlot"
+        )
 
     # Wrappers for the remote methods
     # We just put "commands" on a queue that will be consumed by the
@@ -213,14 +215,14 @@ class PlotMonitor_pyqt(Instrument):
         Subclasses should override this if they have other specific
         resources to close.
         """
-        if hasattr(self, 'connection') and hasattr(self.connection, 'close'):
+        if hasattr(self, "connection") and hasattr(self.connection, "close"):
             self.connection.close()
 
         # Essential!!!
         # Close the process
         self.proc.join()
 
-        strip_attrs(self, whitelist=['_name'])
+        strip_attrs(self, whitelist=["_name"])
         self.remove_instance(self)
 
     def setGeometry_main(self, x: int, y: int, w: int, h: int):
