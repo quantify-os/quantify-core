@@ -82,7 +82,7 @@ black:
   allow_failure: false
   script:
     - pip install -r requirements_dev.txt
-    - black --check --fast
+    - black --check --fast .
 
 run:
   stage: Test
