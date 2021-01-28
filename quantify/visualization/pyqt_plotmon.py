@@ -103,9 +103,7 @@ class PlotMonitor_pyqt(Instrument):
         # Jupyter notebook support
 
         self.main_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "main_QtPlot")
-        self.secondary_QtPlot = QtPlotObjForJupyter(
-            self.remote_plotmon, "secondary_QtPlot"
-        )
+        self.secondary_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "secondary_QtPlot")
 
     # Wrappers for the remote methods
     # We just put "commands" on a queue that will be consumed by the
