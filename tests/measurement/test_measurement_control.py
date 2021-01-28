@@ -16,8 +16,10 @@ from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 from tests.helpers import get_test_data_dir
 import tempfile
+
 try:
     from adaptive import SKOptLearner
+
     with_skoptlearner = True
 except ImportError:
     with_skoptlearner = False
@@ -753,7 +755,9 @@ class TestMeasurementControl:
         dset = self.MC.run_adaptive("adaptive sample", af_pars)
         # todo pycqed has no verification step here, what should we do?
 
-    @pytest.mark.skipif(not with_skoptlearner, reason="scikit-optimize is not installed")
+    @pytest.mark.skipif(
+        not with_skoptlearner, reason="scikit-optimize is not installed"
+    )
     def test_adaptive_skoptlearner(self):
         self.dummy_parabola.noise(0)
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])

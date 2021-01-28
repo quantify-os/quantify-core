@@ -92,7 +92,10 @@ class TestPlotMonitor_pyqt:
             "20201124-184736-341-3628d4",
         ]
 
-        time_tags = [":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2)) for tuid in tuids]
+        time_tags = [
+            ":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2))
+            for tuid in tuids
+        ]
 
         for tuid in tuids:
             self.plotmon.tuids_append(tuid)
@@ -159,7 +162,17 @@ class TestPlotMonitor_pyqt:
         xywh = (300, 300, 600, 800)
 
         self.plotmon.setGeometry_main(*xywh)
-        assert xywh[-2:] == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")[-2:]
+        assert (
+            xywh[-2:]
+            == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")[
+                -2:
+            ]
+        )
 
         self.plotmon.setGeometry_secondary(*xywh)
-        assert xywh[-2:] == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="secondary_QtPlot")[-2:]
+        assert (
+            xywh[-2:]
+            == self.plotmon.remote_plotmon._get_QtPlot_geometry(
+                which="secondary_QtPlot"
+            )[-2:]
+        )

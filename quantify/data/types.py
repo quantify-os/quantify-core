@@ -24,7 +24,7 @@ class TUID(str):
         :class:`~python:datetime.datetime`
             object corresponding to the TUID
         """
-        return datetime.datetime.strptime(self[:18], '%Y%m%d-%H%M%S-%f')
+        return datetime.datetime.strptime(self[:18], "%Y%m%d-%H%M%S-%f")
 
     def uuid(self):
         """

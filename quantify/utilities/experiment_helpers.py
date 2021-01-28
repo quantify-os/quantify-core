@@ -9,7 +9,9 @@ from quantify.data.handling import load_snapshot
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
-def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: str = None):
+def load_settings_onto_instrument(
+    instrument: Instrument, tuid: TUID, datadir: str = None
+):
     """
     Loads settings from a previous experiment onto a current :class:`~qcodes.instrument.base.Instrument`. This
     information is loaded from the 'snapshot.json' file in the provided experiment directory.
@@ -27,9 +29,13 @@ def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: s
     ValueError
         if the provided instrument has no match in the loaded snapshot.
     """
-    instruments = load_snapshot(tuid, datadir)['instruments']
+    instruments = load_snapshot(tuid, datadir)["instruments"]
     if instrument.name not in instruments:
-        raise ValueError('Instrument "{}" not found in snapshot {}:{}'.format(instrument.name, datadir, tuid))
+        raise ValueError(
+            'Instrument "{}" not found in snapshot {}:{}'.format(
+                instrument.name, datadir, tuid
+            )
+        )
     for parname, par in instruments[instrument.name]["parameters"].items():
         val = par["value"]
         if val:  # qcodes doesn't like setting to none

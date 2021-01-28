@@ -43,7 +43,13 @@ class TestQcSnapshotWidget:
             "test_snapshot": {
                 "name": "test_snapshot",
                 "parameters": {
-                    "snapshot": {"ts": "latest", "label": "", "unit": "", "name": "string_representation", "value": 1,}
+                    "snapshot": {
+                        "ts": "latest",
+                        "label": "",
+                        "unit": "",
+                        "name": "string_representation",
+                        "value": 1,
+                    }
                 },
             }
         }

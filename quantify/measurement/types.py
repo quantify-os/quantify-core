@@ -16,11 +16,11 @@ class Settable:
     .. jsonschema:: schemas/Settable.json#/methods
     """
 
-    schema = load_json_schema(__file__, 'Settable.json')
+    schema = load_json_schema(__file__, "Settable.json")
 
     def __new__(cls, obj):
-        jsonschema.validate(vars(obj), Settable.schema['attrs'])
-        jsonschema.validate(dir(obj), Settable.schema['methods'])
+        jsonschema.validate(vars(obj), Settable.schema["attrs"])
+        jsonschema.validate(dir(obj), Settable.schema["methods"])
         return obj
 
 
@@ -33,13 +33,13 @@ class Gettable:
     .. jsonschema:: schemas/Gettable.json#/methods
     """
 
-    schema = load_json_schema(__file__, 'Gettable.json')
+    schema = load_json_schema(__file__, "Gettable.json")
 
     def __new__(cls, obj):
-        jsonschema.validate(vars(obj), Gettable.schema['attrs'])
-        jsonschema.validate(dir(obj), Gettable.schema['methods'])
+        jsonschema.validate(vars(obj), Gettable.schema["attrs"])
+        jsonschema.validate(dir(obj), Gettable.schema["methods"])
         return obj
 
 
 def is_batched(obj):
-    return getattr(obj, 'batched', False)
+    return getattr(obj, "batched", False)

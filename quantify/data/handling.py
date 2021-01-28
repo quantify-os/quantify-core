@@ -487,7 +487,9 @@ def _vars_match(dsets: Iterable, var_type="x") -> bool:
     def get_xi_attrs(dset):
         # Hash is used in order to ensure everything matches:
         # name, long_name, unit, number of xi
-        return tuple(dset[xi].attrs for xi in sorted(get_keys_containing(dset, var_type)))
+        return tuple(
+            dset[xi].attrs for xi in sorted(get_keys_containing(dset, var_type))
+        )
 
     it = map(get_xi_attrs, dsets)
     # We can compare to the first one always
