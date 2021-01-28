@@ -76,17 +76,13 @@ test-latest:
   image: "python:latest"
   allow_failure: true
 
-flake8:
+black:
   image: python:3.8
   stage: Static Analysis
-  allow_failure: true
+  allow_failure: false
   script:
     - pip install -r requirements_dev.txt
-    - flake8 quantify --format=html --htmldir=flake-report
-  artifacts:
-    paths:
-      - flake-report
-    when: on_failure
+    - black --check --fast
 
 run:
   stage: Test
