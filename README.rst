@@ -18,6 +18,8 @@ Quantify-core
 .. image:: https://img.shields.io/badge/License-BSD%204--Clause-blue.svg
     :target: https://gitlab.com/quantify-os/quantify-core/-/blob/master/LICENSE
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
 
 Quantify is a python based data acquisition platform focused on Quantum Computing and solid-state physics experiments.
 It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spiritual successor of `PycQED <https://github.com/DiCarloLab-Delft/PycQED_py3>`_.

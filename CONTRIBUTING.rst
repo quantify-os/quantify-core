@@ -57,7 +57,7 @@ Before you submit a merge request, check that it meets these guidelines:
 #. The CI pipelines should pass for all merge requests.
 
     - Check the status of the pipelines, the status is also reported in the merge request.
-    - flake8 linter should pass.
+    - `black <https://github.com/psf/black>`_ linter should pass (we use default settings).
     - No degradation in code coverage.
     - Documentation should build.
 #. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
@@ -102,15 +102,19 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
+#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_. before running `git commit`::
+
+    $ pre-commit install
+
 #. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-#. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
+#. When you're done making changes, auto-format the repository with `black` and ensure test coverage::
 
-    $ flake8 quantify tests
+    $ black . # no need to run if you installed pre-commit
     $ pytest --cov
 
 
