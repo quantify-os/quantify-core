@@ -14,6 +14,8 @@ Merged branches and closed issues
 
 * Add setGeometry method to instrument monitor and plotmon (!88)
 * Enforce a datadir choice to avoid potential data loss (!86)
+* Migrated code style to black (!93)
+* Fixed support for python3.9 (!94)
 
 0.3.0 (2020-12-17)
 ------------------

@@ -18,8 +18,8 @@ with open("requirements_dev.txt") as test_reqs:
     test_requirements = test_reqs.read().splitlines()
 
 requirements = [
+    "numpy==1.19.3",  # Version pinned because of a bug in 1.19.4 on windows https://github.com/numpy/numpy/issues/17726
     "qcodes",
-    "numpy==1.19.2",  # Version pinned because of a bug in 1.19.4 on windows https://github.com/numpy/numpy/issues/17726
     "scipy>=1.5.0,!=1.6.0",
     "xarray",
     "xxhash",
