@@ -158,7 +158,6 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
         The documentation will then be hosted on `localhost:8000`
 
-
 #. Commit your changes and push your branch to GitLab::
 
     $ git add .
@@ -167,3 +166,4 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
 #. Submit a merge request through the GitLab website.
 
+#. Add short entry in the `CHANGELOG.rst` under `Unreleased`, commit and push.
