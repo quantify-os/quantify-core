@@ -1,7 +1,7 @@
 import numpy as np
 from quantify.utilities.experiment_helpers import create_plotmon_from_historical
 from quantify.data.handling import set_datadir
-from tests.helpers import get_test_data_dir
+from quantify.utilities._tests_helpers import get_test_data_dir
 
 
 test_datadir = get_test_data_dir()
