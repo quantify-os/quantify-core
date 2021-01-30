@@ -4,7 +4,7 @@ This module should contain different analyses corresponding to discrete experime
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from abc import ABC, abstractmethod
+from abc import ABC
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
     load_dataset,

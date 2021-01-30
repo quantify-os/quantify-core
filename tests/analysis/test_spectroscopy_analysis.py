@@ -1,6 +1,6 @@
 import quantify.data.handling as dh
 from quantify.analysis import spectroscopy_analysis as sa
-from tests.helpers import get_test_data_dir
+from quantify.utilities._tests_helpers import get_test_data_dir
 
 
 def test_load_dataset():
