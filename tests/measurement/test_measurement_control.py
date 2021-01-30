@@ -14,7 +14,7 @@ from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
-from tests.helpers import get_test_data_dir
+from quantify.utilities._tests_helpers import get_test_data_dir
 import tempfile
 
 try:

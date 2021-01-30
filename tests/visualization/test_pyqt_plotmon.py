@@ -2,9 +2,8 @@ import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
 
 import pytest
-from tests.helpers import get_test_data_dir
+from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.data.types import TUID
-from quantify.data.handling import set_datadir
 import quantify.data.handling as dh
 
 test_datadir = get_test_data_dir()
@@ -14,7 +13,7 @@ class TestPlotMonitor_pyqt:
     @classmethod
     def setup_class(cls):
         # ensures the default datadir is used which is excluded from git
-        set_datadir(test_datadir)
+        dh.set_datadir(test_datadir)
         # directory needs to be set before creating the plotting monitor
         # this avoids having to pass around the datadir between processes
         cls.plotmon = PlotMonitor_pyqt(name="plotmon")

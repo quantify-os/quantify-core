@@ -8,7 +8,7 @@ import quantify.data.handling as dh
 from quantify.measurement.control import MeasurementControl
 from datetime import datetime
 from qcodes import ManualParameter
-from tests.helpers import get_test_data_dir
+from quantify.utilities._tests_helpers import get_test_data_dir
 
 
 test_datadir = get_test_data_dir()
