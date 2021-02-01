@@ -67,3 +67,15 @@ def test_flow_skip_step():
         tuid="20200430-170837-001-315f36",
         flow_skip_steps=("run_fitting",),  # skip undesired step
     )
+
+
+def test_flow_xlim():
+    pass
+
+
+def test_flow_ylim():
+    pass
+
+
+def test_flow_clim():
+    pass
