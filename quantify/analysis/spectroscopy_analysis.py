@@ -28,7 +28,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         guess = mod.guess(S21, f=f)
         fit_res = mod.fit(S21, params=guess, f=f)
 
-        self.fit_res = {"hanger_func_complex_SI": fit_res}
+        self.fit_res.update({"hanger_func_complex_SI": fit_res})
 
     def create_figures(self):
 

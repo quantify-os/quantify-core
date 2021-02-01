@@ -4,7 +4,9 @@ This module should contain different analyses corresponding to discrete experime
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.collections import QuadMesh
 from abc import ABC
+from typing import Callable
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
     load_dataset,
@@ -32,7 +34,14 @@ class BaseAnalysis(ABC):
     inherit when doing any analysis.
     """
 
-    def __init__(self, label: str = "", tuid: str = None, close_figs: bool = True):
+    def __init__(
+        self,
+        label: str = "",
+        tuid: str = None,
+        flow: tuple = "auto",
+        flow_skip_steps: tuple = tuple(),
+        flow_override_step: tuple = tuple(),
+    ):
         """
         Initializes the variables that are used in the analysis and to which data is stored.
 
@@ -42,21 +51,35 @@ class BaseAnalysis(ABC):
             Will look for a dataset that contains "label" in the name.
         tuid: str
             If specified, will look for the dataset with the matching tuid.
-        close_figs: bool
-            If True, closes matplotlib figures after saving
         """
 
         self.label = label
         self.tuid = tuid
-        self.close_figs = close_figs
+
+        if flow == "auto":
+            flow = (
+                "extract_data",  # extract data specified in params dict
+                "process_data",  # binning, filtering etc
+                "prepare_fitting",  # set up fit_dicts
+                "run_fitting",  # fitting to models
+                "save_fit_results",
+                "analyze_fit_results",  # analyzing the results of the fits
+                "save_quantities_of_interest",
+                "create_figures",
+                "adjust_figures",
+                "save_figures",
+            )
+        self.flow = flow
+        self.flow_skip_steps = flow_skip_steps
+        self.flow_override_step = flow_override_step
 
         # This will be overwritten
         self.dset = None
         # To be populated by a subclass
         self.figs_mpl = dict()
         self.axs_mpl = dict()
+        self.fit_res = dict()
 
-        self.fit_res = None
         self.run_analysis()
 
     def extract_data(self):
@@ -78,21 +101,36 @@ class BaseAnalysis(ABC):
         """
         This function is at the core of all analysis and defines the flow.
 
-        This function is typically called after the __init__.
+        This function is typically called at the end of __init__.
         """
-        self.extract_data()  # extract data specified in params dict
-        self.process_data()  # binning, filtering etc
 
-        self.prepare_fitting()  # set up fit_dicts
-        self.run_fitting()  # fitting to models
-        self.save_fit_results()
-        self.analyze_fit_results()  # analyzing the results of the fits
+        for step in self.flow:
+            if type(step) is tuple and len(step) == 2:
+                method_name = step[0]
+                method_kwargs = step[1]
+            elif type(step) is str:
+                method_name = step
+                method_kwargs = dict({})
+            else:
+                raise ValueError(
+                    f"Analysis flow step `{step}` is not a len-2 `tuple` nor a `str`."
+                )
 
-        self.save_quantities_of_interest()
+            if self.flow_override_step and method_name == self.flow_override_step[0]:
+                method_kwargs = self.flow_override_step[1]
 
-        self.create_figures()
-        self.adjust_figures()
-        self.save_figures()
+            if method_name not in self.flow_skip_steps:
+                # method_name must be a method of the class/subclass instance
+                method = getattr(self, method_name)
+
+                # execute step and pass any (optional) arguments to it
+                try:
+                    method(**method_kwargs)
+                except Exception as e:
+                    raise RuntimeError(
+                        "An exception occurred while executing "
+                        f"`{method_name}(**{method_kwargs})`."  # point to the culprit
+                    ) from e  # and raise the original exception
 
     def process_data(self):
         """
@@ -119,7 +157,7 @@ class BaseAnalysis(ABC):
     def create_figures(self):
         pass
 
-    def adjust_figures(self):
+    def adjust_figures(self, user_func: Callable = lambda figs, axs, **kwargs: None):
         """
         Perform global adjustments after creating the figures but
         before saving them
@@ -132,9 +170,19 @@ class BaseAnalysis(ABC):
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
-    def save_figures(self):
+        # Execute a user-defined function that adjusts aspect of the figures
+        # Main use-case: change plotting ranges
+        user_func(figs=self.figs_mpl, axs=self.axs_mpl)
+
+    def save_figures(self, close_figs: bool = True):
         """
         Saves all the figures in the :code:`figs_mpl` dict
+
+        Parameters
+        ----------
+
+        close_figs
+            If True, closes `matplotlib` figures after saving
         """
         DPI = this.settings["DPI"]
         formats = this.settings["fig_formats"]
@@ -143,7 +191,7 @@ class BaseAnalysis(ABC):
             filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
             for form in formats:
                 fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
-            if self.close_figs:
+            if close_figs:
                 plt.close(fig)
 
 
@@ -253,3 +301,37 @@ def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **
         x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
         y = model.eval(fit_res.init_params, **{independent_var: x})
         ax.plot(x, y, ls="--", c="grey", label="Guess")
+
+
+def mk_adjust_xlim(min_val: float, max_val: float):
+
+    def adjust_xlim(figs: dict, axs: dict):
+        for ax_id, ax in axs.items():
+            ax.set_xlim(min_val, max_val)
+
+    return adjust_xlim
+
+
+def mk_adjust_ylim(min_val: float, max_val: float):
+
+    def adjust_ylim(figs: dict, axs: dict):
+        for ax_id, ax in axs.items():
+            ax.set_ylim(min_val, max_val)
+
+    return adjust_ylim
+
+
+def mk_adjust_clim(min_val: float, max_val: float):
+
+    def adjust_clim(figs: dict, axs: dict):
+        for ax_id, ax in axs.items():
+            for im in ax.get_images():
+                # For plots created with `imshow`
+                im.set_clim(min_val, max_val)
+
+            for collect in ax.collections:
+                # For plots created with `pcolormesh`
+                if isinstance(collect, QuadMesh):
+                    collect.set_clim(min_val, max_val)
+
+    return adjust_clim
