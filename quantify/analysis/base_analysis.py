@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
 from abc import ABC
+from collections import OrderedDict
 from typing import Callable
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
@@ -76,9 +77,9 @@ class BaseAnalysis(ABC):
         # This will be overwritten
         self.dset = None
         # To be populated by a subclass
-        self.figs_mpl = dict()
-        self.axs_mpl = dict()
-        self.fit_res = dict()
+        self.figs_mpl = OrderedDict()
+        self.axs_mpl = OrderedDict()
+        self.fit_res = OrderedDict()
 
         self.run_analysis()
 
@@ -110,7 +111,7 @@ class BaseAnalysis(ABC):
                 method_kwargs = step[1]
             elif type(step) is str:
                 method_name = step
-                method_kwargs = dict({})
+                method_kwargs = OrderedDict({})
             else:
                 raise ValueError(
                     f"Analysis flow step `{step}` is not a len-2 `tuple` nor a `str`."
@@ -157,12 +158,15 @@ class BaseAnalysis(ABC):
     def create_figures(self):
         pass
 
-    def adjust_figures(self, user_func: Callable = lambda figs, axs, **kwargs: None):
+    def adjust_figures(self, user_func: Callable = lambda analysis_obj: None):
         """
         Perform global adjustments after creating the figures but
         before saving them
         """
         for fig in self.figs_mpl.values():
+            # Force drawing of figures to allow modifications
+            # fig.canvas.draw()
+
             if this.settings["presentation_mode"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
@@ -172,7 +176,7 @@ class BaseAnalysis(ABC):
 
         # Execute a user-defined function that adjusts aspect of the figures
         # Main use-case: change plotting ranges
-        user_func(figs=self.figs_mpl, axs=self.axs_mpl)
+        user_func(analysis_obj=self)
 
     def save_figures(self, close_figs: bool = True):
         """
@@ -303,32 +307,33 @@ def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **
         ax.plot(x, y, ls="--", c="grey", label="Guess")
 
 
-def mk_adjust_xlim(min_val: float, max_val: float):
-    def adjust_xlim(figs: dict, axs: dict):
+def mk_adjust_xylim(
+    x_min: float = None,
+    x_max: float = None,
+    y_min: float = None,
+    y_max: float = None,
+):
+    def adjust_xylim(analysis_obj: BaseAnalysis):
+        axs = analysis_obj.axs_mpl
         for ax_id, ax in axs.items():
-            ax.set_xlim(min_val, max_val)
+            ax.set_xlim(x_min, x_max)
+            ax.set_ylim(y_min, y_max)
 
-    return adjust_xlim
+    return adjust_xylim
 
 
-def mk_adjust_ylim(min_val: float, max_val: float):
-    def adjust_ylim(figs: dict, axs: dict):
+def mk_adjust_clim(min_val: float, max_val: float, contains: str = ""):
+    def adjust_clim(analysis_obj: BaseAnalysis):
+        axs = analysis_obj.axs_mpl
         for ax_id, ax in axs.items():
-            ax.set_ylim(min_val, max_val)
-
-    return adjust_ylim
-
-
-def mk_adjust_clim(min_val: float, max_val: float):
-    def adjust_clim(figs: dict, axs: dict):
-        for ax_id, ax in axs.items():
-            for im in ax.get_images():
-                # For plots created with `imshow`
-                im.set_clim(min_val, max_val)
-
-            for collect in ax.collections:
-                # For plots created with `pcolormesh`
-                if isinstance(collect, QuadMesh):
-                    collect.set_clim(min_val, max_val)
+            # For plots created with `imshow` or `pcolormesh`
+            for im_or_col in (
+                *ax.get_images(),
+                *(c for c in ax.collections if isinstance(c, QuadMesh)),
+            ):
+                c_ax = im_or_col.colorbar.ax
+                # print(im_or_col, c_ax.get_xlabel(), c_ax.get_ylabel())
+                if contains in c_ax.get_xlabel() or contains in c_ax.get_ylabel():
+                    im_or_col.set_clim(min_val, max_val)
 
     return adjust_clim
