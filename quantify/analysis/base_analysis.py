@@ -304,7 +304,6 @@ def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **
 
 
 def mk_adjust_xlim(min_val: float, max_val: float):
-
     def adjust_xlim(figs: dict, axs: dict):
         for ax_id, ax in axs.items():
             ax.set_xlim(min_val, max_val)
@@ -313,7 +312,6 @@ def mk_adjust_xlim(min_val: float, max_val: float):
 
 
 def mk_adjust_ylim(min_val: float, max_val: float):
-
     def adjust_ylim(figs: dict, axs: dict):
         for ax_id, ax in axs.items():
             ax.set_ylim(min_val, max_val)
@@ -322,7 +320,6 @@ def mk_adjust_ylim(min_val: float, max_val: float):
 
 
 def mk_adjust_clim(min_val: float, max_val: float):
-
     def adjust_clim(figs: dict, axs: dict):
         for ax_id, ax in axs.items():
             for im in ax.get_images():
