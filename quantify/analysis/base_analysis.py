@@ -164,9 +164,6 @@ class BaseAnalysis(ABC):
         before saving them
         """
         for fig in self.figs_mpl.values():
-            # Force drawing of figures to allow modifications
-            # fig.canvas.draw()
-
             if this.settings["presentation_mode"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
