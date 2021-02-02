@@ -469,12 +469,6 @@ class MeasurementControl(Instrument):
         return False
 
     @property
-    def _mixed_settables(self):
-        any_batched = any(is_batched(spar) for spar in self._settable_pars)
-        any_non_batched = any(not is_batched(spar) for spar in self._settable_pars)
-        return any_batched and any_non_batched
-
-    @property
     def _max_setpoints(self) -> int:
         """
         The total number of setpoints to examine
