@@ -317,10 +317,28 @@ class MeasurementControl(Instrument):
             self._loop_count += 1
 
     def _run_batched(self):
+        batched_mask = tuple(is_batched(spar) for spar in self._settable_pars)
+        non_batched_mask = tuple(not m for m in batched_mask)
+
+        # Indices to select correct entries in results data
+        where_batched = np.where(batched_mask)[0]
+        where_non_batched = np.where(non_batched_mask)[0]
+
+        batched_settbles = tuple(
+            spar for spar in self._settable_pars if is_batched(spar)
+        )
+        non_batched_settbles = tuple(
+            spar for spar in self._settable_pars if not is_batched(spar)
+        )
+
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
-            for i, spar in enumerate(self._settable_pars):
-                spar.set(self._setpoints[setpoint_idx:, i])
+            for i, spar in enumerate(batched_settbles):
+                spar.set(self._setpoints[setpoint_idx:, where_batched[i]])
+
+            for i, spar in enumerate(non_batched_settbles):
+                spar.set(self._setpoints[setpoint_idx, where_non_batched[i]])
+
             self._prepare_gettable()
 
             y_off = 0
@@ -449,6 +467,12 @@ class MeasurementControl(Instrument):
                 )
             return True
         return False
+
+    @property
+    def _mixed_settables(self):
+        any_batched = any(is_batched(spar) for spar in self._settable_pars)
+        any_non_batched = any(not is_batched(spar) for spar in self._settable_pars)
+        return any_batched and any_non_batched
 
     @property
     def _max_setpoints(self) -> int:
