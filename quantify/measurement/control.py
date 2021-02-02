@@ -288,9 +288,8 @@ class MeasurementControl(Instrument):
 
         if self.soft_avg() != 1:
             raise ValueError(
-                "software averaging not allowed in adaptive loops; currently set to {}.".format(
-                    self.soft_avg()
-                )
+                "software averaging not allowed in adaptive loops; "
+                f"currently set to {self.soft_avg()}."
             )
 
         self._reset()
@@ -332,16 +331,15 @@ class MeasurementControl(Instrument):
                     new_data = new_data.reshape(1, (len(new_data)))
 
                 for row in new_data:
+                    yi = f"y{y_off}"
                     slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = self._dataset["y{}".format(y_off)].values[
-                        setpoint_idx:slice_len
-                    ]
+                    old_vals = self._dataset[yi].values[setpoint_idx:slice_len]
                     old_vals[
                         np.isnan(old_vals)
                     ] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset["y{}".format(y_off)].values[
-                        setpoint_idx:slice_len
-                    ] = self._build_data(row, old_vals)
+                    self._dataset[yi].values[setpoint_idx:slice_len] = self._build_data(
+                        row, old_vals
+                    )
                     y_off += 1
                 self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
@@ -363,7 +361,7 @@ class MeasurementControl(Instrument):
         """
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
-            self._dataset["x{}".format(setpar_idx)].values[idx] = spt
+            self._dataset[f"x{setpar_idx}"].values[idx] = spt
             spar.set(spt)  # TODO add smartness to avoid setting if unchanged
         # get all data points
         y_offset = 0
@@ -374,14 +372,15 @@ class MeasurementControl(Instrument):
                 new_data = [new_data]
             # iterate through the data list, each element is different y for these x coordinates
             for val in new_data:
-                old_val = self._dataset["y{}".format(y_offset)].values[idx]
+                yi = f"y{y_offset}"
+                old_val = self._dataset[yi].values[idx]
                 if self.soft_avg() == 1 or np.isnan(old_val):
-                    self._dataset["y{}".format(y_offset)].values[idx] = val
+                    self._dataset[yi].values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
                         1 + self._loop_count
                     )
-                    self._dataset["y{}".format(y_offset)].values[idx] = averaged
+                    self._dataset[yi].values[idx] = averaged
                 y_offset += 1
 
     ############################################
@@ -413,28 +412,28 @@ class MeasurementControl(Instrument):
 
             self._last_upd = time.time()
 
-    def _call_if_has_method(self, obj, method: str):
+    def _call_if_has_method(self, obj, method: str) -> None:
         """
         Calls the ``method`` of the ``obj`` if it has it
         """
         prepare_method = getattr(obj, method, lambda: None)
         prepare_method()
 
-    def _prepare_gettable(self):
+    def _prepare_gettable(self) -> None:
         """
         Call prepare() on the Gettable, if prepare() exists
         """
         for getpar in self._gettable_pars:
             self._call_if_has_method(getpar, "prepare")
 
-    def _prepare_settables(self):
+    def _prepare_settables(self) -> None:
         """
         Call prepare() on all Settable, if prepare() exists
         """
         for setpar in self._settable_pars:
             self._call_if_has_method(setpar, "prepare")
 
-    def _finish(self):
+    def _finish(self) -> None:
         """
         Call finish() on all Settables and Gettables, if finish() exists
         """
@@ -482,15 +481,14 @@ class MeasurementControl(Instrument):
         percdone = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
         if not progress_message:
+            t_left = (
+                round((100.0 - percdone) / percdone * elapsed_time, 1)
+                if percdone != 0
+                else ""
+            )
             progress_message = (
-                "\r {percdone}% completed \telapsed time: "
-                "{t_elapsed}s \ttime left: {t_left}s".format(
-                    percdone=int(percdone),
-                    t_elapsed=round(elapsed_time, 1),
-                    t_left=round((100.0 - percdone) / percdone * elapsed_time, 1)
-                    if percdone != 0
-                    else "",
-                )
+                f"\r {int(percdone)}% completed \telapsed time: "
+                f"{round(elapsed_time, 1)}s \ttime left: {t_left}s"
             )
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(percdone)
