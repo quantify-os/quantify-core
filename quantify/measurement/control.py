@@ -211,8 +211,10 @@ class MeasurementControl(Instrument):
 
         try:
             if self._is_batched:
+                print(f"Starting batched measurement...")
                 self._run_batched()
             else:
+                print(f"Starting iterative measurement...")
                 self._run_iterative()
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
@@ -318,26 +320,54 @@ class MeasurementControl(Instrument):
 
     def _run_batched(self):
         batched_mask = tuple(is_batched(spar) for spar in self._settable_pars)
-        non_batched_mask = tuple(not m for m in batched_mask)
+        iterative_mask = tuple(not m for m in batched_mask)
 
         # Indices to select correct entries in results data
         where_batched = np.where(batched_mask)[0]
-        where_non_batched = np.where(non_batched_mask)[0]
+        where_non_batched = np.where(iterative_mask)[0]
+
+        iterative_settbles = tuple(
+            spar for spar in self._settable_pars if not is_batched(spar)
+        )
+        print(
+            "Iterative settables:\n\t"
+            + ", ".join(par.name for par in iterative_settbles)
+        )
 
         batched_settbles = tuple(
             spar for spar in self._settable_pars if is_batched(spar)
         )
-        non_batched_settbles = tuple(
-            spar for spar in self._settable_pars if not is_batched(spar)
+        print(
+            "Batched settables:\n\t" + ", ".join(par.name for par in batched_settbles)
         )
+
+        batche_size = min(
+            getattr(gpar, "batch_size", len(self._setpoints))
+            for gpar in self._gettable_pars
+        )
+        print(f"Batch size: {batche_size:d}")
+
+        # print(
+        #     "batched_settbles",
+        #     batched_settbles,
+        #     "iterative_settbles",
+        #     iterative_settbles,
+        # )
+        # print(
+        #     "batched_gettables",
+        #     tuple(gpar for gpar in self._gettable_pars if is_batched(gpar)),
+        #     "iterative_gettables",
+        #     tuple(gpar for gpar in self._gettable_pars if not is_batched(gpar)),
+        # )
 
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
-            for i, spar in enumerate(batched_settbles):
-                spar.set(self._setpoints[setpoint_idx:, where_batched[i]])
-
-            for i, spar in enumerate(non_batched_settbles):
+            for i, spar in enumerate(iterative_settbles):
                 spar.set(self._setpoints[setpoint_idx, where_non_batched[i]])
+
+            for i, spar in enumerate(batched_settbles):
+                slice_len = setpoint_idx + batche_size
+                spar.set(self._setpoints[setpoint_idx:slice_len, where_batched[i]])
 
             self._prepare_gettable()
 
@@ -462,10 +492,17 @@ class MeasurementControl(Instrument):
     def _is_batched(self) -> bool:
         if any(is_batched(gpar) for gpar in self._gettable_pars):
             if not all(is_batched(gpar) for gpar in self._gettable_pars):
-                raise Exception(
-                    "Control mismatch; all Gettables must have the same Control Mode"
+                raise RuntimeError(
+                    "Control mismatch; all Gettables must have the same Control Mode, "
+                    "i.e. all gettables must have `.batched=True`."
+                )
+            if not any(is_batched(spar) for spar in self._settable_pars):
+                raise RuntimeError(
+                    "Control mismatch; At least one settable must have "
+                    "`settable.batched=True`, if the gettables are batched."
                 )
             return True
+
         return False
 
     @property
