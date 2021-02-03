@@ -330,7 +330,7 @@ class MeasurementControl(Instrument):
             spar for spar in self._settable_pars if not is_batched(spar)
         )
         print(
-            "Iterative settables:\n\t"
+            "Iterative settable(s) [outer loop(s)]:\n\t"
             + ", ".join(par.name for par in iterative_settbles)
         )
 
@@ -338,7 +338,7 @@ class MeasurementControl(Instrument):
             spar for spar in self._settable_pars if is_batched(spar)
         )
         print(
-            "Batched settables:\n\t" + ", ".join(par.name for par in batched_settbles)
+            "Batched settable(s):\n\t" + ", ".join(par.name for par in batched_settbles)
         )
 
         batche_size = min(
@@ -347,22 +347,11 @@ class MeasurementControl(Instrument):
         )
         print(f"Batch size: {batche_size:d}")
 
-        # print(
-        #     "batched_settbles",
-        #     batched_settbles,
-        #     "iterative_settbles",
-        #     iterative_settbles,
-        # )
-        # print(
-        #     "batched_gettables",
-        #     tuple(gpar for gpar in self._gettable_pars if is_batched(gpar)),
-        #     "iterative_gettables",
-        #     tuple(gpar for gpar in self._gettable_pars if not is_batched(gpar)),
-        # )
-
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
             for i, spar in enumerate(iterative_settbles):
+                # Here we assume the setpoints are tilled so we take only the first
+                # for the iterative axes
                 spar.set(self._setpoints[setpoint_idx, where_non_batched[i]])
 
             for i, spar in enumerate(batched_settbles):
@@ -389,7 +378,8 @@ class MeasurementControl(Instrument):
                         row, old_vals
                     )
                     y_off += 1
-                self._nr_acquired_values += np.shape(new_data)[1]
+
+            self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
 
     def _build_data(self, new_data, old_data):
