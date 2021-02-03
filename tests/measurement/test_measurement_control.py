@@ -463,8 +463,13 @@ class TestMeasurementControl:
 
         dset = self.MC.run("iterative-outer-loop-with-inner-batched-2D")
 
-        expected_vals = CosFunc(t=times, frequency=freqs[0], amplitude=1, phase=0)
-        assert np.array_equal(dset["y0"].values[: len(times)], expected_vals)
+        expected_vals = CosFunc(
+            t=self.MC._setpoints[:, 0],
+            frequency=self.MC._setpoints[:, 1],
+            amplitude=1,
+            phase=0,
+        )
+        assert np.array_equal(dset["y0"].values, expected_vals)
 
         delattr(sig, "batch_size")
         delattr(sig, "batched")
