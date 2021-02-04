@@ -604,7 +604,7 @@ class MeasurementControl(Instrument):
         .. tip::
 
             Use :code:`np.colstack((x0, x1))` to reshape multiple
-            1D arrays when setting multiple setables.
+            1D arrays when setting multiple settables.
 
         Parameters
         ----------
@@ -637,20 +637,7 @@ class MeasurementControl(Instrument):
             self._plot_info["ylen"] = len(setpoints[1])
             self._plot_info["2D-grid"] = True
 
-        # if len(self._batched_settbles) and len(self._iterative_settbles):
-        #     # We only grid along a single batched axes and
-        #     # along all the iterative axes
-        #     remaining_batched_setpoints = [
-        #         pnts for i, pnts in enumerate(setpoints) if i in self._where_batched[1:]
-        #     ]
-        #     _setpoints = [
-        #         pnts
-        #         for i, pnts in enumerate(setpoints)
-        #         if i in [self._where_batched[0]] + self._where_iterative.tolist()
-        #     ]
-        #     _setpoints = tile_setpoints_grid(_setpoints)
-
-        # print(self._setpoints - _setpoints)
+        # TODO use `tile_setpoints_grid_mixed` when batched and iterative settables are mixed
         self._setpoints = tile_setpoints_grid(setpoints)
 
     def gettables(self, gettable_pars):
@@ -677,6 +664,9 @@ class MeasurementControl(Instrument):
 def tile_setpoints_grid(setpoints):
     """
     Tile setpoints into an n-dimensional grid.
+    Intended for batched-only or iterative-only settables.
+
+    See also: :func:`~tile_setpoints_grid_mixed`.
 
     .. warning ::
 
@@ -694,7 +684,6 @@ def tile_setpoints_grid(setpoints):
     :class:`numpy.ndarray`
         an array with repeated x-values and tiled xn-values.
     """
-    # Even though the code is a bit long it is very efficient
 
     xn = setpoints[0].reshape((len(setpoints[0]), 1))
     for setpoints_n in setpoints[1:]:
@@ -708,12 +697,14 @@ def tile_setpoints_grid(setpoints):
     return xn
 
 
-def tile_setpoints_grid_batched(setpoints, batched_mask: Iterable = None):
+def tile_setpoints_grid_mixed(setpoints, batched_mask: Iterable):
     """
-    Tile setpoints into a grid.
-    This is applied in a special way when there is more than on batched settable.
-    The resulting outer loops are applied only to the iterative axes.
-    All batched axes are considered to be a single axis, i.e. a single loop.
+    Tile setpoints into a grid along the iterative axes.
+    The resulting outer loops are applied only to the iterative settable(s).
+    All batched settables are considered to be a single axis, i.e. a single loop,
+    therefore their `len()` must be the same.
+
+    See also: :func:`~tile_setpoints_grid`.
 
     .. warning ::
 
@@ -725,57 +716,45 @@ def tile_setpoints_grid_batched(setpoints, batched_mask: Iterable = None):
     ----------
     setpoints : list(:class:`numpy.ndarray`)
         A list of arrays that defines the values to loop over in the experiment.
-        The grid is reshaped in this order.
+        The grid is reshaped in the same order.
 
     batched_mask
-        An iterable of booleans indicating if each setpoints axis is batched or not.
-        By default all axes are assumed to be iterative.
+        An iterable of booleans indicating if each element in `setpoints` is batched or not.
 
     Returns
     -------
     :class:`numpy.ndarray`
-        an array with repeated x-values and tiled xn-values.
+        An array where the first numpy axis correspond to individual setpoints.
     """
-    # Even though the code is a bit long it is very efficient
 
-    batched_mask = batched_mask or (False,) * len(setpoints)
-
-    setpoints_batched = tuple(
-        pnts for pnts, batched in zip(setpoints, batched_mask) if batched
-    )
-    setpoints_iterative = tuple(
-        pnts for pnts, batched in zip(setpoints, batched_mask) if not batched
-    )
-
-    columns_batched = []
-    columns_iterative = []
-
-    # Batched axes only need tiling
-    for i, pnts in enumerate(setpoints_batched):
-        column = np.tile(pnts, len(setpoints) - sum(batched_mask))
-        columns_batched.append(column)
-
-    lens_iterative = tuple(len(pnts) for pnts in setpoints_iterative)
-    lens = (
-        (len(setpoints_batched[0]),) + lens_iterative
-        if any(batched_mask)
-        else lens_iterative
-    )
-    repeat_lens = (1,) + lens[:-1]
-    tile_lens = lens[1:] + (1,)
-
-    # iterative axes require both tiling and repeating
-    for i, pnts in enumerate(setpoints_iterative):
-        column = np.tile(
-            np.repeat(pnts, np.prod(repeat_lens[: i + 1])), np.prod(tile_lens[i:])
+    if not (batched_mask.count(True) > 0 and batched_mask.count(False) > 0):
+        raise ValueError(
+            "This grid mode should be used only when performing outer loop(s) "
+            "over iterative settable(s) with inner batched settable(s).\n"
+            "See also: `tile_setpoints_grid`."
         )
-        columns_iterative.append(column)
 
-    # we use some iterator tricks to order everything in the original order
-    it_batched = iter(columns_batched)
-    it_iterative = iter(columns_iterative)
-    columns = tuple(
-        next(it_batched) if batched else next(it_iterative) for batched in batched_mask
-    )
+    setpoints_batched = [pts for pts, bat in zip(setpoints, batched_mask) if bat]
 
-    return np.column_stack(columns)
+    if not all(len(pts) == len(setpoints_batched[0]) for pts in setpoints_batched):
+        raise ValueError(
+            "All setpoints for batched settables must have the same "
+            "`len()` when mixing with iterative settables."
+        )
+
+    setpoints_iterative = [pts for pts, bat in zip(setpoints, batched_mask) if not bat]
+    remaining_cols_batched = []
+
+    # Remaining batched axes only need tiling
+    for i, pts in enumerate(setpoints_batched[1:]):
+        col = np.tile(pts, np.prod([len(pts) for pts in setpoints_iterative]))
+        remaining_cols_batched.append(col)
+
+    mixed_cols = tile_setpoints_grid([setpoints_batched[0]] + setpoints_iterative).T
+
+    # some iterator tricks to order everything in the original order
+    it_b = iter([mixed_cols[0]] + remaining_cols_batched)  # all batched
+    it_i = iter(mixed_cols[1:])  # all iterative
+    cols = [(next(it_b) if bat else next(it_i)) for bat in batched_mask]
+
+    return np.column_stack(cols)

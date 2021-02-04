@@ -9,7 +9,11 @@ from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
+from quantify.measurement.control import (
+    MeasurementControl,
+    tile_setpoints_grid,
+    tile_setpoints_grid_mixed,
+)
 import quantify.data.handling as dh
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
@@ -941,6 +945,91 @@ class TestMeasurementControl:
             match="'badGetter' object has no attribute 'non_existing_param'",
         ):
             self.MC.run("This rises exception as expected")
+
+
+def test_tile_setpoints_grid_mixed_rises():
+
+    sp_i0 = np.array([0, 1, 2, 3])
+    sp_i1 = np.array([4, 5])
+    sp_i2 = np.array([-1, -2])
+    sp_i3 = np.array([6])
+
+    base_batched = [1, 2, 6]
+    sp_b0 = np.array(base_batched)
+    sp_b1 = np.array(base_batched) * 2
+    sp_b2 = np.array(base_batched) * 3
+    sp_b3 = np.array(base_batched) * 4
+
+    iterative = [sp_i0, sp_i1, sp_i2, sp_i3]
+    batched = [sp_b0, sp_b1, sp_b2, sp_b3]
+
+    for same in [True, False]:
+        with pytest.raises(ValueError):
+            batched_mask = [same] * 4
+            it_i = iter(iterative)
+            it_b = iter(batched)
+            setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+            tile_setpoints_grid_mixed(setpoints, batched_mask=batched_mask)
+
+    with pytest.raises(ValueError):
+        batched_mask = [True] * 3 + [False]
+        it_i = iter(iterative)
+        it_b = iter(iterative)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        tile_setpoints_grid_mixed(setpoints, batched_mask=batched_mask)
+
+    # Most simple case
+    batched_mask = [True, False]
+    it_i = iter(iterative)
+    it_b = iter(batched)
+    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+    gridded = tile_setpoints_grid_mixed(setpoints, batched_mask=batched_mask)
+    expected = np.column_stack(
+        [np.tile(sp_b0, len(sp_i0)), np.repeat(sp_i0, len(sp_b0))]
+    )
+    np.testing.assert_array_equal(gridded, expected)
+
+    # Most simple case inverted order
+    batched_mask = [False, True]
+    it_i = iter(iterative)
+    it_b = iter(batched)
+    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+    gridded = tile_setpoints_grid_mixed(setpoints, batched_mask=batched_mask)
+    expected = np.column_stack(
+        [np.repeat(sp_i0, len(sp_b0)), np.tile(sp_b0, len(sp_i0))]
+    )
+    np.testing.assert_array_equal(gridded, expected)
+
+    # Several batched settables
+    batched_mask = [False, True, True]
+    it_i = iter(iterative)
+    it_b = iter(batched)
+    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+    gridded = tile_setpoints_grid_mixed(setpoints, batched_mask=batched_mask)
+    expected = np.column_stack(
+        [
+            np.repeat(sp_i0, len(sp_b0)),
+            np.tile(sp_b0, len(sp_i0)),
+            np.tile(sp_b1, len(sp_i0)),
+        ]
+    )
+    np.testing.assert_array_equal(gridded, expected)
+
+    # Several batched settables and several iterative settables
+    batched_mask = [False, True, False, True]
+    it_i = iter(iterative)
+    it_b = iter(batched)
+    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+    gridded = tile_setpoints_grid_mixed(setpoints, batched_mask=batched_mask)
+    expected = np.column_stack(
+        [
+            np.tile(np.repeat(sp_i0, len(sp_b0)), len(sp_i1)),
+            np.tile(sp_b0, len(sp_i0) * len(sp_i1)),
+            np.repeat(sp_i1, len(sp_b0) * len(sp_i0)),
+            np.tile(sp_b1, len(sp_i0) * len(sp_i1)),
+        ]
+    )
+    np.testing.assert_array_equal(gridded, expected)
 
 
 def test_tile_setpoints_grid():
