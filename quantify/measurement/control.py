@@ -9,6 +9,7 @@ import types
 from os.path import join
 from filelock import FileLock
 import tempfile
+from collections.abc import Iterable
 
 import numpy as np
 import adaptive
@@ -319,44 +320,29 @@ class MeasurementControl(Instrument):
             self._loop_count += 1
 
     def _run_batched(self):
-        batched_mask = tuple(is_batched(spar) for spar in self._settable_pars)
-        iterative_mask = tuple(not m for m in batched_mask)
-
-        # Indices to select correct entries in results data
-        where_batched = np.where(batched_mask)[0]
-        where_non_batched = np.where(iterative_mask)[0]
-
-        iterative_settbles = tuple(
-            spar for spar in self._settable_pars if not is_batched(spar)
-        )
         print(
             "Iterative settable(s) [outer loop(s)]:\n\t"
-            + ", ".join(par.name for par in iterative_settbles)
-        )
-
-        batched_settbles = tuple(
-            spar for spar in self._settable_pars if is_batched(spar)
+            + ", ".join(par.name for par in self._iterative_settbles)
         )
         print(
-            "Batched settable(s):\n\t" + ", ".join(par.name for par in batched_settbles)
+            "Batched settable(s):\n\t"
+            + ", ".join(par.name for par in self._batched_settbles)
         )
 
-        batche_size = min(
-            getattr(gpar, "batch_size", len(self._setpoints))
-            for gpar in self._gettable_pars
-        )
-        print(f"Batch size: {batche_size:d}")
+        print(f"Batch size: {self._batche_size:d}")
 
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
-            for i, spar in enumerate(iterative_settbles):
+            for i, spar in enumerate(self._iterative_settbles):
                 # Here we assume the setpoints are tilled so we take only the first
                 # for the iterative axes
-                spar.set(self._setpoints[setpoint_idx, where_non_batched[i]])
+                spar.set(self._setpoints[setpoint_idx, self._where_iterative[i]])
 
-            for i, spar in enumerate(batched_settbles):
-                slice_len = setpoint_idx + batche_size
-                spar.set(self._setpoints[setpoint_idx:slice_len, where_batched[i]])
+            for i, spar in enumerate(self._batched_settbles):
+                slice_len = setpoint_idx + self._batche_size
+                spar.set(
+                    self._setpoints[setpoint_idx:slice_len, self._where_batched[i]]
+                )
 
             self._prepare_gettable()
 
@@ -477,6 +463,34 @@ class MeasurementControl(Instrument):
         """
         for par in self._gettable_pars + self._settable_pars:
             self._call_if_has_method(par, "finish")
+
+    @property
+    def _batched_mask(self):
+        return (is_batched(spar) for spar in self._settable_pars)
+
+    @property
+    def _where_batched(self):
+        # Indices to select correct entries in results data
+        return np.where(tuple(self._batched_mask))[0]
+
+    @property
+    def _where_iterative(self):
+        return np.where(tuple(not m for m in self._batched_mask))[0]
+
+    @property
+    def _iterative_settbles(self):
+        return tuple(spar for spar in self._settable_pars if not is_batched(spar))
+
+    @property
+    def _batched_settbles(self):
+        return tuple(spar for spar in self._settable_pars if is_batched(spar))
+
+    @property
+    def _batche_size(self):
+        return min(
+            getattr(gpar, "batch_size", len(self._setpoints))
+            for gpar in self._gettable_pars
+        )
 
     @property
     def _is_batched(self) -> bool:
@@ -616,10 +630,27 @@ class MeasurementControl(Instrument):
         setpoints : list
             The values to loop over in the experiment. The grid is reshaped in this order.
         """
+        self._setpoints = []
+
         if len(setpoints) == 2:
             self._plot_info["xlen"] = len(setpoints[0])
             self._plot_info["ylen"] = len(setpoints[1])
             self._plot_info["2D-grid"] = True
+
+        # if len(self._batched_settbles) and len(self._iterative_settbles):
+        #     # We only grid along a single batched axes and
+        #     # along all the iterative axes
+        #     remaining_batched_setpoints = [
+        #         pnts for i, pnts in enumerate(setpoints) if i in self._where_batched[1:]
+        #     ]
+        #     _setpoints = [
+        #         pnts
+        #         for i, pnts in enumerate(setpoints)
+        #         if i in [self._where_batched[0]] + self._where_iterative.tolist()
+        #     ]
+        #     _setpoints = tile_setpoints_grid(_setpoints)
+
+        # print(self._setpoints - _setpoints)
         self._setpoints = tile_setpoints_grid(setpoints)
 
     def gettables(self, gettable_pars):
@@ -649,18 +680,22 @@ def tile_setpoints_grid(setpoints):
 
     .. warning ::
 
-        using this method typecasts all values into the same type. This may lead to validator errors when setting
+        using this method typecasts all values into the same type.
+        This may lead to validator errors when setting
         e.g., a float instead of an int.
 
     Parameters
     ----------
     setpoints : list(:class:`numpy.ndarray`)
-        A list of arrays that defines the values to loop over in the experiment. The grid is reshaped in this order.
+        A list of arrays that defines the values to loop over in the experiment.
+        The grid is reshaped in this order.
     Returns
     -------
     :class:`numpy.ndarray`
         an array with repeated x-values and tiled xn-values.
     """
+    # Even though the code is a bit long it is very efficient
+
     xn = setpoints[0].reshape((len(setpoints[0]), 1))
     for setpoints_n in setpoints[1:]:
         curr_l = len(xn)
@@ -671,3 +706,76 @@ def tile_setpoints_grid(setpoints):
         col_stack.append(np.repeat(setpoints_n, curr_l))
         xn = np.column_stack(col_stack)
     return xn
+
+
+def tile_setpoints_grid_batched(setpoints, batched_mask: Iterable = None):
+    """
+    Tile setpoints into a grid.
+    This is applied in a special way when there is more than on batched settable.
+    The resulting outer loops are applied only to the iterative axes.
+    All batched axes are considered to be a single axis, i.e. a single loop.
+
+    .. warning ::
+
+        using this method typecasts all values into the same type.
+        This may lead to validator errors when setting
+        e.g., a float instead of an int.
+
+    Parameters
+    ----------
+    setpoints : list(:class:`numpy.ndarray`)
+        A list of arrays that defines the values to loop over in the experiment.
+        The grid is reshaped in this order.
+
+    batched_mask
+        An iterable of booleans indicating if each setpoints axis is batched or not.
+        By default all axes are assumed to be iterative.
+
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        an array with repeated x-values and tiled xn-values.
+    """
+    # Even though the code is a bit long it is very efficient
+
+    batched_mask = batched_mask or (False,) * len(setpoints)
+
+    setpoints_batched = tuple(
+        pnts for pnts, batched in zip(setpoints, batched_mask) if batched
+    )
+    setpoints_iterative = tuple(
+        pnts for pnts, batched in zip(setpoints, batched_mask) if not batched
+    )
+
+    columns_batched = []
+    columns_iterative = []
+
+    # Batched axes only need tiling
+    for i, pnts in enumerate(setpoints_batched):
+        column = np.tile(pnts, len(setpoints) - sum(batched_mask))
+        columns_batched.append(column)
+
+    lens_iterative = tuple(len(pnts) for pnts in setpoints_iterative)
+    lens = (
+        (len(setpoints_batched[0]),) + lens_iterative
+        if any(batched_mask)
+        else lens_iterative
+    )
+    repeat_lens = (1,) + lens[:-1]
+    tile_lens = lens[1:] + (1,)
+
+    # iterative axes require both tiling and repeating
+    for i, pnts in enumerate(setpoints_iterative):
+        column = np.tile(
+            np.repeat(pnts, np.prod(repeat_lens[: i + 1])), np.prod(tile_lens[i:])
+        )
+        columns_iterative.append(column)
+
+    # we use some iterator tricks to order everything in the original order
+    it_batched = iter(columns_batched)
+    it_iterative = iter(columns_iterative)
+    columns = tuple(
+        next(it_batched) if batched else next(it_iterative) for batched in batched_mask
+    )
+
+    return np.column_stack(columns)
