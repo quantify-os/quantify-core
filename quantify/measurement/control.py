@@ -638,6 +638,8 @@ class MeasurementControl(Instrument):
             self._plot_info["2D-grid"] = True
 
         # TODO use `tile_setpoints_grid_mixed` when batched and iterative settables are mixed
+        # TODO cache input `setpoints` until the .run() us called so that settables/gettables
+        # have been defined by the user
         self._setpoints = tile_setpoints_grid(setpoints)
 
     def gettables(self, gettable_pars):
