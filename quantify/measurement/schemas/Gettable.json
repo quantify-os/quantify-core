@@ -38,6 +38,10 @@
             "batched": {
                 "type": "boolean",
                 "description": "true if data is processed in batches, false otherwise"
+            },
+            "batch_size": {
+                "type": "integer",
+                "description": "When `.batched=True`, indicates the (maximum) size of the batch of data points this gettable will return. It is also used to pass the right amount of data to the batched settables."
             }
         }
     },
