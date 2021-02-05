@@ -7,7 +7,7 @@ import os
 import sys
 import json
 from collections.abc import Iterable
-from datetime import datetime
+import datetime
 from uuid import uuid4
 import numpy as np
 import xarray as xr
@@ -30,7 +30,7 @@ def gen_tuid(ts=None):
 
     Parameters
     ----------
-    ts : :class:`datetime.datetime`
+    ts : :class:`~datetime.date`
         optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns
@@ -39,7 +39,7 @@ def gen_tuid(ts=None):
         timestamp based uid.
     """
     if ts is None:
-        ts = datetime.now()
+        ts = datetime.datetime.now()
     # ts gives microsecs by default
     (dt, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
@@ -358,13 +358,13 @@ def get_tuids_containing(
 
     Parameters
     ----------
-    contains : str
+    contains
         a string contained in the experiment name.
-    t_start : datetime.date
+    t_start
         date to search from, inclusive.
-    t_stop : datetime.date
+    t_stop
         date to search until, exclusive.
-    max_results : int
+    max_results
         maximum number of results to return. Defaults to unlimited.
     Returns
     -------

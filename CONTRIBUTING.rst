@@ -83,6 +83,7 @@ Thank you very much for your hard work in improving quantify!
 
         # 3. Push to the forked project
         $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
+
     N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 
 
@@ -115,6 +116,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 #. When you're done making changes, auto-format the repository with `black` and ensure test coverage
 
     .. code-block::
+
         $ black . # no need to run if you installed pre-commit
         $ pytest --cov
 

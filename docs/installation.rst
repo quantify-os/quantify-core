@@ -13,6 +13,12 @@ If you want to contribute to quantify, also check out :ref:`Setting up quantify 
 All systems except Windows and macOS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Confirm that you have a working python 3.7+ and run the following in your terminal of choice::
+
+    $ python --version
+    # Expected output similar to:
+    # Python 3.7.6
+
 To install Quantify::
 
     $ pip install quantify-core
