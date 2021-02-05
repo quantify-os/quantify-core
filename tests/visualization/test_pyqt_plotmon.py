@@ -1,7 +1,8 @@
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
-
-import pytest
+from pathlib import Path
+import tempfile
+from distutils.dir_util import copy_tree
 from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.data.types import TUID
 import quantify.data.handling as dh
@@ -175,3 +176,55 @@ class TestPlotMonitor_pyqt:
                 which="secondary_QtPlot"
             )[-2:]
         )
+
+    def test_changed_datadir_main_process(self):
+        # This test ensures that the remote process always uses the same datadir
+        # even when it is changed in the main process
+        self.plotmon.tuids([])  # reset
+        self.plotmon.tuids_extra([])  # reset
+
+        # load dataset in main process
+        tuid = "20201124-184709-137-8a5112"
+
+        # change datadir in the main process
+        tmp_dir = tempfile.TemporaryDirectory()
+        dir_to_copy = Path(
+            dh._locate_experiment_file(tuid=tuid, datadir=dh.get_datadir(), name="")
+        ).parent
+        dh.set_datadir(tmp_dir.name)
+        daydir = Path(tmp_dir.name) / dir_to_copy.name
+        Path.mkdir(daydir)
+        copy_tree(dir_to_copy, str(daydir))
+
+        # .update()
+        self.plotmon.update(tuid)
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+        self.plotmon.tuids([])  # reset
+
+        # .tuids()
+        self.plotmon.tuids([tuid])
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+        self.plotmon.tuids([])  # reset
+
+        # .tuids_append()
+        self.plotmon.tuids_append(tuid)
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+        self.plotmon.tuids([])  # reset
+
+        # .tuids_extra()
+        self.plotmon.tuids_extra([tuid])
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+
+        tmp_dir.cleanup()
