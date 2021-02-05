@@ -79,7 +79,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     dataset = MC.run(name='Frequency sweep')    # Start the experiment
 
 
-The :class:`~quantify.control.MeasurementControl` can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
+The :class:`~quantify.control.measurement.MeasurementControl` can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
 Take a look at some of the tutorial notebooks for more in-depth examples on usage and application.
 
 Control Mode
