@@ -1,5 +1,5 @@
 
-**Before instantiating any instruments or starting a measurement** we change the directory in which the experiments are saved using the :meth:`~quantify.data.handling.set_datadir`[/:meth:`~quantify.data.handling.get_datadir`] functions.
+**Before instantiating any instruments or starting a measurement** we change the directory in which the experiments are saved using the :meth:`~quantify.data.handling.set_datadir` [:meth:`~quantify.data.handling.get_datadir`] functions.
 
 
 .. tip::
