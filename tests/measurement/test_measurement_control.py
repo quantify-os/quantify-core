@@ -132,6 +132,7 @@ class DummyBatchedSettable:
 
 
 class DummyBatchedGettable:
+    # settables are passed for tests purposes only
     def __init__(self, settables, noise=0.0):
         self.name = ["DummyBatchedGettable_0"]
         self.unit = ["W"]
@@ -152,15 +153,11 @@ class DummyBatchedGettable:
             assert settable is not None
 
     def _get_data(self):
-        print(self.settables)
-        print([spar.get() for spar in self.settables], "\n\n")
         return np.array([spar.get() for spar in self.settables])
 
     def get(self):
         data = self._get_data()
         data = self.get_func(data)
-        print(data, "\n\n")
-        print(data.shape, "\n\n")
         noise = self.noise * (np.random.rand(1, data.shape[1]) - 0.5)
         data += noise
         return data[0 : len(self.name), :]
@@ -262,6 +259,7 @@ class TestMeasurementControl:
         device = DummyBatchedSettable()
         self.MC.settables(device)
         self.MC.setpoints(x)
+        # settables are passed for test purposes only, this is not a design pattern!
         self.MC.gettables(DummyBatchedGettable(device))
         dset = self.MC.run()
 
@@ -287,6 +285,7 @@ class TestMeasurementControl:
         device = DummyBatchedSettable()
         self.MC.settables(device)
         self.MC.setpoints(x)
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(device)
         # Must be specified otherwise all setpoints will be passed to the settable
         gettable.batch_size = 10
@@ -300,6 +299,7 @@ class TestMeasurementControl:
     def test_soft_averages_batched_1D(self):
         setpoints = np.arange(50.0)
         settable = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settable)
         gettable.noise = 0.4
         self.MC.settables(settable)
@@ -327,6 +327,7 @@ class TestMeasurementControl:
         self.MC.settables(t)  # iterative settable
         self.MC.setpoints(setpoints)
 
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(t)
         self.MC.gettables(gettable)  # batched gettable
         with pytest.raises(
@@ -415,6 +416,7 @@ class TestMeasurementControl:
         amps = np.linspace(0, 10, 5)
 
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
         self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
@@ -456,6 +458,7 @@ class TestMeasurementControl:
         setpoints = [times, freqs]
         self.MC.setpoints_grid(setpoints)
 
+        # Using the same gettable for test purposes
         self.MC.gettables([sig, sig])
 
         t.batched = True
@@ -485,6 +488,7 @@ class TestMeasurementControl:
         amps = np.linspace(0, 10, 5)
 
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
         gettable.set_return_2D()
         self.MC.settables(settables)
@@ -507,6 +511,7 @@ class TestMeasurementControl:
         x0 = np.arange(5)
         x1 = np.linspace(5, 10, 5)
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
         gettable.noise = 0.4
         gettable.set_return_2D()
@@ -552,6 +557,7 @@ class TestMeasurementControl:
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
         self.MC.settables(settables)
         self.MC.setpoints(setpoints)
+        # settables are passed for test purposes only, this is not a design pattern!
         self.MC.gettables(DummyBatchedGettable(settables))
         dset = self.MC.run()
 
@@ -578,6 +584,7 @@ class TestMeasurementControl:
 
         setpoints = np.arange(30.0)
         settable = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settable)
         gettable.get_func = v_size
         self.MC.settables(settable)
@@ -603,6 +610,7 @@ class TestMeasurementControl:
 
         setpoints = np.arange(30.0)
         settable = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settable)
         gettable.get_func = v_size
         gettable.noise = 0.25
@@ -695,8 +703,10 @@ class TestMeasurementControl:
         batched_settable_t = DummyBatchedSettable()
         batched_settable_0 = DummyBatchedSettable()
         batched_settable_1 = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
         nd_gettable = DummyBatchedGettable([batched_settable_0, batched_settable_1])
         nd_gettable.set_return_2D()
+        # settables are passed for test purposes only, this is not a design pattern!
         noisy_gettable = DummyBatchedGettable([batched_settable_t])
         noisy_gettable.get_func = v_get
         noisy_gettable.noise = 0.25
@@ -918,7 +928,7 @@ class TestMeasurementControl:
             AttributeError,
             match="'badSetter' object has no attribute 'non_existing_param'",
         ):
-            self.MC.run("This rises exception as expected")
+            self.MC.run("This raises exception as expected")
 
         class badGetter:
             def __init__(self, param2):
@@ -944,10 +954,10 @@ class TestMeasurementControl:
             AttributeError,
             match="'badGetter' object has no attribute 'non_existing_param'",
         ):
-            self.MC.run("This rises exception as expected")
+            self.MC.run("This raises exception as expected")
 
 
-def test_tile_setpoints_grid_mixed_rises():
+def test_tile_setpoints_grid_mixed_raises():
 
     sp_i0 = np.array([0, 1, 2, 3])
     sp_i1 = np.array([4, 5])
