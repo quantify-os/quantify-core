@@ -112,10 +112,11 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
    Now you can make your changes locally.
 
-#. When you're done making changes, auto-format the repository with `black` and ensure test coverage::
+#. When you're done making changes, auto-format the repository with `black` and ensure test coverage
 
-    $ black . # no need to run if you installed pre-commit
-    $ pytest --cov
+    .. code-block::
+        $ black . # no need to run if you installed pre-commit
+        $ pytest --cov
 
 
     .. tip:: Running parts of the test suite
@@ -124,11 +125,11 @@ Ready to contribute? Here's how to set up `quantify` for local development.
         tests as an argument to pytest. The following example
 
 
-    .. code-block:: shell
+        .. code-block:: shell
 
-        $ py.test tests/measurement --cov quantify/measurement
+            $ py.test tests/measurement --cov quantify/measurement
 
-    will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+        will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
 
 #. Building the documentation
 
