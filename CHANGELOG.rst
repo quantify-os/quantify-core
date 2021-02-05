@@ -16,6 +16,7 @@ Merged branches and closed issues
 * Enforce a datadir choice to avoid potential data loss (!86)
 * Migrated code style to black (!93)
 * Fixed support for python3.9 (!94)
+* Added support for dynamic change of datadir for plotmon (!97)
 
 0.3.0 (2020-12-17)
 ------------------
