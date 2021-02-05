@@ -19,7 +19,6 @@ from quantify.data.handling import (
     load_dataset,
     _xi_and_yi_match,
     set_datadir,
-    get_datadir,
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
@@ -72,7 +71,6 @@ class RemotePlotmon:
         # Set datadir in this process to match the process in
         # which the plotmon instrument lives
         set_datadir(datadir)
-        self.current_datadir = get_datadir()
 
         self.queue = Queue()
         self.timer_queue = None
@@ -492,12 +490,6 @@ class RemotePlotmon:
             return
 
         tuid = self._tuids[0] if tuid is None else tuid
-
-        # This check is introduced to fix #144. The remote process needs to detect
-        # when the datadir has changed after initialization.
-        if self.current_datadir != get_datadir():
-            self.current_datadir = get_datadir()
-            set_datadir( self.current_datadir )
 
         dset = _safe_load_dataset(tuid)
         self._dsets[tuid] = dset
