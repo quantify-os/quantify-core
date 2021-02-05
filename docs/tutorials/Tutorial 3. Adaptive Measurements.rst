@@ -22,10 +22,10 @@ The `MC` will then use this function to build the sweep. We import our usual mod
 .. jupyter-execute::
 
     MC = MeasurementControl('MC')
-    plotmon = pqm.PlotMonitor_pyqt('plotmon_MC')
-    MC.instr_plotmon(plotmon.name)
     insmon = InstrumentMonitor("Instruments Monitor")
     MC.instrument_monitor(insmon.name)
+    plotmon = pqm.PlotMonitor_pyqt('plotmon_MC')
+    MC.instr_plotmon(plotmon.name)
 
 
 
@@ -145,7 +145,7 @@ We really don't want to sweep through a million points, so instead let's use an 
     :hide-output:
 
     import adaptive
-
+    res._noise_level = 0.0
     res.amp(1)
     MC.settables([res.freq])
     af_pars = {
