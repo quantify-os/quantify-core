@@ -4,6 +4,7 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import numpy as np
+from collections.abc import Iterable
 from collections import deque, OrderedDict
 import itertools
 import os
@@ -37,7 +38,7 @@ class RemotePlotmon:
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
-    def __init__(self, instr_name: str, datadir: str):
+    def __init__(self, instr_name: str):
         # Used to mirror the name of the instrument in the windows titles
         self.instr_name = instr_name
 
@@ -67,10 +68,6 @@ class RemotePlotmon:
         self._im_curves = []
         self._im_scatters = []
         self._im_scatters_last = []
-
-        # Set datadir in this process to match the process in
-        # which the plotmon instrument lives
-        set_datadir(datadir)
 
         self.queue = Queue()
         self.timer_queue = None
@@ -163,7 +160,9 @@ class RemotePlotmon:
             if discard_tuid not in self._tuids_extra:
                 self._dsets.pop(discard_tuid, None)
 
-    def tuids_append(self, tuid):
+    def tuids_append(self, tuid: str, datadir: str):
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
         # verify tuid
         TUID(tuid)
 
@@ -195,10 +194,12 @@ class RemotePlotmon:
     def _get_tuids(self):
         return list(self._tuids)
 
-    def _set_tuids(self, tuids):
+    def _set_tuids(self, tuids: Iterable, datadir: str):
         """
         Set cmd for tuids
         """
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
 
         dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
@@ -230,10 +231,13 @@ class RemotePlotmon:
         """
         return self._tuids_extra
 
-    def _set_tuids_extra(self, tuids):
+    def _set_tuids_extra(self, tuids: Iterable, datadir: str):
         """
         Set cmd for tuids_extra
         """
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
+
         extra_dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
@@ -478,12 +482,12 @@ class RemotePlotmon:
 
         self.secondary_QtPlot.update_plot()
 
-    def update(self, tuid: str = None):
+    def update(self, tuid: str, datadir: str):
 
         if tuid and tuid not in self._dsets.keys():
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
-            self.tuids_append(tuid)
+            self.tuids_append(tuid, datadir)
 
         if not self._dsets:
             # Nothing to update
