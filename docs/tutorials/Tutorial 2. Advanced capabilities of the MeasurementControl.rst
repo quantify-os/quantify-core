@@ -251,6 +251,7 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
                 raise KeyboardInterrupt
             return time_par()
 
+    time_par.batched = False
     MC.settables(time_par)
     MC.setpoints(np.arange(10))
     MC.gettables(SlowGettable())
@@ -261,6 +262,7 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 .. jupyter-execute::
 
     plotmon.main_QtPlot
+
 
 
 .. seealso::

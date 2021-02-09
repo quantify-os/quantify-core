@@ -143,6 +143,7 @@ class MeasurementControl(Instrument):
         self._loop_count = 0
         self._begintime = time.time()
         self._last_upd = time.time()
+        self._batch_size_last = None
 
         # variables used for persistence and plotting
         self._dataset = None
@@ -161,6 +162,7 @@ class MeasurementControl(Instrument):
         self._nr_acquired_values = 0
         self._loop_count = 0
         self._begintime = time.time()
+        self._batch_size_last = None
 
     def _init(self, name):
         """
@@ -342,8 +344,8 @@ class MeasurementControl(Instrument):
 
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
-            slice_len = setpoint_idx + self._batch_size
-            batch_size = self._batch_size
+            self._batch_size_last = self._batch_size
+            slice_len = setpoint_idx + self._batch_size_last
             for i, spar in enumerate(self._iterative_settbles):
                 # Here ensure that all setpoints of each iterative settable are the same
                 # within each batch
@@ -356,9 +358,9 @@ class MeasurementControl(Instrument):
                 )
                 spar.set(val)
                 # We also determine the size of each next batch
-                batch_size = min(batch_size, len(tuple(it)))
+                self._batch_size_last = min(self._batch_size_last, len(tuple(it)))
 
-            slice_len = setpoint_idx + batch_size
+            slice_len = setpoint_idx + self._batch_size_last
             for i, spar in enumerate(self._batched_settbles):
                 spar.set(
                     self._setpoints[setpoint_idx:slice_len, self._where_batched[i]]
@@ -570,9 +572,12 @@ class MeasurementControl(Instrument):
                 else ""
             )
             progress_message = (
-                f"\r{int(percdone):#3d}% completed    elapsed time: "
-                f"{int(round(elapsed_time, 1)):#6d}s    time left: {int(round(t_left, 1)):#6d}s    "
+                f"\r{int(percdone):#3d}% completed  elapsed time: "
+                f"{int(round(elapsed_time, 1)):#6d}s  time left: {int(round(t_left, 1)):#6d}s  "
             )
+            if self._batch_size_last is not None:
+                progress_message += f"last batch size: {self._batch_size_last:#6d}  "
+
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(percdone)
 
