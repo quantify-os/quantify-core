@@ -339,7 +339,7 @@ class MeasurementControl(Instrument):
                 or "--- (None) ---",
                 "\nBatched settable(s):\n\t",
                 ", ".join(par.name for par in self._batched_settbles),
-                f"\nBatch size: {self._batch_size:d}\n",
+                f"\nMax. batch size: {self._batch_size:d}\n",
             )
 
         while self._get_fracdone() < 1.0:

@@ -748,7 +748,7 @@ class TestMeasurementControl:
         )
         t(1), amp(1), freq(1)  # Reset globals
 
-    def test_batched_raises(self):
+    def test_batched_attr_raises(self):
         times = np.linspace(0, 5, 3)
         freqs = np.linspace(41000, 82000, 8)
 
