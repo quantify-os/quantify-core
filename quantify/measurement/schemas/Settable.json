@@ -18,6 +18,10 @@
             "batched": {
                 "type": "boolean",
                 "description": "true if data is processed in batches, false otherwise"
+            },
+            "batch_size": {
+                "type": "integer",
+                "description": "When `.batched=True`, indicates the (maximum) size of the batch of datapoints that this settable supports. The measurement loop will effectively use the `min(settable(s).batch_size, gettable(s).batch_size)`."
             }
         }
     },

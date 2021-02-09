@@ -41,7 +41,7 @@
             },
             "batch_size": {
                 "type": "integer",
-                "description": "When `.batched=True`, indicates the (maximum) size of the batch of data points this gettable will return. It is also used to pass the right amount of data to the batched settables."
+                "description": "When `.batched=True`, indicates the (maximum) size of the batch of datapoints that this gettable supports. The measurement loop will effectively use the `min(settable(s).batch_size, gettable(s).batch_size)`."
             }
         }
     },

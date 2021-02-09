@@ -40,3 +40,9 @@ visualization
 
 .. automodule:: quantify.visualization
     :members:
+
+SI Utilities
+------------
+
+.. automodule:: quantify.visualization.SI_utilities
+    :members:

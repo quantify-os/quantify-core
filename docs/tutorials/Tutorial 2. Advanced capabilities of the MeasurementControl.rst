@@ -45,12 +45,12 @@ A 1D Batched loop: Resonator Spectroscopy
 Defining a simple model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this example, we want to find the resonance of some device. We expect to find it's resonance somewhere in the low 6GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
+In this example, we want to find the resonance of some device. We expect to find it's resonance somewhere in the low 6 GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
 
 We first create `freq`: a :class:`~quantify.measurement.Settable` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :class:`~quantify.measurement.Gettable` to mock (i.e. emulate) the resonator.
-The Resonator will return a Lorentzian shape centered on the resonant frequency. Our :class:`~quantify.measurement.Gettable` will read the setpoints from `freq`, in this case a 1D array.
+The :class:`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our :class:`~quantify.measurement.Gettable` will read the setpoints from `freq`, in this case a 1D array.
 
-.. note:: The `Resonator` :class:`~quantify.measurement.Gettable` has a new field `batched` set to `True`. This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition.
+.. note:: The `Resonator` :class:`~quantify.measurement.Gettable` has a new attribute `.batched` set to `True`. This property informs the :class:`~quantify.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition. Similarly, the `freq` :class:`~quantify.measurement.Settable` must have a `.batched=True` so that the :class:`~quantify.measurement.MeasurementControl` hands over the setpoints correctly.
 
 
 .. jupyter-execute::
@@ -58,6 +58,7 @@ The Resonator will return a Lorentzian shape centered on the resonant frequency.
     # Note that in an actual experimental setup `freq` will be a QCoDeS parameter
     # contained in a QCoDeS Instrument
     freq = ManualParameter(name='frequency', unit='Hz', label='Frequency')
+    freq.batched = True  # Tells MC that the setpoints are to be passed in batches
 
     # model of the frequency response
     def lorenz(amplitude: float, fwhm: float, x: int, x_0: float):
@@ -70,12 +71,14 @@ The Resonator will return a Lorentzian shape centered on the resonant frequency.
             self.unit = 'V'
             self.label = 'Amplitude'
             self.batched = True
+            self.delay = 0.0
 
             # hidden variables specifying the resonance
             self._test_resonance = 6.0001048e9 # in Hz
             self._test_width = 300 # FWHM in Hz
 
         def get(self) -> float:
+            time.sleep(self.delay)
             # Emulation of the frequency response
             return 1-np.array(list(map(lambda x: lorenz(1, self._test_width, x, self._test_resonance), freq())))
 
@@ -84,6 +87,8 @@ The Resonator will return a Lorentzian shape centered on the resonant frequency.
 
         def finish(self) -> None:
             print('Finished Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
+
+    gettable_res = Resonator()
 
 
 Running the experiment
@@ -105,7 +110,7 @@ The :class:`~quantify.measurement.MeasurementControl` will detect these settings
 
     MC.settables(freq)
     MC.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
-    MC.gettables(Resonator())
+    MC.gettables(gettable_res)
     dset = MC.run()
 
 
@@ -115,6 +120,29 @@ The :class:`~quantify.measurement.MeasurementControl` will detect these settings
 
 As expected, we find a Lorentzian spike in the readout at the resonant frequency, finding the peak of which is trivial.
 
+
+Memory-limited Settables/Gettables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Instruments (either physical or virtual) operating in `batched` mode have an upper limit on how many datapoints can be processed at once.
+When an experiment is comprised of more datapoints than the instrument can handle, the :class:`~quantify.measurement.MeasurementControl` takes care of fulfilling the measurement of all the requested setpoints by running and internal loop.
+
+By default the :class:`~quantify.measurement.MeasurementControl` assumes no limitations and passes all setpoints to the `batched` settable. However, as a best practice, the instrument limitation must be reflected by the `.batch_size` attribute of the `batched` settables. This is illustrated below.
+
+.. jupyter-execute::
+
+    # Tells MC that only 256 datapoints can be processed at once
+    freq.batch_size = 256
+
+    gettable_res.delay = 0.05  # short delay for plotting
+    MC.settables(freq)
+    MC.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
+    MC.gettables(gettable_res)
+    dset = MC.run()
+
+.. jupyter-execute::
+
+    plotmon.main_QtPlot
 
 Software Averaging: T1 Experiment
 ----------------------------------
@@ -141,6 +169,7 @@ Note that in this example MC is still running in Batched mode.
         return np.exp(-t/tau)
 
     time_par = ManualParameter(name='time', unit='s', label='Measurement Time')
+    time_par.batched = True  # Tells MC that the setpoints are to be passed in batches
 
     class MockQubit:
         def __init__(self):
@@ -232,7 +261,6 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 .. jupyter-execute::
 
     plotmon.main_QtPlot
-
 
 
 .. seealso::

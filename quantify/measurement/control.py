@@ -10,6 +10,8 @@ from os.path import join
 from filelock import FileLock
 import tempfile
 from collections.abc import Iterable
+import itertools
+from itertools import chain
 
 import numpy as np
 import adaptive
@@ -133,6 +135,7 @@ class MeasurementControl(Instrument):
         # variables that are set before the start of any experiment.
         self._settable_pars = []
         self._setpoints = []
+        self._setpoints_input = []
         self._gettable_pars = []
 
         # variables used for book keeping during acquisition loop.
@@ -163,6 +166,11 @@ class MeasurementControl(Instrument):
         """
         Initializes MC, such as creating the Dataset, experiment folder and such.
         """
+        # calculation of the setpoint needs to be executed here in some cases
+        # see `._calc_setpoints_grid()`
+        if self._setpoints is None:
+            self._calc_setpoints_grid()
+
         # initialize an empty dataset
         self._dataset = initialize_dataset(
             self._settable_pars, self._setpoints, self._gettable_pars
@@ -212,10 +220,12 @@ class MeasurementControl(Instrument):
 
         try:
             if self._is_batched:
-                print(f"Starting batched measurement...")
+                if self.verbose():
+                    print(f"Starting batched measurement...")
                 self._run_batched()
             else:
-                print(f"Starting iterative measurement...")
+                if self.verbose():
+                    print(f"Starting iterative measurement...")
                 self._run_iterative()
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
@@ -320,26 +330,36 @@ class MeasurementControl(Instrument):
             self._loop_count += 1
 
     def _run_batched(self):
-        print(
-            "Iterative settable(s) [outer loop(s)]:\n\t"
-            + ", ".join(par.name for par in self._iterative_settbles)
-        )
-        print(
-            "Batched settable(s):\n\t"
-            + ", ".join(par.name for par in self._batched_settbles)
-        )
-
-        print(f"Batch size: {self._batche_size:d}")
+        if self.verbose():
+            print(
+                "Iterative settable(s) [outer loop(s)]:\n\t",
+                ", ".join(par.name for par in self._iterative_settbles)
+                or "--- (None) ---",
+                "\nBatched settable(s):\n\t",
+                ", ".join(par.name for par in self._batched_settbles),
+                f"\nBatch size: {self._batch_size:d}\n",
+            )
 
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
+            slice_len = setpoint_idx + self._batch_size
+            batch_size = self._batch_size
             for i, spar in enumerate(self._iterative_settbles):
-                # Here we assume the setpoints are tilled so we take only the first
-                # for the iterative axes
-                spar.set(self._setpoints[setpoint_idx, self._where_iterative[i]])
+                # Here ensure that all setpoints of each iterative settable are the same
+                # within each batch
+                val, it = next(
+                    itertools.groupby(
+                        self._setpoints[
+                            setpoint_idx:slice_len, self._where_iterative[i]
+                        ]
+                    )
+                )
+                spar.set(val)
+                # We also determine the size of each next batch
+                batch_size = min(batch_size, len(tuple(it)))
 
+            slice_len = setpoint_idx + batch_size
             for i, spar in enumerate(self._batched_settbles):
-                slice_len = setpoint_idx + self._batche_size
                 spar.set(
                     self._setpoints[setpoint_idx:slice_len, self._where_batched[i]]
                 )
@@ -466,12 +486,12 @@ class MeasurementControl(Instrument):
 
     @property
     def _batched_mask(self):
-        return (is_batched(spar) for spar in self._settable_pars)
+        return tuple(is_batched(spar) for spar in self._settable_pars)
 
     @property
     def _where_batched(self):
         # Indices to select correct entries in results data
-        return np.where(tuple(self._batched_mask))[0]
+        return np.where(self._batched_mask)[0]
 
     @property
     def _where_iterative(self):
@@ -486,18 +506,22 @@ class MeasurementControl(Instrument):
         return tuple(spar for spar in self._settable_pars if is_batched(spar))
 
     @property
-    def _batche_size(self):
-        return min(
-            getattr(gpar, "batch_size", len(self._setpoints))
-            for gpar in self._gettable_pars
+    def _batch_size(self):
+        # np.inf is not supported by the JSON schema, but we keep the code robust
+        min_with_inf = min(
+            getattr(gpar, "batch_size", np.inf)
+            for gpar in chain.from_iterable((self._settable_pars, self._gettable_pars))
         )
+        return min(min_with_inf, len(self._setpoints))
 
     @property
     def _is_batched(self) -> bool:
-        if any(is_batched(gpar) for gpar in self._gettable_pars):
+        if any(
+            is_batched(gpar) for gpar in chain(self._gettable_pars, self._settable_pars)
+        ):
             if not all(is_batched(gpar) for gpar in self._gettable_pars):
                 raise RuntimeError(
-                    "Control mismatch; all Gettables must have the same Control Mode, "
+                    "Control mismatch; all Gettables must have batched Control Mode, "
                     "i.e. all gettables must have `.batched=True`."
                 )
             if not any(is_batched(spar) for spar in self._settable_pars):
@@ -546,17 +570,14 @@ class MeasurementControl(Instrument):
                 else ""
             )
             progress_message = (
-                f"\r {int(percdone)}% completed \telapsed time: "
-                f"{round(elapsed_time, 1)}s \ttime left: {t_left}s"
+                f"\r{int(percdone):#3d}% completed    elapsed time: "
+                f"{int(round(elapsed_time, 1)):#6d}s    time left: {int(round(t_left, 1)):#6d}s    "
             )
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(percdone)
-        if percdone != 100:
-            end_char = ""
-        else:
-            end_char = "\n"
+
         if self.verbose():
-            print("\r", progress_message, end=end_char)
+            print(progress_message, end="" if percdone < 100 else "\n")
 
     def _safe_write_dataset(self):
         """
@@ -630,17 +651,31 @@ class MeasurementControl(Instrument):
         setpoints : list
             The values to loop over in the experiment. The grid is reshaped in this order.
         """
-        self._setpoints = []
+        self._setpoints = None  # assigned later in the `._init()`
+        self._setpoints_input = setpoints
 
         if len(setpoints) == 2:
             self._plot_info["xlen"] = len(setpoints[0])
             self._plot_info["ylen"] = len(setpoints[1])
             self._plot_info["2D-grid"] = True
 
-        # TODO use `tile_setpoints_grid_mixed` when batched and iterative settables are mixed
-        # TODO cache input `setpoints` until the .run() us called so that settables/gettables
-        # have been defined by the user
-        self._setpoints = tile_setpoints_grid(setpoints)
+    def _calc_setpoints_grid(self):
+        """The `.batched` of the settables is necessary in order to
+        know how to grid the datapoints. Therefore, the `setpoints` passed to
+        `setpoints_grid` are saved and the `._setpoints` are calculated
+        only after `.run()` is called by the user.
+
+        UX: This avoids the user having to call `.settables()` and
+        `.setpoints_grid` in a specific order.
+        """
+
+        if self._batched_mask.count(True) > 0 and self._batched_mask.count(False) > 0:
+            # At least one batched settable and at least one iterative settable
+            self._setpoints = tile_setpoints_grid_mixed(
+                self._setpoints_input, self._batched_mask
+            )
+        else:
+            self._setpoints = tile_setpoints_grid(self._setpoints_input)
 
     def gettables(self, gettable_pars):
         """

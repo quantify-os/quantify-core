@@ -59,7 +59,7 @@ Instantiate the instruments
 Overview
 ----------
 
-There are 3 parameters in the :class:`~quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt` that control the datasets being displayed.
+There are 3 parameters in the :class:`quantify.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
 
 Two main parameters determine the datasets being displayed: *tuids* and *tuids_extra*.
 

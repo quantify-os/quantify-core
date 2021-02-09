@@ -41,10 +41,14 @@ def SinFunc(t, amplitude, frequency, phase):
     return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
 
+# FIXME each unit test should be stateless and independent from previous tests
 # Parameters are created to emulate a system being measured
 t = ManualParameter("t", initial_value=1, unit="s", label="Time")
 amp = ManualParameter("amp", initial_value=1, unit="V", label="Amplitude")
 freq = ManualParameter("freq", initial_value=1, unit="Hz", label="Frequency")
+other_freq = ManualParameter(
+    "other_freq", initial_value=1, unit="Hz", label="Other frequency"
+)
 
 
 def sine_model():
@@ -55,7 +59,19 @@ def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
 
+def cosine_model_2():
+    return CosFunc(t(), amplitude=amp(), frequency=other_freq(), phase=0)
+
+
 sig = Parameter(name="sig", label="Signal level", unit="V", get_cmd=cosine_model)
+
+# A signal that uses 4 parameters
+sig2 = Parameter(
+    name="sig2",
+    label="Signal level",
+    unit="V",
+    get_cmd=lambda: cosine_model() + cosine_model_2(),
+)
 
 
 class DualWave:
@@ -122,6 +138,7 @@ class DummyBatchedSettable:
         self.label = "Amp"
         self.unit = "V"
         self.batched = True
+        self.batch_size = 0xFFFF
         self.setpoints = []
 
     def set(self, setpoints):
@@ -138,6 +155,7 @@ class DummyBatchedGettable:
         self.unit = ["W"]
         self.label = ["Watts"]
         self.batched = True
+        self.batch_size = 0xFFFF
         self.settables = [settables] if not isinstance(settables, list) else settables
         self.noise = noise
         self.get_func = batched_mock_values
@@ -334,7 +352,7 @@ class TestMeasurementControl:
             RuntimeError,
             match=r"At least one settable must have `settable.batched=True`",
         ):
-            dset = self.MC.run("raises")
+            self.MC.run("raises")
 
     def test_iterative_2D_grid(self):
 
@@ -345,10 +363,11 @@ class TestMeasurementControl:
         self.MC.setpoints_grid([times, amps])
 
         exp_sp = tile_setpoints_grid([times, amps])
-        assert np.array_equal(self.MC._setpoints, exp_sp)
 
         self.MC.gettables(sig)
         dset = self.MC.run()
+
+        assert np.array_equal(self.MC._setpoints, exp_sp)
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -482,6 +501,7 @@ class TestMeasurementControl:
         delattr(sig, "batched")
         delattr(t, "batched")
         delattr(freq, "batched")
+        t(1), amp(1), freq(1)  # Reset globals
 
     def test_batched_2D_grid_multi_return(self):
         times = np.linspace(10, 20, 3)
@@ -632,10 +652,11 @@ class TestMeasurementControl:
         self.MC.setpoints_grid([times, amps, freqs])
 
         exp_sp = tile_setpoints_grid([times, amps, freqs])
-        assert np.array_equal(self.MC._setpoints, exp_sp)
 
         self.MC.gettables(sig)
         dset = self.MC.run()
+
+        assert np.array_equal(self.MC._setpoints, exp_sp)
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -725,6 +746,78 @@ class TestMeasurementControl:
         np.testing.assert_array_almost_equal(
             dset.y2, batched_mock_values(exp_sp[:, 2]), decimal=4
         )
+        t(1), amp(1), freq(1)  # Reset globals
+
+    def test_batched_raises(self):
+        times = np.linspace(0, 5, 3)
+        freqs = np.linspace(41000, 82000, 8)
+
+        freq.batched = True
+        freq.batch_size = 8
+        t.batched = False
+
+        self.MC.settables([freq, t])
+        self.MC.setpoints_grid([freqs, times])
+        # Ensure forgetting this raises exception
+        # sig.batched = True
+        self.MC.gettables(sig)
+
+        with pytest.raises(RuntimeError):
+            self.MC.run()
+
+        # reset for other tests
+        delattr(freq, "batched")
+        delattr(freq, "batch_size")
+        delattr(t, "batched")
+
+    def test_batched_grid_mixed(self):
+        t(1), amp(1), freq(1), other_freq(1)  # Reset globals
+        times = np.linspace(0, 5, 3)
+        amps = np.linspace(-1, 1, 4)
+        freqs = np.linspace(41000, 82000, 8)
+        other_freqs = np.linspace(46000, 88000, 8)
+
+        freq.batched = True
+        freq.batch_size = 5  # odd size for extra test
+        t.batched = False
+        other_freq.batched = True
+        other_freq.batch_size = 3  # odd size and different value for extra test
+        amp.batched = False
+
+        sig2.batched = True
+
+        settables = [freq, t, other_freq, amp]
+        self.MC.settables(settables)
+        setpoints = [freqs, times, other_freqs, amps]
+        self.MC.setpoints_grid(setpoints)
+        self.MC.gettables(sig2)
+        self.MC.soft_avg(2)
+        dset = self.MC.run("bla")
+
+        assert isinstance(freq(), Iterable)
+        assert not isinstance(t(), Iterable)
+        assert isinstance(other_freq(), Iterable)
+        assert not isinstance(amp(), Iterable)
+
+        exp_sp = tile_setpoints_grid_mixed(
+            setpoints,
+            batched_mask=tuple(par.batched for par in settables),
+        )
+        assert np.array_equal(self.MC._setpoints, exp_sp)
+        exp_sp = exp_sp.T
+        freq(exp_sp[0]), t(exp_sp[1]), other_freq(exp_sp[2]), amp(exp_sp[3])
+
+        assert np.array_equal(dset["y0"].values, sig2())
+
+        # Reset for other tests
+        delattr(freq, "batched")
+        delattr(freq, "batch_size")
+        delattr(t, "batched")
+        delattr(other_freq, "batched")
+        delattr(other_freq, "batch_size")
+        delattr(amp, "batched")
+        delattr(sig2, "batched")
+        t(1), amp(1), freq(1), other_freq(1)  # Reset globals
 
     def test_adaptive_no_averaging(self):
         self.MC.soft_avg(5)
