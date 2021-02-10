@@ -9,9 +9,32 @@ Unreleased
 
 * ...
 
+
+0.3.1 (2021-02-11)
+------------------
+
+* Added installation instructions for windows
+* Added function to load settings from previous experiments onto instruments (load_settings_onto_instrument)
+* Added support for @property as attributes of Settables/Gettables
+* Migrated code style to black
+* Fixed support for python3.9
+* Various bugfixes
+
+
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* Windows install instr (!79)
+* Load instrument settings (!29)
+* Docs/general fixes (!82)
+* updated copyright years (!84)
+* Hotfix makefile docs (!83)
+* Hot fix tuids max num (!85)
+* added reqs for scipy, fixes #133 (!87)
+* Added link on cross-fork collaboration (!90)
+* Allow easy access to the tests datadir from a simple import (!95)
+* Add custom css for rtd (!27)
+* Dset units attr, closes #147 (!101)
 * Add setGeometry method to instrument monitor and plotmon (!88)
 * Enforce a datadir choice to avoid potential data loss (!86)
 * Migrated code style to black (!93)
