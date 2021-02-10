@@ -4,6 +4,7 @@ This module should contain different analyses corresponding to discrete experime
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from abc import ABC
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
@@ -34,7 +35,8 @@ class BaseAnalysis(ABC):
 
     def __init__(self, label: str = "", tuid: str = None, close_figs: bool = True):
         """
-        Initializes the variables that are used in the analysis and to which data is stored.
+        Initializes the variables that are used in the analysis and to which data is
+        stored.
 
         Parameters
         ------------------
@@ -59,11 +61,17 @@ class BaseAnalysis(ABC):
         self.fit_res = None
         self.run_analysis()
 
+    @property
+    def name(self):
+        # used to store data and figures resulting from the analysis. Can be overwritten
+        return self.__class__.__name__
+
     def extract_data(self):
         """
         Populates `self.dset` with data from the experiment matching the tuid/label.
 
-        This method should be overwritten if an analysis does not relate to a single datafile.
+        This method should be overwritten if an analysis does not relate to a single
+        datafile.
         """
 
         # if no TUID is specified use the label to search for the latest file with a match.
@@ -139,12 +147,20 @@ class BaseAnalysis(ABC):
         DPI = this.settings["DPI"]
         formats = this.settings["fig_formats"]
 
-        for figname, fig in self.figs_mpl.items():
-            filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
-            for form in formats:
-                fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
-            if self.close_figs:
-                plt.close(fig)
+        # Save mpl figures
+        exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
+
+        if len(self.figs_mpl) != 0:
+            mpl_figdir = os.path.join(exp_folder, f"analysis {self.name}", 'mpl_figs')
+            if not os.path.isdir(mpl_figdir):
+                os.makedirs(mpl_figdir)
+
+            for figname, fig in self.figs_mpl.items():
+                filename = os.path.join(mpl_figdir, f"{figname}")
+                for form in formats:
+                    fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
+                if self.close_figs:
+                    plt.close(fig)
 
 
 class Basic1DAnalysis(BaseAnalysis):
