@@ -24,7 +24,7 @@ this = sys.modules[__name__]
 
 # global configurations at the level of the analysis module
 this.settings = {
-    "DPI": 600,  # define resolution of some matplotlib output formats
+    "DPI": 450,  # define resolution of some matplotlib output formats
     "fig_formats": ("png", "svg"),
     "presentation_mode": False,
     "transparent_background": False,
@@ -84,7 +84,20 @@ class BaseAnalysis(ABC):
 
         self.dset = load_dataset(tuid=self.tuid)
 
-        # maybe also load in the metadata here?
+    @property
+    def analysis_dir(self):
+        """
+        Analysis dir based on the tuid. Will create a directory if it does not exist yet.
+        """
+        if self.tuid is None:
+            raise ValueError("TUID unknown, cannot determine analysis dir")
+        # This is a property as it depends
+        exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
+        analysis_dir = os.path.join(exp_folder, f"analysis_{self.name}")
+        if not os.path.isdir(analysis_dir):
+            os.makedirs(analysis_dir)
+
+        return analysis_dir
 
     def run_analysis(self):
         """
@@ -93,6 +106,7 @@ class BaseAnalysis(ABC):
         This function is typically called after the __init__.
         """
         self.extract_data()  # extract data specified in params dict
+
         self.process_data()  # binning, filtering etc
 
         self.prepare_fitting()  # set up fit_dicts
@@ -132,14 +146,8 @@ class BaseAnalysis(ABC):
 
         self._add_fit_res_to_qoi()
 
-        exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
-
-        analysis_dir = os.path.join(exp_folder, f"analysis {self.name}")
-        if not os.path.isdir(analysis_dir):
-            os.makedirs(analysis_dir)
-
         with open(
-            os.path.join(analysis_dir, "quantities_of_interest.json"), "w"
+            os.path.join(self.analysis_dir, "quantities_of_interest.json"), "w"
         ) as file:
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
@@ -166,17 +174,16 @@ class BaseAnalysis(ABC):
 
         # if statement exist to be compatible with child classes that do not load data
         # onto the self.dset object.
-        if self.dset is not None:
-            exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
-            analysis_dir = os.path.join(exp_folder, f"analysis {self.name}")
 
-            # netcdf encoding of datasets does not support complex numbers.
-            # see issue #150
-            # self.dset.to_netcdf(
-            #     os.path.join(analysis_dir, "processed_dataset.hdf5"),
-            #     engine="h5netcdf",
-            #     invalid_netcdf=True,
-            # )
+        pass  # see issue #150
+        # if self.dset is not None:
+        #     netcdf encoding of datasets does not support complex numbers.
+        #     see issue #150
+        #     self.dset.to_netcdf(
+        #         os.path.join(self.analysis_dir, "processed_dataset.hdf5"),
+        #         engine="h5netcdf",
+        #         invalid_netcdf=True,
+        #     )
 
     def save_figures(self):
         """
@@ -185,11 +192,8 @@ class BaseAnalysis(ABC):
         DPI = this.settings["DPI"]
         formats = this.settings["fig_formats"]
 
-        # Save mpl figures
-        exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
-
         if len(self.figs_mpl) != 0:
-            mpl_figdir = os.path.join(exp_folder, f"analysis {self.name}", "figs_mpl")
+            mpl_figdir = os.path.join(self.analysis_dir, "figs_mpl")
             if not os.path.isdir(mpl_figdir):
                 os.makedirs(mpl_figdir)
 

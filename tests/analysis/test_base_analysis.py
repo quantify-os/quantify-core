@@ -21,8 +21,8 @@ def test_load_dataset():
     assert set(a.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
 
     exp_dir = ba._locate_experiment_file(a.tuid, get_datadir(), "")
-    assert "analysis Basic1DAnalysis" in os.listdir(exp_dir)
-    analysis_dir = os.listdir(os.path.join(exp_dir, "analysis Basic1DAnalysis"))
+    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(os.path.join(exp_dir, "analysis_Basic1DAnalysis"))
     assert "figs_mpl" in analysis_dir
 
 
@@ -34,6 +34,6 @@ def test_Basic2DAnalysis():
     assert set(a.figs_mpl.keys()) == {"Heatmap x0x1-y0", "Heatmap x0x1-y1"}
 
     exp_dir = ba._locate_experiment_file(a.tuid, get_datadir(), "")
-    assert "analysis Basic2DAnalysis" in os.listdir(exp_dir)
-    analysis_dir = os.listdir(os.path.join(exp_dir, "analysis Basic2DAnalysis"))
+    assert "analysis_Basic2DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(os.path.join(exp_dir, "analysis_Basic2DAnalysis"))
     assert "figs_mpl" in analysis_dir
