@@ -22,7 +22,9 @@ Merged branches and closed issues
 Breaking changes
 ^^^^^^^^^^^^^^^^
 
-* "unit" attr of xarray variables in dataset changed to "units" for compatibility with xarray utilities (!101)
+Please see merge request !101 for a python snippet that will make all previous datasets compliant with this breaking change!
+
+* "unit" attr of xarray variables in dataset changed to "units" for compatibility with xarray utilities. (!101)
 
 
 0.3.0 (2020-12-17)
