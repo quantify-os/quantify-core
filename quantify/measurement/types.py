@@ -3,7 +3,6 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-from types import FunctionType
 from jsonschema import Draft7Validator
 from jsonschema.validators import extend
 from quantify.utilities.general import load_json_schema
