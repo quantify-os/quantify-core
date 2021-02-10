@@ -245,8 +245,8 @@ Plotting and saving the results of the analysis
     ax.plot(x_fit, y_fit, label='Fit')
     ax.legend()
 
-    set_xlabel(ax, dset['x0'].attrs['long_name'], dset['x0'].attrs['unit'])
-    set_ylabel(ax, dset['y0'].attrs['long_name'], dset['y0'].attrs['unit'])
+    set_xlabel(ax, dset['x0'].attrs['long_name'], dset['x0'].attrs['units'])
+    set_ylabel(ax, dset['y0'].attrs['long_name'], dset['y0'].attrs['units'])
     ax.set_title('{}\n{}'.format(tuid, 'Cosine test'))
 
 Now that we have analyzed our data and created a figure, we probably want to store the results of our analysis.
