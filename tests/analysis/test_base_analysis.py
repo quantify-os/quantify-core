@@ -1,3 +1,5 @@
+import os
+from quantify.data.handling import get_datadir
 import quantify.data.handling as dh
 from quantify.analysis import base_analysis as ba
 from quantify.utilities._tests_helpers import get_test_data_dir
@@ -18,6 +20,11 @@ def test_load_dataset():
     # test that the right figures get created.
     assert set(a.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
 
+    exp_dir = ba._locate_experiment_file(a.tuid, get_datadir(), "")
+    assert "analysis Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(os.path.join(exp_dir, "analysis Basic1DAnalysis"))
+    assert "figs_mpl" in analysis_dir
+
 
 def test_Basic2DAnalysis():
     dh.set_datadir(get_test_data_dir())
@@ -25,3 +32,8 @@ def test_Basic2DAnalysis():
     tuid = "20210126-162726-170-de4f78"
     a = ba.Basic2DAnalysis(tuid=tuid)
     assert set(a.figs_mpl.keys()) == {"Heatmap x0x1-y0", "Heatmap x0x1-y1"}
+
+    exp_dir = ba._locate_experiment_file(a.tuid, get_datadir(), "")
+    assert "analysis Basic2DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(os.path.join(exp_dir, "analysis Basic2DAnalysis"))
+    assert "figs_mpl" in analysis_dir

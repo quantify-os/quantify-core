@@ -151,7 +151,7 @@ class BaseAnalysis(ABC):
         exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
 
         if len(self.figs_mpl) != 0:
-            mpl_figdir = os.path.join(exp_folder, f"analysis {self.name}", 'mpl_figs')
+            mpl_figdir = os.path.join(exp_folder, f"analysis {self.name}", 'figs_mpl')
             if not os.path.isdir(mpl_figdir):
                 os.makedirs(mpl_figdir)
 
