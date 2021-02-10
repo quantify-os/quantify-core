@@ -98,12 +98,11 @@ class BaseAnalysis(ABC):
         self.prepare_fitting()  # set up fit_dicts
         self.run_fitting()  # fitting to models
         self.analyze_fit_results()  # analyzing the results of the fits
-
-        self.save_quantities_of_interest()
-
         self.create_figures()
         self.adjust_figures()
         self.save_figures()
+        self.save_quantities_of_interest()
+        self.save_processed_dataset()
 
     def process_data(self):
         """
@@ -119,12 +118,12 @@ class BaseAnalysis(ABC):
         pass
 
     def _add_fit_res_to_qoi(self):
-        if len(self.fit_res)>0:
+        if len(self.fit_res) > 0:
             self.quantities_of_interest["fit_res"] = OrderedDict()
             for fr_name, fr in self.fit_res.items():
-                self.quantities_of_interest["fit_res"][fr_name] = flatten_lmfit_modelresult(
-                    fr
-                )
+                self.quantities_of_interest["fit_res"][
+                    fr_name
+                ] = flatten_lmfit_modelresult(fr)
 
     def analyze_fit_results(self):
         pass
@@ -159,6 +158,25 @@ class BaseAnalysis(ABC):
             if this.settings["transparent_background"]:
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
+
+    def save_processed_dataset(self):
+        """
+        Saves a copy of self.dset in the analysis folder of the experiment.
+        """
+
+        # if statement exist to be compatible with child classes that do not load data
+        # onto the self.dset object.
+        if self.dset is not None:
+            exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
+            analysis_dir = os.path.join(exp_folder, f"analysis {self.name}")
+
+            # netcdf encoding of datasets does not support complex numbers.
+            # see issue #150
+            # self.dset.to_netcdf(
+            #     os.path.join(analysis_dir, "processed_dataset.hdf5"),
+            #     engine="h5netcdf",
+            #     invalid_netcdf=True,
+            # )
 
     def save_figures(self):
         """
