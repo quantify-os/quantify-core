@@ -90,12 +90,16 @@ Batched mode can be used to deal with constraints imposed by (hardware) resource
 
 In *Iterative* mode, the MC steps through each setpoint one at a time, processing them one by one.
 
-In *Batched* mode, the MC vectorises the setpoints such that they are processed in batches.
-The size of these batches is automatically calculated but usually dependent on resource constraints; you may have a device which can hold 2000 samples but wish to sweep over 40000 points.
+In *Batched* mode, the MC vectorizes the setpoints such that they are processed in batches.
+The size of these batches is automatically calculated but usually dependent on resource constraints; you may have a device which can hold 100 samples but you wish to sweep over 2000 points.
 
-Control mode is detected automatically based on the `.batched` attribute of the :class:`~quantify.measurement.Gettable`; this is expanded upon in subsequent sections.
+.. note:: The maximum batch size of the settable(s)/gettable(s) should be specified using the `.batch_size` attribute. If not specified infinite size is assumed and all setpoint are passed to the settable(s).
 
-.. note:: Every Settable and Gettable must have the same Control Mode.
+.. tip:: In *Batched* mode it is still possible to perform outer iterative sweeps with an inner batched sweep. This is performed automatically when batched (`.batched=True`) settables are mixed with iterative settables (`.batched=False`). To correctly grid the points in this mode use :meth:`~quantify.measurement.MeasurementControl.setpoints_grid`.
+
+Control mode is detected automatically based on the `.batched` attribute of the settable(s) and gettable(s); this is expanded upon in subsequent sections.
+
+.. note:: All gettables must have the same value for the `.batched` attribute. Settables can have mixed `.batched` attribute (only) when `gettable(s).batched=True`.
 
 
 Settables and Gettables
@@ -109,24 +113,6 @@ We set values to Settables; these values populate an x-axis.
 Similarly, we get values from Gettables which populate a y-axis.
 These classes define a set of mandatory and optional attributes the MeasurementControl recognizes and will use as part of the experiment, which are expanded up in the API Reference.
 
-Depending on which Control Mode the MeasurementControl is running in, the interfaces for Settables (their input) and Gettables (their output) are slightly different:
-
-**Iterative:**
-
-- Each settable accepts a single float value.
-- Gettables return a single float value, **OR**
-- Gettables return a 1D array of floats, with each element corresponding to a *different y dimension*.
-
-**Batched:**
-
-- Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
-- Gettables return a 1D array of float values with each element corresponding to the datapoints *in that Y dimension*, **OR**
-- Gettables return a 2D array of float values with each row representing a *different Y dimension* with the above structure, i.e. each column is a datapoint corresponding to each setpoint.
-
-.. note::
-    It is also possible for Batched Gettables to return a partial array with length less than the input. This is helpful when working with resource constrained devices,
-    for example if you have *n* setpoints but your device can load only less than *n* datapoints into memory. In this scenario, the MC tracks how many datapoints were actually
-    processed, automatically adjusting the size of the next batch.
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
 In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
@@ -162,14 +148,42 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
         def finish(self) -> None:
             pass
 
+Depending on which Control Mode the MeasurementControl is running in, the interfaces for Settables (their input) and Gettables (their output) are slightly different. Bellow we list possible scenarios and give examples.
+
+**Iterative:**
+
+.. jupyter
+
+.. admonition:: Single-float-valued settable(s) and gettable(s)
+    :class:  dropdown, tip
+
+    .. jupyter-execute::
+
+        print("bla")
+
+- Each settable accepts a single float value.
+- Gettables return a single float value, **OR**
+- Gettables return a 1D array of floats, with each element corresponding to a *different Y dimension*.
+
+**Batched:**
+
+- Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
+- Gettables return a 1D array of float values with each element corresponding to the datapoints *in that Y dimension*, **OR**
+- Gettables return a 2D array of float values with each row representing a *different Y dimension* with the above structure, i.e. each column is a datapoint corresponding to each setpoint.
+
+.. note::
+
+    It is also possible for Batched Gettables to return a partial array with length less than the input. This is helpful when working with resource constrained devices,
+    for example if you have *n* setpoints but your device can load only less than *n* datapoints into memory. In this scenario, the MC tracks how many datapoints were actually
+    processed, automatically adjusting the size of the next batch.
+
+
 
 .batched, .prepare() and .finish()
 ----------------------------------------
 
-The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` class have a `bool` property `batched (default=False)`.
-Setting the `batched` property to `True` enables the batch Control Mode in the MeasurementControl.
-
-.. note:: Note that all :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` entities must have the same Control Mode.
+The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` class have a `bool` property `.batched (default=False)`.
+Setting the `.batched` property to `True` enables the batch Control Mode in the MeasurementControl.
 
 Optionally the :meth:`!prepare` and :meth:`!finish` can be added and are run before and after each MeasurementControl loop.
 These methods can be used to setup and teardown work. For example, arming a piece of hardware with data and then closing a connection upon completion.
