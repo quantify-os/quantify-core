@@ -1,7 +1,11 @@
 """
 This module should contain different analyses corresponding to discrete experiments
 """
+import json
 import sys
+from collections import OrderedDict
+from qcodes.utils.helpers import NumpyJSONEncoder
+import lmfit
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -55,10 +59,10 @@ class BaseAnalysis(ABC):
         # This will be overwritten
         self.dset = None
         # To be populated by a subclass
-        self.figs_mpl = dict()
-        self.axs_mpl = dict()
-
-        self.fit_res = None
+        self.figs_mpl = OrderedDict()
+        self.axs_mpl = OrderedDict()
+        self.quantities_of_interest = OrderedDict()
+        self.fit_res = OrderedDict()
         self.run_analysis()
 
     @property
@@ -93,7 +97,6 @@ class BaseAnalysis(ABC):
 
         self.prepare_fitting()  # set up fit_dicts
         self.run_fitting()  # fitting to models
-        self.save_fit_results()
         self.analyze_fit_results()  # analyzing the results of the fits
 
         self.save_quantities_of_interest()
@@ -115,14 +118,31 @@ class BaseAnalysis(ABC):
     def run_fitting(self):
         pass
 
-    def save_fit_results(self):
-        pass
+    def _add_fit_res_to_qoi(self):
+        if len(self.fit_res)>0:
+            self.quantities_of_interest["fit_res"] = OrderedDict()
+            for fr_name, fr in self.fit_res.items():
+                self.quantities_of_interest["fit_res"][fr_name] = flatten_lmfit_modelresult(
+                    fr
+                )
 
     def analyze_fit_results(self):
         pass
 
     def save_quantities_of_interest(self):
-        pass
+
+        self._add_fit_res_to_qoi()
+
+        exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
+
+        analysis_dir = os.path.join(exp_folder, f"analysis {self.name}")
+        if not os.path.isdir(analysis_dir):
+            os.makedirs(analysis_dir)
+
+        with open(
+            os.path.join(analysis_dir, "quantities_of_interest.json"), "w"
+        ) as file:
+            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
     def create_figures(self):
         pass
@@ -151,7 +171,7 @@ class BaseAnalysis(ABC):
         exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
 
         if len(self.figs_mpl) != 0:
-            mpl_figdir = os.path.join(exp_folder, f"analysis {self.name}", 'figs_mpl')
+            mpl_figdir = os.path.join(exp_folder, f"analysis {self.name}", "figs_mpl")
             if not os.path.isdir(mpl_figdir):
                 os.makedirs(mpl_figdir)
 
@@ -269,3 +289,33 @@ def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **
         x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
         y = model.eval(fit_res.init_params, **{independent_var: x})
         ax.plot(x, y, ls="--", c="grey", label="Guess")
+
+
+def flatten_lmfit_modelresult(model):
+    """
+    Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
+
+    Notes
+    -----
+    We use this method as opposed to :func:`lmfit.model.save_modelresult` as the
+    corresponding :func:`lmfit.model.load_modelresult` cannot handle loading data with
+    a custom fit function.
+    """
+    assert (
+        type(model) is lmfit.model.ModelResult
+        or type(model) is lmfit.minimizer.MinimizerResult
+    )
+    dic = OrderedDict()
+    dic["success"] = model.success
+    dic["message"] = model.message
+    dic["params"] = {}
+    for param_name in model.params:
+        dic["params"][param_name] = {}
+        param = model.params[param_name]
+        for k in param.__dict__:
+            if not k.startswith("_") and k not in [
+                "from_internal",
+            ]:
+                dic["params"][param_name][k] = getattr(param, k)
+        dic["params"][param_name]["value"] = getattr(param, "value")
+    return dic
