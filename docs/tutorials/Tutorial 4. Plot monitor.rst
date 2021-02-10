@@ -213,7 +213,7 @@ We would like to compare if the current behavior matches for example what we got
     # We would like to compare if the current behavior matches for example
     # what we got a few minutes ago
 
-    reference_tuids = sorted(get_tuids_containing("ADC"))[0:2]
+    reference_tuids = sorted(get_tuids_containing("ADC"))[-3:-1]
 
     plotmon.tuids_extra(reference_tuids)
     plotmon.main_QtPlot
