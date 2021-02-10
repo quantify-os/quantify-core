@@ -44,6 +44,7 @@ extensions = [
     "sphinx-jsonschema",
     "jupyter_sphinx",
     "sphinxcontrib.blockdiag",
+    "sphinx_togglebutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
