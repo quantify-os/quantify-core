@@ -3,10 +3,25 @@
     "attrs": {
         "description": "attributes",
         "required": [
+            "name",
             "label",
             "unit"
         ],
         "properties": {
+            "name": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "description": "identifier"
+            },
             "label": {
                 "oneOf": [
                     {
@@ -48,24 +63,9 @@
     "methods": {
         "description": "methods",
         "required": [
-            "name",
             "get"
         ],
         "properties": {
-            "name": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "description": "identifier"
-            },
             "get": {
                 "description": "get values from this device",
                 "type": "object"
