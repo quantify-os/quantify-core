@@ -208,11 +208,11 @@ class TestMeasurementControl:
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {"x0", "y0"}
         assert np.array_equal(dset["x0"], xvals)
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "unit": "s"}
+        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
-            "unit": "V",
+            "units": "V",
         }
 
     def test_soft_sweep_1D_multi_return(self):
@@ -266,12 +266,12 @@ class TestMeasurementControl:
         assert dset["x0"].attrs == {
             "name": "DummyHardwareSettable",
             "long_name": "Amp",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["y0"].attrs == {
             "name": "DummyHardwareGettable_0",
             "long_name": "Watts",
-            "unit": "W",
+            "units": "W",
         }
 
     def test_soft_averages_hard_sweep_1D(self):
@@ -344,16 +344,16 @@ class TestMeasurementControl:
         assert all(e in dset["x0"].values for e in times)
         assert all(e in dset["x1"].values for e in amps)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "unit": "s"}
+        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
         assert dset["x1"].attrs == {
             "name": "amp",
             "long_name": "Amplitude",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
-            "unit": "V",
+            "units": "V",
         }
 
     def test_soft_sweep_2D_arbitrary(self):
@@ -413,17 +413,17 @@ class TestMeasurementControl:
         assert dset["x0"].attrs == {
             "name": "DummyHardwareSettable",
             "long_name": "Amp",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["x1"].attrs == {
             "name": "DummyHardwareSettable",
             "long_name": "Amp",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["y0"].attrs == {
             "name": "DummyHardwareGettable_0",
             "long_name": "Watts",
-            "unit": "W",
+            "units": "W",
         }
 
     def test_hard_sweep_2D_grid_multi_return(self):
@@ -593,16 +593,16 @@ class TestMeasurementControl:
         assert all(e in dset["x1"] for e in amps)
         assert all(e in dset["x2"] for e in freqs)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "unit": "s"}
+        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
         assert dset["x2"].attrs == {
             "name": "freq",
             "long_name": "Frequency",
-            "unit": "Hz",
+            "units": "Hz",
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
-            "unit": "V",
+            "units": "V",
         }
 
     def test_soft_sweep_3D_multi_return(self):
