@@ -40,13 +40,13 @@ def test_initialize_dataset():
 
     x0 = dataset["x0"]
     assert isinstance(x0, xr.DataArray)
-    assert x0.attrs["unit"] == "m"
+    assert x0.attrs["units"] == "m"
     assert x0.attrs["name"] == "x"
     assert x0.attrs["long_name"] == "X position"
 
     y0 = dataset["y0"]
     assert isinstance(y0, xr.DataArray)
-    assert y0.attrs["unit"] == "V"
+    assert y0.attrs["units"] == "V"
     assert y0.attrs["name"] == "y"
     assert y0.attrs["long_name"] == "Signal amplitude"
 
