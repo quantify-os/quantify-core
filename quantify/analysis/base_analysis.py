@@ -167,10 +167,10 @@ class Basic1DAnalysis(BaseAnalysis):
                 ax=ax,
                 x=self.dset["x0"].values,
                 xlabel=self.dset["x0"].attrs["long_name"],
-                xunit=self.dset["x0"].attrs["unit"],
+                xunit=self.dset["x0"].attrs["units"],
                 y=self.dset[f"{yi}"].values,
                 ylabel=self.dset[f"{yi}"].attrs["long_name"],
-                yunit=self.dset[f"{yi}"].attrs["unit"],
+                yunit=self.dset[f"{yi}"].attrs["units"],
             )
 
             f.suptitle(
@@ -201,11 +201,11 @@ class Basic2DAnalysis(BaseAnalysis):
                 y=self.dset["x1"],
                 z=self.dset[f"{yi}"],
                 xlabel=self.dset["x0"].attrs["long_name"],
-                xunit=self.dset["x0"].attrs["unit"],
+                xunit=self.dset["x0"].attrs["units"],
                 ylabel=self.dset["x1"].attrs["long_name"],
-                yunit=self.dset["x1"].attrs["unit"],
+                yunit=self.dset["x1"].attrs["units"],
                 zlabel=self.dset[f"{yi}"].attrs["long_name"],
-                zunit=self.dset[f"{yi}"].attrs["unit"],
+                zunit=self.dset[f"{yi}"].attrs["units"],
                 ax=ax,
             )
 
