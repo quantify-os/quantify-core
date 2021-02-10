@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
+from uncertainties import ufloat
 from quantify.analysis import fitting_models as fm
 
 
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
     def process_data(self):
 
-        # y0 = amplitude, no check for the amplitude unit as the name/label is often different.
+        # y0 = amplitude, no check for the amplitude unit as the name/label is
+        # often different.
         # y1 = phase in deg, this unit should always be correct
         assert self.dset["y1"].attrs["units"] == "deg"
 
@@ -29,6 +31,13 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         fit_res = mod.fit(S21, params=guess, f=f)
 
         self.fit_res = {"hanger_func_complex_SI": fit_res}
+
+        fp = fit_res.params
+        self.quantities_of_interest["Qi"] = ufloat(fp["Qi"].value, fp["Qi"].stderr)
+        self.quantities_of_interest["Qe"] = ufloat(fp["Qe"].value, fp["Qe"].stderr)
+        self.quantities_of_interest["Ql"] = ufloat(fp["Ql"].value, fp["Ql"].stderr)
+        self.quantities_of_interest["Qc"] = ufloat(fp["Qc"].value, fp["Qc"].stderr)
+        self.quantities_of_interest["fr"] = ufloat(fp["fr"].value, fp["fr"].stderr)
 
     def create_figures(self):
 

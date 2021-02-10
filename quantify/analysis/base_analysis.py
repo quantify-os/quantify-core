@@ -1,9 +1,14 @@
 """
 This module should contain different analyses corresponding to discrete experiments
 """
+import json
 import sys
+from collections import OrderedDict
+from qcodes.utils.helpers import NumpyJSONEncoder
+import lmfit
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from abc import ABC
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
@@ -19,7 +24,7 @@ this = sys.modules[__name__]
 
 # global configurations at the level of the analysis module
 this.settings = {
-    "DPI": 600,  # define resolution of some matplotlib output formats
+    "DPI": 450,  # define resolution of some matplotlib output formats
     "fig_formats": ("png", "svg"),
     "presentation_mode": False,
     "transparent_background": False,
@@ -34,7 +39,8 @@ class BaseAnalysis(ABC):
 
     def __init__(self, label: str = "", tuid: str = None, close_figs: bool = True):
         """
-        Initializes the variables that are used in the analysis and to which data is stored.
+        Initializes the variables that are used in the analysis and to which data is
+        stored.
 
         Parameters
         ------------------
@@ -53,17 +59,23 @@ class BaseAnalysis(ABC):
         # This will be overwritten
         self.dset = None
         # To be populated by a subclass
-        self.figs_mpl = dict()
-        self.axs_mpl = dict()
-
-        self.fit_res = None
+        self.figs_mpl = OrderedDict()
+        self.axs_mpl = OrderedDict()
+        self.quantities_of_interest = OrderedDict()
+        self.fit_res = OrderedDict()
         self.run_analysis()
+
+    @property
+    def name(self):
+        # used to store data and figures resulting from the analysis. Can be overwritten
+        return self.__class__.__name__
 
     def extract_data(self):
         """
         Populates `self.dset` with data from the experiment matching the tuid/label.
 
-        This method should be overwritten if an analysis does not relate to a single datafile.
+        This method should be overwritten if an analysis does not relate to a single
+        datafile.
         """
 
         # if no TUID is specified use the label to search for the latest file with a match.
@@ -72,7 +84,20 @@ class BaseAnalysis(ABC):
 
         self.dset = load_dataset(tuid=self.tuid)
 
-        # maybe also load in the metadata here?
+    @property
+    def analysis_dir(self):
+        """
+        Analysis dir based on the tuid. Will create a directory if it does not exist yet.
+        """
+        if self.tuid is None:
+            raise ValueError("TUID unknown, cannot determine analysis dir")
+        # This is a property as it depends
+        exp_folder = _locate_experiment_file(self.tuid, get_datadir(), "")
+        analysis_dir = os.path.join(exp_folder, f"analysis_{self.name}")
+        if not os.path.isdir(analysis_dir):
+            os.makedirs(analysis_dir)
+
+        return analysis_dir
 
     def run_analysis(self):
         """
@@ -81,18 +106,17 @@ class BaseAnalysis(ABC):
         This function is typically called after the __init__.
         """
         self.extract_data()  # extract data specified in params dict
+
         self.process_data()  # binning, filtering etc
 
         self.prepare_fitting()  # set up fit_dicts
         self.run_fitting()  # fitting to models
-        self.save_fit_results()
         self.analyze_fit_results()  # analyzing the results of the fits
-
-        self.save_quantities_of_interest()
-
         self.create_figures()
         self.adjust_figures()
         self.save_figures()
+        self.save_quantities_of_interest()
+        self.save_processed_dataset()
 
     def process_data(self):
         """
@@ -107,14 +131,25 @@ class BaseAnalysis(ABC):
     def run_fitting(self):
         pass
 
-    def save_fit_results(self):
-        pass
+    def _add_fit_res_to_qoi(self):
+        if len(self.fit_res) > 0:
+            self.quantities_of_interest["fit_res"] = OrderedDict()
+            for fr_name, fr in self.fit_res.items():
+                self.quantities_of_interest["fit_res"][
+                    fr_name
+                ] = flatten_lmfit_modelresult(fr)
 
     def analyze_fit_results(self):
         pass
 
     def save_quantities_of_interest(self):
-        pass
+
+        self._add_fit_res_to_qoi()
+
+        with open(
+            os.path.join(self.analysis_dir, "quantities_of_interest.json"), "w"
+        ) as file:
+            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
     def create_figures(self):
         pass
@@ -132,6 +167,24 @@ class BaseAnalysis(ABC):
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
+    def save_processed_dataset(self):
+        """
+        Saves a copy of self.dset in the analysis folder of the experiment.
+        """
+
+        # if statement exist to be compatible with child classes that do not load data
+        # onto the self.dset object.
+
+        pass  # see issue #150
+        # if self.dset is not None:
+        #     netcdf encoding of datasets does not support complex numbers.
+        #     see issue #150
+        #     self.dset.to_netcdf(
+        #         os.path.join(self.analysis_dir, "processed_dataset.hdf5"),
+        #         engine="h5netcdf",
+        #         invalid_netcdf=True,
+        #     )
+
     def save_figures(self):
         """
         Saves all the figures in the :code:`figs_mpl` dict
@@ -139,12 +192,17 @@ class BaseAnalysis(ABC):
         DPI = this.settings["DPI"]
         formats = this.settings["fig_formats"]
 
-        for figname, fig in self.figs_mpl.items():
-            filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
-            for form in formats:
-                fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
-            if self.close_figs:
-                plt.close(fig)
+        if len(self.figs_mpl) != 0:
+            mpl_figdir = os.path.join(self.analysis_dir, "figs_mpl")
+            if not os.path.isdir(mpl_figdir):
+                os.makedirs(mpl_figdir)
+
+            for figname, fig in self.figs_mpl.items():
+                filename = os.path.join(mpl_figdir, f"{figname}")
+                for form in formats:
+                    fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
+                if self.close_figs:
+                    plt.close(fig)
 
 
 class Basic1DAnalysis(BaseAnalysis):
@@ -253,3 +311,33 @@ def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **
         x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
         y = model.eval(fit_res.init_params, **{independent_var: x})
         ax.plot(x, y, ls="--", c="grey", label="Guess")
+
+
+def flatten_lmfit_modelresult(model):
+    """
+    Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
+
+    Notes
+    -----
+    We use this method as opposed to :func:`lmfit.model.save_modelresult` as the
+    corresponding :func:`lmfit.model.load_modelresult` cannot handle loading data with
+    a custom fit function.
+    """
+    assert (
+        type(model) is lmfit.model.ModelResult
+        or type(model) is lmfit.minimizer.MinimizerResult
+    )
+    dic = OrderedDict()
+    dic["success"] = model.success
+    dic["message"] = model.message
+    dic["params"] = {}
+    for param_name in model.params:
+        dic["params"][param_name] = {}
+        param = model.params[param_name]
+        for k in param.__dict__:
+            if not k.startswith("_") and k not in [
+                "from_internal",
+            ]:
+                dic["params"][param_name][k] = getattr(param, k)
+        dic["params"][param_name]["value"] = getattr(param, "value")
+    return dic
