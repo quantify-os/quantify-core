@@ -27,6 +27,6 @@ class TestResonatorSpectroscopyAnalysis:
             "fit_res",
         }
 
-        fitted_freq = self.a.quantities_of_interest['fr']
+        fitted_freq = self.a.quantities_of_interest["fr"]
         assert isinstance(fitted_freq, Variable)
-        assert self.a.quantities_of_interest['fr'].nominal_value == approx(7649998552)
+        assert self.a.quantities_of_interest["fr"].nominal_value == approx(7649998552)
