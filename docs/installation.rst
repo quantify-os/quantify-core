@@ -1,4 +1,4 @@
-.. highlight:: shell
+.. highlight:: console
 
 Installation
 ==============
@@ -13,13 +13,17 @@ If you want to contribute to quantify, also check out :ref:`Setting up quantify 
 All systems except Windows and macOS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Confirm that you have a working python 3.7+ and run the following in your terminal of choice::
+Confirm that you have a working python 3.7+ and run the following in your terminal of choice
+
+.. code-block:: console
 
     $ python --version
     # Expected output similar to:
     # Python 3.7.6
 
-To install Quantify::
+To install Quantify
+
+.. code-block:: console
 
     $ pip install quantify-core
 
@@ -53,6 +57,7 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 #. (Windows only) Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc <https://superuser.com/a/602896>`_ (or in the `.bash_profile`) to expose the anaconda in bash terminal.
 
     .. tip::
+
         If you followed the default anaconda installation the path to it will be similar to
         :code:`/c/Users/<YOUR_USERNAME>/anaconda3/etc/profile.d/conda.sh` (Windows) or :code:`/usr/local/anaconda3/etc/profile.d/conda.sh` (macOS).
 
@@ -81,7 +86,7 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
         $ conda install -c conda-forge jupyterlab  # install jupyter lab
 
 
-#. Install quantify-core from pypi :code:`pip install quantify-core`.
+#. Install quantify-core from pypi.
 
     .. tip::
 
@@ -110,7 +115,8 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
     .. code-block:: console
 
-        $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"  # adds the environment as an available kernel for jupyter notebook within  jupyter-lab.
+        # adds the environment as an available kernel for jupyter notebook within  jupyter-lab.
+        $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
 
     .. note::
 
