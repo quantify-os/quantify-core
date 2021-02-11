@@ -6,6 +6,8 @@
 import os
 import sys
 import json
+from dateutil.parser import parse
+from typing import Union
 from collections.abc import Iterable
 import datetime
 from uuid import uuid4
@@ -30,7 +32,7 @@ def gen_tuid(ts=None):
 
     Parameters
     ----------
-    ts : :class:`~datetime.date`
+    ts : :class:`~datetime.datetime`
         optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns
@@ -339,14 +341,20 @@ def get_latest_tuid(contains: str = "") -> TUID:
     FileNotFoundError
         No data found
     """
-    return get_tuids_containing(contains, max_results=1)[0]
+
+    # FIXME: it will currently search all files in the datadirectory but only return
+    # the most recent one. This works fine for small datadirs but will slow down in the
+    # future.
+
+    return get_tuids_containing(contains, max_results=1, reverse=True)[0]
 
 
 def get_tuids_containing(
     contains: str,
-    t_start: datetime.date = None,
-    t_stop: datetime.date = None,
+    t_start: Union[datetime.datetime, str] = None,
+    t_stop: Union[datetime.datetime, str] = None,
     max_results: int = sys.maxsize,
+    reverse: bool = False,
 ) -> list:
     """
     Returns a list of tuids containing a specific label.
@@ -361,11 +369,17 @@ def get_tuids_containing(
     contains
         a string contained in the experiment name.
     t_start
-        date to search from, inclusive.
+        datetime to search from, inclusive. If a string is specified, it will be
+        converted to a datetime object using :func:`dateutil.parser.parse`.
+        If no value is specified, will use the year 1 as a reference t_start.
     t_stop
-        date to search until, exclusive.
+        datetime to search until, exclusive. If a string is specified, it will be
+        converted to a datetime object using :func:`dateutil.parser.parse`.
+        If no value is specified, will use the current time as a reference t_stop.
     max_results
         maximum number of results to return. Defaults to unlimited.
+    reverse
+        if False, sorts tuids chronologically, if True sorts by most recent.
     Returns
     -------
     list
@@ -376,10 +390,24 @@ def get_tuids_containing(
         No data found
     """
     datadir = get_datadir()
+    if isinstance(t_start, str):
+        t_start = parse(t_start)
+    elif t_start is None:
+        t_start = datetime.datetime(1, 1, 1)
+    if isinstance(t_stop, str):
+        t_stop = parse(t_stop)
+    elif t_stop is None:
+        t_stop = datetime.datetime.now()
 
     # date range filters, define here to make the next line more readable
-    lower_bound = lambda x: x >= t_start if t_start else True  # noqa: E731
-    upper_bound = lambda x: x < t_stop if t_stop else True  # noqa: E731
+    d_start = t_start.strftime("%Y%m%d")
+    d_stop = t_stop.strftime("%Y%m%d")
+
+    def lower_bound(x):
+        return x >= d_start if d_start else True  # noqa: E731
+
+    def upper_bound(x):
+        return x <= d_stop if d_stop else True  # noqa: E731
 
     daydirs = list(
         filter(
@@ -389,24 +417,30 @@ def get_tuids_containing(
             os.listdir(datadir),
         )
     )
-    daydirs.sort(reverse=True)
+    daydirs.sort(reverse=reverse)
     if len(daydirs) == 0:
         err_msg = 'There are no valid day directories in the data folder "{}"'.format(
             datadir
         )
         if t_start or t_stop:
-            err_msg += ", for the range {}-{}".format(t_start or "", t_stop or "")
+            err_msg += ", for the range {} to {}".format(t_start or "", t_stop or "")
         raise FileNotFoundError(err_msg)
 
     tuids = []
     for dd in daydirs:
         expdirs = list(
             filter(
-                lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
+                lambda x: (
+                    len(x) > 25
+                    and TUID.is_valid(x[:26])  # tuid is valid
+                    and (contains in x)  # label is part of exp_name
+                    and (t_start <= parse(x[:15]))  # tuid is after  t_start
+                    and (parse(x[:15]) < t_stop)  # tuid is before t_stop
+                ),
                 os.listdir(os.path.join(datadir, dd)),
             )
         )
-        expdirs.sort(reverse=True)
+        expdirs.sort(reverse=reverse)
         for expname in expdirs:
             # Check for inconsistent folder structure for datasets portability
             if dd != expname[:8]:
