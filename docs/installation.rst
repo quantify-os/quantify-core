@@ -48,9 +48,9 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
     .. note::
 
-        Be aware that a unix-like terminal on windows almost always comes with some caveats. The most likely for you to encounter is that running a python interactive terminal requires running :code:`winpty python` or :code:`python -i` instead of just :code:`python`. If possible avoid that altogether and run an IPython terminal instead: :code:`ipython`.
+        Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any python code using :ref:`JupyterLab <https://jupyterlab.readthedocs.io/en/stable/>`_ (installation steps follows below).
 
-#. Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc <https://superuser.com/a/602896>`_ (or in the `.bash_profile`) to expose the anaconda in bash terminal.
+#. (Windows only) Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc <https://superuser.com/a/602896>`_ (or in the `.bash_profile`) to expose the anaconda in bash terminal.
 
     .. tip::
         If you followed the default anaconda installation the path to it will be similar to
@@ -84,6 +84,7 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 #. Install quantify-core from pypi :code:`pip install quantify-core`.
 
     .. tip::
+
         If you are an early adopter or interested to contribute to Quantify you should :ref:`install it from source <From source>`.
 
     .. code-block:: console
@@ -91,6 +92,19 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
         $ pip install quantify-core  # install the package into
         $ pip install quantify-...   # optionally install other quantify modules
 
+    .. tip::
+
+        To update quantify to the latest version:
+
+        .. code-block:: console
+
+            $ pip install --upgrade quantify-core
+
+        And ff you require a specific version, e.g. 0.3.0, run:
+
+        .. code-block:: console
+
+            $ pip install --upgrade quantify-core==0.3.0
 
 #. Add the conda environment as a kernel to jupyter.
 

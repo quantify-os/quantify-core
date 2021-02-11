@@ -113,11 +113,11 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
    Now you can make your changes locally.
 
-#. When you're done making changes, auto-format the repository with `black` and ensure test coverage
+#. When you are done making changes, auto-format the repository with `black` and ensure test coverage
 
     .. code-block::
 
-        $ black . # no need to run if you installed pre-commit
+        $ black .
         $ pytest --cov
 
 
