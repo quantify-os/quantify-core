@@ -53,7 +53,7 @@ def create_plotmon_from_historical(tuid: TUID):
         the TUID of the experiment.
     Returns
     -------
-    :class:`~quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt`
+    :class:`~quantify.visualization.PlotMonitor_pyqt`
         the plot
     """
     plot = PlotMonitor_pyqt(tuid)

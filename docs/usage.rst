@@ -39,7 +39,7 @@ Instruments provide the following functionality.
 - A standardized interface.
 - Provide logging of parameters through the :meth:`~qcodes.instrument.base.Instrument.snapshot` method.
 - All instruments inherit from the QCoDeS :class:`~qcodes.instrument.base.Instrument` class.
-- Are shown by default in the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor`
+- Are shown by default in the :class:`~quantify.visualization.InstrumentMonitor`
 
 
 Measurement Control
@@ -79,7 +79,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     dataset = MC.run(name='Frequency sweep')    # Start the experiment
 
 
-The :class:`~quantify.control.measurement.MeasurementControl` can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
+The :class:`~quantify.measurement.MeasurementControl` can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
 Take a look at some of the tutorial notebooks for more in-depth examples on usage and application.
 
 Control Mode
