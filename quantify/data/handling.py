@@ -45,7 +45,7 @@ def gen_tuid(ts=None):
     # ts gives microsecs by default
     (dt, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
-    dt = "%s%03d-" % (dt, int(micro) / 1000)
+    dt = f"{dt}{int(int(micro) / 1000):03d}-"
     # the tuid is composed of the timestamp and a 6 character uuid.
     tuid = TUID(dt + str(uuid4())[:6])
 
@@ -102,7 +102,7 @@ def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
     exp_folders = list(filter(lambda x: tuid in x, os.listdir(daydir)))
     if len(exp_folders) == 0:
         print(os.listdir(daydir))
-        raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
+        raise FileNotFoundError(f"File with tuid: {tuid} was not found.")
 
     # We assume that the length is 1 as tuid is assumed to be unique
     exp_folder = exp_folders[0]
@@ -220,7 +220,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
         darrs.append(
             xr.DataArray(
                 data=setpoints[:, i],
-                name="x{}".format(i),
+                name=f"x{i}",
                 attrs={
                     "name": setpar.name,
                     "long_name": setpar.label,
@@ -246,7 +246,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
             darrs.append(
                 xr.DataArray(
                     data=empty_arr,
-                    name="y{}".format(j + idx),
+                    name=f"y{j + idx}",
                     attrs={"name": info[0], "long_name": info[1], "units": info[2]},
                 )
             )
@@ -419,11 +419,9 @@ def get_tuids_containing(
     )
     daydirs.sort(reverse=reverse)
     if len(daydirs) == 0:
-        err_msg = 'There are no valid day directories in the data folder "{}"'.format(
-            datadir
-        )
+        err_msg = f"There are no valid day directories in the data folder '{datadir}'"
         if t_start or t_stop:
-            err_msg += ", for the range {} to {}".format(t_start or "", t_stop or "")
+            err_msg += f", for the range {t_start or ''} to {t_stop or ''}"
         raise FileNotFoundError(err_msg)
 
     tuids = []
@@ -445,15 +443,13 @@ def get_tuids_containing(
             # Check for inconsistent folder structure for datasets portability
             if dd != expname[:8]:
                 raise FileNotFoundError(
-                    'Experiment container "{}" is in wrong day directory "{}" '.format(
-                        expname, dd
-                    )
+                    f"Experiment container '{expname}' is in wrong day directory '{dd}'"
                 )
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
                 return tuids
     if len(tuids) == 0:
-        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+        raise FileNotFoundError(f"No experiment found containing '{contains}'")
     return tuids
 
 
