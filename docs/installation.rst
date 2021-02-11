@@ -52,14 +52,14 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
     .. note::
 
-        Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any python code using :ref:`JupyterLab <https://jupyterlab.readthedocs.io/en/stable/>`_ (installation steps follows below).
+        Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any python code using `JupyterLab <https://jupyterlab.readthedocs.io/en/stable/>`_ (installation steps below).
 
 #. (Windows only) Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc <https://superuser.com/a/602896>`_ (or in the `.bash_profile`) to expose the anaconda in bash terminal.
 
     .. tip::
 
         If you followed the default anaconda installation the path to it will be similar to
-        :code:`/c/Users/<YOUR_USERNAME>/anaconda3/etc/profile.d/conda.sh` (Windows) or :code:`/usr/local/anaconda3/etc/profile.d/conda.sh` (macOS).
+        :code:`/c/Users/<YOUR_USERNAME>/anaconda3/etc/profile.d/conda.sh`.
 
         Pro tip: you can drag and drop a file from the file explorer into the terminal and get the path of the file (instead of typing it manually).
 
