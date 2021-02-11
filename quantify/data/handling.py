@@ -286,7 +286,8 @@ def grow_dataset(dataset: xr.Dataset):
 
 def trim_dataset(dataset: xr.Dataset):
     """
-    Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
+    Trim NaNs from a dataset, useful in the case of a dynamically
+    resized dataset (e.g. adaptive loops).
 
     Parameters
     ----------
@@ -463,6 +464,8 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 # ######################################################################
+
+
 def _xi_and_yi_match(dsets: Iterable) -> bool:
     """
     Checks if all xi and yi data variables in `dsets` match:
