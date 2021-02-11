@@ -345,9 +345,9 @@ class RemotePlotmon:
                         y=dset[yi].values,
                         subplot=plot_idx,
                         xlabel=dset[xi].attrs["long_name"],
-                        xunit=dset[xi].attrs["unit"],
+                        xunit=dset[xi].attrs["units"],
                         ylabel=dset[yi].attrs["long_name"],
-                        yunit=dset[yi].attrs["unit"],
+                        yunit=dset[yi].attrs["units"],
                         symbol=symb,
                         symbolSize=6,
                         symbolPen=color,
@@ -404,11 +404,11 @@ class RemotePlotmon:
                     "y": y,
                     "z": z,
                     "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["unit"],
+                    "xunit": dset["x0"].attrs["units"],
                     "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["unit"],
+                    "yunit": dset["x1"].attrs["units"],
                     "zlabel": dset[yi].attrs["long_name"],
-                    "zunit": dset[yi].attrs["unit"],
+                    "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
                     "cmap": cmap,
                 }
@@ -432,11 +432,11 @@ class RemotePlotmon:
                     "y": [0, 1],
                     "z": np.zeros([2, 2]),
                     "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["unit"],
+                    "xunit": dset["x0"].attrs["units"],
                     "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["unit"],
+                    "yunit": dset["x1"].attrs["units"],
                     "zlabel": dset[yi].attrs["long_name"],
-                    "zunit": dset[yi].attrs["unit"],
+                    "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
                     "cmap": cmap,
                 }
@@ -456,9 +456,9 @@ class RemotePlotmon:
                     symbolSize=4,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["unit"],
+                    xunit=dset["x0"].attrs["units"],
                     ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["unit"],
+                    yunit=dset["x1"].attrs["units"],
                 )
                 self._im_scatters.append(self.secondary_QtPlot.traces[-1])
 
@@ -472,9 +472,9 @@ class RemotePlotmon:
                     symbolSize=7,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["unit"],
+                    xunit=dset["x0"].attrs["units"],
                     ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["unit"],
+                    yunit=dset["x1"].attrs["units"],
                 )
                 self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
 

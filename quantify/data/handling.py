@@ -222,7 +222,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
                 attrs={
                     "name": setpar.name,
                     "long_name": setpar.label,
-                    "unit": setpar.unit,
+                    "units": setpar.unit,
                 },
             )
         )
@@ -245,7 +245,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
                 xr.DataArray(
                     data=empty_arr,
                     name="y{}".format(j + idx),
-                    attrs={"name": info[0], "long_name": info[1], "unit": info[2]},
+                    attrs={"name": info[0], "long_name": info[1], "units": info[2]},
                 )
             )
             count += 1
