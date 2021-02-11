@@ -105,7 +105,7 @@ For this reason we recommend using the `Anaconda <https://www.anaconda.com/produ
 
             $ pip install --upgrade quantify-core
 
-        And ff you require a specific version, e.g. 0.3.0, run:
+        If you require a specific version, e.g. 0.3.0, run:
 
         .. code-block:: console
 
