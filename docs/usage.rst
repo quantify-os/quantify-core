@@ -71,12 +71,43 @@ Simply define what parameters to set, and get, and what points to loop over.
 
 In the example below we want to set frequencies on a microwave source and acquire the signal from the pulsar readout module.
 
-.. code-block:: python
+.. jupyter-execute::
+    :hide-code:
 
+    import numpy as np
+    from qcodes import ManualParameter, Parameter, validators, Instrument
+    from quantify.measurement import MeasurementControl
+    from pathlib import Path
+    from os.path import join
+    from quantify.data.handling import set_datadir
+    set_datadir(join(Path.home(), 'quantify-data'))
+
+    mw_source1 = Instrument("mw_source1")
+    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    mw_source1.freq = ManualParameter(
+        name='freq',
+        label='Frequency',
+        unit='Hz',
+        vals=validators.Numbers(),
+        initial_value=1.0
+    )
+
+    pulsar_QRM = Instrument("pulsar_QRM")
+    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    pulsar_QRM.signal = Parameter(
+        name='sig_a',
+        label='Signal',
+        unit='V',
+        get_cmd=lambda: mw_source1.freq() * 1e-8
+    )
+
+.. jupyter-execute::
+
+    MC = MeasurementControl("MC")
     MC.settables(mw_source1.freq)               # We want to set the frequency of a microwave source
     MC.setpoints(np.arange(5e9, 5.2e9, 100e3))  # Scan around 5.1 GHz
     MC.gettables(pulsar_QRM.signal)             # acquire the signal from the pulsar QRM
-    dataset = MC.run(name='Frequency sweep')    # Start the experiment
+    dset = MC.run(name='Frequency sweep')    # Start the experiment
 
 
 The :class:`~quantify.measurement.MeasurementControl` can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
@@ -88,9 +119,9 @@ Control Mode
 A very important aspect in the usage of the MeasurementControl is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
 Batched mode can be used to deal with constraints imposed by (hardware) resources or to reduce overhead.
 
-In *Iterative* mode, the MC steps through each setpoint one at a time, processing them one by one.
+In **Iterative** mode, the MC steps through each setpoint one at a time, processing them one by one.
 
-In *Batched* mode, the MC vectorizes the setpoints such that they are processed in batches.
+In **Batched** mode, the MC vectorizes the setpoints such that they are processed in batches.
 The size of these batches is automatically calculated but usually dependent on resource constraints; you may have a device which can hold 100 samples but you wish to sweep over 2000 points.
 
 .. note:: The maximum batch size of the settable(s)/gettable(s) should be specified using the `.batch_size` attribute. If not specified infinite size is assumed and all setpoint are passed to the settable(s).
@@ -115,7 +146,7 @@ These classes define a set of mandatory and optional attributes the MeasurementC
 
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
-In addition to using a library which fits these contracts (such as the QCodes.Parameter family of classes) we can define our own Settables and Gettables.
+In addition to using a library which fits these contracts (such as the `qcodes.Parameter` family of classes) we can define our own Settables and Gettables.
 Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave:
 
 .. jupyter-execute::
@@ -152,14 +183,21 @@ Depending on which Control Mode the MeasurementControl is running in, the interf
 
 **Iterative:**
 
-.. jupyter
-
-.. admonition:: Single-float-valued settable(s) and gettable(s)
+.. admonition:: Single-float-valued settable(s) and gettable(s) [1D]
     :class:  dropdown, tip
 
     .. jupyter-execute::
 
-        print("bla")
+        time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Numbers(), initial_value=1 )
+        signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()) )
+
+        MC.settables(time)
+        MC.gettables(signal)
+        MC.setpoints(np.linspace(0, 7, 20))
+        dset = MC.run("1D-single-float-valued-settable-gettable")
+
+        dset.plot.scatter("x0", "y0")
+
 
 - Each settable accepts a single float value.
 - Gettables return a single float value, **OR**
@@ -251,10 +289,6 @@ The resulting dataset will look similar to the following:
 .. jupyter-execute::
     :hide-code:
 
-    from qcodes import ManualParameter, Parameter
-    from quantify.measurement.control import MeasurementControl
-    import numpy as np
-
     t = ManualParameter('t', initial_value=1, unit='s', label='Time')
     amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
     def CosFunc():
@@ -262,7 +296,6 @@ The resulting dataset will look similar to the following:
 
     sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=CosFunc)
 
-    MC = MeasurementControl('MC')
     MC.verbose(False) # Suppress printing
     MC.settables([t, amp])
     MC.setpoints_grid([np.linspace(0, 5, 20), np.linspace(-1, 1, 5)])
