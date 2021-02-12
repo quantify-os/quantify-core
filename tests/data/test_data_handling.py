@@ -251,3 +251,33 @@ def test_dynamic_dataset():
     assert not np.isnan(dset["x0"]).any()
     assert not np.isnan(dset["x1"]).any()
     assert not np.isnan(dset["y0"]).any()
+
+
+def test_to_gridded_dataset():
+    dh.set_datadir(test_datadir)
+    tuid = "20200504-191556-002-4209ee"
+    dset_orig = dh.load_dataset(tuid)
+    dset_gridded = dh.to_gridded_dataset(dset_orig)
+
+    assert dset_gridded.attrs["tuid_origin"] == tuid
+    assert tuple(dset_gridded.dims.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.dims.values()) == (50, 11)
+    assert dset_gridded["y0"].dims == ("x0", "x1")
+    assert len(dset_gridded["x0"].values) == len(np.unique(dset_orig["x0"]))
+
+    for var in ("x0", "x1", "y0"):
+        assert dset_orig[var].attrs == dset_gridded[var].attrs
+
+    y0 = dset_gridded["y0"].values
+
+    indices = [[10, 9], [22, 6], [7, 3], [10, 1], [18, 1], [0, 3]]
+    expected = [
+        -0.7983563142002691,
+        0.1436698700195456,
+        0.2493959207434933,
+        0.7983563142002691,
+        -0.6970549632987115,
+        -0.3999999999999999,
+    ]
+
+    assert [y0[tuple(idxs)] for idxs in indices] == expected
