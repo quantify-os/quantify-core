@@ -8,6 +8,7 @@ import sys
 import json
 from dateutil.parser import parse
 from typing import Union
+from collections import OrderedDict
 from collections.abc import Iterable
 import datetime
 from uuid import uuid4
@@ -26,13 +27,13 @@ this = sys.modules[__name__]
 this._datadir = None
 
 
-def gen_tuid(ts=None):
+def gen_tuid(ts: datetime.datetime = None) -> TUID:
     """
     Generates a :class:`~quantify.data.types.TUID` based on current time.
 
     Parameters
     ----------
-    ts : :class:`~datetime.datetime`
+    ts: :class:`~datetime.datetime`
         optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns
@@ -78,7 +79,7 @@ def get_datadir():
     return this._datadir
 
 
-def set_datadir(datadir: str):
+def set_datadir(datadir: str) -> None:
     """
     Sets the data directory.
 
@@ -198,7 +199,7 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     return exp_folder
 
 
-def initialize_dataset(settable_pars, setpoints, gettable_pars):
+def initialize_dataset(settable_pars: list, setpoints: list, gettable_pars: list):
     """
     Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
@@ -258,7 +259,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
     return dataset
 
 
-def grow_dataset(dataset: xr.Dataset):
+def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
     """
     Resizes the dataset by doubling the current length of all arrays.
 
@@ -286,7 +287,7 @@ def grow_dataset(dataset: xr.Dataset):
     return dataset.merge(new_data)
 
 
-def trim_dataset(dataset: xr.Dataset):
+def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
     """
     Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
 
@@ -341,11 +342,7 @@ def get_latest_tuid(contains: str = "") -> TUID:
     FileNotFoundError
         No data found
     """
-
-    # FIXME: it will currently search all files in the datadirectory but only return
-    # the most recent one. This works fine for small datadirs but will slow down in the
-    # future.
-
+    # `max_results=1, reverse=True` makes sure the tuid is found efficiently asap
     return get_tuids_containing(contains, max_results=1, reverse=True)[0]
 
 
@@ -432,7 +429,7 @@ def get_tuids_containing(
                     len(x) > 25
                     and TUID.is_valid(x[:26])  # tuid is valid
                     and (contains in x)  # label is part of exp_name
-                    and (t_start <= parse(x[:15]))  # tuid is after  t_start
+                    and (t_start <= parse(x[:15]))  # tuid is after t_start
                     and (parse(x[:15]) < t_stop)  # tuid is before t_stop
                 ),
                 os.listdir(os.path.join(datadir, dd)),
@@ -453,7 +450,7 @@ def get_tuids_containing(
     return tuids
 
 
-def snapshot(update: bool = False, clean: bool = True) -> dict:
+def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
     """
     State of all instruments setup as a JSON-compatible dictionary (everything that the custom JSON encoder class
     :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
@@ -466,10 +463,12 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         if True, removes certain keys from the snapshot to create a more readable and compact snapshot.
     """
 
-    snap = {
-        "instruments": {},
-        "parameters": {},
-    }
+    snap = OrderedDict(
+        {
+            "instruments": {},
+            "parameters": {},
+        }
+    )
     for ins_name, ins_ref in Instrument._all_instruments.items():
         snap["instruments"][ins_name] = ins_ref().snapshot(update=update)
 
@@ -493,6 +492,10 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 # ######################################################################
+# Private utilities
+# ######################################################################
+
+
 def _xi_and_yi_match(dsets: Iterable) -> bool:
     """
     Checks if all xi and yi data variables in `dsets` match:

@@ -214,8 +214,8 @@ def test_get_tuids_containing_between_exclusive_t_stop():
 
 
 def test_get_tuids_containing_between_inclusive_t_start():
-    t_start = "20201124-184709"
-    t_stop = "20201124-184723"  # test if t_stop is inclusive
+    t_start = "20201124-184709"  # test if t_stop is inclusive
+    t_stop = "20201124-184723"
 
     tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
     assert tuids == [
@@ -226,7 +226,7 @@ def test_get_tuids_containing_between_inclusive_t_start():
 
 
 def test_get_tuids_containing_reverse():
-    t_start = "20201124-180000"
+    t_start = "20200814"
     t_stop = "20201124-190000"
 
     tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop, reverse=True)
@@ -236,6 +236,7 @@ def test_get_tuids_containing_reverse():
         "20201124-184722-988-0463d4",
         "20201124-184716-237-918bee",
         "20201124-184709-137-8a5112",
+        "20200814-134652-492-fbf254",
     ]
 
 
