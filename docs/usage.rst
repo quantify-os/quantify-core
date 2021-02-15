@@ -14,6 +14,29 @@ The core of Quantify can be understood by understanding the following concepts:
 - `Settables and Gettables`_
 - `Data storage & Analysis`_
 
+Code snippets
+-------------
+
+.. seealso::
+
+    The complete source code of the examples on this page can be found in
+
+    :jupyter-download:notebook:`usage`
+
+    :jupyter-download:script:`usage`
+
+
+Bellow we import common utilities used in the examples.
+
+.. jupyter-execute::
+
+    import numpy as np
+    from qcodes import ManualParameter, Parameter, validators, Instrument
+    from quantify.measurement import MeasurementControl
+    from quantify.measurement import Gettable
+    import quantify.data.handling as dh
+    import xarray as xr
+    import matplotlib.pyplot as plt
 
 
 Instruments and Parameters
@@ -74,9 +97,6 @@ In the example below we want to set frequencies on a microwave source and acquir
 .. jupyter-execute::
     :hide-code:
 
-    import numpy as np
-    from qcodes import ManualParameter, Parameter, validators, Instrument
-    from quantify.measurement import MeasurementControl
     from pathlib import Path
     from os.path import join
     from quantify.data.handling import set_datadir
@@ -147,7 +167,6 @@ These classes define a set of mandatory and optional attributes the MeasurementC
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
 In addition to using a library which fits these contracts (such as the `qcodes.Parameter` family of classes) we can define our own Settables and Gettables.
-Below we create a Gettable which returns values in two dimensions, one Sine wave and a Cosine wave:
 
 .. jupyter-execute::
     :hide-code:
@@ -159,19 +178,16 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
 
 .. jupyter-execute::
 
-    import numpy as np
-    from qcodes import ManualParameter
-
     t = ManualParameter('time', label='Time', unit='s')
 
-    class DualWave:
+    class WaveGettable:
         def __init__(self):
-            self.unit = ['V', 'V']
-            self.label = ['Amplitude', 'Amplitude']
-            self.name = ['sine', 'cosine']
+            self.unit = 'V'
+            self.label = 'Amplitude'
+            self.name = 'sine'
 
         def get(self):
-            return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
+            return np.sin(t() / np.pi)
 
         def prepare(self) -> None:
             pass
@@ -179,29 +195,121 @@ Below we create a Gettable which returns values in two dimensions, one Sine wave
         def finish(self) -> None:
             pass
 
+    # verify compliance with the Gettable format
+    wave_gettable = WaveGettable()
+    Gettable(wave_gettable)
+
+.. admonition:: Note: "Grouped" gettable(s) are also allowed.
+    :class: dropdown
+
+    Below we create a Gettable which returns two distinct quantities at once, one Sine wave and a Cosine wave:
+
+    .. jupyter-execute::
+
+        t = ManualParameter('time', label='Time', unit='s')
+
+        class DualWave:
+            def __init__(self):
+                self.unit = ['V', 'V']
+                self.label = ['Amplitude', 'Amplitude']
+                self.name = ['sine', 'cosine']
+
+            def get(self):
+                return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
+
+        # verify compliance with the Gettable format
+        wave_gettable = DualWave()
+        Gettable(wave_gettable)
+
 Depending on which Control Mode the MeasurementControl is running in, the interfaces for Settables (their input) and Gettables (their output) are slightly different. Bellow we list possible scenarios and give examples.
 
 **Iterative:**
 
-.. admonition:: Single-float-valued settable(s) and gettable(s) [1D]
-    :class:  dropdown, tip
+.. admonition:: Single-float-valued settable(s) and gettable(s)
+    :class: tip
 
-    .. jupyter-execute::
+    - Each settable accepts a single float value.
+    - Gettables return a single float value.
 
-        time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Numbers(), initial_value=1 )
-        signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()) )
+    .. admonition:: 1D
+        :class: dropdown
 
-        MC.settables(time)
-        MC.gettables(signal)
-        MC.setpoints(np.linspace(0, 7, 20))
-        dset = MC.run("1D-single-float-valued-settable-gettable")
+        .. jupyter-execute::
 
-        dset.plot.scatter("x0", "y0")
+            time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Numbers(), initial_value=1 )
+            signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()) )
 
+            MC.settables(time)
+            MC.gettables(signal)
+            MC.setpoints(np.linspace(0, 7, 20))
+            dset = MC.run("1D-single-float-valued-settable-gettable")
 
-- Each settable accepts a single float value.
-- Gettables return a single float value, **OR**
-- Gettables return a 1D array of floats, with each element corresponding to a *different Y dimension*.
+            dset.plot.scatter("x0", "y0")
+
+    .. admonition:: 2D
+        :class: dropdown
+
+        .. jupyter-execute::
+
+            time_a = ManualParameter(name='time_a', label='Time A', unit='s', vals=validators.Numbers(), initial_value=1)
+            time_b = ManualParameter(name='time_b', label='Time B', unit='s', vals=validators.Numbers(), initial_value=1 )
+            signal = Parameter(name='sig_a', label='Signal A', unit='V', get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()) )
+
+            MC.settables([time_a, time_b])
+            MC.gettables(signal)
+            MC.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
+            dset = MC.run("2D-single-float-valued-settable-gettable")
+
+            dset_grid = dh.to_gridded_dataset(dset)
+
+            xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
+
+    .. admonition:: ND
+        :class: dropdown
+
+            For more dimensions you only need to pass more settables and the corresponding setpoints.
+
+.. admonition:: Single-float-valued settable(s) and multi-return gettable(s)
+    :class: tip
+
+        - Each settable accepts a single float value.
+        - Gettables return a 1D array of floats, with each element corresponding to a *different Y dimension*.
+
+        We exemplify a 2D case, however there is no limitation on the number of settables.
+
+        .. admonition:: 2D
+            :class: dropdown
+
+            .. jupyter-execute::
+
+                time_a = ManualParameter(name='time_a', label='Time A', unit='s', vals=validators.Numbers(), initial_value=1)
+                time_b = ManualParameter(name='time_b', label='Time B', unit='s', vals=validators.Numbers(), initial_value=1 )
+
+                signal = Parameter(name='sig_a', label='Signal A', unit='V', get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()) )
+
+                class DualWave:
+                    def __init__(self):
+                        self.unit = ['V', 'V']
+                        self.label = ['Amplitude W1', 'Amplitude W2']
+                        self.name = ['sine', 'cosine']
+
+                    def get(self):
+                        return np.array([np.sin(time_a() * np.pi), np.cos(time_b() * np.pi)])
+
+                dual_wave = DualWave()
+                MC.settables([time_a, time_b])
+                MC.gettables([signal, dual_wave])
+                MC.setpoints_grid([np.linspace(0, 3, 21), np.linspace(4, 0, 20)])
+                dset = MC.run("2D-single-float-valued-settable-gettable")
+
+                dset_grid = dh.to_gridded_dataset(dset)
+
+                xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
+                plt.show()
+                xr.plot.pcolormesh(dset_grid["y1"], "x0", "x1", cmap="inferno")
+                plt.show()
+                xr.plot.pcolormesh(dset_grid["y2"], "x0", "x1", cmap="plasma")
+                plt.show()
 
 **Batched:**
 
@@ -209,11 +317,78 @@ Depending on which Control Mode the MeasurementControl is running in, the interf
 - Gettables return a 1D array of float values with each element corresponding to the datapoints *in that Y dimension*, **OR**
 - Gettables return a 2D array of float values with each row representing a *different Y dimension* with the above structure, i.e. each column is a datapoint corresponding to each setpoint.
 
+.. admonition:: Float-valued array settable(s) and gettable(s)
+    :class: tip
+
+    - Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
+    - Gettables return a 1D array of float values with each element corresponding to the datapoints *in that Y dimension*
+
+    .. admonition:: 1D
+        :class: dropdown
+
+        .. jupyter-execute::
+
+            time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Arrays(), initial_value=np.array([1, 2, 3]))
+            signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()) )
+
+            time.batched = True
+            signal.batched = True
+
+            MC.settables(time)
+            MC.gettables(signal)
+            MC.setpoints(np.linspace(0, 7, 20))
+            dset = MC.run("1D-single-float-valued-settable-gettable")
+
+            dset.plot.scatter("x0", "y0")
+
+            print(f"\nNOTE: The gettable returns an array:\n\n{signal.get()}")
+
+    .. admonition:: Iterative outer loops with inner 1D batched dimension
+        :class: dropdown
+
+        .. jupyter-execute::
+
+            time_a = ManualParameter(name='time_a', label='Time A', unit='s', vals=validators.Numbers(), initial_value=1)
+            time_b = ManualParameter(name='time_b', label='Time B', unit='s', vals=validators.Numbers(), initial_value=np.array([1, 2, 3]))
+            signal = Parameter(name='sig_a', label='Signal A', unit='V', get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()) )
+
+            time_b.batched = True
+            signal.batched = True
+
+            MC.settables([time_a, time_b])
+            MC.gettables(signal)
+            MC.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
+            dset = MC.run("2D-single-float-valued-settable-gettable")
+
+            dset_grid = dh.to_gridded_dataset(dset)
+
+            xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
+
 .. note::
 
-    It is also possible for Batched Gettables to return a partial array with length less than the input. This is helpful when working with resource constrained devices,
-    for example if you have *n* setpoints but your device can load only less than *n* datapoints into memory. In this scenario, the MC tracks how many datapoints were actually
-    processed, automatically adjusting the size of the next batch.
+    It is also possible for batched Gettables return an array with length less than then the length of the setpoints, and similarly for the input of the Settables.
+    This is often the case when working with resource constrained devices, for example if you have *n* setpoints but your device can load only less than *n* datapoints into memory.
+    In this scenario, the MC tracks how many datapoints were actually processed, automatically adjusting the size of the next batch.
+
+    .. admonition:: Example
+        :class: dropdown
+
+        .. jupyter-execute::
+
+            time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Arrays(), initial_value=np.array([1, 2, 3]))
+            signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()) )
+
+            time.batched = True
+            time.batched_size = 5
+            signal.batched = True
+            signal.batched_size = 10
+
+            MC.settables(time)
+            MC.gettables(signal)
+            MC.setpoints(np.linspace(0, 7, 23))
+            dset = MC.run("1D-single-float-valued-settable-gettable")
+
+            dset.plot.scatter("x0", "y0")
 
 
 
