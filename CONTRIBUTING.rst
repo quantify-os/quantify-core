@@ -83,6 +83,7 @@ Thank you very much for your hard work in improving quantify!
 
         # 3. Push to the forked project
         $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
+
     N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 
 
@@ -112,10 +113,12 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
    Now you can make your changes locally.
 
-#. When you're done making changes, auto-format the repository with `black` and ensure test coverage::
+#. When you are done making changes, auto-format the repository with `black` and ensure test coverage
 
-    $ black . # no need to run if you installed pre-commit
-    $ pytest --cov
+    .. code-block::
+
+        $ black .
+        $ pytest --cov
 
 
     .. tip:: Running parts of the test suite
@@ -124,11 +127,11 @@ Ready to contribute? Here's how to set up `quantify` for local development.
         tests as an argument to pytest. The following example
 
 
-    .. code-block:: shell
+        .. code-block:: shell
 
-        $ py.test tests/measurement --cov quantify/measurement
+            $ py.test tests/measurement --cov quantify/measurement
 
-    will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+        will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
 
 #. Building the documentation
 
