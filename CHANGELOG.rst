@@ -2,17 +2,17 @@
 Changelog
 ===========
 
-
-
-0.3.1 (2021-02-11)
+0.3.1 (2021-02-15)
 ------------------
 
-* Added installation instructions for windows
-* Added function to load settings from previous experiments onto instruments (load_settings_onto_instrument)
-* Added support for @property as attributes of Settables/Gettables
-* Migrated code style to black
-* Fixed support for python3.9
-* Various bugfixes
+* Added function to load settings from previous experiments onto instruments (load_settings_onto_instrument).
+* Added support for @property as attributes of Settables/Gettables.
+* Migrated code style to black.
+* Fixed support for python3.9.
+* Significant improvements to general documentation.
+* Improved installation instructions for windows and MacOS.
+* Changed the dataset .unit attribute to .units to adopt xarray default (Breaking change!).
+* Various minor bugfixes.
 
 
 Merged branches and closed issues
@@ -35,6 +35,10 @@ Merged branches and closed issues
 * Fixed support for python3.9 (!94)
 * Added support for dynamic change of datadir for plotmon (!97)
 * Added support for @property as attributes of Settables/Gettables (!100)
+* "unit" attr of xarray variables in dataset changed to "units" for compatibility with xarray utilities. (!101)
+* Updated numpy requirement (!104)
+* Updated installation intructions for MacOS #142 (!99)
+* Bugfix for get tuids containing method (!106)
 
 Breaking changes
 ^^^^^^^^^^^^^^^^
