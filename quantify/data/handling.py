@@ -6,6 +6,9 @@
 import os
 import sys
 import json
+from dateutil.parser import parse
+from typing import Union
+from collections import OrderedDict
 from collections.abc import Iterable
 import datetime
 from uuid import uuid4
@@ -24,13 +27,13 @@ this = sys.modules[__name__]
 this._datadir = None
 
 
-def gen_tuid(ts=None):
+def gen_tuid(ts: datetime.datetime = None) -> TUID:
     """
     Generates a :class:`~quantify.data.types.TUID` based on current time.
 
     Parameters
     ----------
-    ts : :class:`~datetime.date`
+    ts: :class:`~datetime.datetime`
         optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns
@@ -43,7 +46,7 @@ def gen_tuid(ts=None):
     # ts gives microsecs by default
     (dt, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
-    dt = "%s%03d-" % (dt, int(micro) / 1000)
+    dt = f"{dt}{int(int(micro) / 1000):03d}-"
     # the tuid is composed of the timestamp and a 6 character uuid.
     tuid = TUID(dt + str(uuid4())[:6])
 
@@ -76,7 +79,7 @@ def get_datadir():
     return this._datadir
 
 
-def set_datadir(datadir: str):
+def set_datadir(datadir: str) -> None:
     """
     Sets the data directory.
 
@@ -100,7 +103,7 @@ def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
     exp_folders = list(filter(lambda x: tuid in x, os.listdir(daydir)))
     if len(exp_folders) == 0:
         print(os.listdir(daydir))
-        raise FileNotFoundError("File with tuid: {} was not found.".format(tuid))
+        raise FileNotFoundError(f"File with tuid: {tuid} was not found.")
 
     # We assume that the length is 1 as tuid is assumed to be unique
     exp_folder = exp_folders[0]
@@ -196,7 +199,7 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     return exp_folder
 
 
-def initialize_dataset(settable_pars, setpoints, gettable_pars):
+def initialize_dataset(settable_pars: list, setpoints: list, gettable_pars: list):
     """
     Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
@@ -218,7 +221,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
         darrs.append(
             xr.DataArray(
                 data=setpoints[:, i],
-                name="x{}".format(i),
+                name=f"x{i}",
                 attrs={
                     "name": setpar.name,
                     "long_name": setpar.label,
@@ -244,7 +247,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
             darrs.append(
                 xr.DataArray(
                     data=empty_arr,
-                    name="y{}".format(j + idx),
+                    name=f"y{j + idx}",
                     attrs={"name": info[0], "long_name": info[1], "units": info[2]},
                 )
             )
@@ -256,7 +259,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
     return dataset
 
 
-def grow_dataset(dataset: xr.Dataset):
+def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
     """
     Resizes the dataset by doubling the current length of all arrays.
 
@@ -284,7 +287,7 @@ def grow_dataset(dataset: xr.Dataset):
     return dataset.merge(new_data)
 
 
-def trim_dataset(dataset: xr.Dataset):
+def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
     """
     Trim NaNs from a dataset, useful in the case of a dynamically resized dataset (eg. adaptive loops).
 
@@ -339,14 +342,16 @@ def get_latest_tuid(contains: str = "") -> TUID:
     FileNotFoundError
         No data found
     """
-    return get_tuids_containing(contains, max_results=1)[0]
+    # `max_results=1, reverse=True` makes sure the tuid is found efficiently asap
+    return get_tuids_containing(contains, max_results=1, reverse=True)[0]
 
 
 def get_tuids_containing(
     contains: str,
-    t_start: datetime.date = None,
-    t_stop: datetime.date = None,
+    t_start: Union[datetime.datetime, str] = None,
+    t_stop: Union[datetime.datetime, str] = None,
     max_results: int = sys.maxsize,
+    reverse: bool = False,
 ) -> list:
     """
     Returns a list of tuids containing a specific label.
@@ -361,11 +366,17 @@ def get_tuids_containing(
     contains
         a string contained in the experiment name.
     t_start
-        date to search from, inclusive.
+        datetime to search from, inclusive. If a string is specified, it will be
+        converted to a datetime object using :func:`dateutil.parser.parse`.
+        If no value is specified, will use the year 1 as a reference t_start.
     t_stop
-        date to search until, exclusive.
+        datetime to search until, exclusive. If a string is specified, it will be
+        converted to a datetime object using :func:`dateutil.parser.parse`.
+        If no value is specified, will use the current time as a reference t_stop.
     max_results
         maximum number of results to return. Defaults to unlimited.
+    reverse
+        if False, sorts tuids chronologically, if True sorts by most recent.
     Returns
     -------
     list
@@ -376,10 +387,24 @@ def get_tuids_containing(
         No data found
     """
     datadir = get_datadir()
+    if isinstance(t_start, str):
+        t_start = parse(t_start)
+    elif t_start is None:
+        t_start = datetime.datetime(1, 1, 1)
+    if isinstance(t_stop, str):
+        t_stop = parse(t_stop)
+    elif t_stop is None:
+        t_stop = datetime.datetime.now()
 
     # date range filters, define here to make the next line more readable
-    lower_bound = lambda x: x >= t_start if t_start else True  # noqa: E731
-    upper_bound = lambda x: x < t_stop if t_stop else True  # noqa: E731
+    d_start = t_start.strftime("%Y%m%d")
+    d_stop = t_stop.strftime("%Y%m%d")
+
+    def lower_bound(x):
+        return x >= d_start if d_start else True  # noqa: E731
+
+    def upper_bound(x):
+        return x <= d_stop if d_stop else True  # noqa: E731
 
     daydirs = list(
         filter(
@@ -389,41 +414,43 @@ def get_tuids_containing(
             os.listdir(datadir),
         )
     )
-    daydirs.sort(reverse=True)
+    daydirs.sort(reverse=reverse)
     if len(daydirs) == 0:
-        err_msg = 'There are no valid day directories in the data folder "{}"'.format(
-            datadir
-        )
+        err_msg = f"There are no valid day directories in the data folder '{datadir}'"
         if t_start or t_stop:
-            err_msg += ", for the range {}-{}".format(t_start or "", t_stop or "")
+            err_msg += f", for the range {t_start or ''} to {t_stop or ''}"
         raise FileNotFoundError(err_msg)
 
     tuids = []
     for dd in daydirs:
         expdirs = list(
             filter(
-                lambda x: (len(x) > 25 and TUID.is_valid(x[:26]) and contains in x),
+                lambda x: (
+                    len(x) > 25
+                    and TUID.is_valid(x[:26])  # tuid is valid
+                    and (contains in x)  # label is part of exp_name
+                    and (t_start <= parse(x[:15]))  # tuid is after t_start
+                    and (parse(x[:15]) < t_stop)  # tuid is before t_stop
+                ),
                 os.listdir(os.path.join(datadir, dd)),
             )
         )
-        expdirs.sort(reverse=True)
+        expdirs.sort(reverse=reverse)
         for expname in expdirs:
             # Check for inconsistent folder structure for datasets portability
             if dd != expname[:8]:
                 raise FileNotFoundError(
-                    'Experiment container "{}" is in wrong day directory "{}" '.format(
-                        expname, dd
-                    )
+                    f"Experiment container '{expname}' is in wrong day directory '{dd}'"
                 )
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
                 return tuids
     if len(tuids) == 0:
-        raise FileNotFoundError('No experiment found containing "{}"'.format(contains))
+        raise FileNotFoundError(f"No experiment found containing '{contains}'")
     return tuids
 
 
-def snapshot(update: bool = False, clean: bool = True) -> dict:
+def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
     """
     State of all instruments setup as a JSON-compatible dictionary (everything that the custom JSON encoder class
     :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
@@ -436,10 +463,12 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         if True, removes certain keys from the snapshot to create a more readable and compact snapshot.
     """
 
-    snap = {
-        "instruments": {},
-        "parameters": {},
-    }
+    snap = OrderedDict(
+        {
+            "instruments": {},
+            "parameters": {},
+        }
+    )
     for ins_name, ins_ref in Instrument._all_instruments.items():
         snap["instruments"][ins_name] = ins_ref().snapshot(update=update)
 
@@ -463,6 +492,10 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 # ######################################################################
+# Private utilities
+# ######################################################################
+
+
 def _xi_and_yi_match(dsets: Iterable) -> bool:
     """
     Checks if all xi and yi data variables in `dsets` match:
