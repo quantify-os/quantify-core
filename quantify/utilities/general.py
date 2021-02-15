@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    General utilities.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import importlib
 import copy
@@ -123,7 +123,7 @@ def import_func_from_string(function_string):
     """
     Based on https://stackoverflow.com/questions/3061/calling-a-function-of-a-module-by-using-its-name-a-string
     """
-    mod_name, func_name = function_string.rsplit('.', 1)
+    mod_name, func_name = function_string.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
     return func
@@ -146,8 +146,8 @@ def load_json_schema(relative_to, filename):
     dict
         the schema
     """
-    path = pathlib.Path(relative_to).resolve().parent.joinpath('schemas', filename)
-    with path.open(mode='r') as f:
+    path = pathlib.Path(relative_to).resolve().parent.joinpath("schemas", filename)
+    with path.open(mode="r") as f:
         return json.load(f)
 
 
@@ -167,4 +167,5 @@ class KeyboardFinish(KeyboardInterrupt):
     """
     Indicates the user has signaled to safely abort/finish the experiment.
     """
+
     pass

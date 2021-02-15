@@ -1,9 +1,10 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing the pyqtgraph-based remote plotting monitor manager.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import numpy as np
+from collections.abc import Iterable
 from collections import deque, OrderedDict
 import itertools
 import os
@@ -37,7 +38,7 @@ class RemotePlotmon:
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
-    def __init__(self, instr_name: str, datadir: str):
+    def __init__(self, instr_name: str):
         # Used to mirror the name of the instrument in the windows titles
         self.instr_name = instr_name
 
@@ -67,10 +68,6 @@ class RemotePlotmon:
         self._im_curves = []
         self._im_scatters = []
         self._im_scatters_last = []
-
-        # Set datadir in this process to match the process in
-        # which the plotmon instrument lives
-        set_datadir(datadir)
 
         self.queue = Queue()
         self.timer_queue = None
@@ -155,6 +152,7 @@ class RemotePlotmon:
         if init:
             # Only need to update if datasets were discarded
             self._initialize_plot_monitor()
+        self._tuids_max_num = val
 
     def _pop_old_dsets(self, max_tuids):
         while len(self._tuids) > max_tuids:
@@ -162,7 +160,9 @@ class RemotePlotmon:
             if discard_tuid not in self._tuids_extra:
                 self._dsets.pop(discard_tuid, None)
 
-    def tuids_append(self, tuid):
+    def tuids_append(self, tuid: str, datadir: str):
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
         # verify tuid
         TUID(tuid)
 
@@ -175,7 +175,9 @@ class RemotePlotmon:
             # Reset the previous datasets
             self._pop_old_dsets(max_tuids=0)
 
-        if not _xi_and_yi_match(tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)):
+        if not _xi_and_yi_match(
+            tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)
+        ):
             # Force reset the user-defined extra datasets
             # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
             [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
@@ -192,19 +194,25 @@ class RemotePlotmon:
     def _get_tuids(self):
         return list(self._tuids)
 
-    def _set_tuids(self, tuids):
+    def _set_tuids(self, tuids: Iterable, datadir: str):
         """
         Set cmd for tuids
         """
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
 
         dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
         if dsets and not _xi_and_yi_match(dsets.values()):
-            raise NotImplementedError("Datasets with different x and/or y variables not supported")
+            raise NotImplementedError(
+                "Datasets with different x and/or y variables not supported"
+            )
 
         # it is enough to compare one dataset from each dict
-        if dsets and not _xi_and_yi_match(itertools.chain(dsets.values(), self._dsets.values())):
+        if dsets and not _xi_and_yi_match(
+            itertools.chain(dsets.values(), self._dsets.values())
+        ):
             # Reset the extra tuids
             [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
 
@@ -223,19 +231,26 @@ class RemotePlotmon:
         """
         return self._tuids_extra
 
-    def _set_tuids_extra(self, tuids):
+    def _set_tuids_extra(self, tuids: Iterable, datadir: str):
         """
         Set cmd for tuids_extra
         """
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
+
         extra_dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
 
         if extra_dsets and not _xi_and_yi_match(extra_dsets.values()):
-            raise NotImplementedError("Datasets with different x and/or y variables not supported")
+            raise NotImplementedError(
+                "Datasets with different x and/or y variables not supported"
+            )
 
         # it is enough to compare one dataset from each dict
-        if extra_dsets and not _xi_and_yi_match(itertools.chain(extra_dsets.values(), self._dsets.values())):
+        if extra_dsets and not _xi_and_yi_match(
+            itertools.chain(extra_dsets.values(), self._dsets.values())
+        ):
             # Reset the tuids because the user has specified persistent dsets
             self._pop_old_dsets(max_tuids=0)
 
@@ -267,7 +282,9 @@ class RemotePlotmon:
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.instr_name), figsize=(600, 400), remote=False,
+            window_title="Main plotmon of {}".format(self.instr_name),
+            figsize=(600, 400),
+            remote=False,
         )
 
     def _initialize_plot_monitor(self):
@@ -295,12 +312,19 @@ class RemotePlotmon:
 
         #############################################################
 
-        fadded_colors = make_fadded_colors(num=len(self._tuids), color=color_cycle[0], to_hex=True)
-        extra_colors = tuple(self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra)))
+        fadded_colors = make_fadded_colors(
+            num=len(self._tuids), color=color_cycle[0], to_hex=True
+        )
+        extra_colors = tuple(
+            self.colors[i % len(self.colors)] for i in range(len(self._tuids_extra))
+        )
         all_colors = fadded_colors + extra_colors
         all_colors = tuple(reversed(all_colors))
         # We reserve "o" symbol for the latest dataset
-        symbols = tuple(self.symbols[i % len(self.symbols)] for i in range(len(all_colors) - bool(len(fadded_colors))))
+        symbols = tuple(
+            self.symbols[i % len(self.symbols)]
+            for i in range(len(all_colors) - bool(len(fadded_colors)))
+        )
         # In case only extra datasets are present
         symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
         symbolsBrush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
@@ -321,9 +345,9 @@ class RemotePlotmon:
                         y=dset[yi].values,
                         subplot=plot_idx,
                         xlabel=dset[xi].attrs["long_name"],
-                        xunit=dset[xi].attrs["unit"],
+                        xunit=dset[xi].attrs["units"],
                         ylabel=dset[yi].attrs["long_name"],
-                        yunit=dset[yi].attrs["unit"],
+                        yunit=dset[yi].attrs["units"],
                         symbol=symb,
                         symbolSize=6,
                         symbolPen=color,
@@ -350,7 +374,11 @@ class RemotePlotmon:
         # Below are some "extra" checks that are not currently strictly required
 
         all_tuids_it = itertools.chain(self._tuids, self._tuids_extra)
-        self._tuids_2D = tuple(tuid for tuid in all_tuids_it if (len(_get_parnames(self._dsets[tuid], "x")) == 2))
+        self._tuids_2D = tuple(
+            tuid
+            for tuid in all_tuids_it
+            if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
+        )
         self._tuid_2D = self._tuids_2D[0] if self._tuids_2D else None
 
         dset = self._dsets[self._tuid_2D] if self._tuid_2D else None
@@ -376,11 +404,11 @@ class RemotePlotmon:
                     "y": y,
                     "z": z,
                     "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["unit"],
+                    "xunit": dset["x0"].attrs["units"],
                     "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["unit"],
+                    "yunit": dset["x1"].attrs["units"],
                     "zlabel": dset[yi].attrs["long_name"],
-                    "zunit": dset[yi].attrs["unit"],
+                    "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
                     "cmap": cmap,
                 }
@@ -404,11 +432,11 @@ class RemotePlotmon:
                     "y": [0, 1],
                     "z": np.zeros([2, 2]),
                     "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["unit"],
+                    "xunit": dset["x0"].attrs["units"],
                     "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["unit"],
+                    "yunit": dset["x1"].attrs["units"],
                     "zlabel": dset[yi].attrs["long_name"],
-                    "zunit": dset[yi].attrs["unit"],
+                    "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
                     "cmap": cmap,
                 }
@@ -428,9 +456,9 @@ class RemotePlotmon:
                     symbolSize=4,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["unit"],
+                    xunit=dset["x0"].attrs["units"],
                     ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["unit"],
+                    yunit=dset["x1"].attrs["units"],
                 )
                 self._im_scatters.append(self.secondary_QtPlot.traces[-1])
 
@@ -444,9 +472,9 @@ class RemotePlotmon:
                     symbolSize=7,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["unit"],
+                    xunit=dset["x0"].attrs["units"],
                     ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["unit"],
+                    yunit=dset["x1"].attrs["units"],
                 )
                 self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
 
@@ -454,12 +482,12 @@ class RemotePlotmon:
 
         self.secondary_QtPlot.update_plot()
 
-    def update(self, tuid: str = None):
+    def update(self, tuid: str, datadir: str):
 
         if tuid and tuid not in self._dsets.keys():
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
-            self.tuids_append(tuid)
+            self.tuids_append(tuid, datadir)
 
         if not self._dsets:
             # Nothing to update
@@ -488,7 +516,11 @@ class RemotePlotmon:
         # Add a square heatmap
         if update_2D and dset.attrs["2D-grid"]:
             for yidx, yi in enumerate(get_parnames):
-                Z = np.reshape(dset[yi].values, (dset.attrs["xlen"], dset.attrs["ylen"]), order="F",).T
+                Z = np.reshape(
+                    dset[yi].values,
+                    (dset.attrs["xlen"], dset.attrs["ylen"]),
+                    order="F",
+                ).T
                 self.secondary_QtPlot.traces[yidx]["config"]["z"] = Z
             self.secondary_QtPlot.update_plot()
 
@@ -505,7 +537,9 @@ class RemotePlotmon:
                 # interpolation needs to be meaningful
                 if len(z) < 8:
                     break
-                x_grid, y_grid, z_grid = interpolate_heatmap(x=x, y=y, z=z, interp_method="linear")
+                x_grid, y_grid, z_grid = interpolate_heatmap(
+                    x=x, y=y, z=z, interp_method="linear"
+                )
 
                 trace = self._im_curves[yidx]
                 trace["config"]["x"] = x_grid
@@ -529,12 +563,8 @@ class RemotePlotmon:
 
     def _get_curves_config(self):
         """
-        For testing purposes only, some objects cannot be pickled to
-        be sent
+        For testing purposes only, some objects cannot be pickled to be retrieved
         """
-        # from pprint import pprint
-        # pprint(self.curves)
-        # pprint(self.curves.items())
         curves_dict = dict()
         for tuid, xiyi_dict in self.curves.items():
             curves_dict[tuid] = dict()
@@ -545,16 +575,30 @@ class RemotePlotmon:
 
     def _get_traces_config(self, which="main_QtPlot"):
         """
-        For testing purposes only, some objects cannot be pickled to
-        be sent
+        For testing purposes only, some objects cannot be pickled to be sent
         """
         traces = [{"config": trace["config"]} for trace in getattr(self, which).traces]
 
         return traces
 
+    def _set_QtPlot_geometry(self, x, y, w, h, which="main_QtPlot"):
+        """
+        Sets position and size of the window on screen
+        """
+        getattr(self, which).win.setGeometry(x, y, w, h)
+
+    def _get_QtPlot_geometry(self, which="main_QtPlot"):
+        """
+        Gets position and size of the window on screen
+        """
+        win = getattr(self, which).win
+        return win.x(), win.y(), win.width(), win.height()
+
 
 def _safe_load_dataset(tuid):
-    lockfile = os.path.join(_dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock")
+    lockfile = os.path.join(
+        _dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock"
+    )
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
 

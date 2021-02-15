@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing the pyqtgraph based plotting monitor.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import time
 import pyqtgraph as pg
@@ -27,7 +27,7 @@ class InstrumentMonitor(Instrument):
         .. code-block:: python
 
             from quantify.measurement import MeasurementControl
-            from quantify.visualization.instrument_monitor import InstrumentMonitor
+            from quantify.visualization import InstrumentMonitor
 
             MC = MeasurementControl('MC')
             insmon = InstrumentMonitor("Ins Mon custom")
@@ -40,17 +40,19 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(self, name, window_size=(600, 600), remote=True, **kwargs):
+    def __init__(
+        self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs
+    ):
         """
         Initializes the pyqtgraph window
 
         Parameters
         ----------
-        name : str
-            name of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` object
-        window_size : tuple (width, height)
-            The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
-        remote : bool
+        name
+            name of the :class:`~quantify.visualization.InstrumentMonitor` object
+        window_size
+            The size of the :class:`~quantify.visualization.InstrumentMonitor` window in px
+        remote
             Switch to use a remote instance of the pyqtgraph class
         """
         super().__init__(name=name)
@@ -71,13 +73,13 @@ class InstrumentMonitor(Instrument):
 
         # initial value is fake but ensures it will update the first time
         self.last_update_time = 0
-        self.create_tree(window_size=window_size)
+        self.create_widget(window_size=window_size)
 
     def update(self):
         """
         Updates the Qc widget with the current snapshot of the instruments.
-        This function is also called within the class :class:`~quantify.measurement.control.MeasurementControl`
-        in the function :meth:`~quantify.measurement.control.MeasurementControl.run`.
+        This function is also called within the class :class:`~quantify.measurement.MeasurementControl`
+        in the function :meth:`~quantify.measurement.MeasurementControl.run`.
         """
         time_since_last_update = time.time() - self.last_update_time
         if time_since_last_update > self.update_interval():
@@ -85,37 +87,55 @@ class InstrumentMonitor(Instrument):
             # Take an updated, clean snapshot
             snap = snapshot(update=False, clean=True)
             try:
-                self.tree.setData(snap["instruments"])
+                self.widget.setData(snap["instruments"])
             except AttributeError as e:
                 # This is to catch any potential pickling problems with the snapshot.
                 # We do so by converting all lowest elements of the snapshot to string.
                 snap_collated = traverse_dict(snap["instruments"])
-                self.tree.setData(snap_collated)
+                self.widget.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
     def _init_qt(self):
         # starting the process for the pyqtgraph plotting
         # You do not want a new process to be created every time you start a
         # run, so this only starts once and stores the process in the class
-        self.__class__.proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
+        self.__class__.proc = pgmp.QtProcess(
+            processRequests=False
+        )  # pyqtgraph multiprocessing
         self.__class__.rpg = self.proc._import("pyqtgraph")
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
         self.__class__.rwidget = self.proc._import(qc_widget)
 
-    def create_tree(self, window_size=(1000, 600)):
+    def create_widget(self, window_size: tuple = (1000, 600)):
         """
-        Saves an instance of the :class:`~quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
+        Saves an instance of the :class:`!quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
         class during startup. Creates the :class:`~quantify.data.handling.snapshot` tree to display within the
         remote widget window.
 
         Parameters
         ----------
-        window_size : tuple (width, height)
-            The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
+        window_size
+            The size of the :class:`~quantify.visualization.InstrumentMonitor` window in px
         """
 
-        self.tree = self.rwidget.QcSnaphotWidget()
+        self.widget = self.rwidget.QcSnaphotWidget()
         self.update()
-        self.tree.show()
-        self.tree.setWindowTitle(self.name)
-        self.tree.resize(*window_size)
+        self.widget.show()
+        self.widget.setWindowTitle(self.name)
+        self.widget.resize(*window_size)
+
+    def setGeometry(self, x: int, y: int, w: int, h: int):
+        """Set the geometry of the main widget window
+
+        Parameters
+        ----------
+        x
+            Horizontal position of the top-left corner of the window
+        y
+            Vertical position of the top-left corner of the window
+        w
+            Width of the window
+        h
+            Height of the window
+        """
+        self.widget.setGeometry(x, y, w, h)

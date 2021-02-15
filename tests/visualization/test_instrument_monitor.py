@@ -15,8 +15,15 @@ class TestInstrumentMonitor:
     def test_attributes_created_during_init(self):
         hasattr(self.inst_mon, "update_interval")
 
-    def test_update_function(self):
+    def test_update(self):
         self.inst_mon.update()
+
+    def test_setGeometry(self):
+        xywh = (300, 300, 600, 800)
+        self.inst_mon.setGeometry(*xywh)
+        widget = self.inst_mon.widget
+        # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
+        assert xywh[-2:] == (widget.width(), widget.height())
 
 
 class TestQcSnapshotWidget:
@@ -24,8 +31,8 @@ class TestQcSnapshotWidget:
     def setup_class(cls):
         proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        widget = proc._import(qc_widget)
-        cls.widget = widget.QcSnaphotWidget()
+        r_qc_widget = proc._import(qc_widget)
+        cls.widget = r_qc_widget.QcSnaphotWidget()
 
     @classmethod
     def teardown_class(cls):

@@ -1,10 +1,11 @@
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
-
-import pytest
-from tests.helpers import get_test_data_dir
+from pathlib import Path
+import tempfile
+from distutils.dir_util import copy_tree
+from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.data.types import TUID
-from quantify.data.handling import set_datadir
+import quantify.data.handling as dh
 
 test_datadir = get_test_data_dir()
 
@@ -13,7 +14,7 @@ class TestPlotMonitor_pyqt:
     @classmethod
     def setup_class(cls):
         # ensures the default datadir is used which is excluded from git
-        set_datadir(test_datadir)
+        dh.set_datadir(test_datadir)
         # directory needs to be set before creating the plotting monitor
         # this avoids having to pass around the datadir between processes
         cls.plotmon = PlotMonitor_pyqt(name="plotmon")
@@ -21,7 +22,7 @@ class TestPlotMonitor_pyqt:
     @classmethod
     def teardown_class(cls):
         cls.plotmon.close()
-        set_datadir(None)
+        dh._datadir = None
 
     def test_attributes_created_during_init(self):
         hasattr(self.plotmon, "main_QtPlot")
@@ -91,7 +92,10 @@ class TestPlotMonitor_pyqt:
             "20201124-184736-341-3628d4",
         ]
 
-        time_tags = [":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2)) for tuid in tuids]
+        time_tags = [
+            ":".join(tuid.split("-")[1][i : i + 2] for i in range(0, 6, 2))
+            for tuid in tuids
+        ]
 
         for tuid in tuids:
             self.plotmon.tuids_append(tuid)
@@ -152,3 +156,75 @@ class TestPlotMonitor_pyqt:
         #     self.plotmon.tuids([tuid1, tuid2])
 
         self.plotmon.tuids([])  # reset for next tests
+
+    def test_setGeometry(self):
+        # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
+        xywh = (300, 300, 600, 800)
+
+        self.plotmon.setGeometry_main(*xywh)
+        assert (
+            xywh[-2:]
+            == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")[
+                -2:
+            ]
+        )
+
+        self.plotmon.setGeometry_secondary(*xywh)
+        assert (
+            xywh[-2:]
+            == self.plotmon.remote_plotmon._get_QtPlot_geometry(
+                which="secondary_QtPlot"
+            )[-2:]
+        )
+
+    def test_changed_datadir_main_process(self):
+        # This test ensures that the remote process always uses the same datadir
+        # even when it is changed in the main process
+        self.plotmon.tuids([])  # reset
+        self.plotmon.tuids_extra([])  # reset
+
+        # load dataset in main process
+        tuid = "20201124-184709-137-8a5112"
+
+        # change datadir in the main process
+        tmp_dir = tempfile.TemporaryDirectory()
+        dir_to_copy = Path(
+            dh._locate_experiment_file(tuid=tuid, datadir=dh.get_datadir(), name="")
+        ).parent
+        dh.set_datadir(tmp_dir.name)
+        daydir = Path(tmp_dir.name) / dir_to_copy.name
+        Path.mkdir(daydir)
+        copy_tree(dir_to_copy, str(daydir))
+
+        # .update()
+        self.plotmon.update(tuid)
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+        self.plotmon.tuids([])  # reset
+
+        # .tuids()
+        self.plotmon.tuids([tuid])
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+        self.plotmon.tuids([])  # reset
+
+        # .tuids_append()
+        self.plotmon.tuids_append(tuid)
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+        self.plotmon.tuids([])  # reset
+
+        # .tuids_extra()
+        self.plotmon.tuids_extra([tuid])
+        self.plotmon.remote_plotmon._exec_queue()
+        assert (
+            tuid == tuple(self.plotmon.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        )
+
+        tmp_dir.cleanup()

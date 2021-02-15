@@ -9,14 +9,17 @@ from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
-from quantify.data.handling import set_datadir
+import quantify.data.handling as dh
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
-from tests.helpers import get_test_data_dir
+from quantify.utilities._tests_helpers import get_test_data_dir
+import tempfile
+
 try:
     from adaptive import SKOptLearner
+
     with_skoptlearner = True
 except ImportError:
     with_skoptlearner = False
@@ -158,16 +161,18 @@ class DummyHardwareGettable:
 class TestMeasurementControl:
     @classmethod
     def setup_class(cls):
+        cls.tmp_dir = tempfile.TemporaryDirectory()
+        dh.set_datadir(cls.tmp_dir.name)
         cls.MC = MeasurementControl(name="MC")
         # ensures the default datadir is used which is excluded from git
         cls.dummy_parabola = DummyParHolder("parabola")
-        set_datadir(None)
 
     @classmethod
     def teardown_class(cls):
         cls.MC.close()
         cls.dummy_parabola.close()
-        set_datadir(None)
+        dh._datadir = None
+        cls.tmp_dir.cleanup()
 
     def test_MeasurementControl_name(self):
         assert self.MC.name == "MC"
@@ -203,11 +208,11 @@ class TestMeasurementControl:
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {"x0", "y0"}
         assert np.array_equal(dset["x0"], xvals)
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "unit": "s"}
+        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
-            "unit": "V",
+            "units": "V",
         }
 
     def test_soft_sweep_1D_multi_return(self):
@@ -261,12 +266,12 @@ class TestMeasurementControl:
         assert dset["x0"].attrs == {
             "name": "DummyHardwareSettable",
             "long_name": "Amp",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["y0"].attrs == {
             "name": "DummyHardwareGettable_0",
             "long_name": "Watts",
-            "unit": "W",
+            "units": "W",
         }
 
     def test_soft_averages_hard_sweep_1D(self):
@@ -339,16 +344,16 @@ class TestMeasurementControl:
         assert all(e in dset["x0"].values for e in times)
         assert all(e in dset["x1"].values for e in amps)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "unit": "s"}
+        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
         assert dset["x1"].attrs == {
             "name": "amp",
             "long_name": "Amplitude",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
-            "unit": "V",
+            "units": "V",
         }
 
     def test_soft_sweep_2D_arbitrary(self):
@@ -408,17 +413,17 @@ class TestMeasurementControl:
         assert dset["x0"].attrs == {
             "name": "DummyHardwareSettable",
             "long_name": "Amp",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["x1"].attrs == {
             "name": "DummyHardwareSettable",
             "long_name": "Amp",
-            "unit": "V",
+            "units": "V",
         }
         assert dset["y0"].attrs == {
             "name": "DummyHardwareGettable_0",
             "long_name": "Watts",
-            "unit": "W",
+            "units": "W",
         }
 
     def test_hard_sweep_2D_grid_multi_return(self):
@@ -588,16 +593,16 @@ class TestMeasurementControl:
         assert all(e in dset["x1"] for e in amps)
         assert all(e in dset["x2"] for e in freqs)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "unit": "s"}
+        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
         assert dset["x2"].attrs == {
             "name": "freq",
             "long_name": "Frequency",
-            "unit": "Hz",
+            "units": "Hz",
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
-            "unit": "V",
+            "units": "V",
         }
 
     def test_soft_sweep_3D_multi_return(self):
@@ -750,7 +755,9 @@ class TestMeasurementControl:
         dset = self.MC.run_adaptive("adaptive sample", af_pars)
         # todo pycqed has no verification step here, what should we do?
 
-    @pytest.mark.skipif(not with_skoptlearner, reason="scikit-optimize is not installed")
+    @pytest.mark.skipif(
+        not with_skoptlearner, reason="scikit-optimize is not installed"
+    )
     def test_adaptive_skoptlearner(self):
         self.dummy_parabola.noise(0)
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
@@ -806,7 +813,7 @@ class TestMeasurementControl:
     def test_MC_insmon_integration(self):
         inst_mon = InstrumentMonitor("insmon_MC")
         self.MC.instrument_monitor(inst_mon.name)
-        assert self.MC.instrument_monitor.get_instr().tree.getNodes()
+        assert self.MC.instrument_monitor.get_instr().widget.getNodes()
         inst_mon.close()
         self.MC.instrument_monitor("")
 

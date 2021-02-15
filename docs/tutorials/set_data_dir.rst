@@ -1,27 +1,24 @@
 
-**Before instantiating any instruments or starting a measurement** we change the directory in which the experiments data will be saved. For this Quantify provides the :meth:`~quantify.data.handling.get_datadir`/:meth:`~quantify.data.handling.set_datadir` functions.
+**Before instantiating any instruments or starting a measurement** we change the directory in which the experiments are saved using the :meth:`~quantify.data.handling.set_datadir` [:meth:`~quantify.data.handling.get_datadir`] functions.
 
 
 .. tip::
 
-    It is **highly recommended to**:
+    We **highly recommended to** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *~/quantify-data* (unix) or *D:\\Data\\quantify-data* (Windows).
+    The utilities to find/search/extract data only work if all the experiment containers are located within the same directory.
 
-    **(a)** change the default directory when starting the python kernel (after importing Quantify); and
+.. jupyter-execute::
+    :hide-code:
 
-    **(b)** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:/Data*).
-
-    Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
-
+    # We recommend to always set the directory at the start of the python kernel
+    # and stick to a single common data directory for all
+    # notebooks/experiments within your measurement setup/PC
 
 .. jupyter-execute::
 
-    # Always set the directory at the start of the python kernel
-    # And stick to a single common data directory for all
-    # notebooks/experiments within your measurement setup/PC
-    import os # path utilities
+    # This sets a default data directory for tutorial purposes. Change it to your desired data directory.
+    from pathlib import Path
+    from os.path import join
     from quantify.data.handling import get_datadir, set_datadir
-
-    # we set the datadir inside the default one, FOR TUTORIAL PURPOSES ONLY!!!
-    datadir = os.path.join(get_datadir(), "Data") # CHANGE ME!!!
-    set_datadir(datadir)
-    os.path.basename(get_datadir())
+    set_datadir(join(Path.home(), 'quantify-data')) # change me!
+    print(f"Data will be saved in:\n{get_datadir()}")

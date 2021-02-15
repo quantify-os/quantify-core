@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing the core data concepts of quantify.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import datetime
 
@@ -24,7 +24,7 @@ class TUID(str):
         :class:`~python:datetime.datetime`
             object corresponding to the TUID
         """
-        return datetime.datetime.strptime(self[:18], '%Y%m%d-%H%M%S-%f')
+        return datetime.datetime.strptime(self[:18], "%Y%m%d-%H%M%S-%f")
 
     def uuid(self):
         """

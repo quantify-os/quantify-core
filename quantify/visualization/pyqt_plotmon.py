@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing the pyqtgraph based plotting monitor.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 
 from qcodes import validators as vals
@@ -31,8 +31,8 @@ class PlotMonitor_pyqt(Instrument):
 
         Parameters
         ----------
-        name : str
-            name
+        name
+            Name of this instrument instance
         """
         super().__init__(name=name)
 
@@ -45,11 +45,8 @@ class PlotMonitor_pyqt(Instrument):
         self.remote_ppr = self.proc._import(
             "quantify.visualization.pyqt_plotmon_remote"
         )
-        datadir = get_datadir()
         # the interface to the remote object
-        self.remote_plotmon = self.remote_ppr.RemotePlotmon(
-            instr_name=self.name, datadir=datadir
-        )
+        self.remote_plotmon = self.remote_ppr.RemotePlotmon(instr_name=self.name)
 
         self.add_parameter(
             name="tuids_max_num",
@@ -103,7 +100,9 @@ class PlotMonitor_pyqt(Instrument):
         # Jupyter notebook support
 
         self.main_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "main_QtPlot")
-        self.secondary_QtPlot = QtPlotObjForJupyter(self.remote_plotmon, "secondary_QtPlot")
+        self.secondary_QtPlot = QtPlotObjForJupyter(
+            self.remote_plotmon, "secondary_QtPlot"
+        )
 
     # Wrappers for the remote methods
     # We just put "commands" on a queue that will be consumed by the
@@ -144,7 +143,7 @@ class PlotMonitor_pyqt(Instrument):
         was not yet created or is empty.
         """
         try:
-            self.remote_plotmon.queue.put(("update", (tuid,)))
+            self.remote_plotmon.queue.put(("update", (tuid, get_datadir())))
             # self.remote_plotmon.update(tuid)
         except Exception as e:
             warnings.warn(f"At update encountered: {e}", Warning)
@@ -160,7 +159,7 @@ class PlotMonitor_pyqt(Instrument):
         NB: do not call before the corresponding dataset file was created and filled
         with data
         """
-        self.remote_plotmon.queue.put(("tuids_append", (tuid,)))
+        self.remote_plotmon.queue.put(("tuids_append", (tuid, get_datadir())))
         # self.remote_plotmon.tuids_append(tuid)
 
     def _set_tuids_max_num(self, val):
@@ -168,11 +167,11 @@ class PlotMonitor_pyqt(Instrument):
         # self.remote_plotmon._set_tuids_max_num(val)
 
     def _set_tuids(self, tuids: list):
-        self.remote_plotmon.queue.put(("_set_tuids", (tuids,)))
+        self.remote_plotmon.queue.put(("_set_tuids", (tuids, get_datadir())))
         # self.remote_plotmon._set_tuids(tuids)
 
     def _set_tuids_extra(self, tuids: list):
-        self.remote_plotmon.queue.put(("_set_tuids_extra", (tuids,)))
+        self.remote_plotmon.queue.put(("_set_tuids_extra", (tuids, get_datadir())))
         # self.remote_plotmon._set_tuids_extra(tuids)
 
     # Blocking calls
@@ -213,15 +212,51 @@ class PlotMonitor_pyqt(Instrument):
         Subclasses should override this if they have other specific
         resources to close.
         """
-        if hasattr(self, 'connection') and hasattr(self.connection, 'close'):
+        if hasattr(self, "connection") and hasattr(self.connection, "close"):
             self.connection.close()
 
         # Essential!!!
         # Close the process
         self.proc.join()
 
-        strip_attrs(self, whitelist=['_name'])
+        strip_attrs(self, whitelist=["_name"])
         self.remove_instance(self)
+
+    def setGeometry_main(self, x: int, y: int, w: int, h: int):
+        """Set the geometry of the main plotmon
+
+        Parameters
+        ----------
+        x
+            Horizontal position of the top-left corner of the window
+        y
+            Vertical position of the top-left corner of the window
+        w
+            Width of the window
+        h
+            Height of the window
+        """
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="main_QtPlot")
+
+    def setGeometry_secondary(self, x: int, y: int, w: int, h: int):
+        """Set the geometry of the secondary plotmon
+
+        Parameters
+        ----------
+        x
+            Horizontal position of the top-left corner of the window
+        y
+            Vertical position of the top-left corner of the window
+        w
+            Width of the window
+        h
+            Height of the window
+        """
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
+        self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="secondary_QtPlot")
 
 
 class QtPlotObjForJupyter:
@@ -235,5 +270,7 @@ class QtPlotObjForJupyter:
         self.attr_name = attr_name
 
     def _repr_png_(self):
+        # wait to finish the queue
+        self.remote_plotmon._exec_queue()
         # always get the remote object, avoid keeping object references
         return getattr(self.remote_plotmon, self.attr_name)._repr_png_()

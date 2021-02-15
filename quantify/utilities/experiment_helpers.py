@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:  Helpers for performing experiments.
 # Repository:   https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 from qcodes import Instrument
 from quantify.data.types import TUID
@@ -9,7 +9,9 @@ from quantify.data.handling import load_snapshot
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
-def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: str = None):
+def load_settings_onto_instrument(
+    instrument: Instrument, tuid: TUID, datadir: str = None
+):
     """
     Loads settings from a previous experiment onto a current :class:`~qcodes.instrument.base.Instrument`. This
     information is loaded from the 'snapshot.json' file in the provided experiment directory.
@@ -27,9 +29,13 @@ def load_settings_onto_instrument(instrument: Instrument, tuid: TUID, datadir: s
     ValueError
         if the provided instrument has no match in the loaded snapshot.
     """
-    instruments = load_snapshot(tuid, datadir)['instruments']
+    instruments = load_snapshot(tuid, datadir)["instruments"]
     if instrument.name not in instruments:
-        raise ValueError('Instrument "{}" not found in snapshot {}:{}'.format(instrument.name, datadir, tuid))
+        raise ValueError(
+            'Instrument "{}" not found in snapshot {}:{}'.format(
+                instrument.name, datadir, tuid
+            )
+        )
     for parname, par in instruments[instrument.name]["parameters"].items():
         val = par["value"]
         if val:  # qcodes doesn't like setting to none
@@ -47,7 +53,7 @@ def create_plotmon_from_historical(tuid: TUID):
         the TUID of the experiment.
     Returns
     -------
-    :class:`quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt`
+    :class:`~quantify.visualization.PlotMonitor_pyqt`
         the plot
     """
     plot = PlotMonitor_pyqt(tuid)

@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Description:    Module containing the MeasurementControl.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020)
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import time
 import json
@@ -46,7 +46,7 @@ class MeasurementControl(Instrument):
 
             MC.settables(mw_source1.freq)
             MC.setpoints(np.arange(5e9, 5.2e9, 100e3))
-            MC.gettables(pulsar_AQM.signal)
+            MC.gettables(pulsar_QRM.signal)
             dataset = MC.run(name='Frequency sweep')
 
 

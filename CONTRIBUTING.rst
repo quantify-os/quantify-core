@@ -53,20 +53,38 @@ Please make merge requests into the *develop* branch (not the *master* branch). 
 Before you submit a merge request, check that it meets these guidelines:
 
 1. New code should be fully tested; running pytest in coverage mode can help identify gaps.
-2. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
-3. The CI pipelines should pass for all merge requests.
+#. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+#. The CI pipelines should pass for all merge requests.
 
-   - Check the status of the pipelines, the status is also reported in the merge request.
-   - flake8 linter should pass.
-   - No degradation in code coverage.
-   - Documentation should build.
-4. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
+    - Check the status of the pipelines, the status is also reported in the merge request.
+    - `black <https://github.com/psf/black>`_ linter should pass (we use default settings).
+    - No degradation in code coverage.
+    - Documentation should build.
+#. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
+#. Make sure to keep selected the checkbox `Allow commits from members who can merge to the target branch`. This allows maintainers to `collaborate across forks <https://docs.gitlab.com/ee/user/project/merge_requests/allow_collaboration.html>`_ for fine tunning and small fixes before the merge request is accepted.
 
 Congratulations! The maintainers will now review your work and suggest any necessary changes.
-If no changes are required, a maintainer will "approve" the review.
-If you are
-Thank you very much
-for your hard work in improving quantify.
+If no changes are required, a maintainer will "approve" the merge request.
+When your merge request is approved, feel free to add yourself to the list of contributors.
+Thank you very much for your hard work in improving quantify!
+
+.. tip::
+
+    (Maintainers and developers)
+    In order to commit and push to the original branch of the merge request, you will need:
+
+    .. code-block:: shell
+
+        # 1. Create and checkout a local branch with the changes of the merge request
+        $ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
+        $ git checkout -b thedude-awesome-project-update-docs FETCH_HEAD
+
+        # 2. Make changes and commit them
+
+        # 3. Push to the forked project
+        $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
+
+    N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 
 
 Setting up quantify for local development
@@ -85,55 +103,65 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
+#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_. before running `git commit`::
+
+    $ pre-commit install
+
 #. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-#. When you're done making changes, check that your changes pass flake8, the tests and have test coverage::
+#. When you are done making changes, auto-format the repository with `black` and ensure test coverage
 
-    $ flake8 quantify tests
-    $ pytest --cov
+    .. code-block::
 
-
-  .. tip:: Running parts of the test suite
-
-      To run only parts of the test suite, specify the folder in which to look for
-      tests as an argument to pytest. The following example
+        $ black .
+        $ pytest --cov
 
 
-      .. code-block:: shell
+    .. tip:: Running parts of the test suite
 
-          $ py.test tests/measurement --cov quantify/measurement
-
-      will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
-
-6. Building the documentation
-
-  If you have worked on documentation instead of code you may want to preview how your docs look locally.
-  You can build the docs locally using:
-
-  .. code-block:: shell
-
-      $ cd docs
-      $ make html
-
-  The docs will be located in `quantify/docs/_build`.
-
-  .. tip::
-
-      If you are working on documentation it can be useful to automatically rebuild the docs after every change.
-      This can be done using the `sphinx-autobuild` package. Through the following command:
-
-      .. code-block:: shell
-
-          $ sphinx-autobuild docs docs/_build/html
-
-      The documentation will then be hosted on `localhost:8000`
+        To run only parts of the test suite, specify the folder in which to look for
+        tests as an argument to pytest. The following example
 
 
-7. Commit your changes and push your branch to GitLab::
+        .. code-block:: shell
+
+            $ py.test tests/measurement --cov quantify/measurement
+
+        will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+
+#. Building the documentation
+
+    If you have worked on documentation instead of code you may want to preview how your docs look locally.
+    You can build the docs locally using:
+
+    .. code-block:: shell
+
+        $ cd docs
+
+        # unix
+        $ make html
+
+        # windows
+        $ ./make.bat html
+
+    The docs will be located in `quantify/docs/_build`.
+
+    .. tip::
+
+        If you are working on documentation it can be useful to automatically rebuild the docs after every change.
+        This can be done using the `sphinx-autobuild` package. Through the following command:
+
+        .. code-block:: shell
+
+            $ sphinx-autobuild docs docs/_build/html
+
+        The documentation will then be hosted on `localhost:8000`
+
+#. Commit your changes and push your branch to GitLab::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
@@ -141,6 +169,4 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
 #. Submit a merge request through the GitLab website.
 
-
-
-
+#. Add short entry in the `CHANGELOG.rst` under `Unreleased`, commit and push.
