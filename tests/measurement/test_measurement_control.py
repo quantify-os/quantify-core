@@ -138,6 +138,7 @@ class DummyBatchedSettable:
         self.label = "Amp"
         self.unit = "V"
         self.batched = True
+        # If present must be an integer to comply with JSON schema
         self.batch_size = 0xFFFF
         self.setpoints = []
 
@@ -155,6 +156,7 @@ class DummyBatchedGettable:
         self.unit = ["W"]
         self.label = ["Watts"]
         self.batched = True
+        # If present must be an integer to comply with JSON schema
         self.batch_size = 0xFFFF
         self.settables = [settables] if not isinstance(settables, list) else settables
         self.noise = noise
@@ -231,11 +233,17 @@ class TestMeasurementControl:
         assert isinstance(dset, xr.Dataset)
         assert dset.keys() == {"x0", "y0"}
         assert np.array_equal(dset["x0"], xvals)
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
             "units": "V",
+            "batched": False,
         }
 
     def test_iterative_1D_multi_return(self):
@@ -291,11 +299,15 @@ class TestMeasurementControl:
             "name": "DummyBatchedSettable",
             "long_name": "Amp",
             "units": "V",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
         assert dset["y0"].attrs == {
             "name": "DummyBatchedGettable_0",
             "long_name": "Watts",
             "units": "W",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
 
     def test_batched_batch_size_1D(self):
@@ -386,16 +398,23 @@ class TestMeasurementControl:
         assert all(e in dset["x0"].values for e in times)
         assert all(e in dset["x1"].values for e in amps)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
         assert dset["x1"].attrs == {
             "name": "amp",
             "long_name": "Amplitude",
             "units": "V",
+            "batched": False,
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
             "units": "V",
+            "batched": False,
         }
 
     def test_iterative_2D_arbitrary(self):
@@ -440,7 +459,7 @@ class TestMeasurementControl:
         self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
         self.MC.gettables(gettable)
-        dset = self.MC.run("2D Hard")
+        dset = self.MC.run("2D batched")
 
         exp_sp = tile_setpoints_grid([times, amps])
         assert np.array_equal(exp_sp, self.MC._setpoints)
@@ -457,16 +476,22 @@ class TestMeasurementControl:
             "name": "DummyBatchedSettable",
             "long_name": "Amp",
             "units": "V",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
         assert dset["x1"].attrs == {
             "name": "DummyBatchedSettable",
             "long_name": "Amp",
             "units": "V",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
         assert dset["y0"].attrs == {
             "name": "DummyBatchedGettable_0",
             "long_name": "Watts",
             "units": "W",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
 
     def test_iterative_outer_loop_with_inner_batched_2D(self):
@@ -514,7 +539,7 @@ class TestMeasurementControl:
         self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
         self.MC.gettables(gettable)
-        dset = self.MC.run("2D Hard")
+        dset = self.MC.run("2D batched multi return")
 
         exp_sp = tile_setpoints_grid([times, amps])
         assert np.array_equal(exp_sp, self.MC._setpoints)
@@ -676,16 +701,23 @@ class TestMeasurementControl:
         assert all(e in dset["x1"] for e in amps)
         assert all(e in dset["x2"] for e in freqs)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
         assert dset["x2"].attrs == {
             "name": "freq",
             "long_name": "Frequency",
             "units": "Hz",
+            "batched": False,
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
             "units": "V",
+            "batched": False,
         }
 
     def test_iterative_3D_multi_return(self):
