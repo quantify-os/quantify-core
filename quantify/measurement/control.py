@@ -174,7 +174,7 @@ class MeasurementControl(Instrument):
         # calculation of the setpoint needs to be executed here in some cases
         # see `._calc_setpoints_grid()`
         if self._setpoints is None:
-            self._setpoints = grid_setpoints(self._settable_pars, self._setpoints_input)
+            self._setpoints = grid_setpoints(self._setpoints_input, self._settable_pars)
 
         # initialize an empty dataset
         self._dataset = initialize_dataset(
