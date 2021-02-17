@@ -511,10 +511,17 @@ class MeasurementControl(Instrument):
     def _batch_size(self):
         # np.inf is not supported by the JSON schema, but we keep the code robust
         min_with_inf = min(
-            getattr(gpar, "batch_size", np.inf)
-            for gpar in chain.from_iterable((self._settable_pars, self._gettable_pars))
+            getattr(par, "batch_size", np.inf)
+            for par in chain.from_iterable((self._settable_pars, self._gettable_pars))
         )
         return min(min_with_inf, len(self._setpoints))
+
+    @property
+    def _batch_size_settables(self):
+        return tuple(
+            getattr(spar, "batch_size", np.inf) if is_batched(spar) else 1
+            for spar in self._settable_pars
+        )
 
     @property
     def _is_batched(self) -> bool:
@@ -667,10 +674,10 @@ class MeasurementControl(Instrument):
 
     def _calc_setpoints_grid(self):
         """The `.batched` of the settables is necessary in order to
-        know how to grid the datapoints. Therefore, the `setpoints` passed to
-        `setpoints_grid` are saved and the `._setpoints` are calculated
-        only after `.run()` is called by the user.
-
+        know how to grid the datapoints. Note that the iterative sables
+        can only be set once before each batch. Therefore, the `setpoints`
+        passed to `setpoints_grid` are saved and the `._setpoints` are
+        calculated only after `.run()` is called by the user.
         UX: This avoids the user having to call `.settables()` and
         `.setpoints_grid` in a specific order.
         """
@@ -740,29 +747,36 @@ def tile_setpoints_grid(setpoints):
     return xn
 
 
-def tile_setpoints_grid_mixed(setpoints, batched_mask: Iterable):
+def tile_setpoints_grid_mixed(
+    setpoints: list(np.ndarray), batch_size_settables: Iterable(int)
+):
     """
-    Tile setpoints into a grid along the iterative axes.
-    The resulting outer loops are applied only to the iterative settable(s).
-    All batched settables are considered to be a single axis, i.e. a single loop,
-    therefore their `len()` must be the same.
-
-    See also: :func:`~tile_setpoints_grid`.
+    Tile setpoints into a grid. The tilling is such that the inner most loop
+    corresponds to the batched settable with the smallest `.batch_size`.
 
     .. warning ::
 
-        using this method typecasts all values into the same type.
+        Using this method typecasts all values into the same type.
         This may lead to validator errors when setting
-        e.g., a float instead of an int.
+        e.g., a `float` instead of an `int`.
+
+    .. seealso:
+
+        :func:`~tile_setpoints_grid`.
 
     Parameters
     ----------
-    setpoints : list(:class:`numpy.ndarray`)
+    setpoints
         A list of arrays that defines the values to loop over in the experiment.
         The grid is reshaped in the same order.
 
     batched_mask
-        An iterable of booleans indicating if each element in `setpoints` is batched or not.
+        An iterable of `bool` indicating if the corresponding settable of each
+        element in `setpoints` is batched or not.
+
+    batch_sizes
+        An iterable of `int` indicating the (maximum) batch size accepted by each
+        settable. Set to `inf` if the
 
     Returns
     -------

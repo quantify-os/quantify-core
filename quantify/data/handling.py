@@ -379,15 +379,13 @@ def to_gridded_dataset(dataset: xr.Dataset):
     xs_names = tuple(
         name
         for name, var in dataset.variables.items()
-        if "x" in name and var.dims == ("dim_0",)
+        if name.startswith("x") and var.dims == ("dim_0",)
     )
     # only "x0" can be a xarray dimension (even if "twin" batched settables were used)
     batched_xs_twins_names = sorted(
         name for name in xs_names if _is_batched(dataset[name])
     )[1:]
-    print("batched_xs_twins_names: ", batched_xs_twins_names)
     xs_names = tuple(name for name in xs_names if name not in batched_xs_twins_names)
-    print("xs_names: ", xs_names)
     xs = np.column_stack(tuple(dataset.variables[name] for name in xs_names))
 
     idxs, xs_unique_lens, xs_unique_values = _determine_idxs(xs)
