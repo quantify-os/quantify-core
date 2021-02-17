@@ -103,11 +103,6 @@ In the example below we want to set frequencies on a microwave source and acquir
 .. jupyter-execute::
     :hide-code:
 
-    from pathlib import Path
-    from os.path import join
-    from quantify.data.handling import set_datadir
-    set_datadir(join(Path.home(), 'quantify-data'))
-
     mw_source1 = Instrument("mw_source1")
     # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
     mw_source1.freq = ManualParameter(
@@ -240,8 +235,10 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             MC.gettables(signal)
             MC.setpoints(np.linspace(0, 7, 20))
             dset = MC.run("my experiment")
+            dset_grid = dh.to_gridded_dataset(dset)
 
-            dset.plot.scatter("x0", "y0")
+            dset_grid.y0.plot()
+            dset_grid
 
     .. admonition:: 2D
         :class: dropdown
@@ -256,10 +253,10 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             MC.gettables(signal)
             MC.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
             dset = MC.run("my experiment")
-
             dset_grid = dh.to_gridded_dataset(dset)
 
-            xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
+            dset_grid.y0.plot(cmap="viridis")
+            dset_grid
 
     .. admonition:: ND
         :class: dropdown
@@ -298,15 +295,12 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
                 MC.gettables([signal, dual_wave])
                 MC.setpoints_grid([np.linspace(0, 3, 21), np.linspace(4, 0, 20)])
                 dset = MC.run("my experiment")
-
                 dset_grid = dh.to_gridded_dataset(dset)
 
-                xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
-                plt.show()
-                xr.plot.pcolormesh(dset_grid["y1"], "x0", "x1", cmap="inferno")
-                plt.show()
-                xr.plot.pcolormesh(dset_grid["y2"], "x0", "x1", cmap="plasma")
-                plt.show()
+                for yi, cmap in zip(("y0", "y1", "y2"), ("viridis", "inferno", "plasma")):
+                    dset_grid[yi].plot(cmap=cmap)
+                    plt.show()
+                dset_grid
 
 **Batched:**
 
@@ -332,10 +326,11 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             MC.gettables(signal)
             MC.setpoints(np.linspace(0, 7, 20))
             dset = MC.run("my experiment")
+            dset_grid = dh.to_gridded_dataset(dset)
 
-            dset.plot.scatter("x0", "y0")
-
+            dset_grid.y0.plot()
             print(f"\nNOTE: The gettable returns an array:\n\n{signal.get()}")
+            dset_grid
 
     .. admonition:: 2D (1D batch with iterative outer loop)
         :class: dropdown
@@ -359,10 +354,10 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             # `setpoints_grid` will take into account the `.batched` attribute
             MC.setpoints_grid([np.linspace(0, 5, 10), np.linspace(4, 0, time_b.batch_size)])
             dset = MC.run("my experiment")
-
             dset_grid = dh.to_gridded_dataset(dset)
 
-            xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
+            dset_grid.y0.plot(cmap="viridis")
+            dset_grid
 
 .. admonition:: Float-valued array settable(s) with multi-return float-valued array gettable(s)
     :class: tip, dropdown
@@ -394,10 +389,11 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             MC.settables(time)
             MC.gettables(dual_wave)
             MC.setpoints(np.linspace(0, 7, 100))
-            dset = dh.to_gridded_dataset(MC.run("my experiment"))
+            dset = MC.run("my experiment")
+            dset_grid = dh.to_gridded_dataset(dset)
 
-            dset.y0.plot()
-            dset.y1.plot()
+            dset_grid.y0.plot()
+            dset_grid.y1.plot()
 
 .. note::
 
@@ -422,8 +418,9 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             MC.gettables(signal)
             MC.setpoints(np.linspace(0, 7, 23))
             dset = MC.run("my experiment")
+            dset_grid = dh.to_gridded_dataset(dset)
 
-            dset.plot.scatter("x0", "y0")
+            dset_grid.y0.plot()
 
 
 
@@ -505,19 +502,22 @@ The resulting dataset will look similar to the following:
     amp.batch_size = 3
 
     def CosFunc():
-        return amp() * np.cos(2 * np.pi * 1e6 * t())
+        return amp() * np.cos(t())
 
     sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=CosFunc)
     sig.batched = True
     sig.batch_size = 6
 
     MC.verbose(False) # Suppress printing
-    MC.settables([t, amp])
-    MC.setpoints_grid([np.linspace(0, 5, 100), np.linspace(-1, 1, 30)])
+    MC.settables([amp, t])
+    MC.setpoints_grid([np.linspace(-1, 1, 10), np.linspace(0, 10, 100)])
     MC.gettables(sig)
     quantify_dataset = MC.run('my experiment')
+    _, axs = plt.subplots(2,1, sharex=True)
+    xr.plot.line(quantify_dataset["x0"][:54], label="x0", ax=axs[0], marker=".")
+    xr.plot.line(quantify_dataset["x1"][:54], label="x1", ax=axs[1], color="C1", marker=".")
+    tuple(ax.legend() for ax in axs)
     quantify_dataset
-
 
 .. note::
 

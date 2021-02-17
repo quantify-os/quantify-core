@@ -633,7 +633,7 @@ class MeasurementControl(Instrument):
 
         .. tip::
 
-            Use :code:`~numpy.column_stack` to reshape multiple
+            Use :meth:`~numpy.column_stack` to reshape multiple
             1D arrays when setting multiple settables.
 
         Parameters
@@ -652,6 +652,57 @@ class MeasurementControl(Instrument):
         corresponds to an orthogonal dimension.
         The resulting gridded points determine values to be set in the acquisition loop.
 
+        The gridding is such that the inner most loop corresponds to the batched settable
+        with the smallest `.batch_size`.
+
+
+        .. admonition:: Examples:
+            :class: dropdown, tip
+
+                .. jupyter-kernel:: python3
+                    :id: MC_setpoints_grid
+
+                .. jupyter-execute::
+
+                    from quantify.measurement import MeasurementControl, grid_setpoints
+                    from qcodes import ManualParameter, Parameter
+                    from pathlib import Path
+                    from os.path import join
+                    from quantify.data.handling import set_datadir
+                    import quantify.data.handling as dh
+                    import xarray as xr
+                    import numpy as np
+                    import matplotlib.pyplot as plt
+                    set_datadir(join(Path.home(), 'quantify-data'))
+                    MC = MeasurementControl("MC")
+
+                    par0 = ManualParameter(name="x0", label="X0", unit="s")
+                    par1 = ManualParameter(name="x1", label="X1", unit="s")
+                    par2 = ManualParameter(name="x2", label="X2", unit="s")
+                    par3 = ManualParameter(name="x3", label="X3", unit="s")
+                    sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par0()))
+
+            .. admonition:: Iterative settables
+                :class: dropdown, tip
+
+                    .. jupyter-execute::
+
+                        par0.batched = False
+                        par1.batched = False
+                        par2.batched = False
+
+                        sig.batched = False
+
+                        MC.settables([par0, par1, par2])
+                        MC.setpoints_grid([
+                            np.linspace(0, 1, 4),
+                            np.linspace(1, 2, 5),
+                            np.linspace(2, 3, 6),
+                        ])
+                        MC.gettables(sig)
+                        dset = MC.run("demo")
+                        list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
+                        plt.gca().legend()
         Parameters
         ----------
         setpoints : list

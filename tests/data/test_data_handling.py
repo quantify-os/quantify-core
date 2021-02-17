@@ -385,6 +385,7 @@ def test_to_gridded_dataset():
 
     assert dset_gridded.attrs["tuid"] == tuid
     assert tuple(dset_gridded.dims.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.coords.keys()) == ("x0", "x1")
     assert tuple(dset_gridded.dims.values()) == (50, 11)
     assert dset_gridded["y0"].dims == ("x0", "x1")
     assert len(dset_gridded["x0"].values) == len(np.unique(dset_orig["x0"]))
