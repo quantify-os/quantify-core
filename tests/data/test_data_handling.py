@@ -377,7 +377,7 @@ def test_to_gridded_dataset():
     dset_orig = dh.load_dataset(tuid)
     dset_gridded = dh.to_gridded_dataset(dset_orig)
 
-    assert dset_gridded.attrs["tuid_origin"] == tuid
+    assert dset_gridded.attrs["tuid"] == tuid
     assert tuple(dset_gridded.dims.keys()) == ("x0", "x1")
     assert tuple(dset_gridded.dims.values()) == (50, 11)
     assert dset_gridded["y0"].dims == ("x0", "x1")
