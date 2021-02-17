@@ -216,16 +216,16 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
     """
     darrs = []
     for i, setpar in enumerate(settable_pars):
+        attrs = {
+            "name": setpar.name,
+            "long_name": setpar.label,
+            "units": setpar.unit,
+        }
+        attrs["batched"] = _is_batched(setpar)
+        if attrs["batched"] and hasattr(setpar, "batch_size"):
+            attrs["batch_size"] = getattr(setpar, "batch_size")
         darrs.append(
-            xr.DataArray(
-                data=setpoints[:, i],
-                name="x{}".format(i),
-                attrs={
-                    "name": setpar.name,
-                    "long_name": setpar.label,
-                    "units": setpar.unit,
-                },
-            )
+            xr.DataArray(data=setpoints[:, i], name="x{}".format(i), attrs=attrs)
         )
 
     numpoints = len(setpoints[:, 0])
@@ -240,13 +240,17 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
 
         count = 0
         for idx, info in enumerate(itrbl):
+            attrs = {"name": info[0], "long_name": info[1], "units": info[2]}
+            attrs["batched"] = _is_batched(getpar)
+            if attrs["batched"] and hasattr(getpar, "batch_size"):
+                attrs["batch_size"] = getattr(getpar, "batch_size")
             empty_arr = np.empty(numpoints)
             empty_arr[:] = np.nan
             darrs.append(
                 xr.DataArray(
                     data=empty_arr,
                     name="y{}".format(j + idx),
-                    attrs={"name": info[0], "long_name": info[1], "units": info[2]},
+                    attrs=attrs,
                 )
             )
             count += 1
@@ -377,6 +381,13 @@ def to_gridded_dataset(dataset: xr.Dataset):
         for name, var in dataset.variables.items()
         if "x" in name and var.dims == ("dim_0",)
     )
+    # only "x0" can be a xarray dimension (even if "twin" batched settables were used)
+    batched_xs_twins_names = sorted(
+        name for name in xs_names if _is_batched(dataset[name])
+    )[1:]
+    print("batched_xs_twins_names: ", batched_xs_twins_names)
+    xs_names = tuple(name for name in xs_names if name not in batched_xs_twins_names)
+    print("xs_names: ", xs_names)
     xs = np.column_stack(tuple(dataset.variables[name] for name in xs_names))
 
     idxs, xs_unique_lens, xs_unique_values = _determine_idxs(xs)
@@ -392,6 +403,14 @@ def to_gridded_dataset(dataset: xr.Dataset):
         data_vars[name] = (
             xs_names,
             yi,
+            dataset[name].attrs,
+        )
+
+    # Save "twin" batched settables as xarray Variables with the "x0" settable as dimension
+    for name in batched_xs_twins_names:
+        data_vars[name] = (
+            ("x0",),
+            np.unique(dataset[name].values),
             dataset[name].attrs,
         )
 
@@ -613,3 +632,15 @@ def _vars_match(dsets: Iterable, var_type="x") -> bool:
 
     # Also returns true if the dsets is empty
     return True
+
+
+def _is_batched(obj) -> bool:
+    """
+    N.B. This function cannot be imported from quantify.measurement.type due to
+    some circular dependencies that it would create in the quantify.measurement.__init__
+
+    Returns
+    -------
+        the `.batched` attribute of the settable/gettable `obj`, `False` if not present.
+    """
+    return getattr(obj, "batched", False)
