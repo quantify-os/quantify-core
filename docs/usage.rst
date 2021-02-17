@@ -396,8 +396,8 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
             MC.setpoints(np.linspace(0, 7, 100))
             dset = dh.to_gridded_dataset(MC.run("my experiment"))
 
-            xr.plot.line(dset["y0"], "-o")
-            xr.plot.line(dset["y1"], "-o")
+            dset.y0.plot()
+            dset.y1.plot()
 
 .. note::
 
@@ -484,11 +484,11 @@ A data directory with the name 'MyData' thus will look similar to:
 Dataset
 -----------------
 
-The Dataset is implemented using the :class:`xarray.Dataset` class.
+The Dataset is implemented with a **specific** convention using the :class:`xarray.Dataset` class.
 
-Quantify arranges data along two types of axes: :code:`X` and :code:`Y`.
-In each dataset there will be *n* :code:`X` axes and *m* :code:`Y` axes. For example, the dataset produced in an experiment where we sweep 2 parameters (settables) and measure 3 other parameters (all 3 returned by a Gettable), we will have *n* = 2 and *m* = 3.
-Each :code:`X` axis represents a dimension of the setpoints provided. The :code:`Y` axes represent the output of the Gettable.
+Quantify arranges data along two types of axes: `X` and `Y`.
+In each dataset there will be *n* `X`-type axes and *m* `Y`-type axes. For example, the dataset produced in an experiment where we sweep 2 parameters (settables) and measure 3 other parameters (all 3 returned by a Gettable), we will have *n* = 2 and *m* = 3.
+Each `X` axis represents a dimension of the setpoints provided. The `Y` axes represent the output of the Gettable.
 Each axis type are numbered ascending from 0 (e.g. :code:`x0`, :code:`x1`, :code:`y0`, :code:`y1`, :code:`y2`), and each stores information described by the :class:`~quantify.measurement.Settable` and
 :class:`~quantify.measurement.Gettable` classes, such as titles and units. The Dataset object also stores some further metadata,
 such as the :class:`~quantify.data.types.TUID` of the experiment which it was generated from.
@@ -501,19 +501,35 @@ The resulting dataset will look similar to the following:
 
     t = ManualParameter('t', initial_value=1, unit='s', label='Time')
     amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
+    amp.batched = True
+    amp.batch_size = 3
+
     def CosFunc():
         return amp() * np.cos(2 * np.pi * 1e6 * t())
 
     sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=CosFunc)
+    sig.batched = True
+    sig.batch_size = 6
 
     MC.verbose(False) # Suppress printing
     MC.settables([t, amp])
-    MC.setpoints_grid([np.linspace(0, 5, 20), np.linspace(-1, 1, 5)])
+    MC.setpoints_grid([np.linspace(0, 5, 100), np.linspace(-1, 1, 30)])
     MC.gettables(sig)
-    MC.run('my experiment')
+    quantify_dataset = MC.run('my experiment')
+    quantify_dataset
 
 
-.. note:: To support both gridded and non-gridded data, we use :doc:`Xarray <xarray:index>` using only `datavariables` **without** any `coordinates`  or `dimensions`. This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome. This does mean that some of Xarray's more advanced functionality, such as the in-built graphing or query system, are unavailable without further processing.
+.. note::
+
+    To support both gridded and non-gridded data, we use :doc:`Xarray <xarray:index>` using only `Data Variables` and `Coordinates` **with a single** `Dimension` (corresponding to the order of the setpoints).
+
+    This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome. To allow for some of Xarray's more advanced functionality, such as the in-built graphing or query system we provide a dataset conversion utility :func:`~quantify.data.handling.to_gridded_dataset`.
+
+    .. jupyter-execute::
+
+        gridded_dset = dh.to_gridded_dataset(quantify_dataset)
+        gridded_dset.y0.plot()
+        gridded_dset
 
 
 Snapshot

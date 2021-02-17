@@ -378,7 +378,7 @@ def to_gridded_dataset(
 
             dset_grid = to_gridded_dataset(dset)
 
-            xr.plot.pcolormesh(dset_grid["y0"], "x0", "x1", cmap="viridis")
+            dset_grid.y0.plot(cmap="viridis")
 
     Parameters
     ----------
@@ -389,7 +389,7 @@ def to_gridded_dataset(
     coords_names
         optionally specify explicitly which Variables correspond to orthogonal
         coordinates, e.g. datasets holds values for :code:`("x0", "x1")` but only "x0"
-        is independent: :coed:`to_gridded_dataset(dset, coords_names=["x0"])`
+        is independent: :code:`to_gridded_dataset(dset, coords_names=["x0"])`
 
     Returns
     -------
@@ -407,11 +407,17 @@ def to_gridded_dataset(
     attrs_coords = tuple(quantify_dataset[name].attrs for name in coords_names)
     # Convert "xi" variables to Coordinates
     dset = quantify_dataset.set_coords(coords_names)
-    # Make the Dimension `dimension` a MultiIndex(x0, x1, ...)
-    dset = dset.set_index({dimension: coords_names})
     # Convert to a gridded xarray dataset format
-    # See also: http://xarray.pydata.org/en/stable/reshaping.html#stack-and-unstack
-    dset = dset.unstack(dim=dimension)
+    if len(coords_names) == 1:
+        # No unstacking needed just swap the dimension
+        for v in quantify_dataset.variables.keys():
+            if coords_names[0] in dset[v].coords.keys():
+                dset.update({v: dset[v].swap_dims({dimension: coords_names[0]})})
+    else:
+        # Make the Dimension `dimension` a MultiIndex(x0, x1, ...)
+        dset = dset.set_index({dimension: coords_names})
+        # See also: http://xarray.pydata.org/en/stable/reshaping.html#stack-and-unstack
+        dset = dset.unstack(dim=dimension)
     for name, attrs in zip(coords_names, attrs_coords):
         dset[name].attrs = attrs
 
