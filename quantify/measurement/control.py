@@ -339,7 +339,7 @@ class MeasurementControl(Instrument):
                 or "--- (None) ---",
                 "\nBatched settable(s):\n\t",
                 ", ".join(par.name for par in self._batched_settbles),
-                f"\nMax. batch size: {self._batch_size:d}\n",
+                f"\nBatch size limit: {self._batch_size:d}\n",
             )
 
         while self._get_fracdone() < 1.0:
@@ -623,23 +623,24 @@ class MeasurementControl(Instrument):
         for settable in settable_pars:
             self._settable_pars.append(Settable(settable))
 
-    def setpoints(self, setpoints):
+    def setpoints(self, setpoints: np.ndarray):
         """
         Set setpoints that determine values to be set in acquisition loop.
 
         .. tip::
 
-            Use :code:`np.colstack((x0, x1))` to reshape multiple
+            Use :code:`~numpy.column_stack` to reshape multiple
             1D arrays when setting multiple settables.
 
         Parameters
         ----------
-        setpoints : :class:`numpy.ndarray`
+        setpoints :
             An array that defines the values to loop over in the experiment.
-            The shape of the array has to be either (N,) (N,1) for a 1D loop or (N, M) in the case of an MD loop.
+            The shape of the array has to be either (N,) or (N,1) for a 1D loop; or (N, M) in the case of an MD loop.
         """
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
+
         self._setpoints = setpoints
 
         # set to False whenever new setpoints are defined.
