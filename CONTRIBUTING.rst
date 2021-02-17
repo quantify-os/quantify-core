@@ -103,9 +103,11 @@ Ready to contribute? Here's how to set up `quantify` for local development.
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
-#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_. before running `git commit`::
+#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_::
 
     $ pre-commit install
+
+    .. note:: When the code is not well formatted a `git commit` will fail. You only need to run it again. This second time the code will be already *black*-compliant.
 
 #. Create a branch for local development::
 
