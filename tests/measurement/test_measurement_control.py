@@ -798,7 +798,6 @@ class TestMeasurementControl:
         delattr(freq, "batch_size")
         delattr(t, "batched")
 
-    @pytest.mark.skipif(True, reason="reasons")
     def test_batched_grid_mixed(self):
         t(1), amp(1), freq(1), other_freq(1)  # Reset globals
         times = np.linspace(0, 5, 3)
@@ -828,10 +827,7 @@ class TestMeasurementControl:
         assert isinstance(other_freq(), Iterable)
         assert not isinstance(amp(), Iterable)
 
-        exp_sp = grid_setpoints_mixed(
-            setpoints,
-            batched_mask=tuple(par.batched for par in settables),
-        )
+        exp_sp = grid_setpoints(setpoints, settables=settables)
         assert np.array_equal(self.MC._setpoints, exp_sp)
         exp_sp = exp_sp.T
         freq(exp_sp[0]), t(exp_sp[1]), other_freq(exp_sp[2]), amp(exp_sp[3])
@@ -1079,90 +1075,116 @@ class TestMeasurementControl:
             self.MC.run("This raises exception as expected")
 
 
-@pytest.mark.skipif(True, reason="reasons")
-def test_grid_setpoints_mixed_raises():
+class TestGridSetpoints:
+    @classmethod
+    def setup_class(self):
+        self.sp_i0 = np.array([0, 1, 2, 3])
+        self.sp_i1 = np.array([4, 5])
+        self.sp_i2 = np.array([-1, -2])
 
-    sp_i0 = np.array([0, 1, 2, 3])
-    sp_i1 = np.array([4, 5])
-    sp_i2 = np.array([-1, -2])
-    sp_i3 = np.array([6])
+        base_batched = [1, 2, 6]
+        self.sp_b0 = np.array(base_batched)
+        self.sp_b1 = np.array(base_batched) * 2
+        self.sp_b2 = np.array(base_batched) * 3
 
-    base_batched = [1, 2, 6]
-    sp_b0 = np.array(base_batched)
-    sp_b1 = np.array(base_batched) * 2
-    sp_b2 = np.array(base_batched) * 3
-    sp_b3 = np.array(base_batched) * 4
+        self.iterative = [self.sp_i0, self.sp_i1, self.sp_i2]
+        self.batched = [self.sp_b0, self.sp_b1, self.sp_b2]
 
-    iterative = [sp_i0, sp_i1, sp_i2, sp_i3]
-    batched = [sp_b0, sp_b1, sp_b2, sp_b3]
+    @classmethod
+    def mk_settables(self, batched_mask):
+        settables = []
+        for i, m in enumerate(batched_mask):
+            par = ManualParameter(f"x{i}", f"X{i}", "s")
+            par.batched = m
+            settables.append(par)
+        return settables
 
-    for same in [True, False]:
-        with pytest.raises(ValueError):
-            batched_mask = [same] * 4
-            it_i = iter(iterative)
-            it_b = iter(batched)
-            setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
-            grid_setpoints_mixed(setpoints, batched_mask=batched_mask)
+    def test_grid_setpoints_mixed_simple(self):
 
-    with pytest.raises(ValueError):
-        batched_mask = [True] * 3 + [False]
-        it_i = iter(iterative)
-        it_b = iter(iterative)
+        # Most simple case
+        batched_mask = [True, False]
+        settables = []
+        for i, m in enumerate(batched_mask):
+            par = ManualParameter(f"x{i}", f"X{i}", "s")
+            par.batched = m
+            settables.append(par)
+
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
         setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
-        grid_setpoints_mixed(setpoints, batched_mask=batched_mask)
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.tile(self.sp_b0, len(self.sp_i0)),
+                np.repeat(self.sp_i0, len(self.sp_b0)),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
 
-    # Most simple case
-    batched_mask = [True, False]
-    it_i = iter(iterative)
-    it_b = iter(batched)
-    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
-    gridded = grid_setpoints_mixed(setpoints, batched_mask=batched_mask)
-    expected = np.column_stack(
-        [np.tile(sp_b0, len(sp_i0)), np.repeat(sp_i0, len(sp_b0))]
-    )
-    np.testing.assert_array_equal(gridded, expected)
+    def test_grid_setpoints_mixed_simple_reversed(self):
 
-    # Most simple case inverted order
-    batched_mask = [False, True]
-    it_i = iter(iterative)
-    it_b = iter(batched)
-    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
-    gridded = grid_setpoints_mixed(setpoints, batched_mask=batched_mask)
-    expected = np.column_stack(
-        [np.repeat(sp_i0, len(sp_b0)), np.tile(sp_b0, len(sp_i0))]
-    )
-    np.testing.assert_array_equal(gridded, expected)
+        # Most simple case reversed order
+        batched_mask = [True, False]
+        settables = self.mk_settables(batched_mask)
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.tile(self.sp_b0, len(self.sp_i0)),
+                np.repeat(self.sp_i0, len(self.sp_b0)),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
 
-    # Several batched settables
-    batched_mask = [False, True, True]
-    it_i = iter(iterative)
-    it_b = iter(batched)
-    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
-    gridded = grid_setpoints_mixed(setpoints, batched_mask=batched_mask)
-    expected = np.column_stack(
-        [
-            np.repeat(sp_i0, len(sp_b0)),
-            np.tile(sp_b0, len(sp_i0)),
-            np.tile(sp_b1, len(sp_i0)),
-        ]
-    )
-    np.testing.assert_array_equal(gridded, expected)
+    def test_grid_setpoints_mixed_two_batched(self):
 
-    # Several batched settables and several iterative settables
-    batched_mask = [False, True, False, True]
-    it_i = iter(iterative)
-    it_b = iter(batched)
-    setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
-    gridded = grid_setpoints_mixed(setpoints, batched_mask=batched_mask)
-    expected = np.column_stack(
-        [
-            np.tile(np.repeat(sp_i0, len(sp_b0)), len(sp_i1)),
-            np.tile(sp_b0, len(sp_i0) * len(sp_i1)),
-            np.repeat(sp_i1, len(sp_b0) * len(sp_i0)),
-            np.tile(sp_b1, len(sp_i0) * len(sp_i1)),
-        ]
-    )
-    np.testing.assert_array_equal(gridded, expected)
+        # Several batched settables
+        batched_mask = [False, True, True]
+        settables = self.mk_settables(batched_mask)
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.repeat(self.sp_i0, len(self.sp_b0) * len(self.sp_b0)),
+                np.tile(self.sp_b0, len(self.sp_i0) * len(self.sp_b1)),
+                np.tile(np.repeat(self.sp_b1, len(self.sp_b0)), len(self.sp_i0)),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
+
+    def test_grid_setpoints_mixed_two_batched_two_iterative(self):
+
+        # Several batched settables and several iterative settables
+        batched_mask = [False, True, False, True]
+        settables = self.mk_settables(batched_mask)
+        settables[-1].batch_size = 2
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.tile(
+                    np.repeat(self.sp_i0, len(self.sp_b1) * len(self.sp_b0)),
+                    len(self.sp_i1),
+                ),
+                np.tile(
+                    np.repeat(self.sp_b0, len(self.sp_b1)),
+                    len(self.sp_i0) * len(self.sp_i1),
+                ),
+                np.repeat(
+                    self.sp_i1, len(self.sp_b0) * len(self.sp_b1) * len(self.sp_i0)
+                ),
+                np.tile(
+                    self.sp_b1, len(self.sp_i0) * len(self.sp_i1) * len(self.sp_b0)
+                ),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
 
 
 def test_grid_setpoints():

@@ -138,6 +138,7 @@ class MeasurementControl(Instrument):
         self._setpoints = []
         self._setpoints_input = []
         self._gettable_pars = []
+        self._is_gridded = None
 
         # variables used for book keeping during acquisition loop.
         self._nr_acquired_values = 0
@@ -164,6 +165,12 @@ class MeasurementControl(Instrument):
         self._loop_count = 0
         self._begintime = time.time()
         self._batch_size_last = None
+        self._is_gridded = None
+
+    def _reset_post(self):
+        """
+        Resets specific variables that can change before `.run()`
+        """
         self._plot_info = {"2D-grid": False}
         self.soft_avg(1)
 
@@ -171,9 +178,8 @@ class MeasurementControl(Instrument):
         """
         Initializes MC, such as creating the Dataset, experiment folder and such.
         """
-        # calculation of the setpoint needs to be executed here in some cases
-        # see `._calc_setpoints_grid()`
-        if self._setpoints is None:
+        # needs to be calculated here because we need the settables' `.batched`
+        if self._is_gridded:
             self._setpoints = grid_setpoints(self._setpoints_input, self._settable_pars)
 
         # initialize an empty dataset
@@ -237,6 +243,7 @@ class MeasurementControl(Instrument):
 
         self._safe_write_dataset()  # Wrap up experiment and store data
         self._finish()
+        self._reset_post()
 
         return self._dataset
 
@@ -330,7 +337,7 @@ class MeasurementControl(Instrument):
             self._loop_count += 1
 
     def _run_batched(self):
-        # Evaluate @properties only once
+        # Evaluate @property only once
         batch_size = self._batch_size
         where_batched = self._where_batched
         where_iterative = self._where_iterative
@@ -637,6 +644,7 @@ class MeasurementControl(Instrument):
             An array that defines the values to loop over in the experiment.
             The shape of the array has to be either (N,) or (N,1) for a 1D loop; or (N, M) in the case of an MD loop.
         """
+        self._is_gridded = False
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
@@ -652,6 +660,7 @@ class MeasurementControl(Instrument):
         setpoints : list
             The values to loop over in the experiment. The grid is reshaped in the same order.
         """
+        self._is_gridded = True
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
 
@@ -732,7 +741,6 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
         coords_batched_set = set(coords_batched)
         inner_coord_name = coords_batched[np.argmin(batch_sizes)]
         coords_batched_set.remove(inner_coord_name)
-        print(inner_coord_name)
         # The inner most coordinate must correspond to the batched settable with min `.batch_size`
         stack_order += sorted(coords_batched_set, reverse=True) + [inner_coord_name]
     else:
