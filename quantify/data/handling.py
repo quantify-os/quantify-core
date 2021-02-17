@@ -197,7 +197,9 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     return exp_folder
 
 
-def initialize_dataset(settable_pars, setpoints, gettable_pars):
+def initialize_dataset(
+    settable_pars, setpoints, gettable_pars, stack_setpoints: bool = False
+):
     """
     Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
