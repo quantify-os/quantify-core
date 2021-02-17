@@ -741,4 +741,5 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
     # Internally the xarray's stack mechanism is used to achieve the desired grid
     stacked_dset = dset_coords.stack(dim_0=stack_order)
 
+    # Return numpy array in the original order
     return np.column_stack([stacked_dset[name].values for name in coords_names])
