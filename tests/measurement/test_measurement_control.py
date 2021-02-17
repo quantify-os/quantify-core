@@ -227,7 +227,7 @@ class TestMeasurementControl:
         assert np.array_equal(dset["y0"].values, expected_vals)
 
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "y0"}
         assert np.array_equal(dset["x0"], xvals)
         assert dset["x0"].attrs == {
             "name": "t",
@@ -253,7 +253,7 @@ class TestMeasurementControl:
         exp_y0 = SinFunc(xvals, 1, 1, 0)
         exp_y1 = CosFunc(xvals, 1, 1, 0)
 
-        assert dset.keys() == {"x0", "y0", "y1"}
+        assert set(dset.variables.keys()) == {"x0", "y0", "y1"}
         np.testing.assert_array_equal(dset["y0"], exp_y0)
         np.testing.assert_array_equal(dset["y1"], exp_y1)
 
@@ -290,7 +290,7 @@ class TestMeasurementControl:
         assert np.array_equal(dset["y0"].values, expected_vals)
 
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "y0"}
         assert dset["x0"].attrs == {
             "name": "DummyBatchedSettable",
             "long_name": "Amp",
@@ -389,7 +389,7 @@ class TestMeasurementControl:
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "x1", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "x1", "y0"}
 
         assert all(e in dset["x0"].values for e in times)
         assert all(e in dset["x1"].values for e in amps)
@@ -692,7 +692,7 @@ class TestMeasurementControl:
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "x1", "x2", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "x1", "x2", "y0"}
         assert all(e in dset["x0"] for e in times)
         assert all(e in dset["x1"] for e in amps)
         assert all(e in dset["x2"] for e in freqs)

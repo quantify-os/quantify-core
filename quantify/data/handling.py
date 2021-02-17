@@ -260,7 +260,7 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
         j += count
 
     dataset = xr.merge(darrs)
-    dataset.set_coords(coords)
+    dataset = dataset.set_coords(coords)
     dataset.attrs["tuid"] = gen_tuid()
     return dataset
 
@@ -279,18 +279,22 @@ def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
         The resized dataset
     """
     darrs = []
-    for col in dataset:
-        data = dataset[col].values
+
+    # coords will also be grown
+    for vname in dataset.variables.keys():
+        data = dataset[vname].values
         darrs.append(
             xr.DataArray(
-                name=dataset[col].name,
+                name=dataset[vname].name,
                 data=np.pad(data, (0, len(data)), "constant", constant_values=np.nan),
-                attrs=dataset[col].attrs,
+                attrs=dataset[vname].attrs,
             )
         )
+    coords = tuple(dataset.coords.keys())
     dataset = dataset.drop_dims(["dim_0"])
-    new_data = xr.merge(darrs)
-    return dataset.merge(new_data)
+    dataset = dataset.merge(xr.merge(darrs))
+    dataset = dataset.set_coords(coords)
+    return dataset
 
 
 def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
@@ -307,20 +311,24 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
     :class:`xarray.Dataset`
         The dataset, trimmed and resized if necessary or unchanged.
     """
+    coords = tuple(dataset.coords.keys())
     for i, val in enumerate(reversed(dataset["y0"].values)):
         if not np.isnan(val):
             finish_idx = len(dataset["y0"].values) - i
             darrs = []
-            for col in dataset:
-                data = dataset[col].values[:finish_idx]
+            # coords will also be trimmed
+            for vname in dataset.variables.keys():
+                data = dataset[vname].values[:finish_idx]
                 darrs.append(
                     xr.DataArray(
-                        name=dataset[col].name, data=data, attrs=dataset[col].attrs
+                        name=dataset[vname].name, data=data, attrs=dataset[vname].attrs
                     )
                 )
             dataset = dataset.drop_dims(["dim_0"])
-            new_data = xr.merge(darrs)
-            return dataset.merge(new_data)
+            dataset = dataset.merge(xr.merge(darrs))
+            dataset = dataset.set_coords(coords)
+            break
+
     return dataset
 
 

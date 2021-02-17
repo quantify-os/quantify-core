@@ -35,7 +35,7 @@ def test_initialize_dataset():
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
 
     assert isinstance(dataset, xr.Dataset)
-    assert len(dataset.data_vars) == 2
+    assert len(dataset.data_vars) == 1
     assert dataset.attrs.keys() == {"tuid"}
     assert dataset.variables.keys() == {"x0", "y0"}
 
@@ -51,6 +51,9 @@ def test_initialize_dataset():
     assert y0.attrs["name"] == "y"
     assert y0.attrs["long_name"] == "Signal amplitude"
 
+    assert set(dataset.coords.keys()) == {"x0"}
+    assert set(dataset.dims.keys()) == {"dim_0"}
+
 
 def test_initialize_dataset_2D():
     xpar = ManualParameter("x", unit="m", label="X position")
@@ -64,9 +67,10 @@ def test_initialize_dataset_2D():
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
 
     assert isinstance(dataset, xr.Dataset)
-    assert len(dataset.data_vars) == 3
+    assert len(dataset.data_vars) == 1
     assert dataset.attrs.keys() == {"tuid"}
     assert set(dataset.variables.keys()) == {"x0", "x1", "y0"}
+    assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
 def test_getset_datadir():
@@ -369,6 +373,8 @@ def test_dynamic_dataset():
     assert not np.isnan(dset["x0"]).any()
     assert not np.isnan(dset["x1"]).any()
     assert not np.isnan(dset["y0"]).any()
+
+    assert "tuid" in set(dset.attrs)
 
 
 def test_to_gridded_dataset():
