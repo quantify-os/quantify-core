@@ -276,7 +276,7 @@ class MeasurementControl(Instrument):
 
         def subroutine():
             self._prepare_settables()
-            self._prepare_gettable()
+            self._prepare_gettables()
 
             adaptive_function = params.get("adaptive_function")
             af_pars_copy = dict(params)
@@ -322,7 +322,7 @@ class MeasurementControl(Instrument):
 
     def _run_iterative(self):
         while self._get_fracdone() < 1.0:
-            self._prepare_gettable()
+            self._prepare_gettables()
             for row in self._setpoints:
                 self._iterative_set_and_get(row, self._curr_setpoint_idx())
                 self._nr_acquired_values += 1
@@ -330,28 +330,31 @@ class MeasurementControl(Instrument):
             self._loop_count += 1
 
     def _run_batched(self):
+        # Evaluate @properties only once
+        batch_size = self._batch_size
+        where_batched = self._where_batched
+        where_iterative = self._where_iterative
+        batched_settables = self._batched_settables
+        iterative_settables = self._iterative_settables
+
         if self.verbose():
             print(
                 "Iterative settable(s) [outer loop(s)]:\n\t",
-                ", ".join(par.name for par in self._iterative_settbles)
-                or "--- (None) ---",
+                ", ".join(par.name for par in iterative_settables) or "--- (None) ---",
                 "\nBatched settable(s):\n\t",
-                ", ".join(par.name for par in self._batched_settbles),
-                f"\nBatch size limit: {self._batch_size:d}\n",
+                ", ".join(par.name for par in batched_settables),
+                f"\nBatch size limit: {batch_size:d}\n",
             )
-
         while self._get_fracdone() < 1.0:
             setpoint_idx = self._curr_setpoint_idx()
-            self._batch_size_last = self._batch_size
+            self._batch_size_last = batch_size
             slice_len = setpoint_idx + self._batch_size_last
-            for i, spar in enumerate(self._iterative_settbles):
+            for i, spar in enumerate(iterative_settables):
                 # Here ensure that all setpoints of each iterative settable are the same
                 # within each batch
                 val, it = next(
                     itertools.groupby(
-                        self._setpoints[
-                            setpoint_idx:slice_len, self._where_iterative[i]
-                        ]
+                        self._setpoints[setpoint_idx:slice_len, where_iterative[i]]
                     )
                 )
                 spar.set(val)
@@ -359,12 +362,10 @@ class MeasurementControl(Instrument):
                 self._batch_size_last = min(self._batch_size_last, len(tuple(it)))
 
             slice_len = setpoint_idx + self._batch_size_last
-            for i, spar in enumerate(self._batched_settbles):
-                spar.set(
-                    self._setpoints[setpoint_idx:slice_len, self._where_batched[i]]
-                )
+            for i, spar in enumerate(batched_settables):
+                spar.set(self._setpoints[setpoint_idx:slice_len, where_batched[i]])
 
-            self._prepare_gettable()
+            self._prepare_gettables()
 
             y_off = 0
             for gpar in self._gettable_pars:
@@ -463,7 +464,7 @@ class MeasurementControl(Instrument):
         prepare_method = getattr(obj, method, lambda: None)
         prepare_method()
 
-    def _prepare_gettable(self) -> None:
+    def _prepare_gettables(self) -> None:
         """
         Call prepare() on the Gettable, if prepare() exists
         """
@@ -498,11 +499,11 @@ class MeasurementControl(Instrument):
         return np.where(tuple(not m for m in self._batched_mask))[0]
 
     @property
-    def _iterative_settbles(self):
+    def _iterative_settables(self):
         return tuple(spar for spar in self._settable_pars if not is_batched(spar))
 
     @property
-    def _batched_settbles(self):
+    def _batched_settables(self):
         return tuple(spar for spar in self._settable_pars if is_batched(spar))
 
     @property
@@ -513,13 +514,6 @@ class MeasurementControl(Instrument):
             for par in chain.from_iterable((self._settable_pars, self._gettable_pars))
         )
         return min(min_with_inf, len(self._setpoints))
-
-    @property
-    def _batch_size_settables(self):
-        return tuple(
-            getattr(spar, "batch_size", np.inf) if is_batched(spar) else 1
-            for spar in self._settable_pars
-        )
 
     @property
     def _is_batched(self) -> bool:
