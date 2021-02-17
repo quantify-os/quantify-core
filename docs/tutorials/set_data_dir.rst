@@ -1,8 +1,8 @@
 
 **Before instantiating any instruments or starting a measurement** we change the directory in which the experiments are saved using the :meth:`~quantify.data.handling.set_datadir` [:meth:`~quantify.data.handling.get_datadir`] functions.
 
-
-.. tip::
+.. admonitions:: Tip: What data directory should I use?
+    :class: dropdown, tip
 
     We **highly recommended to** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *~/quantify-data* (unix) or *D:\\Data\\quantify-data* (Windows).
     The utilities to find/search/extract data only work if all the experiment containers are located within the same directory.

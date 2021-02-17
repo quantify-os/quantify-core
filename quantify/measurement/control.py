@@ -664,16 +664,15 @@ class MeasurementControl(Instrument):
 
                 .. jupyter-execute::
 
-                    from quantify.measurement import MeasurementControl, grid_setpoints
-                    from qcodes import ManualParameter, Parameter
+                    import numpy as np
+                    import xarray as xr
                     from pathlib import Path
                     from os.path import join
-                    from quantify.data.handling import set_datadir
-                    import quantify.data.handling as dh
-                    import xarray as xr
-                    import numpy as np
                     import matplotlib.pyplot as plt
-                    set_datadir(join(Path.home(), 'quantify-data'))
+                    from qcodes import ManualParameter, Parameter
+                    from quantify.measurement import MeasurementControl, grid_setpoints
+                    import quantify.data.handling as dh
+                    dh.set_datadir(join(Path.home(), 'quantify-data'))
                     MC = MeasurementControl("MC")
 
                     par0 = ManualParameter(name="x0", label="X0", unit="s")
