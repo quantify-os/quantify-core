@@ -13,6 +13,7 @@ from collections.abc import Iterable
 import itertools
 from itertools import chain
 
+import xarray as xr
 import numpy as np
 import adaptive
 from qcodes import Instrument
@@ -163,6 +164,8 @@ class MeasurementControl(Instrument):
         self._loop_count = 0
         self._begintime = time.time()
         self._batch_size_last = None
+        self._plot_info = {"2D-grid": False}
+        self.soft_avg(1)
 
     def _init(self, name):
         """
@@ -171,7 +174,7 @@ class MeasurementControl(Instrument):
         # calculation of the setpoint needs to be executed here in some cases
         # see `._calc_setpoints_grid()`
         if self._setpoints is None:
-            self._calc_setpoints_grid()
+            self._setpoints = grid_setpoints(self._settable_pars, self._setpoints_input)
 
         # initialize an empty dataset
         self._dataset = initialize_dataset(
@@ -233,12 +236,7 @@ class MeasurementControl(Instrument):
             print("\nInterrupt signaled, exiting gracefully...")
 
         self._safe_write_dataset()  # Wrap up experiment and store data
-
         self._finish()
-        self._plot_info = {
-            "2D-grid": False
-        }  # reset the plot info for the next experiment.
-        self.soft_avg(1)  # reset software averages back to 1
 
         return self._dataset
 
@@ -647,22 +645,18 @@ class MeasurementControl(Instrument):
         """
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
-
         self._setpoints = setpoints
-
-        # set to False whenever new setpoints are defined.
-        # this gets updated after calling setpoints_2D.
-        self._plot_info["2D-grid"] = False
 
     def setpoints_grid(self, setpoints):
         """
-        Set a setpoint grid that determine values to be set in the acquisition loop. Updates the setpoints in a grid
-        by repeating the setpoints M times and filling the second column with tiled values.
+        Makes a grid from the provided `setpoints` assuming each array element
+        corresponds to an orthogonal dimension.
+        The resulting gridded points determine values to be set in the acquisition loop.
 
         Parameters
         ----------
         setpoints : list
-            The values to loop over in the experiment. The grid is reshaped in this order.
+            The values to loop over in the experiment. The grid is reshaped in the same order.
         """
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
@@ -671,24 +665,6 @@ class MeasurementControl(Instrument):
             self._plot_info["xlen"] = len(setpoints[0])
             self._plot_info["ylen"] = len(setpoints[1])
             self._plot_info["2D-grid"] = True
-
-    def _calc_setpoints_grid(self):
-        """The `.batched` of the settables is necessary in order to
-        know how to grid the datapoints. Note that the iterative sables
-        can only be set once before each batch. Therefore, the `setpoints`
-        passed to `setpoints_grid` are saved and the `._setpoints` are
-        calculated only after `.run()` is called by the user.
-        UX: This avoids the user having to call `.settables()` and
-        `.setpoints_grid` in a specific order.
-        """
-
-        if self._batched_mask.count(True) > 0 and self._batched_mask.count(False) > 0:
-            # At least one batched settable and at least one iterative settable
-            self._setpoints = tile_setpoints_grid_mixed(
-                self._setpoints_input, self._batched_mask
-            )
-        else:
-            self._setpoints = tile_setpoints_grid(self._setpoints_input)
 
     def gettables(self, gettable_pars):
         """
@@ -711,48 +687,10 @@ class MeasurementControl(Instrument):
             self._gettable_pars.append(Gettable(gpar))
 
 
-def tile_setpoints_grid(setpoints):
+def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarray:
     """
-    Tile setpoints into an n-dimensional grid.
-    Intended for batched-only or iterative-only settables.
-
-    See also: :func:`~tile_setpoints_grid_mixed`.
-
-    .. warning ::
-
-        using this method typecasts all values into the same type.
-        This may lead to validator errors when setting
-        e.g., a float instead of an int.
-
-    Parameters
-    ----------
-    setpoints : list(:class:`numpy.ndarray`)
-        A list of arrays that defines the values to loop over in the experiment.
-        The grid is reshaped in this order.
-    Returns
-    -------
-    :class:`numpy.ndarray`
-        an array with repeated x-values and tiled xn-values.
-    """
-
-    xn = setpoints[0].reshape((len(setpoints[0]), 1))
-    for setpoints_n in setpoints[1:]:
-        curr_l = len(xn)
-        new_l = len(setpoints_n)
-        col_stack = []
-        for i in range(0, np.size(xn, 1)):
-            col_stack.append(np.tile(xn[:, i], new_l))
-        col_stack.append(np.repeat(setpoints_n, curr_l))
-        xn = np.column_stack(col_stack)
-    return xn
-
-
-def tile_setpoints_grid_mixed(
-    setpoints: list(np.ndarray), batch_size_settables: Iterable(int)
-):
-    """
-    Tile setpoints into a grid. The tilling is such that the inner most loop
-    corresponds to the batched settable with the smallest `.batch_size`.
+    Makes gridded setpoints. If `settables` is provided, the gridding is such that the
+    inner most loop corresponds to the batched settable with the smallest `.batch_size`.
 
     .. warning ::
 
@@ -760,58 +698,53 @@ def tile_setpoints_grid_mixed(
         This may lead to validator errors when setting
         e.g., a `float` instead of an `int`.
 
-    .. seealso:
-
-        :func:`~tile_setpoints_grid`.
-
     Parameters
     ----------
     setpoints
-        A list of arrays that defines the values to loop over in the experiment.
-        The grid is reshaped in the same order.
-
-    batched_mask
-        An iterable of `bool` indicating if the corresponding settable of each
-        element in `setpoints` is batched or not.
-
-    batch_sizes
-        An iterable of `int` indicating the (maximum) batch size accepted by each
-        settable. Set to `inf` if the
+        A list of arrays that defines the values to loop over in the experiment for each
+        orthogonal dimension. The grid is reshaped in the same order.
+    settables
+        A list of settable objects to which the elements in the `setpoints` correspond to.
+        Used to correctly grid data when mixing batched and iterative settables.
 
     Returns
     -------
-    :class:`numpy.ndarray`
+    :class:`~numpy.ndarray`
         An array where the first numpy axis correspond to individual setpoints.
     """
 
-    if not (batched_mask.count(True) > 0 and batched_mask.count(False) > 0):
-        raise ValueError(
-            "This grid mode should be used only when performing outer loop(s) "
-            "over iterative settable(s) with inner batched settable(s).\n"
-            "See also: `tile_setpoints_grid`."
-        )
+    if settables is None:
+        settables = [None] * len(setpoints)
 
-    setpoints_batched = [pts for pts, bat in zip(setpoints, batched_mask) if bat]
+    coords_names = tuple(f"x{i}" for i, pnts in enumerate(setpoints))
+    dset_coords = xr.Dataset(
+        coords={name: pnts for name, pnts in zip(coords_names, setpoints)}
+    )
+    coords_batched = [
+        name for name, spar in zip(coords_names, settables) if is_batched(spar)
+    ]
+    coords_iterative = sorted(
+        (name for name, spar in zip(coords_names, settables) if not is_batched(spar)),
+        reverse=True,
+    )
 
-    if not all(len(pts) == len(setpoints_batched[0]) for pts in setpoints_batched):
-        raise ValueError(
-            "All setpoints for batched settables must have the same "
-            "`len()` when mixing with iterative settables."
-        )
+    stack_order = coords_iterative
+    if len(coords_batched):
+        batch_sizes = [
+            getattr(spar, "batch_size", np.inf)
+            for spar in settables
+            if is_batched(spar)
+        ]
+        coords_batched_set = set(coords_batched)
+        inner_coord_name = coords_batched[np.argmin(batch_sizes)]
+        coords_batched_set.remove(inner_coord_name)
+        print(inner_coord_name)
+        # The inner most coordinate must correspond to the batched settable with min `.batch_size`
+        stack_order += sorted(coords_batched_set, reverse=True) + [inner_coord_name]
+    else:
+        stack_order += sorted(coords_batched, reverse=True)
 
-    setpoints_iterative = [pts for pts, bat in zip(setpoints, batched_mask) if not bat]
-    remaining_cols_batched = []
+    # Internally the xarray's stack mechanism is used to achieve the desired grid
+    stacked_dset = dset_coords.stack(dim_0=stack_order)
 
-    # Remaining batched axes only need tiling
-    for i, pts in enumerate(setpoints_batched[1:]):
-        col = np.tile(pts, np.prod([len(pts) for pts in setpoints_iterative]))
-        remaining_cols_batched.append(col)
-
-    mixed_cols = tile_setpoints_grid([setpoints_batched[0]] + setpoints_iterative).T
-
-    # some iterator tricks to order everything in the original order
-    it_b = iter([mixed_cols[0]] + remaining_cols_batched)  # all batched
-    it_i = iter(mixed_cols[1:])  # all iterative
-    cols = [(next(it_b) if bat else next(it_i)) for bat in batched_mask]
-
-    return np.column_stack(cols)
+    return np.column_stack([stacked_dset[name].values for name in coords_names])

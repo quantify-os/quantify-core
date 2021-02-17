@@ -199,9 +199,7 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     return exp_folder
 
 
-def initialize_dataset(
-    settable_pars, setpoints, gettable_pars, stack_setpoints: bool = False
-):
+def initialize_dataset(settable_pars, setpoints, gettable_pars):
     """
     Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
@@ -218,6 +216,7 @@ def initialize_dataset(
     :class:`xarray.Dataset`
         the dataset
     """
+
     darrs = []
     for i, setpar in enumerate(settable_pars):
         attrs = {
@@ -228,6 +227,7 @@ def initialize_dataset(
         attrs["batched"] = _is_batched(setpar)
         if attrs["batched"] and hasattr(setpar, "batch_size"):
             attrs["batch_size"] = getattr(setpar, "batch_size")
+
         darrs.append(xr.DataArray(data=setpoints[:, i], name=f"x{i}", attrs=attrs))
 
     numpoints = len(setpoints[:, 0])
