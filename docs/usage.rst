@@ -424,14 +424,30 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
 
 
-.batched, .prepare() and .finish()
+.batched and .batch_size
 ----------------------------------------
 
-The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` class have a `bool` property `.batched (default=False)`.
-Setting the `.batched` property to `True` enables the batch Control Mode in the MeasurementControl.
+The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` objects can have a `bool` property `.batched` (defaults to `False` if not present); and a `int` property `.batch_size`.
 
-Optionally the :meth:`!prepare` and :meth:`!finish` can be added and are run before and after each MeasurementControl loop.
+Setting the `.batched` property to `True` enables the batch Control Mode in the :class:`~quantify.measurement.MeasurementControl`. In this mode, if present, the `.batch_size` attribute is used to determine the maximum size of a batch of setpoints.
+
+.. admonition:: Heterogeneous `.batch_size`s and effective batch size
+    :class: dropdown, note
+
+    The minimum `.batch_size` among all settables and gettables will determine the (maximum) size of a batch. During execution of a measurement the size of a batch will be reduced if necessary to comply to the setpoints grid and/or total number of setpoints.
+
+
+.prepare() and .finish()
+----------------------------------------
+
+Optionally the :meth:`!.prepare` and :meth:`!.finish` can be added.
 These methods can be used to setup and teardown work. For example, arming a piece of hardware with data and then closing a connection upon completion.
+
+The :meth:`!.finish` runs once at the end of an experiment.
+
+For `settables`, :meth:`!.prepare` runs once **before the start of a measurement**.
+
+For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()`which resets to `1` at the end of each experiment].
 
 Data storage & Analysis
 =========================
@@ -523,7 +539,7 @@ The resulting dataset will look similar to the following:
 
     To support both gridded and non-gridded data, we use :doc:`Xarray <xarray:index>` using only `Data Variables` and `Coordinates` **with a single** `Dimension` (corresponding to the order of the setpoints).
 
-    This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome. To allow for some of Xarray's more advanced functionality, such as the in-built graphing or query system we provide a dataset conversion utility :func:`~quantify.data.handling.to_gridded_dataset`.
+    This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome. To allow for some of Xarray's more advanced functionality, such as the in-built graphing or query system we provide a dataset conversion utility :func:`~quantify.data.handling.to_gridded_dataset` [which can also be used for 1D datasets].
 
     .. jupyter-execute::
 
