@@ -46,7 +46,7 @@ test:
     - pip install -r requirements_dev.txt
     - xvfb-run py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
     # send the coverage.xml file to codacy
-    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report
+    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
   artifacts:
     paths:
       - htmlcov
