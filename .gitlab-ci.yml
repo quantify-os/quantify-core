@@ -45,6 +45,8 @@ test:
     - pip install -e .
     - pip install -r requirements_dev.txt
     - xvfb-run py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    # send the coverage.xml file to codacy
+    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report
   artifacts:
     paths:
       - htmlcov
@@ -94,8 +96,3 @@ run:
   artifacts:
     paths:
       - dist/*.whl
-
-report:
-  stage: Deploy
-  script:
-    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report
