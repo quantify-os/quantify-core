@@ -6,6 +6,7 @@
 import time
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import NoResultError
 
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
@@ -104,7 +105,17 @@ class InstrumentMonitor(Instrument):
         )  # pyqtgraph multiprocessing
         self.__class__.rpg = self.proc._import("pyqtgraph")
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        self.__class__.rwidget = self.proc._import(qc_widget)
+
+        for i in range(5):
+            try:
+                self.__class__.rwidget = self.proc._import(qc_widget)
+            except NoResultError as e:
+                # Try a few times before giving up
+                print("\n\n\n\t\tException!!!\n\n\n")
+                if i == 4:
+                    raise (e)
+            else:
+                break
 
     def create_widget(self, window_size: tuple = (1000, 600)):
         """

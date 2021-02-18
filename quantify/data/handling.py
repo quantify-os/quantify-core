@@ -630,9 +630,7 @@ def _vars_match(dsets: Iterable, var_type="x") -> bool:
     def get_xi_attrs(dset):
         # Hash is used in order to ensure everything matches:
         # name, long_name, unit, number of xi
-        return tuple(
-            dset[xi].attrs for xi in sorted(get_keys_containing(dset, var_type))
-        )
+        return tuple(dset[xi].attrs for xi in _get_parnames(dset, var_type))
 
     it = map(get_xi_attrs, dsets)
     # We can compare to the first one always
@@ -644,6 +642,11 @@ def _vars_match(dsets: Iterable, var_type="x") -> bool:
 
     # Also returns true if the dsets is empty
     return True
+
+
+def _get_parnames(dset, par_type):
+    attr = "coords" if par_type == "x" else "data_vars"
+    return sorted(key for key in getattr(dset, attr).keys() if key.startswith(par_type))
 
 
 def _is_batched(obj) -> bool:

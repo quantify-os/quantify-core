@@ -15,10 +15,10 @@ from qcodes.plots.pyqtgraph import QtPlot, TransformState
 from pyqtgraph.Qt import QtCore
 from multiprocessing import Queue
 
-from quantify.utilities.general import get_keys_containing
 from quantify.data.handling import (
     load_dataset,
     _xi_and_yi_match,
+    _get_parnames,
     set_datadir,
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
@@ -307,8 +307,8 @@ class RemotePlotmon:
 
         # we have forced all xi and yi to match so any dset will do here
         a_dset = next(iter(self._dsets.values()))
-        set_parnames = sorted(_get_parnames(a_dset, par_type="x"))
-        get_parnames = sorted(_get_parnames(a_dset, par_type="y"))
+        set_parnames = _get_parnames(a_dset, par_type="x")
+        get_parnames = _get_parnames(a_dset, par_type="y")
 
         #############################################################
 
@@ -603,10 +603,6 @@ def _safe_load_dataset(tuid):
         dset = load_dataset(tuid)
 
     return dset
-
-
-def _get_parnames(dset, par_type):
-    return sorted(get_keys_containing(dset, par_type))
 
 
 def _mk_legend(dset):

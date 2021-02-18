@@ -10,6 +10,7 @@ from qcodes.instrument.parameter import Parameter
 from qcodes.utils.helpers import strip_attrs
 
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import NoResultError
 from quantify.data.handling import get_datadir
 
 import warnings
@@ -42,9 +43,19 @@ class PlotMonitor_pyqt(Instrument):
         self.proc = pgmp.QtProcess(processRequests=False)
         # quantify module(s) in the remote process
         self.remote_quantify = self.proc._import("quantify")
-        self.remote_ppr = self.proc._import(
-            "quantify.visualization.pyqt_plotmon_remote"
-        )
+        for i in range(5):
+            try:
+                self.remote_ppr = self.proc._import(
+                    "quantify.visualization.pyqt_plotmon_remote"
+                )
+            except NoResultError as e:
+                # Try a few times before giving up
+                print("\n\n\n\t\tException!!!\n\n\n")
+                if i == 4:
+                    raise (e)
+            else:
+                break
+
         # the interface to the remote object
         self.remote_plotmon = self.remote_ppr.RemotePlotmon(instr_name=self.name)
 
