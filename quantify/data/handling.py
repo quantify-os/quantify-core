@@ -16,10 +16,7 @@ import numpy as np
 import xarray as xr
 from qcodes import Instrument
 from quantify.data.types import TUID
-from quantify.utilities.general import (
-    delete_keys_from_dict,
-    get_keys_containing,
-)
+from quantify.utilities.general import delete_keys_from_dict
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
