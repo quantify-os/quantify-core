@@ -368,7 +368,10 @@ class MeasurementControl(Instrument):
 
             slice_len = setpoint_idx + self._batch_size_last
             for i, spar in enumerate(batched_settables):
-                spar.set(self._setpoints[setpoint_idx:slice_len, where_batched[i]])
+                pnts = self._setpoints[setpoint_idx:slice_len, where_batched[i]]
+                spar.set(pnts)
+            # Update for `print_progress`
+            self._batch_size_last = min(self._batch_size_last, len(pnts))
 
             self._prepare_gettables()
 
@@ -655,12 +658,19 @@ class MeasurementControl(Instrument):
         The gridding is such that the inner most loop corresponds to the batched settable
         with the smallest `.batch_size`.
 
+        Parameters
+        ----------
+        setpoints : list
+            The values to loop over in the experiment. The grid is reshaped in the same order.
 
-        .. admonition:: Examples:
+
+        .. admonition:: Examples
             :class: dropdown, tip
 
                 .. jupyter-kernel:: python3
                     :id: MC_setpoints_grid
+
+                We first prepare some utilities necessarily for the examples.
 
                 .. jupyter-execute::
 
@@ -681,7 +691,7 @@ class MeasurementControl(Instrument):
                     par3 = ManualParameter(name="x3", label="X3", unit="s")
                     sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par0()))
 
-            .. admonition:: Iterative settables
+            .. admonition:: Iterative-only settables
                 :class: dropdown, tip
 
                     .. jupyter-execute::
@@ -702,10 +712,67 @@ class MeasurementControl(Instrument):
                         dset = MC.run("demo")
                         list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
                         plt.gca().legend()
-        Parameters
-        ----------
-        setpoints : list
-            The values to loop over in the experiment. The grid is reshaped in the same order.
+
+            .. admonition:: Batched-only settables
+                :class: dropdown, tip
+
+                    Note that the settable with lowest `.batch_size`  will be correspond to the
+                    innermost loop.
+
+                    .. jupyter-execute::
+
+                        par0.batched = True
+                        par1.batch_size = 8
+                        par1.batched = True
+                        par1.batch_size = 8
+                        par2.batched = True
+                        par2.batch_size = 4
+
+                        sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par2()))
+                        sig.batched = True
+                        sig.batch_size = 32
+
+                        MC.settables([par0, par1, par2])
+                        MC.setpoints_grid([
+                            np.linspace(0, 1, 3),
+                            np.linspace(1, 2, 5),
+                            np.linspace(2, 3, 4),
+                        ])
+                        MC.gettables(sig)
+                        dset = MC.run("demo")
+                        list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
+                        plt.gca().legend()
+
+            .. admonition:: Batched and iterative settables
+                :class: dropdown, tip
+
+                    Note that the settable with lowest `.batch_size`  will be correspond to the
+                    innermost loop. Furthermore, the iterative settables will be the outermost loops.
+
+                    .. jupyter-execute::
+
+                        par0.batched = False
+                        par1.batched = True
+                        par1.batch_size = 8
+                        par2.batched = False
+                        par3.batched = True
+                        par3.batch_size = 4
+
+                        sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par3()))
+                        sig.batched = True
+                        sig.batch_size = 32
+
+                        MC.settables([par0, par1, par2, par3])
+                        MC.setpoints_grid([
+                            np.linspace(0, 1, 3),
+                            np.linspace(1, 2, 5),
+                            np.linspace(2, 3, 4),
+                            np.linspace(3, 4, 6),
+                        ])
+                        MC.gettables(sig)
+                        dset = MC.run("demo")
+                        list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
+                        plt.gca().legend()
         """
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints

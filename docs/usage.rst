@@ -136,7 +136,7 @@ Take a look at some of the tutorial notebooks for more in-depth examples on usag
 Control Mode
 -----------------
 
-A very important aspect in the usage of the MeasurementControl is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
+A very important aspect in the usage of the :class:`~quantify.measurement.MeasurementControl` is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
 Batched mode can be used to deal with constraints imposed by (hardware) resources or to reduce overhead.
 
 In **Iterative** mode, the MC steps through each setpoint one at a time, processing them one by one.
@@ -146,7 +146,7 @@ The size of these batches is automatically calculated but usually dependent on r
 
 .. note:: The maximum batch size of the settable(s)/gettable(s) should be specified using the `.batch_size` attribute. If not specified infinite size is assumed and all setpoint are passed to the settable(s).
 
-.. tip:: In *Batched* mode it is still possible to perform outer iterative sweeps with an inner batched sweep. This is performed automatically when batched (`.batched=True`) settables are mixed with iterative settables (`.batched=False`). To correctly grid the points in this mode use :meth:`~quantify.measurement.MeasurementControl.setpoints_grid`.
+.. tip:: In *Batched* mode it is still possible to perform outer iterative sweeps with an inner batched sweep. This is performed automatically when batched settables (`.batched=True`) are mixed with iterative settables (`.batched=False`). To correctly grid the points in this mode use :meth:`~quantify.measurement.MeasurementControl.setpoints_grid`.
 
 Control mode is detected automatically based on the `.batched` attribute of the settable(s) and gettable(s); this is expanded upon in subsequent sections.
 
@@ -160,13 +160,13 @@ Experiments typically involve varying some parameters and reading others. In Qua
 As their name implies, a Settable is a parameter you set values to, and a Gettable is a parameter you get values from.
 
 The interfaces for Settable and Gettable parameters are encapsulated in the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` helper classes respectively.
-We set values to Settables; these values populate an x-axis.
-Similarly, we get values from Gettables which populate a y-axis.
-These classes define a set of mandatory and optional attributes the MeasurementControl recognizes and will use as part of the experiment, which are expanded up in the API Reference.
+We set values to Settables; these values populate an `X`-axis.
+Similarly, we get values from Gettables which populate a `Y`-axis.
+These classes define a set of mandatory and optional attributes the :class:`~quantify.measurement.MeasurementControl` recognizes and will use as part of the experiment, which are expanded up in the API Reference.
 
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
-In addition to using a library which fits these contracts (such as the `qcodes.Parameter` family of classes) we can define our own Settables and Gettables.
+In addition to using a library which fits these contracts (such as the :class:`~qcodes.Parameter` family of classes) we can define our own Settables and Gettables.
 
 .. jupyter-execute::
 
