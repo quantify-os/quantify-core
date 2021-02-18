@@ -94,3 +94,8 @@ run:
   artifacts:
     paths:
       - dist/*.whl
+
+report:
+  stage: Deploy
+  script:
+    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report
