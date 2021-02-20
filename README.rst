@@ -9,7 +9,9 @@ Quantify-core
     :target: https://pypi.org/pypi/quantify-core
 .. image:: https://app.codacy.com/project/badge/Grade/32265e1e7d3f491fa028528aaf8bfa69
     :target: https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Grade
+    :alt: Code Quality
 .. image:: https://app.codacy.com/project/badge/Coverage/32265e1e7d3f491fa028528aaf8bfa69
+    :alt: Coverage
     :target: https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Coverage
 .. image:: https://readthedocs.com/projects/quantify-quantify-core/badge/?version=latest&token=2f68e7fc6a2426b5eb9b44bb2f764a9d75a9932f41c39efdf0a8a99bf33e6a34
     :target: https://quantify-quantify-core.readthedocs-hosted.com/en/latest/?badge=latest
