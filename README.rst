@@ -7,22 +7,24 @@ Quantify-core
 
 .. image:: https://img.shields.io/pypi/v/quantify-core.svg
     :target: https://pypi.org/pypi/quantify-core
-
-.. image:: https://gitlab.com/quantify-os/quantify-core/badges/develop/coverage.svg
-    :target: https://gitlab.com/quantify-os/quantify-core/pipelines/
-
+.. image:: https://app.codacy.com/project/badge/Grade/32265e1e7d3f491fa028528aaf8bfa69
+    :target: https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Grade
+.. image:: https://app.codacy.com/project/badge/Coverage/32265e1e7d3f491fa028528aaf8bfa69
+    :target: https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Coverage
 .. image:: https://readthedocs.com/projects/quantify-quantify-core/badge/?version=latest&token=2f68e7fc6a2426b5eb9b44bb2f764a9d75a9932f41c39efdf0a8a99bf33e6a34
     :target: https://quantify-quantify-core.readthedocs-hosted.com/en/latest/?badge=latest
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/badge/License-BSD%204--Clause-blue.svg
     :target: https://gitlab.com/quantify-os/quantify-core/-/blob/master/LICENSE
-
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
 Quantify is a python based data acquisition platform focused on Quantum Computing and solid-state physics experiments.
 It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spiritual successor of `PycQED <https://github.com/DiCarloLab-Delft/PycQED_py3>`_.
+Quantify currently consists of `quantify-core <https://pypi.org/project/quantify-core/>`_ and `quantify-scheduler <https://pypi.org/project/quantify-scheduler/>`_.
+
+Take a look at the documentation for quantify-core `here <https://quantify-quantify-core.readthedocs-hosted.com/en/latest/?badge=latest>`_.
 
 Quantify-core is the core module that contains all basic functionality to control experiments. This includes:
 
