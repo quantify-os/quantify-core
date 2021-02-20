@@ -56,11 +56,14 @@ Before you submit a merge request, check that it meets these guidelines:
 #. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 #. The CI pipelines should pass for all merge requests.
 
-    - Check the status of the pipelines, the status is also reported in the merge request.
-    - `black <https://github.com/psf/black>`_ linter should pass (we use default settings).
-    - No degradation in code coverage.
-    - Documentation should build.
-#. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review.
+    - Check the status of the CI pipelines, the status is also reported in the merge request.
+        - `black <https://github.com/psf/black>`_ linter should pass (we use default settings).
+        - The test suite passes.
+        - Any reasonable code-quality issues raised by `pylint <https://pylint.readthedocs.io/en/latest/index.html>`_ should be addressed.
+        - No degradation in code coverage.
+        - Documentation should build.
+
+#. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review. There is a template that you can use when creating a new merge request that you can select in the gitlab interface.
 #. Make sure to keep selected the checkbox `Allow commits from members who can merge to the target branch`. This allows maintainers to `collaborate across forks <https://docs.gitlab.com/ee/user/project/merge_requests/allow_collaboration.html>`_ for fine tunning and small fixes before the merge request is accepted.
 
 Congratulations! The maintainers will now review your work and suggest any necessary changes.
@@ -113,6 +116,9 @@ Ready to contribute? Here's how to set up `quantify` for local development.
 
    Now you can make your changes locally.
 
+#. To ensure good quality code run `pylint <https://pylint.readthedocs.io/en/latest/index.html>`_ on your code and address any reasonable code quality issues. See `Editor and IDE integration <https://pylint.readthedocs.io/en/latest/user_guide/ide-integration.html>`_ for tips on how to integrate pylint in your editor or IDE.
+
+
 #. When you are done making changes, auto-format the repository with `black` and ensure test coverage
 
     .. code-block::
@@ -132,6 +138,7 @@ Ready to contribute? Here's how to set up `quantify` for local development.
             $ py.test tests/measurement --cov quantify/measurement
 
         will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+
 
 #. Building the documentation
 
