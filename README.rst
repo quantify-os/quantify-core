@@ -65,3 +65,6 @@ Quantify-core is maintained by The Quantify consortium consisting of Qblox and O
 |_|
 
 The software is free to use under the conditions specified in the license.
+
+
+--------------------------
