@@ -42,12 +42,13 @@ before_script:
   - sleep 3
 
 stages:
-  - Test
   - Static Analysis
+  - Test
   - Deploy
 
 test:
   stage: Test
+  needs: []  # allow running in parallel with previous stage
   script:
     - pip install -e .
     - pip install -r requirements_dev.txt
@@ -88,7 +89,6 @@ test-latest:
   allow_failure: true
 
 black:
-  needs: []  # allow running in parallel with previous stage
   image: python:3.8
   stage: Static Analysis
   allow_failure: false
@@ -98,6 +98,7 @@ black:
 
 run:
   stage: Test
+  needs: []  # allow running in parallel with previous stage
   script:
     - python setup.py bdist_wheel
     # an alternative approach is to install and run:
