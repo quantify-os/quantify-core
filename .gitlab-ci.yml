@@ -80,7 +80,7 @@ test-latest:
   allow_failure: true
 
 black:
-  needs: [] # allow running in parallel with previous stage
+  needs: []  # allow running in parallel with previous stage
   image: python:3.8
   stage: Static Analysis
   allow_failure: false
