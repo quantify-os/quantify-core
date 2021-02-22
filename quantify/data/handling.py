@@ -3,15 +3,17 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
+from __future__ import annotations
 import os
 import sys
 import json
-from dateutil.parser import parse
 from typing import Union
 from collections import OrderedDict
 from collections.abc import Iterable
 import datetime
 from uuid import uuid4
+from dateutil.parser import parse
+
 import numpy as np
 import xarray as xr
 from qcodes import Instrument
@@ -41,11 +43,11 @@ def gen_tuid(ts: datetime.datetime = None) -> TUID:
     if ts is None:
         ts = datetime.datetime.now()
     # ts gives microsecs by default
-    (dt, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
+    (date_time, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
-    dt = f"{dt}{int(int(micro) / 1000):03d}-"
+    date_time = f"{date_time}{int(int(micro) / 1000):03d}-"
     # the tuid is composed of the timestamp and a 6 character uuid.
-    tuid = TUID(dt + str(uuid4())[:6])
+    tuid = TUID(date_time + str(uuid4())[:6])
 
     return tuid
 
@@ -196,7 +198,9 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     return exp_folder
 
 
-def initialize_dataset(settable_pars, setpoints, gettable_pars):
+def initialize_dataset(
+    settable_pars: Iterable, setpoints: np.ndarray, gettable_pars: Iterable
+):
     """
     Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
 
@@ -221,8 +225,8 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
             "name": setpar.name,
             "long_name": setpar.label,
             "units": setpar.unit,
+            "batched": _is_batched(setpar),
         }
-        attrs["batched"] = _is_batched(setpar)
         if attrs["batched"] and hasattr(setpar, "batch_size"):
             attrs["batch_size"] = getattr(setpar, "batch_size")
         coords.append(f"x{i}")
@@ -240,8 +244,12 @@ def initialize_dataset(settable_pars, setpoints, gettable_pars):
 
         count = 0
         for idx, info in enumerate(itrbl):
-            attrs = {"name": info[0], "long_name": info[1], "units": info[2]}
-            attrs["batched"] = _is_batched(getpar)
+            attrs = {
+                "name": info[0],
+                "long_name": info[1],
+                "units": info[2],
+                "batched": _is_batched(getpar),
+            }
             if attrs["batched"] and hasattr(getpar, "batch_size"):
                 attrs["batch_size"] = getattr(getpar, "batch_size")
             empty_arr = np.empty(numpoints)
@@ -350,33 +358,6 @@ def to_gridded_dataset(
 
     .. seealso:: :meth:`~quantify.measurement.MeasurementControl.setpoints_grid`
 
-    .. admonition:: Example
-        :class: dropdown, tip
-
-        .. jupyter-execute::
-
-            import numpy as np
-            import xarray as xr
-            from pathlib import Path
-            from quantify.data.handling import set_datadir, to_gridded_dataset
-            from qcodes import ManualParameter, Parameter, validators
-            from quantify.measurement import MeasurementControl
-            set_datadir(Path.home() / 'quantify-data')
-
-            time_a = ManualParameter(name='time_a', label='Time A', unit='s', vals=validators.Numbers(), initial_value=1)
-            time_b = ManualParameter(name='time_b', label='Time B', unit='s', vals=validators.Numbers(), initial_value=1 )
-            signal = Parameter(name='sig_a', label='Signal A', unit='V', get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()) )
-
-            MC = MeasurementControl("MC")
-            MC.settables([time_a, time_b])
-            MC.gettables(signal)
-            MC.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
-            dset = MC.run("2D-single-float-valued-settable-gettable")
-
-            dset_grid = to_gridded_dataset(dset)
-
-            dset_grid.y0.plot(cmap="viridis")
-
     Parameters
     ----------
     quantify_dataset
@@ -392,6 +373,9 @@ def to_gridded_dataset(
     -------
     :class:`xarray.Dataset`
         the new dataset
+
+
+    .. include:: ./docstring_examples/quantify.data.handling.to_gridded_dataset.rst.txt
     """
 
     if coords_names is None:
@@ -404,24 +388,26 @@ def to_gridded_dataset(
     # the attributes need to be saved and restored in the new object
     attrs_coords = tuple(quantify_dataset[name].attrs for name in coords_names)
     # Convert "xi" variables to Coordinates
-    dset = quantify_dataset.set_coords(coords_names)
+    dataset = quantify_dataset.set_coords(coords_names)
 
     # Convert to a gridded xarray dataset format
 
     if len(coords_names) == 1:
         # No unstacking needed just swap the dimension
-        for v in quantify_dataset.data_vars.keys():
-            if dimension in dset[v].dims:
-                dset = dset.update({v: dset[v].swap_dims({dimension: coords_names[0]})})
+        for var in quantify_dataset.data_vars.keys():
+            if dimension in dataset[var].dims:
+                dataset = dataset.update(
+                    {var: dataset[var].swap_dims({dimension: coords_names[0]})}
+                )
     else:
         # Make the Dimension `dimension` a MultiIndex(x0, x1, ...)
-        dset = dset.set_index({dimension: coords_names})
+        dataset = dataset.set_index({dimension: coords_names})
         # See also: http://xarray.pydata.org/en/stable/reshaping.html#stack-and-unstack
-        dset = dset.unstack(dim=dimension)
+        dataset = dataset.unstack(dim=dimension)
     for name, attrs in zip(coords_names, attrs_coords):
-        dset[name].attrs = attrs
+        dataset[name].attrs = attrs
 
-    return dset
+    return dataset
 
 
 # ######################################################################
@@ -507,11 +493,11 @@ def get_tuids_containing(
     d_start = t_start.strftime("%Y%m%d")
     d_stop = t_stop.strftime("%Y%m%d")
 
-    def lower_bound(x):
-        return x >= d_start if d_start else True  # noqa: E731
+    def lower_bound(dir_name):
+        return dir_name >= d_start if d_start else True  # noqa: E731
 
-    def upper_bound(x):
-        return x <= d_stop if d_stop else True  # noqa: E731
+    def upper_bound(dir_name):
+        return dir_name <= d_stop if d_stop else True  # noqa: E731
 
     daydirs = list(
         filter(
@@ -529,7 +515,7 @@ def get_tuids_containing(
         raise FileNotFoundError(err_msg)
 
     tuids = []
-    for dd in daydirs:
+    for daydir in daydirs:
         expdirs = list(
             filter(
                 lambda x: (
@@ -539,15 +525,15 @@ def get_tuids_containing(
                     and (t_start <= parse(x[:15]))  # tuid is after t_start
                     and (parse(x[:15]) < t_stop)  # tuid is before t_stop
                 ),
-                os.listdir(os.path.join(datadir, dd)),
+                os.listdir(os.path.join(datadir, daydir)),
             )
         )
         expdirs.sort(reverse=reverse)
         for expname in expdirs:
             # Check for inconsistent folder structure for datasets portability
-            if dd != expname[:8]:
+            if daydir != expname[:8]:
                 raise FileNotFoundError(
-                    f"Experiment container '{expname}' is in wrong day directory '{dd}'"
+                    f"Experiment container '{expname}' is in wrong day directory '{daydir}'"
                 )
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
@@ -629,11 +615,11 @@ def _vars_match(dsets: Iterable, var_type="x") -> bool:
         # name, long_name, unit, number of xi
         return tuple(dset[xi].attrs for xi in _get_parnames(dset, var_type))
 
-    it = map(get_xi_attrs, dsets)
+    iterator = map(get_xi_attrs, dsets)
     # We can compare to the first one always
-    tup0 = next(it, None)
+    tup0 = next(iterator, None)
 
-    for tup in it:
+    for tup in iterator:
         if tup != tup0:
             return False
 

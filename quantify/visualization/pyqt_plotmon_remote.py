@@ -3,17 +3,17 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-import numpy as np
+from multiprocessing import Queue
 from collections.abc import Iterable
 from collections import deque, OrderedDict
 import itertools
 import os
-from filelock import FileLock
 
+import numpy as np
+from filelock import FileLock
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 from pyqtgraph.Qt import QtCore
-from multiprocessing import Queue
 
 from quantify.data.handling import (
     load_dataset,
@@ -25,7 +25,7 @@ from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from quantify.visualization.color_utilities import make_fadded_colors
 from quantify.visualization import _appnope
-from quantify.measurement.control import _dataset_name, _dataset_locks_dir
+from quantify.measurement.control import _DATASET_NAME, _DATASET_LOCKS_DIR
 
 
 class RemotePlotmon:
@@ -597,7 +597,7 @@ class RemotePlotmon:
 
 def _safe_load_dataset(tuid):
     lockfile = os.path.join(
-        _dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock"
+        _DATASET_LOCKS_DIR, tuid[:26] + "-" + _DATASET_NAME + ".lock"
     )
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)

@@ -21,7 +21,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
     InteractiveShell.ast_node_interactivity = "all"
 
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 QCoDeS drivers for our instruments

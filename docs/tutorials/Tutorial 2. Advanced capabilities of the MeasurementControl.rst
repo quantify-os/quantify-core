@@ -26,7 +26,7 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
     from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 .. jupyter-execute::

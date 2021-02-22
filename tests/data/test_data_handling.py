@@ -2,14 +2,15 @@ import os
 import shutil
 import pytest
 import dateutil
+from datetime import datetime
+
 import xarray as xr
 import numpy as np
-from quantify.data.types import TUID
-import quantify.data.handling as dh
-from quantify.measurement.control import MeasurementControl
-from datetime import datetime
 from qcodes import ManualParameter
+from quantify.data.types import TUID
+from quantify.measurement.control import MeasurementControl
 from quantify.utilities._tests_helpers import get_test_data_dir
+import quantify.data.handling as dh
 
 
 test_datadir = get_test_data_dir()

@@ -3,19 +3,21 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
+from __future__ import annotations
 import time
 import json
 import types
-from os.path import join
-from filelock import FileLock
 import tempfile
+from os.path import join
 from collections.abc import Iterable
+from collections import OrderedDict
 import itertools
 from itertools import chain
 
 import xarray as xr
 import numpy as np
 import adaptive
+from filelock import FileLock
 from qcodes import Instrument
 from qcodes import validators as vals
 from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
@@ -27,18 +29,20 @@ from quantify.data.handling import (
     grow_dataset,
     trim_dataset,
 )
+from quantify.utilities.general import call_if_has_method
 from quantify.measurement.types import Settable, Gettable, is_batched
 
 # Intended for plotting monitors that run in separate processes
-_dataset_name = "dataset.hdf5"
-_dataset_locks_dir = tempfile.gettempdir()
+_DATASET_NAME = "dataset.hdf5"
+_DATASET_LOCKS_DIR = tempfile.gettempdir()
 
 
 class MeasurementControl(Instrument):
     """
     Instrument responsible for controlling the data acquisition loop.
 
-    MeasurementControl (MC) is based on the notion that every experiment consists of the following steps:
+    MeasurementControl (MC) is based on the notion that every experiment consists of
+    the following steps:
 
         1. Set some parameter(s)            (settable_pars)
         2. Measure some other parameter(s)  (gettable_pars)
@@ -110,6 +114,7 @@ class MeasurementControl(Instrument):
             docstring="Instrument responsible for live plotting. "
             "Can be set to str(None) to disable live plotting.",
             parameter_class=InstrumentRefParameter,
+            vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
         )
 
         self.add_parameter(
@@ -117,6 +122,7 @@ class MeasurementControl(Instrument):
             docstring="Instrument responsible for live monitoring summarized snapshot. "
             "Can be set to str(None) to disable monitoring of snapshot.",
             parameter_class=InstrumentRefParameter,
+            vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
         )
 
         self.add_parameter(
@@ -198,16 +204,6 @@ class MeasurementControl(Instrument):
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-        self._plotmon_name = self.instr_plotmon()
-
-        # TODO: This doesn't seem the best way to update. Blind copy and paste from plotmon
-        self._instrument_monitor_name = self.instrument_monitor()
-        if (
-            self._instrument_monitor_name is not None
-            and self._instrument_monitor_name != ""
-        ):
-            self.instrument_monitor.get_instr().update()
-
     def run(self, name: str = ""):
         """
         Starts a data acquisition loop.
@@ -228,13 +224,13 @@ class MeasurementControl(Instrument):
         self._prepare_settables()
 
         try:
-            if self._is_batched:
+            if self._get_is_batched():
                 if self.verbose():
-                    print(f"Starting batched measurement...")
+                    print("Starting batched measurement...")
                 self._run_batched()
             else:
                 if self.verbose():
-                    print(f"Starting iterative measurement...")
+                    print("Starting iterative measurement...")
                 self._run_iterative()
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
@@ -335,12 +331,11 @@ class MeasurementControl(Instrument):
             self._loop_count += 1
 
     def _run_batched(self):
-        # Evaluate @property only once
-        batch_size = self._batch_size
-        where_batched = self._where_batched
-        where_iterative = self._where_iterative
-        batched_settables = self._batched_settables
-        iterative_settables = self._iterative_settables
+        batch_size = self._get_batch_size()
+        where_batched = self._get_where_batched()
+        where_iterative = self._get_where_iterative()
+        batched_settables = self._get_batched_settables()
+        iterative_settables = self._get_iterative_settables()
 
         if self.verbose():
             print(
@@ -357,14 +352,14 @@ class MeasurementControl(Instrument):
             for i, spar in enumerate(iterative_settables):
                 # Here ensure that all setpoints of each iterative settable are the same
                 # within each batch
-                val, it = next(
+                val, iterator = next(
                     itertools.groupby(
                         self._setpoints[setpoint_idx:slice_len, where_iterative[i]]
                     )
                 )
                 spar.set(val)
                 # We also determine the size of each next batch
-                self._batch_size_last = min(self._batch_size_last, len(tuple(it)))
+                self._batch_size_last = min(self._batch_size_last, len(tuple(iterator)))
 
             slice_len = setpoint_idx + self._batch_size_last
             for i, spar in enumerate(batched_settables):
@@ -383,15 +378,15 @@ class MeasurementControl(Instrument):
                     new_data = new_data.reshape(1, (len(new_data)))
 
                 for row in new_data:
-                    yi = f"y{y_off}"
+                    yi_name = f"y{y_off}"
                     slice_len = setpoint_idx + len(row)  # the slice we will be updating
-                    old_vals = self._dataset[yi].values[setpoint_idx:slice_len]
+                    old_vals = self._dataset[yi_name].values[setpoint_idx:slice_len]
                     old_vals[
                         np.isnan(old_vals)
                     ] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset[yi].values[setpoint_idx:slice_len] = self._build_data(
-                        row, old_vals
-                    )
+                    self._dataset[yi_name].values[
+                        setpoint_idx:slice_len
+                    ] = self._build_data(row, old_vals)
                     y_off += 1
 
             self._nr_acquired_values += np.shape(new_data)[1]
@@ -400,8 +395,8 @@ class MeasurementControl(Instrument):
     def _build_data(self, new_data, old_data):
         if self.soft_avg() == 1:
             return old_data + new_data
-        else:
-            return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
+
+        return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
     def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
         """
@@ -415,7 +410,7 @@ class MeasurementControl(Instrument):
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             self._dataset[f"x{setpar_idx}"].values[idx] = spt
-            spar.set(spt)  # TODO add smartness to avoid setting if unchanged
+            spar.set(spt)
         # get all data points
         y_offset = 0
         for gpar in self._gettable_pars:
@@ -425,15 +420,15 @@ class MeasurementControl(Instrument):
                 new_data = [new_data]
             # iterate through the data list, each element is different y for these x coordinates
             for val in new_data:
-                yi = f"y{y_offset}"
-                old_val = self._dataset[yi].values[idx]
+                yi_name = f"y{y_offset}"
+                old_val = self._dataset[yi_name].values[idx]
                 if self.soft_avg() == 1 or np.isnan(old_val):
-                    self._dataset[yi].values[idx] = val
+                    self._dataset[yi_name].values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
                         1 + self._loop_count
                     )
-                    self._dataset[yi].values[idx] = averaged
+                    self._dataset[yi_name].values[idx] = averaged
                 y_offset += 1
 
     ############################################
@@ -446,76 +441,60 @@ class MeasurementControl(Instrument):
         """
         update = (
             time.time() - self._last_upd > self.update_interval()
-            or self._nr_acquired_values == self._max_setpoints
+            or self._nr_acquired_values == self._get_max_setpoints()
         )
         if update:
             self.print_progress(print_message)
 
             self._safe_write_dataset()
 
-            if self._plotmon_name is not None and self._plotmon_name != "":
+            if self.instr_plotmon():
                 # Plotmon requires to know which dataset was modified
                 self.instr_plotmon.get_instr().update(tuid=self._dataset.attrs["tuid"])
 
-            if (
-                self._instrument_monitor_name is not None
-                and self._instrument_monitor_name != ""
-            ):
+            if self.instrument_monitor():
                 self.instrument_monitor.get_instr().update()
 
             self._last_upd = time.time()
-
-    def _call_if_has_method(self, obj, method: str) -> None:
-        """
-        Calls the ``method`` of the ``obj`` if it has it
-        """
-        prepare_method = getattr(obj, method, lambda: None)
-        prepare_method()
 
     def _prepare_gettables(self) -> None:
         """
         Call prepare() on the Gettable, if prepare() exists
         """
         for getpar in self._gettable_pars:
-            self._call_if_has_method(getpar, "prepare")
+            call_if_has_method(getpar, "prepare")
 
     def _prepare_settables(self) -> None:
         """
         Call prepare() on all Settable, if prepare() exists
         """
         for setpar in self._settable_pars:
-            self._call_if_has_method(setpar, "prepare")
+            call_if_has_method(setpar, "prepare")
 
     def _finish(self) -> None:
         """
         Call finish() on all Settables and Gettables, if finish() exists
         """
         for par in self._gettable_pars + self._settable_pars:
-            self._call_if_has_method(par, "finish")
+            call_if_has_method(par, "finish")
 
-    @property
-    def _batched_mask(self):
+    def _get_batched_mask(self):
         return tuple(is_batched(spar) for spar in self._settable_pars)
 
-    @property
-    def _where_batched(self):
+    def _get_where_batched(self):
         # Indices to select correct entries in results data
-        return np.where(self._batched_mask)[0]
+        return np.where(self._get_batched_mask())[0]
 
-    @property
-    def _where_iterative(self):
-        return np.where(tuple(not m for m in self._batched_mask))[0]
+    def _get_where_iterative(self):
+        return np.where(tuple(not m for m in self._get_batched_mask()))[0]
 
-    @property
-    def _iterative_settables(self):
+    def _get_iterative_settables(self):
         return tuple(spar for spar in self._settable_pars if not is_batched(spar))
 
-    @property
-    def _batched_settables(self):
+    def _get_batched_settables(self):
         return tuple(spar for spar in self._settable_pars if is_batched(spar))
 
-    @property
-    def _batch_size(self):
+    def _get_batch_size(self):
         # np.inf is not supported by the JSON schema, but we keep the code robust
         min_with_inf = min(
             getattr(par, "batch_size", np.inf)
@@ -523,8 +502,7 @@ class MeasurementControl(Instrument):
         )
         return min(min_with_inf, len(self._setpoints))
 
-    @property
-    def _is_batched(self) -> bool:
+    def _get_is_batched(self) -> bool:
         if any(
             is_batched(gpar) for gpar in chain(self._gettable_pars, self._settable_pars)
         ):
@@ -542,8 +520,7 @@ class MeasurementControl(Instrument):
 
         return False
 
-    @property
-    def _max_setpoints(self) -> int:
+    def _get_max_setpoints(self) -> int:
         """
         The total number of setpoints to examine
         """
@@ -567,29 +544,34 @@ class MeasurementControl(Instrument):
         """
         Returns the fraction of the experiment that is completed.
         """
-        return self._nr_acquired_values / self._max_setpoints
+        return self._nr_acquired_values / self._get_max_setpoints()
 
     def print_progress(self, progress_message: str = None):
-        percdone = self._get_fracdone() * 100
+        """
+        Prints the provided `progress_messages` or a default one; and calls the
+        callback specified by `on_progress_callback`.
+        Printing can be suppressed with `.verbose(False)`.
+        """
+        progress_percent = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
         if not progress_message:
             t_left = (
-                round((100.0 - percdone) / percdone * elapsed_time, 1)
-                if percdone != 0
+                round((100.0 - progress_percent) / progress_percent * elapsed_time, 1)
+                if progress_percent != 0
                 else ""
             )
             progress_message = (
-                f"\r{int(percdone):#3d}% completed  elapsed time: "
+                f"\r{int(progress_percent):#3d}% completed  elapsed time: "
                 f"{int(round(elapsed_time, 1)):#6d}s  time left: {int(round(t_left, 1)):#6d}s  "
             )
             if self._batch_size_last is not None:
                 progress_message += f"last batch size: {self._batch_size_last:#6d}  "
 
         if self.on_progress_callback() is not None:
-            self.on_progress_callback()(percdone)
+            self.on_progress_callback()(progress_percent)
 
         if self.verbose():
-            print(progress_message, end="" if percdone < 100 else "\n")
+            print(progress_message, end="" if progress_percent < 100 else "\n")
 
     def _safe_write_dataset(self):
         """
@@ -597,11 +579,11 @@ class MeasurementControl(Instrument):
         Locking files are written into a temporary dir to avoid polluting
         the experiment container.
         """
-        filename = join(self._exp_folder, _dataset_name)
+        filename = join(self._exp_folder, _DATASET_NAME)
         # Multiprocess safe
         lockfile = join(
-            _dataset_locks_dir,
-            self._dataset.attrs["tuid"] + "-" + _dataset_name + ".lock",
+            _DATASET_LOCKS_DIR,
+            self._dataset.attrs["tuid"] + "-" + _DATASET_NAME + ".lock",
         )
         with FileLock(lockfile, 5):
             self._dataset.to_netcdf(filename)
@@ -643,13 +625,14 @@ class MeasurementControl(Instrument):
         ----------
         setpoints :
             An array that defines the values to loop over in the experiment.
-            The shape of the array has to be either (N,) or (N,1) for a 1D loop; or (N, M) in the case of an MD loop.
+            The shape of the array has to be either (N,) or (N,1) for a 1D loop;
+            or (N, M) in the case of an MD loop.
         """
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
 
-    def setpoints_grid(self, setpoints):
+    def setpoints_grid(self, setpoints: Iterable[np.array]):
         """
         Makes a grid from the provided `setpoints` assuming each array element
         corresponds to an orthogonal dimension.
@@ -664,115 +647,7 @@ class MeasurementControl(Instrument):
             The values to loop over in the experiment. The grid is reshaped in the same order.
 
 
-        .. admonition:: Examples
-            :class: dropdown, tip
-
-                .. jupyter-kernel:: python3
-                    :id: MC_setpoints_grid
-
-                We first prepare some utilities necessarily for the examples.
-
-                .. jupyter-execute::
-
-                    import numpy as np
-                    import xarray as xr
-                    from pathlib import Path
-                    from os.path import join
-                    import matplotlib.pyplot as plt
-                    from qcodes import ManualParameter, Parameter
-                    from quantify.measurement import MeasurementControl, grid_setpoints
-                    import quantify.data.handling as dh
-                    dh.set_datadir(join(Path.home(), 'quantify-data'))
-                    MC = MeasurementControl("MC")
-
-                    par0 = ManualParameter(name="x0", label="X0", unit="s")
-                    par1 = ManualParameter(name="x1", label="X1", unit="s")
-                    par2 = ManualParameter(name="x2", label="X2", unit="s")
-                    par3 = ManualParameter(name="x3", label="X3", unit="s")
-                    sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par0()))
-
-            .. admonition:: Iterative-only settables
-                :class: dropdown, tip
-
-                    .. jupyter-execute::
-
-                        par0.batched = False
-                        par1.batched = False
-                        par2.batched = False
-
-                        sig.batched = False
-
-                        MC.settables([par0, par1, par2])
-                        MC.setpoints_grid([
-                            np.linspace(0, 1, 4),
-                            np.linspace(1, 2, 5),
-                            np.linspace(2, 3, 6),
-                        ])
-                        MC.gettables(sig)
-                        dset = MC.run("demo")
-                        list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
-                        plt.gca().legend()
-
-            .. admonition:: Batched-only settables
-                :class: dropdown, tip
-
-                    Note that the settable with lowest `.batch_size`  will be correspond to the
-                    innermost loop.
-
-                    .. jupyter-execute::
-
-                        par0.batched = True
-                        par1.batch_size = 8
-                        par1.batched = True
-                        par1.batch_size = 8
-                        par2.batched = True
-                        par2.batch_size = 4
-
-                        sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par2()))
-                        sig.batched = True
-                        sig.batch_size = 32
-
-                        MC.settables([par0, par1, par2])
-                        MC.setpoints_grid([
-                            np.linspace(0, 1, 3),
-                            np.linspace(1, 2, 5),
-                            np.linspace(2, 3, 4),
-                        ])
-                        MC.gettables(sig)
-                        dset = MC.run("demo")
-                        list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
-                        plt.gca().legend()
-
-            .. admonition:: Batched and iterative settables
-                :class: dropdown, tip
-
-                    Note that the settable with lowest `.batch_size`  will be correspond to the
-                    innermost loop. Furthermore, the iterative settables will be the outermost loops.
-
-                    .. jupyter-execute::
-
-                        par0.batched = False
-                        par1.batched = True
-                        par1.batch_size = 8
-                        par2.batched = False
-                        par3.batched = True
-                        par3.batch_size = 4
-
-                        sig = Parameter(name='sig', label='Signal', unit='V', get_cmd=lambda: np.exp(par3()))
-                        sig.batched = True
-                        sig.batch_size = 32
-
-                        MC.settables([par0, par1, par2, par3])
-                        MC.setpoints_grid([
-                            np.linspace(0, 1, 3),
-                            np.linspace(1, 2, 5),
-                            np.linspace(2, 3, 4),
-                            np.linspace(3, 4, 6),
-                        ])
-                        MC.gettables(sig)
-                        dset = MC.run("demo")
-                        list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
-                        plt.gca().legend()
+        .. include:: ./docstring_examples/quantify.measurement.control.setpoints_grid.rst.txt
         """
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
@@ -832,35 +707,42 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
     if settables is None:
         settables = [None] * len(setpoints)
 
-    coords_names = tuple(f"x{i}" for i, pnts in enumerate(setpoints))
-    dset_coords = xr.Dataset(
-        coords={name: pnts for name, pnts in zip(coords_names, setpoints)}
+    coordinates_names = [f"x{i}" for i, pnts in enumerate(setpoints)]
+    dataset_coordinates = xr.Dataset(
+        coords=OrderedDict(zip(coordinates_names, setpoints))
     )
-    coords_batched = [
-        name for name, spar in zip(coords_names, settables) if is_batched(spar)
+    coordinates_batched = [
+        name for name, spar in zip(coordinates_names, settables) if is_batched(spar)
     ]
-    coords_iterative = sorted(
-        (name for name, spar in zip(coords_names, settables) if not is_batched(spar)),
+    coordinates_iterative = sorted(
+        (
+            name
+            for name, spar in zip(coordinates_names, settables)
+            if not is_batched(spar)
+        ),
         reverse=True,
     )
 
-    stack_order = coords_iterative
-    if len(coords_batched):
+    if len(coordinates_batched):
         batch_sizes = [
             getattr(spar, "batch_size", np.inf)
             for spar in settables
             if is_batched(spar)
         ]
-        coords_batched_set = set(coords_batched)
-        inner_coord_name = coords_batched[np.argmin(batch_sizes)]
-        coords_batched_set.remove(inner_coord_name)
+        coordinates_batched_set = set(coordinates_batched)
+        inner_coord_name = coordinates_batched[np.argmin(batch_sizes)]
+        coordinates_batched_set.remove(inner_coord_name)
         # The inner most coordinate must correspond to the batched settable with min `.batch_size`
-        stack_order += sorted(coords_batched_set, reverse=True) + [inner_coord_name]
+        stack_order = (
+            coordinates_iterative
+            + sorted(coordinates_batched_set, reverse=True)
+            + [inner_coord_name]
+        )
     else:
-        stack_order += sorted(coords_batched, reverse=True)
+        stack_order = coordinates_iterative + sorted(coordinates_batched, reverse=True)
 
     # Internally the xarray's stack mechanism is used to achieve the desired grid
-    stacked_dset = dset_coords.stack(dim_0=stack_order)
+    stacked_dset = dataset_coordinates.stack(dim_0=stack_order)
 
     # Return numpy array in the original order
-    return np.column_stack([stacked_dset[name].values for name in coords_names])
+    return np.column_stack([stacked_dset[name].values for name in coordinates_names])

@@ -431,7 +431,7 @@ The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurem
 
 Setting the `.batched` property to `True` enables the batch Control Mode in the :class:`~quantify.measurement.MeasurementControl`. In this mode, if present, the `.batch_size` attribute is used to determine the maximum size of a batch of setpoints.
 
-.. admonition:: Heterogeneous `.batch_size`s and effective batch size
+.. admonition:: Heterogeneous batch size and effective batch size
     :class: dropdown, note
 
     The minimum `.batch_size` among all settables and gettables will determine the (maximum) size of a batch. During execution of a measurement the size of a batch will be reduced if necessary to comply to the setpoints grid and/or total number of setpoints.

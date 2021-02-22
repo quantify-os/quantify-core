@@ -3,6 +3,7 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
+import warnings
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -12,8 +13,6 @@ from qcodes.utils.helpers import strip_attrs
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import NoResultError
 from quantify.data.handling import get_datadir
-
-import warnings
 
 
 class PlotMonitor_pyqt(Instrument):
@@ -48,11 +47,10 @@ class PlotMonitor_pyqt(Instrument):
                 self.remote_ppr = self.proc._import(
                     "quantify.visualization.pyqt_plotmon_remote"
                 )
-            except NoResultError as e:
+            except NoResultError as exception:
                 # Try a few times before giving up
-                print("\n\n\n\t\tException!!!\n\n\n")
                 if i == 4:
-                    raise (e)
+                    raise exception
             else:
                 break
 

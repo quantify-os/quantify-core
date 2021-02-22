@@ -1,10 +1,11 @@
 import time
 import random
+import tempfile
+from collections.abc import Iterable
 import xarray as xr
 import numpy as np
 import pytest
 import adaptive
-from collections.abc import Iterable
 from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
@@ -16,14 +17,13 @@ from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 from quantify.utilities._tests_helpers import get_test_data_dir
-import tempfile
 
 try:
     from adaptive import SKOptLearner
 
-    with_skoptlearner = True
+    WITH_SKOPTLEARNER = True
 except ImportError:
-    with_skoptlearner = False
+    WITH_SKOPTLEARNER = False
 
 test_datadir = get_test_data_dir()
 
@@ -37,7 +37,7 @@ def SinFunc(t, amplitude, frequency, phase):
     return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
 
-# FIXME each unit test should be stateless and independent from previous tests
+# Issue #155: each unit test should be stateless and independent from previous tests
 # Parameters are created to emulate a system being measured
 t = ManualParameter("t", initial_value=1, unit="s", label="Time")
 amp = ManualParameter("amp", initial_value=1, unit="V", label="Amplitude")
@@ -348,7 +348,6 @@ class TestMeasurementControl:
         """Mixing iterative and batched settables is allowed as long
         as at least one settable is batched.
         """
-
         setpoints = np.linspace(0, 360, 8)
         self.MC.settables(t)  # iterative settable
         self.MC.setpoints(setpoints)
@@ -491,7 +490,7 @@ class TestMeasurementControl:
         }
 
     def test_iterative_outer_loop_with_inner_batched_2D(self):
-        t(1), amp(1), freq(1)  # Reset globals
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
         self.MC.settables([t, freq])
         times = np.linspace(0, 15, 20)
         freqs = np.linspace(0.1, 1, 10)
@@ -522,7 +521,7 @@ class TestMeasurementControl:
         delattr(sig, "batched")
         delattr(t, "batched")
         delattr(freq, "batched")
-        t(1), amp(1), freq(1)  # Reset globals
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
 
     def test_batched_2D_grid_multi_return(self):
         times = np.linspace(10, 20, 3)
@@ -741,7 +740,7 @@ class TestMeasurementControl:
         np.testing.assert_array_equal(dset["y4"], exp_y4)
 
     def test_batched_3D_multi_return_soft_averaging(self):
-        t(1), amp(1), freq(1)  # Reset globals
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
 
         def v_get(setpoints):
             return setpoints
@@ -774,7 +773,7 @@ class TestMeasurementControl:
         np.testing.assert_array_almost_equal(
             dset.y2, batched_mock_values(exp_sp[:, 2]), decimal=4
         )
-        t(1), amp(1), freq(1)  # Reset globals
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
 
     def test_batched_attr_raises(self):
         times = np.linspace(0, 5, 3)
@@ -799,7 +798,7 @@ class TestMeasurementControl:
         delattr(t, "batched")
 
     def test_batched_grid_mixed(self):
-        t(1), amp(1), freq(1), other_freq(1)  # Reset globals
+        _, _, _, _ = t(1), amp(1), freq(1), other_freq(1)  # Reset globals
         times = np.linspace(0, 5, 3)
         amps = np.linspace(-1, 1, 4)
         freqs = np.linspace(41000, 82000, 8)
@@ -842,7 +841,7 @@ class TestMeasurementControl:
         delattr(other_freq, "batch_size")
         delattr(amp, "batched")
         delattr(sig2, "batched")
-        t(1), amp(1), freq(1), other_freq(1)  # Reset globals
+        _, _, _, _ = t(1), amp(1), freq(1), other_freq(1)  # Reset globals
 
     def test_adaptive_no_averaging(self):
         self.MC.soft_avg(5)
@@ -941,7 +940,7 @@ class TestMeasurementControl:
         # todo pycqed has no verification step here, what should we do?
 
     @pytest.mark.skipif(
-        not with_skoptlearner, reason="scikit-optimize is not installed"
+        not WITH_SKOPTLEARNER, reason="scikit-optimize is not installed"
     )
     def test_adaptive_skoptlearner(self):
         self.dummy_parabola.noise(0)

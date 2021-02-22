@@ -4,6 +4,8 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import time
+import warnings
+
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import NoResultError
@@ -15,8 +17,6 @@ from qcodes.instrument.parameter import ManualParameter
 from quantify.data.handling import snapshot
 from quantify.utilities.general import traverse_dict
 from quantify.visualization.ins_mon_widget import qc_snapshot_widget
-
-import warnings
 
 
 class InstrumentMonitor(Instrument):
@@ -41,9 +41,7 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(
-        self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs
-    ):
+    def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True):
         """
         Initializes the pyqtgraph window
 
@@ -109,11 +107,10 @@ class InstrumentMonitor(Instrument):
         for i in range(5):
             try:
                 self.__class__.rwidget = self.proc._import(qc_widget)
-            except NoResultError as e:
+            except NoResultError as exception:
                 # Try a few times before giving up
-                print("\n\n\n\t\tException!!!\n\n\n")
                 if i == 4:
-                    raise (e)
+                    raise exception
             else:
                 break
 
