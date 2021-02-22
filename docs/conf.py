@@ -24,8 +24,8 @@ package_path = os.path.abspath("..")
 sys.path.insert(0, package_path)
 
 # -- Env workaround ----------------------------------------------------
-# See #124 regarding RTD for merge requests branches
 
+# See #124 regarding RTD build for merge requests
 if os.environ.get("READTHEDOCS", "False") == "True":
     # Commented out to not pollute the RTD output
     # os.environ["QT_DEBUG_PLUGINS"] = "1"
