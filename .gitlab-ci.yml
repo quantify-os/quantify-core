@@ -1,7 +1,7 @@
 workflow:
   rules:
+    # Only run pipelines for merge requests
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
 
 .shared_windows_runners:
   tags:
@@ -71,9 +71,10 @@ test-win-3.8:
     - "C:\\Python38\\python.exe -m pip install -e ."
     - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov"
     - "C:\\Python38\\Scripts\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
-  #rules:
-    #- if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" && $CI_PIPELINE_SOURCE == "merge_request_event"'
-    # - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
+  rules:
+    # Only run if on the develop branch
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
 
 test-3.8:
   extends: "test"
