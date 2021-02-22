@@ -1,6 +1,8 @@
 workflow:
   rules:
-    # Only run pipelines for merge requests
+    # Only run pipelines for merge requests to avoid pipeline duplication
+    # See also https://gitlab.com/gitlab-org/gitlab/-/issues/34756
+    # and https://docs.gitlab.com/ee/ci/troubleshooting.html#job-may-allow-multiple-pipelines-to-run-for-a-single-action-warning
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 .shared_windows_runners:
@@ -72,7 +74,7 @@ test-win-3.8:
     - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov"
     - "C:\\Python38\\Scripts\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
   rules:
-    # Only run if on the develop branch
+    # Only run when merging to develop branch
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
     - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
 
