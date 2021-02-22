@@ -23,6 +23,14 @@ import sys
 package_path = os.path.abspath("..")
 sys.path.insert(0, package_path)
 
+# -- Env workaround ----------------------------------------------------
+# See #124 regarding RTD for merge requests branches
+
+if os.environ.get("READTHEDOCS", "False") == "True":
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    os.environ["QT_DEBUG_PLUGINS"] = "1"
+    os.environ["PIP_CACHE_DIR"] = '"$CI_PROJECT_DIR/.cache/pip"'
+
 # -- General configuration ---------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
