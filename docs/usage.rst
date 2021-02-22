@@ -422,7 +422,7 @@ Single-float-valued settable(s) and gettable(s)
         dset = MC.run("my experiment")
         dset_grid = dh.to_gridded_dataset(dset)
 
-        dset_grid.y0.plot()
+        dset_grid.y0.plot(marker='o')
         dset_grid
 
 .. admonition:: 2D
@@ -448,6 +448,25 @@ Single-float-valued settable(s) and gettable(s)
 
         For more dimensions you only need to pass more settables and the corresponding setpoints.
 
+.. admonition:: 1D adaptive
+    :class: dropdown
+
+    .. jupyter-execute::
+
+        from scipy.optimize import minimize_scalar
+
+        time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Numbers(), initial_value=1)
+        signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()))
+        MC.settables(time)
+        MC.gettables(signal)
+        dset = MC.run_adaptive('1D minimizer', {"adaptive_function": minimize_scalar})
+
+        dset_ad = dh.to_gridded_dataset(dset)
+        # add a grey cosine for reference
+        x = np.linspace(np.min(dset_ad['x0']), np.max(dset_ad['x0']), 101)
+        y = np.cos(x)
+        plt.plot(x,y,c='grey', ls='--')
+        dset_ad.y0.plot(marker='o')
 
 Single-float-valued settable(s) with multiple float-valued gettable(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -516,7 +535,7 @@ Float-valued array settable(s) and gettable(s)
         dset = MC.run("my experiment")
         dset_grid = dh.to_gridded_dataset(dset)
 
-        dset_grid.y0.plot()
+        dset_grid.y0.plot(marker='o')
         print(f"\nNOTE: The gettable returns an array:\n\n{signal.get()}")
         dset_grid
 
@@ -580,5 +599,7 @@ Float-valued array settable(s) with multi-return float-valued array gettable(s)
         dset = MC.run("my experiment")
         dset_grid = dh.to_gridded_dataset(dset)
 
-        dset_grid.y0.plot()
-        dset_grid.y1.plot()
+        _, ax=plt.subplots()
+        dset_grid.y0.plot(marker='o', label="y0", ax=ax)
+        dset_grid.y1.plot(marker='s', label="y1", ax=ax)
+        ax.legend()
