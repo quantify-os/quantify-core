@@ -1,3 +1,5 @@
+.. _usage:
+
 ===============
 User guide
 ===============
@@ -5,7 +7,7 @@ User guide
 Introduction
 ===============
 
-A :mod:`Quantify` experiment typically consists of a data-acquisition loop in which one or more parameters are set and one or more parameters are measured.
+A :mod:`quantify` experiment typically consists of a data-acquisition loop in which one or more parameters are set and one or more parameters are measured.
 
 The core of Quantify can be understood by understanding the following concepts:
 
@@ -92,7 +94,7 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
 
 
-Basic example, a 1D Iterative measurement loop
+Basic example, a 1D iterative measurement loop
 ------------------------------------------------
 
 Running an experiment is simple!
@@ -127,7 +129,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     MC.settables(mw_source1.freq)               # We want to set the frequency of a microwave source
     MC.setpoints(np.arange(5e9, 5.2e9, 100e3))  # Scan around 5.1 GHz
     MC.gettables(pulsar_QRM.signal)             # acquire the signal from the pulsar QRM
-    dset = MC.run(name='Frequency sweep')    # Start the experiment
+    dset = MC.run(name='Frequency sweep')       # run the experiment
 
 
 The :class:`~quantify.measurement.MeasurementControl` can also be used to perform more advanced experiments such as 2D scans, pulse-sequences where the hardware is in control of the acquisition loop, or adaptive experiments in which it is not known what data points to acquire in advance, they are determined dynamically during the experiment.
@@ -165,7 +167,7 @@ Similarly, we get values from Gettables which populate a `Y`-axis.
 These classes define a set of mandatory and optional attributes the :class:`~quantify.measurement.MeasurementControl` recognizes and will use as part of the experiment, which are expanded up in the API Reference.
 
 
-For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit.
+For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit (see :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` docs for these schemas).
 In addition to using a library which fits these contracts (such as the :class:`~qcodes.Parameter` family of classes) we can define our own Settables and Gettables.
 
 .. jupyter-execute::
@@ -181,11 +183,12 @@ In addition to using a library which fits these contracts (such as the :class:`~
         def get(self):
             return np.sin(t() / np.pi)
 
+        # optional methods to prepare can be left undefined
         def prepare(self) -> None:
-            pass
+            print("Preparing the WaveGettable for acquisition.")
 
         def finish(self) -> None:
-            pass
+            print("Finishing WaveGettable to wrap up the experiment.")
 
     # verify compliance with the Gettable format
     wave_gettable = WaveGettable()
@@ -203,11 +206,13 @@ In addition to using a library which fits these contracts (such as the :class:`~
         class DualWave:
             def __init__(self):
                 self.unit = ['V', 'V']
-                self.label = ['Amplitude', 'Amplitude']
-                self.name = ['sine', 'cosine']
+                self.label = ['Sine Amplitude', 'Cosine Amplitude']
+                self.name = ['sin', 'cos']
 
             def get(self):
                 return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
+
+            # N.B. the optional prepare and finish methods are omitted in this Gettable.
 
         # verify compliance with the Gettable format
         wave_gettable = DualWave()
@@ -263,7 +268,7 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
             For more dimensions you only need to pass more settables and the corresponding setpoints.
 
-.. admonition:: Single-float-valued settable(s) with multi-return single-float-valued gettable(s)
+.. admonition:: Single-float-valued settable(s) with multiple float-valued gettable(s)
     :class: tip, dropdown
 
         - Each settable accepts a single float value.
@@ -284,8 +289,8 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
                 class DualWave:
                     def __init__(self):
                         self.unit = ['V', 'V']
-                        self.label = ['Amplitude W1', 'Amplitude W2']
-                        self.name = ['sine', 'cosine']
+                        self.label = ['Sine Amplitude', 'Cosine Amplitude']
+                        self.name = ['sin', 'cos']
 
                     def get(self):
                         return np.array([np.sin(time_a() * np.pi), np.cos(time_b() * np.pi)])
@@ -529,23 +534,30 @@ The resulting dataset will look similar to the following:
     MC.setpoints_grid([np.linspace(-1, 1, 10), np.linspace(0, 10, 100)])
     MC.gettables(sig)
     quantify_dataset = MC.run('my experiment')
-    _, axs = plt.subplots(2,1, sharex=True)
+
+    _, axs = plt.subplots(3,1, sharex=True)
     xr.plot.line(quantify_dataset["x0"][:54], label="x0", ax=axs[0], marker=".")
     xr.plot.line(quantify_dataset["x1"][:54], label="x1", ax=axs[1], color="C1", marker=".")
+    xr.plot.line(quantify_dataset["y0"][:54], label="y0", ax=axs[2], color="C2", marker=".")
     tuple(ax.legend() for ax in axs)
     quantify_dataset
 
-.. note::
+Associating dimensions to coordinates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    To support both gridded and non-gridded data, we use :doc:`Xarray <xarray:index>` using only `Data Variables` and `Coordinates` **with a single** `Dimension` (corresponding to the order of the setpoints).
+To support both gridded and non-gridded data, we use :doc:`Xarray <xarray:index>` using only `Data Variables` and `Coordinates` **with a single** `Dimension` (corresponding to the order of the setpoints).
 
-    This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome. To allow for some of Xarray's more advanced functionality, such as the in-built graphing or query system we provide a dataset conversion utility :func:`~quantify.data.handling.to_gridded_dataset` [which can also be used for 1D datasets].
+This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome.
+A prominent example of non-gridded use-cases can be found :ref:`adaptive_tutorial`.
 
-    .. jupyter-execute::
+To allow for some of Xarray's more advanced functionality, such as the in-built graphing or query system we provide a dataset conversion utility :func:`~quantify.data.handling.to_gridded_dataset`.
+This function reshapes the data and associates dimensions to the dataset [which can also be used for 1D datasets].
 
-        gridded_dset = dh.to_gridded_dataset(quantify_dataset)
-        gridded_dset.y0.plot()
-        gridded_dset
+.. jupyter-execute::
+
+    gridded_dset = dh.to_gridded_dataset(quantify_dataset)
+    gridded_dset.y0.plot()
+    gridded_dset
 
 
 Snapshot
