@@ -31,7 +31,7 @@ before_script:
   - virtualenv venv
   - source venv/bin/activate
   - apt update
-  - apt install -y xvfb # Sets up a headless display
+  - apt install -y xvfb  # Sets up a headless display
   - sleep 3
 
 stages:
