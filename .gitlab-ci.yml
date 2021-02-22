@@ -35,8 +35,8 @@ before_script:
   - sleep 3
 
 stages:
-  - Static Analysis
   - Test
+  - Static Analysis
   - Deploy
 
 test:
@@ -80,6 +80,7 @@ test-latest:
   allow_failure: true
 
 black:
+  needs: [] # allow running in parallel with previous stage
   image: python:3.8
   stage: Static Analysis
   allow_failure: false
