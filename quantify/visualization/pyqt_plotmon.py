@@ -3,6 +3,8 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
+import warnings
+import time
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -10,9 +12,8 @@ from qcodes.instrument.parameter import Parameter
 from qcodes.utils.helpers import strip_attrs
 
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import NoResultError
 from quantify.data.handling import get_datadir
-
-import warnings
 
 
 class PlotMonitor_pyqt(Instrument):
@@ -42,9 +43,19 @@ class PlotMonitor_pyqt(Instrument):
         self.proc = pgmp.QtProcess(processRequests=False)
         # quantify module(s) in the remote process
         self.remote_quantify = self.proc._import("quantify")
-        self.remote_ppr = self.proc._import(
-            "quantify.visualization.pyqt_plotmon_remote"
-        )
+        for i in range(5):
+            try:
+                self.remote_ppr = self.proc._import(
+                    "quantify.visualization.pyqt_plotmon_remote"
+                )
+            except NoResultError as exception:
+                # Try a few times before giving up
+                time.sleep(0.2)
+                if i == 4:
+                    raise exception
+            else:
+                break
+
         # the interface to the remote object
         self.remote_plotmon = self.remote_ppr.RemotePlotmon(instr_name=self.name)
 

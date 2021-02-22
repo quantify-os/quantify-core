@@ -2,6 +2,21 @@
 Changelog
 ===========
 
+Unreleased
+----------
+Breaking changes
+^^^^^^^^^^^^^^^^
+
+Please see merge request !98 for a python snippet that will make all previous datasets compliant with this breaking change!
+
+* Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
+* Added batched mode with outer iterative loops (!98)
+
 0.3.1 (2021-02-15)
 ------------------
 

@@ -21,7 +21,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
     InteractiveShell.ast_node_interactivity = "all"
 
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 QCoDeS drivers for our instruments
@@ -324,7 +324,6 @@ But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 
 
 Now your life will never be the same again ;)
-
 
 
 .. seealso::
