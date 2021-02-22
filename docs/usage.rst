@@ -275,7 +275,7 @@ The :meth:`!.finish` runs once at the end of an experiment.
 
 For `settables`, :meth:`!.prepare` runs once **before the start of a measurement**.
 
-For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()`which resets to `1` at the end of each experiment].
+For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()` which resets to `1` at the end of each experiment].
 
 Data storage & Analysis
 =========================
