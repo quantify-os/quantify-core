@@ -349,6 +349,7 @@ class TestMeasurementControl:
         Mixing iterative and batched settables is allowed as long
         as at least one settable is batched.
         """
+
         setpoints = np.linspace(0, 360, 8)
         self.MC.settables(t)  # iterative settable
         self.MC.setpoints(setpoints)
