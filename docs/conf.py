@@ -27,9 +27,9 @@ sys.path.insert(0, package_path)
 # See #124 regarding RTD for merge requests branches
 
 if os.environ.get("READTHEDOCS", "False") == "True":
+    # Commented out to not pollute the RTD output
+    # os.environ["QT_DEBUG_PLUGINS"] = "1"
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    os.environ["QT_DEBUG_PLUGINS"] = "1"
-    os.environ["PIP_CACHE_DIR"] = '"$CI_PROJECT_DIR/.cache/pip"'
 
 # -- General configuration ---------------------------------------------
 
