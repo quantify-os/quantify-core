@@ -109,6 +109,7 @@ class InstrumentMonitor(Instrument):
                 self.__class__.rwidget = self.proc._import(qc_widget)
             except NoResultError as exception:
                 # Try a few times before giving up
+                time.sleep(0.2)
                 if i == 4:
                     raise exception
             else:

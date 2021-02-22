@@ -4,6 +4,7 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import warnings
+import time
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -49,6 +50,7 @@ class PlotMonitor_pyqt(Instrument):
                 )
             except NoResultError as exception:
                 # Try a few times before giving up
+                time.sleep(0.2)
                 if i == 4:
                     raise exception
             else:
