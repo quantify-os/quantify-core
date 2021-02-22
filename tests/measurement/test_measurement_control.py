@@ -345,7 +345,8 @@ class TestMeasurementControl:
         np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(xn_0)), decimal=2)
 
     def test_iterative_set_batched_get_1D_raises(self):
-        """Mixing iterative and batched settables is allowed as long
+        """
+        Mixing iterative and batched settables is allowed as long
         as at least one settable is batched.
         """
         setpoints = np.linspace(0, 360, 8)
@@ -828,9 +829,14 @@ class TestMeasurementControl:
 
         exp_sp = grid_setpoints(setpoints, settables=settables)
         assert np.array_equal(self.MC._setpoints, exp_sp)
-        exp_sp = exp_sp.T
-        freq(exp_sp[0]), t(exp_sp[1]), other_freq(exp_sp[2]), amp(exp_sp[3])
 
+        exp_sp = exp_sp.T
+        _, _, _, _ = (
+            freq(exp_sp[0]),
+            t(exp_sp[1]),
+            other_freq(exp_sp[2]),
+            amp(exp_sp[3]),
+        )
         assert np.array_equal(dset["y0"].values, sig2())
 
         # Reset for other tests
