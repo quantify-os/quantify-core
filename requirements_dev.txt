@@ -19,4 +19,5 @@ pytest-runner
 pytest-cov
 pygments==2.6.1
 black
+pylint
 pre-commit
