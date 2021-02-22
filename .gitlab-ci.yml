@@ -1,3 +1,8 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+
 .shared_windows_runners:
   tags:
   - shared-windows
@@ -31,7 +36,7 @@ before_script:
   - virtualenv venv
   - source venv/bin/activate
   - apt update
-  - apt install -y xvfb # Sets up a headless display
+  - apt install -y xvfb  # Sets up a headless display
   - sleep 3
 
 stages:
@@ -39,8 +44,8 @@ stages:
   - Test
   - Deploy
 
-test:
-  stage: Test
+.test:
+  needs: []  # allow running in parallel with previous stage
   script:
     - pip install -e .
     - pip install -r requirements_dev.txt
@@ -55,37 +60,52 @@ test:
       cobertura: coverage.xml
     when: always
 
+.develop-only-job:
+  # make any job extend from this if it should run only on develop
+  rules:
+    # Only run when merging to develop branch
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
+
+test-3.7:
+  stage: Test
+  image: "python:3.7"
+  extends:
+    - .test
+    - .develop-only-job
+
+test-3.8:
+  stage: Test
+  image: "python:3.8"
+  extends:
+    - .test
+
 test-win-3.8:
+  stage: Test
   before_script:
     - choco install python --version=3.8.3 -y -f
     - "C:\\Python38\\python.exe -m pip install -U pip"
   extends:
     - .shared_windows_runners
-    - test
+    - .test
+    - .develop-only-job
   script:
     - "C:\\Python38\\python.exe -m pip install -e ."
     - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov"
     - "C:\\Python38\\Scripts\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
 
-test-3.8:
-  extends: "test"
-  image: "python:3.8"
-
 test-latest:
-  extends: "test"
+  stage: Test
   image: "python:latest"
+  extends:
+    - .test
+    - .develop-only-job
   allow_failure: true
 
-black:
-  image: python:3.8
-  stage: Static Analysis
-  allow_failure: false
-  script:
-    - pip install -r requirements_dev.txt
-    - black --check --fast .
-
-run:
+alternative-install:
   stage: Test
+  extends: ".develop-only-job"
+  needs: []  # allow running in parallel with previous stage
   script:
     - python setup.py bdist_wheel
     # an alternative approach is to install and run:
@@ -94,3 +114,11 @@ run:
   artifacts:
     paths:
       - dist/*.whl
+
+black:
+  stage: Static Analysis
+  image: python:3.8
+  allow_failure: false
+  script:
+    - pip install -r requirements_dev.txt
+    - black --check --fast .
