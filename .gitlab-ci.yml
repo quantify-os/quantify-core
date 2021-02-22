@@ -44,7 +44,7 @@ stages:
   - Test
   - Deploy
 
-test:
+.test:
   needs: []  # allow running in parallel with previous stage
   script:
     - pip install -e .
@@ -60,7 +60,7 @@ test:
       cobertura: coverage.xml
     when: always
 
-develop-only-job:
+.develop-only-job:
   # make any job extend from this if it should run only on develop
   rules:
     # Only run when merging to develop branch
@@ -71,14 +71,14 @@ test-3.7:
   stage: Test
   image: "python:3.7"
   extends:
-    - test
-    - develop-only-job
+    - .test
+    - .develop-only-job
 
 test-3.8:
   stage: Test
   image: "python:3.8"
   extends:
-    - test
+    - .test
 
 test-win-3.8:
   stage: Test
@@ -87,8 +87,8 @@ test-win-3.8:
     - "C:\\Python38\\python.exe -m pip install -U pip"
   extends:
     - .shared_windows_runners
-    - test
-    - develop-only-job
+    - .test
+    - .develop-only-job
   script:
     - "C:\\Python38\\python.exe -m pip install -e ."
     - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov"
@@ -98,13 +98,13 @@ test-latest:
   stage: Test
   image: "python:latest"
   extends:
-    - test
-    - develop-only-job
+    - .test
+    - .develop-only-job
   allow_failure: true
 
 alternative-install:
   stage: Test
-  extends: "develop-only-job"
+  extends: ".develop-only-job"
   needs: []  # allow running in parallel with previous stage
   script:
     - python setup.py bdist_wheel
