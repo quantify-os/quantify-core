@@ -345,10 +345,8 @@ class TestMeasurementControl:
         np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(xn_0)), decimal=2)
 
     def test_iterative_set_batched_get_1D_raises(self):
-        """
-        Mixing iterative and batched settables is allowed as long
-        as at least one settable is batched.
-        """
+        # Mixing iterative and batched settables is allowed as long
+        # as at least one settable is batched.
 
         setpoints = np.linspace(0, 360, 8)
         self.MC.settables(t)  # iterative settable
