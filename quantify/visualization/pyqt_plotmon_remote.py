@@ -26,7 +26,6 @@ from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from quantify.visualization.color_utilities import make_fadded_colors
 from quantify.visualization import _appnope
-from quantify.measurement.control import _DATASET_LOCKS_DIR
 
 
 class RemotePlotmon:
@@ -39,9 +38,12 @@ class RemotePlotmon:
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
-    def __init__(self, instr_name: str):
+    def __init__(self, instr_name: str, dataset_locks_dir: str):
         # Used to mirror the name of the instrument in the windows titles
         self.instr_name = instr_name
+
+        # Use the same locking files as in the main process
+        self.dataset_locks_dir = dataset_locks_dir
 
         # used to track the tuids of previous datasets
         self._tuids = deque()
@@ -167,7 +169,7 @@ class RemotePlotmon:
         # verify tuid
         TUID(tuid)
 
-        dset = _safe_load_dataset(tuid)
+        dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -202,7 +204,9 @@ class RemotePlotmon:
         # ensures the same datadir as in the main process
         set_datadir(datadir)
 
-        dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
+        dsets = {
+            tuid: _safe_load_dataset(tuid, self.dataset_locks_dir) for tuid in tuids
+        }
 
         # Now we ensure all datasets are compatible to be plotted together
         if dsets and not _xi_and_yi_match(dsets.values()):
@@ -239,7 +243,9 @@ class RemotePlotmon:
         # ensures the same datadir as in the main process
         set_datadir(datadir)
 
-        extra_dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
+        extra_dsets = {
+            tuid: _safe_load_dataset(tuid, self.dataset_locks_dir) for tuid in tuids
+        }
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -496,7 +502,7 @@ class RemotePlotmon:
 
         tuid = self._tuids[0] if tuid is None else tuid
 
-        dset = _safe_load_dataset(tuid)
+        dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
         self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")
@@ -596,10 +602,8 @@ class RemotePlotmon:
         return win.x(), win.y(), win.width(), win.height()
 
 
-def _safe_load_dataset(tuid):
-    lockfile = os.path.join(
-        _DATASET_LOCKS_DIR, tuid[:26] + "-" + DATASET_NAME + ".lock"
-    )
+def _safe_load_dataset(tuid, dataset_locks_dir):
+    lockfile = os.path.join(dataset_locks_dir, tuid[:26] + "-" + DATASET_NAME + ".lock")
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
 
