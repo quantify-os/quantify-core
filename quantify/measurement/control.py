@@ -35,7 +35,6 @@ from quantify.utilities.general import call_if_has_method
 from quantify.measurement.types import Settable, Gettable, is_batched
 
 # Intended for plotting monitors that run in separate processes
-DATASET_NAME = "dataset.hdf5"
 _DATASET_LOCKS_DIR = tempfile.gettempdir()
 
 
