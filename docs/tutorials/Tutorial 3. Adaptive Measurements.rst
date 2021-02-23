@@ -1,7 +1,9 @@
+.. _adaptive_tutorial:
+
 Tutorial 3. Adaptive Measurements
 ==================================
 
-Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) *User guide* before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the *User guide*!
+Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`usage`. If you have some difficulties following the tutorial it might be worth reviewing the *User guide*!
 
 We **highly recommended** to first follow :ref:`Tutorial 1. Controlling a basic experiment using MeasurementControl` and :ref:`Tutorial 2. Advanced capabilities of the MeasurementControl`.
 
@@ -16,7 +18,7 @@ The `MC` will then use this function to build the sweep. We import our usual mod
     from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 .. jupyter-execute::

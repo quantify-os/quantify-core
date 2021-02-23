@@ -39,7 +39,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     import quantify.visualization.pyqt_plotmon as pqm
     from quantify.visualization.instrument_monitor import InstrumentMonitor
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 .. jupyter-execute::

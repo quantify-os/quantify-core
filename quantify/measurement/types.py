@@ -66,5 +66,10 @@ ObjectValidator = extend(Draft7Validator, type_checker=type_checker)
 validator = ObjectValidator(schema={"type": "number"})
 
 
-def is_batched(obj):
+def is_batched(obj) -> bool:
+    """
+    Returns
+    -------
+        the `.batched` attribute of the settable/gettable `obj`, `False` if not present.
+    """
     return getattr(obj, "batched", False)
