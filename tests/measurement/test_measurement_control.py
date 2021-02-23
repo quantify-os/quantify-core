@@ -1,5 +1,7 @@
 import time
 import random
+import tempfile
+from collections.abc import Iterable
 import xarray as xr
 import numpy as np
 import pytest
@@ -8,21 +10,20 @@ from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify.measurement.control import MeasurementControl, tile_setpoints_grid
+from quantify.measurement.control import MeasurementControl, grid_setpoints
 import quantify.data.handling as dh
 from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
 from quantify.utilities._tests_helpers import get_test_data_dir
-import tempfile
 
 try:
     from adaptive import SKOptLearner
 
-    with_skoptlearner = True
+    WITH_SKOPTLEARNER = True
 except ImportError:
-    with_skoptlearner = False
+    WITH_SKOPTLEARNER = False
 
 test_datadir = get_test_data_dir()
 
@@ -36,10 +37,14 @@ def SinFunc(t, amplitude, frequency, phase):
     return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
 
+# Issue #155: each unit test should be stateless and independent from previous tests
 # Parameters are created to emulate a system being measured
 t = ManualParameter("t", initial_value=1, unit="s", label="Time")
 amp = ManualParameter("amp", initial_value=1, unit="V", label="Amplitude")
 freq = ManualParameter("freq", initial_value=1, unit="Hz", label="Frequency")
+other_freq = ManualParameter(
+    "other_freq", initial_value=1, unit="Hz", label="Other frequency"
+)
 
 
 def sine_model():
@@ -50,8 +55,19 @@ def cosine_model():
     return CosFunc(t(), amplitude=amp(), frequency=freq(), phase=0)
 
 
-# We wrap our function in a Parameter to be able to give
+def cosine_model_2():
+    return CosFunc(t(), amplitude=amp(), frequency=other_freq(), phase=0)
+
+
 sig = Parameter(name="sig", label="Signal level", unit="V", get_cmd=cosine_model)
+
+# A signal that uses 4 parameters
+sig2 = Parameter(
+    name="sig2",
+    label="Signal level",
+    unit="V",
+    get_cmd=lambda: cosine_model() + cosine_model_2(),
+)
 
 
 class DualWave:
@@ -107,38 +123,43 @@ class DummyParHolder(Instrument):
         )
 
 
-def hardware_mock_values(setpoints):
+def batched_mock_values(setpoints):
+    assert isinstance(setpoints, Iterable)
     return np.sin(setpoints / np.pi)
 
 
-class DummyHardwareSettable:
+class DummyBatchedSettable:
     def __init__(self):
-        self.name = "DummyHardwareSettable"
+        self.name = "DummyBatchedSettable"
         self.label = "Amp"
         self.unit = "V"
         self.batched = True
+        # If present must be an integer to comply with JSON schema
+        self.batch_size = 0xFFFF
         self.setpoints = []
-
-    # copy what qcodes does for easy testing interop
-    def __call__(self):
-        return self.setpoints
 
     def set(self, setpoints):
         self.setpoints = setpoints
 
+    def get(self):
+        return self.setpoints
 
-class DummyHardwareGettable:
+
+class DummyBatchedGettable:
+    # settables are passed for tests purposes only
     def __init__(self, settables, noise=0.0):
-        self.name = ["DummyHardwareGettable_0"]
+        self.name = ["DummyBatchedGettable_0"]
         self.unit = ["W"]
         self.label = ["Watts"]
         self.batched = True
+        # If present must be an integer to comply with JSON schema
+        self.batch_size = 0xFFFF
         self.settables = [settables] if not isinstance(settables, list) else settables
         self.noise = noise
-        self.get_func = hardware_mock_values
+        self.get_func = batched_mock_values
 
     def set_return_2D(self):
-        self.name.append("DummyHardwareGettable_1")
+        self.name.append("DummyBatchedGettable_1")
         self.unit.append("V")
         self.label.append("Amp")
 
@@ -148,7 +169,7 @@ class DummyHardwareGettable:
             assert settable is not None
 
     def _get_data(self):
-        return np.array([i() for i in self.settables])
+        return np.array([spar.get() for spar in self.settables])
 
     def get(self):
         data = self._get_data()
@@ -190,7 +211,7 @@ class TestMeasurementControl:
         self.MC.setpoints(x)
         assert np.array_equal(self.MC._setpoints, x)
 
-    def test_soft_sweep_1D(self):
+    def test_iterative_1D(self):
         xvals = np.linspace(0, 2 * np.pi, 31)
 
         self.MC.settables(t)
@@ -206,16 +227,22 @@ class TestMeasurementControl:
         assert np.array_equal(dset["y0"].values, expected_vals)
 
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "y0"}
         assert np.array_equal(dset["x0"], xvals)
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
             "units": "V",
+            "batched": False,
         }
 
-    def test_soft_sweep_1D_multi_return(self):
+    def test_iterative_1D_multi_return(self):
         xvals = np.linspace(0, 2 * np.pi, 31)
 
         self.MC.settables(t)
@@ -226,11 +253,11 @@ class TestMeasurementControl:
         exp_y0 = SinFunc(xvals, 1, 1, 0)
         exp_y1 = CosFunc(xvals, 1, 1, 0)
 
-        assert dset.keys() == {"x0", "y0", "y1"}
+        assert set(dset.variables.keys()) == {"x0", "y0", "y1"}
         np.testing.assert_array_equal(dset["y0"], exp_y0)
         np.testing.assert_array_equal(dset["y1"], exp_y1)
 
-    def test_soft_averages_soft_sweep_1D(self):
+    def test_soft_averages_iterative_1D(self):
         def rand():
             return random.uniform(0.0, t())
 
@@ -249,45 +276,67 @@ class TestMeasurementControl:
         avg_delta = abs(avg_dset["y0"].values - expected_vals)
         assert np.mean(avg_delta) < np.mean(r_delta)
 
-    def test_hard_sweep_1D(self):
+    def test_batched_1D(self):
         x = np.linspace(0, 10, 5)
-        device = DummyHardwareSettable()
+        device = DummyBatchedSettable()
         self.MC.settables(device)
         self.MC.setpoints(x)
-        self.MC.gettables(DummyHardwareGettable(device))
+        # settables are passed for test purposes only, this is not a design pattern!
+        self.MC.gettables(DummyBatchedGettable(device))
         dset = self.MC.run()
 
-        expected_vals = hardware_mock_values(x)
+        expected_vals = batched_mock_values(x)
         assert np.array_equal(dset["x0"].values, x)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "y0"}
         assert dset["x0"].attrs == {
-            "name": "DummyHardwareSettable",
+            "name": "DummyBatchedSettable",
             "long_name": "Amp",
             "units": "V",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
         assert dset["y0"].attrs == {
-            "name": "DummyHardwareGettable_0",
+            "name": "DummyBatchedGettable_0",
             "long_name": "Watts",
             "units": "W",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
 
-    def test_soft_averages_hard_sweep_1D(self):
+    def test_batched_batch_size_1D(self):
+        x = np.linspace(0, 10, 50)
+        device = DummyBatchedSettable()
+        self.MC.settables(device)
+        self.MC.setpoints(x)
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(device)
+        # Must be specified otherwise all setpoints will be passed to the settable
+        gettable.batch_size = 10
+        self.MC.gettables(gettable)
+        dset = self.MC.run()
+
+        expected_vals = batched_mock_values(x)
+        assert np.array_equal(dset["x0"].values, x)
+        assert np.array_equal(dset["y0"].values, expected_vals)
+
+    def test_soft_averages_batched_1D(self):
         setpoints = np.arange(50.0)
-        settable = DummyHardwareSettable()
-        gettable = DummyHardwareGettable(settable)
+        settable = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(settable)
         gettable.noise = 0.4
         self.MC.settables(settable)
         self.MC.setpoints(setpoints)
         self.MC.gettables(gettable)
         noisy_dset = self.MC.run("noisy")
         xn_0 = noisy_dset["x0"].values
-        expected_vals = hardware_mock_values(xn_0)
+        expected_vals = batched_mock_values(xn_0)
         yn_0 = abs(noisy_dset["y0"].values - expected_vals)
 
-        self.MC.soft_avg(5000)
+        self.MC.soft_avg(1000)
         avg_dset = self.MC.run("averaged")
         yavg_0 = abs(avg_dset["y0"].values - expected_vals)
 
@@ -295,25 +344,24 @@ class TestMeasurementControl:
         assert np.mean(yn_0) > np.mean(yavg_0)
         np.testing.assert_array_almost_equal(yavg_0, np.zeros(len(xn_0)), decimal=2)
 
-    def test_soft_set_hard_get_1D(self):
-        gettable = DummyHardwareGettable(t)
+    def test_iterative_set_batched_get_1D_raises(self):
+        # Mixing iterative and batched settables is allowed as long
+        # as at least one settable is batched.
 
-        def mock_get():
-            return np.sin(t())
-
-        gettable.get = mock_get
         setpoints = np.linspace(0, 360, 8)
-        self.MC.settables(t)
+        self.MC.settables(t)  # iterative settable
         self.MC.setpoints(setpoints)
-        self.MC.gettables(gettable)
-        dset = self.MC.run("soft_sweep_hard_det")
 
-        x = dset["x0"].values
-        y0 = dset["y0"].values
-        np.testing.assert_array_equal(x, setpoints)
-        np.testing.assert_array_equal(y0, np.sin(setpoints))
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(t)
+        self.MC.gettables(gettable)  # batched gettable
+        with pytest.raises(
+            RuntimeError,
+            match=r"At least one settable must have `settable.batched=True`",
+        ):
+            self.MC.run("raises")
 
-    def test_soft_sweep_2D_grid(self):
+    def test_iterative_2D_grid(self):
 
         times = np.linspace(0, 5, 20)
         amps = np.linspace(-1, 1, 5)
@@ -321,11 +369,12 @@ class TestMeasurementControl:
         self.MC.settables([t, amp])
         self.MC.setpoints_grid([times, amps])
 
-        exp_sp = tile_setpoints_grid([times, amps])
-        assert np.array_equal(self.MC._setpoints, exp_sp)
+        exp_sp = grid_setpoints([times, amps])
 
         self.MC.gettables(sig)
         dset = self.MC.run()
+
+        assert np.array_equal(self.MC._setpoints, exp_sp)
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -339,24 +388,31 @@ class TestMeasurementControl:
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "x1", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "x1", "y0"}
 
         assert all(e in dset["x0"].values for e in times)
         assert all(e in dset["x1"].values for e in amps)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
         assert dset["x1"].attrs == {
             "name": "amp",
             "long_name": "Amplitude",
             "units": "V",
+            "batched": False,
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
             "units": "V",
+            "batched": False,
         }
 
-    def test_soft_sweep_2D_arbitrary(self):
+    def test_iterative_2D_arbitrary(self):
 
         r = np.linspace(0, 1.5, 50)
         dt = np.linspace(0, 1, 50)
@@ -388,87 +444,130 @@ class TestMeasurementControl:
         assert np.array_equal(dset["x1"].values, y)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
-    def test_hard_sweep_2D_grid(self):
+    def test_batched_2D_grid(self):
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
-        gettable = DummyHardwareGettable(settables)
+        settables = [DummyBatchedSettable(), DummyBatchedSettable()]
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(settables)
         self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
         self.MC.gettables(gettable)
-        dset = self.MC.run("2D Hard")
+        dset = self.MC.run("2D batched")
 
-        exp_sp = tile_setpoints_grid([times, amps])
+        exp_sp = grid_setpoints([times, amps])
         assert np.array_equal(exp_sp, self.MC._setpoints)
         assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
         assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
 
-        expected_vals = hardware_mock_values(dset["x0"].values)
+        expected_vals = batched_mock_values(dset["x0"].values)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
 
         assert dset["x0"].attrs == {
-            "name": "DummyHardwareSettable",
+            "name": "DummyBatchedSettable",
             "long_name": "Amp",
             "units": "V",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
         assert dset["x1"].attrs == {
-            "name": "DummyHardwareSettable",
+            "name": "DummyBatchedSettable",
             "long_name": "Amp",
             "units": "V",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
         assert dset["y0"].attrs == {
-            "name": "DummyHardwareGettable_0",
+            "name": "DummyBatchedGettable_0",
             "long_name": "Watts",
             "units": "W",
+            "batched": True,
+            "batch_size": 0xFFFF,
         }
 
-    def test_hard_sweep_2D_grid_multi_return(self):
+    def test_iterative_outer_loop_with_inner_batched_2D(self):
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
+        self.MC.settables([t, freq])
+        times = np.linspace(0, 15, 20)
+        freqs = np.linspace(0.1, 1, 10)
+        setpoints = [times, freqs]
+        self.MC.setpoints_grid(setpoints)
+
+        # Using the same gettable for test purposes
+        self.MC.gettables([sig, sig])
+
+        t.batched = True
+        freq.batched = False
+
+        # Must be specified otherwise all setpoints will be passed to the settable
+        sig.batch_size = len(times)
+        sig.batched = True
+
+        dset = self.MC.run("iterative-outer-loop-with-inner-batched-2D")
+
+        expected_vals = CosFunc(
+            t=self.MC._setpoints[:, 0],
+            frequency=self.MC._setpoints[:, 1],
+            amplitude=1,
+            phase=0,
+        )
+        assert np.array_equal(dset["y0"].values, expected_vals)
+
+        delattr(sig, "batch_size")
+        delattr(sig, "batched")
+        delattr(t, "batched")
+        delattr(freq, "batched")
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
+
+    def test_batched_2D_grid_multi_return(self):
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
 
-        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
-        gettable = DummyHardwareGettable(settables)
+        settables = [DummyBatchedSettable(), DummyBatchedSettable()]
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(settables)
         gettable.set_return_2D()
         self.MC.settables(settables)
         self.MC.setpoints_grid([times, amps])
         self.MC.gettables(gettable)
-        dset = self.MC.run("2D Hard")
+        dset = self.MC.run("2D batched multi return")
 
-        exp_sp = tile_setpoints_grid([times, amps])
+        exp_sp = grid_setpoints([times, amps])
         assert np.array_equal(exp_sp, self.MC._setpoints)
         assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
         assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
 
-        expected_vals = hardware_mock_values(
+        expected_vals = batched_mock_values(
             np.stack((dset["x0"].values, dset["x1"].values))
         )
         assert np.array_equal(dset["y0"].values, expected_vals[0])
         assert np.array_equal(dset["y1"].values, expected_vals[1])
 
-    def test_hard_sweep_2D_grid_multi_return_soft_avg(self):
+    def test_batched_2D_grid_multi_return_soft_avg(self):
         x0 = np.arange(5)
         x1 = np.linspace(5, 10, 5)
-        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
-        gettable = DummyHardwareGettable(settables)
+        settables = [DummyBatchedSettable(), DummyBatchedSettable()]
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(settables)
         gettable.noise = 0.4
         gettable.set_return_2D()
         self.MC.settables(settables)
         self.MC.setpoints_grid([x0, x1])
         self.MC.gettables(gettable)
-        noisy_dset = self.MC.run("noisy_hard_grid")
+        noisy_dset = self.MC.run("noisy_batched_grid")
 
-        expected_vals = hardware_mock_values(
+        expected_vals = batched_mock_values(
             np.stack((noisy_dset["x0"].values, noisy_dset["x1"]))
         )
         yn_0 = abs(noisy_dset["y0"].values - expected_vals[0])
         yn_1 = abs(noisy_dset["y1"].values - expected_vals[1])
 
         self.MC.soft_avg(1000)
-        avg_dset = self.MC.run("avg_hard_grid")
+        avg_dset = self.MC.run("avg_batched_grid")
         yavg_0 = abs(avg_dset["y0"].values - expected_vals[0])
         yavg_1 = abs(avg_dset["y1"].values - expected_vals[1])
 
@@ -481,7 +580,7 @@ class TestMeasurementControl:
             yavg_1, np.zeros(len(noisy_dset["x0"].values)), decimal=2
         )
 
-    def test_hard_sweep_2D_arbitrary(self):
+    def test_batched_2D_arbitrary(self):
         r = np.linspace(0, 1.5, 5)
         dt = np.linspace(0, 1, 5)
         f = 10
@@ -495,21 +594,22 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        settables = [DummyHardwareSettable(), DummyHardwareSettable()]
+        settables = [DummyBatchedSettable(), DummyBatchedSettable()]
         self.MC.settables(settables)
         self.MC.setpoints(setpoints)
-        self.MC.gettables(DummyHardwareGettable(settables))
+        # settables are passed for test purposes only, this is not a design pattern!
+        self.MC.gettables(DummyBatchedGettable(settables))
         dset = self.MC.run()
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
-        expected_vals = hardware_mock_values(x)
+        expected_vals = batched_mock_values(x)
 
         assert np.array_equal(dset["x0"].values, x)
         assert np.array_equal(dset["x1"].values, y)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
-    def test_variable_return_hard_sweep(self):
+    def test_variable_return_batched(self):
         counter_param = ManualParameter("counter", initial_value=0)
 
         def v_size(setpoints):
@@ -523,8 +623,9 @@ class TestMeasurementControl:
                 return 2 * setpoints[:]
 
         setpoints = np.arange(30.0)
-        settable = DummyHardwareSettable()
-        gettable = DummyHardwareGettable(settable)
+        settable = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(settable)
         gettable.get_func = v_size
         self.MC.settables(settable)
         self.MC.setpoints(setpoints)
@@ -534,7 +635,7 @@ class TestMeasurementControl:
         assert np.array_equal(dset["x0"], setpoints)
         assert np.array_equal(dset["y0"], 2 * setpoints)
 
-    def test_variable_return_hard_sweep_soft_avg(self):
+    def test_variable_return_batched_soft_avg(self):
         counter_param = ManualParameter("counter", initial_value=0)
 
         def v_size(setpoints):
@@ -548,20 +649,21 @@ class TestMeasurementControl:
                 return 2 * setpoints[:]
 
         setpoints = np.arange(30.0)
-        settable = DummyHardwareSettable()
-        gettable = DummyHardwareGettable(settable)
+        settable = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
+        gettable = DummyBatchedGettable(settable)
         gettable.get_func = v_size
         gettable.noise = 0.25
         self.MC.settables(settable)
         self.MC.setpoints(setpoints)
         self.MC.gettables(gettable)
-        self.MC.soft_avg(5000)
+        self.MC.soft_avg(1000)
         dset = self.MC.run("varying")
 
         assert np.array_equal(dset["x0"], setpoints)
         np.testing.assert_array_almost_equal(dset.y0, 2 * setpoints, decimal=2)
 
-    def test_soft_sweep_3D_grid(self):
+    def test_iterative_3D_grid(self):
         times = np.linspace(0, 5, 2)
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
@@ -569,11 +671,12 @@ class TestMeasurementControl:
         self.MC.settables([t, amp, freq])
         self.MC.setpoints_grid([times, amps, freqs])
 
-        exp_sp = tile_setpoints_grid([times, amps, freqs])
-        assert np.array_equal(self.MC._setpoints, exp_sp)
+        exp_sp = grid_setpoints([times, amps, freqs])
 
         self.MC.gettables(sig)
         dset = self.MC.run()
+
+        assert np.array_equal(self.MC._setpoints, exp_sp)
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -588,24 +691,31 @@ class TestMeasurementControl:
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
-        assert dset.keys() == {"x0", "x1", "x2", "y0"}
+        assert set(dset.variables.keys()) == {"x0", "x1", "x2", "y0"}
         assert all(e in dset["x0"] for e in times)
         assert all(e in dset["x1"] for e in amps)
         assert all(e in dset["x2"] for e in freqs)
 
-        assert dset["x0"].attrs == {"name": "t", "long_name": "Time", "units": "s"}
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
         assert dset["x2"].attrs == {
             "name": "freq",
             "long_name": "Frequency",
             "units": "Hz",
+            "batched": False,
         }
         assert dset["y0"].attrs == {
             "name": "sig",
             "long_name": "Signal level",
             "units": "V",
+            "batched": False,
         }
 
-    def test_soft_sweep_3D_multi_return(self):
+    def test_iterative_3D_multi_return(self):
         times = np.linspace(0, 5, 2)
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
@@ -615,7 +725,7 @@ class TestMeasurementControl:
         self.MC.gettables([DualWave(), sig, DualWave()])
         dset = self.MC.run()
 
-        exp_sp = tile_setpoints_grid([times, amps, freqs])
+        exp_sp = grid_setpoints([times, amps, freqs])
         exp_y0 = exp_y3 = SinFunc(
             t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0
         )
@@ -629,35 +739,114 @@ class TestMeasurementControl:
         np.testing.assert_array_equal(dset["y3"], exp_y3)
         np.testing.assert_array_equal(dset["y4"], exp_y4)
 
-    def test_hard_sweep_3D_multi_return_soft_averaging(self):
+    def test_batched_3D_multi_return_soft_averaging(self):
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
+
         def v_get(setpoints):
             return setpoints
 
         times = np.linspace(0, 5, 2)
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
-        hardware_settable_0 = DummyHardwareSettable()
-        hardware_settable_1 = DummyHardwareSettable()
-        nd_gettable = DummyHardwareGettable([hardware_settable_0, hardware_settable_1])
+        batched_settable_t = DummyBatchedSettable()
+        batched_settable_0 = DummyBatchedSettable()
+        batched_settable_1 = DummyBatchedSettable()
+        # settables are passed for test purposes only, this is not a design pattern!
+        nd_gettable = DummyBatchedGettable([batched_settable_0, batched_settable_1])
         nd_gettable.set_return_2D()
-        noisy_gettable = DummyHardwareGettable([t])
+        # settables are passed for test purposes only, this is not a design pattern!
+        noisy_gettable = DummyBatchedGettable([batched_settable_t])
         noisy_gettable.get_func = v_get
         noisy_gettable.noise = 0.25
 
-        self.MC.settables([t, hardware_settable_0, hardware_settable_1])
+        self.MC.settables([batched_settable_t, batched_settable_0, batched_settable_1])
         self.MC.setpoints_grid([times, amps, freqs])
         self.MC.gettables([noisy_gettable, nd_gettable])
-        self.MC.soft_avg(5000)
+        self.MC.soft_avg(1000)
         dset = self.MC.run()
 
-        exp_sp = tile_setpoints_grid([times, amps, freqs])
+        exp_sp = grid_setpoints([times, amps, freqs])
         np.testing.assert_array_almost_equal(dset.y0, exp_sp[:, 0], decimal=2)
         np.testing.assert_array_almost_equal(
-            dset.y1, hardware_mock_values(exp_sp[:, 1]), decimal=4
+            dset.y1, batched_mock_values(exp_sp[:, 1]), decimal=4
         )
         np.testing.assert_array_almost_equal(
-            dset.y2, hardware_mock_values(exp_sp[:, 2]), decimal=4
+            dset.y2, batched_mock_values(exp_sp[:, 2]), decimal=4
         )
+        _, _, _ = t(1), amp(1), freq(1)  # Reset globals
+
+    def test_batched_attr_raises(self):
+        times = np.linspace(0, 5, 3)
+        freqs = np.linspace(41000, 82000, 8)
+
+        freq.batched = True
+        freq.batch_size = 8
+        t.batched = False
+
+        self.MC.settables([freq, t])
+        self.MC.setpoints_grid([freqs, times])
+        # Ensure forgetting this raises exception
+        # sig.batched = True
+        self.MC.gettables(sig)
+
+        with pytest.raises(RuntimeError):
+            self.MC.run()
+
+        # reset for other tests
+        delattr(freq, "batched")
+        delattr(freq, "batch_size")
+        delattr(t, "batched")
+
+    def test_batched_grid_mixed(self):
+        _, _, _, _ = t(1), amp(1), freq(1), other_freq(1)  # Reset globals
+        times = np.linspace(0, 5, 3)
+        amps = np.linspace(-1, 1, 4)
+        freqs = np.linspace(41000, 82000, 8)
+        other_freqs = np.linspace(46000, 88000, 8)
+
+        freq.batched = True
+        freq.batch_size = 5  # odd size for extra test
+        t.batched = False
+        other_freq.batched = True
+        other_freq.batch_size = 3  # odd size and different value for extra test
+        amp.batched = False
+
+        sig2.batched = True
+
+        settables = [freq, t, other_freq, amp]
+        self.MC.settables(settables)
+        setpoints = [freqs, times, other_freqs, amps]
+        self.MC.setpoints_grid(setpoints)
+        self.MC.gettables(sig2)
+        self.MC.soft_avg(2)
+        dset = self.MC.run("bla")
+
+        assert isinstance(freq(), Iterable)
+        assert not isinstance(t(), Iterable)
+        assert isinstance(other_freq(), Iterable)
+        assert not isinstance(amp(), Iterable)
+
+        exp_sp = grid_setpoints(setpoints, settables=settables)
+        assert np.array_equal(self.MC._setpoints, exp_sp)
+
+        exp_sp = exp_sp.T
+        _, _, _, _ = (
+            freq(exp_sp[0]),
+            t(exp_sp[1]),
+            other_freq(exp_sp[2]),
+            amp(exp_sp[3]),
+        )
+        assert np.array_equal(dset["y0"].values, sig2())
+
+        # Reset for other tests
+        delattr(freq, "batched")
+        delattr(freq, "batch_size")
+        delattr(t, "batched")
+        delattr(other_freq, "batched")
+        delattr(other_freq, "batch_size")
+        delattr(amp, "batched")
+        delattr(sig2, "batched")
+        _, _, _, _ = t(1), amp(1), freq(1), other_freq(1)  # Reset globals
 
     def test_adaptive_no_averaging(self):
         self.MC.soft_avg(5)
@@ -756,7 +945,7 @@ class TestMeasurementControl:
         # todo pycqed has no verification step here, what should we do?
 
     @pytest.mark.skipif(
-        not with_skoptlearner, reason="scikit-optimize is not installed"
+        not WITH_SKOPTLEARNER, reason="scikit-optimize is not installed"
     )
     def test_adaptive_skoptlearner(self):
         self.dummy_parabola.noise(0)
@@ -861,7 +1050,7 @@ class TestMeasurementControl:
             AttributeError,
             match="'badSetter' object has no attribute 'non_existing_param'",
         ):
-            self.MC.run("This rises exception as expected")
+            self.MC.run("This raises exception as expected")
 
         class badGetter:
             def __init__(self, param2):
@@ -887,19 +1076,131 @@ class TestMeasurementControl:
             AttributeError,
             match="'badGetter' object has no attribute 'non_existing_param'",
         ):
-            self.MC.run("This rises exception as expected")
+            self.MC.run("This raises exception as expected")
 
 
-def test_tile_setpoints_grid():
+class TestGridSetpoints:
+    @classmethod
+    def setup_class(self):
+        self.sp_i0 = np.array([0, 1, 2, 3])
+        self.sp_i1 = np.array([4, 5])
+        self.sp_i2 = np.array([-1, -2])
+
+        base_batched = [1, 2, 6]
+        self.sp_b0 = np.array(base_batched)
+        self.sp_b1 = np.array(base_batched) * 2
+        self.sp_b2 = np.array(base_batched) * 3
+
+        self.iterative = [self.sp_i0, self.sp_i1, self.sp_i2]
+        self.batched = [self.sp_b0, self.sp_b1, self.sp_b2]
+
+    @classmethod
+    def mk_settables(self, batched_mask):
+        settables = []
+        for i, m in enumerate(batched_mask):
+            par = ManualParameter(f"x{i}", f"X{i}", "s")
+            par.batched = m
+            settables.append(par)
+        return settables
+
+    def test_grid_setpoints_mixed_simple(self):
+
+        # Most simple case
+        batched_mask = [True, False]
+        settables = []
+        for i, m in enumerate(batched_mask):
+            par = ManualParameter(f"x{i}", f"X{i}", "s")
+            par.batched = m
+            settables.append(par)
+
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.tile(self.sp_b0, len(self.sp_i0)),
+                np.repeat(self.sp_i0, len(self.sp_b0)),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
+
+    def test_grid_setpoints_mixed_simple_reversed(self):
+
+        # Most simple case reversed order
+        batched_mask = [True, False]
+        settables = self.mk_settables(batched_mask)
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.tile(self.sp_b0, len(self.sp_i0)),
+                np.repeat(self.sp_i0, len(self.sp_b0)),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
+
+    def test_grid_setpoints_mixed_two_batched(self):
+
+        # Several batched settables
+        batched_mask = [False, True, True]
+        settables = self.mk_settables(batched_mask)
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.repeat(self.sp_i0, len(self.sp_b0) * len(self.sp_b0)),
+                np.tile(self.sp_b0, len(self.sp_i0) * len(self.sp_b1)),
+                np.tile(np.repeat(self.sp_b1, len(self.sp_b0)), len(self.sp_i0)),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
+
+    def test_grid_setpoints_mixed_two_batched_two_iterative(self):
+
+        # Several batched settables and several iterative settables
+        batched_mask = [False, True, False, True]
+        settables = self.mk_settables(batched_mask)
+        settables[-1].batch_size = 2
+        it_i = iter(self.iterative)
+        it_b = iter(self.batched)
+        setpoints = [(next(it_b) if m else next(it_i)) for m in batched_mask]
+        gridded = grid_setpoints(setpoints, settables=settables)
+        expected = np.column_stack(
+            [
+                np.tile(
+                    np.repeat(self.sp_i0, len(self.sp_b1) * len(self.sp_b0)),
+                    len(self.sp_i1),
+                ),
+                np.tile(
+                    np.repeat(self.sp_b0, len(self.sp_b1)),
+                    len(self.sp_i0) * len(self.sp_i1),
+                ),
+                np.repeat(
+                    self.sp_i1, len(self.sp_b0) * len(self.sp_b1) * len(self.sp_i0)
+                ),
+                np.tile(
+                    self.sp_b1, len(self.sp_i0) * len(self.sp_i1) * len(self.sp_b0)
+                ),
+            ]
+        )
+        np.testing.assert_array_equal(gridded, expected)
+
+
+def test_grid_setpoints():
     x = np.arange(5)
     y = np.linspace(-1, 1, 3)
 
-    sp = tile_setpoints_grid([x, y])
+    sp = grid_setpoints([x, y])
     assert sp[:, 0].all() == np.tile(np.arange(5), 3).all()
     assert sp[:, 1].all() == np.repeat(y, 5).all()
 
     z = np.linspace(100, 200, 2)
-    sp = tile_setpoints_grid([x, y, z])
+    sp = grid_setpoints([x, y, z])
     assert all(e in sp[:, 0] for e in x)
     assert all(e in sp[:, 1] for e in y)
     assert all(e in sp[:, 2] for e in z)

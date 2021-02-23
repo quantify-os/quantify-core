@@ -5,11 +5,11 @@
 # -----------------------------------------------------------------------------
 import importlib
 import copy
-import xxhash
-import numpy as np
 import json
+import numpy as np
 import pathlib
 from collections.abc import MutableMapping
+import xxhash
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set):
@@ -49,14 +49,14 @@ def traverse_dict(obj, convert_to_string: bool = True):
     """
     if isinstance(obj, dict):
         out_dict = {}
-        for k, v in obj.items():
-            out_dict[k] = traverse_dict(v)
+        for key, val in obj.items():
+            out_dict[key] = traverse_dict(val)
         return out_dict
     elif isinstance(obj, list):
         return [traverse_dict(elem) for elem in obj]
-    else:
-        return_obj = str(obj) if convert_to_string else obj
-        return str(return_obj)
+
+    return_obj = str(obj) if convert_to_string else obj
+    return str(return_obj)
 
 
 def get_keys_containing(obj, key):
@@ -97,24 +97,23 @@ def make_hash(o):
     from: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
     """
 
-    h = xxhash.xxh64()
+    new_hash = xxhash.xxh64()
     if isinstance(o, (set, tuple, list)):
-
         return tuple([make_hash(e) for e in o])
 
     elif isinstance(o, np.ndarray):
         # numpy arrays behave funny for hashing
-        h.update(o)
-        val = h.intdigest()
-        h.reset()
+        new_hash.update(o)
+        val = new_hash.intdigest()
+        new_hash.reset()
         return val
 
     elif not isinstance(o, dict):
         return hash(o)
 
     new_o = copy.deepcopy(o)
-    for k, v in new_o.items():
-        new_o[k] = make_hash(v)
+    for key, val in new_o.items():
+        new_o[key] = make_hash(val)
 
     return hash(tuple(frozenset(sorted(new_o.items()))))
 
@@ -147,17 +146,17 @@ def load_json_schema(relative_to, filename):
         the schema
     """
     path = pathlib.Path(relative_to).resolve().parent.joinpath("schemas", filename)
-    with path.open(mode="r") as f:
-        return json.load(f)
+    with path.open(mode="r") as file:
+        return json.load(file)
 
 
-def without(d, keys):
+def without(dict_in, keys):
     """
     Utility that copies a dictionary excluding a specific list of keys.
     """
     if not isinstance(keys, list):
         keys = [keys]
-    new_d = d.copy()
+    new_d = dict_in.copy()
     for key in keys:
         new_d.pop(key)
     return new_d
@@ -168,4 +167,10 @@ class KeyboardFinish(KeyboardInterrupt):
     Indicates the user has signaled to safely abort/finish the experiment.
     """
 
-    pass
+
+def call_if_has_method(obj, method: str) -> None:
+    """
+    Calls the `method` of the `obj` if it has it
+    """
+    prepare_method = getattr(obj, method, lambda: None)
+    prepare_method()

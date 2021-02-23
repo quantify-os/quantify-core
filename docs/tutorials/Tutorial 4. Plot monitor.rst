@@ -21,7 +21,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
     InteractiveShell.ast_node_interactivity = "all"
 
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 QCoDeS drivers for our instruments
@@ -59,7 +59,7 @@ Instantiate the instruments
 Overview
 ----------
 
-There are 3 parameters in the :class:`~quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt` that control the datasets being displayed.
+There are 3 parameters in the :class:`~quantify.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
 
 Two main parameters determine the datasets being displayed: *tuids* and *tuids_extra*.
 

@@ -1,3 +1,5 @@
+.. jupyter-kernel:: python3
+    :id: quantify_core_all_docs
 
 quantify
 =============

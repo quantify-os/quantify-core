@@ -2,22 +2,58 @@
 Changelog
 ===========
 
-
-
 Unreleased
 ----------
+Breaking changes
+^^^^^^^^^^^^^^^^
 
-* ...
+Please see merge request !98 for a python snippet that will make all previous datasets compliant with this breaking change!
+
+* Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
+* Added batched mode with outer iterative loops (!98)
+
+0.3.1 (2021-02-15)
+------------------
+
+* Added function to load settings from previous experiments onto instruments (load_settings_onto_instrument).
+* Added support for @property as attributes of Settables/Gettables.
+* Migrated code style to black.
+* Fixed support for python3.9.
+* Significant improvements to general documentation.
+* Improved installation instructions for windows and MacOS.
+* Changed the dataset .unit attribute to .units to adopt xarray default (Breaking change!).
+* Various minor bugfixes.
+
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Windows install instr (!79)
+* Load instrument settings (!29)
+* Docs/general fixes (!82)
+* updated copyright years (!84)
+* Hotfix makefile docs (!83)
+* Hot fix tuids max num (!85)
+* added reqs for scipy, fixes #133 (!87)
+* Added link on cross-fork collaboration (!90)
+* Allow easy access to the tests datadir from a simple import (!95)
+* Add custom css for rtd (!27)
+* Dset units attr, closes #147 (!101)
 * Add setGeometry method to instrument monitor and plotmon (!88)
 * Enforce a datadir choice to avoid potential data loss (!86)
 * Migrated code style to black (!93)
 * Fixed support for python3.9 (!94)
 * Added support for dynamic change of datadir for plotmon (!97)
 * Added support for @property as attributes of Settables/Gettables (!100)
+* "unit" attr of xarray variables in dataset changed to "units" for compatibility with xarray utilities. (!101)
+* Updated numpy requirement (!104)
+* Updated installation intructions for MacOS #142 (!99)
+* Bugfix for get tuids containing method (!106)
 
 Breaking changes
 ^^^^^^^^^^^^^^^^
