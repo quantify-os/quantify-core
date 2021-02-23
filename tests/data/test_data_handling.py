@@ -1,9 +1,9 @@
 import os
+from pathlib import Path
 import shutil
 import tempfile
-import dateutil
 from datetime import datetime
-from pathlib import Path
+import dateutil
 
 import pytest
 import xarray as xr
@@ -24,7 +24,6 @@ def test_gen_tuid():
 
     assert TUID.is_valid(tuid)
     assert isinstance(tuid, str)
-    assert isinstance(tuid, TUID)
 
 
 def test_initialize_dataset():
