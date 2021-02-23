@@ -34,7 +34,7 @@ Documentation
 
 quantify could always use more documentation, whether as part of the official quantify docs, in docstrings, tutorials and even on the web in blog posts, articles and such.
 
-For docstrings, please use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+For docstrings, please use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_. The only exception is that parameter's type(s) should not be specified in the docstrings but instead by using `type hints <https://docs.python.org/3/library/typing.html>`_.
 
 Working on issues
 ------------------
