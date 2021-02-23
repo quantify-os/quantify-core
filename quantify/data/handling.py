@@ -192,12 +192,10 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     exceptions = []
     engines = ["h5netcdf", "netcdf4", None]
     for engine in engines:
-        print(f"{engine}")
         try:
             dataset = xr.load_dataset(path, engine=engine)
         except Exception as exception:
             exceptions.append(exception)
-            print(exception)
         else:
             return dataset
 
