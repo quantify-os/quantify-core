@@ -21,6 +21,7 @@ requirements = [
     "numpy!=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
     "qcodes",
     "scipy>=1.5.0,!=1.6.0",
+    "h5netcdf",
     "xarray",
     "xxhash",
     "matplotlib",

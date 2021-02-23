@@ -20,12 +20,13 @@ from quantify.data.handling import (
     _xi_and_yi_match,
     _get_parnames,
     set_datadir,
+    DATASET_NAME,
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from quantify.visualization.color_utilities import make_fadded_colors
 from quantify.visualization import _appnope
-from quantify.measurement.control import _DATASET_NAME, _DATASET_LOCKS_DIR
+from quantify.measurement.control import _DATASET_LOCKS_DIR
 
 
 class RemotePlotmon:
@@ -597,7 +598,7 @@ class RemotePlotmon:
 
 def _safe_load_dataset(tuid):
     lockfile = os.path.join(
-        _DATASET_LOCKS_DIR, tuid[:26] + "-" + _DATASET_NAME + ".lock"
+        _DATASET_LOCKS_DIR, tuid[:26] + "-" + DATASET_NAME + ".lock"
     )
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
