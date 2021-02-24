@@ -6,37 +6,49 @@
 import datetime
 
 
-class TUID(str):
+class TUID:
     """
     A human readable unique identifier based on the timestamp.
+    This class does not wrap the passed in object but simply verifies and returns it.
 
     A tuid is a string formatted as ``YYYYmmDD-HHMMSS-sss-******``.
-    The tuid serves as a unique identifier for experiments in quantify see also :mod:`~quantify.data.handling`.
+    The tuid serves as a unique identifier for experiments in quantify.
+
+    .. seealso:: The. :mod:`~quantify.data.handling` module.
     """
 
-    def __init__(self, value):
-        self.is_valid(value)
+    __slots__ = ()  # avoid unnecessary overheads
 
-    def datetime(self):
+    def __new__(cls, value) -> str:
+        cls.is_valid(value)
+        # NB instead of creating an instance of this class we just return the object
+        # This avoids nasty type conversion issues when saving a dataset using the
+        # `h5netcdf` engine (which we need to support complex numbers)
+        return value
+
+    @classmethod
+    def datetime(cls, tuid: str = None):
         """
         Returns
         -------
         :class:`~python:datetime.datetime`
             object corresponding to the TUID
         """
-        return datetime.datetime.strptime(self[:18], "%Y%m%d-%H%M%S-%f")
+        return datetime.datetime.strptime(tuid[:18], "%Y%m%d-%H%M%S-%f")
 
-    def uuid(self):
+    @classmethod
+    def uuid(cls, tuid: str):
         """
         Returns
         -------
         str
-            the uuid (universally unique identifier) component of the TUID, corresponding to the last 6 characters.
+            the uuid (universally unique identifier) component of the TUID,
+            corresponding to the last 6 characters.
         """
-        return self[20:]
+        return tuid[20:]
 
     @classmethod
-    def is_valid(cls, tuid):
+    def is_valid(cls, tuid: str):
         """
         Test if tuid is valid.
         A valid tuid is a string formatted as ``YYYYmmDD-HHMMSS-sss-******``.

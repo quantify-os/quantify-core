@@ -11,12 +11,13 @@ from quantify.utilities.general import load_json_schema
 class Settable:
     """
     Defines the Settable concept, which is considered complete if the given type satisfies the following:
-    This object does not wrap the passed in object but simply verifies and returns it.
+    This class does not wrap the passed in object but simply verifies and returns it.
 
     .. jsonschema:: schemas/Settable.json#/attrs
     .. jsonschema:: schemas/Settable.json#/methods
     """
 
+    __slots__ = ()  # avoid unnecessary overheads
     schema = load_json_schema(__file__, "Settable.json")
 
     def __new__(cls, obj):
@@ -26,12 +27,13 @@ class Settable:
 class Gettable:
     """
     Defines the Gettable concept, which is considered complete if the given type satisfies the following:
-    This object does not wrap the passed in object but simply verifies and returns it.
+    This class does not wrap the passed in object but simply verifies and returns it.
 
     .. jsonschema:: schemas/Gettable.json#/attrs
     .. jsonschema:: schemas/Gettable.json#/methods
     """
 
+    __slots__ = ()  # avoid unnecessary overheads
     schema = load_json_schema(__file__, "Gettable.json")
 
     def __new__(cls, obj):

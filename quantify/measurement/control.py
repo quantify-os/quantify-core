@@ -28,12 +28,13 @@ from quantify.data.handling import (
     snapshot,
     grow_dataset,
     trim_dataset,
+    DATASET_NAME,
+    dump_dataset,
 )
 from quantify.utilities.general import call_if_has_method
 from quantify.measurement.types import Settable, Gettable, is_batched
 
 # Intended for plotting monitors that run in separate processes
-_DATASET_NAME = "dataset.hdf5"
 _DATASET_LOCKS_DIR = tempfile.gettempdir()
 
 
@@ -579,14 +580,14 @@ class MeasurementControl(Instrument):
         Locking files are written into a temporary dir to avoid polluting
         the experiment container.
         """
-        filename = join(self._exp_folder, _DATASET_NAME)
+        filename = join(self._exp_folder, DATASET_NAME)
         # Multiprocess safe
         lockfile = join(
             _DATASET_LOCKS_DIR,
-            self._dataset.attrs["tuid"] + "-" + _DATASET_NAME + ".lock",
+            self._dataset.attrs["tuid"] + "-" + DATASET_NAME + ".lock",
         )
         with FileLock(lockfile, 5):
-            self._dataset.to_netcdf(filename)
+            dump_dataset(path=filename, dataset=self._dataset)
 
     ####################################
     # Non-parameter get/set functions  #

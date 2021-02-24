@@ -14,6 +14,7 @@ from qcodes.utils.helpers import strip_attrs
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import NoResultError
 from quantify.data.handling import get_datadir
+from quantify.measurement.control import _DATASET_LOCKS_DIR
 
 
 class PlotMonitor_pyqt(Instrument):
@@ -57,7 +58,9 @@ class PlotMonitor_pyqt(Instrument):
                 break
 
         # the interface to the remote object
-        self.remote_plotmon = self.remote_ppr.RemotePlotmon(instr_name=self.name)
+        self.remote_plotmon = self.remote_ppr.RemotePlotmon(
+            instr_name=self.name, dataset_locks_dir=_DATASET_LOCKS_DIR
+        )
 
         self.add_parameter(
             name="tuids_max_num",

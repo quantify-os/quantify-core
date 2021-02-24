@@ -1,12 +1,12 @@
-import pytest
 from datetime import datetime
 from quantify.data.types import TUID
+import pytest
 
 
 def test_TUID():
     tuid = TUID("20200409-123015-123-abcdef")
 
-    dt = tuid.datetime()
+    dt = TUID.datetime(tuid)
     assert isinstance(dt, datetime)
     assert isinstance(tuid, str)
 
@@ -18,7 +18,7 @@ def test_TUID():
     assert dt.minute == 30
     assert dt.second == 15
 
-    assert tuid.uuid() == "abcdef"
+    assert TUID.uuid(tuid) == "abcdef"
 
     with pytest.raises(ValueError):
         tuid = TUID("200409-123015-123-abcdef")

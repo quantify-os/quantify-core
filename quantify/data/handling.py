@@ -12,6 +12,7 @@ from collections import OrderedDict
 from collections.abc import Iterable
 import datetime
 from uuid import uuid4
+from pathlib import Path
 from dateutil.parser import parse
 
 import numpy as np
@@ -22,8 +23,9 @@ from quantify.utilities.general import delete_keys_from_dict
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
-
 this._datadir = None
+
+DATASET_NAME = "dataset.hdf5"
 
 
 def gen_tuid(ts: datetime.datetime = None) -> TUID:
@@ -92,7 +94,24 @@ def set_datadir(datadir: str) -> None:
     this._datadir = datadir
 
 
-def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
+def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
+    """
+    Returns the path to the experiment container of the specified tuid.
+
+    Parameters
+    ----------
+    tuid
+        a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
+    datadir
+        path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine the data directory.
+    Returns
+    -------
+        The path to the experiment container
+    Raises
+    ------
+    FileNotFoundError
+        Experiment container not found.
+    """
     if datadir is None:
         datadir = get_datadir()
 
@@ -107,10 +126,19 @@ def _locate_experiment_file(tuid: TUID, datadir: str, name: str) -> str:
     # We assume that the length is 1 as tuid is assumed to be unique
     exp_folder = exp_folders[0]
 
-    return os.path.join(daydir, exp_folder, name)
+    return os.path.join(daydir, exp_folder)
 
 
-def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
+def _locate_experiment_file(
+    tuid: TUID, datadir: str = None, name: str = DATASET_NAME
+) -> str:
+    exp_container = locate_experiment_container(tuid=tuid, datadir=datadir)
+    return os.path.join(exp_container, name)
+
+
+def load_dataset(
+    tuid: TUID, datadir: str = None, name: str = DATASET_NAME
+) -> xr.Dataset:
     """
     Loads a dataset specified by a tuid.
 
@@ -128,7 +156,7 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     tuid : str
         a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
     datadir : str
-        path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+        path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine the data directory.
     Returns
     -------
     :class:`xarray.Dataset`
@@ -138,7 +166,63 @@ def load_dataset(tuid: TUID, datadir: str = None) -> xr.Dataset:
     FileNotFoundError
         No data found for specified date.
     """
-    return xr.load_dataset(_locate_experiment_file(tuid, datadir, "dataset.hdf5"))
+    return load_dataset_from_path(_locate_experiment_file(tuid, datadir, name))
+
+
+def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
+    """
+    Loads a :class:`~xarray.Dataset` with a specific engine preference.
+
+    This function tries to load the dataset until success with the following engine
+    preference:
+
+    - ``"h5netcdf"``
+    - ``"netcdf4"``
+    - No engine specified (:meth:`~xarray.load_dataset` default)
+
+    Parameters
+    ----------
+    path
+        path to the dataset
+
+    Returns
+    -------
+        the loaded :class:`~xarray.Dataset`
+    """
+    exceptions = []
+    engines = ["h5netcdf", "netcdf4", None]
+    for engine in engines:
+        try:
+            dataset = xr.load_dataset(path, engine=engine)
+        except Exception as exception:
+            exceptions.append(exception)
+        else:
+            return dataset
+
+    # Do not let exceptions pass silently
+    for exception, engine in zip(exceptions, engines[: engines.index(engine)]):
+        print(
+            f"Failed loading dataset with '{engine}' engine. "
+            f"Raised '{exception.__class__.__name__}':\n    {exception}"
+        )
+    # raise the last exception
+    raise exception
+
+
+def dump_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
+    """
+    Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
+
+    To accommodate for complex-type numbers and arrays ``invalid_netcdf=True`` is used.
+
+    Parameters
+    ----------
+    path
+        path to the file including filename and extension
+    dataset
+        the :class:`~xarray.Dataset` to be written to file.
+    """
+    dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 
 def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") -> dict:
@@ -150,7 +234,7 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
     tuid : str
         a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
     datadir : str
-        path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
+        path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine the data directory.
     file : str
         filename to load
     Returns
@@ -166,11 +250,11 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
         return json.load(snap)
 
 
-def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
+def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
     """
     Creates an empty folder to store an experiment container.
 
-    If the folder already exists, simple return the experiment folder corresponding to the
+    If the folder already exists, simply returns the experiment folder corresponding to the
     :class:`~quantify.data.types.TUID`.
 
     Parameters
@@ -180,11 +264,13 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir=None):
     name : str
         optional name to identify the folder
     datadir : str
-        path of the data directory. If ``None``, uses ``get_datadir()`` to determine the data directory.
+        path of the data directory.
+        If ``None``, uses :meth:`~get_datadir` to determine the data directory.
     Returns
     -------
     str
-        full path of the experiment folder following format: ``/datadir/YYYYmmDD/YYYYmmDD-HHMMSS-sss-******-name/``.
+        full path of the experiment folder following format:
+        ``/datadir/YYYYmmDD/YYYYmmDD-HHMMSS-sss-******-name/``.
     """
     TUID.is_valid(tuid)
 
