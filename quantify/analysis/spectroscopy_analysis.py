@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
+from quantify.visualization import mpl_plotting as qpl
 
 
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
@@ -40,7 +41,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
         f.suptitle(f"S21 {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
 
-        ba.plot_basic1D(
+        qpl.plot_basic_1d(
             ax=ax,
             x=self.dset["x0"].values,
             xlabel=self.dset["x0"].attrs["long_name"],
@@ -51,6 +52,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             plot_kw={"marker": ".", "label": "data"},
         )
 
-        ba.plot_fit(
+        qpl.plot_fit(
             ax=ax, fit_res=self.fit_res["hanger_func_complex_SI"], plot_init=True
         )
