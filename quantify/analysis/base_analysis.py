@@ -1,9 +1,11 @@
 """
 This module should contain different analyses corresponding to discrete experiments
 """
+from __future__ import annotations
 import sys
 from abc import ABC
 from collections import OrderedDict
+from typing import Union
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
@@ -38,7 +40,18 @@ class BaseAnalysis(ABC):
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_after: str = "save_figures",
+        interrupt_after: Union[
+            "extract_data",
+            "process_data",
+            "prepare_fitting",
+            "run_fitting",
+            "save_fit_results",
+            "analyze_fit_results",
+            "save_quantities_of_interest",
+            "create_figures",
+            "adjust_figures",
+            "save_figures",
+        ] = "",
     ):
         """
         Initializes the variables that are used in the analysis and to which data is stored.
@@ -79,7 +92,21 @@ class BaseAnalysis(ABC):
         for method in flow_methods:
             method()
 
-    def continue_analysis_from(self, method_name: str):
+    def continue_analysis_from(
+        self,
+        method_name: Union[
+            "extract_data",
+            "process_data",
+            "prepare_fitting",
+            "run_fitting",
+            "save_fit_results",
+            "analyze_fit_results",
+            "save_quantities_of_interest",
+            "create_figures",
+            "adjust_figures",
+            "save_figures",
+        ],
+    ):
         """
         Runs the analysis starting from specified method.
 
@@ -95,7 +122,21 @@ class BaseAnalysis(ABC):
         for method in flow_methods:
             method()
 
-    def continue_analysis_after(self, method_name: str):
+    def continue_analysis_after(
+        self,
+        method_name: Union[
+            "extract_data",
+            "process_data",
+            "prepare_fitting",
+            "run_fitting",
+            "save_fit_results",
+            "analyze_fit_results",
+            "save_quantities_of_interest",
+            "create_figures",
+            "adjust_figures",
+            "save_figures",
+        ],
+    ):
         """
         Runs the analysis starting from specified method.
 
