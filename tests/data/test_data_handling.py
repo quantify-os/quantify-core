@@ -361,7 +361,7 @@ def test_dh_load_dataset_complex_numbers():
     tmp_dir.cleanup()
 
 
-def test_dump_quantify_dataset():
+def test_write_quantify_dataset():
     complex_float = 1.0 + 6.0j
     complex_int = 1 + 3j
     dataset = mk_dataset_complex_array(
@@ -370,7 +370,7 @@ def test_dump_quantify_dataset():
 
     tmp_dir = tempfile.TemporaryDirectory()
     path = Path(tmp_dir.name) / dh.DATASET_NAME
-    dh.dump_dataset(path, dataset)
+    dh.write_dataset(path, dataset)
 
     load_dataset = xr.load_dataset(path, engine="h5netcdf")
     assert load_dataset.y0.values[0] == complex_int

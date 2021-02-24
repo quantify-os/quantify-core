@@ -209,7 +209,7 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     raise exception
 
 
-def dump_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
+def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     """
     Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
 
