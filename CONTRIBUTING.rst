@@ -32,9 +32,9 @@ Please see the `Merge Request Guidelines`_ for details on best developmental pra
 Documentation
 ~~~~~~~~~~~~~
 
-quantify could always use more documentation, whether as part of the official quantify docs, in docstrings, tutorials and even on the web in blog posts, articles and such.
+Quantify could always use more documentation, whether as part of the official quantify docs, in docstrings, tutorials and even on the web in blog posts, articles and such.
 
-For docstrings, please use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+For docstrings, please use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_. The only exception is that parameter's type(s) should not be specified in the docstrings but instead by using `type hints <https://docs.python.org/3/library/typing.html>`_.
 
 Working on issues
 ------------------
@@ -53,7 +53,7 @@ Please make merge requests into the *develop* branch (not the *master* branch). 
 Before you submit a merge request, check that it meets these guidelines:
 
 1. New code should be fully tested; running pytest in coverage mode can help identify gaps.
-#. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. We use the `numpy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+#. Documentation is updated, this includes docstrings and any necessary changes to existing tutorials, user documentation and so forth. See `Documentation`_ for docstrings format.
 #. The CI pipelines should pass for all merge requests.
 
     - Check the status of the CI pipelines, the status is also reported in the merge request.
