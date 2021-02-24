@@ -11,6 +11,12 @@ Please see merge request !98 for a python snippet that will make all previous da
 
 * Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
 
+New
+^^^
+
+* Data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`
+* Support of complex numbers and arrays in the dataset through `h5netcdf` engine
+
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
