@@ -10,6 +10,7 @@ Breaking changes
 Please see merge request !98 for a python snippet that will make all previous datasets compliant with this breaking change!
 
 * Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
+* The TUID class is only a validator now to avoid issues with `h5netcdf`
 
 New
 ^^^
