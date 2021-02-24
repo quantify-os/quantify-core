@@ -22,6 +22,7 @@ Merged branches and closed issues
 
 * Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
 * Added batched mode with outer iterative loops (!98)
+* Switched default dataset engine to support complex numbers #150 (!114)
 
 0.3.1 (2021-02-15)
 ------------------
