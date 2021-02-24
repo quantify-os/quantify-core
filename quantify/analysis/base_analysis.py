@@ -2,12 +2,12 @@
 This module should contain different analyses corresponding to discrete experiments
 """
 import sys
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.collections import QuadMesh
 from abc import ABC
 from collections import OrderedDict
-from typing import Callable
+
+import matplotlib.pyplot as plt
+from matplotlib.collections import QuadMesh
+
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
     load_dataset,
@@ -15,7 +15,6 @@ from quantify.data.handling import (
     _locate_experiment_file,
     get_datadir,
 )
-from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -39,9 +38,7 @@ class BaseAnalysis(ABC):
         self,
         label: str = "",
         tuid: str = None,
-        flow: tuple = "auto",
-        flow_skip_steps: tuple = tuple(),
-        flow_override_step: tuple = tuple(),
+        interrupt_after: str = "save_figures",
     ):
         """
         Initializes the variables that are used in the analysis and to which data is stored.
@@ -56,23 +53,7 @@ class BaseAnalysis(ABC):
 
         self.label = label
         self.tuid = tuid
-
-        if flow == "auto":
-            flow = (
-                "extract_data",  # extract data specified in params dict
-                "process_data",  # binning, filtering etc
-                "prepare_fitting",  # set up fit_dicts
-                "run_fitting",  # fitting to models
-                "save_fit_results",
-                "analyze_fit_results",  # analyzing the results of the fits
-                "save_quantities_of_interest",
-                "create_figures",
-                "adjust_figures",
-                "save_figures",
-            )
-        self.flow = flow
-        self.flow_skip_steps = flow_skip_steps
-        self.flow_override_step = flow_override_step
+        self.interrupt_after = interrupt_after
 
         # This will be overwritten
         self.dset = None
@@ -82,6 +63,70 @@ class BaseAnalysis(ABC):
         self.fit_res = OrderedDict()
 
         self.run_analysis()
+
+    def run_analysis(self):
+        """
+        This function is at the core of all analysis and defines the flow.
+
+        This function is typically called at the end of __init__.
+        """
+        flow_methods = _get_modified_flow(
+            flow_functions=self.get_flow(),
+            method_stop=self.interrupt_after,
+            method_stop_inclusive=True,
+        )
+
+        for method in flow_methods:
+            method()
+
+    def continue_analysis_from(self, method_name: str):
+        """
+        Runs the analysis starting from specified method.
+
+        The methods are called in the same order as in :meth:`~run_analysis`.
+        Useful when the analysis interrupted at some stage with `interrupt_after`.
+        """
+        flow_methods = _get_modified_flow(
+            flow_functions=self.get_flow(),
+            method_start=method_name,
+            method_start_inclusive=True,  # self.method_name will be executed
+        )
+
+        for method in flow_methods:
+            method()
+
+    def continue_analysis_after(self, method_name: str):
+        """
+        Runs the analysis starting from specified method.
+
+        The methods are called in the same order as in :meth:`~run_analysis`.
+        Useful when the analysis interrupted at some stage with `interrupt_after`.
+        """
+        flow_methods = _get_modified_flow(
+            flow_functions=self.get_flow(),
+            method_start=method_name,
+            method_start_inclusive=False,  # self.method_name will not be executed
+        )
+
+        for method in flow_methods:
+            method()
+
+    def get_flow(self):
+        """
+        Returns a tuple with the ordered methods to be called by run analysis
+        """
+        return (
+            self.extract_data,  # extract data from the dataset
+            self.process_data,  # binning, filtering etc
+            self.prepare_fitting,  # set up fit_dicts
+            self.run_fitting,  # fitting to models
+            self.save_fit_results,
+            self.analyze_fit_results,  # analyzing the results of the fits
+            self.save_quantities_of_interest,
+            self.create_figures,
+            self.adjust_figures,
+            self.save_figures,
+        )
 
     def extract_data(self):
         """
@@ -98,47 +143,11 @@ class BaseAnalysis(ABC):
 
         # maybe also load in the metadata here?
 
-    def run_analysis(self):
-        """
-        This function is at the core of all analysis and defines the flow.
-
-        This function is typically called at the end of __init__.
-        """
-
-        for step in self.flow:
-            if type(step) is tuple and len(step) == 2:
-                method_name = step[0]
-                method_kwargs = step[1]
-            elif type(step) is str:
-                method_name = step
-                method_kwargs = OrderedDict({})
-            else:
-                raise ValueError(
-                    f"Analysis flow step `{step}` is not a len-2 `tuple` nor a `str`."
-                )
-
-            if self.flow_override_step and method_name == self.flow_override_step[0]:
-                method_kwargs = self.flow_override_step[1]
-
-            if method_name not in self.flow_skip_steps:
-                # method_name must be a method of the class/subclass instance
-                method = getattr(self, method_name)
-
-                # execute step and pass any (optional) arguments to it
-                try:
-                    method(**method_kwargs)
-                except Exception as e:
-                    raise RuntimeError(
-                        "An exception occurred while executing "
-                        f"`{method_name}(**{method_kwargs})`."  # point to the culprit
-                    ) from e  # and raise the original exception
-
     def process_data(self):
         """
         This method can be used to process, e.g., reshape, filter etc. the data
         before starting the analysis. By default this method is empty (pass).
         """
-        pass
 
     def prepare_fitting(self):
         pass
@@ -158,7 +167,7 @@ class BaseAnalysis(ABC):
     def create_figures(self):
         pass
 
-    def adjust_figures(self, user_func: Callable = lambda analysis_obj: None):
+    def adjust_figures(self):
         """
         Perform global adjustments after creating the figures but
         before saving them
@@ -171,10 +180,6 @@ class BaseAnalysis(ABC):
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
-        # Execute a user-defined function that adjusts aspect of the figures
-        # Main use-case: change plotting ranges
-        user_func(analysis_obj=self)
-
     def save_figures(self, close_figs: bool = True):
         """
         Saves all the figures in the :code:`figs_mpl` dict
@@ -185,13 +190,13 @@ class BaseAnalysis(ABC):
         close_figs
             If True, closes `matplotlib` figures after saving
         """
-        DPI = this.settings["DPI"]
+        dpi = this.settings["DPI"]
         formats = this.settings["fig_formats"]
 
         for figname, fig in self.figs_mpl.items():
             filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
             for form in formats:
-                fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=DPI)
+                fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=dpi)
             if close_figs:
                 plt.close(fig)
 
@@ -207,12 +212,13 @@ class Basic1DAnalysis(BaseAnalysis):
         ys = set(self.dset.keys())
         ys.discard("x0")
         for yi in ys:
-            f, ax = plt.subplots()
+            fig, ax = plt.subplots()
             fig_id = f"Line plot x0-{yi}"
-            self.figs_mpl[fig_id] = f
+
+            self.figs_mpl[fig_id] = fig
             self.axs_mpl[fig_id] = ax
 
-            plot_basic1D(
+            qpl.plot_basic_1d(
                 ax=ax,
                 x=self.dset["x0"].values,
                 xlabel=self.dset["x0"].attrs["long_name"],
@@ -222,7 +228,7 @@ class Basic1DAnalysis(BaseAnalysis):
                 yunit=self.dset[f"{yi}"].attrs["units"],
             )
 
-            f.suptitle(
+            fig.suptitle(
                 f"x0-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
             )
 
@@ -239,13 +245,13 @@ class Basic2DAnalysis(BaseAnalysis):
         ys.discard("x1")
 
         for yi in ys:
-            f, ax = plt.subplots()
+            fig, ax = plt.subplots()
             fig_id = f"Heatmap x0x1-{yi}"
 
-            self.figs_mpl[fig_id] = f
+            self.figs_mpl[fig_id] = fig
             self.axs_mpl[fig_id] = ax
 
-            qpl.plot_2D_grid(
+            qpl.plot_2d_grid(
                 x=self.dset["x0"],
                 y=self.dset["x1"],
                 z=self.dset[f"{yi}"],
@@ -258,79 +264,74 @@ class Basic2DAnalysis(BaseAnalysis):
                 ax=ax,
             )
 
-            f.suptitle(
+            fig.suptitle(
                 f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
             )
 
 
-def plot_basic1D(
-    x,
-    y,
-    xlabel: str,
-    xunit: str,
-    ylabel: str,
-    yunit: str,
-    ax,
-    title: str = None,
-    plot_kw: dict = {},
-    **kw,
+def adjust_ylim(
+    analysis_obj: BaseAnalysis,
+    ymin: float = None,
+    ymax: float = None,
+    contains: str = "",
+) -> None:
+    axs = analysis_obj.axs_mpl
+    for ax_id, ax in axs.items():
+        if contains in ax_id:
+            ax.set_ylim(ymin, ymax)
+
+
+def adjust_xlim(
+    analysis_obj: BaseAnalysis,
+    xmin: float = None,
+    xmax: float = None,
+    contains: str = "",
+) -> None:
+    axs = analysis_obj.axs_mpl
+    for ax_id, ax in axs.items():
+        if contains in ax_id:
+            ax.set_xlim(xmin, xmax)
+
+
+def adjust_clim(
+    analysis_obj: BaseAnalysis, vmin: float, vmax: float, contains: str = ""
+) -> None:
+    axs = analysis_obj.axs_mpl
+    for ax in axs.values():
+        # For plots created with `imshow` or `pcolormesh`
+        for im_or_col in (
+            *ax.get_images(),
+            *(c for c in ax.collections if isinstance(c, QuadMesh)),
+        ):
+            c_ax = im_or_col.colorbar.ax
+            # print(im_or_col, c_ax.get_xlabel(), c_ax.get_ylabel())
+            if contains in c_ax.get_xlabel() or contains in c_ax.get_ylabel():
+                im_or_col.set_clim(vmin, vmax)
+
+
+def _get_modified_flow(
+    flow_functions: tuple,
+    method_start: str = "",
+    method_start_inclusive: bool = True,
+    method_stop: str = "",
+    method_stop_inclusive: bool = True,
 ):
-    ax.plot(x, y, **plot_kw)
-    if title is not None:
-        ax.set_title(title)
-    set_xlabel(ax, xlabel, xunit)
-    set_ylabel(ax, ylabel, yunit)
+    method_names = [meth.__name__ for meth in flow_functions]
 
-
-def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000, **kw):
-    model = fit_res.model
-
-    if len(model.independent_vars) == 1:
-        independent_var = model.independent_vars[0]
+    if method_start:
+        start_idx = method_names.index(method_start)
+        if not method_start_inclusive:
+            start_idx += 1
     else:
-        raise ValueError(
-            "Fit can only be plotted if the model function"
-            " has one independent variable."
-        )
+        start_idx = 0
 
-    x_arr = fit_res.userkws[independent_var]
-    x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-    y = model.eval(fit_res.params, **{independent_var: x})
-    ax.plot(x, y, label="Fit", c="C3")
+    if method_stop:
+        stop_idx = method_names.index(method_stop)
+        if method_stop_inclusive:
+            stop_idx += 1
+    else:
+        stop_idx = None
 
-    if plot_init:
-        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-        y = model.eval(fit_res.init_params, **{independent_var: x})
-        ax.plot(x, y, ls="--", c="grey", label="Guess")
+    flow_functions = flow_functions[start_idx:stop_idx]
 
-
-def mk_adjust_xylim(
-    x_min: float = None,
-    x_max: float = None,
-    y_min: float = None,
-    y_max: float = None,
-):
-    def adjust_xylim(analysis_obj: BaseAnalysis):
-        axs = analysis_obj.axs_mpl
-        for ax_id, ax in axs.items():
-            ax.set_xlim(x_min, x_max)
-            ax.set_ylim(y_min, y_max)
-
-    return adjust_xylim
-
-
-def mk_adjust_clim(min_val: float, max_val: float, contains: str = ""):
-    def adjust_clim(analysis_obj: BaseAnalysis):
-        axs = analysis_obj.axs_mpl
-        for ax_id, ax in axs.items():
-            # For plots created with `imshow` or `pcolormesh`
-            for im_or_col in (
-                *ax.get_images(),
-                *(c for c in ax.collections if isinstance(c, QuadMesh)),
-            ):
-                c_ax = im_or_col.colorbar.ax
-                # print(im_or_col, c_ax.get_xlabel(), c_ax.get_ylabel())
-                if contains in c_ax.get_xlabel() or contains in c_ax.get_ylabel():
-                    im_or_col.set_clim(min_val, max_val)
-
-    return adjust_clim
+    return flow_functions
