@@ -1,9 +1,11 @@
 import os
+from pathlib import Path
 import shutil
-import pytest
-import dateutil
+import tempfile
 from datetime import datetime
+import dateutil
 
+import pytest
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter
@@ -22,7 +24,6 @@ def test_gen_tuid():
 
     assert TUID.is_valid(tuid)
     assert isinstance(tuid, str)
-    assert isinstance(tuid, TUID)
 
 
 def test_initialize_dataset():
@@ -323,6 +324,60 @@ def test_misplaced_exp_container():
     shutil.rmtree(tmp_data_path)
 
 
+def test_locate_experiment_container():
+    dh.set_datadir(test_datadir)
+    tuid = "20200430-170837-001-315f36"
+    experiment_container = dh.locate_experiment_container(tuid=tuid)
+    path_parts = Path(experiment_container).parts
+
+    assert tuid in path_parts[-1]
+    assert "Cosine test" in path_parts[-1]
+    assert path_parts[-2] == "20200430"
+    assert path_parts[-3] == os.path.split(test_datadir)[-1]
+
+
+def test_load_dataset_from_path():
+    dh.set_datadir(test_datadir)
+
+    tuid = "20200430-170837-001-315f36"
+    path = Path(dh.locate_experiment_container(tuid=tuid)) / dh.DATASET_NAME
+    dataset = dh.load_dataset_from_path(path)
+    assert dataset.attrs["tuid"] == tuid
+
+
+def test_dh_load_dataset_complex_numbers():
+    complex_float = 1.0 + 5.0j
+    complex_int = 1 + 4j
+    dataset = mk_dataset_complex_array(
+        complex_float=complex_float, complex_int=complex_int
+    )
+    tmp_dir = tempfile.TemporaryDirectory()
+    path = Path(tmp_dir.name) / dh.DATASET_NAME
+    dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
+
+    load_dataset = dh.load_dataset_from_path(path)
+    assert load_dataset.y0.values[0] == complex_int
+    assert load_dataset.y1.values[0] == complex_float
+    tmp_dir.cleanup()
+
+
+def test_write_quantify_dataset():
+    complex_float = 1.0 + 6.0j
+    complex_int = 1 + 3j
+    dataset = mk_dataset_complex_array(
+        complex_float=complex_float, complex_int=complex_int
+    )
+
+    tmp_dir = tempfile.TemporaryDirectory()
+    path = Path(tmp_dir.name) / dh.DATASET_NAME
+    dh.write_dataset(path, dataset)
+
+    load_dataset = xr.load_dataset(path, engine="h5netcdf")
+    assert load_dataset.y0.values[0] == complex_int
+    assert load_dataset.y1.values[0] == complex_float
+    tmp_dir.cleanup()
+
+
 def test_snapshot():
     empty_snap = dh.snapshot()
     assert empty_snap == {"instruments": {}, "parameters": {}}
@@ -407,3 +462,13 @@ def test_to_gridded_dataset():
     ]
 
     assert [y0[tuple(idxs)] for idxs in indices] == expected
+
+
+def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
+    dataset = xr.Dataset(
+        data_vars={
+            "y0": ("dim_0", np.array([complex_int] * 5)),
+            "y1": ("dim_0", np.array([complex_float] * 5)),
+        }
+    )
+    return dataset
