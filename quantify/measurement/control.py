@@ -29,7 +29,7 @@ from quantify.data.handling import (
     grow_dataset,
     trim_dataset,
     DATASET_NAME,
-    dump_dataset,
+    write_dataset,
 )
 from quantify.utilities.general import call_if_has_method
 from quantify.measurement.types import Settable, Gettable, is_batched
@@ -587,7 +587,7 @@ class MeasurementControl(Instrument):
             self._dataset.attrs["tuid"] + "-" + DATASET_NAME + ".lock",
         )
         with FileLock(lockfile, 5):
-            dump_dataset(path=filename, dataset=self._dataset)
+            write_dataset(path=filename, dataset=self._dataset)
 
     ####################################
     # Non-parameter get/set functions  #
