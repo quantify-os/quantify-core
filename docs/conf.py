@@ -44,6 +44,8 @@ if os.environ.get("READTHEDOCS", "False") == "True":
 extensions = [
     "sphinx.ext.autodoc",  # auto document docstrings
     "sphinx.ext.napoleon",  # autodoc understands numpy docstrings
+    # load after napoleon, improved compatibility with type hints annotations
+    "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
