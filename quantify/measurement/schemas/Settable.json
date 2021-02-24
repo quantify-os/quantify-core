@@ -3,10 +3,15 @@
     "attrs": {
         "description": "attributes",
         "required": [
+            "name",
             "label",
             "unit"
         ],
         "properties": {
+            "name": {
+                "type": "string",
+                "description": "identifier"
+            },
             "label": {
                 "type": "string",
                 "description": "axis descriptor"
@@ -18,20 +23,19 @@
             "batched": {
                 "type": "boolean",
                 "description": "true if data is processed in batches, false otherwise"
+            },
+            "batch_size": {
+                "type": "integer",
+                "description": "When `.batched=True`, indicates the (maximum) size of the batch of datapoints that this settable supports. The measurement loop will effectively use the `min(settable(s).batch_size, gettable(s).batch_size)`."
             }
         }
     },
     "methods": {
         "description": "methods",
         "required": [
-            "name",
             "set"
         ],
         "properties": {
-            "name": {
-                "type": "string",
-                "description": "identifier"
-            },
             "set": {
                 "description": "send data to this device",
                 "type": "object"

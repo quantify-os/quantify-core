@@ -1,14 +1,16 @@
 import os
 import shutil
 import pytest
+import dateutil
+from datetime import datetime
+
 import xarray as xr
 import numpy as np
-from quantify.data.types import TUID
-import quantify.data.handling as dh
-from quantify.measurement.control import MeasurementControl
-from datetime import datetime
 from qcodes import ManualParameter
+from quantify.data.types import TUID
+from quantify.measurement.control import MeasurementControl
 from quantify.utilities._tests_helpers import get_test_data_dir
+import quantify.data.handling as dh
 
 
 test_datadir = get_test_data_dir()
@@ -34,21 +36,24 @@ def test_initialize_dataset():
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
 
     assert isinstance(dataset, xr.Dataset)
-    assert len(dataset.data_vars) == 2
+    assert len(dataset.data_vars) == 1
     assert dataset.attrs.keys() == {"tuid"}
     assert dataset.variables.keys() == {"x0", "y0"}
 
     x0 = dataset["x0"]
     assert isinstance(x0, xr.DataArray)
-    assert x0.attrs["unit"] == "m"
+    assert x0.attrs["units"] == "m"
     assert x0.attrs["name"] == "x"
     assert x0.attrs["long_name"] == "X position"
 
     y0 = dataset["y0"]
     assert isinstance(y0, xr.DataArray)
-    assert y0.attrs["unit"] == "V"
+    assert y0.attrs["units"] == "V"
     assert y0.attrs["name"] == "y"
     assert y0.attrs["long_name"] == "Signal amplitude"
+
+    assert set(dataset.coords.keys()) == {"x0"}
+    assert set(dataset.dims.keys()) == {"dim_0"}
 
 
 def test_initialize_dataset_2D():
@@ -63,9 +68,10 @@ def test_initialize_dataset_2D():
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
 
     assert isinstance(dataset, xr.Dataset)
-    assert len(dataset.data_vars) == 3
+    assert len(dataset.data_vars) == 1
     assert dataset.attrs.keys() == {"tuid"}
     assert set(dataset.variables.keys()) == {"x0", "x1", "y0"}
+    assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
 def test_getset_datadir():
@@ -137,8 +143,117 @@ def test_get_tuids_containing():
     dh.set_datadir(test_datadir)
     tuids = dh.get_tuids_containing("Cosine test")
     assert len(tuids) == 2
-    assert tuids[0] == "20200504-191556-002-4209ee"
-    assert tuids[1] == "20200430-170837-001-315f36"
+    assert tuids[0] == "20200430-170837-001-315f36"
+    assert tuids[1] == "20200504-191556-002-4209ee"
+
+
+def test_get_tuids_containing_between_strings():
+    dh.set_datadir(test_datadir)
+
+    t_start = "20201124"
+    t_stop = "20201125"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+        "20201124-184722-988-0463d4",
+        "20201124-184729-618-85970f",
+        "20201124-184736-341-3628d4",
+    ]
+
+    t_start = "20201124-180000"
+    t_stop = "20201124-190000"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+        "20201124-184722-988-0463d4",
+        "20201124-184729-618-85970f",
+        "20201124-184736-341-3628d4",
+    ]
+
+    t_start = "20201124-18:00:00"
+    t_stop = "20201124-18:47:30"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+        "20201124-184722-988-0463d4",
+        "20201124-184729-618-85970f",
+    ]
+
+    t_start = "2020/11/24 18:00:00"
+    t_stop = "2020/11/24 18:47:30"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+        "20201124-184722-988-0463d4",
+        "20201124-184729-618-85970f",
+    ]
+
+    t_start = "20201124-180000"
+    t_stop = "20201124-184725"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+        "20201124-184722-988-0463d4",
+    ]
+
+
+def test_get_tuids_containing_between_exclusive_t_stop():
+    t_start = "20201124-180000"
+    t_stop = "20201124-184722"  # test if t_stop is inclusive
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+    ]
+
+
+def test_get_tuids_containing_between_inclusive_t_start():
+    t_start = "20201124-184709"  # test if t_stop is inclusive
+    t_stop = "20201124-184723"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop)
+    assert tuids == [
+        "20201124-184709-137-8a5112",
+        "20201124-184716-237-918bee",
+        "20201124-184722-988-0463d4",
+    ]
+
+
+def test_get_tuids_containing_reverse():
+    t_start = "20200814"
+    t_stop = "20201124-190000"
+
+    tuids = dh.get_tuids_containing("", t_start=t_start, t_stop=t_stop, reverse=True)
+    assert tuids == [
+        "20201124-184736-341-3628d4",
+        "20201124-184729-618-85970f",
+        "20201124-184722-988-0463d4",
+        "20201124-184716-237-918bee",
+        "20201124-184709-137-8a5112",
+        "20200814-134652-492-fbf254",
+    ]
+
+
+def test_get_tuids_containing_between_datetimes():
+    t_start = "20200430-170836"
+    t_stop = "20200504-200000"
+    t_start = dateutil.parser.parse(t_start)
+    t_stop = dateutil.parser.parse(t_stop)
+
+    tuids = dh.get_tuids_containing("Cosine test", t_start=t_start, t_stop=t_stop)
+    assert tuids[0] == "20200430-170837-001-315f36"
+    assert tuids[1] == "20200504-191556-002-4209ee"
 
 
 def test_get_tuids_containing_options():
@@ -153,9 +268,7 @@ def test_get_tuids_containing_options():
     assert tuids[0] == "20200430-170837-001-315f36"
 
     tuids = dh.get_tuids_containing("Cosine test", t_start="20200430")
-    assert len(tuids) == 2
-    assert tuids[0] == "20200504-191556-002-4209ee"
-    assert tuids[1] == "20200430-170837-001-315f36"
+    assert tuids == ["20200430-170837-001-315f36", "20200504-191556-002-4209ee"]
 
     tuids = dh.get_tuids_containing(
         "Cosine test", t_start="20200430", t_stop="20200504"
@@ -163,12 +276,22 @@ def test_get_tuids_containing_options():
     assert len(tuids) == 1
     assert tuids[0] == "20200430-170837-001-315f36"
 
+
+def test_get_tuids_containing_max_results():
+    dh.set_datadir(test_datadir)
     tuids = dh.get_tuids_containing(
-        "Cosine test", t_start="20200430", t_stop="20200505", max_results=1
+        "Cosine test",
+        t_start="20200430",
+        t_stop="20200505",
+        max_results=1,
+        reverse=True,
     )
     assert len(tuids) == 1
-    assert tuids[0] == "20200504-191556-002-4209ee"
+    assert tuids == ["20200504-191556-002-4209ee"]
 
+
+def test_get_tuids_containing_None_arg():
+    dh.set_datadir(test_datadir)
     for empties in [
         ("20200505", None),
         (None, "20200430"),
@@ -251,3 +374,36 @@ def test_dynamic_dataset():
     assert not np.isnan(dset["x0"]).any()
     assert not np.isnan(dset["x1"]).any()
     assert not np.isnan(dset["y0"]).any()
+
+    assert "tuid" in set(dset.attrs)
+
+
+def test_to_gridded_dataset():
+    dh.set_datadir(test_datadir)
+    tuid = "20200504-191556-002-4209ee"
+    dset_orig = dh.load_dataset(tuid)
+    dset_gridded = dh.to_gridded_dataset(dset_orig)
+
+    assert dset_gridded.attrs["tuid"] == tuid
+    assert tuple(dset_gridded.dims.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.coords.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.dims.values()) == (50, 11)
+    assert dset_gridded["y0"].dims == ("x0", "x1")
+    assert len(dset_gridded["x0"].values) == len(np.unique(dset_orig["x0"]))
+
+    for var in ("x0", "x1", "y0"):
+        assert dset_orig[var].attrs == dset_gridded[var].attrs
+
+    y0 = dset_gridded["y0"].values
+
+    indices = [[10, 9], [22, 6], [7, 3], [10, 1], [18, 1], [0, 3]]
+    expected = [
+        -0.7983563142002691,
+        0.1436698700195456,
+        0.2493959207434933,
+        0.7983563142002691,
+        -0.6970549632987115,
+        -0.3999999999999999,
+    ]
+
+    assert [y0[tuple(idxs)] for idxs in indices] == expected

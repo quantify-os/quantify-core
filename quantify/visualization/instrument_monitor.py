@@ -4,8 +4,11 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import time
+import warnings
+
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import NoResultError
 
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
@@ -14,8 +17,6 @@ from qcodes.instrument.parameter import ManualParameter
 from quantify.data.handling import snapshot
 from quantify.utilities.general import traverse_dict
 from quantify.visualization.ins_mon_widget import qc_snapshot_widget
-
-import warnings
 
 
 class InstrumentMonitor(Instrument):
@@ -27,7 +28,7 @@ class InstrumentMonitor(Instrument):
         .. code-block:: python
 
             from quantify.measurement import MeasurementControl
-            from quantify.visualization.instrument_monitor import InstrumentMonitor
+            from quantify.visualization import InstrumentMonitor
 
             MC = MeasurementControl('MC')
             insmon = InstrumentMonitor("Ins Mon custom")
@@ -40,18 +41,16 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(
-        self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs
-    ):
+    def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True):
         """
         Initializes the pyqtgraph window
 
         Parameters
         ----------
         name
-            name of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` object
+            name of the :class:`~quantify.visualization.InstrumentMonitor` object
         window_size
-            The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
+            The size of the :class:`~quantify.visualization.InstrumentMonitor` window in px
         remote
             Switch to use a remote instance of the pyqtgraph class
         """
@@ -78,8 +77,8 @@ class InstrumentMonitor(Instrument):
     def update(self):
         """
         Updates the Qc widget with the current snapshot of the instruments.
-        This function is also called within the class :class:`~quantify.measurement.control.MeasurementControl`
-        in the function :meth:`~quantify.measurement.control.MeasurementControl.run`.
+        This function is also called within the class :class:`~quantify.measurement.MeasurementControl`
+        in the function :meth:`~quantify.measurement.MeasurementControl.run`.
         """
         time_since_last_update = time.time() - self.last_update_time
         if time_since_last_update > self.update_interval():
@@ -104,18 +103,28 @@ class InstrumentMonitor(Instrument):
         )  # pyqtgraph multiprocessing
         self.__class__.rpg = self.proc._import("pyqtgraph")
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        self.__class__.rwidget = self.proc._import(qc_widget)
+
+        for i in range(5):
+            try:
+                self.__class__.rwidget = self.proc._import(qc_widget)
+            except NoResultError as exception:
+                # Try a few times before giving up
+                time.sleep(0.2)
+                if i == 4:
+                    raise exception
+            else:
+                break
 
     def create_widget(self, window_size: tuple = (1000, 600)):
         """
-        Saves an instance of the :class:`~quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
+        Saves an instance of the :class:`!quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
         class during startup. Creates the :class:`~quantify.data.handling.snapshot` tree to display within the
         remote widget window.
 
         Parameters
         ----------
         window_size
-            The size of the :class:`~quantify.visualization.instrument_monitor.InstrumentMonitor` window in px
+            The size of the :class:`~quantify.visualization.InstrumentMonitor` window in px
         """
 
         self.widget = self.rwidget.QcSnaphotWidget()

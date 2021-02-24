@@ -3,28 +3,29 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-import numpy as np
+from multiprocessing import Queue
+from collections.abc import Iterable
 from collections import deque, OrderedDict
 import itertools
 import os
-from filelock import FileLock
 
+import numpy as np
+from filelock import FileLock
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 from pyqtgraph.Qt import QtCore
-from multiprocessing import Queue
 
-from quantify.utilities.general import get_keys_containing
 from quantify.data.handling import (
     load_dataset,
     _xi_and_yi_match,
+    _get_parnames,
     set_datadir,
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from quantify.visualization.color_utilities import make_fadded_colors
 from quantify.visualization import _appnope
-from quantify.measurement.control import _dataset_name, _dataset_locks_dir
+from quantify.measurement.control import _DATASET_NAME, _DATASET_LOCKS_DIR
 
 
 class RemotePlotmon:
@@ -37,7 +38,7 @@ class RemotePlotmon:
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
-    def __init__(self, instr_name: str, datadir: str):
+    def __init__(self, instr_name: str):
         # Used to mirror the name of the instrument in the windows titles
         self.instr_name = instr_name
 
@@ -67,10 +68,6 @@ class RemotePlotmon:
         self._im_curves = []
         self._im_scatters = []
         self._im_scatters_last = []
-
-        # Set datadir in this process to match the process in
-        # which the plotmon instrument lives
-        set_datadir(datadir)
 
         self.queue = Queue()
         self.timer_queue = None
@@ -163,7 +160,9 @@ class RemotePlotmon:
             if discard_tuid not in self._tuids_extra:
                 self._dsets.pop(discard_tuid, None)
 
-    def tuids_append(self, tuid):
+    def tuids_append(self, tuid: str, datadir: str):
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
         # verify tuid
         TUID(tuid)
 
@@ -195,10 +194,12 @@ class RemotePlotmon:
     def _get_tuids(self):
         return list(self._tuids)
 
-    def _set_tuids(self, tuids):
+    def _set_tuids(self, tuids: Iterable, datadir: str):
         """
         Set cmd for tuids
         """
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
 
         dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
@@ -230,10 +231,13 @@ class RemotePlotmon:
         """
         return self._tuids_extra
 
-    def _set_tuids_extra(self, tuids):
+    def _set_tuids_extra(self, tuids: Iterable, datadir: str):
         """
         Set cmd for tuids_extra
         """
+        # ensures the same datadir as in the main process
+        set_datadir(datadir)
+
         extra_dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
 
         # Now we ensure all datasets are compatible to be plotted together
@@ -303,8 +307,8 @@ class RemotePlotmon:
 
         # we have forced all xi and yi to match so any dset will do here
         a_dset = next(iter(self._dsets.values()))
-        set_parnames = sorted(_get_parnames(a_dset, par_type="x"))
-        get_parnames = sorted(_get_parnames(a_dset, par_type="y"))
+        set_parnames = _get_parnames(a_dset, par_type="x")
+        get_parnames = _get_parnames(a_dset, par_type="y")
 
         #############################################################
 
@@ -341,9 +345,9 @@ class RemotePlotmon:
                         y=dset[yi].values,
                         subplot=plot_idx,
                         xlabel=dset[xi].attrs["long_name"],
-                        xunit=dset[xi].attrs["unit"],
+                        xunit=dset[xi].attrs["units"],
                         ylabel=dset[yi].attrs["long_name"],
-                        yunit=dset[yi].attrs["unit"],
+                        yunit=dset[yi].attrs["units"],
                         symbol=symb,
                         symbolSize=6,
                         symbolPen=color,
@@ -400,11 +404,11 @@ class RemotePlotmon:
                     "y": y,
                     "z": z,
                     "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["unit"],
+                    "xunit": dset["x0"].attrs["units"],
                     "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["unit"],
+                    "yunit": dset["x1"].attrs["units"],
                     "zlabel": dset[yi].attrs["long_name"],
-                    "zunit": dset[yi].attrs["unit"],
+                    "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
                     "cmap": cmap,
                 }
@@ -428,11 +432,11 @@ class RemotePlotmon:
                     "y": [0, 1],
                     "z": np.zeros([2, 2]),
                     "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["unit"],
+                    "xunit": dset["x0"].attrs["units"],
                     "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["unit"],
+                    "yunit": dset["x1"].attrs["units"],
                     "zlabel": dset[yi].attrs["long_name"],
-                    "zunit": dset[yi].attrs["unit"],
+                    "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
                     "cmap": cmap,
                 }
@@ -452,9 +456,9 @@ class RemotePlotmon:
                     symbolSize=4,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["unit"],
+                    xunit=dset["x0"].attrs["units"],
                     ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["unit"],
+                    yunit=dset["x1"].attrs["units"],
                 )
                 self._im_scatters.append(self.secondary_QtPlot.traces[-1])
 
@@ -468,9 +472,9 @@ class RemotePlotmon:
                     symbolSize=7,
                     subplot=plot_idx,
                     xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["unit"],
+                    xunit=dset["x0"].attrs["units"],
                     ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["unit"],
+                    yunit=dset["x1"].attrs["units"],
                 )
                 self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
 
@@ -478,12 +482,12 @@ class RemotePlotmon:
 
         self.secondary_QtPlot.update_plot()
 
-    def update(self, tuid: str = None):
+    def update(self, tuid: str, datadir: str):
 
         if tuid and tuid not in self._dsets.keys():
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
-            self.tuids_append(tuid)
+            self.tuids_append(tuid, datadir)
 
         if not self._dsets:
             # Nothing to update
@@ -593,16 +597,12 @@ class RemotePlotmon:
 
 def _safe_load_dataset(tuid):
     lockfile = os.path.join(
-        _dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock"
+        _DATASET_LOCKS_DIR, tuid[:26] + "-" + _DATASET_NAME + ".lock"
     )
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
 
     return dset
-
-
-def _get_parnames(dset, par_type):
-    return sorted(get_keys_containing(dset, par_type))
 
 
 def _mk_legend(dset):
