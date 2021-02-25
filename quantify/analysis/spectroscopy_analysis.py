@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
-from uncertainties import ufloat
 from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
 

@@ -56,7 +56,7 @@ class BaseAnalysis(ABC):
             "analyze_fit_results",
             "create_figures",
             "adjust_figures",
-            "save_figures",
+            "save_figures_mpl",
             "save_quantities_of_interest",
             "save_processed_dataset",
         ] = "",
@@ -133,7 +133,7 @@ class BaseAnalysis(ABC):
             "analyze_fit_results",
             "create_figures",
             "adjust_figures",
-            "save_figures",
+            "save_figures_mpl",
             "save_quantities_of_interest",
             "save_processed_dataset",
         ],
@@ -163,7 +163,7 @@ class BaseAnalysis(ABC):
             "analyze_fit_results",
             "create_figures",
             "adjust_figures",
-            "save_figures",
+            "save_figures_mpl",
             "save_quantities_of_interest",
         ],
     ):
@@ -195,7 +195,7 @@ class BaseAnalysis(ABC):
             self.save_quantities_of_interest,
             self.create_figures,
             self.adjust_figures,
-            self.save_figures,
+            self.save_figures_mpl,
             self.save_quantities_of_interest,
             self.save_processed_dataset,
         )
@@ -279,9 +279,9 @@ class BaseAnalysis(ABC):
 
             write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
 
-    def save_figures(self, close_figs: bool = True):
+    def save_figures_mpl(self, close_figs: bool = True):
         """
-        Saves all the figures in the :code:`figs_mpl` dict
+        Saves all the matplotlib figures in the :code:`figs_mpl` dict
 
         Parameters
         ----------
