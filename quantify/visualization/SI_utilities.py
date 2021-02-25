@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import matplotlib
+import string
 import numpy as np
 
 golden_mean = (np.sqrt(5) - 1.0) / 2.0  # Aesthetic ratio
@@ -159,3 +160,67 @@ def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
         return return_type(val), unit
 
     return return_type(new_val), new_unit
+
+
+class SafeFormatter(string.Formatter):
+    """
+    A formatter that replaces "missing" values and "bad_fmt" to prevent
+    unexpected Exceptions being raised.
+
+    Based on https://stackoverflow.com/questions/20248355/how-to-get-python-to-gracefully-format-none-and-non-existing-fields
+    """
+
+    def __init__(self, missing="~~", bad_fmt="!!"):
+        self.missing, self.bad_fmt = missing, bad_fmt
+
+    def get_field(self, field_name, args, kwargs):
+        # Handle a key not found
+        try:
+            val = super(SafeFormatter, self).get_field(field_name, args, kwargs)
+            # Python 3, 'super().get_field(field_name, args, kwargs)' works
+        except (KeyError, AttributeError):
+            val = None, field_name
+        return val
+
+    def format_field(self, value, format_spec):
+        # handle an invalid format
+        if value is None:
+            return self.missing
+        try:
+            return super(SafeFormatter, self).format_field(value, format_spec)
+        except ValueError:
+            if self.bad_fmt is not None:
+                return self.bad_fmt
+            else:
+                raise
+
+
+def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
+    """
+    Format an lmfit par to a  string of value with uncertainty.
+
+    Parameters
+    ----------
+    par_name :
+        the name of the parameter to use in the string
+    lmfit_par :
+        an lmfit Parameter object. The value and stderr of this parameter
+        will be used.
+    end_char :
+        A character that will be put at the end of the line.
+    unit :
+        a unit. If this is an SI unit it will be used in automatically
+        determining a prefix for the unit and rescaling accordingly.
+    """
+    val_string = par_name
+    val_string += ": {:.4f}$\pm${:.4f} {}{}"
+
+    scale_factor, unit = SI_prefix_and_scale_factor(lmfit_par.value, unit)
+    val = lmfit_par.value * scale_factor
+    if lmfit_par.stderr is not None:
+        stderr = lmfit_par.stderr * scale_factor
+    else:
+        stderr = None
+    fmt = SafeFormatter(missing="NaN")
+    val_string = fmt.format(val_string, val, stderr, unit, end_char)
+    return val_string
