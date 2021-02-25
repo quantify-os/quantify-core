@@ -218,7 +218,7 @@ def plot_2d_grid(
     """
 
     if ax is None:
-        f, ax = plt.subplots()
+        _, ax = plt.subplots()
 
     # Reshape the lenth N columns of data into unique xvals (n), yvals (m) and an (m*n) grid of zvals.
     xi = np.unique(x)
