@@ -77,9 +77,9 @@ class BaseAnalysis(ABC):
         self.interrupt_after = interrupt_after
 
         # This will be overwritten
-        self.dataset = None
+        self.dset = None
         # Used to save a reference of the raw dataset
-        self.dataset_raw = None
+        self.dset_raw = None
         # To be populated by a subclass
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
@@ -202,7 +202,7 @@ class BaseAnalysis(ABC):
 
     def extract_data(self):
         """
-        Populates `self.dataset` with data from the experiment matching the tuid/label.
+        Populates `self.dset` with data from the experiment matching the tuid/label.
 
         This method should be overwritten if an analysis does not relate to a single
         datafile.
@@ -212,9 +212,9 @@ class BaseAnalysis(ABC):
         if self.tuid is None:
             self.tuid = get_latest_tuid(contains=self.label)
 
-        self.dataset = load_dataset(tuid=self.tuid)
+        self.dset = load_dataset(tuid=self.tuid)
         # Keep a reference to the original dataset
-        self.dataset_raw = xr.Dataset(self.dataset)
+        self.dset_raw = xr.Dataset(self.dset)
 
     def process_data(self):
         """
@@ -264,18 +264,18 @@ class BaseAnalysis(ABC):
 
     def save_processed_dataset(self, exclude_raw: bool = None):
         """
-        Saves a copy of (processed) self.dataset in the analysis folder of the experiment.
+        Saves a copy of (processed) self.dset in the analysis folder of the experiment.
         """
 
         # if statement exist to be compatible with child classes that do not load data
-        # onto the self.dataset object.
-        if self.dataset is not None:
-            dataset = self.dataset
+        # onto the self.dset object.
+        if self.dset is not None:
+            dataset = self.dset
             if exclude_raw is None:
                 exclude_raw = this.settings["exclude_raw_in_processed_dataset"]
 
             if exclude_raw:
-                dataset = dataset.drop_vars(self.dataset_raw.variables)
+                dataset = dataset.drop_vars(self.dset_raw.variables)
 
             write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
 
@@ -313,7 +313,7 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        ys = set(self.dataset.keys())
+        ys = set(self.dset.keys())
         ys.discard("x0")
         for yi in ys:
             fig, ax = plt.subplots()
@@ -324,16 +324,16 @@ class Basic1DAnalysis(BaseAnalysis):
 
             qpl.plot_basic_1d(
                 ax=ax,
-                x=self.dataset["x0"].values,
-                xlabel=self.dataset["x0"].attrs["long_name"],
-                xunit=self.dataset["x0"].attrs["units"],
-                y=self.dataset[f"{yi}"].values,
-                ylabel=self.dataset[f"{yi}"].attrs["long_name"],
-                yunit=self.dataset[f"{yi}"].attrs["units"],
+                x=self.dset["x0"].values,
+                xlabel=self.dset["x0"].attrs["long_name"],
+                xunit=self.dset["x0"].attrs["units"],
+                y=self.dset[f"{yi}"].values,
+                ylabel=self.dset[f"{yi}"].attrs["long_name"],
+                yunit=self.dset[f"{yi}"].attrs["units"],
             )
 
             fig.suptitle(
-                f"x0-{yi} {self.dataset.attrs['name']}\ntuid: {self.dataset.attrs['tuid']}"
+                f"x0-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
             )
 
 
@@ -344,7 +344,7 @@ class Basic2DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
-        ys = set(self.dataset.keys())
+        ys = set(self.dset.keys())
         ys.discard("x0")
         ys.discard("x1")
 
@@ -356,20 +356,20 @@ class Basic2DAnalysis(BaseAnalysis):
             self.axs_mpl[fig_id] = ax
 
             qpl.plot_2d_grid(
-                x=self.dataset["x0"],
-                y=self.dataset["x1"],
-                z=self.dataset[f"{yi}"],
-                xlabel=self.dataset["x0"].attrs["long_name"],
-                xunit=self.dataset["x0"].attrs["units"],
-                ylabel=self.dataset["x1"].attrs["long_name"],
-                yunit=self.dataset["x1"].attrs["units"],
-                zlabel=self.dataset[f"{yi}"].attrs["long_name"],
-                zunit=self.dataset[f"{yi}"].attrs["units"],
+                x=self.dset["x0"],
+                y=self.dset["x1"],
+                z=self.dset[f"{yi}"],
+                xlabel=self.dset["x0"].attrs["long_name"],
+                xunit=self.dset["x0"].attrs["units"],
+                ylabel=self.dset["x1"].attrs["long_name"],
+                yunit=self.dset["x1"].attrs["units"],
+                zlabel=self.dset[f"{yi}"].attrs["long_name"],
+                zunit=self.dset[f"{yi}"].attrs["units"],
                 ax=ax,
             )
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset.attrs['name']}\ntuid: {self.dataset.attrs['tuid']}"
+                f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
             )
 
 
