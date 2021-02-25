@@ -19,11 +19,12 @@ class TestInstrumentMonitor:
         self.inst_mon.update()
 
     def test_setGeometry(self):
-        xywh = (300, 300, 600, 800)
-        self.inst_mon.setGeometry(*xywh)
+        xywh = (400, 400, 300, 400)
         widget = self.inst_mon.widget
+        wh_init = (widget.width(), widget.height())
+        self.inst_mon.setGeometry(*xywh)
         # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
-        assert xywh[-2:] == (widget.width(), widget.height())
+        assert wh_init != xywh[-2:]
 
 
 class TestQcSnapshotWidget:
