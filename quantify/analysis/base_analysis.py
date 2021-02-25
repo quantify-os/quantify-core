@@ -17,12 +17,14 @@ from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
 
 from quantify.visualization import mpl_plotting as qpl
+from quantify.visualization.SI_utilities import adjust_axeslabels_SI
 from quantify.data.handling import (
     load_dataset,
     get_latest_tuid,
     get_datadir,
     write_dataset,
     locate_experiment_container,
+    to_gridded_dataset,
 )
 
 # this is a pointer to the module object instance itself.
@@ -396,28 +398,22 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        ys = set(self.dataset_raw.keys())
-        ys.discard("x0")
-        for yi in ys:
+        gridded_dataset = to_gridded_dataset(self.dataset_raw)
+
+        for yi, yvals in gridded_dataset.data_vars.items():
             fig, ax = plt.subplots()
             fig_id = f"Line plot x0-{yi}"
-
-            self.figs_mpl[fig_id] = fig
-            self.axs_mpl[fig_id] = ax
-
-            qpl.plot_basic_1d(
-                ax=ax,
-                x=self.dataset_raw["x0"].values,
-                xlabel=self.dataset_raw["x0"].attrs["long_name"],
-                xunit=self.dataset_raw["x0"].attrs["units"],
-                y=self.dataset_raw[f"{yi}"].values,
-                ylabel=self.dataset_raw[f"{yi}"].attrs["long_name"],
-                yunit=self.dataset_raw[f"{yi}"].attrs["units"],
-            )
+            # plotting works because it is an xarray with associated dimensions.
+            yvals.plot(ax=ax, marker=".")
+            adjust_axeslabels_SI(ax)
 
             fig.suptitle(
                 f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
             )
+
+            # add the figure and axis to the dicts for saving
+            self.figs_mpl[fig_id] = fig
+            self.axs_mpl[fig_id] = ax
 
 
 class Basic2DAnalysis(BaseAnalysis):
