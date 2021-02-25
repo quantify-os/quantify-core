@@ -385,9 +385,7 @@ class BaseAnalysis(ABC):
                     *ax.get_images(),
                     *(c for c in ax.collections if isinstance(c, QuadMesh)),
                 ):
-                    c_ax = im_or_col.colorbar.ax
-
-                im_or_col.set_clim(vmin, vmax)
+                    im_or_col.set_clim(vmin, vmax)
 
 
 class Basic1DAnalysis(BaseAnalysis):
