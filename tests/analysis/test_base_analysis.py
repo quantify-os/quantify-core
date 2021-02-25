@@ -54,7 +54,7 @@ def test_flow_xlim_all():
         tuid=TUID_1D_2PLOTS,
         interrupt_after=method_name,
     )
-    ba.adjust_xlim(a_obj, *xlim)
+    a_obj.adjust_xlim(*xlim)
     a_obj.continue_analysis_after(method_name)
 
     for ax in a_obj.axs_mpl.values():
@@ -69,7 +69,7 @@ def test_flow_ylim_all():
         tuid=TUID_1D_2PLOTS,
         interrupt_after=method_name,
     )
-    ba.adjust_ylim(a_obj, *ylim)
+    a_obj.adjust_ylim(*ylim)
     a_obj.continue_analysis_after(method_name)
 
     for ax in a_obj.axs_mpl.values():
@@ -81,7 +81,7 @@ def test_flow_clim_all():
     clim = (1.0, 2.0)
     method_name = "adjust_figures"
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_after=method_name)
-    ba.adjust_clim(a_obj, *clim)
+    a_obj.adjust_clim(*clim)
     a_obj.continue_analysis_after(method_name)
 
     for ax in a_obj.axs_mpl.values():
@@ -93,7 +93,7 @@ def test_flow_clim_specific():
     clim = (0.0, 180.0)
     method_name = "adjust_figures"
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_after=method_name)
-    ba.adjust_clim(a_obj, *clim, contains="Phase")
+    a_obj.adjust_clim(*clim, contains="Phase")
     a_obj.continue_analysis_after(method_name)
 
     ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
