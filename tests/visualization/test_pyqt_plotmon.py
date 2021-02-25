@@ -175,7 +175,7 @@ class TestPlotMonitor_pyqt:
         xywh_new = self.plotmon.remote_plotmon._get_QtPlot_geometry(
             which="secondary_QtPlot"
         )
-        assert xywh_new != xywh_init_main
+        assert xywh_new != xywh_init_sec
 
     def test_changed_datadir_main_process(self):
         # This test ensures that the remote process always uses the same datadir
