@@ -34,7 +34,7 @@ def test_label_scaling():
     This test creates a dummy plot and checks if the tick labels are
     rescaled correctly
     """
-    f, ax = plt.subplots()
+    fig, ax = plt.subplots()
     x = np.linspace(-6, 6, 101)
     y = np.cos(x)
     ax.plot(x * 1000, y / 1e5)
