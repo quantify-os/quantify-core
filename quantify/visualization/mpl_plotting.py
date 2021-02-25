@@ -4,6 +4,47 @@ import numpy as np
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
 
 
+def plot_basic_1d(
+    x,
+    y,
+    xlabel: str,
+    xunit: str,
+    ylabel: str,
+    yunit: str,
+    ax,
+    title: str = None,
+    plot_kw: dict = None,
+    **kw,
+) -> None:
+    ax.plot(x, y, **(plot_kw or dict()))
+    if title is not None:
+        ax.set_title(title)
+    set_xlabel(ax, xlabel, xunit)
+    set_ylabel(ax, ylabel, yunit)
+
+
+def plot_fit(ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000) -> None:
+    model = fit_res.model
+
+    if len(model.independent_vars) == 1:
+        independent_var = model.independent_vars[0]
+    else:
+        raise ValueError(
+            "Fit can only be plotted if the model function"
+            " has one independent variable."
+        )
+
+    x_arr = fit_res.userkws[independent_var]
+    x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+    y = model.eval(fit_res.params, **{independent_var: x})
+    ax.plot(x, y, label="Fit", c="C3")
+
+    if plot_init:
+        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+        y = model.eval(fit_res.init_params, **{independent_var: x})
+        ax.plot(x, y, ls="--", c="grey", label="Guess")
+
+
 def flex_colormesh_plot_vs_xy(
     xvals: np.ndarray,
     yvals: np.ndarray,
@@ -113,7 +154,7 @@ def flex_colormesh_plot_vs_xy(
     return {"fig": ax.figure, "ax": ax, "cmap": colormap}
 
 
-def plot_2D_grid(
+def plot_2d_grid(
     x,
     y,
     z,

@@ -90,6 +90,7 @@ ENV/
 
 # IDE settings
 .vscode/
+*.sublime-*
 
 # System files
 *.DS_Store
@@ -102,3 +103,4 @@ tmp_disasm.q1asm
 *.png
 *.svg
 *.json
+*processed_dataset.hdf5

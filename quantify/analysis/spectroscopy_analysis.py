@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from uncertainties import ufloat
 from quantify.analysis import fitting_models as fm
+from quantify.visualization import mpl_plotting as qpl
 
 
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
@@ -26,11 +28,18 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         mod = fm.ResonatorModel()
 
         S21 = np.array(self.dset["S21"])
-        f = np.array(self.dset["x0"])
-        guess = mod.guess(S21, f=f)
-        fit_res = mod.fit(S21, params=guess, f=f)
+        freq = np.array(self.dset["x0"])
+        guess = mod.guess(S21, f=freq)
+        fit_res = mod.fit(S21, params=guess, f=freq)
 
-        self.fit_res = {"hanger_func_complex_SI": fit_res}
+        self.fit_res.update({"hanger_func_complex_SI": fit_res})
+
+        fp = fit_res.params
+        self.quantities_of_interest["Qi"] = ufloat(fp["Qi"].value, fp["Qi"].stderr)
+        self.quantities_of_interest["Qe"] = ufloat(fp["Qe"].value, fp["Qe"].stderr)
+        self.quantities_of_interest["Ql"] = ufloat(fp["Ql"].value, fp["Ql"].stderr)
+        self.quantities_of_interest["Qc"] = ufloat(fp["Qc"].value, fp["Qc"].stderr)
+        self.quantities_of_interest["fr"] = ufloat(fp["fr"].value, fp["fr"].stderr)
 
         fp = fit_res.params
         self.quantities_of_interest["Qi"] = ufloat(fp["Qi"].value, fp["Qi"].stderr)
@@ -43,13 +52,13 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         # TODO missing complex plot (phase)
 
-        f, ax = plt.subplots()
+        fig, ax = plt.subplots()
         fig_id = "S21"
-        self.figs_mpl[fig_id] = f
+        self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id] = ax
-        f.suptitle(f"S21 {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
+        fig.suptitle(f"S21 {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
 
-        ba.plot_basic1D(
+        qpl.plot_basic_1d(
             ax=ax,
             x=self.dset["x0"].values,
             xlabel=self.dset["x0"].attrs["long_name"],
@@ -60,6 +69,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             plot_kw={"marker": ".", "label": "data"},
         )
 
-        ba.plot_fit(
+        qpl.plot_fit(
             ax=ax, fit_res=self.fit_res["hanger_func_complex_SI"], plot_init=True
         )
