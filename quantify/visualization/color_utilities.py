@@ -4,9 +4,9 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 
+import colorsys
 import matplotlib.colors as mplc
 import numpy as np
-import colorsys
 
 
 def clip(x, vmin=0.0, vmax=1.0):

@@ -15,7 +15,6 @@ sphinx-autobuild
 sphinx-togglebutton
 sphinx-autodoc-typehints
 twine==1.14.0
-seaborn
 pytest
 pytest-runner
 pytest-cov

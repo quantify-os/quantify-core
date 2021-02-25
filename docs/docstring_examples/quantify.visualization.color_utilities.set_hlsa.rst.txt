@@ -4,7 +4,7 @@
     .. jupyter-execute::
 
         from quantify.visualization.color_utilities import set_hlsa
-        import seaborn as sns
+        import matplotlib.pyplot as plt
         import colorsys
         import matplotlib.colors as mplc
         import numpy as np
@@ -30,8 +30,12 @@
             colors = [list(set_hlsa(col, s=s)) for s, a in zip(sat_vals, alpha_vals)]
             all_colors += colors
 
-        def plot_colors(colors):
-            cmap = mplc.ListedColormap(colors)
-            sns.palplot(colors)
+        cmap = mplc.ListedColormap(all_colors)
 
-        plot_colors(all_colors)
+        np.random.seed(19680801)
+        data = np.random.randn(30, 30)
+
+        fig, ax = plt.subplots(1, 1, figsize=(6, 3), constrained_layout=True)
+
+        psm = ax.pcolormesh(data, cmap=cmap, rasterized=True, vmin=-4, vmax=4)
+        fig.colorbar(psm, ax=ax)
