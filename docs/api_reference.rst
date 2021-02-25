@@ -43,6 +43,26 @@ visualization
 .. automodule:: quantify.visualization
     :members:
 
+color_utilities
+------------------
+
+.. automodule:: quantify.visualization.color_utilities
+    :members:
+
+
+mpl_plotting
+------------------
+
+.. automodule:: quantify.visualization.mpl_plotting
+    :members:
+
+plot_interpolation
+------------------
+
+.. automodule:: quantify.visualization.plot_interpolation
+    :members:
+
+
 SI Utilities
 ------------
 
