@@ -181,14 +181,19 @@ def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
 
 
 class SafeFormatter(string.Formatter):
-    """
-    A formatter that replaces "missing" values and "bad_fmt" to prevent
-    unexpected Exceptions being raised.
+    def __init__(self, missing: str = "~~", bad_fmt: str = "!!"):
+        """
+        A formatter that replaces "missing" values and "bad_fmt" to prevent unexpected Exceptions being raised.
 
-    Based on https://stackoverflow.com/questions/20248355/how-to-get-python-to-gracefully-format-none-and-non-existing-fields
-    """
+        Parameters
+        ----------
+        missing
+            Replaces missing values with specified string.
+        bad_fmt
+            Replaces values that cannot be formatted with specified string.
 
-    def __init__(self, missing="~~", bad_fmt="!!"):
+        Based on https://stackoverflow.com/questions/20248355/how-to-get-python-to-gracefully-format-none-and-non-existing-fields
+        """
         self.missing, self.bad_fmt = missing, bad_fmt
 
     def get_field(self, field_name, args, kwargs):

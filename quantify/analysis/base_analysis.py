@@ -16,8 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
 
-from quantify.visualization import mpl_plotting as qpl
-from quantify.visualization.SI_utilities import adjust_axeslabels_SI
+from quantify.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
 from quantify.data.handling import (
     load_dataset,
     get_latest_tuid,

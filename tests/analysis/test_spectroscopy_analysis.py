@@ -46,6 +46,7 @@ class TestResonatorSpectroscopyAnalysis:
             "Qc",
             "fr",
             "fit_res",
+            "fit_msg",
         }
 
         fitted_freq = self.a_obj.quantities_of_interest["fr"]
