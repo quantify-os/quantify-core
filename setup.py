@@ -32,6 +32,7 @@ requirements = [
     "adaptive",
     "filelock",
     "appnope",
+    "uncertainties",
 ]
 
 setup_requirements = [

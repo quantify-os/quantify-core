@@ -1,4 +1,6 @@
+import os
 import pytest
+from pathlib import Path
 import quantify.data.handling as dh
 from quantify.analysis import base_analysis as ba
 from quantify.utilities._tests_helpers import get_test_data_dir
@@ -105,21 +107,31 @@ def test_Basic1DAnalysis():
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_1D_1PLOT
-    a = ba.Basic1DAnalysis(tuid=tuid)
+    a_obj = ba.Basic1DAnalysis(tuid=tuid)
 
     # test that the right figures get created.
-    assert set(a.figs_mpl.keys()) == {"Line plot x0-y0"}
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
     tuid = TUID_1D_2PLOTS
-    a = ba.Basic1DAnalysis(tuid=tuid)
+    a_obj = ba.Basic1DAnalysis(tuid=tuid)
 
     # test that the right figures get created.
-    assert set(a.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
+
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "figs_mpl" in analysis_dir
 
 
 def test_Basic2DAnalysis():
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_2D_2PLOTS
-    a = ba.Basic2DAnalysis(tuid=tuid)
-    assert set(a.figs_mpl.keys()) == {"Heatmap x0x1-y0", "Heatmap x0x1-y1"}
+    a_obj = ba.Basic2DAnalysis(tuid=tuid)
+    assert set(a_obj.figs_mpl.keys()) == {"Heatmap x0x1-y0", "Heatmap x0x1-y1"}
+
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    assert "analysis_Basic2DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic2DAnalysis")
+    assert "figs_mpl" in analysis_dir

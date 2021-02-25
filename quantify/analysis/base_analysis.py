@@ -3,19 +3,26 @@ This module should contain different analyses corresponding to discrete experime
 """
 from __future__ import annotations
 import sys
+import os
+import json
 from abc import ABC
 from collections import OrderedDict
 from typing import Union
+from pathlib import Path
 
+import xarray as xr
+import lmfit
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
+from qcodes.utils.helpers import NumpyJSONEncoder
 
 from quantify.visualization import mpl_plotting as qpl
 from quantify.data.handling import (
     load_dataset,
     get_latest_tuid,
-    _locate_experiment_file,
     get_datadir,
+    write_dataset,
+    locate_experiment_container,
 )
 
 # this is a pointer to the module object instance itself.
@@ -23,10 +30,11 @@ this = sys.modules[__name__]
 
 # global configurations at the level of the analysis module
 this.settings = {
-    "DPI": 600,  # define resolution of some matplotlib output formats
+    "DPI": 450,  # define resolution of some matplotlib output formats
     "fig_formats": ("png", "svg"),
     "presentation_mode": False,
     "transparent_background": False,
+    "exclude_raw_in_processed_dataset": True,
 }
 
 
@@ -45,16 +53,16 @@ class BaseAnalysis(ABC):
             "process_data",
             "prepare_fitting",
             "run_fitting",
-            "save_fit_results",
             "analyze_fit_results",
-            "save_quantities_of_interest",
             "create_figures",
             "adjust_figures",
             "save_figures",
+            "save_quantities_of_interest",
+            "save_processed_dataset",
         ] = "",
     ):
         """
-        Initializes the variables that are used in the analysis and to which data is stored.
+        Initializes the variables used in the analysis and to which data is stored.
 
         Parameters
         ------------------
@@ -69,13 +77,36 @@ class BaseAnalysis(ABC):
         self.interrupt_after = interrupt_after
 
         # This will be overwritten
-        self.dset = None
+        self.dataset = None
+        # Used to save a reference of the raw dataset
+        self.dataset_raw = None
         # To be populated by a subclass
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
+        self.quantities_of_interest = OrderedDict()
         self.fit_res = OrderedDict()
 
         self.run_analysis()
+
+    @property
+    def name(self):
+        # used to store data and figures resulting from the analysis. Can be overwritten
+        return self.__class__.__name__
+
+    @property
+    def analysis_dir(self):
+        """
+        Analysis dir based on the tuid. Will create a directory if it does not exist yet.
+        """
+        if self.tuid is None:
+            raise ValueError("Unknown TUID, cannot determine the analysis directory.")
+        # This is a property as it depends
+        exp_folder = Path(locate_experiment_container(self.tuid, get_datadir()))
+        analysis_dir = exp_folder / f"analysis_{self.name}"
+        if not os.path.isdir(analysis_dir):
+            os.makedirs(analysis_dir)
+
+        return analysis_dir
 
     def run_analysis(self):
         """
@@ -99,12 +130,12 @@ class BaseAnalysis(ABC):
             "process_data",
             "prepare_fitting",
             "run_fitting",
-            "save_fit_results",
             "analyze_fit_results",
-            "save_quantities_of_interest",
             "create_figures",
             "adjust_figures",
             "save_figures",
+            "save_quantities_of_interest",
+            "save_processed_dataset",
         ],
     ):
         """
@@ -129,12 +160,11 @@ class BaseAnalysis(ABC):
             "process_data",
             "prepare_fitting",
             "run_fitting",
-            "save_fit_results",
             "analyze_fit_results",
-            "save_quantities_of_interest",
             "create_figures",
             "adjust_figures",
             "save_figures",
+            "save_quantities_of_interest",
         ],
     ):
         """
@@ -161,28 +191,30 @@ class BaseAnalysis(ABC):
             self.process_data,  # binning, filtering etc
             self.prepare_fitting,  # set up fit_dicts
             self.run_fitting,  # fitting to models
-            self.save_fit_results,
             self.analyze_fit_results,  # analyzing the results of the fits
             self.save_quantities_of_interest,
             self.create_figures,
             self.adjust_figures,
             self.save_figures,
+            self.save_quantities_of_interest,
+            self.save_processed_dataset,
         )
 
     def extract_data(self):
         """
-        Populates `self.dset` with data from the experiment matching the tuid/label.
+        Populates `self.dataset` with data from the experiment matching the tuid/label.
 
-        This method should be overwritten if an analysis does not relate to a single datafile.
+        This method should be overwritten if an analysis does not relate to a single
+        datafile.
         """
 
         # if no TUID is specified use the label to search for the latest file with a match.
         if self.tuid is None:
             self.tuid = get_latest_tuid(contains=self.label)
 
-        self.dset = load_dataset(tuid=self.tuid)
-
-        # maybe also load in the metadata here?
+        self.dataset = load_dataset(tuid=self.tuid)
+        # Keep a reference to the original dataset
+        self.dataset_raw = xr.Dataset(self.dataset)
 
     def process_data(self):
         """
@@ -196,14 +228,23 @@ class BaseAnalysis(ABC):
     def run_fitting(self):
         pass
 
-    def save_fit_results(self):
-        pass
+    def _add_fit_res_to_qoi(self):
+        if len(self.fit_res) > 0:
+            self.quantities_of_interest["fit_res"] = OrderedDict()
+            for fr_name, fit_result in self.fit_res.items():
+                res = flatten_lmfit_modelresult(fit_result)
+                self.quantities_of_interest["fit_res"][fr_name] = res
 
     def analyze_fit_results(self):
         pass
 
     def save_quantities_of_interest(self):
-        pass
+        self._add_fit_res_to_qoi()
+
+        with open(
+            os.path.join(self.analysis_dir, "quantities_of_interest.json"), "w"
+        ) as file:
+            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
     def create_figures(self):
         pass
@@ -221,6 +262,23 @@ class BaseAnalysis(ABC):
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
+    def save_processed_dataset(self, exclude_raw: bool = None):
+        """
+        Saves a copy of (processed) self.dataset in the analysis folder of the experiment.
+        """
+
+        # if statement exist to be compatible with child classes that do not load data
+        # onto the self.dataset object.
+        if self.dataset is not None:
+            dataset = self.dataset
+            if exclude_raw is None:
+                exclude_raw = this.settings["exclude_raw_in_processed_dataset"]
+
+            if exclude_raw:
+                dataset = dataset.drop_vars(self.dataset_raw.variables)
+
+            write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
+
     def save_figures(self, close_figs: bool = True):
         """
         Saves all the figures in the :code:`figs_mpl` dict
@@ -234,12 +292,17 @@ class BaseAnalysis(ABC):
         dpi = this.settings["DPI"]
         formats = this.settings["fig_formats"]
 
-        for figname, fig in self.figs_mpl.items():
-            filename = _locate_experiment_file(self.tuid, get_datadir(), f"{figname}")
-            for form in formats:
-                fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=dpi)
-            if close_figs:
-                plt.close(fig)
+        if len(self.figs_mpl) != 0:
+            mpl_figdir = Path(self.analysis_dir) / "figs_mpl"
+            if not os.path.isdir(mpl_figdir):
+                os.makedirs(mpl_figdir)
+
+            for figname, fig in self.figs_mpl.items():
+                filename = os.path.join(mpl_figdir, f"{figname}")
+                for form in formats:
+                    fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=dpi)
+                if close_figs:
+                    plt.close(fig)
 
 
 class Basic1DAnalysis(BaseAnalysis):
@@ -250,7 +313,7 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        ys = set(self.dset.keys())
+        ys = set(self.dataset.keys())
         ys.discard("x0")
         for yi in ys:
             fig, ax = plt.subplots()
@@ -261,16 +324,16 @@ class Basic1DAnalysis(BaseAnalysis):
 
             qpl.plot_basic_1d(
                 ax=ax,
-                x=self.dset["x0"].values,
-                xlabel=self.dset["x0"].attrs["long_name"],
-                xunit=self.dset["x0"].attrs["units"],
-                y=self.dset[f"{yi}"].values,
-                ylabel=self.dset[f"{yi}"].attrs["long_name"],
-                yunit=self.dset[f"{yi}"].attrs["units"],
+                x=self.dataset["x0"].values,
+                xlabel=self.dataset["x0"].attrs["long_name"],
+                xunit=self.dataset["x0"].attrs["units"],
+                y=self.dataset[f"{yi}"].values,
+                ylabel=self.dataset[f"{yi}"].attrs["long_name"],
+                yunit=self.dataset[f"{yi}"].attrs["units"],
             )
 
             fig.suptitle(
-                f"x0-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
+                f"x0-{yi} {self.dataset.attrs['name']}\ntuid: {self.dataset.attrs['tuid']}"
             )
 
 
@@ -281,7 +344,7 @@ class Basic2DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
-        ys = set(self.dset.keys())
+        ys = set(self.dataset.keys())
         ys.discard("x0")
         ys.discard("x1")
 
@@ -293,20 +356,20 @@ class Basic2DAnalysis(BaseAnalysis):
             self.axs_mpl[fig_id] = ax
 
             qpl.plot_2d_grid(
-                x=self.dset["x0"],
-                y=self.dset["x1"],
-                z=self.dset[f"{yi}"],
-                xlabel=self.dset["x0"].attrs["long_name"],
-                xunit=self.dset["x0"].attrs["units"],
-                ylabel=self.dset["x1"].attrs["long_name"],
-                yunit=self.dset["x1"].attrs["units"],
-                zlabel=self.dset[f"{yi}"].attrs["long_name"],
-                zunit=self.dset[f"{yi}"].attrs["units"],
+                x=self.dataset["x0"],
+                y=self.dataset["x1"],
+                z=self.dataset[f"{yi}"],
+                xlabel=self.dataset["x0"].attrs["long_name"],
+                xunit=self.dataset["x0"].attrs["units"],
+                ylabel=self.dataset["x1"].attrs["long_name"],
+                yunit=self.dataset["x1"].attrs["units"],
+                zlabel=self.dataset[f"{yi}"].attrs["long_name"],
+                zunit=self.dataset[f"{yi}"].attrs["units"],
                 ax=ax,
             )
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset.attrs['name']}\ntuid: {self.dataset.attrs['tuid']}"
             )
 
 
@@ -376,3 +439,28 @@ def _get_modified_flow(
     flow_functions = flow_functions[start_idx:stop_idx]
 
     return flow_functions
+
+
+def flatten_lmfit_modelresult(model):
+    """
+    Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
+
+    Notes
+    -----
+    We use this method as opposed to :func:`lmfit.model.save_modelresult` as the
+    corresponding :func:`lmfit.model.load_modelresult` cannot handle loading data with
+    a custom fit function.
+    """
+    assert isinstance(model, (lmfit.model.ModelResult, lmfit.minimizer.MinimizerResult))
+    dic = OrderedDict()
+    dic["success"] = model.success
+    dic["message"] = model.message
+    dic["params"] = {}
+    for param_name in model.params:
+        dic["params"][param_name] = {}
+        param = model.params[param_name]
+        for k in param.__dict__:
+            if not k.startswith("_") and k not in ["from_internal"]:
+                dic["params"][param_name][k] = getattr(param, k)
+        dic["params"][param_name]["value"] = getattr(param, "value")
+    return dic
