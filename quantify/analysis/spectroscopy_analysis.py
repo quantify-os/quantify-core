@@ -21,7 +21,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.dset["S21"].attrs["name"] = "S21"
         self.dset["S21"].attrs["units"] = self.dset_raw["y0"].attrs["units"]
         self.dset["S21"].attrs["long_name"] = "Transmission, $S_{21}$"
+
         self.dset["x0"] = self.dset_raw["x0"]
+        self.dset.set_coords("x0")
+        # replace the default dim_0 with x0
+        self.dset.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
 
