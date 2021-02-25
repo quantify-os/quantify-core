@@ -4,6 +4,7 @@ from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
+from quantify.visualization.SI_utilities import format_value_string
 
 
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
@@ -45,12 +46,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["Qc"] = ufloat(fp["Qc"].value, fp["Qc"].stderr)
         self.quantities_of_interest["fr"] = ufloat(fp["fr"].value, fp["fr"].stderr)
 
-        fp = fit_res.params
-        self.quantities_of_interest["Qi"] = ufloat(fp["Qi"].value, fp["Qi"].stderr)
-        self.quantities_of_interest["Qe"] = ufloat(fp["Qe"].value, fp["Qe"].stderr)
-        self.quantities_of_interest["Ql"] = ufloat(fp["Ql"].value, fp["Ql"].stderr)
-        self.quantities_of_interest["Qc"] = ufloat(fp["Qc"].value, fp["Qc"].stderr)
-        self.quantities_of_interest["fr"] = ufloat(fp["fr"].value, fp["fr"].stderr)
+        text_msg = "Summary\n"
+        text_msg += format_value_string(r"$Q_I$", fit_res.params["Qi"], end_char="\n")
+        text_msg += format_value_string(r"$Q_C$", fit_res.params["Qc"], end_char="\n")
+        text_msg += format_value_string(r"$f_{res}$", fit_res.params["fr"], unit="Hz")
+        self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
         self.create_fig_S21_real_imag()
@@ -64,6 +64,17 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id + "_Re"] = axs[0]
         self.axs_mpl[fig_id + "_Im"] = axs[1]
+
+        # Add a textbox with the fit_message
+        box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
+        axs[0].text(
+            1.05,
+            0.95,
+            self.quantities_of_interest["fit_msg"],
+            transform=axs[0].transAxes,
+            bbox=box_props,
+            verticalalignment="top",
+        )
 
         self.dataset.S21.real.plot(ax=axs[0], marker=".")
         self.dataset.S21.imag.plot(ax=axs[1], marker=".")
@@ -99,6 +110,17 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Magn"] = axs[0]
         self.axs_mpl[fig_id + "_Phase"] = axs[1]
 
+        # Add a textbox with the fit_message
+        box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
+        axs[0].text(
+            1.05,
+            0.95,
+            self.quantities_of_interest["fit_msg"],
+            transform=axs[0].transAxes,
+            bbox=box_props,
+            verticalalignment="top",
+        )
+
         axs[0].plot(self.dataset["x0"], np.abs(self.dataset.S21), marker=".")
         axs[1].plot(
             self.dataset["x0"], np.angle(self.dataset.S21, deg=True), marker="."
@@ -133,6 +155,17 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         fig, ax = plt.subplots()
         self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id] = ax
+
+        # Add a textbox with the fit_message
+        box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
+        ax.text(
+            1.05,
+            0.95,
+            self.quantities_of_interest["fit_msg"],
+            transform=ax.transAxes,
+            bbox=box_props,
+            verticalalignment="top",
+        )
 
         ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
 

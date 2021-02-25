@@ -212,8 +212,7 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
         a unit. If this is an SI unit it will be used in automatically
         determining a prefix for the unit and rescaling accordingly.
     """
-    val_string = par_name
-    val_string += ": {:.4f}$\pm${:.4f} {}{}"
+    val_string = ": {:.4f}$\pm${:.4f} {}{}"
 
     scale_factor, unit = SI_prefix_and_scale_factor(lmfit_par.value, unit)
     val = lmfit_par.value * scale_factor
@@ -222,5 +221,6 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
     else:
         stderr = None
     fmt = SafeFormatter(missing="NaN")
-    val_string = fmt.format(val_string, val, stderr, unit, end_char)
+    # par name is excluded from the format command to allow latex {} characters.
+    val_string = par_name + fmt.format(val_string, val, stderr, unit, end_char)
     return val_string
