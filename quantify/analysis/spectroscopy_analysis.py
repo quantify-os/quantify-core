@@ -12,15 +12,16 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dset["y1"].attrs["units"] == "deg"
+        assert self.dset_raw["y1"].attrs["units"] == "deg"
 
-        S21 = self.dset["y0"] * np.cos(np.deg2rad(self.dset["y1"])) + 1j * self.dset[
-            "y0"
-        ] * np.sin(np.deg2rad(self.dset["y1"]))
+        S21 = self.dset_raw["y0"] * np.cos(
+            np.deg2rad(self.dset_raw["y1"])
+        ) + 1j * self.dset_raw["y0"] * np.sin(np.deg2rad(self.dset_raw["y1"]))
         self.dset["S21"] = S21
         self.dset["S21"].attrs["name"] = "S21"
-        self.dset["S21"].attrs["units"] = self.dset["y0"].attrs["units"]
+        self.dset["S21"].attrs["units"] = self.dset_raw["y0"].attrs["units"]
         self.dset["S21"].attrs["long_name"] = "Transmission, $S_{21}$"
+        self.dset["x0"] = self.dset_raw["x0"]
 
     def run_fitting(self):
 
@@ -55,7 +56,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         fig_id = "S21"
         self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id] = ax
-        fig.suptitle(f"S21 {self.dset.attrs['name']}\ntuid: {self.dset.attrs['tuid']}")
+        fig.suptitle(
+            f"S21 {self.dset_raw.attrs['name']}\ntuid: {self.dset_raw.attrs['tuid']}"
+        )
 
         qpl.plot_basic_1d(
             ax=ax,

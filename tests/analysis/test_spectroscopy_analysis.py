@@ -23,7 +23,10 @@ class TestResonatorSpectroscopyAnalysis:
             / "processed_dataset.hdf5"
         )
         dataset = dh.load_dataset_from_path(file_path)
-        assert "x0" not in dataset.coords.keys()
+
+        # ideally x0 should be a coord.
+        # assert "x0" in dataset.coords.keys()
+        assert "x0" in dataset.data_vars.keys()
         assert "y0" not in dataset.data_vars.keys()
         assert "S21" in dataset.data_vars.keys()
 
