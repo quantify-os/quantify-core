@@ -24,15 +24,19 @@ class TestResonatorSpectroscopyAnalysis:
         )
         dataset = dh.load_dataset_from_path(file_path)
 
-        # ideally x0 should be a coord.
-        # assert "x0" in dataset.coords.keys()
-        assert "x0" in dataset.data_vars.keys()
+        assert "x0" in dataset.dims.keys()
+        assert "x0" in dataset.coords.keys()
         assert "y0" not in dataset.data_vars.keys()
+        assert "y1" not in dataset.data_vars.keys()
         assert "S21" in dataset.data_vars.keys()
 
     def test_figures_generated(self):
         # test that the right figures get created.
-        assert set(self.a_obj.figs_mpl.keys()) == {"S21"}
+        assert set(self.a_obj.figs_mpl.keys()) == {
+            "S21-RealImag",
+            "S21-MagnPhase",
+            "S21-complex",
+        }
 
     def test_quantities_of_interest(self):
         assert set(self.a_obj.quantities_of_interest.keys()) == {

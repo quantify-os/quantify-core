@@ -23,9 +23,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.dataset["S21"].attrs["long_name"] = "Transmission, $S_{21}$"
 
         self.dataset["x0"] = self.dataset_raw["x0"]
-        self.dataset.set_coords("x0")
+        self.dataset = self.dataset.set_coords("x0")
         # replace the default dim_0 with x0
-        self.dataset.swap_dims({"dim_0": "x0"})
+        self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
 
@@ -53,28 +53,98 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["fr"] = ufloat(fp["fr"].value, fp["fr"].stderr)
 
     def create_figures(self):
+        self.create_fig_S21_real_imag()
+        self.create_fig_S21_magn_phase()
+        self.create_fig_S21_complex()
 
-        # TODO missing complex plot (phase)
+    def create_fig_S21_real_imag(self):
 
-        fig, ax = plt.subplots()
-        fig_id = "S21"
+        fig_id = "S21-RealImag"
+        fig, axs = plt.subplots(2, 1, sharex=True)
         self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = ax
+        self.axs_mpl[fig_id + "_Re"] = axs[0]
+        self.axs_mpl[fig_id + "_Im"] = axs[1]
+
+        self.dataset.S21.real.plot(ax=axs[0], marker=".")
+        self.dataset.S21.imag.plot(ax=axs[1], marker=".")
+
+        qpl.plot_fit(
+            ax=axs[0],
+            fit_res=self.fit_res["hanger_func_complex_SI"],
+            plot_init=True,
+            range_casting="real",
+        )
+
+        qpl.plot_fit(
+            ax=axs[1],
+            fit_res=self.fit_res["hanger_func_complex_SI"],
+            plot_init=True,
+            range_casting="imag",
+        )
+
+        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset["S21"].units)
+        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset["S21"].units)
+        axs[0].set_xlabel("")
+        qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
+
         fig.suptitle(
             f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
         )
 
-        qpl.plot_basic_1d(
-            ax=ax,
-            x=self.dataset["x0"].values,
-            xlabel=self.dataset["x0"].attrs["long_name"],
-            xunit=self.dataset["x0"].attrs["units"],
-            y=self.dataset["S21"].values,
-            ylabel=self.dataset["S21"].attrs["long_name"],
-            yunit=self.dataset["S21"].attrs["units"],
-            plot_kw={"marker": ".", "label": "data"},
+    def create_fig_S21_magn_phase(self):
+
+        fig_id = "S21-MagnPhase"
+        fig, axs = plt.subplots(2, 1, sharex=True)
+        self.figs_mpl[fig_id] = fig
+        self.axs_mpl[fig_id + "_Magn"] = axs[0]
+        self.axs_mpl[fig_id + "_Phase"] = axs[1]
+
+        axs[0].plot(self.dataset["x0"], np.abs(self.dataset.S21), marker=".")
+        axs[1].plot(
+            self.dataset["x0"], np.angle(self.dataset.S21, deg=True), marker="."
         )
 
         qpl.plot_fit(
-            ax=ax, fit_res=self.fit_res["hanger_func_complex_SI"], plot_init=True
+            ax=axs[0],
+            fit_res=self.fit_res["hanger_func_complex_SI"],
+            plot_init=True,
+            range_casting="abs",
+        )
+
+        qpl.plot_fit(
+            ax=axs[1],
+            fit_res=self.fit_res["hanger_func_complex_SI"],
+            plot_init=True,
+            range_casting="angle",
+        )
+
+        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset["S21"].units)
+        qpl.set_ylabel(axs[1], r"$\angle S_{21}$", "deg")
+        axs[0].set_xlabel("")
+        qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
+
+        fig.suptitle(
+            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+        )
+
+    def create_fig_S21_complex(self):
+
+        fig_id = "S21-complex"
+        fig, ax = plt.subplots()
+        self.figs_mpl[fig_id] = fig
+        self.axs_mpl[fig_id] = ax
+
+        ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
+
+        qpl.plot_fit_complex_plane(
+            ax=ax,
+            fit_res=self.fit_res["hanger_func_complex_SI"],
+            plot_init=True,
+        )
+
+        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset["S21"].units)
+        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset["S21"].units)
+
+        fig.suptitle(
+            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
         )
