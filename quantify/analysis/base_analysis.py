@@ -423,33 +423,27 @@ class Basic2DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
-        ys = set(self.dataset_raw.keys())
-        ys.discard("x0")
-        ys.discard("x1")
 
-        for yi in ys:
+        gridded_dataset = to_gridded_dataset(self.dataset_raw)
+
+        # plot heatmaps of the data
+        for yi, yvals in gridded_dataset.data_vars.items():
             fig, ax = plt.subplots()
             fig_id = f"Heatmap x0x1-{yi}"
 
-            self.figs_mpl[fig_id] = fig
-            self.axs_mpl[fig_id] = ax
-
-            qpl.plot_2d_grid(
-                x=self.dataset_raw["x0"],
-                y=self.dataset_raw["x1"],
-                z=self.dataset_raw[f"{yi}"],
-                xlabel=self.dataset_raw["x0"].attrs["long_name"],
-                xunit=self.dataset_raw["x0"].attrs["units"],
-                ylabel=self.dataset_raw["x1"].attrs["long_name"],
-                yunit=self.dataset_raw["x1"].attrs["units"],
-                zlabel=self.dataset_raw[f"{yi}"].attrs["long_name"],
-                zunit=self.dataset_raw[f"{yi}"].attrs["units"],
-                ax=ax,
-            )
+            # transpose is required to have x0 on the xaxis and x1 on the y-axis
+            quadmesh = yvals.transpose().plot(ax=ax)
+            # adjust the labels to be SI aware
+            adjust_axeslabels_SI(ax)
+            set_cbarlabel(quadmesh.colorbar, yvals.long_name, yvals.units)
 
             fig.suptitle(
                 f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
             )
+
+            # add the figure and axis to the dicts for saving
+            self.figs_mpl[fig_id] = fig
+            self.axs_mpl[fig_id] = ax
 
 
 def _get_modified_flow(
