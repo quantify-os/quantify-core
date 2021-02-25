@@ -93,7 +93,7 @@ def test_flow_clim_specific():
     clim = (0.0, 180.0)
     method_name = "adjust_figures"
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_after=method_name)
-    a_obj.adjust_clim(*clim, contains="Phase")
+    a_obj.adjust_clim(*clim, ax_ids=["Heatmap x0x1-y1"])
     a_obj.continue_analysis_after(method_name)
 
     ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
