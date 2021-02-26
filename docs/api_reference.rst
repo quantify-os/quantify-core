@@ -50,12 +50,6 @@ color_utilities
     :members:
 
 
-instrument_monitor
-------------------
-
-.. automodule:: quantify.visualization.instrument_monitor
-    :members:
-
 mpl_plotting
 ------------------
 
@@ -68,14 +62,9 @@ plot_interpolation
 .. automodule:: quantify.visualization.plot_interpolation
     :members:
 
-pyqt_plotmon
-------------------
 
-.. automodule:: quantify.visualization.pyqt_plotmon
-    :members:
-
-SI_utilities
-------------------
+SI Utilities
+------------
 
 .. automodule:: quantify.visualization.SI_utilities
     :members:

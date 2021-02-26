@@ -1,7 +1,113 @@
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from typing import Union
 import matplotlib.pyplot as plt
 import numpy as np
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
+
+
+def plot_basic_1d(
+    x,
+    y,
+    xlabel: str,
+    xunit: str,
+    ylabel: str,
+    yunit: str,
+    ax,
+    title: str = None,
+    plot_kw: dict = None,
+    **kw,
+) -> None:
+    ax.plot(x, y, **(plot_kw or dict()))
+    if title is not None:
+        ax.set_title(title)
+    set_xlabel(ax, xlabel, xunit)
+    set_ylabel(ax, ylabel, yunit)
+
+
+def plot_fit(
+    ax,
+    fit_res,
+    plot_init: bool = True,
+    plot_numpoints: int = 1000,
+    range_casting: Union["abs", "angle", "real", "imag"] = "abs",
+) -> None:
+    """
+    Plot a fit of an lmfit model with a real domain.
+
+    Parameters
+    ----------
+    ax
+        axis on which to plot the fit.
+    fit_res
+        an lmfit fit results object.
+    plot_init
+        if True, plot the initial guess of the fit.
+    plot_numpoints
+        the number of points used on which to evaulate the fit.
+    range_casting
+        how to plot fit functions that have a complex range.
+        Casting of values happens using np.abs, np.angle, np.real and np.imag.
+        angle is in degrees.
+
+    """
+    model = fit_res.model
+
+    if len(model.independent_vars) == 1:
+        independent_var = model.independent_vars[0]
+    else:
+        raise ValueError(
+            "Fit can only be plotted if the model function"
+            " has one independent variable."
+        )
+
+    x_arr = fit_res.userkws[independent_var]
+    x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+    y = model.eval(fit_res.params, **{independent_var: x})
+    if range_casting != "angle":
+        range_cast_func = getattr(np, range_casting)
+        y = range_cast_func(y)
+    else:
+        y = np.angle(y, deg=True)
+
+    ax.plot(x, y, label="Fit", c="C3")
+
+    if plot_init:
+        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+        y = model.eval(fit_res.init_params, **{independent_var: x})
+        if range_casting != "angle":
+            range_cast_func = getattr(np, range_casting)
+            y = range_cast_func(y)
+        else:
+            y = np.angle(y, deg=True)
+        ax.plot(x, y, ls="--", c="grey", label="Guess")
+
+
+def plot_fit_complex_plane(
+    ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000
+) -> None:
+    """
+    Plot a fit of an lmfit model with a real domain in the complex plane.
+    """
+    model = fit_res.model
+
+    if len(model.independent_vars) == 1:
+        independent_var = model.independent_vars[0]
+    else:
+        raise ValueError(
+            "Fit can only be plotted if the model function"
+            " has one independent variable."
+        )
+
+    x_arr = fit_res.userkws[independent_var]
+    x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+    y = model.eval(fit_res.params, **{independent_var: x})
+
+    ax.plot(y.real, y.imag, label="Fit", c="C3")
+
+    if plot_init:
+        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
+        y = model.eval(fit_res.init_params, **{independent_var: x})
+        ax.plot(y.real, y.imag, ls="--", c="grey", label="Guess")
 
 
 def flex_colormesh_plot_vs_xy(
@@ -113,7 +219,7 @@ def flex_colormesh_plot_vs_xy(
     return {"fig": ax.figure, "ax": ax, "cmap": colormap}
 
 
-def plot_2D_grid(
+def plot_2d_grid(
     x,
     y,
     z,
@@ -177,7 +283,7 @@ def plot_2D_grid(
     """
 
     if ax is None:
-        f, ax = plt.subplots()
+        _, ax = plt.subplots()
 
     # Reshape the lenth N columns of data into unique xvals (n), yvals (m) and an (m*n) grid of zvals.
     xi = np.unique(x)
