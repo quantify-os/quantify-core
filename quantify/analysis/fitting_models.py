@@ -1,8 +1,4 @@
-"""
-This module contain models and corresponding fit functions to be used
-with the lmfit fitting framework.
-These models are used in the analysis classes.
-"""
+"""This module contain models and fit functions to be used with the lmfit fitting framework."""
 
 import numpy as np
 import lmfit

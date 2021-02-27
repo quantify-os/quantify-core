@@ -48,7 +48,6 @@ def plot_fit(
         how to plot fit functions that have a complex range.
         Casting of values happens using np.abs, np.angle, np.real and np.imag.
         angle is in degrees.
-
     """
     model = fit_res.model
 

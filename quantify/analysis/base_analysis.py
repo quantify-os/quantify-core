@@ -1,6 +1,4 @@
-"""
-This module should contain different analyses corresponding to discrete experiments
-"""
+"""This module contains the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
 import sys
 import os
