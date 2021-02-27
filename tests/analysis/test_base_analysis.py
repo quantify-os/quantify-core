@@ -84,8 +84,10 @@ def test_flow_clim_all():
     a_obj.adjust_clim(*clim)
     a_obj.continue_analysis_after(method_name)
 
-    for ax in a_obj.axs_mpl.values():
-        assert ax.collections[0].get_clim() == clim
+    ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
+    assert ax.collections[0].get_clim() == clim
+    ax = a_obj.axs_mpl["Heatmap x0x1-y0"]
+    assert ax.collections[0].get_clim() == clim
 
 
 def test_flow_clim_specific():
@@ -129,7 +131,12 @@ def test_Basic2DAnalysis():
 
     tuid = TUID_2D_2PLOTS
     a_obj = ba.Basic2DAnalysis(tuid=tuid)
-    assert set(a_obj.figs_mpl.keys()) == {"Heatmap x0x1-y0", "Heatmap x0x1-y1"}
+    assert set(a_obj.figs_mpl.keys()) == {
+        "Heatmap x0x1-y0",
+        "Heatmap x0x1-y1",
+        "Linecuts x0x1-y0",
+        "Linecuts x0x1-y1",
+    }
 
     exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
     assert "analysis_Basic2DAnalysis" in os.listdir(exp_dir)
