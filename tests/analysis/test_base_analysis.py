@@ -7,7 +7,12 @@ from quantify.utilities._tests_helpers import get_test_data_dir
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
-TUID_2D_2PLOTS = "20210126-162726-170-de4f78"
+# TUID_2D_2PLOTS = "20210126-162726-170-de4f78"
+TUID_2D_2PLOTS = "20210227-172939-723-53d82c"
+
+
+# disable figure saving for all analyses
+ba.settings["fig_formats"] = []
 
 
 class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
@@ -115,7 +120,13 @@ def test_Basic1DAnalysis():
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
     tuid = TUID_1D_2PLOTS
+    # here we see if figures are created
+    ba.settings["fig_formats"] = [
+        "png",
+        "svg",
+    ]
     a_obj = ba.Basic1DAnalysis(tuid=tuid)
+    ba.settings["fig_formats"] = []  # disabled again after running analysis
 
     # test that the right figures get created.
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
@@ -130,7 +141,13 @@ def test_Basic2DAnalysis():
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_2D_2PLOTS
+    # here we see if figures are created
+    ba.settings["fig_formats"] = [
+        "svg",
+    ]  # no png as this is very slow
     a_obj = ba.Basic2DAnalysis(tuid=tuid)
+    ba.settings["fig_formats"] = []  # disabled again after running analysis
+
     assert set(a_obj.figs_mpl.keys()) == {
         "Heatmap x0x1-y0",
         "Heatmap x0x1-y1",
