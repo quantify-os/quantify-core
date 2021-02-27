@@ -10,6 +10,8 @@ from collections import OrderedDict
 from typing import Union, List
 from pathlib import Path
 
+from IPython.display import display
+
 import xarray as xr
 import lmfit
 import matplotlib.pyplot as plt
@@ -301,6 +303,13 @@ class BaseAnalysis(ABC):
                     fig.savefig(f"{filename}.{form}", bbox_inches="tight", dpi=dpi)
                 if close_figs:
                     plt.close(fig)
+
+    def display_figs_mpl(self):
+        """
+        Displays figures in self.figs_mpl in all frontends.
+        """
+        for fig in self.figs_mpl.values():
+            display(fig)
 
     def adjust_ylim(
         self,

@@ -135,3 +135,9 @@ def test_Basic2DAnalysis():
     assert "analysis_Basic2DAnalysis" in os.listdir(exp_dir)
     analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic2DAnalysis")
     assert "figs_mpl" in analysis_dir
+
+
+def test_display_figs():
+    dh.set_datadir(get_test_data_dir())
+    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS)
+    a_obj.display_figs_mpl()  # should display figures in the output
