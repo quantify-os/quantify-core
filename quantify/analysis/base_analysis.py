@@ -11,7 +11,8 @@ from typing import Union, List
 from pathlib import Path
 
 from IPython.display import display
-
+import numpy as np
+import matplotlib
 import xarray as xr
 import lmfit
 import matplotlib.pyplot as plt
@@ -444,6 +445,39 @@ class Basic2DAnalysis(BaseAnalysis):
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
             set_cbarlabel(quadmesh.colorbar, yvals.long_name, yvals.units)
+
+            fig.suptitle(
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            )
+
+            # add the figure and axis to the dicts for saving
+            self.figs_mpl[fig_id] = fig
+            self.axs_mpl[fig_id] = ax
+
+        # plot linecuts of the data
+        for yi, yvals in gridded_dataset.data_vars.items():
+            fig, ax = plt.subplots()
+            fig_id = f"Linecuts x0x1-{yi}"
+
+            lines = yvals.plot.line(x="x0", hue="x1", ax=ax)
+            # Change the color and labels of the line as we want to tweak this with respect to xarray default.
+            for line, zv in zip(lines, np.array(gridded_dataset["x1"])):
+                # use the default colormap specified
+                cmap = matplotlib.cm.get_cmap()
+                norm = matplotlib.colors.Normalize(
+                    vmin=np.min(gridded_dataset["x1"]),
+                    vmax=np.max(gridded_dataset["x1"]),
+                )
+                line.set_color(cmap(norm(zv)))
+                line.set_label(f"{zv:.3g}")
+
+            ax.legend(
+                loc=(1.05, 0.0),
+                title=gridded_dataset["x1"].attrs["long_name"]
+                + gridded_dataset["x1"].attrs["units"],
+            )
+            # adjust the labels to be SI aware
+            adjust_axeslabels_SI(ax)
 
             fig.suptitle(
                 f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
