@@ -473,8 +473,11 @@ class Basic2DAnalysis(BaseAnalysis):
 
             ax.legend(
                 loc=(1.05, 0.0),
-                title=gridded_dataset["x1"].attrs["long_name"]
-                + gridded_dataset["x1"].attrs["units"],
+                title="{} ({})".format(
+                    gridded_dataset["x1"].attrs["long_name"],
+                    gridded_dataset["x1"].attrs["units"],
+                ),
+                ncol=len(gridded_dataset["x1"]) // 8,
             )
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
