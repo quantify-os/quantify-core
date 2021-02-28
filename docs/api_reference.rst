@@ -7,6 +7,30 @@ quantify
 .. automodule:: quantify
    :members:
 
+
+
+analysis
+=============
+
+base_analysis
+-------------
+
+.. automodule:: quantify.analysis.base_analysis
+    :members:
+
+
+spectroscopy_analysis
+---------------------
+
+.. automodule:: quantify.analysis.spectroscopy_analysis
+    :members:
+
+fitting_models
+--------------
+
+.. automodule:: quantify.analysis.fitting_models
+    :members:
+
 data
 =============
 
