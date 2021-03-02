@@ -1,4 +1,4 @@
-"""This module contain models and fit functions to be used with the lmfit fitting framework."""
+"""Models and fit functions to be used with the lmfit fitting framework."""
 
 import numpy as np
 import lmfit
@@ -17,6 +17,7 @@ def hanger_func_complex_SI(
 ) -> float:
     """
     This is the complex function for a hanger (lamda/4 resonator).
+
 
     Parameters
     ---------------

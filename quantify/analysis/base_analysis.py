@@ -1,4 +1,4 @@
-"""This module contains the analysis abstract base class and several basic analyses."""
+"""Analysis abstract base class and several basic analyses."""
 from __future__ import annotations
 import sys
 import os
@@ -42,8 +42,7 @@ this.settings = {
 
 class BaseAnalysis(ABC):
     """
-    Abstract base class for data analysis. Provides a template from which to
-    inherit when doing any analysis.
+    A template for analysis classes.
     """
 
     # pylint: disable=too-many-instance-attributes
