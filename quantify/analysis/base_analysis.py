@@ -67,10 +67,13 @@ class BaseAnalysis(ABC):
 
         Parameters
         ------------------
-        label: str
+        label:
             Will look for a dataset that contains "label" in the name.
-        tuid: str
+        tuid:
             If specified, will look for the dataset with the matching tuid.
+        interrupt_after:
+            stops `run_analysis` after executing the specified method.
+
         """
         self.logger = logging.getLogger(self.name)
 
@@ -113,7 +116,7 @@ class BaseAnalysis(ABC):
 
     def run_analysis(self):
         """
-        This function is at the core of all analysis and defines the flow.
+        This function is at the core of all analysis and defines the flow of methods to call.
 
         This function is typically called at the end of __init__.
         """
@@ -189,7 +192,7 @@ class BaseAnalysis(ABC):
 
     def get_flow(self):
         """
-        Returns a tuple with the ordered methods to be called by run analysis
+        Returns a tuple with the ordered methods to be called by run analysis.
         """
         return (
             self.extract_data,  # extract data from the dataset
