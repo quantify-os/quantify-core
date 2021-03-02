@@ -41,9 +41,7 @@ this.settings = {
 
 
 class BaseAnalysis(ABC):
-    """
-    A template for analysis classes.
-    """
+    """A template for analysis classes."""
 
     # pylint: disable=too-many-instance-attributes
 
