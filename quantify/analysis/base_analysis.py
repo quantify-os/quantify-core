@@ -7,6 +7,7 @@ from abc import ABC
 from collections import OrderedDict
 from typing import Union, List
 from pathlib import Path
+import logging
 
 from IPython.display import display
 import numpy as np
@@ -74,6 +75,7 @@ class BaseAnalysis(ABC):
         tuid: str
             If specified, will look for the dataset with the matching tuid.
         """
+        self.logger = logging.getLogger(self.name)
 
         self.label = label
         self.tuid = tuid
@@ -124,7 +126,9 @@ class BaseAnalysis(ABC):
             method_stop_inclusive=True,
         )
 
-        for method in flow_methods:
+        self.logger.info(f"Executing run_analysis of {self.name}")
+        for ii, method in enumerate(flow_methods):
+            self.logger.info(f"execution step {ii}: {method}")
             method()
 
     def continue_analysis_from(

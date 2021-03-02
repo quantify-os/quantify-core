@@ -1,4 +1,5 @@
 import os
+import logging
 import pytest
 from pathlib import Path
 import quantify.data.handling as dh
@@ -32,19 +33,48 @@ def test_flow_exception_in_step():
         DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT)
 
 
-def test_flow_interrupt():
+def test_flow_interrupt(caplog):
     dh.set_datadir(get_test_data_dir())
     a_obj = DummyAnalysisSubclassRaisesA(
         tuid=TUID_1D_1PLOT, interrupt_after="save_quantities_of_interest"
     )
+
+    log_msgs = [
+        "Executing run_analysis of",
+        "execution step 0: <bound method BaseAnalysis.extract_data of",
+        "execution step 1: <bound method BaseAnalysis.process_data of",
+        "execution step 2: <bound method BaseAnalysis.prepare_fitting of",
+        "execution step 3: <bound method BaseAnalysis.run_fitting of",
+        "execution step 4: <bound method BaseAnalysis.analyze_fit_results of",
+        "execution step 5: <bound method BaseAnalysis.create_figures of",
+        "execution step 6: <bound method BaseAnalysis.adjust_figures of",
+        "execution step 7: <bound method BaseAnalysis.save_figures_mpl of",
+        "execution step 8: <bound method BaseAnalysis.save_quantities_of_interest of",
+    ]
+
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
+
     assert len(a_obj.figs_mpl) == 0
 
 
-def test_flow_skip_step_continue_manually():
+def test_flow_skip_step_continue_manually(caplog):
+
     dh.set_datadir(get_test_data_dir())
-    a_obj = DummyAnalysisSubclassRaisesB(
-        tuid=TUID_1D_1PLOT, interrupt_after="prepare_fitting"
-    )
+    with caplog.at_level(logging.INFO):
+        a_obj = DummyAnalysisSubclassRaisesB(
+            tuid=TUID_1D_1PLOT, interrupt_after="prepare_fitting"
+        )
+
+    log_msgs = [
+        "Executing run_analysis of",
+        "execution step 0: <bound method BaseAnalysis.extract_data of",
+        "execution step 1: <bound method BaseAnalysis.process_data of",
+        "execution step 2: <bound method BaseAnalysis.prepare_fitting of",
+    ]
+
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
 
     a_obj.continue_analysis_from(method_name="save_quantities_of_interest")
 
@@ -66,7 +96,7 @@ def test_flow_xlim_all():
         assert ax.get_xlim() == xlim
 
 
-def test_flow_ylim_all():
+def test_flow_ylim_all(caplog):
     dh.set_datadir(get_test_data_dir())
     ylim = (0.0, 0.8)
     method_name = "adjust_figures"
@@ -79,6 +109,20 @@ def test_flow_ylim_all():
 
     for ax in a_obj.axs_mpl.values():
         assert ax.get_ylim() == ylim
+
+    log_msgs = [
+        "Executing run_analysis of",
+        "execution step 0: <bound method BaseAnalysis.extract_data of",
+        "execution step 1: <bound method BaseAnalysis.process_data of",
+        "execution step 2: <bound method BaseAnalysis.prepare_fitting of",
+        "execution step 3: <bound method BaseAnalysis.run_fitting of",
+        "execution step 4: <bound method BaseAnalysis.analyze_fit_results of",
+        "execution step 5: <bound method BaseAnalysis.create_figures of",
+        "execution step 6: <bound method BaseAnalysis.adjust_figures of",
+    ]
+
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
 
 
 def test_flow_clim_all():
@@ -110,7 +154,7 @@ def test_flow_clim_specific():
 # Run defaults at the end to overwrite the previous figures
 
 
-def test_Basic1DAnalysis():
+def test_Basic1DAnalysis(caplog):
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_1D_1PLOT
@@ -135,6 +179,22 @@ def test_Basic1DAnalysis():
     assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
     analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
     assert "figs_mpl" in analysis_dir
+
+    log_msgs = [
+        "Executing run_analysis of",
+        "execution step 0: <bound method BaseAnalysis.extract_data of",
+        "execution step 1: <bound method BaseAnalysis.process_data of",
+        "execution step 2: <bound method BaseAnalysis.prepare_fitting of",
+        "execution step 3: <bound method BaseAnalysis.run_fitting of",
+        "execution step 4: <bound method BaseAnalysis.analyze_fit_results of",
+        "execution step 5: <bound method BaseAnalysis.create_figures of",
+        "execution step 6: <bound method BaseAnalysis.adjust_figures of",
+        "execution step 7: <bound method BaseAnalysis.save_figures_mpl of",
+        "execution step 8: <bound method BaseAnalysis.save_quantities_of_interest of",
+    ]
+
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
 
 
 def test_Basic2DAnalysis():
