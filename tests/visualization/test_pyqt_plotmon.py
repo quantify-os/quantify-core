@@ -159,23 +159,23 @@ class TestPlotMonitor_pyqt:
 
     def test_setGeometry(self):
         # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
-        xywh = (300, 300, 600, 800)
+        xywh = (400, 400, 300, 400)
+        xywh_init_main = self.plotmon.remote_plotmon._get_QtPlot_geometry(
+            which="main_QtPlot"
+        )
+        xywh_init_sec = self.plotmon.remote_plotmon._get_QtPlot_geometry(
+            which="secondary_QtPlot"
+        )
 
         self.plotmon.setGeometry_main(*xywh)
-        assert (
-            xywh[-2:]
-            == self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")[
-                -2:
-            ]
-        )
+        xywh_new = self.plotmon.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")
+        assert xywh_new != xywh_init_main
 
         self.plotmon.setGeometry_secondary(*xywh)
-        assert (
-            xywh[-2:]
-            == self.plotmon.remote_plotmon._get_QtPlot_geometry(
-                which="secondary_QtPlot"
-            )[-2:]
+        xywh_new = self.plotmon.remote_plotmon._get_QtPlot_geometry(
+            which="secondary_QtPlot"
         )
+        assert xywh_new != xywh_init_sec
 
     def test_changed_datadir_main_process(self):
         # This test ensures that the remote process always uses the same datadir
