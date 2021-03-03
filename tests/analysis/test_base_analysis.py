@@ -2,6 +2,7 @@ import os
 import logging
 import pytest
 from pathlib import Path
+from jsonschema import ValidationError
 import quantify.data.handling as dh
 from quantify.analysis import base_analysis as ba
 from quantify.utilities._tests_helpers import get_test_data_dir
@@ -13,7 +14,7 @@ TUID_2D_2PLOTS = "20210227-172939-723-53d82c"
 
 
 # disable figure saving for all analyses
-ba.settings["fig_formats"] = []
+ba.analysis_settings["mpl_fig_formats"] = []
 
 
 class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
@@ -29,8 +30,11 @@ class DummyAnalysisSubclassRaisesB(ba.Basic1DAnalysis):
 def test_flow_exception_in_step():
     dh.set_datadir(get_test_data_dir())
 
-    with pytest.raises(ValueError):
+    # try-except required to preserve __context__
+    try:
         DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT)
+    except RuntimeError as e:
+        assert isinstance(e.__context__, ValueError)
 
 
 def test_flow_interrupt(caplog):
@@ -151,6 +155,16 @@ def test_flow_clim_specific():
     assert ax.collections[0].get_clim() == clim
 
 
+def test_Basic1DAnalysis_settings_validation():
+    dh.set_datadir(get_test_data_dir())
+    tuid = TUID_1D_1PLOT
+
+    with pytest.raises(ValidationError) as excinfo:
+        _ = ba.Basic1DAnalysis(tuid=tuid, analysis_settings={"mpl_fig_formats": "png"})
+
+    assert "'png' is not of type 'array'" in str(excinfo.value)
+
+
 # Run defaults at the end to overwrite the previous figures
 
 
@@ -165,12 +179,14 @@ def test_Basic1DAnalysis(caplog):
 
     tuid = TUID_1D_2PLOTS
     # here we see if figures are created
-    ba.settings["fig_formats"] = [
+    ba.analysis_settings["mpl_fig_formats"] = [
         "png",
         "svg",
     ]
     a_obj = ba.Basic1DAnalysis(tuid=tuid)
-    ba.settings["fig_formats"] = []  # disabled again after running analysis
+    ba.analysis_settings[
+        "mpl_fig_formats"
+    ] = []  # disabled again after running analysis
 
     # test that the right figures get created.
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
@@ -202,11 +218,13 @@ def test_Basic2DAnalysis():
 
     tuid = TUID_2D_2PLOTS
     # here we see if figures are created
-    ba.settings["fig_formats"] = [
+    ba.analysis_settings["mpl_fig_formats"] = [
         "svg",
     ]  # no png as this is very slow
     a_obj = ba.Basic2DAnalysis(tuid=tuid)
-    ba.settings["fig_formats"] = []  # disabled again after running analysis
+    ba.analysis_settings[
+        "mpl_fig_formats"
+    ] = []  # disabled again after running analysis
 
     assert set(a_obj.figs_mpl.keys()) == {
         "Heatmap x0x1-y0",

@@ -11,9 +11,9 @@ import logging
 
 from IPython.display import display
 import numpy as np
-import matplotlib
 import xarray as xr
 import lmfit
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
@@ -27,17 +27,20 @@ from quantify.data.handling import (
     locate_experiment_container,
     to_gridded_dataset,
 )
+from .types import AnalysisSettings
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 
 # global configurations at the level of the analysis module
-this.settings = {
-    "DPI": 450,  # define resolution of some matplotlib output formats
-    "fig_formats": ("png", "svg"),
-    "presentation_mode": False,
-    "transparent_background": False,
-}
+this.analysis_settings = AnalysisSettings(
+    {
+        "mpl_dpi": 450,  # define resolution of some matplotlib output formats
+        "mpl_fig_formats": ["svg"],
+        "mpl_presentation_mode": False,
+        "mpl_transparent_background": False,
+    }
+)
 
 
 class BaseAnalysis(ABC):
@@ -61,6 +64,7 @@ class BaseAnalysis(ABC):
             "save_quantities_of_interest",
             "save_processed_dataset",
         ] = "",
+        analysis_settings: dict = None,
     ):
         """
         Initializes the variables used in the analysis and to which data is stored.
@@ -80,6 +84,11 @@ class BaseAnalysis(ABC):
         self.label = label
         self.tuid = tuid
         self.interrupt_after = interrupt_after
+
+        # Allows individual setting per analysis instance
+        # with defaults from global settings
+        self.analysis_settings = AnalysisSettings(this.analysis_settings)
+        self.analysis_settings.update(analysis_settings or {})
 
         # This will be overwritten
         self.dataset = None
@@ -127,9 +136,18 @@ class BaseAnalysis(ABC):
         )
 
         self.logger.info(f"Executing run_analysis of {self.name}")
-        for ii, method in enumerate(flow_methods):
-            self.logger.info(f"execution step {ii}: {method}")
-            method()
+        for i, method in enumerate(flow_methods):
+            self.logger.info(f"execution step {i}: {method}")
+            try:
+                method()
+            except Exception as e:
+                raise RuntimeError(
+                    "An exception occurred while executing "
+                    f"{method}.\n\n"  # point to the culprit
+                    "Use `interrupt_after='<method name>'` to run a partial analysis. "
+                    "Method names:\n"
+                    f"{self.__class__.__init__.__annotations__['interrupt_after']}"
+                ) from e  # and raise the original exception
 
     def continue_analysis_from(
         self,
@@ -264,14 +282,14 @@ class BaseAnalysis(ABC):
         before saving them
         """
         for fig in self.figs_mpl.values():
-            if this.settings["presentation_mode"]:
+            if this.analysis_settings["mpl_presentation_mode"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
-            if this.settings["transparent_background"]:
+            if this.analysis_settings["mpl_transparent_background"]:
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
-    def save_processed_dataset(self, exclude_raw: bool = None):
+    def save_processed_dataset(self):
         """
         Saves a copy of the (processed) self.dataset in the analysis folder of the experiment.
         """
@@ -292,8 +310,8 @@ class BaseAnalysis(ABC):
         close_figs
             If True, closes `matplotlib` figures after saving
         """
-        dpi = this.settings["DPI"]
-        formats = this.settings["fig_formats"]
+        dpi = this.analysis_settings["mpl_dpi"]
+        formats = this.analysis_settings["mpl_fig_formats"]
 
         if len(self.figs_mpl) != 0:
             mpl_figdir = Path(self.analysis_dir) / "figs_mpl"
@@ -463,15 +481,15 @@ class Basic2DAnalysis(BaseAnalysis):
 
             lines = yvals.plot.line(x="x0", hue="x1", ax=ax)
             # Change the color and labels of the line as we want to tweak this with respect to xarray default.
-            for line, zv in zip(lines, np.array(gridded_dataset["x1"])):
+            for line, z_value in zip(lines, np.array(gridded_dataset["x1"])):
                 # use the default colormap specified
                 cmap = matplotlib.cm.get_cmap()
                 norm = matplotlib.colors.Normalize(
                     vmin=np.min(gridded_dataset["x1"]),
                     vmax=np.max(gridded_dataset["x1"]),
                 )
-                line.set_color(cmap(norm(zv)))
-                line.set_label(f"{zv:.3g}")
+                line.set_color(cmap(norm(z_value)))
+                line.set_label(f"{z_value:.3g}")
 
             ax.legend(
                 loc=(1.05, 0.0),
