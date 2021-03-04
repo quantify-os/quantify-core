@@ -1,0 +1,33 @@
+{
+    "description": "Requirement for valid analysis settings.",
+    "configurations": {
+        "description": "Base analysis settings",
+        "required": [
+            "mpl_dpi",
+            "mpl_fig_formats",
+            "mpl_exclude_fig_titles",
+            "mpl_transparent_background"
+        ],
+        "properties": {
+            "mpl_dpi": {
+                "type": "integer",
+                "description": "Matplotlib figures DPI."
+            },
+            "mpl_exclude_fig_titles": {
+                "type": "boolean",
+                "description": "If :code:`True` maplotlib figures will not include the title."
+            },
+            "mpl_transparent_background": {
+                "type": "boolean",
+                "description": "If :code:`True` maplotlib figures will have transparent background (when applicable)."
+            },
+            "mpl_fig_formats": {
+                "type": "array",
+                "description": "List of formats in which matplotlib figures will be saved. E.g. :code:`['svg']`",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
