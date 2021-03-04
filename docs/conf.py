@@ -103,6 +103,8 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Document both class doctring and __init__ docstring
+autoclass_content = "both"
 
 # -- Options for HTML output -------------------------------------------
 
@@ -124,9 +126,6 @@ html_static_path = ["_static"]
 html_css_files = [
     "quantify.css",
 ]
-
-
-# -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "quantifydoc"
@@ -187,5 +186,6 @@ texinfo_documents = [
     ),
 ]
 
+# -- Other Options -----------------------------------------------------
 
 blockdiag_html_image_format = "SVG"

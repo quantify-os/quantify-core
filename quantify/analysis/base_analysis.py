@@ -5,7 +5,9 @@ import os
 import json
 from abc import ABC
 from collections import OrderedDict
-from typing import Union, List
+from copy import deepcopy
+from typing import List
+from enum import Enum
 from pathlib import Path
 import logging
 
@@ -36,11 +38,32 @@ this = sys.modules[__name__]
 this.analysis_settings = AnalysisSettings(
     {
         "mpl_dpi": 450,  # define resolution of some matplotlib output formats
-        "mpl_fig_formats": ["svg"],
-        "mpl_presentation_mode": False,
+        "mpl_fig_formats": [
+            "png",
+            "svg",
+        ],  # svg is superior but at least OneNote does not support it
+        "mpl_exclude_fig_titles": False,
         "mpl_transparent_background": False,
     }
 )
+
+
+class AnalysisStep(Enum):
+    """
+    Steps of the base analysis
+
+    """
+
+    EXTRACT_DATA = "extract_data"
+    PROCESS_DATA = "process_data"
+    PREPARE_FITTING = "prepare_fitting"
+    RUN_FITTING = "run_fitting"
+    ANALYZE_FIT_RESULTS = "analyze_fit_results"
+    CREATE_FIGURES = "create_figures"
+    ADJUST_FIGURES = "adjust_figures"
+    SAVE_FIGURES_MPL = "save_figures_mpl"
+    SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
+    SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
@@ -52,18 +75,7 @@ class BaseAnalysis(ABC):
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_after: Union[
-            "extract_data",
-            "process_data",
-            "prepare_fitting",
-            "run_fitting",
-            "analyze_fit_results",
-            "create_figures",
-            "adjust_figures",
-            "save_figures_mpl",
-            "save_quantities_of_interest",
-            "save_processed_dataset",
-        ] = "",
+        interrupt_after: AnalysisStep = None,
         analysis_settings: dict = None,
     ):
         """
@@ -76,8 +88,13 @@ class BaseAnalysis(ABC):
         tuid:
             If specified, will look for the dataset with the matching tuid.
         interrupt_after:
-            stops `run_analysis` after executing the specified method.
+            Stops `run_analysis` after executing the specified method.
+        analysis_settings:
+            A dictionary containing overrides of the global
+            `base_analysis.analysis_settings` for this specific instance.
+            Available settings:
 
+            .. jsonschema:: schemas/AnalysisSettings.json#/configurations
         """
         self.logger = logging.getLogger(self.name)
 
@@ -87,7 +104,7 @@ class BaseAnalysis(ABC):
 
         # Allows individual setting per analysis instance
         # with defaults from global settings
-        self.analysis_settings = AnalysisSettings(this.analysis_settings)
+        self.analysis_settings = deepcopy(this.analysis_settings)
         self.analysis_settings.update(analysis_settings or {})
 
         # This will be overwritten
@@ -149,21 +166,7 @@ class BaseAnalysis(ABC):
                     f"{self.__class__.__init__.__annotations__['interrupt_after']}"
                 ) from e  # and raise the original exception
 
-    def continue_analysis_from(
-        self,
-        method_name: Union[
-            "extract_data",
-            "process_data",
-            "prepare_fitting",
-            "run_fitting",
-            "analyze_fit_results",
-            "create_figures",
-            "adjust_figures",
-            "save_figures_mpl",
-            "save_quantities_of_interest",
-            "save_processed_dataset",
-        ],
-    ):
+    def continue_analysis_from(self, method_name: AnalysisStep):
         """
         Runs the analysis starting from specified method.
 
@@ -179,20 +182,7 @@ class BaseAnalysis(ABC):
         for method in flow_methods:
             method()
 
-    def continue_analysis_after(
-        self,
-        method_name: Union[
-            "extract_data",
-            "process_data",
-            "prepare_fitting",
-            "run_fitting",
-            "analyze_fit_results",
-            "create_figures",
-            "adjust_figures",
-            "save_figures_mpl",
-            "save_quantities_of_interest",
-        ],
-    ):
+    def continue_analysis_after(self, method_name: AnalysisStep):
         """
         Runs the analysis starting from specified method.
 
@@ -282,7 +272,7 @@ class BaseAnalysis(ABC):
         before saving them
         """
         for fig in self.figs_mpl.values():
-            if this.analysis_settings["mpl_presentation_mode"]:
+            if this.analysis_settings["mpl_exclude_fig_titles"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
             if this.analysis_settings["mpl_transparent_background"]:

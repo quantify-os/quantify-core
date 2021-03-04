@@ -19,11 +19,12 @@ class AnalysisSettings(OrderedDict):
     schema_individual = dict(schema)
     schema_individual.pop("required")
 
-    def __init__(self, settings: dict):
+    def __init__(self, settings: dict = None):
         super().__init__()
-        validate(settings, self.schema)
-        for key, value in settings.items():
-            super().__setitem__(key, value)
+        if settings:
+            validate(settings, self.schema)
+            for key, value in settings.items():
+                super().__setitem__(key, value)
 
     def __setitem__(self, key, value):
         validate({key: value}, self.schema_individual)
