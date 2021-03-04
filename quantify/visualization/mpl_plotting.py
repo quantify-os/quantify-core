@@ -46,7 +46,7 @@ def plot_fit(
         the number of points used on which to evaulate the fit.
     range_casting
         how to plot fit functions that have a complex range.
-        Casting of values happens using :meth:`~numpy.abs`, :meth:`~numpy.angle`, :meth:`~numpy.real` and :meth:`~numpy.imag`.
+        Casting of values happens using :func:`~numpy.abs`, :func:`~numpy.angle`, :func:`~numpy.real` and :func:`~numpy.imag`.
         angle is in degrees.
     """
     model = fit_res.model
@@ -117,7 +117,7 @@ def flex_colormesh_plot_vs_xy(
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
-    vlim: list = (None, None),
+    vlim: list = [None, None],
     transpose: bool = False,
 ) -> dict:
     """
@@ -147,7 +147,8 @@ def flex_colormesh_plot_vs_xy(
 
     Returns
     ------------
-    Dictionary containing fig, ax and cmap.
+    dict
+        Dictionary containing fig, ax and cmap.
 
 
     .. warning::
@@ -235,7 +236,7 @@ def plot_2d_grid(
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
-    vlim: list = (None, None),
+    vlim: list = [None, None],
     transpose: bool = False,
 ) -> dict:
     """
@@ -276,7 +277,9 @@ def plot_2d_grid(
 
     Returns
     ------------
-    Dictionary containing fig, ax, cmap, and cbar.
+    dict
+    dict
+        Dictionary containing fig, ax, cmap, and cbar.
 
 
     """

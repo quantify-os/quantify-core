@@ -49,8 +49,6 @@ For convenience the analysis framework provides a set of global settings.
 The available options are listed below.
 These can be overwritten for each instance of an analysis.
 
-.. jsonschema:: schemas/AnalysisSettings.json#/configurations
-
 .. admonition:: Example
 
     .. jupyter-execute::
@@ -103,6 +101,7 @@ class BaseAnalysis(ABC):
         """
         Initializes the variables used in the analysis and to which data is stored.
 
+
         Parameters
         ----------
         label:
@@ -114,7 +113,10 @@ class BaseAnalysis(ABC):
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
-            See table above for available options.
+            See table below for available settings.
+
+
+        .. jsonschema:: schemas/AnalysisSettings.json#/configurations
         """
         self.logger = logging.getLogger(self.name)
 
