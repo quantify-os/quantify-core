@@ -46,7 +46,7 @@ settings = AnalysisSettings(
 """
 For convenience the analysis framework provides a set of global settings.
 
-The available options are listed below.
+For available settings see :class:`~BaseAnalysis`.
 These can be overwritten for each instance of an analysis.
 
 .. admonition:: Example
