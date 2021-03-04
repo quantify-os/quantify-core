@@ -11,7 +11,7 @@ from quantify.utilities.general import load_json_schema
 class AnalysisSettings(OrderedDict):
     """Analysis settings with built-in schema validations.
 
-    .. jsonschema:: ./schemas/AnalysisSettings.json#/configurations
+    .. jsonschema:: schemas/AnalysisSettings.json#/configurations
     """
 
     schema = load_json_schema(__file__, "AnalysisSettings.json")["configurations"]
