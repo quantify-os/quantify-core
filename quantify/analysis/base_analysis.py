@@ -31,11 +31,8 @@ from quantify.data.handling import (
 )
 from .types import AnalysisSettings
 
-# this is a pointer to the module object instance itself.
-this = sys.modules[__name__]
-
 # global configurations at the level of the analysis module
-this.analysis_settings = AnalysisSettings(
+settings = AnalysisSettings(
     {
         "mpl_dpi": 450,  # define resolution of some matplotlib output formats
         "mpl_fig_formats": [
@@ -46,66 +43,89 @@ this.analysis_settings = AnalysisSettings(
         "mpl_transparent_background": False,
     }
 )
+"""
+For convenience the analysis framework provides a set of global settings.
+
+The available options are listed below.
+These can be overwritten for each instance of an analysis.
+
+.. jsonschema:: schemas/AnalysisSettings.json#/configurations
+
+.. admonition:: Example
+
+    .. jupyter-execute::
+
+        from quantify.analysis import base_analysis as ba
+        ba.settings["mpl_dpi"] = 300  # set resolution of matplotlib figures
+"""
 
 
-class AnalysisStep(Enum):
+class AnalysisSteps(Enum):
     """
-    Steps of the base analysis
+    An enumerate of the steps of the :class:`~BaseAnalysis`.
 
+    The involved steps are as follows.
+
+    .. jupyter-execute::
+        :hide-code:
+
+        from quantify.analysis import base_analysis as ba
+        print(ba.analysis_steps_to_str(ba.AnalysisSteps))
     """
 
-    EXTRACT_DATA = "extract_data"
-    PROCESS_DATA = "process_data"
-    PREPARE_FITTING = "prepare_fitting"
-    RUN_FITTING = "run_fitting"
-    ANALYZE_FIT_RESULTS = "analyze_fit_results"
-    CREATE_FIGURES = "create_figures"
-    ADJUST_FIGURES = "adjust_figures"
-    SAVE_FIGURES_MPL = "save_figures_mpl"
-    SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
-    SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    # Variables must start with a letter but we want them have sorted names
+    # for auto-complete
+    S00_EXTRACT_DATA = "extract_data"
+    S01_PROCESS_DATA = "process_data"
+    S02_PREPARE_FITTING = "prepare_fitting"
+    S03_RUN_FITTING = "run_fitting"
+    S04_ANALYZE_FIT_RESULTS = "analyze_fit_results"
+    S05_CREATE_FIGURES = "create_figures"
+    S06_ADJUST_FIGURES = "adjust_figures"
+    S07_SAVE_FIGURES_MPL = "save_figures_mpl"
+    S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
+    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
     """A template for analysis classes."""
 
     # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-public-methods
 
     def __init__(
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_after: AnalysisStep = None,
-        analysis_settings: dict = None,
+        interrupt_before: AnalysisSteps = None,
+        settings_overwrite: dict = None,
     ):
         """
         Initializes the variables used in the analysis and to which data is stored.
 
         Parameters
-        ------------------
+        ----------
         label:
             Will look for a dataset that contains "label" in the name.
         tuid:
             If specified, will look for the dataset with the matching tuid.
-        interrupt_after:
-            Stops `run_analysis` after executing the specified method.
-        analysis_settings:
-            A dictionary containing overrides of the global
-            `base_analysis.analysis_settings` for this specific instance.
-            Available settings:
-
-            .. jsonschema:: schemas/AnalysisSettings.json#/configurations
+        interrupt_before:
+            Stops `run_analysis` before executing the specified step.
+        settings_overwrite:
+            A dictionary containing overrides for the global
+            `base_analysis.settings` for this specific instance.
+            See table above for available options.
         """
         self.logger = logging.getLogger(self.name)
 
         self.label = label
         self.tuid = tuid
-        self.interrupt_after = interrupt_after
+        self.interrupt_before = interrupt_before
 
         # Allows individual setting per analysis instance
         # with defaults from global settings
-        self.analysis_settings = deepcopy(this.analysis_settings)
-        self.analysis_settings.update(analysis_settings or {})
+        self.settings_overwrite = deepcopy(settings)
+        self.settings_overwrite.update(settings_overwrite or dict())
 
         # This will be overwritten
         self.dataset = None
@@ -148,8 +168,8 @@ class BaseAnalysis(ABC):
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            method_stop=self.interrupt_after,
-            method_stop_inclusive=True,
+            step_stop=self.interrupt_before,
+            step_stop_inclusive=False,
         )
 
         self.logger.info(f"Executing run_analysis of {self.name}")
@@ -161,60 +181,57 @@ class BaseAnalysis(ABC):
                 raise RuntimeError(
                     "An exception occurred while executing "
                     f"{method}.\n\n"  # point to the culprit
-                    "Use `interrupt_after='<method name>'` to run a partial analysis. "
+                    "Use `interrupt_before='<analysis step>'` to run a partial analysis. "
                     "Method names:\n"
-                    f"{self.__class__.__init__.__annotations__['interrupt_after']}"
+                    f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
                 ) from e  # and raise the original exception
 
-    def continue_analysis_from(self, method_name: AnalysisStep):
+    def continue_analysis_from(self, step: AnalysisSteps):
         """
         Runs the analysis starting from specified method.
 
         The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_after`.
+        Useful when the analysis interrupted at some stage with `interrupt_before`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            method_start=method_name,
-            method_start_inclusive=True,  # self.method_name will be executed
+            step_start=step,
+            step_start_inclusive=True,  # self.step will be executed
         )
 
         for method in flow_methods:
             method()
 
-    def continue_analysis_after(self, method_name: AnalysisStep):
+    def continue_analysis_after(self, step: AnalysisSteps):
         """
         Runs the analysis starting from specified method.
 
         The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_after`.
+        Useful when the analysis interrupted at some stage with `interrupt_before`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            method_start=method_name,
-            method_start_inclusive=False,  # self.method_name will not be executed
+            step_start=step,
+            step_start_inclusive=False,  # self.step will not be executed
         )
 
         for method in flow_methods:
             method()
 
-    def get_flow(self):
+    @property
+    def analysis_steps(self) -> AnalysisSteps:
+        """
+        Returns an Enum subclass that defines the steps of the analysis.
+
+        Can be overloaded in a subclass in order to define a custom analysis flow.
+        """
+        return AnalysisSteps
+
+    def get_flow(self) -> tuple:
         """
         Returns a tuple with the ordered methods to be called by run analysis.
         """
-        return (
-            self.extract_data,  # extract data from the dataset
-            self.process_data,  # binning, filtering etc
-            self.prepare_fitting,  # set up fit_dicts
-            self.run_fitting,  # fitting to models
-            self.analyze_fit_results,  # analyzing the results of the fits
-            self.save_quantities_of_interest,
-            self.create_figures,
-            self.adjust_figures,
-            self.save_figures_mpl,
-            self.save_quantities_of_interest,
-            self.save_processed_dataset,
-        )
+        return tuple(getattr(self, elm.value) for elm in self.analysis_steps)
 
     def extract_data(self):
         """
@@ -272,10 +289,10 @@ class BaseAnalysis(ABC):
         before saving them
         """
         for fig in self.figs_mpl.values():
-            if this.analysis_settings["mpl_exclude_fig_titles"]:
+            if self.settings_overwrite["mpl_exclude_fig_titles"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
-            if this.analysis_settings["mpl_transparent_background"]:
+            if self.settings_overwrite["mpl_transparent_background"]:
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
@@ -300,8 +317,8 @@ class BaseAnalysis(ABC):
         close_figs
             If True, closes `matplotlib` figures after saving
         """
-        dpi = this.analysis_settings["mpl_dpi"]
-        formats = this.analysis_settings["mpl_fig_formats"]
+        dpi = self.settings_overwrite["mpl_dpi"]
+        formats = self.settings_overwrite["mpl_fig_formats"]
 
         if len(self.figs_mpl) != 0:
             mpl_figdir = Path(self.analysis_dir) / "figs_mpl"
@@ -501,34 +518,6 @@ class Basic2DAnalysis(BaseAnalysis):
             self.axs_mpl[fig_id] = ax
 
 
-def _get_modified_flow(
-    flow_functions: tuple,
-    method_start: str = "",
-    method_start_inclusive: bool = True,
-    method_stop: str = "",
-    method_stop_inclusive: bool = True,
-):
-    method_names = [meth.__name__ for meth in flow_functions]
-
-    if method_start:
-        start_idx = method_names.index(method_start)
-        if not method_start_inclusive:
-            start_idx += 1
-    else:
-        start_idx = 0
-
-    if method_stop:
-        stop_idx = method_names.index(method_stop)
-        if method_stop_inclusive:
-            stop_idx += 1
-    else:
-        stop_idx = None
-
-    flow_functions = flow_functions[start_idx:stop_idx]
-
-    return flow_functions
-
-
 def flatten_lmfit_modelresult(model):
     """
     Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
@@ -552,3 +541,55 @@ def flatten_lmfit_modelresult(model):
                 dic["params"][param_name][k] = getattr(param, k)
         dic["params"][param_name]["value"] = getattr(param, "value")
     return dic
+
+
+def analysis_steps_to_str(
+    analysis_steps: Enum, class_name: str = BaseAnalysis.__name__
+):
+    """A utility for generating the docstring for the analysis steps"""
+
+    col0 = tuple(element.name for element in analysis_steps)
+    col1 = tuple(element.value for element in analysis_steps)
+
+    header_r = "# <STEP>"
+    header_l = "<corresponding class method>"
+    sep = "  # "
+
+    col0_len = max(map(len, col0 + (header_r,)))
+    col0_len += len(analysis_steps.__name__) + 1
+
+    string = f"{header_r:<{col0_len}}{sep}{header_l}\n\n"
+    string += "\n".join(
+        f"{analysis_steps.__name__+ '.' + name:<{col0_len}}{sep}{class_name + '.' + value}"
+        for name, value in zip(col0, col1)
+    )
+
+    return string
+
+
+def _get_modified_flow(
+    flow_functions: tuple,
+    step_start: AnalysisSteps = None,
+    step_start_inclusive: bool = True,
+    step_stop: AnalysisSteps = None,
+    step_stop_inclusive: bool = True,
+):
+    step_names = [meth.__name__ for meth in flow_functions]
+
+    if step_start:
+        start_idx = step_names.index(step_start.value)
+        if not step_start_inclusive:
+            start_idx += 1
+    else:
+        start_idx = 0
+
+    if step_stop:
+        stop_idx = step_names.index(step_stop.value)
+        if step_stop_inclusive:
+            stop_idx += 1
+    else:
+        stop_idx = None
+
+    flow_functions = flow_functions[start_idx:stop_idx]
+
+    return flow_functions

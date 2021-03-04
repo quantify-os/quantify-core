@@ -8,7 +8,7 @@ def test_analysis_settings_valid():
         {
             "mpl_dpi": 450,
             "mpl_fig_formats": ["svg", "png"],
-            "mpl_presentation_mode": False,
+            "mpl_exclude_fig_titles": False,
             "mpl_transparent_background": False,
             "bla": 123,
         }
@@ -21,7 +21,7 @@ def test_analysis_settings_invalid():
         _ = AnalysisSettings(
             {
                 "mpl_fig_formats": ["svg"],
-                "mpl_presentation_mode": False,
+                "mpl_exclude_fig_titles": False,
                 "mpl_transparent_background": False,
             }
         )
@@ -31,7 +31,7 @@ def test_analysis_settings_invalid():
             {
                 "mpl_dpi": "450",
                 "mpl_fig_formats": ["svg"],
-                "mpl_presentation_mode": False,
+                "mpl_exclude_fig_titles": False,
                 "mpl_transparent_background": False,
             }
         )
@@ -41,7 +41,7 @@ def test_analysis_settings_invalid():
             {
                 "mpl_dpi": "450",
                 "mpl_fig_formats": "svg",
-                "mpl_presentation_mode": False,
+                "mpl_exclude_fig_titles": False,
                 "mpl_transparent_background": False,
             }
         )

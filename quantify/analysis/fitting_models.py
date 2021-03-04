@@ -16,34 +16,34 @@ def hanger_func_complex_SI(
     alpha: float = 1,
 ) -> float:
     """
-    This is the complex function for a hanger (lamda/4 resonator).
-
+    This is the complex function for a hanger (lambda/4 resonator).
 
     Parameters
-    ---------------
-        f   : float
-            frequency
-        fr  : float
-            resonance frequency
-        A   : float
-            background transmission amplitude
-        Ql  : float
-            Loaded quality factor of the resonator.
-        Qe  : float
-            magnitude of extrinsic quality factor Qe = |Q_extrinsic|
-        theta: float
-            phase of extrinsic qualitfy factor (in rad)
-        phi_v: float
-            phase to account for propagation delay to sample.
-        phi_0: float
-            phase to account for propagation delay from sample.
-        alpha: float
-            slope of signal around the resonance.
+    ----------
+
+    f:
+        frequency
+    fr:
+        resonance frequency
+    A:
+        background transmission amplitude
+    Ql:
+        loaded quality factor of the resonator
+    Qe:
+        magnitude of extrinsic quality factor :code:`Qe = |Q_extrinsic|`
+    theta:
+        phase of extrinsic quality factor (in rad)
+    phi_v:
+        phase to account for propagation delay to sample
+    phi_0:
+        phase to account for propagation delay from sample
+    alpha:
+        slope of signal around the resonance
 
     Returns
-    -----------
-        S21 : complex
-            complex valued tranmission
+    -------
+        complex valued transmission
+
 
     See eq. S4 from Bruno et al. (2015) `ArXiv:1502.04082 <https://arxiv.org/abs/1502.04082>`_.
 
@@ -64,8 +64,6 @@ def hanger_func_complex_SI(
     .. math::
 
         \\frac{1}{Q_c} = \\mathrm{Re}\\left(\\frac{1}{|Q_e|e^{-i\\theta}}\\right)
-
-
     """
     slope_corr = 1 + alpha * (f - fr) / fr
 
@@ -80,9 +78,12 @@ def hanger_func_complex_SI(
 
 
 class ResonatorModel(lmfit.model.Model):
-    __doc__ = "resonator model" + lmfit.models.COMMON_DOC
+    """"""  # Avoid including Model docstring
+
+    __doc__ = "Resonator model\n\n" + lmfit.models.COMMON_DOC
 
     def __init__(self, *args, **kwargs):
+        """"""  # Avoid including Model.__init__ docstring
         # pass in the defining equation so the user doesn't have to later.
         super().__init__(hanger_func_complex_SI, *args, **kwargs)
         self.set_param_hint("Ql", min=0)  # Enforce Q is positive
@@ -97,7 +98,7 @@ class ResonatorModel(lmfit.model.Model):
         params = self.make_params()
 
         if f is None:
-            return
+            return None
         argmin_s21 = np.abs(data).argmin()
         fmin = f.min()
         fmax = f.max()
