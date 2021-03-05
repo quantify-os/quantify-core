@@ -4,7 +4,6 @@
     .. jupyter-execute::
 
         import numpy as np
-        import xarray as xr
         from pathlib import Path
         from quantify.data.handling import set_datadir, to_gridded_dataset
         from qcodes import ManualParameter, Parameter, validators
