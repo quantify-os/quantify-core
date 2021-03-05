@@ -1,7 +1,7 @@
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from typing import Union
-import matplotlib.pyplot as plt
+from typing_extensions import Literal
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
 
 
@@ -29,7 +29,7 @@ def plot_fit(
     fit_res,
     plot_init: bool = True,
     plot_numpoints: int = 1000,
-    range_casting: Union["abs", "angle", "real", "imag"] = "abs",
+    range_casting: Literal["abs", "angle", "real", "imag"] = "abs",
 ) -> None:
     """
     Plot a fit of an lmfit model with a real domain.
@@ -46,7 +46,7 @@ def plot_fit(
         the number of points used on which to evaulate the fit.
     range_casting
         how to plot fit functions that have a complex range.
-        Casting of values happens using np.abs, np.angle, np.real and np.imag.
+        Casting of values happens using :func:`~numpy.abs`, :func:`~numpy.angle`, :func:`~numpy.real` and :func:`~numpy.imag`.
         angle is in degrees.
     """
     model = fit_res.model
@@ -147,7 +147,8 @@ def flex_colormesh_plot_vs_xy(
 
     Returns
     ------------
-    Dictionary containing fig, ax and cmap.
+    dict
+        Dictionary containing fig, ax and cmap.
 
 
     .. warning::
@@ -276,7 +277,9 @@ def plot_2d_grid(
 
     Returns
     ------------
-    Dictionary containing fig, ax, cmap, and cbar.
+    dict
+    dict
+        Dictionary containing fig, ax, cmap, and cbar.
 
 
     """

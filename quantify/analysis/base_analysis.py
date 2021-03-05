@@ -1,19 +1,20 @@
 """Analysis abstract base class and several basic analyses."""
 from __future__ import annotations
-import sys
 import os
 import json
 from abc import ABC
 from collections import OrderedDict
-from typing import Union, List
+from copy import deepcopy
+from typing import List
+from enum import Enum
 from pathlib import Path
 import logging
 
 from IPython.display import display
 import numpy as np
-import matplotlib
 import xarray as xr
 import lmfit
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
@@ -27,59 +28,112 @@ from quantify.data.handling import (
     locate_experiment_container,
     to_gridded_dataset,
 )
-
-# this is a pointer to the module object instance itself.
-this = sys.modules[__name__]
+from .types import AnalysisSettings
 
 # global configurations at the level of the analysis module
-this.settings = {
-    "DPI": 450,  # define resolution of some matplotlib output formats
-    "fig_formats": ("png", "svg"),
-    "presentation_mode": False,
-    "transparent_background": False,
-}
+settings = AnalysisSettings(
+    {
+        "mpl_dpi": 450,  # define resolution of some matplotlib output formats
+        "mpl_fig_formats": [
+            "png",
+            "svg",
+        ],  # svg is superior but at least OneNote does not support it
+        "mpl_exclude_fig_titles": False,
+        "mpl_transparent_background": False,
+    }
+)
+"""
+For convenience the analysis framework provides a set of global settings.
+
+For available settings see :class:`~BaseAnalysis`.
+These can be overwritten for each instance of an analysis.
+
+.. admonition:: Example
+
+    .. jupyter-execute::
+
+        from quantify.analysis import base_analysis as ba
+        ba.settings["mpl_dpi"] = 300  # set resolution of matplotlib figures
+"""
+
+
+class AnalysisSteps(Enum):
+    """
+    An enumerate of the steps executed by the :class:`~BaseAnalysis` (and its subclasses).
+
+    The involved steps are specified below.
+
+    .. jupyter-execute::
+        :hide-code:
+
+        from quantify.analysis import base_analysis as ba
+        print(ba.analysis_steps_to_str(ba.AnalysisSteps))
+
+    .. include:: ./docstring_examples/quantify.analysis.base_analysis.AnalysisSteps.rst.txt
+
+    .. tip::
+
+        A custom analysis flow (e.g. inserting new steps) can be created be implementing
+        an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
+    """
+
+    # Variables must start with a letter but we want them have sorted names
+    # for auto-complete
+    S00_EXTRACT_DATA = "extract_data"
+    S01_PROCESS_DATA = "process_data"
+    S02_PREPARE_FITTING = "prepare_fitting"
+    S03_RUN_FITTING = "run_fitting"
+    S04_ANALYZE_FIT_RESULTS = "analyze_fit_results"
+    S05_CREATE_FIGURES = "create_figures"
+    S06_ADJUST_FIGURES = "adjust_figures"
+    S07_SAVE_FIGURES_MPL = "save_figures_mpl"
+    S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
+    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
     """A template for analysis classes."""
 
     # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-public-methods
 
     def __init__(
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_after: Union[
-            "extract_data",
-            "process_data",
-            "prepare_fitting",
-            "run_fitting",
-            "analyze_fit_results",
-            "create_figures",
-            "adjust_figures",
-            "save_figures_mpl",
-            "save_quantities_of_interest",
-            "save_processed_dataset",
-        ] = "",
+        interrupt_before: AnalysisSteps = None,
+        settings_overwrite: dict = None,
     ):
         """
         Initializes the variables used in the analysis and to which data is stored.
 
+
         Parameters
-        ------------------
+        ----------
         label:
             Will look for a dataset that contains "label" in the name.
         tuid:
             If specified, will look for the dataset with the matching tuid.
-        interrupt_after:
-            stops `run_analysis` after executing the specified method.
+        interrupt_before:
+            Stops `run_analysis` before executing the specified step.
+        settings_overwrite:
+            A dictionary containing overrides for the global
+            `base_analysis.settings` for this specific instance.
+            See table below for available settings.
 
+
+        .. jsonschema:: schemas/AnalysisSettings.json#/configurations
         """
         self.logger = logging.getLogger(self.name)
 
         self.label = label
         self.tuid = tuid
-        self.interrupt_after = interrupt_after
+        self.interrupt_before = interrupt_before
+
+        # Allows individual setting per analysis instance
+        # with defaults from global settings
+        self.settings_overwrite = deepcopy(settings)
+        self.settings_overwrite.update(settings_overwrite or dict())
 
         # This will be overwritten
         self.dataset = None
@@ -122,91 +176,70 @@ class BaseAnalysis(ABC):
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            method_stop=self.interrupt_after,
-            method_stop_inclusive=True,
+            step_stop=self.interrupt_before,
+            step_stop_inclusive=False,
         )
 
         self.logger.info(f"Executing run_analysis of {self.name}")
-        for ii, method in enumerate(flow_methods):
-            self.logger.info(f"execution step {ii}: {method}")
-            method()
+        for i, method in enumerate(flow_methods):
+            self.logger.info(f"execution step {i}: {method}")
+            try:
+                method()
+            except Exception as e:
+                raise RuntimeError(
+                    "An exception occurred while executing "
+                    f"{method}.\n\n"  # point to the culprit
+                    "Use `interrupt_before='<analysis step>'` to run a partial analysis. "
+                    "Method names:\n"
+                    f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
+                ) from e  # and raise the original exception
 
-    def continue_analysis_from(
-        self,
-        method_name: Union[
-            "extract_data",
-            "process_data",
-            "prepare_fitting",
-            "run_fitting",
-            "analyze_fit_results",
-            "create_figures",
-            "adjust_figures",
-            "save_figures_mpl",
-            "save_quantities_of_interest",
-            "save_processed_dataset",
-        ],
-    ):
+    def continue_analysis_from(self, step: AnalysisSteps):
         """
         Runs the analysis starting from specified method.
 
         The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_after`.
+        Useful when the analysis interrupted at some stage with `interrupt_before`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            method_start=method_name,
-            method_start_inclusive=True,  # self.method_name will be executed
+            step_start=step,
+            step_start_inclusive=True,  # self.step will be executed
         )
 
         for method in flow_methods:
             method()
 
-    def continue_analysis_after(
-        self,
-        method_name: Union[
-            "extract_data",
-            "process_data",
-            "prepare_fitting",
-            "run_fitting",
-            "analyze_fit_results",
-            "create_figures",
-            "adjust_figures",
-            "save_figures_mpl",
-            "save_quantities_of_interest",
-        ],
-    ):
+    def continue_analysis_after(self, step: AnalysisSteps):
         """
         Runs the analysis starting from specified method.
 
         The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_after`.
+        Useful when the analysis interrupted at some stage with `interrupt_before`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            method_start=method_name,
-            method_start_inclusive=False,  # self.method_name will not be executed
+            step_start=step,
+            step_start_inclusive=False,  # self.step will not be executed
         )
 
         for method in flow_methods:
             method()
 
-    def get_flow(self):
+    @property
+    def analysis_steps(self) -> AnalysisSteps:
+        """
+        Returns an Enum subclass that defines the steps of the analysis.
+
+        Can be overloaded in a subclass in order to define a custom analysis flow.
+        """
+        return AnalysisSteps
+
+    def get_flow(self) -> tuple:
         """
         Returns a tuple with the ordered methods to be called by run analysis.
         """
-        return (
-            self.extract_data,  # extract data from the dataset
-            self.process_data,  # binning, filtering etc
-            self.prepare_fitting,  # set up fit_dicts
-            self.run_fitting,  # fitting to models
-            self.analyze_fit_results,  # analyzing the results of the fits
-            self.save_quantities_of_interest,
-            self.create_figures,
-            self.adjust_figures,
-            self.save_figures_mpl,
-            self.save_quantities_of_interest,
-            self.save_processed_dataset,
-        )
+        return tuple(getattr(self, elm.value) for elm in self.analysis_steps)
 
     def extract_data(self):
         """
@@ -264,14 +297,14 @@ class BaseAnalysis(ABC):
         before saving them
         """
         for fig in self.figs_mpl.values():
-            if this.settings["presentation_mode"]:
+            if self.settings_overwrite["mpl_exclude_fig_titles"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
-            if this.settings["transparent_background"]:
+            if self.settings_overwrite["mpl_transparent_background"]:
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
-    def save_processed_dataset(self, exclude_raw: bool = None):
+    def save_processed_dataset(self):
         """
         Saves a copy of the (processed) self.dataset in the analysis folder of the experiment.
         """
@@ -292,8 +325,8 @@ class BaseAnalysis(ABC):
         close_figs
             If True, closes `matplotlib` figures after saving
         """
-        dpi = this.settings["DPI"]
-        formats = this.settings["fig_formats"]
+        dpi = self.settings_overwrite["mpl_dpi"]
+        formats = self.settings_overwrite["mpl_fig_formats"]
 
         if len(self.figs_mpl) != 0:
             mpl_figdir = Path(self.analysis_dir) / "figs_mpl"
@@ -463,15 +496,15 @@ class Basic2DAnalysis(BaseAnalysis):
 
             lines = yvals.plot.line(x="x0", hue="x1", ax=ax)
             # Change the color and labels of the line as we want to tweak this with respect to xarray default.
-            for line, zv in zip(lines, np.array(gridded_dataset["x1"])):
+            for line, z_value in zip(lines, np.array(gridded_dataset["x1"])):
                 # use the default colormap specified
                 cmap = matplotlib.cm.get_cmap()
                 norm = matplotlib.colors.Normalize(
                     vmin=np.min(gridded_dataset["x1"]),
                     vmax=np.max(gridded_dataset["x1"]),
                 )
-                line.set_color(cmap(norm(zv)))
-                line.set_label(f"{zv:.3g}")
+                line.set_color(cmap(norm(z_value)))
+                line.set_label(f"{z_value:.3g}")
 
             ax.legend(
                 loc=(1.05, 0.0),
@@ -491,34 +524,6 @@ class Basic2DAnalysis(BaseAnalysis):
             # add the figure and axis to the dicts for saving
             self.figs_mpl[fig_id] = fig
             self.axs_mpl[fig_id] = ax
-
-
-def _get_modified_flow(
-    flow_functions: tuple,
-    method_start: str = "",
-    method_start_inclusive: bool = True,
-    method_stop: str = "",
-    method_stop_inclusive: bool = True,
-):
-    method_names = [meth.__name__ for meth in flow_functions]
-
-    if method_start:
-        start_idx = method_names.index(method_start)
-        if not method_start_inclusive:
-            start_idx += 1
-    else:
-        start_idx = 0
-
-    if method_stop:
-        stop_idx = method_names.index(method_stop)
-        if method_stop_inclusive:
-            stop_idx += 1
-    else:
-        stop_idx = None
-
-    flow_functions = flow_functions[start_idx:stop_idx]
-
-    return flow_functions
 
 
 def flatten_lmfit_modelresult(model):
@@ -544,3 +549,54 @@ def flatten_lmfit_modelresult(model):
                 dic["params"][param_name][k] = getattr(param, k)
         dic["params"][param_name]["value"] = getattr(param, "value")
     return dic
+
+
+def analysis_steps_to_str(
+    analysis_steps: Enum, class_name: str = BaseAnalysis.__name__
+):
+    """A utility for generating the docstring for the analysis steps"""
+    col0 = tuple(element.name for element in analysis_steps)
+    col1 = tuple(element.value for element in analysis_steps)
+
+    header_r = "# <STEP>"
+    header_l = "<corresponding class method>"
+    sep = "  # "
+
+    col0_len = max(map(len, col0 + (header_r,)))
+    col0_len += len(analysis_steps.__name__) + 1
+
+    string = f"{header_r:<{col0_len}}{sep}{header_l}\n\n"
+    string += "\n".join(
+        f"{analysis_steps.__name__+ '.' + name:<{col0_len}}{sep}{class_name + '.' + value}"
+        for name, value in zip(col0, col1)
+    )
+
+    return string
+
+
+def _get_modified_flow(
+    flow_functions: tuple,
+    step_start: AnalysisSteps = None,
+    step_start_inclusive: bool = True,
+    step_stop: AnalysisSteps = None,
+    step_stop_inclusive: bool = True,
+):
+    step_names = [meth.__name__ for meth in flow_functions]
+
+    if step_start:
+        start_idx = step_names.index(step_start.value)
+        if not step_start_inclusive:
+            start_idx += 1
+    else:
+        start_idx = 0
+
+    if step_stop:
+        stop_idx = step_names.index(step_stop.value)
+        if step_stop_inclusive:
+            stop_idx += 1
+    else:
+        stop_idx = None
+
+    flow_functions = flow_functions[start_idx:stop_idx]
+
+    return flow_functions

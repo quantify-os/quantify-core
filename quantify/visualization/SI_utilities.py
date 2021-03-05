@@ -126,7 +126,7 @@ SI_PREFIXES[0] = ""
 # N.B. not all of these are SI units, however, all of these support SI prefixes
 SI_UNITS = (
     "m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
-    "Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
+    r"Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
 )  # noqa: W605
 
 
@@ -199,7 +199,7 @@ class SafeFormatter(string.Formatter):
     def get_field(self, field_name, args, kwargs):
         # Handle a key not found
         try:
-            val = super(SafeFormatter, self).get_field(field_name, args, kwargs)
+            val = super().get_field(field_name, args, kwargs)
             # Python 3, 'super().get_field(field_name, args, kwargs)' works
         except (KeyError, AttributeError):
             val = None, field_name
@@ -210,12 +210,11 @@ class SafeFormatter(string.Formatter):
         if value is None:
             return self.missing
         try:
-            return super(SafeFormatter, self).format_field(value, format_spec)
-        except ValueError:
+            return super().format_field(value, format_spec)
+        except ValueError as e:
             if self.bad_fmt is not None:
                 return self.bad_fmt
-            else:
-                raise
+            raise e
 
 
 def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
@@ -235,7 +234,6 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
         a unit. If this is an SI unit it will be used in automatically
         determining a prefix for the unit and rescaling accordingly.
     """
-    val_string = ": {:.4f}$\pm${:.4f} {}{}"
 
     scale_factor, unit = SI_prefix_and_scale_factor(lmfit_par.value, unit)
     val = lmfit_par.value * scale_factor
@@ -244,6 +242,7 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
     else:
         stderr = None
     fmt = SafeFormatter(missing="NaN")
+    val_string = ": {:.4f}" + r"$\pm$" + "{:.4f} {}{}"
     # par name is excluded from the format command to allow latex {} characters.
     val_string = par_name + fmt.format(val_string, val, stderr, unit, end_char)
     return val_string
