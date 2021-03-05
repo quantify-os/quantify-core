@@ -1,6 +1,5 @@
 """Analysis abstract base class and several basic analyses."""
 from __future__ import annotations
-import sys
 import os
 import json
 from abc import ABC
@@ -556,7 +555,6 @@ def analysis_steps_to_str(
     analysis_steps: Enum, class_name: str = BaseAnalysis.__name__
 ):
     """A utility for generating the docstring for the analysis steps"""
-
     col0 = tuple(element.name for element in analysis_steps)
     col1 = tuple(element.value for element in analysis_steps)
 

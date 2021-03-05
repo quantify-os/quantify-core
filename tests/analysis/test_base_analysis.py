@@ -37,6 +37,7 @@ class DummyAnalysisSubclassArgs(ba.Basic1DAnalysis):
         self.var = 5
 
     def run_fitting(self, var=None):
+        # pylint: disable=arguments-differ
         if var:
             self.var = var
 

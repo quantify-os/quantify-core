@@ -9,7 +9,8 @@ from quantify.utilities.general import load_json_schema
 
 
 class AnalysisSettings(OrderedDict):
-    """Analysis settings with built-in schema validations.
+    """
+    Analysis settings with built-in schema validations.
 
     .. jsonschema:: schemas/AnalysisSettings.json#/configurations
     """

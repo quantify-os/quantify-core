@@ -117,7 +117,7 @@ def flex_colormesh_plot_vs_xy(
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
-    vlim: list = [None, None],
+    vlim: list = (None, None),
     transpose: bool = False,
 ) -> dict:
     """
@@ -236,7 +236,7 @@ def plot_2d_grid(
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
-    vlim: list = [None, None],
+    vlim: list = (None, None),
     transpose: bool = False,
 ) -> dict:
     """

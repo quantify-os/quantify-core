@@ -80,6 +80,9 @@ def hanger_func_complex_SI(
 class ResonatorModel(lmfit.model.Model):
     """"""  # Avoid including Model docstring
 
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+
     __doc__ = "Resonator model\n\n" + lmfit.models.COMMON_DOC
 
     def __init__(self, *args, **kwargs):
@@ -93,12 +96,13 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qi", expr="1./(1./Ql-1./Qe*cos(theta))", vary=False)
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
-    def guess(self, data, f=None, **kwargs):
-
+    def guess(self, data, **kwargs):
         params = self.make_params()
 
-        if f is None:
+        if kwargs.get("f", None) is None:
             return None
+
+        f = kwargs["f"]
         argmin_s21 = np.abs(data).argmin()
         fmin = f.min()
         fmax = f.max()
