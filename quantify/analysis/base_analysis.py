@@ -60,15 +60,22 @@ These can be overwritten for each instance of an analysis.
 
 class AnalysisSteps(Enum):
     """
-    An enumerate of the steps of the :class:`~BaseAnalysis`.
+    An enumerate of the steps executed by the :class:`~BaseAnalysis` (and its subclasses).
 
-    The involved steps are as follows.
+    The involved steps are specified below.
 
     .. jupyter-execute::
         :hide-code:
 
         from quantify.analysis import base_analysis as ba
         print(ba.analysis_steps_to_str(ba.AnalysisSteps))
+
+    .. include:: ./docstring_examples/quantify.analysis.base_analysis.AnalysisSteps.rst.txt
+
+    .. tip::
+
+        A custom analysis flow (e.g. inserting new steps) can be created be implementing
+        an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
     """
 
     # Variables must start with a letter but we want them have sorted names
