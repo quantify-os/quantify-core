@@ -37,7 +37,7 @@ def set_xlabel(axis, label, unit=None, **kw):
         )
 
         axis.xaxis.set_major_formatter(formatter)
-        axis.set_xlabel(label + f" ({unit})", **kw)
+        axis.set_xlabel(label + f" [{unit}]", **kw)
     else:
         axis.set_xlabel(label, **kw)
     return axis
@@ -67,7 +67,7 @@ def set_ylabel(axis, label, unit=None, **kw):
 
         axis.yaxis.set_major_formatter(formatter)
 
-        axis.set_ylabel(label + f" ({unit})", **kw)
+        axis.set_ylabel(label + f" [{unit}]", **kw)
     else:
         axis.set_ylabel(label, **kw)
     return axis

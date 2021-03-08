@@ -86,9 +86,10 @@ class AnalysisSteps(Enum):
     S04_ANALYZE_FIT_RESULTS = "analyze_fit_results"
     S05_CREATE_FIGURES = "create_figures"
     S06_ADJUST_FIGURES = "adjust_figures"
-    S07_SAVE_FIGURES_MPL = "save_figures_mpl"
+    S07_SAVE_FIGURES = "save_figures"
     S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
-    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    # blocked by #161
+    # S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
@@ -315,13 +316,20 @@ class BaseAnalysis(ABC):
             dataset = self.dataset
             write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
 
+    def save_figures(self):
+        """
+        Saves figures to disk. By default saves matplotlib figures.
+
+        Can be overloaded to make use of other plotting packages.
+        """
+        self.save_figures_mpl()
+
     def save_figures_mpl(self, close_figs: bool = True):
         """
         Saves all the matplotlib figures in the :code:`figs_mpl` dict
 
         Parameters
         ----------
-
         close_figs
             If True, closes `matplotlib` figures after saving
         """

@@ -19,8 +19,8 @@ def set_hlsa(
     l: float = None,
     s: float = None,
     a: float = None,
-    to_hex: bool = False,  # noqa: E741
-):
+    to_hex: bool = False,
+) -> tuple:
     """
     Accepts a `matplotlib` color specification and returns an RGB color
     with the specified HLS values plus an optional alpha

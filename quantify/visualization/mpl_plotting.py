@@ -2,26 +2,40 @@ from typing_extensions import Literal
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.axes import Axes
+from matplotlib.text import Text
+from matplotlib.collections import QuadMesh
+from matplotlib.colorbar import Colorbar
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
 
 
-def plot_basic_1d(
-    x,
-    y,
-    xlabel: str,
-    xunit: str,
-    ylabel: str,
-    yunit: str,
-    ax,
-    title: str = None,
-    plot_kw: dict = None,
-    **kw,
-) -> None:
-    ax.plot(x, y, **(plot_kw or dict()))
-    if title is not None:
-        ax.set_title(title)
-    set_xlabel(ax, xlabel, xunit)
-    set_ylabel(ax, ylabel, yunit)
+def plot_textbox(ax: Axes, text: str, **kw) -> Text:
+    """
+    Plot a textbox with sensible defaults using :meth:`~matplotlib.axes.Axes.text`.
+
+    Parameters
+    ----------
+    ax
+        the :class:`~matplotlib.axes.Axes` on which to plot
+    text
+        the text of the textbox
+
+    Return
+    ------
+    :
+        the new text object
+    """
+    box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
+    t_obj = ax.text(
+        x=kw.get("x", 1.05),
+        y=kw.get("y", 0.95),
+        s=text,
+        transform=kw.get("transform", ax.transAxes),
+        bbox=kw.get("bbox", box_props),
+        verticalalignment=kw.get("verticalalignment", "top"),
+        **kw
+    )
+    return t_obj
 
 
 def plot_fit(
@@ -113,13 +127,13 @@ def flex_colormesh_plot_vs_xy(
     xvals: np.ndarray,
     yvals: np.ndarray,
     zvals: np.ndarray,
-    ax: plt.Axes = None,
+    ax: Axes = None,
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
     vlim: list = (None, None),
     transpose: bool = False,
-) -> dict:
+) -> QuadMesh:
     """
     Add a rectangular block to a color plot using pcolormesh.
 
@@ -147,8 +161,8 @@ def flex_colormesh_plot_vs_xy(
 
     Returns
     ------------
-    dict
-        Dictionary containing fig, ax and cmap.
+    :
+        the created matplotlib QuadMesh
 
 
     .. warning::
@@ -216,7 +230,7 @@ def flex_colormesh_plot_vs_xy(
             xgrid, ygrid, zvals, cmap=cmap, vmin=vlim[0], vmax=vlim[1]
         )
 
-    return {"fig": ax.figure, "ax": ax, "cmap": colormap}
+    return colormap
 
 
 def plot_2d_grid(
@@ -229,8 +243,8 @@ def plot_2d_grid(
     yunit: str,
     zlabel: str,
     zunit: str,
-    ax: plt.Axes,
-    cax: plt.Axes = None,
+    ax: Axes,
+    cax: Axes = None,
     add_cbar: bool = True,
     title: str = None,
     normalize: bool = False,
@@ -238,7 +252,7 @@ def plot_2d_grid(
     cmap: str = "viridis",
     vlim: list = (None, None),
     transpose: bool = False,
-) -> dict:
+) -> (QuadMesh, Colorbar):
     """
     Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns" of data of equal length.
 
@@ -277,9 +291,8 @@ def plot_2d_grid(
 
     Returns
     ------------
-    dict
-    dict
-        Dictionary containing fig, ax, cmap, and cbar.
+    :
+        The new matplotlib QuadMesh and Colorbar
 
 
     """
@@ -294,7 +307,7 @@ def plot_2d_grid(
     # to account for matlab style column ordering of pcolormesh
     zi = np.reshape(zarr, newshape=(len(yi), len(xi)))
 
-    p = flex_colormesh_plot_vs_xy(
+    quadmesh = flex_colormesh_plot_vs_xy(
         xi,
         yi,
         zi,
@@ -305,7 +318,6 @@ def plot_2d_grid(
         vlim=vlim,
         transpose=transpose,
     )
-    cmap = p["cmap"]
 
     if title is not None:
         ax.set_title(title)
@@ -317,8 +329,7 @@ def plot_2d_grid(
         if cax is None:
             ax_divider = make_axes_locatable(ax)
             cax = ax_divider.append_axes("right", size="5%", pad="2%")
-        cbar = plt.colorbar(cmap, cax=cax, orientation="vertical")
+        cbar = plt.colorbar(quadmesh, cax=cax, orientation="vertical")
         set_cbarlabel(cbar, zlabel, zunit)
-        p["cbar"] = cbar
 
-    return p
+    return quadmesh, cbar
