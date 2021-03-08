@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing base analysis.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
+# -----------------------------------------------------------------------------
 """Analysis abstract base class and several basic analyses."""
 from __future__ import annotations
 import os

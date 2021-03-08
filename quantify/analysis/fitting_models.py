@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing fitting models.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
+# -----------------------------------------------------------------------------
 """Models and fit functions to be used with the lmfit fitting framework."""
 
 import numpy as np

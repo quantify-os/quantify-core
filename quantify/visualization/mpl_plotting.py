@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing matplotlib plotting utilities.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
+# -----------------------------------------------------------------------------
 from typing import Tuple
 from typing_extensions import Literal
 import numpy as np

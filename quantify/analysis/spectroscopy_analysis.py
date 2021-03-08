@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing spectroscopy analysis.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
+# -----------------------------------------------------------------------------
 import numpy as np
 import matplotlib.pyplot as plt
 from uncertainties import ufloat
