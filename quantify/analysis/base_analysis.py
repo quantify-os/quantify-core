@@ -540,8 +540,8 @@ def flatten_lmfit_modelresult(model):
 
     Notes
     -----
-    We use this method as opposed to :func:`lmfit.model.save_modelresult` as the
-    corresponding :func:`lmfit.model.load_modelresult` cannot handle loading data with
+    We use this method as opposed to :func:`~lmfit.model.save_modelresult` as the
+    corresponding :func:`~lmfit.model.load_modelresult` cannot handle loading data with
     a custom fit function.
     """
     assert isinstance(model, (lmfit.model.ModelResult, lmfit.minimizer.MinimizerResult))

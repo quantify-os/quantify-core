@@ -1,3 +1,4 @@
+from typing import Tuple
 from typing_extensions import Literal
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,12 +12,12 @@ from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbar
 
 def plot_textbox(ax: Axes, text: str, **kw) -> Text:
     """
-    Plot a textbox with sensible defaults using :meth:`~matplotlib.axes.Axes.text`.
+    Plot a textbox with sensible defaults using :obj:`~matplotlib.axes.Axes.text`.
 
     Parameters
     ----------
-    ax
-        the :class:`~matplotlib.axes.Axes` on which to plot
+    ax: :obj:`~matplotlib.axes.Axes`
+        the :obj:`~matplotlib.axes.Axes` on which to plot
     text
         the text of the textbox
 
@@ -50,7 +51,7 @@ def plot_fit(
 
     Parameters
     ----------
-    ax
+    ax: :obj:`~matplotlib.axes.Axes`
         axis on which to plot the fit.
     fit_res
         an lmfit fit results object.
@@ -60,7 +61,7 @@ def plot_fit(
         the number of points used on which to evaulate the fit.
     range_casting
         how to plot fit functions that have a complex range.
-        Casting of values happens using :func:`~numpy.abs`, :func:`~numpy.angle`, :func:`~numpy.real` and :func:`~numpy.imag`.
+        Casting of values happens using :obj:`~numpy.absolute`, :obj:`~numpy.angle`, :obj:`~numpy.real` and :obj:`~numpy.imag`.
         angle is in degrees.
     """
     model = fit_res.model
@@ -145,7 +146,7 @@ def flex_colormesh_plot_vs_xy(
         length M array corresponding to settable x1.
     zvals:
         M*N array corresponding to gettable yi.
-    ax:
+    ax: :obj:`~matplotlib.axes.Axes`
         axis to which to add the colormesh
     normalize:
         if True, normalezes each row of data.
@@ -252,7 +253,7 @@ def plot_2d_grid(
     cmap: str = "viridis",
     vlim: list = (None, None),
     transpose: bool = False,
-) -> (QuadMesh, Colorbar):
+) -> Tuple[QuadMesh, Colorbar]:
     """
     Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns" of data of equal length.
 
@@ -269,7 +270,7 @@ def plot_2d_grid(
         x/y unit used in unit aware axis labels.
     zlabel:
         label used for the colorbar
-    ax:
+    ax: :obj:`~matplotlib.axes.Axes`
         axis to which to add the colormesh
     cax:
         axis on which to add the colorbar, if set to None, will create a new axis.

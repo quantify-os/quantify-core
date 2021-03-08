@@ -67,6 +67,7 @@ intersphinx_mapping = {
     "xarray": ("https://xarray.pydata.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
+    "lmfit": ("https://lmfit.github.io/lmfit-py/", None),
 }
 
 
