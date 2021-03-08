@@ -277,7 +277,7 @@ def plot_2d_grid(
         label used for the colorbar
     ax: :obj:`~matplotlib.axes.Axes`
         axis to which to add the colormesh
-    cax:
+    cax: :obj:`~matplotlib.axes.Axes`
         axis on which to add the colorbar, if set to None, will create a new axis.
     add_cbar:
         if True, adds a colorbar.

@@ -7,7 +7,6 @@
 
 import numpy as np
 import lmfit
-from lmfit import Model
 
 
 def hanger_func_complex_SI(
@@ -83,19 +82,23 @@ def hanger_func_complex_SI(
     return S21
 
 
+def get_model_common_doc() -> str:
+    """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
+    return (
+        lmfit.models.COMMON_DOC.replace("['x']", "List[str]")
+        .replace("str, optional", "str")
+        .replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        .replace("**kwargs : optional", "**kwargs : dict")
+    )
+
+
 class ResonatorModel(lmfit.model.Model):
     """"""  # Avoid including Model docstring
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
 
-    __doc__ = "Resonator model\n\n" + lmfit.models.COMMON_DOC.replace(
-        "['x']", "List[str]"
-    ).replace("str, optional", "str").replace(
-        ":class:`Model`", ":c:obj:`~lmfit.model.Model`"
-    ).replace(
-        "**kwargs : optional", "**kwargs : dict"
-    )
+    __doc__ = "Resonator model\n\n" + get_model_common_doc()
 
     def __init__(self, *args, **kwargs):
         """"""  # Avoid including Model.__init__ docstring
@@ -109,12 +112,10 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
     def guess(self, data, **kwargs):
-        __doc__ = (
-            Model.guess.__doc__.replace(" : array_like", "")
-            .replace(" : optional", "")
-            .replace(" : Parameters", " : :class:`~lmfit.parameter.Parameters`")
-            .replace("\n        ", "\n")
-        )
+        """
+        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
+        """
+
         params = self.make_params()
 
         if kwargs.get("f", None) is None:
