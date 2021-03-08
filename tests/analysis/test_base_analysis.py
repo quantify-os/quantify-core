@@ -11,7 +11,7 @@ TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
 # TUID_2D_2PLOTS = "20210126-162726-170-de4f78"
 TUID_2D_2PLOTS = "20210227-172939-723-53d82c"
-
+TUID_2D_CIRC = "20210308-191620"
 
 # disable figure saving for all analyses
 ba.settings["mpl_fig_formats"] = []
@@ -265,6 +265,31 @@ def test_Basic2DAnalysis():
     assert "analysis_Basic2DAnalysis" in os.listdir(exp_dir)
     analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic2DAnalysis")
     assert "figs_mpl" in analysis_dir
+
+
+def test_Basic2DAnalysis_circular_cmap_detection():
+    dh.set_datadir(get_test_data_dir())
+
+    tuid = TUID_2D_CIRC
+    # here we see if figures are created
+    ba.settings["mpl_fig_formats"] = [
+        "svg",
+    ]  # no png as this is very slow
+    a_obj = ba.Basic2DAnalysis(tuid=tuid)
+    ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
+
+    # no changes are made
+    fig = a_obj.figs_mpl["Heatmap x0x1-y0"]
+    qm = fig.axes[0].collections[0]
+    # assert colormap is default
+    assert qm.get_cmap().name == "viridis"
+
+    # range is auto set appropriately
+    fig = a_obj.figs_mpl["Heatmap x0x1-y1"]
+    qm = fig.axes[0].collections[0]
+    assert qm.get_clim() == (-180, 180)
+    assert qm.get_clim() == (-180, 180)
+    assert qm.get_cmap().name == "twilight_shifted"
 
 
 def test_display_figs():
