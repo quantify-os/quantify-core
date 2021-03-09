@@ -3,6 +3,9 @@
 
     .. jupyter-execute::
 
+        from qcodes import Instrument
+        [inst().close() for inst in tuple(Instrument._all_instruments.values())]
+
         import numpy as np
         from pathlib import Path
         from quantify.data.handling import set_datadir, to_gridded_dataset
