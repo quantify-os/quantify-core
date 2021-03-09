@@ -325,7 +325,6 @@ But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 
 Now your life will never be the same again ;)
 
-
 .. seealso::
 
     The complete source code of this tutorial can be found in

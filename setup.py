@@ -31,7 +31,9 @@ requirements = [
     "jsonschema",
     "adaptive",
     "filelock",
+    "uncertainties",
     "appnope",
+    "uncertainties",
 ]
 
 setup_requirements = [

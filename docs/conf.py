@@ -53,7 +53,6 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.mathjax",
     "nbsphinx",
-    "sphinx-jsonschema",
     "jupyter_sphinx",
     "sphinxcontrib.blockdiag",
     "sphinx_togglebutton",
@@ -67,6 +66,9 @@ intersphinx_mapping = {
     "qcodes": ("https://qcodes.github.io/Qcodes/", None),
     "xarray": ("https://xarray.pydata.org/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
+    "lmfit": ("https://lmfit.github.io/lmfit-py/", None),
+    "dateutil": ("https://dateutil.readthedocs.io/en/stable/", None),
 }
 
 
@@ -102,6 +104,8 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Document both class doctring and __init__ docstring
+autoclass_content = "both"
 
 # -- Options for HTML output -------------------------------------------
 
@@ -123,9 +127,6 @@ html_static_path = ["_static"]
 html_css_files = [
     "quantify.css",
 ]
-
-
-# -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "quantifydoc"
@@ -186,5 +187,6 @@ texinfo_documents = [
     ),
 ]
 
+# -- Other Options -----------------------------------------------------
 
 blockdiag_html_image_format = "SVG"

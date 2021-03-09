@@ -3,11 +3,11 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-from pyqtgraph.Qt import QtGui, QtCore
-from quantify.visualization.SI_utilities import SI_val_to_msg_str
-
 import pprint
+from pyqtgraph.Qt import QtGui, QtCore
+
 from quantify.visualization import _appnope
+from quantify.visualization.SI_utilities import SI_val_to_msg_str
 
 
 class QcSnaphotWidget(QtGui.QTreeWidget):

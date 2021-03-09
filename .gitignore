@@ -99,3 +99,11 @@ ENV/
 tmp.q1asm
 tmp.q1hex
 tmp_disasm.q1asm
+
+*.png
+*.svg
+*.json
+*.hdf5
+
+# Always include json schemas
+!**/schemas/*.json
