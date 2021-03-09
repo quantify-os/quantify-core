@@ -166,9 +166,8 @@ We set values to Settables; these values populate an `X`-axis.
 Similarly, we get values from Gettables which populate a `Y`-axis.
 These classes define a set of mandatory and optional attributes the :class:`~quantify.measurement.MeasurementControl` recognizes and will use as part of the experiment, which are expanded up in the API Reference.
 
-
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit (see :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` docs for these schemas).
-In addition to using a library which fits these contracts (such as the :class:`~qcodes.Parameter` family of classes) we can define our own Settables and Gettables.
+In addition to using a library which fits these contracts (such as the :class:`~qcodes.instrument.parameter.Parameter` family of classes) we can define our own Settables and Gettables.
 
 .. jupyter-execute::
 
