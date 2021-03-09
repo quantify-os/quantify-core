@@ -219,7 +219,7 @@ class PlotMonitor_pyqt(Instrument):
 
     def close(self) -> None:
         """
-        (Modified form Instrument class)
+        (Modified from Instrument class)
 
         Irreversibly stop this instrument and free its resources.
 

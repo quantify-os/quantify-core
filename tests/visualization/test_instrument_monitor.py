@@ -1,6 +1,6 @@
-from quantify.visualization.instrument_monitor import InstrumentMonitor
-from quantify.visualization.ins_mon_widget.qc_snapshot_widget import QcSnaphotWidget
+import time
 import pyqtgraph.multiprocess as pgmp
+from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 class TestInstrumentMonitor:

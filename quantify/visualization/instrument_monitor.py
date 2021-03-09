@@ -10,6 +10,7 @@ import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import NoResultError
 
+from qcodes.utils.helpers import strip_attrs
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
@@ -148,3 +149,22 @@ class InstrumentMonitor(Instrument):
             Height of the window
         """
         self.widget.setGeometry(x, y, w, h)
+
+    def close(self) -> None:
+        """
+        (Modified from Instrument class)
+
+        Irreversibly stop this instrument and free its resources.
+
+        Subclasses should override this if they have other specific
+        resources to close.
+        """
+        if hasattr(self, "connection") and hasattr(self.connection, "close"):
+            self.connection.close()
+
+        # Essential!!!
+        # Close the process
+        self.__class__.proc.join()
+
+        strip_attrs(self, whitelist=["_name"])
+        self.remove_instance(self)

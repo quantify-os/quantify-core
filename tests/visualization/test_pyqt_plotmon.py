@@ -1,8 +1,10 @@
+import time
+import tempfile
+from pathlib import Path
+from distutils.dir_util import copy_tree
+
 import numpy as np
 from quantify.visualization import PlotMonitor_pyqt
-from pathlib import Path
-import tempfile
-from distutils.dir_util import copy_tree
 from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.data.types import TUID
 import quantify.data.handling as dh
