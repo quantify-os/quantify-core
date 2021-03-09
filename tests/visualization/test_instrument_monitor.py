@@ -1,4 +1,3 @@
-import time
 import pyqtgraph.multiprocess as pgmp
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 

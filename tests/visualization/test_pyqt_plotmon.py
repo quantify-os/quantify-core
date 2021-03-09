@@ -1,4 +1,3 @@
-import time
 import tempfile
 from pathlib import Path
 from distutils.dir_util import copy_tree
