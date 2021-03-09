@@ -97,7 +97,3 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
 
     def getNodes(self):
         return pprint.pformat(self.nodes)
-
-
-def mk_widget():
-    return QcSnaphotWidget()

@@ -8,6 +8,7 @@ import warnings
 
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import ClosedError
 
 from qcodes.utils.helpers import strip_attrs
 from qcodes.instrument.base import Instrument
@@ -72,9 +73,19 @@ class InstrumentMonitor(Instrument):
 
         # initial value is fake but ensures it will update the first time
         self.last_update_time = 0
-        self.create_widget(window_size=window_size)
 
-    def update(self, timeout=60):
+        for i in range(10):
+            try:
+                self.create_widget(window_size=window_size)
+            except (ClosedError, ConnectionResetError) as e:
+                # the remote process might crash
+                if i >= 9:
+                    raise e
+                self._init_qt()
+            else:
+                break
+
+    def update(self):
         """
         Updates the Qc widget with the current snapshot of the instruments.
         This function is also called within the class :class:`~quantify.measurement.MeasurementControl`
@@ -86,12 +97,12 @@ class InstrumentMonitor(Instrument):
             # Take an updated, clean snapshot
             snap = snapshot(update=False, clean=True)
             try:
-                self.widget.setData(snap["instruments"], _timeout=timeout)
+                self.widget.setData(snap["instruments"])
             except AttributeError as e:
                 # This is to catch any potential pickling problems with the snapshot.
                 # We do so by converting all lowest elements of the snapshot to string.
                 snap_collated = traverse_dict(snap["instruments"])
-                self.widget.setData(snap_collated, _timeout=timeout)
+                self.widget.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
     def _init_qt(self, timeout=60):
@@ -105,7 +116,7 @@ class InstrumentMonitor(Instrument):
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
         self.__class__.rwidget = self.proc._import(qc_widget, timeout=timeout)
 
-    def create_widget(self, window_size: tuple = (1000, 600), timeout=60):
+    def create_widget(self, window_size: tuple = (1000, 600)):
         """
         Saves an instance of the :class:`!quantify.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
         class during startup. Creates the :class:`~quantify.data.handling.snapshot` tree to display within the
@@ -117,11 +128,11 @@ class InstrumentMonitor(Instrument):
             The size of the :class:`~quantify.visualization.InstrumentMonitor` window in px
         """
 
-        self.widget = self.rwidget.mk_widget(_timeout=timeout)
+        self.widget = self.rwidget.QcSnaphotWidget()
         self.update()
-        self.widget.show(_timeout=timeout)
-        self.widget.setWindowTitle(self.name, _timeout=timeout)
-        self.widget.resize(*window_size, _timeout=timeout)
+        self.widget.show()
+        self.widget.setWindowTitle(self.name)
+        self.widget.resize(*window_size)
 
     def setGeometry(self, x: int, y: int, w: int, h: int):
         """Set the geometry of the main widget window
@@ -137,7 +148,7 @@ class InstrumentMonitor(Instrument):
         h
             Height of the window
         """
-        self.widget.setGeometry(x, y, w, h, _timeout=60)
+        self.widget.setGeometry(x, y, w, h)
 
     def close(self) -> None:
         """
