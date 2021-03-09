@@ -232,6 +232,7 @@ class PlotMonitor_pyqt(Instrument):
         # Essential!!!
         # Close the process
         self.proc.join()
+        time.sleep(0.5)  # wait for the remote process to close
 
         strip_attrs(self, whitelist=["_name"])
         self.remove_instance(self)
