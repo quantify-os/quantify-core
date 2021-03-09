@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from pytest import approx
 from uncertainties.core import Variable
 import quantify.data.handling as dh
@@ -15,6 +16,7 @@ class TestResonatorSpectroscopyAnalysis:
         cls.tuid = "20210118-202044-211-58ddb0"
         cls.a_obj = sa.ResonatorSpectroscopyAnalysis(tuid=cls.tuid)
 
+    @pytest.mark.skip(reason="blocked by #161, see `base_analisys.AnalysisSteps`")
     def test_raw_data_not_in_processed_dataset(self):
         container = Path(dh.locate_experiment_container(self.tuid))
         file_path = (

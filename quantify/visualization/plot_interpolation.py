@@ -3,8 +3,9 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-import numpy as np
 import logging
+import numpy as np
+from typing_extensions import Literal
 from scipy import interpolate
 
 
@@ -25,7 +26,13 @@ def unscale(points, xy_mean, xy_scale):
     return points * xy_scale + xy_mean
 
 
-def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
+def interpolate_heatmap(
+    x,
+    y,
+    z,
+    n: int = None,
+    interp_method: Literal["linear", "nearest", "deg"] = "linear",
+):
     """
     The output of this method can directly be used for plt.imshow(z_grid, extent=extent, aspect='auto')
     where the extent is determined by the min and max of the x_grid and y_grid.
@@ -40,11 +47,11 @@ def interpolate_heatmap(x, y, z, n: int = None, interp_method: str = "linear"):
         y data points
     z : :class:`numpy.ndarray`
         z data points
-    n : int
+    n
         number of points for each dimension on the interpolated grid if set to None will auto determine amount of
         points needed
-    interp_method : str
-        one of {"linear", "nearest", "deg"}, determines what interpolation method is used.
+    interp_method
+        determines what interpolation method is used.
     Returns
     -------
     x_grid : :class:`numpy.ndarray`

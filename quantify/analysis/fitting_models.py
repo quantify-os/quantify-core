@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------
+# Description:    Module containing fitting models.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
+# -----------------------------------------------------------------------------
 """Models and fit functions to be used with the lmfit fitting framework."""
 
 import numpy as np
@@ -14,13 +19,12 @@ def hanger_func_complex_SI(
     phi_v: float,
     phi_0: float,
     alpha: float = 1,
-) -> float:
+) -> complex:
     """
     This is the complex function for a hanger (lambda/4 resonator).
 
     Parameters
     ----------
-
     f:
         frequency
     fr:
@@ -42,6 +46,7 @@ def hanger_func_complex_SI(
 
     Returns
     -------
+    :
         complex valued transmission
 
 
@@ -77,13 +82,23 @@ def hanger_func_complex_SI(
     return S21
 
 
+def get_model_common_doc() -> str:
+    """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
+    return (
+        lmfit.models.COMMON_DOC.replace("['x']", "List[str]")
+        .replace("str, optional", "str")
+        .replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        .replace("**kwargs : optional", "**kwargs : dict")
+    )
+
+
 class ResonatorModel(lmfit.model.Model):
     """"""  # Avoid including Model docstring
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
 
-    __doc__ = "Resonator model\n\n" + lmfit.models.COMMON_DOC
+    __doc__ = "Resonator model\n\n" + get_model_common_doc()
 
     def __init__(self, *args, **kwargs):
         """"""  # Avoid including Model.__init__ docstring
@@ -97,6 +112,10 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
     def guess(self, data, **kwargs):
+        """
+        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
+        """
+
         params = self.make_params()
 
         if kwargs.get("f", None) is None:
