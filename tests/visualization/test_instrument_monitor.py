@@ -31,7 +31,7 @@ class TestQcSnapshotWidget:
     def setup_class(cls):
         proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        r_qc_widget = proc._import(qc_widget)
+        r_qc_widget = proc._import(qc_widget, timeout=60)
         cls.widget = r_qc_widget.QcSnaphotWidget()
 
     @classmethod

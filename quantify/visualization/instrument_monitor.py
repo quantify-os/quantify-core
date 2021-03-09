@@ -8,7 +8,6 @@ import warnings
 
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
-from pyqtgraph.multiprocess.remoteproxy import NoResultError
 
 from qcodes.utils.helpers import strip_attrs
 from qcodes.instrument.base import Instrument
@@ -95,26 +94,16 @@ class InstrumentMonitor(Instrument):
                 self.widget.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
-    def _init_qt(self):
+    def _init_qt(self, timeout=60):
         # starting the process for the pyqtgraph plotting
         # You do not want a new process to be created every time you start a
         # run, so this only starts once and stores the process in the class
         self.__class__.proc = pgmp.QtProcess(
             processRequests=False
         )  # pyqtgraph multiprocessing
-        self.__class__.rpg = self.proc._import("pyqtgraph")
+        self.__class__.rpg = self.proc._import("pyqtgraph", timeout=timeout)
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-
-        for i in range(5):
-            try:
-                self.__class__.rwidget = self.proc._import(qc_widget)
-            except NoResultError as exception:
-                # Try a few times before giving up
-                time.sleep(0.2)
-                if i == 4:
-                    raise exception
-            else:
-                break
+        self.__class__.rwidget = self.proc._import(qc_widget, timeout=timeout)
 
     def create_widget(self, window_size: tuple = (1000, 600)):
         """
@@ -165,7 +154,6 @@ class InstrumentMonitor(Instrument):
         # Essential!!!
         # Close the process
         self.__class__.proc.join()
-        time.sleep(0.5)  # wait for the remote process to close
 
         strip_attrs(self, whitelist=["_name"])
         self.remove_instance(self)
