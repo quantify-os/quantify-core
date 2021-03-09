@@ -81,6 +81,7 @@ class InstrumentMonitor(Instrument):
                 # the remote process might crash
                 if i >= 9:
                     raise e
+                time.sleep(0.2)
                 self._init_qt()
             else:
                 break

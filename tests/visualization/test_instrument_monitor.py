@@ -1,3 +1,5 @@
+import time
+
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
 
@@ -42,6 +44,7 @@ class TestQcSnapshotWidget:
                 # the remote process might crash
                 if i >= 9:
                     raise e
+                time.sleep(0.2)
                 r_qc_widget = proc._import(qc_widget, timeout=60)
             else:
                 break
