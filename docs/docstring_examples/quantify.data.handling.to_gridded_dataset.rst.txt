@@ -1,3 +1,5 @@
+.. include:: close_all_instruments.rst.txt
+
 .. admonition:: Examples
     :class: dropdown, tip
 
