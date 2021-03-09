@@ -480,6 +480,13 @@ class Basic2DAnalysis(BaseAnalysis):
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
             set_cbarlabel(quadmesh.colorbar, yvals.long_name, yvals.units)
+            # autodect degrees to use circular colormap.
+            if yvals.units == "deg" and np.min(yvals) < 0:
+                quadmesh.set_cmap("twilight_shifted")
+                quadmesh.set_clim(-180, 180)
+            if yvals.units == "deg" and np.min(yvals) > 0:
+                quadmesh.set_cmap("twilight")
+                quadmesh.set_clim(0, 360)
 
             fig.suptitle(
                 f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
