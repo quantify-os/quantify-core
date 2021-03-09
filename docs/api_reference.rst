@@ -8,7 +8,6 @@ quantify
    :members:
 
 
-
 analysis
 =============
 
@@ -31,6 +30,7 @@ fitting_models
 .. automodule:: quantify.analysis.fitting_models
     :members:
 
+
 data
 =============
 
@@ -46,11 +46,13 @@ handling
 .. automodule:: quantify.data.handling
     :members:
 
+
 measurement
 =============
 
 .. automodule:: quantify.measurement
     :members:
+
 
 utilities
 =========
@@ -60,6 +62,7 @@ experiment_helpers
 
 .. automodule:: quantify.utilities.experiment_helpers
     :members:
+
 
 visualization
 =============
