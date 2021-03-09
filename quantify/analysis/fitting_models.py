@@ -73,7 +73,7 @@ def hanger_func_complex_SI(
     )
 
     propagation_delay_corr = np.exp(1j * (phi_v * f + phi_0))
-    S21 = np.conj(A * slope_corr * hanger_contribution * propagation_delay_corr)
+    S21 = A * slope_corr * hanger_contribution * propagation_delay_corr
 
     return S21
 
@@ -94,8 +94,6 @@ class ResonatorModel(lmfit.model.Model):
     def guess(self, data, f=None, **kwargs):
 
         params = self.make_params()
-        
-        manual_guess = kwargs['manual_guess']
 
         if f is None:
             return
@@ -123,11 +121,6 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("phi_0", value=0)
         self.set_param_hint("phi_v", value=0)
         self.set_param_hint("alpha", value=0, min=-1, max=1)
-        
-        # Override any parameter hint with the manually specified guess, if it exists
-        for par, guess in manual_guess.items():
-            self.set_param_hint(par, value=guess)
-            
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
