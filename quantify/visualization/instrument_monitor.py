@@ -117,7 +117,7 @@ class InstrumentMonitor(Instrument):
             The size of the :class:`~quantify.visualization.InstrumentMonitor` window in px
         """
 
-        self.widget = self.rwidget.QcSnaphotWidget(_timeout=timeout)
+        self.widget = self.rwidget.mk_widget(_timeout=timeout)
         self.update()
         self.widget.show(_timeout=timeout)
         self.widget.setWindowTitle(self.name, _timeout=timeout)
