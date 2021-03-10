@@ -38,12 +38,14 @@ def set_cyclic_colormap(
         Used to fix the colormap range.
     clim
         The colormap limit.
+
+    .. include:: ./docstring_examples/quantify.visualization.mpl_plotting.set_cyclic_colormap.rst.txt
     """
     shifted = bool(shifted)  # in case xarray min() is used
     if unit in {"deg", "rad"}:
         clim_d = {
-            True: {"deg": (-180, 180), "rad": (-np.pi, np.pi)},
-            False: {"deg": (0, 360), "rad": (0, 2 * np.pi)},
+            True: {"deg": (-180.0, 180.0), "rad": (-np.pi, np.pi)},
+            False: {"deg": (0.0, 360.0), "rad": (0, 2 * np.pi)},
         }
         cmap = {True: "twilight_shifted", False: "twilight"}
         image_or_collection.set_clim(clim_d[shifted][unit] if clim is None else clim)
