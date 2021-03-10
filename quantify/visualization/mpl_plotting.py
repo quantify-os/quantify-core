@@ -28,11 +28,12 @@ def set_cyclic_colormap(
     Parameters
     ----------
     image_or_collection: Union[:class:`~matplotlib.image.AxesImage`, :class:`~matplotlib.collections.QuadMesh`, :class:`~matplotlib.collections.Collection`]
-        a matplotlib object returned by either on of :meth:`~matplotlib.pyplot.pcolor`,
-        :meth:`~matplotlib.pyplot.pcolormesh`, :meth:`~matplotlib.pyplot.imshow` or
-        :meth:`~matplotlib.pyplot.matshow`.
+        a matplotlib object returned by either one of :func:`~matplotlib.pyplot.pcolor`,
+        :func:`~matplotlib.pyplot.pcolormesh`, :func:`~matplotlib.pyplot.imshow` or
+        :func:`~matplotlib.pyplot.matshow`.
     shifted
-        Chooses between "twilight_shifted"/"twilight" colormap and the colormap range.
+        Chooses between :code:`"twilight_shifted"`/:code:`"twilight"` colormap and the
+        colormap range.
     unit
         Used to fix the colormap range.
     clim
