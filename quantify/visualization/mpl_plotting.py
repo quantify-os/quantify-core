@@ -39,6 +39,7 @@ def set_cyclic_colormap(
     clim
         The colormap limit.
 
+
     .. include:: ./docstring_examples/quantify.visualization.mpl_plotting.set_cyclic_colormap.rst.txt
     """
     shifted = bool(shifted)  # in case xarray min() is used
