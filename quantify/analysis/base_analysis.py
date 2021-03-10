@@ -497,9 +497,15 @@ class Basic2DAnalysis(BaseAnalysis):
             if yvals.units == "deg" and np.min(yvals) < 0:
                 quadmesh.set_cmap("twilight_shifted")
                 quadmesh.set_clim(-180, 180)
-            if yvals.units == "deg" and np.min(yvals) > 0:
+            elif yvals.units == "deg" and np.min(yvals) > 0:
                 quadmesh.set_cmap("twilight")
                 quadmesh.set_clim(0, 360)
+            elif yvals.units == "rad" and np.min(yvals) < 0:
+                quadmesh.set_cmap("twilight_shifted")
+                quadmesh.set_clim(-np.pi, np.pi)
+            elif yvals.units == "rad" and np.min(yvals) > 0:
+                quadmesh.set_cmap("twilight")
+                quadmesh.set_clim(0, 2 * np.pi)
 
             fig.suptitle(
                 f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
