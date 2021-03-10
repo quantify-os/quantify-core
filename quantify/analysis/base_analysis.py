@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
 
+from quantify.visualization import mpl_plotting as qpl
 from quantify.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
 from quantify.data.handling import (
     load_dataset,
@@ -493,19 +494,8 @@ class Basic2DAnalysis(BaseAnalysis):
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
             set_cbarlabel(quadmesh.colorbar, yvals.long_name, yvals.units)
-            # autodect degrees to use circular colormap.
-            if yvals.units == "deg" and np.min(yvals) < 0:
-                quadmesh.set_cmap("twilight_shifted")
-                quadmesh.set_clim(-180, 180)
-            elif yvals.units == "deg" and np.min(yvals) > 0:
-                quadmesh.set_cmap("twilight")
-                quadmesh.set_clim(0, 360)
-            elif yvals.units == "rad" and np.min(yvals) < 0:
-                quadmesh.set_cmap("twilight_shifted")
-                quadmesh.set_clim(-np.pi, np.pi)
-            elif yvals.units == "rad" and np.min(yvals) > 0:
-                quadmesh.set_cmap("twilight")
-                quadmesh.set_clim(0, 2 * np.pi)
+            # autodect degrees and radians to use circular colormap.
+            qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
             fig.suptitle(
                 f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
