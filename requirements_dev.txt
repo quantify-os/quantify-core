@@ -18,6 +18,7 @@ twine==1.14.0
 pytest
 pytest-runner
 pytest-cov
+pytest-xdist # run parallel tests
 pygments==2.6.1
 black
 pylint
