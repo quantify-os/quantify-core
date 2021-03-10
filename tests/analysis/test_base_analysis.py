@@ -11,7 +11,7 @@ TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
 # TUID_2D_2PLOTS = "20210126-162726-170-de4f78"
 TUID_2D_2PLOTS = "20210227-172939-723-53d82c"
-TUID_2D_CIRC = "20210308-191620"
+TUID_2D_CYCLIC = "20210227-172939-723-53d82c"
 
 # disable figure saving for all analyses for performance
 ba.settings["mpl_fig_formats"] = []
@@ -267,10 +267,10 @@ def test_basic2d_analysis():
     assert "figs_mpl" in analysis_dir
 
 
-def test_Basic2DAnalysis_circular_cmap_detection():
+def test_Basic2DAnalysis_cyclic_cmap_detection():
     dh.set_datadir(get_test_data_dir())
 
-    tuid = TUID_2D_CIRC
+    tuid = TUID_2D_CYCLIC
     # here we see if figures are created
     ba.settings["mpl_fig_formats"] = [
         "svg",
@@ -287,7 +287,6 @@ def test_Basic2DAnalysis_circular_cmap_detection():
     # range is auto set appropriately
     fig = a_obj.figs_mpl["Heatmap x0x1-y1"]
     qm = fig.axes[0].collections[0]
-    assert qm.get_clim() == (-180, 180)
     assert qm.get_clim() == (-180, 180)
     assert qm.get_cmap().name == "twilight_shifted"
 

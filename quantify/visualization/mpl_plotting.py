@@ -3,16 +3,54 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-from typing import Tuple
+from typing import Tuple, Union
 from typing_extensions import Literal
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.axes import Axes
 from matplotlib.text import Text
-from matplotlib.collections import QuadMesh
+from matplotlib.collections import QuadMesh, Collection
+from matplotlib.image import AxesImage
 from matplotlib.colorbar import Colorbar
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
+
+
+def set_cyclic_colormap(
+    image_or_collection: Union[AxesImage, QuadMesh, Collection],
+    shifted: bool = False,
+    unit: Literal["deg", "rad"] = "deg",
+    clim: tuple = None,
+) -> None:
+    """
+    Sets a cyclic colormap on a matplolib 2D color plot if cyclic units are detected.
+
+    Parameters
+    ----------
+    image_or_collection: Union[:class:`~matplotlib.image.AxesImage`, :class:`~matplotlib.collections.QuadMesh`, :class:`~matplotlib.collections.Collection`]
+        a matplotlib object returned by either one of :func:`~matplotlib.pyplot.pcolor`,
+        :func:`~matplotlib.pyplot.pcolormesh`, :func:`~matplotlib.pyplot.imshow` or
+        :func:`~matplotlib.pyplot.matshow`.
+    shifted
+        Chooses between :code:`"twilight_shifted"`/:code:`"twilight"` colormap and the
+        colormap range.
+    unit
+        Used to fix the colormap range.
+    clim
+        The colormap limit.
+
+
+    .. include:: ./docstring_examples/quantify.visualization.mpl_plotting.set_cyclic_colormap.rst.txt
+    """
+    shifted = bool(shifted)  # in case xarray min() is used
+    if unit in {"deg", "rad"}:
+        clim_d = {
+            True: {"deg": (-180.0, 180.0), "rad": (-np.pi, np.pi)},
+            False: {"deg": (0.0, 360.0), "rad": (0, 2 * np.pi)},
+        }
+        cmap = {True: "twilight_shifted", False: "twilight"}
+        image_or_collection.set_clim(clim_d[shifted][unit] if clim is None else clim)
+        image_or_collection.set_cmap(cmap[shifted])
 
 
 def plot_textbox(ax: Axes, text: str, **kw) -> Text:
