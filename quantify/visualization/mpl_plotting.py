@@ -11,8 +11,23 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.axes import Axes
 from matplotlib.text import Text
 from matplotlib.collections import QuadMesh
+from matplotlib.image import AxesImage
 from matplotlib.colorbar import Colorbar
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
+from xarray import DataArray
+
+
+def set_cyclic_colormap(
+    image_or_collection: Union[QuadMesh, AxesImage], yvals: DataArray = None
+):
+    """
+    Sets a cyclic colormap on a matplolib image or quadmesh.
+
+    Parameters
+    ----------
+
+    """
+    pass
 
 
 def plot_textbox(ax: Axes, text: str, **kw) -> Text:

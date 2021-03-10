@@ -440,11 +440,11 @@ class BaseAnalysis(ABC):
         for ax_id, ax in axs.items():
             if ax_id in ax_ids:
                 # For plots created with `imshow` or `pcolormesh`
-                for im_or_col in (
+                for image_or_collection in (
                     *ax.get_images(),
                     *(c for c in ax.collections if isinstance(c, QuadMesh)),
                 ):
-                    im_or_col.set_clim(vmin, vmax)
+                    image_or_collection.set_clim(vmin, vmax)
 
 
 class Basic1DAnalysis(BaseAnalysis):
