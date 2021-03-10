@@ -5,7 +5,7 @@ Contributing
 
 Contributions are welcome and greatly appreciated! Every little bit helps, and credit will always be given.
 
-In order to contribute to the documentation and/or code please follow the `Setting up for local development`_ instructions.
+In order to contribute to the documentation and/or code please follow the :ref:`Setting up for local development` instructions.
 
 Types of Contributions
 ----------------------

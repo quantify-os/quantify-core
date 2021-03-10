@@ -215,7 +215,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-#. Submit a merge request through the GitLab website.
+#. Review the :ref:`Merge Request Guidelines` and submit a merge request through the GitLab website.
 
 #. Add short entry in the `CHANGELOG.rst` under `Unreleased`, commit and push.
 
