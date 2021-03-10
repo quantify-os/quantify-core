@@ -7,7 +7,7 @@ Stable release
 --------------
 
 This is the preferred method to install Quantify, as it will always install the most recent stable release.
-If you want to contribute to quantify, see :ref:`Setting up quantify for local development` in the contributing section.
+If you want to contribute to quantify, see `Setting up for local development`_.
 
 On Windows and macOS (Anaconda)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,7 +21,7 @@ If you are familiar with software development (package manager, git, terminal, P
 
 #. Install Quantify (and JupyterLab) in a new conda environment, see also the `Conda cheat sheet <https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html>`_.
 
-    .. code-block:: console
+    .. code-block::
 
         $ conda create --name quantify-env python=3.8
         $ conda activate quantify-env
@@ -61,7 +61,7 @@ Detailed instructions
 
 #. Create a conda environment, see also the `Conda cheat sheet <https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html>`_.
 
-    .. code-block:: console
+    .. code-block::
 
         $ conda create --name quantify-env python=3.8   # create the conda environment, you can replace `quantify-env` if you wish
         $ conda activate quantify-env                   # activates the conda environment
@@ -70,41 +70,35 @@ Detailed instructions
 
         You can add :code:`conda activate quantify-env` at the end of the `.bashrc` (or `.bash_profile`) if you wish for this environment to be activated automatically in the terminal when it is opened.
 
-#. Install jupyter-lab in the new environment using
+#. Install jupyter-lab in the new environment using::
 
-    .. code-block:: console
+    $ conda install -c conda-forge jupyterlab  # install jupyter lab
+    $ # add the environment as an available kernel for jupyter notebook within jupyter-lab.
+    $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
 
-        $ conda install -c conda-forge jupyterlab  # install jupyter lab
-        $ # add the environment as an available kernel for jupyter notebook within jupyter-lab.
-        $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
+#. Install quantify-core pypi
 
-#. Install quantify-core from pypi.
+    If you are interested to contribute to Quantify you should :ref:`set it up for local development instead <Setting up for local development>`.
 
-    If you are an early adopter or interested to contribute to Quantify you should :ref:`install it from source instead <From source>`.
-
-    .. code-block:: console
+    .. code-block::
 
         $ pip install quantify-core  # install the package into
         $ pip install quantify-scheduler   # optionally install other quantify modules
 
     .. note::
 
-        We currently do not have a conda recipe for installation, instead we refer to the default pip installation within the conda environment.
+        We currently do not have a conda recipe for installation, instead we refer to the default pip installation within a conda environment.
 
 Other systems
 ~~~~~~~~~~~~~
 
-Confirm that you have a working python 3.7+ and run the following in your terminal of choice
-
-.. code-block:: console
+Confirm that you have a working python 3.7+ and run the following in your terminal of choice::
 
     $ python --version
     # Expected output similar to:
     # Python 3.7.6
 
-Install Quantify:
-
-.. code-block:: console
+Install Quantify::
 
     $ pip install quantify-core
 
@@ -116,78 +110,144 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
-From source
-------------
-
-The source code of Quantify can be downloaded from the `GitLab repo <https://gitlab.com/Quantify-os/Quantify-core>`_ or installed from your terminal:
-
-.. code-block:: console
-
-    $ git clone https://gitlab.com/Quantify-os/Quantify-core.git
-
-Once you have a copy of the source, you can install it with:
-
-.. code-block:: console
-
-    $ pip install .
-
-**OR**
-
-If you are a developer and wish to contribute you should install the package in the editable mode:
-
-.. code-block:: console
-
-    $ pip install -e .
-
-See also :ref:`Setting up quantify for local development` in the contributing section.
-
 Update to latest version
-========================
+------------------------
 
-To update quantify to the latest version:
-
-.. code-block:: console
+To update quantify to the latest version::
 
     $ pip install --upgrade quantify-core
 
+
+Setting up for local development
+--------------------------------
+
+Ready to contribute? Here's how to set up Quantify for local development.
+
+0. Follow the `Installation`_ steps for your system skipping the last step (:code:`pip install ...`).
+
+#. Fork the `quantify-core` repo on GitLab.
+
+#. Clone your fork locally::
+
+    $ git clone git@gitlab.com:your_name_here/quantify-core.git
+
+#. Install quantify locally::
+
+    $ cd quantify-core/
+    $ pip install -e .
+    $ pip install -r requirements_dev.txt
+
+#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_
+
+    .. code-block::
+
+        $ pre-commit install
+
+    .. note:: When the code is not well formatted a `git commit` will fail. You only need to run it again. This second time the code will be already *black*-compliant.
+
+#. Create a branch for local development::
+
+    $ git checkout -b name-of-your-bugfix-or-feature
+
+   Now you can make your changes locally.
+
+#. To ensure good quality code run `pylint <https://pylint.readthedocs.io/en/latest/index.html>`_ on your code and address any reasonable code quality issues. See `Editor and IDE integration <https://pylint.readthedocs.io/en/latest/user_guide/ide-integration.html>`_ for tips on how to integrate pylint in your editor or IDE.
+
+
+#. When you are done making changes, auto-format the repository with `black` and ensure test coverage
+
+    .. code-block::
+
+        $ black .
+        $ pytest --cov
+
+
+    .. tip:: Running parts of the test suite
+
+        To run only parts of the test suite, specify the folder in which to look for
+        tests as an argument to pytest. The following example
+
+
+        .. code-block::
+
+            $ py.test tests/measurement --cov quantify/measurement
+
+        will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+
+    .. tip:: Speed up tests with parallel execution
+
+        .. code-block::
+
+            $ py.test -n 2 # where 2 is the number of cores of your CPU
+
+#. Building the documentation
+
+    If you have worked on documentation or `docstrings <https://www.python.org/dev/peps/pep-0257/>`_ you need to review how your docs look locally and ensure *no error or warnings are raised*.
+    You can build the docs locally using::
+
+        $ cd docs
+
+        $ # unix
+        $ make html
+
+        $ # windows
+        $ ./make.bat html
+
+    The docs will be located in `quantify/docs/_build`.
+
+    .. tip::
+
+        If you are working on documentation it can be useful to automatically rebuild the docs after every change.
+        This can be done using the `sphinx-autobuild` package. Through the following command::
+
+            $ sphinx-autobuild docs docs/_build/html
+
+        The documentation will then be hosted on `localhost:8000`
+
+    .. tip::
+
+        Building the tutorials can be time consuming, if you are not editing them, feel free to delete your local copy of the `quantify-core/docs/tutorials` to skip their build. You can recover the files using git (do not commit the deleted files).
+
+
+#. Commit your changes and push your branch to GitLab::
+
+    $ git add .
+    $ git commit -m "Your detailed description of your changes."
+    $ git push origin name-of-your-bugfix-or-feature
+
+#. Submit a merge request through the GitLab website.
+
+#. Add short entry in the `CHANGELOG.rst` under `Unreleased`, commit and push.
+
 Troubleshooting
-===============
+---------------
 
 If for some reason you are not able to install or use Quantify using the prescribed ways indicated above, make sure you have working python environment (e.g. you are able to run an `IPyhon` terminal). Follow the next steps that aim at installing Quantify from source and running its tests.
 
-0. Uninstall Quantify
-
-    .. code-block:: console
+0. Uninstall Quantify::
 
         $ pip uninstall quantify-core
 
-#. Install from source (run line by line)
+#. Install from source (run line by line)::
 
-    .. code-block:: console
-
-        $ git clone https://gitlab.com/Quantify-os/Quantify-core.git; cd quantify-core
+        $ git clone https://gitlab.com/quantify-os/quantify-core.git; cd quantify-core
         $ pip install .
-        $ pip install pytest
-        $ pytest
+        $ pip install -r requirements_dev.txt
+        $ pytest -v -n 2
 
 #. The tests will either pass or not. In any case, please report your experience and which test do not pass by creating a `New issue` on the `issue tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_, your efforts are much appreciated and will help us to understand the problems you might be facing.
 
 Downgrade to specific version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If for any reason you require a specific version of the package, e.g. 0.3.0, run:
-
-.. code-block:: console
+If for any reason you require a specific version of the package, e.g. 0.3.0, run::
 
     $ pip install --upgrade quantify-core==0.3.0
 
-Potential issues
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-PyQtGraph and PyQt5
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Potential issues: PyQtGraph and PyQt5
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Quantify-core has a dependency on the PyQt5 package, which itself has a dependency on the Qt5 runtime.
 On most systems, the standard installation process will correctly install Qt.
-The Anaconda installation should resolve issues with installation on Windows.
+The Anaconda installation should resolve issues with installation on Windows or macOS.
 You may need to consult a search engine if you have a more exotic system.

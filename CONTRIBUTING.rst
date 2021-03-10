@@ -1,18 +1,19 @@
-.. highlight:: shell
+.. highlight:: console
 
-============
 Contributing
 ============
 
 Contributions are welcome and greatly appreciated! Every little bit helps, and credit will always be given.
 
-You can contribute in many ways:
+In order to contribute to the documentation and/or code please follow the `Setting up for local development`_ instructions.
 
 Types of Contributions
 ----------------------
 
+You can contribute in many ways:
+
 Reporting of Bugs and Defects
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A defect is any variance between actual and expected result, this can include bugs in the code or defects in the documentation or visualization.
 
@@ -43,10 +44,8 @@ After an issue is created, the progress of the issues is tracked on the `GitLab 
 The maintainers will update the state using `labels <https://gitlab.com/quantify-os/quantify-core/-/labels>`_ .
 Once an issue is ready for review a Merge Request can be opened.
 
-
-
 Merge Request Guidelines
---------------------------
+------------------------
 
 Please make merge requests into the *develop* branch (not the *master* branch). Each request should be self-contained and address a single issue on the tracker.
 
@@ -76,7 +75,7 @@ Thank you very much for your hard work in improving quantify!
     (Maintainers and developers)
     In order to commit and push to the original branch of the merge request, you will need:
 
-    .. code-block:: shell
+    .. code-block::
 
         # 1. Create and checkout a local branch with the changes of the merge request
         $ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
@@ -89,93 +88,3 @@ Thank you very much for your hard work in improving quantify!
 
     N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 
-
-Setting up quantify for local development
-------------------------------------------------
-
-Ready to contribute? Here's how to set up `quantify` for local development.
-
-1. Fork the `quantify` repo on GitLab.
-#. Clone your fork locally::
-
-    $ git clone git@gitlab.com:your_name_here/quantify-core.git
-
-#. Install quantify locally::
-
-    $ cd quantify-core/
-    $ pip install -e .
-    $ pip install -r requirements_dev.txt
-
-#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_::
-
-    $ pre-commit install
-
-    .. note:: When the code is not well formatted a `git commit` will fail. You only need to run it again. This second time the code will be already *black*-compliant.
-
-#. Create a branch for local development::
-
-    $ git checkout -b name-of-your-bugfix-or-feature
-
-   Now you can make your changes locally.
-
-#. To ensure good quality code run `pylint <https://pylint.readthedocs.io/en/latest/index.html>`_ on your code and address any reasonable code quality issues. See `Editor and IDE integration <https://pylint.readthedocs.io/en/latest/user_guide/ide-integration.html>`_ for tips on how to integrate pylint in your editor or IDE.
-
-
-#. When you are done making changes, auto-format the repository with `black` and ensure test coverage
-
-    .. code-block::
-
-        $ black .
-        $ pytest --cov
-
-
-    .. tip:: Running parts of the test suite
-
-        To run only parts of the test suite, specify the folder in which to look for
-        tests as an argument to pytest. The following example
-
-
-        .. code-block:: shell
-
-            $ py.test tests/measurement --cov quantify/measurement
-
-        will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
-
-
-#. Building the documentation
-
-    If you have worked on documentation instead of code you may want to preview how your docs look locally.
-    You can build the docs locally using:
-
-    .. code-block:: shell
-
-        $ cd docs
-
-        # unix
-        $ make html
-
-        # windows
-        $ ./make.bat html
-
-    The docs will be located in `quantify/docs/_build`.
-
-    .. tip::
-
-        If you are working on documentation it can be useful to automatically rebuild the docs after every change.
-        This can be done using the `sphinx-autobuild` package. Through the following command:
-
-        .. code-block:: shell
-
-            $ sphinx-autobuild docs docs/_build/html
-
-        The documentation will then be hosted on `localhost:8000`
-
-#. Commit your changes and push your branch to GitLab::
-
-    $ git add .
-    $ git commit -m "Your detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
-
-#. Submit a merge request through the GitLab website.
-
-#. Add short entry in the `CHANGELOG.rst` under `Unreleased`, commit and push.
