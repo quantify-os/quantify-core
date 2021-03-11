@@ -528,7 +528,7 @@ class Basic2DAnalysis(BaseAnalysis):
                     gridded_dataset["x1"].attrs["long_name"],
                     gridded_dataset["x1"].attrs["units"],
                 ),
-                ncol=len(gridded_dataset["x1"]) // 8,
+                ncol=max(len(gridded_dataset["x1"]) // 8, 1),
             )
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
