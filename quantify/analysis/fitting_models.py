@@ -110,6 +110,8 @@ class ResonatorModel(lmfit.model.Model):
             fr_guess / min_delta_f
         )  # assume data actually samples the resonance reasonably
         Q_guess = np.sqrt(Q_min * Q_max)  # geometric mean, why not?
+        (phi_0_guess, phi_v_guess) = self.phase_guess(data, f)  # Come up with a guess for phase velocity
+
 
         self.set_param_hint("fr", value=fr_guess, min=fmin, max=fmax)
         self.set_param_hint("Ql", value=Q_guess, min=Q_min, max=Q_max)
@@ -118,14 +120,15 @@ class ResonatorModel(lmfit.model.Model):
 
         # The parameters below need a proper guess.
         self.set_param_hint("theta", value=0, min=-np.pi / 2, max=np.pi / 2)
-        self.set_param_hint("phi_0", value=0)
-        self.set_param_hint("phi_v", value=0)
+        self.set_param_hint("phi_0", value=phi_0_guess)
+        self.set_param_hint("phi_v", value=phi_v_guess)
         self.set_param_hint("alpha", value=0, min=-1, max=1)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
-    def phase_guess(self, S21, freq=None):
+    # Guesses the phase velocity based on the median of all the differences between consequtive phases
+    def phase_guess(self, S21, freq):
         phase = np.angle(S21)
 
         med_diff = np.median(np.diff(phase))
