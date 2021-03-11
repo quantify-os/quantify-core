@@ -11,9 +11,9 @@ TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
 # TUID_2D_2PLOTS = "20210126-162726-170-de4f78"
 TUID_2D_2PLOTS = "20210227-172939-723-53d82c"
-TUID_2D_CIRC = "20210308-191620"
+TUID_2D_CYCLIC = "20210227-172939-723-53d82c"
 
-# disable figure saving for all analyses
+# disable figure saving for all analyses for performance
 ba.settings["mpl_fig_formats"] = []
 
 
@@ -120,7 +120,7 @@ def test_pass_options():
 def test_flow_xlim_all():
     dh.set_datadir(get_test_data_dir())
     xlim = (0.0, 4.0)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES_MPL
+    step = ba.AnalysisSteps.S07_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(
         tuid=TUID_1D_2PLOTS,
         interrupt_before=step,
@@ -135,7 +135,7 @@ def test_flow_xlim_all():
 def test_flow_ylim_all(caplog):
     dh.set_datadir(get_test_data_dir())
     ylim = (0.0, 0.8)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES_MPL
+    step = ba.AnalysisSteps.S07_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(
         tuid=TUID_1D_2PLOTS,
         interrupt_before=step,
@@ -164,7 +164,7 @@ def test_flow_ylim_all(caplog):
 def test_flow_clim_all():
     dh.set_datadir(get_test_data_dir())
     clim = (1.0, 2.0)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES_MPL
+    step = ba.AnalysisSteps.S07_SAVE_FIGURES
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_before=step)
     a_obj.adjust_clim(*clim)
     a_obj.continue_analysis_after(step)
@@ -178,7 +178,7 @@ def test_flow_clim_all():
 def test_flow_clim_specific():
     dh.set_datadir(get_test_data_dir())
     clim = (0.0, 180.0)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES_MPL
+    step = ba.AnalysisSteps.S07_SAVE_FIGURES
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_before=step)
     a_obj.adjust_clim(*clim, ax_ids=["Heatmap x0x1-y1"])
     a_obj.continue_analysis_after(step)
@@ -187,7 +187,7 @@ def test_flow_clim_specific():
     assert ax.collections[0].get_clim() == clim
 
 
-def test_Basic1DAnalysis_settings_validation():
+def test_basic1danalysis_settings_validation():
     dh.set_datadir(get_test_data_dir())
     tuid = TUID_1D_1PLOT
 
@@ -200,7 +200,7 @@ def test_Basic1DAnalysis_settings_validation():
 # Run defaults at the end to overwrite the previous figures
 
 
-def test_Basic1DAnalysis(caplog):
+def test_basic1d_analysis(caplog):
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_1D_1PLOT
@@ -243,7 +243,7 @@ def test_Basic1DAnalysis(caplog):
         assert log_msg in str(rec.msg)
 
 
-def test_Basic2DAnalysis():
+def test_basic2d_analysis():
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_2D_2PLOTS
@@ -267,10 +267,10 @@ def test_Basic2DAnalysis():
     assert "figs_mpl" in analysis_dir
 
 
-def test_Basic2DAnalysis_circular_cmap_detection():
+def test_Basic2DAnalysis_cyclic_cmap_detection():
     dh.set_datadir(get_test_data_dir())
 
-    tuid = TUID_2D_CIRC
+    tuid = TUID_2D_CYCLIC
     # here we see if figures are created
     ba.settings["mpl_fig_formats"] = [
         "svg",
@@ -287,7 +287,6 @@ def test_Basic2DAnalysis_circular_cmap_detection():
     # range is auto set appropriately
     fig = a_obj.figs_mpl["Heatmap x0x1-y1"]
     qm = fig.axes[0].collections[0]
-    assert qm.get_clim() == (-180, 180)
     assert qm.get_clim() == (-180, 180)
     assert qm.get_cmap().name == "twilight_shifted"
 

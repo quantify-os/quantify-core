@@ -1,8 +1,7 @@
+.. include:: close_all_instruments.rst.txt
+
 .. admonition:: Examples
     :class: dropdown, tip
-
-        .. jupyter-kernel:: python3
-            :id: MC_setpoints_grid
 
         We first prepare some utilities necessarily for the examples.
 
