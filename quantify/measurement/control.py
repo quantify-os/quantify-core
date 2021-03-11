@@ -13,6 +13,8 @@ from collections.abc import Iterable
 from collections import OrderedDict
 import itertools
 from itertools import chain
+import signal
+import threading
 
 import xarray as xr
 import numpy as np
@@ -159,6 +161,11 @@ class MeasurementControl(Instrument):
         self._plotmon_name = ""
         self._plot_info = {"2D-grid": False}
 
+        # properly handling KeyboardInterrupts
+        self._thread_data = threading.local()
+        # counter for KeyboardInterrupts to allow forced interrupt
+        self._thread_data.events_num = 0
+
     ############################################
     # Methods used to control the measurements #
     ############################################
@@ -171,6 +178,10 @@ class MeasurementControl(Instrument):
         self._loop_count = 0
         self._begintime = time.time()
         self._batch_size_last = None
+        # Reset KeyboardInterrupt counter
+        self._thread_data.events_num = 0
+        # Assign handler to interrupt signal
+        signal.signal(signal.SIGINT, self._interrupt_handler)
 
     def _reset_post(self):
         """
@@ -178,6 +189,8 @@ class MeasurementControl(Instrument):
         """
         self._plot_info = {"2D-grid": False}
         self.soft_avg(1)
+        # Reset to default interrupt handler
+        signal.signal(signal.SIGINT, signal.default_int_handler)
 
     def _init(self, name):
         """
@@ -273,7 +286,8 @@ class MeasurementControl(Instrument):
             self._iterative_set_and_get(vec, self._nr_acquired_values)
             ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
-            self._update("Running adaptively")
+            self._update("")
+            self._check_interrupt()
             return ret
 
         def subroutine():
@@ -313,6 +327,7 @@ class MeasurementControl(Instrument):
         )  # block out some space in the dataset
         self._init(name)
         try:
+            print("Running adaptively...")
             subroutine()
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
@@ -329,6 +344,7 @@ class MeasurementControl(Instrument):
                 self._iterative_set_and_get(row, self._curr_setpoint_idx())
                 self._nr_acquired_values += 1
                 self._update()
+                self._check_interrupt()
             self._loop_count += 1
 
     def _run_batched(self):
@@ -392,6 +408,7 @@ class MeasurementControl(Instrument):
 
             self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
+            self._check_interrupt()
 
     def _build_data(self, new_data, old_data):
         if self.soft_avg() == 1:
@@ -436,9 +453,36 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
+    def _interrupt_handler(self, signal, frame):
+        """
+        A proper handler for signal.SIGINT (a.k.a. KeyboardInterrupt).
+
+        Used to avoid affecting any other code, e.g. instruments drivers, and be able
+        safely stop the MC after an iteration finishes.
+        """
+        self._thread_data.events_num += 1
+        if self._thread_data.events_num >= 5:
+            raise KeyboardInterrupt
+        print(
+            f"\n\n[!!!] {self._thread_data.events_num} interruption(s) signaled. "
+            "Stopping after this iteration/batch.\n"
+            f"[Send more {5 -  self._thread_data.events_num} interruptions to force stop (not safe!)].\n"
+        )
+
+    def _check_interrupt(self):
+        """
+        Verifies if the user has signaled the interruption of the experiment.
+
+        Intended to be used after each iteration or after each batch of data.
+        """
+        if self._thread_data.events_num >= 1:
+            # It is safe to raise the KeyboardInterrupt here because we are guaranteed
+            # To be running MC code. The exception will be handled in a try-except
+            raise KeyboardInterrupt
+
     def _update(self, print_message: str = None):
         """
-        Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
+        Do any updates to/from external systems, such as saving, plotting, etc.
         """
         update = (
             time.time() - self._last_upd > self.update_interval()
