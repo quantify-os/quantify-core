@@ -125,16 +125,14 @@ class ResonatorModel(lmfit.model.Model):
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
-    
     def phase_guess(self, S21, freq=None):
         phase = np.angle(S21)
-    
+
         med_diff = np.median(np.diff(phase))
         freq_step = np.median(np.diff(freq))
-    
-        phi_v = med_diff/freq_step
-    
-        phi_0 = phase[0] - phi_v*freq[0]
-    
-        return phi_0, phi_v
 
+        phi_v = med_diff / freq_step
+
+        phi_0 = phase[0] - phi_v * freq[0]
+
+        return phi_0, phi_v
