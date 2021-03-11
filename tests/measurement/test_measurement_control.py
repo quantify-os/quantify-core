@@ -1,3 +1,5 @@
+import os
+import signal
 import time
 import random
 import tempfile
@@ -1077,6 +1079,46 @@ class TestMeasurementControl:
             match="'badGetter' object has no attribute 'non_existing_param'",
         ):
             self.MC.run("This raises exception as expected")
+
+    def test_keyboard_interrupt(self):
+        class GettableUserInterrupt:
+            def __init__(self):
+                self.name = "amp"
+                self.label = "Amplitude"
+                self.unit = "V"
+                self._num_interrupts = 1
+
+            def get(self):
+                if time_par() == 3:
+                    for _ in range(self._num_interrupts):
+                        # This same signal is sent when pressing `ctrl` + `c`
+                        # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
+                        os.kill(
+                            os.getpid(), signal.SIGINT
+                        )  # send a stop signal directly through the os interface
+                return time_par()
+
+        time_par = ManualParameter(name="time", unit="s", label="Measurement Time")
+        time_par.batched = False
+
+        gettable = GettableUserInterrupt()
+
+        self.MC.settables(time_par)
+        self.MC.setpoints(np.arange(10))
+        self.MC.gettables(gettable)
+        dset = self.MC.run("interrupt_test")
+
+        # we stop after 4th iteration
+        assert sum(np.isnan(dset.y0) ^ 1) == 4
+
+        # Ensure force stop still possible
+        gettable._num_interrupts = 5
+        self.MC.settables(time_par)
+        self.MC.setpoints(np.arange(10))
+        self.MC.gettables(gettable)
+        dset = self.MC.run("interrupt_test_force")
+        # we stop right away
+        assert sum(np.isnan(dset.y0) ^ 1) == 3
 
 
 class TestGridSetpoints:
