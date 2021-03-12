@@ -83,10 +83,10 @@ The :class:`!Resonator` will return a Lorentzian shape centered on the resonant 
             return 1-np.array(list(map(lambda x: lorenz(1, self._test_width, x, self._test_resonance), freq())))
 
         def prepare(self) -> None:
-            print('Prepared Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
+            print('\nPrepared Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
 
         def finish(self) -> None:
-            print('Finished Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
+            print('\nFinished Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
 
     gettable_res = Resonator()
 
@@ -224,15 +224,17 @@ Interrupting
 
 Sometimes experiments unfortunately do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration).
 Rather than waiting for this experiment to complete, instead we can interrupt any :class:`~quantify.measurement.MeasurementControl` loop using the standard interrupt signal.
-In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel will cause the same result.
+In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel (stop button) will cause the same result.
 
-When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it will perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
+When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it will wait to obtain the results of current iteration (or batch) and perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
 
 .. note::
+
     The exact means of triggering an interrupt will differ depending on your platform and environment; the important part is to cause a `KeyboardInterrupt` exception to be raised in the Python process.
 
 .. warning::
-    Pressing ``ctrl`` + ``c`` more than once might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
+
+    In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times ``ctrl`` + ``c``). Mind than performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
 
 .. jupyter-execute::
