@@ -1,27 +1,85 @@
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from typing import Union
-import matplotlib.pyplot as plt
+# -----------------------------------------------------------------------------
+# Description:    Module containing matplotlib plotting utilities.
+# Repository:     https://gitlab.com/quantify-os/quantify-core
+# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
+# -----------------------------------------------------------------------------
+from typing import Tuple, Union
+from typing_extensions import Literal
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.axes import Axes
+from matplotlib.text import Text
+from matplotlib.collections import QuadMesh, Collection
+from matplotlib.image import AxesImage
+from matplotlib.colorbar import Colorbar
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
 
 
-def plot_basic_1d(
-    x,
-    y,
-    xlabel: str,
-    xunit: str,
-    ylabel: str,
-    yunit: str,
-    ax,
-    title: str = None,
-    plot_kw: dict = None,
-    **kw,
+def set_cyclic_colormap(
+    image_or_collection: Union[AxesImage, QuadMesh, Collection],
+    shifted: bool = False,
+    unit: Literal["deg", "rad"] = "deg",
+    clim: tuple = None,
 ) -> None:
-    ax.plot(x, y, **(plot_kw or dict()))
-    if title is not None:
-        ax.set_title(title)
-    set_xlabel(ax, xlabel, xunit)
-    set_ylabel(ax, ylabel, yunit)
+    """
+    Sets a cyclic colormap on a matplolib 2D color plot if cyclic units are detected.
+
+    Parameters
+    ----------
+    image_or_collection: Union[:class:`~matplotlib.image.AxesImage`, :class:`~matplotlib.collections.QuadMesh`, :class:`~matplotlib.collections.Collection`]
+        a matplotlib object returned by either one of :func:`~matplotlib.pyplot.pcolor`,
+        :func:`~matplotlib.pyplot.pcolormesh`, :func:`~matplotlib.pyplot.imshow` or
+        :func:`~matplotlib.pyplot.matshow`.
+    shifted
+        Chooses between :code:`"twilight_shifted"`/:code:`"twilight"` colormap and the
+        colormap range.
+    unit
+        Used to fix the colormap range.
+    clim
+        The colormap limit.
+
+
+    .. include:: ./docstring_examples/quantify.visualization.mpl_plotting.set_cyclic_colormap.rst.txt
+    """
+    shifted = bool(shifted)  # in case xarray min() is used
+    if unit in {"deg", "rad"}:
+        clim_d = {
+            True: {"deg": (-180.0, 180.0), "rad": (-np.pi, np.pi)},
+            False: {"deg": (0.0, 360.0), "rad": (0, 2 * np.pi)},
+        }
+        cmap = {True: "twilight_shifted", False: "twilight"}
+        image_or_collection.set_clim(clim_d[shifted][unit] if clim is None else clim)
+        image_or_collection.set_cmap(cmap[shifted])
+
+
+def plot_textbox(ax: Axes, text: str, **kw) -> Text:
+    """
+    Plot a textbox with sensible defaults using :obj:`~matplotlib.axes.Axes.text`.
+
+    Parameters
+    ----------
+    ax: :obj:`~matplotlib.axes.Axes`
+        the :obj:`~matplotlib.axes.Axes` on which to plot
+    text
+        the text of the textbox
+
+    Return
+    ------
+    :
+        the new text object
+    """
+    box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
+    t_obj = ax.text(
+        x=kw.get("x", 1.05),
+        y=kw.get("y", 0.95),
+        s=text,
+        transform=kw.get("transform", ax.transAxes),
+        bbox=kw.get("bbox", box_props),
+        verticalalignment=kw.get("verticalalignment", "top"),
+        **kw
+    )
+    return t_obj
 
 
 def plot_fit(
@@ -29,14 +87,14 @@ def plot_fit(
     fit_res,
     plot_init: bool = True,
     plot_numpoints: int = 1000,
-    range_casting: Union["abs", "angle", "real", "imag"] = "abs",
+    range_casting: Literal["abs", "angle", "real", "imag"] = "abs",
 ) -> None:
     """
     Plot a fit of an lmfit model with a real domain.
 
     Parameters
     ----------
-    ax
+    ax: :obj:`~matplotlib.axes.Axes`
         axis on which to plot the fit.
     fit_res
         an lmfit fit results object.
@@ -46,7 +104,7 @@ def plot_fit(
         the number of points used on which to evaulate the fit.
     range_casting
         how to plot fit functions that have a complex range.
-        Casting of values happens using np.abs, np.angle, np.real and np.imag.
+        Casting of values happens using :obj:`~numpy.absolute`, :obj:`~numpy.angle`, :obj:`~numpy.real` and :obj:`~numpy.imag`.
         angle is in degrees.
     """
     model = fit_res.model
@@ -113,13 +171,13 @@ def flex_colormesh_plot_vs_xy(
     xvals: np.ndarray,
     yvals: np.ndarray,
     zvals: np.ndarray,
-    ax: plt.Axes = None,
+    ax: Axes = None,
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
     vlim: list = (None, None),
     transpose: bool = False,
-) -> dict:
+) -> QuadMesh:
     """
     Add a rectangular block to a color plot using pcolormesh.
 
@@ -131,7 +189,7 @@ def flex_colormesh_plot_vs_xy(
         length M array corresponding to settable x1.
     zvals:
         M*N array corresponding to gettable yi.
-    ax:
+    ax: :obj:`~matplotlib.axes.Axes`
         axis to which to add the colormesh
     normalize:
         if True, normalezes each row of data.
@@ -147,7 +205,8 @@ def flex_colormesh_plot_vs_xy(
 
     Returns
     ------------
-    Dictionary containing fig, ax and cmap.
+    :
+        the created matplotlib QuadMesh
 
 
     .. warning::
@@ -215,7 +274,7 @@ def flex_colormesh_plot_vs_xy(
             xgrid, ygrid, zvals, cmap=cmap, vmin=vlim[0], vmax=vlim[1]
         )
 
-    return {"fig": ax.figure, "ax": ax, "cmap": colormap}
+    return colormap
 
 
 def plot_2d_grid(
@@ -228,8 +287,8 @@ def plot_2d_grid(
     yunit: str,
     zlabel: str,
     zunit: str,
-    ax: plt.Axes,
-    cax: plt.Axes = None,
+    ax: Axes,
+    cax: Axes = None,
     add_cbar: bool = True,
     title: str = None,
     normalize: bool = False,
@@ -237,7 +296,7 @@ def plot_2d_grid(
     cmap: str = "viridis",
     vlim: list = (None, None),
     transpose: bool = False,
-) -> dict:
+) -> Tuple[QuadMesh, Colorbar]:
     """
     Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns" of data of equal length.
 
@@ -254,9 +313,9 @@ def plot_2d_grid(
         x/y unit used in unit aware axis labels.
     zlabel:
         label used for the colorbar
-    ax:
+    ax: :obj:`~matplotlib.axes.Axes`
         axis to which to add the colormesh
-    cax:
+    cax: :obj:`~matplotlib.axes.Axes`
         axis on which to add the colorbar, if set to None, will create a new axis.
     add_cbar:
         if True, adds a colorbar.
@@ -276,7 +335,8 @@ def plot_2d_grid(
 
     Returns
     ------------
-    Dictionary containing fig, ax, cmap, and cbar.
+    :
+        The new matplotlib QuadMesh and Colorbar
 
 
     """
@@ -291,7 +351,7 @@ def plot_2d_grid(
     # to account for matlab style column ordering of pcolormesh
     zi = np.reshape(zarr, newshape=(len(yi), len(xi)))
 
-    p = flex_colormesh_plot_vs_xy(
+    quadmesh = flex_colormesh_plot_vs_xy(
         xi,
         yi,
         zi,
@@ -302,7 +362,6 @@ def plot_2d_grid(
         vlim=vlim,
         transpose=transpose,
     )
-    cmap = p["cmap"]
 
     if title is not None:
         ax.set_title(title)
@@ -314,8 +373,7 @@ def plot_2d_grid(
         if cax is None:
             ax_divider = make_axes_locatable(ax)
             cax = ax_divider.append_axes("right", size="5%", pad="2%")
-        cbar = plt.colorbar(cmap, cax=cax, orientation="vertical")
+        cbar = plt.colorbar(quadmesh, cax=cax, orientation="vertical")
         set_cbarlabel(cbar, zlabel, zunit)
-        p["cbar"] = cbar
 
-    return p
+    return quadmesh, cbar

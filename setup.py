@@ -31,7 +31,6 @@ requirements = [
     "jsonschema",
     "adaptive",
     "filelock",
-    "uncertainties",
     "appnope",
     "uncertainties",
 ]

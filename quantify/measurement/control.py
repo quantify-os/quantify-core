@@ -619,7 +619,7 @@ class MeasurementControl(Instrument):
 
         .. tip::
 
-            Use :meth:`~numpy.column_stack` to reshape multiple
+            Use :func:`~numpy.column_stack` to reshape multiple
             1D arrays when setting multiple settables.
 
         Parameters

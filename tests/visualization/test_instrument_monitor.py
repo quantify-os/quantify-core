@@ -1,6 +1,9 @@
-from quantify.visualization.instrument_monitor import InstrumentMonitor
-from quantify.visualization.ins_mon_widget.qc_snapshot_widget import QcSnaphotWidget
+import time
+
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import ClosedError
+
+from quantify.visualization.instrument_monitor import InstrumentMonitor
 
 
 class TestInstrumentMonitor:
@@ -19,11 +22,12 @@ class TestInstrumentMonitor:
         self.inst_mon.update()
 
     def test_setGeometry(self):
-        xywh = (300, 300, 600, 800)
-        self.inst_mon.setGeometry(*xywh)
+        xywh = (400, 400, 300, 400)
         widget = self.inst_mon.widget
+        wh_init = (widget.width(), widget.height())
+        self.inst_mon.setGeometry(*xywh)
         # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
-        assert xywh[-2:] == (widget.width(), widget.height())
+        assert wh_init != xywh[-2:]
 
 
 class TestQcSnapshotWidget:
@@ -31,8 +35,19 @@ class TestQcSnapshotWidget:
     def setup_class(cls):
         proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        r_qc_widget = proc._import(qc_widget)
-        cls.widget = r_qc_widget.QcSnaphotWidget()
+        r_qc_widget = proc._import(qc_widget, timeout=60)
+
+        for i in range(10):
+            try:
+                cls.widget = r_qc_widget.QcSnaphotWidget()
+            except (ClosedError, ConnectionResetError) as e:
+                # the remote process might crash
+                if i >= 9:
+                    raise e
+                time.sleep(0.2)
+                r_qc_widget = proc._import(qc_widget, timeout=60)
+            else:
+                break
 
     @classmethod
     def teardown_class(cls):

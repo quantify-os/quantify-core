@@ -1,3 +1,5 @@
+# quantify
+
 pip
 bump2version==0.5.11
 wheel==0.33.6
@@ -5,11 +7,9 @@ watchdog==0.9.0
 coverage
 sphinx>=2 # jupyter_sphinx requires sphinx>=2
 nbsphinx
-scikit-learn
-scikit-optimize
 sphinx-rtd-theme==0.5.0rc2
 sphinxcontrib-blockdiag
-jupyter_sphinx==0.3.2
+jupyter_sphinx>=0.3.2
 sphinx-jsonschema>=1.15
 sphinx-autobuild
 sphinx-togglebutton
@@ -18,7 +18,13 @@ twine==1.14.0
 pytest
 pytest-runner
 pytest-cov
+pytest-xdist # run parallel tests
 pygments==2.6.1
 black
 pylint
 pre-commit
+
+# quantify-core only
+
+scikit-learn
+scikit-optimize
