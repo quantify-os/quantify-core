@@ -286,7 +286,7 @@ class MeasurementControl(Instrument):
             self._iterative_set_and_get(vec, self._nr_acquired_values)
             ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
-            self._update("")
+            self._update(".")
             self._check_interrupt()
             return ret
 
@@ -599,7 +599,7 @@ class MeasurementControl(Instrument):
         """
         progress_percent = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
-        if not progress_message:
+        if self.verbose() and progress_message is None:
             t_left = (
                 round((100.0 - progress_percent) / progress_percent * elapsed_time, 1)
                 if progress_percent != 0
@@ -612,11 +612,13 @@ class MeasurementControl(Instrument):
             if self._batch_size_last is not None:
                 progress_message += f"last batch size: {self._batch_size_last:#6d}  "
 
+            print(progress_message, end="" if progress_percent < 100 else "\n")
+
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(progress_percent)
 
-        if self.verbose():
-            print(progress_message, end="" if progress_percent < 100 else "\n")
+        if self.verbose() and progress_message is not None:
+            print(progress_message, end="")
 
     def _safe_write_dataset(self):
         """
