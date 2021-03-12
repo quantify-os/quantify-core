@@ -8,8 +8,10 @@ import numpy as np
 
 
 dh.set_datadir(get_test_data_dir())
-tuid_list = dh.get_tuids_containing("resonator_analysis_test")
-real_phi_vs = [-3.7742e-07, -3.7263e-07, -3.7840e-07, -3.7681e-07, -3.7268e-07]
+tuid_list = dh.get_tuids_containing(
+    "Resonator_id", t_start="20210305", t_stop="20210306"
+)
+real_phi_vs = [-3.7774e-07, -3.7619e-07, -3.7742e-07, -3.7251e-07]
 
 
 def test_phase_guess():

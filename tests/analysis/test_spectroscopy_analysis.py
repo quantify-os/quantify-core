@@ -12,7 +12,7 @@ class TestResonatorSpectroscopyAnalysis:
     def setup_class(cls):
         dh.set_datadir(get_test_data_dir())
 
-        cls.tuid = "20210308-121759-988-76bb50"
+        cls.tuid = "20210305-154735-413-142768"
         cls.a_obj = sa.ResonatorSpectroscopyAnalysis(tuid=cls.tuid)
 
     def test_raw_data_not_in_processed_dataset(self):
@@ -52,11 +52,11 @@ class TestResonatorSpectroscopyAnalysis:
         fitted_freq = self.a_obj.quantities_of_interest["fr"]
         assert isinstance(fitted_freq, Variable)
         assert self.a_obj.quantities_of_interest["fr"].nominal_value == approx(
-            4.5403e09
+            4.4827e09
         )
         assert self.a_obj.quantities_of_interest["Ql"].nominal_value == approx(
-            5977.42438
+            4192.00558
         )
         assert self.a_obj.quantities_of_interest["Qe"].nominal_value == approx(
-            6395.20588
+            7317.39821
         )
