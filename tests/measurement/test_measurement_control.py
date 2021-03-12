@@ -1157,7 +1157,10 @@ class TestMeasurementControl:
         self.MC.settables(time_par)
         self.MC.setpoints(np.arange(10))
         self.MC.gettables(gettable)
-        dset = self.MC.run("interrupt_test")
+        try:
+            dset = self.MC.run("interrupt_test")
+        except KeyboardInterrupt:
+            pass
 
         # we stop after 4th iteration
         assert sum(np.isnan(dset.y0) ^ 1) == 4
@@ -1167,7 +1170,10 @@ class TestMeasurementControl:
         self.MC.settables(time_par)
         self.MC.setpoints(np.arange(10))
         self.MC.gettables(gettable)
-        dset = self.MC.run("interrupt_test_force")
+        try:
+            dset = self.MC.run("interrupt_test_force")
+        except KeyboardInterrupt:
+            pass
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
 
