@@ -1081,57 +1081,11 @@ class TestMeasurementControl:
         ):
             self.MC.run("This raises exception as expected")
 
+    @pytest.mark.skipif(
+        sys.platform == "win32",
+        reason="Emulating this test on windows is too complicated",
+    )
     def test_keyboard_interrupt(self):
-        sig = signal.SIGINT
-
-        # Just a test not sure what this does
-        # From: https://stackoverflow.com/a/35792192/9047715
-
-        if sys.platform != "win32":
-            kill = os.kill
-        else:
-            # adapt the conflated API on Windows.
-            import threading
-
-            sigmap = {
-                signal.SIGINT: signal.CTRL_C_EVENT,
-                signal.SIGBREAK: signal.CTRL_BREAK_EVENT,
-            }
-
-            def kill(pid, signum):
-                if signum in sigmap and pid == os.getpid():
-                    # we don't know if the current process is a
-                    # process group leader, so just broadcast
-                    # to all processes attached to this console.
-                    pid = 0
-                thread = threading.current_thread()
-                handler = signal.getsignal(signum)
-                # work around the synchronization problem when calling
-                # kill from the main thread.
-                if (
-                    signum in sigmap
-                    and thread.name == "MainThread"
-                    and callable(handler)
-                    and pid == 0
-                ):
-                    event = threading.Event()
-
-                    def handler_set_event(signum, frame):
-                        event.set()
-                        return handler(signum, frame)
-
-                    signal.signal(signum, handler_set_event)
-                    try:
-                        os.kill(pid, sigmap[signum])
-                        # busy wait because we can't block in the main
-                        # thread, else the signal handler can't execute.
-                        while not event.is_set():
-                            pass
-                    finally:
-                        signal.signal(signum, handler)
-                else:
-                    os.kill(pid, sigmap.get(signum, signum))
-
         class GettableUserInterrupt:
             def __init__(self):
                 self.name = "amp"
@@ -1144,9 +1098,8 @@ class TestMeasurementControl:
                     for _ in range(self._num_interrupts):
                         # This same signal is sent when pressing `ctrl` + `c`
                         # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
-                        kill(
-                            os.getpid(), sig
-                        )  # send a stop signal directly through the os interface
+                        # send a stop signal directly through the os interface
+                        os.kill(os.getpid(), signal.SIGINT)
                 return time_par()
 
         time_par = ManualParameter(name="time", unit="s", label="Measurement Time")
@@ -1157,10 +1110,7 @@ class TestMeasurementControl:
         self.MC.settables(time_par)
         self.MC.setpoints(np.arange(10))
         self.MC.gettables(gettable)
-        try:
-            dset = self.MC.run("interrupt_test")
-        except KeyboardInterrupt:
-            pass
+        dset = self.MC.run("interrupt_test")
 
         # we stop after 4th iteration
         assert sum(np.isnan(dset.y0) ^ 1) == 4
@@ -1170,10 +1120,7 @@ class TestMeasurementControl:
         self.MC.settables(time_par)
         self.MC.setpoints(np.arange(10))
         self.MC.gettables(gettable)
-        try:
-            dset = self.MC.run("interrupt_test_force")
-        except KeyboardInterrupt:
-            pass
+        dset = self.MC.run("interrupt_test_force")
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
 
