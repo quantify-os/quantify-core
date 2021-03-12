@@ -81,11 +81,11 @@ class TestResonatorSpectroscopyAnalysis:
             assert isinstance(fitted_freq, Variable)
             # Tests that the fitted values are correct (to within 5 standard deviations)
             assert a_obj.quantities_of_interest["fr"].nominal_value == approx(
-                fr, rel=5 * a_obj.quantities_of_interest["fr"].std_dev
+                fr, abs=5 * a_obj.quantities_of_interest["fr"].std_dev
             )
             assert a_obj.quantities_of_interest["Ql"].nominal_value == approx(
-                Ql, rel=5 * a_obj.quantities_of_interest["Ql"].std_dev
+                Ql, abs=5 * a_obj.quantities_of_interest["Ql"].std_dev
             )
             assert a_obj.quantities_of_interest["Qe"].nominal_value == approx(
-                Qe, rel=5 * a_obj.quantities_of_interest["Qe"].std_dev
+                Qe, abs=5 * a_obj.quantities_of_interest["Qe"].std_dev
             )
