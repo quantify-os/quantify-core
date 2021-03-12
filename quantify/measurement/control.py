@@ -4,7 +4,6 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 from __future__ import annotations
-import sys
 import time
 import json
 import types
@@ -39,8 +38,6 @@ from quantify.measurement.types import Settable, Gettable, is_batched
 
 # Intended for plotting monitors that run in separate processes
 _DATASET_LOCKS_DIR = tempfile.gettempdir()
-
-SIGNAL = signal.SIGINT if sys.platform != "win32" else signal.CTRL_C_EVENT
 
 
 class MeasurementControl(Instrument):
@@ -184,7 +181,7 @@ class MeasurementControl(Instrument):
         # Reset KeyboardInterrupt counter
         self._thread_data.events_num = 0
         # Assign handler to interrupt signal
-        signal.signal(SIGNAL, self._interrupt_handler)
+        signal.signal(signal.SIGINT, self._interrupt_handler)
 
     def _reset_post(self):
         """
@@ -193,7 +190,7 @@ class MeasurementControl(Instrument):
         self._plot_info = {"2D-grid": False}
         self.soft_avg(1)
         # Reset to default interrupt handler
-        signal.signal(SIGNAL, signal.default_int_handler)
+        signal.signal(signal.SIGINT, signal.default_int_handler)
 
     def _init(self, name):
         """
