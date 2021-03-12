@@ -1,4 +1,5 @@
 import os
+import sys
 import signal
 import time
 import random
@@ -1081,6 +1082,8 @@ class TestMeasurementControl:
             self.MC.run("This raises exception as expected")
 
     def test_keyboard_interrupt(self):
+        sig = signal.SIGINT if sys.platform != "win32" else signal.CTRL_C_EVENT
+
         class GettableUserInterrupt:
             def __init__(self):
                 self.name = "amp"
@@ -1094,7 +1097,7 @@ class TestMeasurementControl:
                         # This same signal is sent when pressing `ctrl` + `c`
                         # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
                         os.kill(
-                            os.getpid(), signal.SIGINT
+                            os.getpid(), sig
                         )  # send a stop signal directly through the os interface
                 return time_par()
 
