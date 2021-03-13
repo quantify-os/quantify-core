@@ -3,7 +3,11 @@ import matplotlib.pyplot as plt
 from quantify.visualization.SI_utilities import SI_prefix_and_scale_factor
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 from quantify.visualization.SI_utilities import SI_val_to_msg_str
-from quantify.visualization.SI_utilities import SafeFormatter, format_value_string
+from quantify.visualization.SI_utilities import (
+    SafeFormatter,
+    format_value_string,
+    value_precision,
+)
 from lmfit.parameter import Parameter
 
 
@@ -89,7 +93,7 @@ def test_save_formatter_named_args():
 
 
 # If no stderr is given, display to 5 significant figures. Otherwise, use a precision one order of magnitude lower than
-# the stderr and display the stderr itself to 2 significant figures.  
+# the stderr and display the stderr itself to 2 significant figures.
 def test_format_value_string():
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau)
@@ -103,15 +107,13 @@ def test_format_value_string():
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 5.123e+06$\pm$3.1e+04 "
 
-
-    tau = Parameter("tau", value=0.00123456)
+    tau = Parameter("tau", value=0.0000123456)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 1.2346e-3$\pm$NaN "
+    assert formatted_string == r"tau: 1.2346e-05$\pm$NaN "
 
-    tau.stderr = 0.00031456
+    tau.stderr = 0.0000031456
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 1.23e-3$\pm$3.1e-04 "
-
+    assert formatted_string == r"tau: 1.23e-05$\pm$3.1e-06 "
 
     tau = Parameter("tau", value=5.123456)
     formatted_string = format_value_string("tau", tau)
@@ -120,9 +122,9 @@ def test_format_value_string():
     tau.stderr = 0.03
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 5.123$\pm$0.030 "
-    
 
-# If no stderr is given, display to 5 significant figures in the appropriate units. 
+
+# If no stderr is given, display to 5 significant figures in the appropriate units.
 # Otherwise, the stderr use a precision one order of magnitude lower than the stderr and display the stderr itself
 # to two significant figures in standard index notation in the same units as the value.
 def test_format_value_string_unit_aware():
@@ -132,13 +134,24 @@ def test_format_value_string_unit_aware():
 
     tau.stderr = 0.03e-6
     formatted_string = format_value_string("tau", tau, unit="s")
-    assert formatted_string == r"tau: 5.1235$\pm$0.030 μs"
+    assert formatted_string == r"tau: 5.123$\pm$0.030 μs"
 
-    
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau, unit="Hz")
-    assert formatted_string == r"tau: 5.1235$\pm$NaN μs"
+    assert formatted_string == r"tau: 5.1235$\pm$NaN MHz"
 
     tau.stderr = 3.1234
     formatted_string = format_value_string("tau", tau, unit="Hz")
     assert formatted_string == r"tau: 5.1234561$\pm$3.1e-06 MHz"
+
+
+# The precision should be 5 significant figures if there is no stderr.
+# Otherwise the precision should be one order of magnitude lower than the stderr (and include trailing zeros)
+def test_value_precision():
+    val = 5.123456
+
+    format_specifier = value_precision(val)
+    assert format_specifier == "{:.5g}"
+
+    format_specifier = value_precision(val, stderr=0.31)
+    assert format_specifier == "{:#.3g}"
