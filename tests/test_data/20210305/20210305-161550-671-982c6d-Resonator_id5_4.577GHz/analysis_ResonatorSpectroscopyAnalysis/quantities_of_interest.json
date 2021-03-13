@@ -4,7 +4,7 @@
     "Ql": "(6.44+/-0.04)e+03",
     "Qc": "(7.77+/-0.04)e+03",
     "fr": "(4.5764219+/-0.0000023)e+09",
-    "fit_msg": "Summary\n$Q_I$: 37607.7526$\\pm$932.6172 \n$Q_C$: 7766.8400$\\pm$36.4531 \n$f_{res}$: 4.5764$\\pm$0.0000 GHz",
+    "fit_msg": "Summary\n$Q_I$: 37608$\\pm$933 \n$Q_C$: 7767$\\pm$36 \n$f_{res}$: 4.5764219$\\pm$2.3e-06 GHz",
     "fit_res": {
         "hanger_func_complex_SI": {
             "success": true,

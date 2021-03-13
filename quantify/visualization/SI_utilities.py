@@ -242,10 +242,10 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
     else:
         stderr = None
 
-    format_specifier = value_precision(val, stderr)
+    (val_format_specifier, err_format_specifier) = value_precision(val, stderr)
 
     fmt = SafeFormatter(missing="NaN")
-    val_string = ": " + format_specifier + r"$\pm$" + "{:#.2g} {}{}"
+    val_string = ": " + val_format_specifier + r"$\pm$" + err_format_specifier + " {}{}"
     # par name is excluded from the format command to allow latex {} characters.
     val_string = par_name + fmt.format(val_string, val, stderr, unit, end_char)
     return val_string
@@ -268,11 +268,14 @@ def value_precision(val, stderr=None):
     """
 
     if stderr == None or stderr == 0:
-        return "{:.5g}"
+        return "{:.5g}", "{:.2g}"
     else:
-        value_mag = np.floor(np.log10(abs(val)))
-        err_mag = np.floor(np.log10(abs(stderr)))
-        sig_figs = int(
-            max(value_mag - err_mag + 2, 2)
-        )  # If the error is the same size as the value or larger, use 2 sig figs
-        return "{:#." + "{:d}".format(sig_figs) + "g}"
+        value_mag = np.ceil(np.log10(abs(val)))
+        err_mag = np.ceil(np.log10(abs(stderr)))
+        if 1 < err_mag < 4:
+            return "{:.0f}", "{:.0f}"
+        else:
+            sig_figs = int(
+                max(value_mag - err_mag + 2, 2)
+            )  # If the error is the same size as the value or larger, use 2 sig figs
+            return "{:#." + "{:d}".format(sig_figs) + "g}", "{:.2g}"
