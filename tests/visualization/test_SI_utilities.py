@@ -88,17 +88,43 @@ def test_save_formatter_named_args():
     assert plot_title == "test\n190101_001122"
 
 
+# If no stderr is given, display to 5 significant figures. Otherwise, use a precision one order of magnitude lower than
+# the stderr and display the stderr itself to 2 significant figures.  
 def test_format_value_string():
+    tau = Parameter("tau", value=5123456.123456)
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 5.1235e+06$\pm$NaN "
+
+    tau.stderr = 3.1456
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 5123456.1$\pm$3.1 "
+
+    tau.stderr = 31456
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 5.123e+06$\pm$3.1e+04 "
+
+
+    tau = Parameter("tau", value=0.00123456)
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 1.2346e-3$\pm$NaN "
+
+    tau.stderr = 0.00031456
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 1.23e-3$\pm$3.1e-04 "
+
+
     tau = Parameter("tau", value=5.123456)
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 5.1235$\pm$NaN "
 
     tau.stderr = 0.03
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 5.1235$\pm$0.0300 "
-    tau.stderr = 0.03
+    assert formatted_string == r"tau: 5.123$\pm$0.030 "
+    
 
-
+# If no stderr is given, display to 5 significant figures in the appropriate units. 
+# Otherwise, the stderr use a precision one order of magnitude lower than the stderr and display the stderr itself
+# to two significant figures in standard index notation in the same units as the value.
 def test_format_value_string_unit_aware():
     tau = Parameter("tau", value=5.123456e-6)
     formatted_string = format_value_string("tau", tau, unit="s")
@@ -106,5 +132,13 @@ def test_format_value_string_unit_aware():
 
     tau.stderr = 0.03e-6
     formatted_string = format_value_string("tau", tau, unit="s")
-    assert formatted_string == r"tau: 5.1235$\pm$0.0300 μs"
-    tau.stderr = 0.03
+    assert formatted_string == r"tau: 5.1235$\pm$0.030 μs"
+
+    
+    tau = Parameter("tau", value=5123456.123456)
+    formatted_string = format_value_string("tau", tau, unit="Hz")
+    assert formatted_string == r"tau: 5.1235$\pm$NaN μs"
+
+    tau.stderr = 3.1234
+    formatted_string = format_value_string("tau", tau, unit="Hz")
+    assert formatted_string == r"tau: 5.1234561$\pm$3.1e-06 MHz"
