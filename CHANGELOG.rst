@@ -12,7 +12,7 @@ Overview
 * New features
 * Various bug fixes
 * Improved and more extensive documentation
-* Analysis framework (Undocumented)
+* Analysis framework (Undocumented #163)
 
 Breaking changes
 ^^^^^^^^^^^^^^^^
@@ -35,6 +35,8 @@ Merged branches and closed issues
 * Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
 * Added batched mode with outer iterative loops (!98)
 * Switched default dataset engine to support complex numbers #150 (!114)
+* Analysis class, framework, subclass examples #63 (!89, !122, !123)
+* Cyclic colormaps auto-detect in 2D analysis (!118, !122)
 
 0.3.1 (2021-02-15)
 ------------------
