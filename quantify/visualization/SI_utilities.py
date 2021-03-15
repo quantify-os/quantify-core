@@ -272,7 +272,7 @@ def value_precision(val, stderr=None):
     else:
         value_mag = np.ceil(np.log10(abs(val)))
         err_mag = np.ceil(np.log10(abs(stderr)))
-        if 1 < err_mag < 4:
+        if err_mag == 2:
             return "{:.0f}", "{:.0f}"
         else:
             sig_figs = int(
