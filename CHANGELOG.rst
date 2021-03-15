@@ -28,6 +28,7 @@ New
 * Data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`
 * Support of complex numbers and arrays in the dataset through `h5netcdf` engine
 * Batched mode with outer iterative loops
+* Keyboard interrupt or Jupyter kernel interrupts are handled safely
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,6 +38,7 @@ Merged branches and closed issues
 * Switched default dataset engine to support complex numbers #150 (!114)
 * Analysis class, framework, subclass examples #63 (!89, !122, !123)
 * Cyclic colormaps auto-detect in 2D analysis (!118, !122)
+* Safely handle Keyboard interrupt or Jupyter kernel interrupts (!125, !127)
 
 0.3.1 (2021-02-15)
 ------------------
