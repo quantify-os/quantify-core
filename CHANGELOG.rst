@@ -2,8 +2,18 @@
 Changelog
 ===========
 
-Unreleased
-----------
+0.3.2 (2021-03-16)
+------------------
+
+Overview
+^^^^^^^^
+
+* Improved dataset format (breaking changes! see notes below)
+* New features
+* Various bug fixes
+* Improved and more extensive documentation
+* Analysis framework (Undocumented)
+
 Breaking changes
 ^^^^^^^^^^^^^^^^
 
@@ -17,6 +27,7 @@ New
 
 * Data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`
 * Support of complex numbers and arrays in the dataset through `h5netcdf` engine
+* Batched mode with outer iterative loops
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
