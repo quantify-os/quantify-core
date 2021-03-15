@@ -12,7 +12,7 @@ Overview
 * New features
 * Various bug fixes
 * Improved and more extensive documentation
-* Analysis framework (Undocumented #163)
+* Analysis framework (Undocumented)
 
 Breaking changes
 ^^^^^^^^^^^^^^^^
