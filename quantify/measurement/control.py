@@ -161,9 +161,9 @@ class MeasurementControl(Instrument):
         self._plotmon_name = ""
         self._plot_info = {"2D-grid": False}
 
-        # properly handling KeyboardInterrupt's
+        # properly handling KeyboardInterrupts
         self._thread_data = threading.local()
-        # counter for KeyboardInterrupt's to allow forced interrupt
+        # counter for KeyboardInterrupts to allow forced interrupt
         self._thread_data.events_num = 0
 
     ############################################
