@@ -1110,8 +1110,10 @@ class TestMeasurementControl:
         self.MC.settables(time_par)
         self.MC.setpoints(np.arange(10))
         self.MC.gettables(gettable)
-        dset = self.MC.run("interrupt_test")
+        with pytest.raises(KeyboardInterrupt):
+            self.MC.run("interrupt_test")
 
+        dset = self.MC._dataset
         # we stop after 4th iteration
         assert sum(np.isnan(dset.y0) ^ 1) == 4
 
@@ -1120,7 +1122,11 @@ class TestMeasurementControl:
         self.MC.settables(time_par)
         self.MC.setpoints(np.arange(10))
         self.MC.gettables(gettable)
-        dset = self.MC.run("interrupt_test_force")
+
+        with pytest.raises(KeyboardInterrupt):
+            self.MC.run("interrupt_test_force")
+
+        dset = self.MC._dataset
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
 

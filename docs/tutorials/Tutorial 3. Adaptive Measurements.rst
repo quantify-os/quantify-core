@@ -3,6 +3,15 @@
 Tutorial 3. Adaptive Measurements
 ==================================
 
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 3. Adaptive Measurements`
+
+    :jupyter-download:script:`Tutorial 3. Adaptive Measurements`
+
+
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`usage`. If you have some difficulties following the tutorial it might be worth reviewing the *User guide*!
 
 We **highly recommended** to first follow :ref:`Tutorial 1. Controlling a basic experiment using MeasurementControl` and :ref:`Tutorial 2. Advanced capabilities of the MeasurementControl`.
@@ -176,13 +185,3 @@ Can I return multi-dimensional data from a Gettable in Adaptive Mode?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Yes, but only first dimension (y0) will be considered by the adaptive function; the remaining dimensions will merely be
 saved to the dataset.
-
-
-
-.. seealso::
-
-    The complete source code of this tutorial can be found in
-
-    :jupyter-download:notebook:`Tutorial 3. Adaptive Measurements`
-
-    :jupyter-download:script:`Tutorial 3. Adaptive Measurements`
