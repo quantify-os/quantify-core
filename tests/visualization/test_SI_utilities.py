@@ -126,7 +126,7 @@ def test_format_value_string():
     tau = Parameter("tau", value=37608)
     tau.stderr = 933
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 37608$\pm$933 "
+    assert formatted_string == r"tau: 3.761e+04$\pm$9.3e+02 "
 
     tau = Parameter("tau", value=7767)
     tau.stderr = 36
