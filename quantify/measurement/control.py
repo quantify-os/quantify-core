@@ -161,9 +161,9 @@ class MeasurementControl(Instrument):
         self._plotmon_name = ""
         self._plot_info = {"2D-grid": False}
 
-        # properly handling KeyboardInterrupts
+        # properly handling KeyboardInterrupt's
         self._thread_data = threading.local()
-        # counter for KeyboardInterrupts to allow forced interrupt
+        # counter for KeyboardInterrupt's to allow forced interrupt
         self._thread_data.events_num = 0
 
     ############################################
@@ -253,6 +253,8 @@ class MeasurementControl(Instrument):
         self._finish()
         self._reset_post()
 
+        self._check_interrupt()  # Propagate interruption
+
         return self._dataset
 
     def run_adaptive(self, name, params):
@@ -335,6 +337,9 @@ class MeasurementControl(Instrument):
         self._finish()
         self._dataset = trim_dataset(self._dataset)
         self._safe_write_dataset()  # Wrap up experiment and store data
+
+        self._check_interrupt()  # Propagate interruption
+
         return self._dataset
 
     def _run_iterative(self):
@@ -477,8 +482,8 @@ class MeasurementControl(Instrument):
         """
         if self._thread_data.events_num >= 1:
             # It is safe to raise the KeyboardInterrupt here because we are guaranteed
-            # To be running MC code. The exception will be handled in a try-except
-            raise KeyboardInterrupt
+            # To be running MC code. The exception can be handled in a try-except
+            raise KeyboardInterrupt("Measurement interrupted")
 
     def _update(self, print_message: str = None):
         """
