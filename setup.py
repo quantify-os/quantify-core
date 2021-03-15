@@ -22,7 +22,7 @@ requirements = [
     "qcodes",
     "scipy>=1.5.0,!=1.6.0",
     "h5netcdf",
-    "xarray",
+    "xarray==0.17.0",  # 0.17.1 will introduce breaking changes, see issue #161
     "xxhash",
     "matplotlib",
     "lmfit",
