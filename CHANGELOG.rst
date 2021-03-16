@@ -6,7 +6,7 @@ Changelog
 ------------------
 
 Overview
-^^^^^^^^
+~~~~~~~~
 
 * Improved dataset format (breaking changes! see notes below)
 * New features
@@ -15,7 +15,7 @@ Overview
 * Analysis framework (Undocumented)
 
 Breaking changes
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 Please see merge request !98 for a python snippet that will make all previous datasets compliant with this breaking change!
 
@@ -23,7 +23,7 @@ Please see merge request !98 for a python snippet that will make all previous da
 * The TUID class is only a validator now to avoid issues with `h5netcdf`
 
 New
-^^^
+~~~
 
 * Data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`
 * Support of complex numbers and arrays in the dataset through `h5netcdf` engine
@@ -31,7 +31,7 @@ New
 * Keyboard interrupt or Jupyter kernel interrupts are handled safely
 
 Merged branches and closed issues
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
 * Added batched mode with outer iterative loops (!98)
@@ -79,7 +79,7 @@ Merged branches and closed issues
 * Bugfix for get tuids containing method (!106)
 
 Breaking changes
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 Please see merge request !101 for a python snippet that will make all previous datasets compliant with this breaking change!
 
