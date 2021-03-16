@@ -45,7 +45,7 @@ settings = AnalysisSettings(
             "svg",
         ],  # svg is superior but at least OneNote does not support it
         "mpl_exclude_fig_titles": False,
-        "mpl_transparent_background": False,
+        "mpl_transparent_background": True,
     }
 )
 """
