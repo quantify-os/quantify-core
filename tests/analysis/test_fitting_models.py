@@ -12,7 +12,7 @@ def test_phase_guess():
     )
     real_phi_vs = [-3.7774e-07, -3.7619e-07, -3.7742e-07, -3.7251e-07]
 
-    mod = fm.ResonatorModel()
+    _ = fm.ResonatorModel()
 
     # Go through all the test datasets
     for idx, _ in enumerate(tuid_list):
