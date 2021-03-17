@@ -29,6 +29,13 @@ If you are familiar with software development (package manager, git, terminal, P
         $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
         $ pip install quantify-core
 
+        $ # (Optionally) install quantify-scheduler:
+
+        $ pip install quantify-scheduler
+        $ jupyter labextension install jupyterlab-plotly --no-build
+        $ # this might take a few minutes
+        $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
+
 #. You are good to go! Head over to the :ref:`User guide <usage>` to get started.
 
 Detailed instructions
@@ -82,12 +89,20 @@ Detailed instructions
 
     .. code-block::
 
-        $ pip install quantify-core  # install the package into
-        $ pip install quantify-scheduler   # optionally install other quantify modules
+        $ pip install quantify-core
 
     .. note::
 
         We currently do not have a conda recipe for installation, instead we refer to the default pip installation within a conda environment.
+
+#. (Optionally) install quantify-scheduler
+
+    .. code-block::
+
+        $ pip install quantify-scheduler
+        $ jupyter labextension install jupyterlab-plotly --no-build
+        $ # this might take a few minutes
+        $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
 
 Other systems
 ~~~~~~~~~~~~~
