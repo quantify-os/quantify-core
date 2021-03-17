@@ -99,6 +99,7 @@ def test_flow_skip_step_continue_manually(caplog):
         "execution step 6: <bound method BaseAnalysis.adjust_figures of",
         "execution step 7: <bound method BaseAnalysis.save_figures_mpl of",
         "execution step 8: <bound method BaseAnalysis.save_quantities_of_interest of",
+        "execution step 9: <bound method BaseAnalysis.save_processed_dataset of",
     ]
 
     for log_msg, rec in zip(log_msgs, caplog.records):

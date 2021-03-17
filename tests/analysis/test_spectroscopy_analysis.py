@@ -39,7 +39,7 @@ class TestResonatorSpectroscopyAnalysis:
             7759.742961176549,
         ]
 
-    @pytest.mark.skip(reason="blocked by #161, see `base_analisys.AnalysisSteps`")
+    # @pytest.mark.skip(reason="blocked by #161, see `base_analisys.AnalysisSteps`")
     def test_raw_data_not_in_processed_dataset(self):
         for tuid in self.tuids:
             container = Path(dh.locate_experiment_container(tuid))

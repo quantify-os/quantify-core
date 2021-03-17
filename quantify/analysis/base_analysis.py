@@ -79,7 +79,7 @@ class AnalysisSteps(Enum):
 
     .. tip::
 
-        A custom analysis flow (e.g. inserting new steps) can be created be implementing
+        A custom analysis flow (e.g. inserting new steps) can be created by implementing
         an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
     """
 
@@ -94,8 +94,7 @@ class AnalysisSteps(Enum):
     S06_ADJUST_FIGURES = "adjust_figures"
     S07_SAVE_FIGURES = "save_figures"
     S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
-    # blocked by #161
-    # S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
