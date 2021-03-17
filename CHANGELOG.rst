@@ -2,33 +2,20 @@
 Changelog
 ===========
 
-0.3.2 (2021-03-16)
+0.3.2 (2021-03-17)
 ------------------
 
-Overview
-~~~~~~~~
+* Analysis framework beta version (limited documentation).
+* Measurement control supports an inner loop in batched mode with outer iterative loops.
+* Improvements to the dataset format (potentially breaking changes, see notes below).
 
-* Improved dataset format (breaking changes! see notes below)
-* New features
-* Various bug fixes
-* Improved and more extensive documentation
-* Analysis framework (Undocumented)
+    * Support of complex numbers and arrays in the dataset storage through `h5netcdf` engine.
+    * Proper use of the coordinate property of xarray in quantify datasets.
+* New data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`.
+* Keyboard interrupt and Jupyter kernel interrupts are handled safely in MeasurementControl.
+* Improved and more extensive documentation.
+* Various bug fixes.
 
-Breaking changes
-~~~~~~~~~~~~~~~~
-
-Please see merge request !98 for a python snippet that will make all previous datasets compliant with this breaking change!
-
-* Dataset format changed to use Xarray Coordinates [no Dimensions] (!98)
-* The TUID class is only a validator now to avoid issues with `h5netcdf`
-
-New
-~~~
-
-* Data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`
-* Support of complex numbers and arrays in the dataset through `h5netcdf` engine
-* Batched mode with outer iterative loops
-* Keyboard interrupt or Jupyter kernel interrupts are handled safely
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,6 +26,17 @@ Merged branches and closed issues
 * Analysis class, framework, subclass examples #63 (!89, !122, !123)
 * Cyclic colormaps auto-detect in 2D analysis (!118, !122)
 * Safely handle Keyboard interrupt or Jupyter kernel interrupts (!125, !127)
+
+
+Potentially breaking changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Please see merge request !98 for a python snippet that will make all previous datasets compliant with this change!
+Note that this is only required if you want to load old datasets in `quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt`.
+
+* Dataset format is updated to use Xarray Coordinates [no Dimensions] (!98)
+* The TUID class is only a validator now to avoid issues with `h5netcdf`
+
 
 0.3.1 (2021-02-15)
 ------------------
