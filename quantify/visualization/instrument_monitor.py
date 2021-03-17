@@ -4,9 +4,13 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 import time
+import warnings
+
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.multiprocess.remoteproxy import ClosedError
 
+from qcodes.utils.helpers import strip_attrs
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
@@ -14,8 +18,6 @@ from qcodes.instrument.parameter import ManualParameter
 from quantify.data.handling import snapshot
 from quantify.utilities.general import traverse_dict
 from quantify.visualization.ins_mon_widget import qc_snapshot_widget
-
-import warnings
 
 
 class InstrumentMonitor(Instrument):
@@ -40,9 +42,7 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(
-        self, name, window_size: tuple = (600, 600), remote: bool = True, **kwargs
-    ):
+    def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True):
         """
         Initializes the pyqtgraph window
 
@@ -73,7 +73,18 @@ class InstrumentMonitor(Instrument):
 
         # initial value is fake but ensures it will update the first time
         self.last_update_time = 0
-        self.create_widget(window_size=window_size)
+
+        for i in range(10):
+            try:
+                self.create_widget(window_size=window_size)
+            except (ClosedError, ConnectionResetError) as e:
+                # the remote process might crash
+                if i >= 9:
+                    raise e
+                time.sleep(0.2)
+                self._init_qt()
+            else:
+                break
 
     def update(self):
         """
@@ -95,16 +106,16 @@ class InstrumentMonitor(Instrument):
                 self.widget.setData(snap_collated)
                 warnings.warn(f"Encountered: {e}", Warning)
 
-    def _init_qt(self):
+    def _init_qt(self, timeout=60):
         # starting the process for the pyqtgraph plotting
         # You do not want a new process to be created every time you start a
         # run, so this only starts once and stores the process in the class
         self.__class__.proc = pgmp.QtProcess(
             processRequests=False
         )  # pyqtgraph multiprocessing
-        self.__class__.rpg = self.proc._import("pyqtgraph")
+        self.__class__.rpg = self.proc._import("pyqtgraph", timeout=timeout)
         qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
-        self.__class__.rwidget = self.proc._import(qc_widget)
+        self.__class__.rwidget = self.proc._import(qc_widget, timeout=timeout)
 
     def create_widget(self, window_size: tuple = (1000, 600)):
         """
@@ -139,3 +150,22 @@ class InstrumentMonitor(Instrument):
             Height of the window
         """
         self.widget.setGeometry(x, y, w, h)
+
+    def close(self) -> None:
+        """
+        (Modified from Instrument class)
+
+        Irreversibly stop this instrument and free its resources.
+
+        Subclasses should override this if they have other specific
+        resources to close.
+        """
+        if hasattr(self, "connection") and hasattr(self.connection, "close"):
+            self.connection.close()
+
+        # Essential!!!
+        # Close the process
+        self.__class__.proc.join()
+
+        strip_attrs(self, whitelist=["_name"])
+        self.remove_instance(self)

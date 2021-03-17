@@ -21,7 +21,8 @@ requirements = [
     "numpy!=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
     "qcodes",
     "scipy>=1.5.0,!=1.6.0",
-    "xarray",
+    "h5netcdf",
+    "xarray==0.17.0",  # 0.17.1 will introduce breaking changes, see issue #161
     "xxhash",
     "matplotlib",
     "lmfit",
@@ -31,6 +32,7 @@ requirements = [
     "adaptive",
     "filelock",
     "appnope",
+    "uncertainties",
 ]
 
 setup_requirements = [
@@ -62,6 +64,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.com/quantify-os/quantify-core",
-    version="0.3.1",
+    version="0.3.2",
     zip_safe=False,
 )

@@ -3,6 +3,7 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
+import warnings
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -11,8 +12,7 @@ from qcodes.utils.helpers import strip_attrs
 
 import pyqtgraph.multiprocess as pgmp
 from quantify.data.handling import get_datadir
-
-import warnings
+from quantify.measurement.control import _DATASET_LOCKS_DIR
 
 
 class PlotMonitor_pyqt(Instrument):
@@ -41,12 +41,15 @@ class PlotMonitor_pyqt(Instrument):
         # "commands" will be sent
         self.proc = pgmp.QtProcess(processRequests=False)
         # quantify module(s) in the remote process
-        self.remote_quantify = self.proc._import("quantify")
+        timeout = 60
+        self.remote_quantify = self.proc._import("quantify", timeout=timeout)
         self.remote_ppr = self.proc._import(
-            "quantify.visualization.pyqt_plotmon_remote"
+            "quantify.visualization.pyqt_plotmon_remote", timeout=timeout
         )
         # the interface to the remote object
-        self.remote_plotmon = self.remote_ppr.RemotePlotmon(instr_name=self.name)
+        self.remote_plotmon = self.remote_ppr.RemotePlotmon(
+            instr_name=self.name, dataset_locks_dir=_DATASET_LOCKS_DIR
+        )
 
         self.add_parameter(
             name="tuids_max_num",
@@ -205,7 +208,7 @@ class PlotMonitor_pyqt(Instrument):
 
     def close(self) -> None:
         """
-        (Modified form Instrument class)
+        (Modified from Instrument class)
 
         Irreversibly stop this instrument and free its resources.
 

@@ -17,3 +17,4 @@ Contributors
 ------------
 
 * Pieter Eendebak <pieter.eendebak@tno.nl>
+* Sander de Snoo <S.L.deSnoo@tudelft.nl>

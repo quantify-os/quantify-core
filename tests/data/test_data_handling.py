@@ -1,15 +1,18 @@
 import os
+from pathlib import Path
 import shutil
-import pytest
+import tempfile
+from datetime import datetime
 import dateutil
+
+import pytest
 import xarray as xr
 import numpy as np
-from quantify.data.types import TUID
-import quantify.data.handling as dh
-from quantify.measurement.control import MeasurementControl
-from datetime import datetime
 from qcodes import ManualParameter
+from quantify.data.types import TUID
+from quantify.measurement.control import MeasurementControl
 from quantify.utilities._tests_helpers import get_test_data_dir
+import quantify.data.handling as dh
 
 
 test_datadir = get_test_data_dir()
@@ -21,7 +24,6 @@ def test_gen_tuid():
 
     assert TUID.is_valid(tuid)
     assert isinstance(tuid, str)
-    assert isinstance(tuid, TUID)
 
 
 def test_initialize_dataset():
@@ -35,7 +37,7 @@ def test_initialize_dataset():
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
 
     assert isinstance(dataset, xr.Dataset)
-    assert len(dataset.data_vars) == 2
+    assert len(dataset.data_vars) == 1
     assert dataset.attrs.keys() == {"tuid"}
     assert dataset.variables.keys() == {"x0", "y0"}
 
@@ -51,6 +53,9 @@ def test_initialize_dataset():
     assert y0.attrs["name"] == "y"
     assert y0.attrs["long_name"] == "Signal amplitude"
 
+    assert set(dataset.coords.keys()) == {"x0"}
+    assert set(dataset.dims.keys()) == {"dim_0"}
+
 
 def test_initialize_dataset_2D():
     xpar = ManualParameter("x", unit="m", label="X position")
@@ -64,9 +69,10 @@ def test_initialize_dataset_2D():
     dataset = dh.initialize_dataset(setable_pars, setpoints, getable_pars)
 
     assert isinstance(dataset, xr.Dataset)
-    assert len(dataset.data_vars) == 3
+    assert len(dataset.data_vars) == 1
     assert dataset.attrs.keys() == {"tuid"}
     assert set(dataset.variables.keys()) == {"x0", "x1", "y0"}
+    assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
 def test_getset_datadir():
@@ -318,6 +324,60 @@ def test_misplaced_exp_container():
     shutil.rmtree(tmp_data_path)
 
 
+def test_locate_experiment_container():
+    dh.set_datadir(test_datadir)
+    tuid = "20200430-170837-001-315f36"
+    experiment_container = dh.locate_experiment_container(tuid=tuid)
+    path_parts = Path(experiment_container).parts
+
+    assert tuid in path_parts[-1]
+    assert "Cosine test" in path_parts[-1]
+    assert path_parts[-2] == "20200430"
+    assert path_parts[-3] == os.path.split(test_datadir)[-1]
+
+
+def test_load_dataset_from_path():
+    dh.set_datadir(test_datadir)
+
+    tuid = "20200430-170837-001-315f36"
+    path = Path(dh.locate_experiment_container(tuid=tuid)) / dh.DATASET_NAME
+    dataset = dh.load_dataset_from_path(path)
+    assert dataset.attrs["tuid"] == tuid
+
+
+def test_dh_load_dataset_complex_numbers():
+    complex_float = 1.0 + 5.0j
+    complex_int = 1 + 4j
+    dataset = mk_dataset_complex_array(
+        complex_float=complex_float, complex_int=complex_int
+    )
+    tmp_dir = tempfile.TemporaryDirectory()
+    path = Path(tmp_dir.name) / dh.DATASET_NAME
+    dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
+
+    load_dataset = dh.load_dataset_from_path(path)
+    assert load_dataset.y0.values[0] == complex_int
+    assert load_dataset.y1.values[0] == complex_float
+    tmp_dir.cleanup()
+
+
+def test_write_quantify_dataset():
+    complex_float = 1.0 + 6.0j
+    complex_int = 1 + 3j
+    dataset = mk_dataset_complex_array(
+        complex_float=complex_float, complex_int=complex_int
+    )
+
+    tmp_dir = tempfile.TemporaryDirectory()
+    path = Path(tmp_dir.name) / dh.DATASET_NAME
+    dh.write_dataset(path, dataset)
+
+    load_dataset = xr.load_dataset(path, engine="h5netcdf")
+    assert load_dataset.y0.values[0] == complex_int
+    assert load_dataset.y1.values[0] == complex_float
+    tmp_dir.cleanup()
+
+
 def test_snapshot():
     empty_snap = dh.snapshot()
     assert empty_snap == {"instruments": {}, "parameters": {}}
@@ -369,3 +429,46 @@ def test_dynamic_dataset():
     assert not np.isnan(dset["x0"]).any()
     assert not np.isnan(dset["x1"]).any()
     assert not np.isnan(dset["y0"]).any()
+
+    assert "tuid" in set(dset.attrs)
+
+
+def test_to_gridded_dataset():
+    dh.set_datadir(test_datadir)
+    tuid = "20200504-191556-002-4209ee"
+    dset_orig = dh.load_dataset(tuid)
+    dset_gridded = dh.to_gridded_dataset(dset_orig)
+
+    assert dset_gridded.attrs["tuid"] == tuid
+    assert tuple(dset_gridded.dims.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.coords.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.dims.values()) == (50, 11)
+    assert dset_gridded["y0"].dims == ("x0", "x1")
+    assert len(dset_gridded["x0"].values) == len(np.unique(dset_orig["x0"]))
+
+    for var in ("x0", "x1", "y0"):
+        assert dset_orig[var].attrs == dset_gridded[var].attrs
+
+    y0 = dset_gridded["y0"].values
+
+    indices = [[10, 9], [22, 6], [7, 3], [10, 1], [18, 1], [0, 3]]
+    expected = [
+        -0.7983563142002691,
+        0.1436698700195456,
+        0.2493959207434933,
+        0.7983563142002691,
+        -0.6970549632987115,
+        -0.3999999999999999,
+    ]
+
+    assert [y0[tuple(idxs)] for idxs in indices] == expected
+
+
+def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
+    dataset = xr.Dataset(
+        data_vars={
+            "y0": ("dim_0", np.array([complex_int] * 5)),
+            "y1": ("dim_0", np.array([complex_float] * 5)),
+        }
+    )
+    return dataset

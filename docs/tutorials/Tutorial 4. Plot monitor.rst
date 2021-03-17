@@ -1,6 +1,15 @@
 Tutorial 4. Plot monitor
 =====================================================================
 
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 4. Plot monitor`
+
+    :jupyter-download:script:`Tutorial 4. Plot monitor`
+
+
 In this tutorial we dive into the capabilities of the plot monitor.
 We will create a fictional device and showcase how the plot monitor can be used. Enjoy!
 
@@ -21,7 +30,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
     InteractiveShell.ast_node_interactivity = "all"
 
 
-.. include:: set_data_dir.rst
+.. include:: set_data_dir.rst.txt
 
 
 QCoDeS drivers for our instruments
@@ -324,12 +333,3 @@ But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 
 
 Now your life will never be the same again ;)
-
-
-.. seealso::
-
-    The complete source code of this tutorial can be found in
-
-    :jupyter-download:notebook:`Tutorial 4. Plot monitor`
-
-    :jupyter-download:script:`Tutorial 4. Plot monitor`

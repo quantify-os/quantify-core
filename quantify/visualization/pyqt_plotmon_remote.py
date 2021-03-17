@@ -3,29 +3,29 @@
 # Repository:     https://gitlab.com/quantify-os/quantify-core
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
-import numpy as np
+from multiprocessing import Queue
 from collections.abc import Iterable
 from collections import deque, OrderedDict
 import itertools
 import os
-from filelock import FileLock
 
+import numpy as np
+from filelock import FileLock
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
 from pyqtgraph.Qt import QtCore
-from multiprocessing import Queue
 
-from quantify.utilities.general import get_keys_containing
 from quantify.data.handling import (
     load_dataset,
     _xi_and_yi_match,
+    _get_parnames,
     set_datadir,
+    DATASET_NAME,
 )
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.data.types import TUID
 from quantify.visualization.color_utilities import make_fadded_colors
 from quantify.visualization import _appnope
-from quantify.measurement.control import _dataset_name, _dataset_locks_dir
 
 
 class RemotePlotmon:
@@ -38,9 +38,12 @@ class RemotePlotmon:
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
-    def __init__(self, instr_name: str):
+    def __init__(self, instr_name: str, dataset_locks_dir: str):
         # Used to mirror the name of the instrument in the windows titles
         self.instr_name = instr_name
+
+        # Use the same locking files as in the main process
+        self.dataset_locks_dir = dataset_locks_dir
 
         # used to track the tuids of previous datasets
         self._tuids = deque()
@@ -166,7 +169,7 @@ class RemotePlotmon:
         # verify tuid
         TUID(tuid)
 
-        dset = _safe_load_dataset(tuid)
+        dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -201,7 +204,9 @@ class RemotePlotmon:
         # ensures the same datadir as in the main process
         set_datadir(datadir)
 
-        dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
+        dsets = {
+            tuid: _safe_load_dataset(tuid, self.dataset_locks_dir) for tuid in tuids
+        }
 
         # Now we ensure all datasets are compatible to be plotted together
         if dsets and not _xi_and_yi_match(dsets.values()):
@@ -238,7 +243,9 @@ class RemotePlotmon:
         # ensures the same datadir as in the main process
         set_datadir(datadir)
 
-        extra_dsets = {tuid: _safe_load_dataset(tuid) for tuid in tuids}
+        extra_dsets = {
+            tuid: _safe_load_dataset(tuid, self.dataset_locks_dir) for tuid in tuids
+        }
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -307,8 +314,8 @@ class RemotePlotmon:
 
         # we have forced all xi and yi to match so any dset will do here
         a_dset = next(iter(self._dsets.values()))
-        set_parnames = sorted(_get_parnames(a_dset, par_type="x"))
-        get_parnames = sorted(_get_parnames(a_dset, par_type="y"))
+        set_parnames = _get_parnames(a_dset, par_type="x")
+        get_parnames = _get_parnames(a_dset, par_type="y")
 
         #############################################################
 
@@ -495,7 +502,7 @@ class RemotePlotmon:
 
         tuid = self._tuids[0] if tuid is None else tuid
 
-        dset = _safe_load_dataset(tuid)
+        dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
         self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")
@@ -595,18 +602,12 @@ class RemotePlotmon:
         return win.x(), win.y(), win.width(), win.height()
 
 
-def _safe_load_dataset(tuid):
-    lockfile = os.path.join(
-        _dataset_locks_dir, tuid[:26] + "-" + _dataset_name + ".lock"
-    )
+def _safe_load_dataset(tuid, dataset_locks_dir):
+    lockfile = os.path.join(dataset_locks_dir, tuid[:26] + "-" + DATASET_NAME + ".lock")
     with FileLock(lockfile, 5):
         dset = load_dataset(tuid)
 
     return dset
-
-
-def _get_parnames(dset, par_type):
-    return sorted(get_keys_containing(dset, par_type))
 
 
 def _mk_legend(dset):
