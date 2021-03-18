@@ -231,7 +231,7 @@ def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
 
     """
 
-    def bool_cast_attrs(attrs: dict) -> None:
+    def bool_cast_attributes(attrs: dict) -> None:
         for attr_name, attr_val in attrs.items():
             if isinstance(attr_val, np.bool_):
                 # cast to bool to avoid xarray 0.17.0 type exception
@@ -239,9 +239,9 @@ def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
                 attrs[attr_name] = bool(attr_val)
 
     for data_array in dataset.variables.values():
-        bool_cast_attrs(data_array.attrs)
+        bool_cast_attributes(data_array.attrs)
 
-    bool_cast_attrs(dataset.attrs)
+    bool_cast_attributes(dataset.attrs)
 
 
 def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
