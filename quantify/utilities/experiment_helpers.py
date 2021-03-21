@@ -40,7 +40,9 @@ def load_settings_onto_instrument(
             )
         )
     for parname, par in instruments[instrument.name]["parameters"].items():
-        if 'set' in dir(instrument.__dict__['parameters'][parname]):  # Make sure the parameter is actually a settable
+        if "set" in dir(
+            instrument.__dict__["parameters"][parname]
+        ):  # Make sure the parameter is actually a settable
             val = par["value"]
             if val:  # qcodes doesn't like setting to none
                 instrument.set(parname, par["value"])
