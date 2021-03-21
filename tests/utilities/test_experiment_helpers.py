@@ -1,7 +1,8 @@
 import numpy as np
-from quantify.utilities.experiment_helpers import (create_plotmon_from_historical, load_settings_onto_instrument)
+from quantify.utilities.experiment_helpers import create_plotmon_from_historical, load_settings_onto_instrument
 from quantify.data.handling import set_datadir
 from quantify.utilities._tests_helpers import get_test_data_dir
+from qcodes.instrument import Instrument, Parameter, ManualParameter
 
 
 test_datadir = get_test_data_dir()
