@@ -5,12 +5,12 @@
 # -----------------------------------------------------------------------------
 from qcodes import Instrument
 from quantify.data.types import TUID
-from quantify.data.handling import load_snapshot
+from quantify.data.handling import load_snapshot, get_latest_tuid
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
 def load_settings_onto_instrument(
-    instrument: Instrument, tuid: TUID, datadir: str = None
+    instrument: Instrument, tuid: TUID = None, datadir: str = None
 ):
     """
     Loads settings from a previous experiment onto a current :class:`~qcodes.instrument.base.Instrument`. This
@@ -29,6 +29,9 @@ def load_settings_onto_instrument(
     ValueError
         if the provided instrument has no match in the loaded snapshot.
     """
+    if tuid == None:
+        tuid = get_latest_tuid()
+
     instruments = load_snapshot(tuid, datadir)["instruments"]
     if instrument.name not in instruments:
         raise ValueError(
