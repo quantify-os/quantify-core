@@ -26,7 +26,7 @@ requirements = [
     "xxhash",
     "matplotlib",
     "lmfit",
-    "pyqt5>=5.15.2",
+    "pyqt5==5.15.1",  # pinned due to #170, https://bugreports.qt.io/browse/PYSIDE-1473
     "pyqtgraph",
     "jsonschema",
     "adaptive",
