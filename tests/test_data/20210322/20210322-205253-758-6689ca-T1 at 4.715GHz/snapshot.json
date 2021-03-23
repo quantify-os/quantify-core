@@ -1,0 +1,900 @@
+{
+    "instruments": {
+        "MC": {
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "verbose": {
+                    "value": true,
+                    "ts": "2021-03-22 20:52:52",
+                    "unit": "",
+                    "label": "verbose",
+                    "name": "verbose"
+                },
+                "on_progress_callback": {
+                    "value": null,
+                    "ts": "2021-03-22 20:52:52",
+                    "unit": "",
+                    "label": "on_progress_callback",
+                    "name": "on_progress_callback"
+                },
+                "soft_avg": {
+                    "value": 4,
+                    "ts": "2021-03-22 20:52:53",
+                    "unit": "",
+                    "label": "Number of soft averages",
+                    "name": "soft_avg"
+                },
+                "instr_plotmon": {
+                    "value": "plotmon",
+                    "ts": "2021-03-22 20:52:52",
+                    "unit": "",
+                    "label": "instr_plotmon",
+                    "name": "instr_plotmon"
+                },
+                "instrument_monitor": {
+                    "value": "Instruments Monitor",
+                    "ts": "2021-03-22 20:52:52",
+                    "unit": "",
+                    "label": "instrument_monitor",
+                    "name": "instrument_monitor"
+                },
+                "update_interval": {
+                    "value": 3,
+                    "ts": "2021-03-22 20:52:52",
+                    "unit": "",
+                    "label": "update_interval",
+                    "name": "update_interval"
+                }
+            },
+            "name": "MC"
+        },
+        "plotmon": {
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "tuids_max_num": {
+                    "value": 3,
+                    "ts": "2021-03-19 18:35:04",
+                    "unit": "",
+                    "label": "tuids_max_num",
+                    "name": "tuids_max_num"
+                },
+                "tuids": {
+                    "value": [],
+                    "ts": "2021-03-19 18:35:04",
+                    "unit": "",
+                    "label": "tuids",
+                    "name": "tuids"
+                },
+                "tuids_extra": {
+                    "value": [],
+                    "ts": "2021-03-19 18:35:04",
+                    "unit": "",
+                    "label": "tuids_extra",
+                    "name": "tuids_extra"
+                }
+            },
+            "name": "plotmon"
+        },
+        "Instruments Monitor": {
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "update_interval": {
+                    "value": 5,
+                    "ts": "2021-03-22 20:52:52",
+                    "unit": "s",
+                    "label": "update_interval",
+                    "name": "update_interval"
+                }
+            },
+            "name": "Instruments Monitor"
+        },
+        "lo_ro": {
+            "parameters": {
+                "IDN": {
+                    "value": {
+                        "vendor": null,
+                        "model": "lo_ro",
+                        "serial": null,
+                        "firmware": null
+                    },
+                    "ts": "2021-03-19 18:35:15",
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "status": {
+                    "value": true,
+                    "ts": "2021-03-19 18:36:39",
+                    "unit": "",
+                    "label": "status",
+                    "name": "status"
+                },
+                "modulation_on_off": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:16",
+                    "unit": "",
+                    "label": "modulation_on_off",
+                    "name": "modulation_on_off"
+                },
+                "frequency": {
+                    "value": 4356033713.015149,
+                    "ts": "2021-03-22 15:58:09",
+                    "unit": "Hz",
+                    "label": "Frequency",
+                    "name": "frequency"
+                },
+                "power": {
+                    "value": 18,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "dBm",
+                    "label": "Power",
+                    "name": "power"
+                },
+                "ref_osc_source": {
+                    "value": "int",
+                    "ts": "2021-03-19 18:35:16",
+                    "unit": "",
+                    "label": "ref_osc_source",
+                    "name": "ref_osc_source"
+                }
+            },
+            "name": "lo_ro"
+        },
+        "lo_mw0": {
+            "parameters": {
+                "IDN": {
+                    "value": {
+                        "vendor": null,
+                        "model": "lo_mw0",
+                        "serial": null,
+                        "firmware": null
+                    },
+                    "ts": "2021-03-19 18:35:16",
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "status": {
+                    "value": true,
+                    "ts": "2021-03-22 16:41:09",
+                    "unit": "",
+                    "label": "status",
+                    "name": "status"
+                },
+                "modulation_on_off": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:16",
+                    "unit": "",
+                    "label": "modulation_on_off",
+                    "name": "modulation_on_off"
+                },
+                "frequency": {
+                    "value": 4615000000.0,
+                    "ts": "2021-03-22 16:48:23",
+                    "unit": "Hz",
+                    "label": "Frequency",
+                    "name": "frequency"
+                },
+                "power": {
+                    "value": 15,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "dBm",
+                    "label": "Power",
+                    "name": "power"
+                },
+                "ref_osc_source": {
+                    "value": "int",
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "ref_osc_source",
+                    "name": "ref_osc_source"
+                }
+            },
+            "name": "lo_mw0"
+        },
+        "spec_source": {
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "status": {
+                    "value": false,
+                    "ts": "2021-03-22 15:57:53",
+                    "unit": "",
+                    "label": "status",
+                    "name": "status"
+                },
+                "modulation_on_off": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:15",
+                    "unit": "",
+                    "label": "modulation_on_off",
+                    "name": "modulation_on_off"
+                },
+                "frequency": {
+                    "value": 10000000.0,
+                    "ts": "2021-03-19 18:35:15",
+                    "unit": "Hz",
+                    "label": "Frequency",
+                    "name": "frequency"
+                },
+                "power": {
+                    "value": -60.0,
+                    "ts": "2021-03-19 18:35:15",
+                    "unit": "dBm",
+                    "label": "Power",
+                    "name": "power"
+                },
+                "ref_osc_source": {
+                    "value": "int",
+                    "ts": "2021-03-19 18:35:15",
+                    "unit": "",
+                    "label": "ref_osc_source",
+                    "name": "ref_osc_source"
+                }
+            },
+            "name": "spec_source"
+        },
+        "qrm0": {
+            "parameters": {
+                "IDN": {
+                    "value": {
+                        "manufacturer": "Qblox",
+                        "device": "Pulsar QRM",
+                        "serial_number": "00013_2039_001",
+                        "build": {
+                            "firmware": {
+                                "version": "0.3.0",
+                                "date": "20/11/2020-12:50:26",
+                                "hash": "0xF4E352F5",
+                                "dirty": false
+                            },
+                            "kernel_mod": {
+                                "version": "0.3.0",
+                                "date": "20/11/2020-12:50:26",
+                                "hash": "0xF4E352F5",
+                                "dirty": false
+                            },
+                            "application": {
+                                "version": "0.3.0",
+                                "date": "20/11/2020-12:50:26",
+                                "hash": "0xF4E352F5",
+                                "dirty": false
+                            },
+                            "driver": {
+                                "version": "0.2.3",
+                                "date": "03/03/2021-14:15:57",
+                                "hash": "0xE82D5dEE",
+                                "dirty": false
+                            }
+                        }
+                    },
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "reference_source": {
+                    "value": "external",
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Reference source.",
+                    "name": "reference_source"
+                },
+                "in0_amp_gain": {
+                    "value": -6,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "dB",
+                    "label": "Input 0 amplifier gain.",
+                    "name": "in0_amp_gain"
+                },
+                "in1_amp_gain": {
+                    "value": -6,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "dB",
+                    "label": "Input 1 amplifier gain.",
+                    "name": "in1_amp_gain"
+                },
+                "sequencer0_sync_en": {
+                    "value": true,
+                    "ts": "2021-03-22 16:59:55",
+                    "unit": "",
+                    "label": "Sequencer 0 synchronization enable which enables party-line synchronization.",
+                    "name": "sequencer0_sync_en"
+                },
+                "sequencer0_nco_freq": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "Hz",
+                    "label": "Sequencer 0 NCO frequency.",
+                    "name": "sequencer0_nco_freq"
+                },
+                "sequencer0_nco_phase_offs": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "Degrees",
+                    "label": "Sequencer 0 NCO phase offset.",
+                    "name": "sequencer0_nco_phase_offs"
+                },
+                "sequencer0_marker_ovr_en": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 marker override enable.",
+                    "name": "sequencer0_marker_ovr_en"
+                },
+                "sequencer0_marker_ovr_value": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 marker override value.",
+                    "name": "sequencer0_marker_ovr_value"
+                },
+                "sequencer0_waveforms_and_program": {
+                    "value": "D://data//schedules\\20210322\\20210322-205250-773-bff5b7-Rabi schedule (pulse)_schedule\\schedule\\q0_res_q0.ro_sequencer_cfg.json",
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Sequencer 0 AWG and acquistion waveforms and ASM program.",
+                    "name": "sequencer0_waveforms_and_program"
+                },
+                "sequencer0_cont_mode_en_awg_path0": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode enable for AWG path 0.",
+                    "name": "sequencer0_cont_mode_en_awg_path0"
+                },
+                "sequencer0_cont_mode_en_awg_path1": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode enable for AWG path 1.",
+                    "name": "sequencer0_cont_mode_en_awg_path1"
+                },
+                "sequencer0_cont_mode_waveform_idx_awg_path0": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode waveform index for AWG path 0.",
+                    "name": "sequencer0_cont_mode_waveform_idx_awg_path0"
+                },
+                "sequencer0_cont_mode_waveform_idx_awg_path1": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode waveform index for AWG path 1.",
+                    "name": "sequencer0_cont_mode_waveform_idx_awg_path1"
+                },
+                "sequencer0_upsample_rate_awg_path0": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 upsample rate for AWG path 0.",
+                    "name": "sequencer0_upsample_rate_awg_path0"
+                },
+                "sequencer0_upsample_rate_awg_path1": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 upsample rate for AWG path 1.",
+                    "name": "sequencer0_upsample_rate_awg_path1"
+                },
+                "sequencer0_gain_awg_path0": {
+                    "value": 1.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 gain for AWG path 0.",
+                    "name": "sequencer0_gain_awg_path0"
+                },
+                "sequencer0_gain_awg_path1": {
+                    "value": 1.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 gain for AWG path 1.",
+                    "name": "sequencer0_gain_awg_path1"
+                },
+                "sequencer0_offset_awg_path0": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 offset for AWG path 0.",
+                    "name": "sequencer0_offset_awg_path0"
+                },
+                "sequencer0_offset_awg_path1": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 offset for AWG path 1.",
+                    "name": "sequencer0_offset_awg_path1"
+                },
+                "sequencer0_mod_en_awg": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 modulation enable for AWG.",
+                    "name": "sequencer0_mod_en_awg"
+                },
+                "sequencer0_trigger_mode_acq_path0": {
+                    "value": "sequencer",
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Sequencer 0 trigger mode for acquisition path 0.",
+                    "name": "sequencer0_trigger_mode_acq_path0"
+                },
+                "sequencer0_trigger_mode_acq_path1": {
+                    "value": "sequencer",
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Sequencer 0 trigger mode for acquisition path 1.",
+                    "name": "sequencer0_trigger_mode_acq_path1"
+                },
+                "sequencer0_trigger_level_acq_path0": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 trigger level when using input level trigger mode for acquisition path 0.",
+                    "name": "sequencer0_trigger_level_acq_path0"
+                },
+                "sequencer0_trigger_level_acq_path1": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 trigger level when using input level trigger mode for acquisition path 1.",
+                    "name": "sequencer0_trigger_level_acq_path1"
+                },
+                "sequencer0_avg_mode_en_acq_path0": {
+                    "value": true,
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Sequencer 0 averaging mode enable for acquisition path 0.",
+                    "name": "sequencer0_avg_mode_en_acq_path0"
+                },
+                "sequencer0_avg_mode_en_acq_path1": {
+                    "value": true,
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Sequencer 0 averaging mode enable for acquisition path 1.",
+                    "name": "sequencer0_avg_mode_en_acq_path1"
+                }
+            },
+            "name": "qrm0"
+        },
+        "qcm0": {
+            "parameters": {
+                "IDN": {
+                    "value": {
+                        "manufacturer": "Qblox",
+                        "device": "Pulsar QCM",
+                        "serial_number": "00012_2039_003",
+                        "build": {
+                            "firmware": {
+                                "version": "0.4.0",
+                                "date": "20/11/2020-12:49:43",
+                                "hash": "0xAEF22708",
+                                "dirty": false
+                            },
+                            "kernel_mod": {
+                                "version": "0.4.0",
+                                "date": "20/11/2020-12:49:43",
+                                "hash": "0xAEF22708",
+                                "dirty": false
+                            },
+                            "application": {
+                                "version": "0.4.0",
+                                "date": "20/11/2020-12:49:43",
+                                "hash": "0xAEF22708",
+                                "dirty": false
+                            },
+                            "driver": {
+                                "version": "0.2.3",
+                                "date": "03/03/2021-14:15:57",
+                                "hash": "0xE82D5dEE",
+                                "dirty": false
+                            }
+                        }
+                    },
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "reference_source": {
+                    "value": "external",
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Reference source.",
+                    "name": "reference_source"
+                },
+                "sequencer0_sync_en": {
+                    "value": true,
+                    "ts": "2021-03-22 16:59:55",
+                    "unit": "",
+                    "label": "Sequencer 0 synchronization enable which enables party-line synchronization.",
+                    "name": "sequencer0_sync_en"
+                },
+                "sequencer0_nco_freq": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "Hz",
+                    "label": "Sequencer 0 NCO frequency",
+                    "name": "sequencer0_nco_freq"
+                },
+                "sequencer0_nco_phase_offs": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "Degrees",
+                    "label": "Sequencer 0 NCO phase offset.",
+                    "name": "sequencer0_nco_phase_offs"
+                },
+                "sequencer0_marker_ovr_en": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 marker override enable",
+                    "name": "sequencer0_marker_ovr_en"
+                },
+                "sequencer0_marker_ovr_value": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 marker override value",
+                    "name": "sequencer0_marker_ovr_value"
+                },
+                "sequencer0_waveforms_and_program": {
+                    "value": "D://data//schedules\\20210322\\20210322-205250-773-bff5b7-Rabi schedule (pulse)_schedule\\schedule\\q0_mw_q0.01_sequencer_cfg.json",
+                    "ts": "2021-03-22 20:52:50",
+                    "unit": "",
+                    "label": "Sequencer 0 AWG waveforms and ASM program.",
+                    "name": "sequencer0_waveforms_and_program"
+                },
+                "sequencer0_cont_mode_en_awg_path0": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode enable for AWG path 0.",
+                    "name": "sequencer0_cont_mode_en_awg_path0"
+                },
+                "sequencer0_cont_mode_en_awg_path1": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode enable for AWG path 1.",
+                    "name": "sequencer0_cont_mode_en_awg_path1"
+                },
+                "sequencer0_cont_mode_waveform_idx_awg_path0": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode waveform index for AWG path 0.",
+                    "name": "sequencer0_cont_mode_waveform_idx_awg_path0"
+                },
+                "sequencer0_cont_mode_waveform_idx_awg_path1": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 continous waveform mode waveform index for AWG path 1.",
+                    "name": "sequencer0_cont_mode_waveform_idx_awg_path1"
+                },
+                "sequencer0_upsample_rate_awg_path0": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 upsample rate for AWG path 0.",
+                    "name": "sequencer0_upsample_rate_awg_path0"
+                },
+                "sequencer0_upsample_rate_awg_path1": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 upsample rate for AWG path 1",
+                    "name": "sequencer0_upsample_rate_awg_path1"
+                },
+                "sequencer0_gain_awg_path0": {
+                    "value": 1.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 gain for AWG path 0.",
+                    "name": "sequencer0_gain_awg_path0"
+                },
+                "sequencer0_gain_awg_path1": {
+                    "value": 1.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 gain for AWG path 1",
+                    "name": "sequencer0_gain_awg_path1"
+                },
+                "sequencer0_offset_awg_path0": {
+                    "value": 0.013977477326989174,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 offset for AWG path 0.",
+                    "name": "sequencer0_offset_awg_path0"
+                },
+                "sequencer0_offset_awg_path1": {
+                    "value": -0.013977477326989174,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 offset for AWG path 1.",
+                    "name": "sequencer0_offset_awg_path1"
+                },
+                "sequencer0_mod_en_awg": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 0 modulation enable for AWG.",
+                    "name": "sequencer0_mod_en_awg"
+                },
+                "sequencer1_sync_en": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 synchronization enable which enables party-line synchronization.",
+                    "name": "sequencer1_sync_en"
+                },
+                "sequencer1_nco_freq": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "Hz",
+                    "label": "Sequencer 1 NCO frequency",
+                    "name": "sequencer1_nco_freq"
+                },
+                "sequencer1_nco_phase_offs": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "Degrees",
+                    "label": "Sequencer 1 NCO phase offset.",
+                    "name": "sequencer1_nco_phase_offs"
+                },
+                "sequencer1_marker_ovr_en": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 marker override enable",
+                    "name": "sequencer1_marker_ovr_en"
+                },
+                "sequencer1_marker_ovr_value": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 marker override value",
+                    "name": "sequencer1_marker_ovr_value"
+                },
+                "sequencer1_waveforms_and_program": {
+                    "value": "None",
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 AWG waveforms and ASM program.",
+                    "name": "sequencer1_waveforms_and_program"
+                },
+                "sequencer1_cont_mode_en_awg_path0": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 continous waveform mode enable for AWG path 0.",
+                    "name": "sequencer1_cont_mode_en_awg_path0"
+                },
+                "sequencer1_cont_mode_en_awg_path1": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 continous waveform mode enable for AWG path 1.",
+                    "name": "sequencer1_cont_mode_en_awg_path1"
+                },
+                "sequencer1_cont_mode_waveform_idx_awg_path0": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 continous waveform mode waveform index for AWG path 0.",
+                    "name": "sequencer1_cont_mode_waveform_idx_awg_path0"
+                },
+                "sequencer1_cont_mode_waveform_idx_awg_path1": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 continous waveform mode waveform index for AWG path 1.",
+                    "name": "sequencer1_cont_mode_waveform_idx_awg_path1"
+                },
+                "sequencer1_upsample_rate_awg_path0": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 upsample rate for AWG path 0.",
+                    "name": "sequencer1_upsample_rate_awg_path0"
+                },
+                "sequencer1_upsample_rate_awg_path1": {
+                    "value": 0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 upsample rate for AWG path 1",
+                    "name": "sequencer1_upsample_rate_awg_path1"
+                },
+                "sequencer1_gain_awg_path0": {
+                    "value": 1.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 gain for AWG path 0.",
+                    "name": "sequencer1_gain_awg_path0"
+                },
+                "sequencer1_gain_awg_path1": {
+                    "value": 1.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 gain for AWG path 1",
+                    "name": "sequencer1_gain_awg_path1"
+                },
+                "sequencer1_offset_awg_path0": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 offset for AWG path 0.",
+                    "name": "sequencer1_offset_awg_path0"
+                },
+                "sequencer1_offset_awg_path1": {
+                    "value": 0.0,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 offset for AWG path 1.",
+                    "name": "sequencer1_offset_awg_path1"
+                },
+                "sequencer1_mod_en_awg": {
+                    "value": false,
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Sequencer 1 modulation enable for AWG.",
+                    "name": "sequencer1_mod_en_awg"
+                }
+            },
+            "name": "qcm0"
+        },
+        "fluxcurrent": {
+            "parameters": {
+                "IDN": {
+                    "value": {
+                        "vendor": null,
+                        "model": "fluxcurrent",
+                        "serial": null,
+                        "firmware": null
+                    },
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "cfg_ramp_rate": {
+                    "value": 0.0001,
+                    "ts": "2021-03-22 15:46:35",
+                    "unit": "A/s",
+                    "label": "cfg_ramp_rate",
+                    "name": "cfg_ramp_rate"
+                },
+                "cfg_verbose": {
+                    "value": true,
+                    "ts": "2021-03-22 15:46:35",
+                    "unit": "",
+                    "label": "cfg_verbose",
+                    "name": "cfg_verbose"
+                },
+                "FBL_5": {
+                    "value": 0.0,
+                    "ts": "2021-03-22 15:34:58",
+                    "unit": "A",
+                    "label": "FBL_5",
+                    "name": "FBL_5"
+                },
+                "FBL_7": {
+                    "value": 0.0,
+                    "ts": "2021-03-22 15:34:58",
+                    "unit": "A",
+                    "label": "FBL_7",
+                    "name": "FBL_7"
+                },
+                "FBL_9": {
+                    "value": 0.0,
+                    "ts": "2021-03-22 15:34:58",
+                    "unit": "A",
+                    "label": "FBL_9",
+                    "name": "FBL_9"
+                },
+                "FBL_16": {
+                    "value": 0.0,
+                    "ts": "2021-03-22 15:34:58",
+                    "unit": "A",
+                    "label": "FBL_16",
+                    "name": "FBL_16"
+                },
+                "FBL_18": {
+                    "value": 0.0,
+                    "ts": "2021-03-22 15:34:58",
+                    "unit": "A",
+                    "label": "FBL_18",
+                    "name": "FBL_18"
+                },
+                "FBL_20": {
+                    "value": 0.0185,
+                    "ts": "2021-03-22 15:49:56",
+                    "unit": "A",
+                    "label": "FBL_20",
+                    "name": "FBL_20"
+                }
+            },
+            "name": "fluxcurrent"
+        },
+        "dev": {
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "label": "IDN",
+                    "name": "IDN"
+                },
+                "instr_MC": {
+                    "value": "MC",
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "MeasurementControl",
+                    "name": "instr_MC"
+                },
+                "instr_lo_ro_l0": {
+                    "value": "lo_ro",
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Readout local oscillator line 0",
+                    "name": "instr_lo_ro_l0"
+                },
+                "instr_twpa_pump_l0": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "label": "TWPA pump line 0",
+                    "name": "instr_twpa_pump_l0"
+                },
+                "instr_pulsar": {
+                    "value": "qrm0",
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "Qblox pulsar modules",
+                    "name": "instr_pulsar"
+                },
+                "device_type": {
+                    "value": "cQED",
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "device_type",
+                    "name": "device_type"
+                },
+                "qubits": {
+                    "value": [],
+                    "ts": "2021-03-19 18:35:17",
+                    "unit": "",
+                    "label": "qubits",
+                    "name": "qubits"
+                }
+            },
+            "name": "dev"
+        }
+    },
+    "parameters": {}
+}
