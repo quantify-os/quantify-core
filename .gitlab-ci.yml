@@ -44,14 +44,16 @@ stages:
   - Test
   - Deploy
 
-.test:
-  needs: []  # allow running in parallel with previous stage
+.unix-script:
   script:
     - pip install -e .
     - pip install -r requirements_dev.txt
-    - xvfb-run py.test -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - xvfb-run py.test -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
     # send the coverage.xml file to codacy
     - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
+
+.test:
+  needs: []  # allow running in parallel with previous stage
   artifacts:
     paths:
       - htmlcov
@@ -71,6 +73,7 @@ test-3.7:
   stage: Test
   image: "python:3.7"
   extends:
+    - .unix-script
     - .test
     - .develop-only-job
 
@@ -78,6 +81,7 @@ test-3.8:
   stage: Test
   image: "python:3.8"
   extends:
+    - .unix-script
     - .test
 
 test-win-3.8:
@@ -90,14 +94,15 @@ test-win-3.8:
     - .test
     - .develop-only-job
   script:
+    - "C:\\Python38\\python.exe -m pip install -r requirements_dev.txt"
     - "C:\\Python38\\python.exe -m pip install -e ."
-    - "C:\\Python38\\python.exe -m pip install pytest pytest-runner pytest-cov"
-    - "C:\\Python38\\Scripts\\py.test.exe -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
+    - "C:\\Python38\\Scripts\\py.test.exe -s -n 2 --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes"
 
 test-latest:
   stage: Test
   image: "python:latest"
   extends:
+    - .unix-script
     - .test
     - .develop-only-job
   allow_failure: true
