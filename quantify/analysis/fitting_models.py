@@ -82,6 +82,34 @@ def hanger_func_complex_SI(
     return S21
 
 
+def exp_decay_func(
+    t: float,
+    T1: float,
+    ref_0: float,
+    ref_1: float,
+) -> float:
+    """
+    This is a general exponential decay function.
+
+    Parameters
+    ----------
+    t:
+        time
+    T1:
+        decay time
+    ref_0:
+        lower reference value (background level)
+    ref_1:
+        upper reference value (initial value)
+
+    Returns
+    -------
+    :
+        Output of exponential function as a float
+    """
+    return ref_0 + (ref_1 - ref_0) * np.exp(-t / T1)
+
+
 def get_model_common_doc() -> str:
     """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
     return (
@@ -149,6 +177,65 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("phi_0", value=phi_0_guess)
         self.set_param_hint("phi_v", value=phi_v_guess)
         self.set_param_hint("alpha", value=0, min=-1, max=1)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
+
+
+class T1Model(lmfit.model.Model):
+    """"""  # Avoid including Model docstring
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+
+    __doc__ = "Resonator model\n\n" + get_model_common_doc()
+
+    def __init__(self, ref_0=None, ref_1=None, *args, **kwargs):
+        """"""  # Avoid including Model.__init__ docstring
+        # pass in the defining equation so the user doesn't have to later.
+        # Accepts optional arguments ref_0 and ref_1 for the lower and upper reference points so these can either be fitted or input as fixed values
+
+        super().__init__(exp_decay_func, *args, **kwargs)
+        self.set_param_hint("T1", min=0)  # Enforce T1 is positive
+
+        # The upper and lower reference values can either be fitted or fixed in advance
+        if ref_0 == None:
+            self.set_param_hint("ref_0", min=0, vary=True)
+        else:
+            self.set_param_hint("ref_0", value=ref_0, vary=False)
+        if ref_1 == None:
+            self.set_param_hint("ref_1", min=0, vary=True)
+        else:
+            self.set_param_hint("ref_1", value=ref_1, vary=False)
+
+    def guess(self, data, **kwargs):
+        """
+        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
+        """
+
+        params = self.make_params()
+
+        if kwargs.get("delay", None) is None:
+            return None
+
+        delay = kwargs["delay"]
+        ref_0 = kwargs.get("ref_0")
+        ref_1 = kwargs.get("ref_1")
+
+        # If upper and lower references are not given, choose first and last values of data
+        if ref_0 == None:
+            self.set_param_hint("ref_0", value=data[-1], min=0)
+        else:
+            self.set_param_hint("ref_0", value=ref_0, vary=False)
+        if ref_1 == None:
+            self.set_param_hint("ref_1", value=data[0], min=0)
+        else:
+            self.set_param_hint("ref_1", value=ref_1, vary=False)
+
+        # The guess for T1 is somewhere in the middle of the time range
+        T1 = np.median(delay)
+
+        self.set_param_hint("T1", value=T1, min=0)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
