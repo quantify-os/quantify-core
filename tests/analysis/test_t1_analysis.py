@@ -18,11 +18,11 @@ class TestResonatorSpectroscopyAnalysis:
         cls.tuids = tuid_list
         cls.a_objs = [ta.QubitT1Analysis(tuid=tuid) for tuid in cls.tuids]
 
-        cls.T1s = [12e-6]
+        cls.T1s = [1.07e-5]
 
-        cls.ref_0s = [42]
+        cls.ref_0s = [4.2e-5]
 
-        cls.ref_1s = [75]
+        cls.ref_1s = [7.5e-5]
 
     def test_raw_data_not_in_processed_dataset(self):
         for tuid in self.tuids:
@@ -36,13 +36,13 @@ class TestResonatorSpectroscopyAnalysis:
             assert "x0" in dataset.coords.keys()
             assert "y0" not in dataset.data_vars.keys()
             assert "y1" not in dataset.data_vars.keys()
-            assert "S21" in dataset.data_vars.keys()
+            assert "Magnitude" in dataset.data_vars.keys()
 
     def test_figures_generated(self):
         # test that the right figures get created.
         for a_obj in self.a_objs:
             assert set(a_obj.figs_mpl.keys()) == {
-                "T1-MagnDelay",
+                "T1_decay",
             }
 
     def test_quantities_of_interest(self):
@@ -53,6 +53,8 @@ class TestResonatorSpectroscopyAnalysis:
                 "T1",
                 "ref_0",
                 "ref_1",
+                "fit_msg",
+                "fit_res",
             }
 
             assert isinstance(a_obj.quantities_of_interest["T1"], Variable)

@@ -54,12 +54,15 @@ class QubitT1Analysis(ba.BaseAnalysis):
             fpars["ref_1"].value, fpars["ref_1"].stderr
         )
 
+        unit = self.dataset["Magnitude"].attrs["units"]
         text_msg = "Summary\n"
-        text_msg += format_value_string(r"$T1$", fit_res.params["tau"], end_char="\n")
         text_msg += format_value_string(
-            r"$ref_0$", fit_res.params["ref_0"], end_char="\n"
+            r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
         )
-        text_msg += format_value_string(r"$ref_1$", fit_res.params["ref_1"], unit="Hz")
+        text_msg += format_value_string(
+            r"$ref_0$", fit_res.params["ref_0"], end_char="\n", unit=unit
+        )
+        text_msg += format_value_string(r"$ref_1$", fit_res.params["ref_1"], unit=unit)
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
