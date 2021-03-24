@@ -8,21 +8,25 @@ from quantify.analysis import t1_analysis as ta
 from quantify.utilities._tests_helpers import get_test_data_dir
 
 
-class TestResonatorSpectroscopyAnalysis:
+class TestQubitT1Analysis:
     @classmethod
     def setup_class(cls):
         dh.set_datadir(get_test_data_dir())
 
-        tuid_list = ["20210322-205253-758-6689"]
-
-        cls.tuids = tuid_list
+        tuids = ["20210322-205253-758-6689"]
+        cls.tuids = tuids
         cls.a_objs = [ta.QubitT1Analysis(tuid=tuid) for tuid in cls.tuids]
 
-        cls.T1s = [1.07e-5]
+        # Do a test where we set the reference levels beforehand
+        ref_0 = 1e-5
+        ref_1 = 7.56e-5
+        cls.a_objs.append(ta.QubitT1Analysis(tuid=tuids[0], ref_0=ref_0, ref_1=ref_1))
 
-        cls.ref_0s = [4.2e-5]
+        cls.T1s = [1.07e-5, 5e-5]
 
-        cls.ref_1s = [7.5e-5]
+        cls.ref_0s = [4.2e-5, 1e-5]
+
+        cls.ref_1s = [7.6e-5, 7.56e-5]
 
     def test_raw_data_not_in_processed_dataset(self):
         for tuid in self.tuids:
