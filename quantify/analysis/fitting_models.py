@@ -199,6 +199,8 @@ class T1Model(lmfit.model.Model):
         self.set_param_hint("tau", min=0)  # Enforce T1 is positive
 
         # The upper and lower reference values can either be fitted or fixed in advance
+        self.ref_0 = ref_0
+        self.ref_1 = ref_1
         if ref_0 == None:
             self.set_param_hint("ref_0", min=0, vary=True)
         else:
@@ -219,18 +221,16 @@ class T1Model(lmfit.model.Model):
             return None
 
         delay = kwargs["delay"]
-        ref_0 = kwargs.get("ref_0")
-        ref_1 = kwargs.get("ref_1")
 
         # If upper and lower references are not given, choose first and last values of data
-        if ref_0 == None:
+        if self.ref_0 == None:
             self.set_param_hint("ref_0", value=data[-1], min=0)
         else:
-            self.set_param_hint("ref_0", value=ref_0, vary=False)
-        if ref_1 == None:
+            self.set_param_hint("ref_0", value=self.ref_0, vary=False)
+        if self.ref_1 == None:
             self.set_param_hint("ref_1", value=data[0], min=0)
         else:
-            self.set_param_hint("ref_1", value=ref_1, vary=False)
+            self.set_param_hint("ref_1", value=self.ref_1, vary=False)
 
         # The guess for T1 is somewhere in the middle of the time range
         T1 = np.median(delay)

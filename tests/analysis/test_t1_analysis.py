@@ -18,13 +18,13 @@ class TestQubitT1Analysis:
         cls.a_objs = [ta.QubitT1Analysis(tuid=tuid) for tuid in cls.tuids]
 
         # Do a test where we set the reference levels beforehand
-        ref_0 = 1e-5
+        ref_0 = 0e-5
         ref_1 = 7.56e-5
         cls.a_objs.append(ta.QubitT1Analysis(tuid=tuids[0], ref_0=ref_0, ref_1=ref_1))
 
-        cls.T1s = [1.07e-5, 5e-5]
+        cls.T1s = [1.07e-5, 6.8e-5]
 
-        cls.ref_0s = [4.2e-5, 1e-5]
+        cls.ref_0s = [4.2e-5, 0e-5]
 
         cls.ref_1s = [7.6e-5, 7.56e-5]
 

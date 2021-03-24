@@ -13,6 +13,20 @@ from quantify.visualization.SI_utilities import format_value_string
 
 
 class QubitT1Analysis(ba.BaseAnalysis):
+    def __init__(
+        self,
+        label: str = "",
+        tuid: str = None,
+        interrupt_before: ba.AnalysisSteps = None,
+        settings_overwrite: dict = None,
+        ref_0: float = None,
+        ref_1: float = None,
+    ):
+        self.ref_0 = ref_0
+        self.ref_1 = ref_1
+
+        super().__init__(label, tuid, interrupt_before, settings_overwrite)
+
     def process_data(self):
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
@@ -32,7 +46,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
 
     def run_fitting(self):
 
-        mod = fm.T1Model()
+        mod = fm.T1Model(self.ref_0, self.ref_1)
 
         magn = np.array(self.dataset["Magnitude"])
         delay = np.array(self.dataset["x0"])
