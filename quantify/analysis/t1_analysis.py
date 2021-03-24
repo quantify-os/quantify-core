@@ -37,7 +37,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
         magn = np.array(self.dataset["Magnitude"])
         delay = np.array(self.dataset["x0"])
         guess = mod.guess(magn, delay=delay)
-        fit_res = mod.fit(magn, params=guess, delay=delay)
+        fit_res = mod.fit(magn, params=guess, t=delay)
 
         self.model = mod
 
@@ -45,7 +45,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
 
         fpars = fit_res.params
         self.quantities_of_interest["T1"] = ufloat(
-            fpars["T1"].value, fpars["T1"].stderr
+            fpars["tau"].value, fpars["tau"].stderr
         )
         self.quantities_of_interest["ref_0"] = ufloat(
             fpars["ref_0"].value, fpars["ref_0"].stderr
@@ -55,7 +55,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
         )
 
         text_msg = "Summary\n"
-        text_msg += format_value_string(r"$T1$", fit_res.params["T1"], end_char="\n")
+        text_msg += format_value_string(r"$T1$", fit_res.params["tau"], end_char="\n")
         text_msg += format_value_string(
             r"$ref_0$", fit_res.params["ref_0"], end_char="\n"
         )
@@ -68,7 +68,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
     def create_fig_T1_decay(self):
 
         fig_id = "T1_decay"
-        fig, axs = plt.plot()
+        fig, axs = plt.subplots()
         self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id] = axs
 

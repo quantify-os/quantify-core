@@ -84,7 +84,7 @@ def hanger_func_complex_SI(
 
 def exp_decay_func(
     t: float,
-    T1: float,
+    tau: float,
     ref_0: float,
     ref_1: float,
 ) -> float:
@@ -107,7 +107,7 @@ def exp_decay_func(
     :
         Output of exponential function as a float
     """
-    return ref_0 + (ref_1 - ref_0) * np.exp(-t / T1)
+    return ref_0 + (ref_1 - ref_0) * np.exp(-t / tau)
 
 
 def get_model_common_doc() -> str:
@@ -188,7 +188,7 @@ class T1Model(lmfit.model.Model):
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
 
-    __doc__ = "Resonator model\n\n" + get_model_common_doc()
+    __doc__ = "T1 model\n\n" + get_model_common_doc()
 
     def __init__(self, ref_0=None, ref_1=None, *args, **kwargs):
         """"""  # Avoid including Model.__init__ docstring
@@ -196,7 +196,7 @@ class T1Model(lmfit.model.Model):
         # Accepts optional arguments ref_0 and ref_1 for the lower and upper reference points so these can either be fitted or input as fixed values
 
         super().__init__(exp_decay_func, *args, **kwargs)
-        self.set_param_hint("T1", min=0)  # Enforce T1 is positive
+        self.set_param_hint("tau", min=0)  # Enforce T1 is positive
 
         # The upper and lower reference values can either be fitted or fixed in advance
         if ref_0 == None:
@@ -235,7 +235,7 @@ class T1Model(lmfit.model.Model):
         # The guess for T1 is somewhere in the middle of the time range
         T1 = np.median(delay)
 
-        self.set_param_hint("T1", value=T1, min=0)
+        self.set_param_hint("tau", value=T1, min=0)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
