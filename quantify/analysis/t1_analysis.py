@@ -61,12 +61,20 @@ class QubitT1Analysis(ba.BaseAnalysis):
         self.quantities_of_interest["T1"] = ufloat(
             fpars["tau"].value, fpars["tau"].stderr
         )
-        self.quantities_of_interest["ref_0"] = ufloat(
-            fpars["ref_0"].value, fpars["ref_0"].stderr
-        )
-        self.quantities_of_interest["ref_1"] = ufloat(
-            fpars["ref_1"].value, fpars["ref_1"].stderr
-        )
+        if (
+            fpars["ref_0"].stderr == None
+        ):  # Handle the case where ref_0 is fixed and there is no standard error
+            self.quantities_of_interest["ref_0"] = fpars["ref_0"].value
+        else:
+            self.quantities_of_interest["ref_0"] = ufloat(
+                fpars["ref_0"].value, fpars["ref_0"].stderr
+            )
+        if fpars["ref_1"].stderr == None:
+            self.quantities_of_interest["ref_1"] = fpars["ref_1"].value
+        else:
+            self.quantities_of_interest["ref_1"] = ufloat(
+                fpars["ref_1"].value, fpars["ref_1"].stderr
+            )
 
         unit = self.dataset["Magnitude"].attrs["units"]
         text_msg = "Summary\n"

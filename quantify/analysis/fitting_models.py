@@ -210,6 +210,45 @@ class T1Model(lmfit.model.Model):
         else:
             self.set_param_hint("ref_1", value=ref_1, vary=False)
 
+    def fit(
+        self,
+        data,
+        params=None,
+        weights=None,
+        method="leastsq",
+        iter_cb=None,
+        scale_covar=True,
+        verbose=False,
+        fit_kws=None,
+        nan_policy=None,
+        calc_covar=True,
+        max_nfev=None,
+        **kwargs
+    ):
+
+        fit_res = super().fit(
+            data,
+            params,
+            weights,
+            method,
+            iter_cb,
+            scale_covar,
+            verbose,
+            fit_kws,
+            nan_policy,
+            calc_covar,
+            max_nfev,
+            **kwargs
+        )
+
+        # If the the reference levels are fixed, return their standard errors as None
+        if self.ref_0 is not None:
+            fit_res.params["ref_0"].stderr = None
+        if self.ref_1 is not None:
+            fit_res.params["ref_1"].stderr = None
+
+        return fit_res
+
     def guess(self, data, **kwargs):
         """
         For details on input parameters see :meth:`~lmfit.model.Model.guess`.
