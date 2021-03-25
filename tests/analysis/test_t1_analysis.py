@@ -66,9 +66,15 @@ class TestQubitT1Analysis:
             assert a_obj.quantities_of_interest["T1"].nominal_value == approx(
                 T1, abs=5 * a_obj.quantities_of_interest["T1"].std_dev
             )
-            assert a_obj.quantities_of_interest["ref_0"].nominal_value == approx(
-                ref_0, abs=5 * a_obj.quantities_of_interest["ref_0"].std_dev
-            )
-            assert a_obj.quantities_of_interest["ref_1"].nominal_value == approx(
-                ref_1, abs=5 * a_obj.quantities_of_interest["ref_1"].std_dev
-            )
+            if isinstance(a_obj.quantities_of_interest["ref_0"], float):
+                assert a_obj.quantities_of_interest["ref_0"] == approx(ref_0)
+            else:
+                assert a_obj.quantities_of_interest["ref_0"].nominal_value == approx(
+                    ref_0, abs=5 * a_obj.quantities_of_interest["ref_0"].std_dev
+                )
+            if isinstance(a_obj.quantities_of_interest["ref_1"], float):
+                assert a_obj.quantities_of_interest["ref_1"] == approx(ref_1)
+            else:
+                assert a_obj.quantities_of_interest["ref_1"].nominal_value == approx(
+                    ref_1, abs=5 * a_obj.quantities_of_interest["ref_1"].std_dev
+                )
