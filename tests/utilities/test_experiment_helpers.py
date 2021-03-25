@@ -5,7 +5,7 @@ from quantify.utilities.experiment_helpers import (
 )
 from quantify.data.handling import set_datadir
 from quantify.utilities._tests_helpers import get_test_data_dir
-from qcodes.instrument import Instrument, Parameter, ManualParameter
+from qcodes.instrument import Instrument, ManualParameter
 
 
 # Test that we can successfully load the settings of a dummy instrument
