@@ -125,7 +125,7 @@ SI_PREFIXES[0] = ""
 
 # N.B. not all of these are SI units, however, all of these support SI prefixes
 SI_UNITS = (
-    "m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
+    ",m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
     r"Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
 )  # noqa: W605
 
@@ -133,6 +133,9 @@ SI_UNITS = (
 def SI_prefix_and_scale_factor(val, unit=None):
     """
     Takes in a value and unit and if applicable returns the proper scale factor and SI prefix.
+
+    If the unit is None, no scaling is done.
+    If the unit is an empty string "", the value is scaled and an SI prefix is applied without a base unit.
 
     Parameters
     ----------
@@ -270,10 +273,12 @@ def value_precision(val, stderr=None):
     if stderr == None or stderr == 0:
         return "{:.5g}", "{:.2g}"
     else:
-        value_mag = np.ceil(np.log10(abs(val)))
-        err_mag = np.ceil(np.log10(abs(stderr)))
+        value_mag = np.floor(np.log10(abs(val))) + 1
+        err_mag = np.floor(np.log10(abs(stderr))) + 1
         if err_mag == 2:
             return "{:.0f}", "{:.0f}"
+        elif err_mag == 1:
+            return "{:.1f}", "{:.1f}"
         else:
             sig_figs = int(
                 max(value_mag - err_mag + 2, 2)

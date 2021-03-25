@@ -158,6 +158,11 @@ def test_format_value_string_unit_aware():
     formatted_string = format_value_string("tau", tau, unit="Hz")
     assert formatted_string == r"tau: 5.1234561$\pm$3.1e-06 MHz"
 
+    tau = Parameter("tau", value=5123.456)
+    tau.stderr = 10
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 5123$\pm$10 "
+
 
 # The precision should be 5 significant figures if there is no stderr.
 # Otherwise the precision should be one order of magnitude lower than the stderr (and include trailing zeros)
