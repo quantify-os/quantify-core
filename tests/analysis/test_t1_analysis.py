@@ -17,16 +17,11 @@ class TestQubitT1Analysis:
         cls.tuids = tuids
         cls.a_objs = [ta.QubitT1Analysis(tuid=tuid) for tuid in cls.tuids]
 
-        # Do a test where we set the reference levels beforehand
-        ref_0 = 0e-5
-        ref_1 = 7.56e-5
-        cls.a_objs.append(ta.QubitT1Analysis(tuid=tuids[0], ref_0=ref_0, ref_1=ref_1))
+        cls.T1s = [1.07e-5]
 
-        cls.T1s = [1.07e-5, 6.8e-5]
+        cls.ref_0s = [4.2e-5]
 
-        cls.ref_0s = [4.2e-5, 0e-5]
-
-        cls.ref_1s = [7.6e-5, 7.56e-5]
+        cls.ref_1s = [7.6e-5]
 
     def test_raw_data_not_in_processed_dataset(self):
         for tuid in self.tuids:
@@ -66,15 +61,9 @@ class TestQubitT1Analysis:
             assert a_obj.quantities_of_interest["T1"].nominal_value == approx(
                 T1, abs=5 * a_obj.quantities_of_interest["T1"].std_dev
             )
-            if isinstance(a_obj.quantities_of_interest["ref_0"], float):
-                assert a_obj.quantities_of_interest["ref_0"] == approx(ref_0)
-            else:
-                assert a_obj.quantities_of_interest["ref_0"].nominal_value == approx(
-                    ref_0, abs=5 * a_obj.quantities_of_interest["ref_0"].std_dev
-                )
-            if isinstance(a_obj.quantities_of_interest["ref_1"], float):
-                assert a_obj.quantities_of_interest["ref_1"] == approx(ref_1)
-            else:
-                assert a_obj.quantities_of_interest["ref_1"].nominal_value == approx(
-                    ref_1, abs=5 * a_obj.quantities_of_interest["ref_1"].std_dev
-                )
+            assert a_obj.quantities_of_interest["ref_0"].nominal_value == approx(
+                ref_0, abs=5 * a_obj.quantities_of_interest["ref_0"].std_dev
+            )
+            assert a_obj.quantities_of_interest["ref_1"].nominal_value == approx(
+                ref_1, abs=5 * a_obj.quantities_of_interest["ref_1"].std_dev
+            )

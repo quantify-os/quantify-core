@@ -13,20 +13,6 @@ from quantify.visualization.SI_utilities import format_value_string
 
 
 class QubitT1Analysis(ba.BaseAnalysis):
-    def __init__(
-        self,
-        label: str = "",
-        tuid: str = None,
-        interrupt_before: ba.AnalysisSteps = None,
-        settings_overwrite: dict = None,
-        ref_0: float = None,
-        ref_1: float = None,
-    ):
-        self.ref_0 = ref_0
-        self.ref_1 = ref_1
-
-        super().__init__(label, tuid, interrupt_before, settings_overwrite)
-
     def process_data(self):
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
@@ -46,7 +32,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
 
     def run_fitting(self):
 
-        mod = fm.T1Model(self.ref_0, self.ref_1)
+        mod = fm.T1Model()
 
         magn = np.array(self.dataset["Magnitude"])
         delay = np.array(self.dataset["x0"])
@@ -61,20 +47,12 @@ class QubitT1Analysis(ba.BaseAnalysis):
         self.quantities_of_interest["T1"] = ufloat(
             fpars["tau"].value, fpars["tau"].stderr
         )
-        if (
-            fpars["ref_0"].stderr == None
-        ):  # Handle the case where ref_0 is fixed and there is no standard error
-            self.quantities_of_interest["ref_0"] = fpars["ref_0"].value
-        else:
-            self.quantities_of_interest["ref_0"] = ufloat(
-                fpars["ref_0"].value, fpars["ref_0"].stderr
-            )
-        if fpars["ref_1"].stderr == None:
-            self.quantities_of_interest["ref_1"] = fpars["ref_1"].value
-        else:
-            self.quantities_of_interest["ref_1"] = ufloat(
-                fpars["ref_1"].value, fpars["ref_1"].stderr
-            )
+        self.quantities_of_interest["ref_0"] = ufloat(
+            fpars["A"].value, fpars["A"].stderr
+        )
+        self.quantities_of_interest["ref_1"] = ufloat(
+            fpars["B"].value, fpars["B"].stderr
+        )
 
         unit = self.dataset["Magnitude"].attrs["units"]
         text_msg = "Summary\n"
@@ -82,9 +60,9 @@ class QubitT1Analysis(ba.BaseAnalysis):
             r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
         )
         text_msg += format_value_string(
-            r"$ref_0$", fit_res.params["ref_0"], end_char="\n", unit=unit
+            r"$ref_0$", fit_res.params["A"], end_char="\n", unit=unit
         )
-        text_msg += format_value_string(r"$ref_1$", fit_res.params["ref_1"], unit=unit)
+        text_msg += format_value_string(r"$ref_1$", fit_res.params["B"], unit=unit)
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):

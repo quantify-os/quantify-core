@@ -85,8 +85,8 @@ def hanger_func_complex_SI(
 def exp_decay_func(
     t: float,
     tau: float,
-    ref_0: float,
-    ref_1: float,
+    A: float,
+    B: float,
 ) -> float:
     """
     This is a general exponential decay function.
@@ -95,19 +95,23 @@ def exp_decay_func(
     ----------
     t:
         time
-    T1:
+    tau:
         decay time
-    ref_0:
+    A:
         lower reference value (background level)
-    ref_1:
+    B:
         upper reference value (initial value)
 
     Returns
     -------
     :
         Output of exponential function as a float
+
+    .. math::
+
+    y = A + (B - A)\\exp(-t/\\tau)
     """
-    return ref_0 + (ref_1 - ref_0) * np.exp(-t / tau)
+    return A + (B - A) * np.exp(-t / tau)
 
 
 def get_model_common_doc() -> str:
@@ -190,64 +194,15 @@ class T1Model(lmfit.model.Model):
 
     __doc__ = "T1 model\n\n" + get_model_common_doc()
 
-    def __init__(self, ref_0=None, ref_1=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """"""  # Avoid including Model.__init__ docstring
         # pass in the defining equation so the user doesn't have to later.
-        # Accepts optional arguments ref_0 and ref_1 for the lower and upper reference points so these can either be fitted or input as fixed values
 
         super().__init__(exp_decay_func, *args, **kwargs)
         self.set_param_hint("tau", min=0)  # Enforce T1 is positive
 
-        # The upper and lower reference values can either be fitted or fixed in advance
-        self.ref_0 = ref_0
-        self.ref_1 = ref_1
-        if ref_0 == None:
-            self.set_param_hint("ref_0", min=0, vary=True)
-        else:
-            self.set_param_hint("ref_0", value=ref_0, vary=False)
-        if ref_1 == None:
-            self.set_param_hint("ref_1", min=0, vary=True)
-        else:
-            self.set_param_hint("ref_1", value=ref_1, vary=False)
-
-    def fit(
-        self,
-        data,
-        params=None,
-        weights=None,
-        method="leastsq",
-        iter_cb=None,
-        scale_covar=True,
-        verbose=False,
-        fit_kws=None,
-        nan_policy=None,
-        calc_covar=True,
-        max_nfev=None,
-        **kwargs
-    ):
-
-        fit_res = super().fit(
-            data,
-            params,
-            weights,
-            method,
-            iter_cb,
-            scale_covar,
-            verbose,
-            fit_kws,
-            nan_policy,
-            calc_covar,
-            max_nfev,
-            **kwargs
-        )
-
-        # If the the reference levels are fixed, return their standard errors as None
-        if self.ref_0 is not None:
-            fit_res.params["ref_0"].stderr = None
-        if self.ref_1 is not None:
-            fit_res.params["ref_1"].stderr = None
-
-        return fit_res
+        self.set_param_hint("A", min=0, vary=True)
+        self.set_param_hint("B", min=0, vary=True)
 
     def guess(self, data, **kwargs):
         """
@@ -262,14 +217,8 @@ class T1Model(lmfit.model.Model):
         delay = kwargs["delay"]
 
         # If upper and lower references are not given, choose first and last values of data
-        if self.ref_0 == None:
-            self.set_param_hint("ref_0", value=data[-1], min=0)
-        else:
-            self.set_param_hint("ref_0", value=self.ref_0, vary=False)
-        if self.ref_1 == None:
-            self.set_param_hint("ref_1", value=data[0], min=0)
-        else:
-            self.set_param_hint("ref_1", value=self.ref_1, vary=False)
+        self.set_param_hint("A", value=data[-1], min=0)
+        self.set_param_hint("B", value=data[0], min=0)
 
         # The guess for T1 is somewhere in the middle of the time range
         T1 = np.median(delay)
