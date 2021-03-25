@@ -105,7 +105,7 @@ class QubitT1Analysis(ba.BaseAnalysis):
         qpl.plot_fit(
             ax=axs,
             fit_res=self.fit_res["exp_decay_func"],
-            plot_init=True,
+            plot_init=False,
         )
 
         qpl.set_ylabel(axs, "Magnitude", self.dataset["Magnitude"].units)
