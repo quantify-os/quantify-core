@@ -150,6 +150,10 @@ def test_format_value_string_unit_aware():
     formatted_string = format_value_string("tau", tau, unit="Hz")
     assert formatted_string == r"tau: 5.1235$\pm$NaN MHz"
 
+    tau = Parameter("tau", value=5123456.123456)
+    formatted_string = format_value_string("tau", tau, unit="")
+    assert formatted_string == r"tau: 5.1235$\pm$NaN M"
+
     tau.stderr = 3.1234
     formatted_string = format_value_string("tau", tau, unit="Hz")
     assert formatted_string == r"tau: 5.1234561$\pm$3.1e-06 MHz"
