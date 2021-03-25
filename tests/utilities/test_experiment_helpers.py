@@ -1,38 +1,50 @@
 import numpy as np
-from quantify.utilities.experiment_helpers import create_plotmon_from_historical, load_settings_onto_instrument
+from quantify.utilities.experiment_helpers import (
+    create_plotmon_from_historical,
+    load_settings_onto_instrument,
+)
 from quantify.data.handling import set_datadir
 from quantify.utilities._tests_helpers import get_test_data_dir
 from qcodes.instrument import Instrument, Parameter, ManualParameter
 
 
-test_datadir = get_test_data_dir()
-# Always set datadir before instruments
-set_datadir(test_datadir)
-
-
 # Test that we can successfully load the settings of a dummy instrument
 def test_load_settings_onto_instrument():
-    def get_func(): return 20
+    test_datadir = get_test_data_dir()
+    # Always set datadir before instruments
+    set_datadir(test_datadir)
 
-    tuid = '20210319-094728-327-69b211'
+    def get_func():
+        return 20
 
-    instr = Instrument('DummyInstrument')
-    
+    tuid = "20210319-094728-327-69b211"
+
+    instr = Instrument("DummyInstrument")
+
     # A parameter that is both settable and gettable
-    instr.add_parameter('settable_param', initial_value=10, parameter_class=ManualParameter)
+    instr.add_parameter(
+        "settable_param", initial_value=10, parameter_class=ManualParameter
+    )
     # A parameter that is only gettable
-    instr.add_parameter('gettable_param', set_cmd=False, get_cmd=get_func)
+    instr.add_parameter("gettable_param", set_cmd=False, get_cmd=get_func)
 
     load_settings_onto_instrument(instr, tuid)
 
-    assert instr.get('IDN') == {'vendor': None, 'model': 'DummyInstrument', 'serial': None, 'firmware': None}
-    assert instr.get('settable_param') == 5
-    assert instr.get('gettable_param') == 20
-
+    assert instr.get("IDN") == {
+        "vendor": None,
+        "model": "DummyInstrument",
+        "serial": None,
+        "firmware": None,
+    }
+    assert instr.get("settable_param") == 5
+    assert instr.get("gettable_param") == 20
 
 
 def test_create_plotmon_from_historical():
-    
+    test_datadir = get_test_data_dir()
+    # Always set datadir before instruments
+    set_datadir(test_datadir)
+
     tuid = "20200504-191556-002-4209ee"
     plotmon = create_plotmon_from_historical(tuid)
 
