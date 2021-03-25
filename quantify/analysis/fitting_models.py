@@ -98,9 +98,9 @@ def exp_decay_func(
     tau:
         decay time
     A:
-        lower reference value (background level)
+        The asymptote of the exponential decay, the value at t=infty
     B:
-        upper reference value (initial value)
+        The amplitude or starting value of the exponential decay
 
     Returns
     -------
@@ -201,8 +201,8 @@ class T1Model(lmfit.model.Model):
         super().__init__(exp_decay_func, *args, **kwargs)
         self.set_param_hint("tau", min=0)  # Enforce T1 is positive
 
-        self.set_param_hint("A", min=0, vary=True)
-        self.set_param_hint("B", min=0, vary=True)
+        self.set_param_hint("A", vary=True)
+        self.set_param_hint("B", vary=True)
 
     def guess(self, data, **kwargs):
         """
@@ -216,9 +216,9 @@ class T1Model(lmfit.model.Model):
 
         delay = kwargs["delay"]
 
-        # If upper and lower references are not given, choose first and last values of data
-        self.set_param_hint("A", value=data[-1], min=0)
-        self.set_param_hint("B", value=data[0], min=0)
+        # To guess the upper and lower reference values, choose first and last values of data
+        self.set_param_hint("A", value=data[-1])
+        self.set_param_hint("B", value=data[0])
 
         # The guess for T1 is somewhere in the middle of the time range
         T1 = np.median(delay)

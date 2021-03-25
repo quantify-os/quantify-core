@@ -12,7 +12,24 @@ from quantify.visualization import mpl_plotting as qpl
 from quantify.visualization.SI_utilities import format_value_string
 
 
-class QubitT1Analysis(ba.BaseAnalysis):
+class T1Analysis(ba.BaseAnalysis):
+    """
+    Analysis class for a qubit T1 experiment, which fits an exponential decay and extracts the T1 time.
+
+    Parameters
+        ----------
+        label:
+            Will look for a dataset that contains "label" in the name.
+        tuid:
+            If specified, will look for the dataset with the matching tuid.
+        interrupt_before:
+            Stops `run_analysis` before executing the specified step.
+        settings_overwrite:
+            A dictionary containing overrides for the global
+            `base_analysis.settings` for this specific instance.
+            See table below for available settings.
+    """
+
     def process_data(self):
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
@@ -47,12 +64,6 @@ class QubitT1Analysis(ba.BaseAnalysis):
         self.quantities_of_interest["T1"] = ufloat(
             fpars["tau"].value, fpars["tau"].stderr
         )
-        self.quantities_of_interest["ref_0"] = ufloat(
-            fpars["A"].value, fpars["A"].stderr
-        )
-        self.quantities_of_interest["ref_1"] = ufloat(
-            fpars["B"].value, fpars["B"].stderr
-        )
 
         unit = self.dataset["Magnitude"].attrs["units"]
         text_msg = "Summary\n"
@@ -60,9 +71,9 @@ class QubitT1Analysis(ba.BaseAnalysis):
             r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
         )
         text_msg += format_value_string(
-            r"$ref_0$", fit_res.params["A"], end_char="\n", unit=unit
+            r"$A$", fit_res.params["A"], end_char="\n", unit=unit
         )
-        text_msg += format_value_string(r"$ref_1$", fit_res.params["B"], unit=unit)
+        text_msg += format_value_string(r"$B$", fit_res.params["B"], unit=unit)
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
