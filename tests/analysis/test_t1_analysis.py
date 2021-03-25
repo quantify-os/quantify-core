@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import pytest
+# import pytest
 from pytest import approx
 from uncertainties.core import Variable
 import quantify.data.handling as dh
