@@ -651,7 +651,8 @@ def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
         }
     )
     for ins_name, ins_ref in Instrument._all_instruments.items():
-        snap["instruments"][ins_name] = ins_ref().snapshot(update=update)
+        if ins_ref() is not None:
+            snap["instruments"][ins_name] = ins_ref().snapshot(update=update)
 
     if clean:
         exclude_keys = {
