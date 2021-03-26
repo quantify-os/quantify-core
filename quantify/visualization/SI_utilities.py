@@ -135,7 +135,7 @@ def SI_prefix_and_scale_factor(val, unit=None):
     Takes in a value and unit and if applicable returns the proper scale factor and SI prefix.
 
     If the unit is None, no scaling is done.
-    If the unit is an empty string "", the value is scaled and an SI prefix is applied without a base unit.
+    If the unit is "si_prefix_only", the value is scaled and an SI prefix is applied without a base unit.
 
     Parameters
     ----------
