@@ -82,6 +82,42 @@ def hanger_func_complex_SI(
     return S21
 
 
+def Rabi_oscilliation(
+    t: float,
+    omega: float,
+    A: float,
+    offset: float,
+    phi: float = 0,
+) -> float:
+    """
+    The sinusoidal function for a qubit Rabi oscillation (starting at 0 when phi = 0).
+
+    Parameters
+    ----------
+    t:
+        Rabi pulse length
+    omega:
+        Rabi frequency
+    A:
+        Amplitude of output signal oscillation
+    offset:
+        Output signal vertical offset
+    phi:
+        Phase offset
+
+    Returns
+    -------
+    :
+        Output signal magnitude
+
+    .. math::
+
+        y = -A\\cos(\\Omega t + \\phi) + \\mathrm{offset}
+    """
+
+    return -A * np.cos(omega * t + phi) + offset
+
+
 def get_model_common_doc() -> str:
     """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
     return (
@@ -149,6 +185,38 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("phi_0", value=phi_0_guess)
         self.set_param_hint("phi_v", value=phi_v_guess)
         self.set_param_hint("alpha", value=0, min=-1, max=1)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
+
+
+class RabiModel(lmfit.model.Model):
+    """"""  # Avoid including Model docstring
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+
+    __doc__ = "Rabi model\n\n" + get_model_common_doc()
+
+    def __init__(self, *args, **kwargs):
+        """"""  # Avoid including Model.__init__ docstring
+        # pass in the defining equation so the user doesn't have to later.
+        super().__init__(Rabi_oscilliation, *args, **kwargs)
+        self.set_param_hint("omega", min=0)  # Enforce Rabi frequency is positive
+
+        # Pi time can be derived from Rabi frequency
+        self.set_param_hint("t_pi", expr="3.1426/omega", vary=False)
+
+    def guess(self, data, **kwargs):
+        """
+        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
+        """
+
+        params = self.make_params()
+
+        self.set_param_hint("omega", value=500e5, min=0)
+        self.set_param_hint("A", value=(max(data) - min(data)) / 2)
+        self.set_param_hint("offset", value=np.median(data) - 40e-6)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
