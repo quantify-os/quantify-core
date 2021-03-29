@@ -277,7 +277,7 @@ def value_precision(val, stderr=None):
     """
 
     if stderr == None or stderr == 0:
-        return "{:.5g}", "{:.2g}"
+        return "{:.5g}", "{:.1f}"
     else:
         value_mag = np.floor(np.log10(abs(val))) + 1
         err_mag = np.floor(np.log10(abs(stderr))) + 1
@@ -289,4 +289,4 @@ def value_precision(val, stderr=None):
             sig_figs = int(
                 max(value_mag - err_mag + 2, 2)
             )  # If the error is the same size as the value or larger, use 2 sig figs
-            return "{:#." + "{:d}".format(sig_figs) + "g}", "{:.2g}"
+            return "{:#." + "{:d}".format(sig_figs) + "g}", "{:#.2g}"

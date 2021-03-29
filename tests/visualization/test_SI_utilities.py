@@ -103,6 +103,10 @@ def test_format_value_string():
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 5123456.1$\pm$3.1 "
 
+    tau.stderr = 0
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r"tau: 5.1235e+06$\pm$0.0 "
+
     tau.stderr = 31456
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 5.123e+06$\pm$3.1e+04 "
@@ -121,7 +125,7 @@ def test_format_value_string():
 
     tau.stderr = 0.03
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 5.123$\pm$0.03 "
+    assert formatted_string == r"tau: 5.123$\pm$0.030 "
 
     tau = Parameter("tau", value=37608)
     tau.stderr = 933
@@ -144,7 +148,7 @@ def test_format_value_string_unit_aware():
 
     tau.stderr = 0.03e-6
     formatted_string = format_value_string("tau", tau, unit="s")
-    assert formatted_string == r"tau: 5.123$\pm$0.03 μs"
+    assert formatted_string == r"tau: 5.123$\pm$0.030 μs"
 
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau, unit="Hz")
@@ -170,10 +174,10 @@ def test_value_precision():
     val = 5.123456
 
     format_specifier = value_precision(val)
-    assert format_specifier == ("{:.5g}", "{:.2g}")
+    assert format_specifier == ("{:.5g}", "{:.1f}")
 
     format_specifier = value_precision(val, stderr=0.31)
-    assert format_specifier == ("{:#.3g}", "{:.2g}")
+    assert format_specifier == ("{:#.3g}", "{:#.2g}")
 
     format_specifier = value_precision(930, stderr=31)
     assert format_specifier == ("{:.0f}", "{:.0f}")
