@@ -237,14 +237,14 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
 
     Parameters
     ----------
-    par_name :
+    par_name : str
         the name of the parameter to use in the string
     lmfit_par :
         an lmfit Parameter object. The value and stderr of this parameter
         will be used.
-    end_char :
+    end_char : str
         A character that will be put at the end of the line.
-    unit :
+    unit : str
         a unit. If this is an SI unit it will be used in automatically
         determining a prefix for the unit and rescaling accordingly.
     """
@@ -276,10 +276,17 @@ def value_precision(val, stderr=None) -> Tuple[str]:
 
     Parameters
     ----------
-    val:
+    val: float
         the nominal value of the parameter
-    stderr:
+    stderr: float
         the standard error on the parameter
+
+    Returns
+    ----------
+    val_format_specifier: str
+        python format specifier which sets the precision of the parameter value
+    err_format_specifier: str
+        python format specifier which set the precision of the error
     """
 
     if stderr == None or stderr == 0:
