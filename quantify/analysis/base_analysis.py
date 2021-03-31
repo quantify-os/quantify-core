@@ -195,7 +195,9 @@ class BaseAnalysis(ABC):
                 raise RuntimeError(
                     "An exception occurred while executing "
                     f"{method}.\n\n"  # point to the culprit
-                    "Use `interrupt_before='<analysis step>'` to run a partial analysis. "
+                    "Use `interrupt_before=<analysis step>` to run a partial analysis,\n"
+                    "e.g., `interrupt_before=AnalysisSteps.S03_RUN_FITTING`. Note the steps are \n"
+                    "not specified as strings."
                     "Method names:\n"
                     f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
                 ) from e  # and raise the original exception
