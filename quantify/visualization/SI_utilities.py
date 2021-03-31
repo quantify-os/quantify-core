@@ -227,7 +227,7 @@ class SafeFormatter(string.Formatter):
             raise e
 
 
-def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
+def format_value_string(par_name: str, lmfit_par, end_char="", unit=None) -> str:
     """
     Format an lmfit par to a  string of value with uncertainty.
 
@@ -247,6 +247,12 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
     unit : str
         a unit. If this is an SI unit it will be used in automatically
         determining a prefix for the unit and rescaling accordingly.
+
+    Returns
+    ----------
+    val_string : str
+        The parameter and its error formatted as a string
+
     """
 
     scale_factor, unit = SI_prefix_and_scale_factor(lmfit_par.value, unit)
@@ -270,7 +276,7 @@ def value_precision(val, stderr=None) -> Tuple[str]:
     Calculate the precision to which a parameter is to be specified, according to its standard error.
     Returns the appropriate format specifier string.
 
-    If there is no stderr, use 5 significant figures.
+    If there is no stderr, use 5 significant figures.q
     If there is a standard error use a precision one order of magnitude more precise than the size of the error and display the stderr itself
     to two significant figures in standard index notation in the same units as the value.
 
