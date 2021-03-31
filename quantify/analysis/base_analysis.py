@@ -455,13 +455,14 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        gridded_dataset = to_gridded_dataset(self.dataset_raw)
-
-        for yi, yvals in gridded_dataset.data_vars.items():
+        # NB we do not use `to_gridded_dataset` because that can potentially drop
+        # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
+        dataset = self.dataset_raw
+        for yi, yvals in dataset.data_vars.items():
             fig, ax = plt.subplots()
             fig_id = f"Line plot x0-{yi}"
             # plotting works because it is an xarray with associated dimensions.
-            yvals.plot(ax=ax, marker=".")
+            yvals.plot.line(x="x0", marker=".")  # plot this variable against x0
             adjust_axeslabels_SI(ax)
 
             fig.suptitle(
