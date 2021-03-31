@@ -458,20 +458,26 @@ class Basic1DAnalysis(BaseAnalysis):
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
         dataset = self.dataset_raw
+        # for compatibility with older datasets, in case "x0" is not a coordinate we use "dim_0"
+        coords = tuple(dataset.coords)
+        dims = tuple(dataset.dims)
+        plot_against = coords[0] if coords else (dims[0] if dims else None)
         for yi, yvals in dataset.data_vars.items():
-            fig, ax = plt.subplots()
-            fig_id = f"Line plot x0-{yi}"
-            # plotting works because it is an xarray with associated dimensions.
-            yvals.plot.line(x="x0", marker=".")  # plot this variable against x0
-            adjust_axeslabels_SI(ax)
+            # for compatibility with older datasets, do not plot "x0" vx "x0"
+            if yi.startswith("y"):
+                fig, ax = plt.subplots()
+                fig_id = f"Line plot x0-{yi}"
+                # plot this variable against x0
+                yvals.plot.line(ax=ax, x=plot_against, marker=".")
+                adjust_axeslabels_SI(ax)
 
-            fig.suptitle(
-                f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
-            )
+                fig.suptitle(
+                    f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                )
 
-            # add the figure and axis to the dicts for saving
-            self.figs_mpl[fig_id] = fig
-            self.axs_mpl[fig_id] = ax
+                # add the figure and axis to the dicts for saving
+                self.figs_mpl[fig_id] = fig
+                self.axs_mpl[fig_id] = ax
 
 
 class Basic2DAnalysis(BaseAnalysis):

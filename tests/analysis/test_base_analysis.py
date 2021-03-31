@@ -246,6 +246,7 @@ def test_basic1d_analysis(caplog):
 
 
 def test_basic1d_analysis_plot_repeated_pnts(caplog):
+    dh.set_datadir(get_test_data_dir())
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY)
 
     # test that the duplicated setpoints measured are plotted
