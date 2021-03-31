@@ -125,7 +125,7 @@ SI_PREFIXES[0] = ""
 
 # N.B. not all of these are SI units, however, all of these support SI prefixes
 SI_UNITS = (
-    "si_prefix_only,m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
+    "SI_PREFIX_ONLY,m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
     r"Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
 )  # noqa: W605
 
@@ -135,7 +135,7 @@ def SI_prefix_and_scale_factor(val, unit=None):
     Takes in a value and unit and if applicable returns the proper scale factor and SI prefix.
 
     If the unit is None, no scaling is done.
-    If the unit is "si_prefix_only", the value is scaled and an SI prefix is applied without a base unit.
+    If the unit is "SI_PREFIX_ONLY", the value is scaled and an SI prefix is applied without a base unit.
 
     Parameters
     ----------
@@ -159,14 +159,14 @@ def SI_prefix_and_scale_factor(val, unit=None):
                 if plt.rcParams["text.usetex"] and prefix == "μ":
                     prefix = r"$\mu$"
 
-            if unit == "si_prefix_only":
+            if unit == "SI_PREFIX_ONLY":
                 return 10 ** -prefix_power, prefix
             else:
                 return 10 ** -prefix_power, prefix + unit
         except (KeyError, TypeError):
             pass
 
-    if unit == None or unit == "si_prefix_only":
+    if unit == None or unit == "SI_PREFIX_ONLY":
         return 1, ""
     else:
         return 1, unit

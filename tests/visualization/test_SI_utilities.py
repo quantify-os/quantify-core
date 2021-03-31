@@ -155,7 +155,7 @@ def test_format_value_string_unit_aware():
     assert formatted_string == r"tau: 5.1235$\pm$NaN MHz"
 
     tau = Parameter("tau", value=5123456.123456)
-    formatted_string = format_value_string("tau", tau, unit="si_prefix_only")
+    formatted_string = format_value_string("tau", tau, unit="SI_PREFIX_ONLY")
     assert formatted_string == r"tau: 5.1235$\pm$NaN M"
 
     tau.stderr = 3.1234
