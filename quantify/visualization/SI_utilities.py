@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import string
 import numpy as np
+from typing import Tuple
 
 golden_mean = (np.sqrt(5) - 1.0) / 2.0  # Aesthetic ratio
 single_col_figsize = (3.39, golden_mean * 3.39)
@@ -230,6 +231,10 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
     """
     Format an lmfit par to a  string of value with uncertainty.
 
+    If there is no stderr, use 5 significant figures.
+    If there is a standard error use a precision one order of magnitude more precise than the size of the error and display the stderr itself
+    to two significant figures in standard index notation in the same units as the value.
+
     Parameters
     ----------
     par_name :
@@ -260,13 +265,14 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None):
     return val_string
 
 
-def value_precision(val, stderr=None):
+def value_precision(val, stderr=None) -> Tuple[str]:
     """
     Calculate the precision to which a parameter is to be specified, according to its standard error.
     Returns the appropriate format specifier string.
 
     If there is no stderr, use 5 significant figures.
-    If there is a standard error use a precision one order of magnitude less than the size of the error.
+    If there is a standard error use a precision one order of magnitude more precise than the size of the error and display the stderr itself
+    to two significant figures in standard index notation in the same units as the value.
 
     Parameters
     ----------

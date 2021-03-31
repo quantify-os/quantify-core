@@ -92,8 +92,8 @@ def test_save_formatter_named_args():
     assert plot_title == "test\n190101_001122"
 
 
-# If no stderr is given, display to 5 significant figures. Otherwise, use a precision one order of magnitude lower than
-# the stderr and display the stderr itself to 2 significant figures.
+# If no stderr is given, display to 5 significant figures. Otherwise, use a precision one order of magnitude more precise
+# than the stderr magnitude and display the stderr itself to 2 significant figures.
 def test_format_value_string():
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau)
@@ -139,7 +139,7 @@ def test_format_value_string():
 
 
 # If no stderr is given, display to 5 significant figures in the appropriate units.
-# Otherwise, the stderr use a precision one order of magnitude lower than the stderr and display the stderr itself
+# Otherwise, the stderr use a precision one order of magnitude more precise than the stderr magnitude and display the stderr itself
 # to two significant figures in standard index notation in the same units as the value.
 def test_format_value_string_unit_aware():
     tau = Parameter("tau", value=5.123456e-6)
@@ -169,7 +169,7 @@ def test_format_value_string_unit_aware():
 
 
 # The precision should be 5 significant figures if there is no stderr.
-# Otherwise the precision should be one order of magnitude lower than the stderr (and include trailing zeros)
+# Otherwise the precision should be one order of magnitude  more precise than the stderr magnitude (and include trailing zeros)
 def test_value_precision():
     val = 5.123456
 
