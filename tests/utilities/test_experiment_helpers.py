@@ -39,6 +39,8 @@ def test_load_settings_onto_instrument():
     assert instr.get("settable_param") == 5
     assert instr.get("gettable_param") == 20
 
+    instr.close()
+
 
 def test_create_plotmon_from_historical():
     test_datadir = get_test_data_dir()
