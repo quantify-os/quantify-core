@@ -156,16 +156,20 @@ def SI_prefix_and_scale_factor(val, unit=None):
         unit including the prefix
     """
     if unit in SI_UNITS:
-        with np.errstate(all="ignore"):
-            prefix_power = np.log10(abs(val)) // 3 * 3
-            prefix = SI_PREFIXES[prefix_power]
-            # Greek symbols not supported in tex
-            if plt.rcParams["text.usetex"] and prefix == "μ":
-                prefix = r"$\mu$"
-        if unit == "SI_PREFIX_ONLY":
-            scale_factor, scaled_unit = 10 ** -prefix_power, prefix
-        else:
-            scale_factor, scaled_unit = 10 ** -prefix_power, prefix + unit
+        try:
+            with np.errstate(all="ignore"):
+                prefix_power = np.log10(abs(val)) // 3 * 3
+                prefix = SI_PREFIXES[prefix_power]
+                # Greek symbols not supported in tex
+                if plt.rcParams["text.usetex"] and prefix == "μ":
+                    prefix = r"$\mu$"
+            if unit == "SI_PREFIX_ONLY":
+                scale_factor, scaled_unit = 10 ** -prefix_power, prefix
+            else:
+                scale_factor, scaled_unit = 10 ** -prefix_power, prefix + unit
+        # this exception can be triggered in the pyqtgraph multi processing
+        except (KeyError, TypeError):
+            scale_factor, scaled_unit = 1, unit
 
     elif unit is None:
         scale_factor, scaled_unit = 1, ""
