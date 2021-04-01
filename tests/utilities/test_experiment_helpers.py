@@ -32,6 +32,8 @@ def test_load_settings_onto_instrument():
     instr.add_parameter(
         "boolean_param", initial_value=True, parameter_class=ManualParameter
     )
+    # A parameter which our function will try to set to None
+    instr.add_parameter("none_param", initial_value=1, parameter_class=ManualParameter)
     # The snapshot also contains an 'obsolete_param', that is not included here.
     # This represents a parameter which is no longer in the qcodes driver.
 
@@ -49,6 +51,7 @@ def test_load_settings_onto_instrument():
     }
     assert instr.get("settable_param") == 5
     assert instr.get("gettable_param") == 20
+    assert instr.get("none_param") == None
     assert instr.get("boolean_param") == False
 
     instr.close()
