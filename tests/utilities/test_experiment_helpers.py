@@ -44,7 +44,6 @@ def test_load_settings_onto_instrument():
 
 def test_create_plotmon_from_historical():
     test_datadir = get_test_data_dir()
-    # Always set datadir before instruments
     set_datadir(test_datadir)
 
     tuid = "20200504-191556-002-4209ee"
