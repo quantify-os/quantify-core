@@ -1,6 +1,15 @@
 Tutorial 2. Advanced capabilities of the MeasurementControl
 ============================================================
 
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 2. Advanced capabilities of the MeasurementControl`
+
+    :jupyter-download:script:`Tutorial 2. Advanced capabilities of the MeasurementControl`
+
+
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the :ref:`User guide`!
 
 We **highly recommended** to begin with :ref:`Tutorial 1. Controlling a basic experiment using MeasurementControl` before proceeding.
@@ -238,6 +247,11 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 
 
 .. jupyter-execute::
+    :raises: KeyboardInterrupt
+
+    import os
+    import signal
+    import sys
 
     class SlowGettable:
         def __init__(self):
@@ -247,11 +261,16 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 
         def get(self):
             time.sleep(1.0)
-            if time_par() == 8:
+            if time_par() == 4:
                 # This same exception rises when pressing `ctrl` + `c`
                 # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
-                raise KeyboardInterrupt
+                if sys.platform == "win32":
+                    # Emulating the kernel interrupt on windows might have side effects
+                    raise KeyboardInterrupt
+                else:
+                    os.kill(os.getpid(), signal.SIGINT)
             return time_par()
+
 
     time_par.batched = False
     MC.settables(time_par)
@@ -264,13 +283,3 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 .. jupyter-execute::
 
     plotmon.main_QtPlot
-
-
-
-.. seealso::
-
-    The complete source code of this tutorial can be found in
-
-    :jupyter-download:notebook:`Tutorial 2. Advanced capabilities of the MeasurementControl`
-
-    :jupyter-download:script:`Tutorial 2. Advanced capabilities of the MeasurementControl`

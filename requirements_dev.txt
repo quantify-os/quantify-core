@@ -23,6 +23,7 @@ pygments==2.6.1
 black
 pylint
 pre-commit
+scanpydoc
 
 # quantify-core only
 

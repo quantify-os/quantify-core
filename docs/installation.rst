@@ -21,6 +21,8 @@ If you are familiar with software development (package manager, git, terminal, P
 
 #. Install Quantify (and JupyterLab) in a new conda environment, see also the `Conda cheat sheet <https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html>`_.
 
+    N.B. If you are interested to contribute to Quantify-core and/or Quantify-scheduler you should :ref:`set them up for local development instead <Setting up for local development>`.
+
     .. code-block::
 
         $ conda create --name quantify-env python=3.8
@@ -28,6 +30,13 @@ If you are familiar with software development (package manager, git, terminal, P
         $ conda install -c conda-forge jupyterlab
         $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
         $ pip install quantify-core
+
+        $ # (Optionally) install quantify-scheduler:
+
+        $ pip install quantify-scheduler
+        $ jupyter labextension install jupyterlab-plotly --no-build
+        $ # this might take a few minutes
+        $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
 
 #. You are good to go! Head over to the :ref:`User guide <usage>` to get started.
 
@@ -78,16 +87,26 @@ Detailed instructions
 
 #. Install quantify-core pypi
 
-    If you are interested to contribute to Quantify you should :ref:`set it up for local development instead <Setting up for local development>`.
+    If you are interested to contribute to Quantify-core you should :ref:`set it up for local development instead <Setting up for local development>`.
 
     .. code-block::
 
-        $ pip install quantify-core  # install the package into
-        $ pip install quantify-scheduler   # optionally install other quantify modules
+        $ pip install quantify-core
 
     .. note::
 
         We currently do not have a conda recipe for installation, instead we refer to the default pip installation within a conda environment.
+
+#. (Optionally) install quantify-scheduler
+
+    If you are interested to contribute to Quantify-scheduler you should :ref:`set it up for local development instead <Setting up for local development>`. You only need to replace :code:`quantify-core` with :code:`quantify-scheduler` in the provided commands.
+
+    .. code-block::
+
+        $ pip install quantify-scheduler
+        $ jupyter labextension install jupyterlab-plotly --no-build
+        $ # this might take a few minutes
+        $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
 
 Other systems
 ~~~~~~~~~~~~~

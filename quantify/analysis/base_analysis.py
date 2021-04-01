@@ -45,7 +45,7 @@ settings = AnalysisSettings(
             "svg",
         ],  # svg is superior but at least OneNote does not support it
         "mpl_exclude_fig_titles": False,
-        "mpl_transparent_background": False,
+        "mpl_transparent_background": True,
     }
 )
 """
@@ -79,7 +79,7 @@ class AnalysisSteps(Enum):
 
     .. tip::
 
-        A custom analysis flow (e.g. inserting new steps) can be created be implementing
+        A custom analysis flow (e.g. inserting new steps) can be created by implementing
         an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
     """
 
@@ -94,8 +94,7 @@ class AnalysisSteps(Enum):
     S06_ADJUST_FIGURES = "adjust_figures"
     S07_SAVE_FIGURES = "save_figures"
     S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
-    # blocked by #161
-    # S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
@@ -196,7 +195,9 @@ class BaseAnalysis(ABC):
                 raise RuntimeError(
                     "An exception occurred while executing "
                     f"{method}.\n\n"  # point to the culprit
-                    "Use `interrupt_before='<analysis step>'` to run a partial analysis. "
+                    "Use `interrupt_before=<analysis step>` to run a partial analysis,\n"
+                    "e.g., `interrupt_before=AnalysisSteps.S03_RUN_FITTING`. Note the steps are \n"
+                    "not specified as strings."
                     "Method names:\n"
                     f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
                 ) from e  # and raise the original exception
@@ -456,22 +457,29 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        gridded_dataset = to_gridded_dataset(self.dataset_raw)
+        # NB we do not use `to_gridded_dataset` because that can potentially drop
+        # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
+        dataset = self.dataset_raw
+        # for compatibility with older datasets, in case "x0" is not a coordinate we use "dim_0"
+        coords = tuple(dataset.coords)
+        dims = tuple(dataset.dims)
+        plot_against = coords[0] if coords else (dims[0] if dims else None)
+        for yi, yvals in dataset.data_vars.items():
+            # for compatibility with older datasets, do not plot "x0" vx "x0"
+            if yi.startswith("y"):
+                fig, ax = plt.subplots()
+                fig_id = f"Line plot x0-{yi}"
+                # plot this variable against x0
+                yvals.plot.line(ax=ax, x=plot_against, marker=".")
+                adjust_axeslabels_SI(ax)
 
-        for yi, yvals in gridded_dataset.data_vars.items():
-            fig, ax = plt.subplots()
-            fig_id = f"Line plot x0-{yi}"
-            # plotting works because it is an xarray with associated dimensions.
-            yvals.plot(ax=ax, marker=".")
-            adjust_axeslabels_SI(ax)
+                fig.suptitle(
+                    f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                )
 
-            fig.suptitle(
-                f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
-            )
-
-            # add the figure and axis to the dicts for saving
-            self.figs_mpl[fig_id] = fig
-            self.axs_mpl[fig_id] = ax
+                # add the figure and axis to the dicts for saving
+                self.figs_mpl[fig_id] = fig
+                self.axs_mpl[fig_id] = ax
 
 
 class Basic2DAnalysis(BaseAnalysis):
