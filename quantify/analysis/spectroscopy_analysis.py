@@ -64,8 +64,12 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         )
 
         text_msg = "Summary\n"
-        text_msg += format_value_string(r"$Q_I$", fit_res.params["Qi"], end_char="\n")
-        text_msg += format_value_string(r"$Q_C$", fit_res.params["Qc"], end_char="\n")
+        text_msg += format_value_string(
+            r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
+        )
+        text_msg += format_value_string(
+            r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
+        )
         text_msg += format_value_string(r"$f_{res}$", fit_res.params["fr"], unit="Hz")
         self.quantities_of_interest["fit_msg"] = text_msg
 
