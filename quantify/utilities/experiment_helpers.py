@@ -48,8 +48,10 @@ def load_settings_onto_instrument(
                 instrument.__dict__["parameters"][parname]
             ):  # Make sure the parameter is actually a settable
                 val = par["value"]
-                if val:  # qcodes doesn't like setting to none
+                try:
                     instrument.set(parname, par["value"])
+                except:
+                    warnings.warn(f"Parameter {parname} could not be set to {val}")
         else:
             warnings.warn(
                 f"{instrument.name} does not possess a parameter {parname}. Could not set parameter."
