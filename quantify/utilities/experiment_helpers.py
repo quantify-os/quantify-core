@@ -7,6 +7,7 @@ from qcodes import Instrument
 from quantify.data.types import TUID
 from quantify.data.handling import load_snapshot, get_latest_tuid
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
+import warnings
 
 
 def load_settings_onto_instrument(
@@ -40,12 +41,19 @@ def load_settings_onto_instrument(
             )
         )
     for parname, par in instruments[instrument.name]["parameters"].items():
-        if "set" in dir(
-            instrument.__dict__["parameters"][parname]
-        ):  # Make sure the parameter is actually a settable
-            val = par["value"]
-            if val:  # qcodes doesn't like setting to none
-                instrument.set(parname, par["value"])
+        if (
+            parname in instrument.__dict__["parameters"]
+        ):  # Check that the parameter exists in this instrument
+            if "set" in dir(
+                instrument.__dict__["parameters"][parname]
+            ):  # Make sure the parameter is actually a settable
+                val = par["value"]
+                if val:  # qcodes doesn't like setting to none
+                    instrument.set(parname, par["value"])
+        else:
+            warnings.warn(
+                f"{instrument.name} does not possess a parameter {parname}. Could not set parameter."
+            )
 
 
 def create_plotmon_from_historical(tuid: TUID):

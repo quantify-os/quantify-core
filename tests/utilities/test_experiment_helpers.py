@@ -6,6 +6,7 @@ from quantify.utilities.experiment_helpers import (
 from quantify.data.handling import set_datadir
 from quantify.utilities._tests_helpers import get_test_data_dir
 from qcodes.instrument import Instrument, ManualParameter
+from pytest import warns
 
 
 # Test that we can successfully load the settings of a dummy instrument
@@ -34,7 +35,11 @@ def test_load_settings_onto_instrument():
     # The snapshot also contains an 'obsolete_param', that is not included here.
     # This represents a parameter which is no longer in the qcodes driver.
 
-    load_settings_onto_instrument(instr, tuid)
+    with warns(
+        UserWarning,
+        match="DummyInstrument does not possess a parameter obsolete_param. Could not set parameter.",
+    ):
+        load_settings_onto_instrument(instr, tuid)
 
     assert instr.get("IDN") == {
         "vendor": None,
