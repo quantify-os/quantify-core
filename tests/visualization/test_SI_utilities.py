@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name # disabled because of capital SI in module name
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
@@ -150,8 +151,8 @@ def test_format_value_string_unit_aware():
     """
     If no stderr is given, display to 5 significant figures in the appropriate units.
     Otherwise, the stderr use a precision one order of magnitude more precise than the
-    stderr magnitude and display the stderr itself
-    to two significant figures in standard index notation in the same units as the value.
+    stderr magnitude and display the stderr itself to two significant figures in
+    standard index notation in the same units as the value.
     """
     tau = Parameter("tau", value=5.123456e-6)
     formatted_string = format_value_string("tau", tau, unit="s")

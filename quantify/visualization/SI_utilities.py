@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name  # disabled because of capital SI in module name
 # -----------------------------------------------------------------------------
 # Description:    Utilities for managing SI units with plotting systems.
 # Repository:     https://gitlab.com/quantify-os/quantify-core
@@ -196,6 +197,7 @@ def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
 
 class SafeFormatter(string.Formatter):
     def __init__(self, missing: str = "~~", bad_fmt: str = "!!"):
+        # pylint: disable=line-too-long
         """
         A formatter that replaces "missing" values and "bad_fmt" to prevent unexpected
         Exceptions being raised.
