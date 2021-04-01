@@ -1,5 +1,11 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+
+
 import numpy as np
 import matplotlib.pyplot as plt
+from lmfit.parameter import Parameter
 from quantify.visualization.SI_utilities import SI_prefix_and_scale_factor
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 from quantify.visualization.SI_utilities import SI_val_to_msg_str
@@ -8,7 +14,6 @@ from quantify.visualization.SI_utilities import (
     format_value_string,
     value_precision,
 )
-from lmfit.parameter import Parameter
 
 
 def test_non_si():
@@ -92,9 +97,12 @@ def test_save_formatter_named_args():
     assert plot_title == "test\n190101_001122"
 
 
-# If no stderr is given, display to 5 significant figures. Otherwise, use a precision one order of magnitude more precise
-# than the stderr magnitude and display the stderr itself to 2 significant figures.
 def test_format_value_string():
+    """
+    If no stderr is given, display to 5 significant figures. Otherwise, use
+    a precision one order of magnitude more precise
+    than the stderr magnitude and display the stderr itself to 2 significant figures.
+    """
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 5.1235e+06$\pm$NaN "
@@ -138,10 +146,13 @@ def test_format_value_string():
     assert formatted_string == r"tau: 7767$\pm$36 "
 
 
-# If no stderr is given, display to 5 significant figures in the appropriate units.
-# Otherwise, the stderr use a precision one order of magnitude more precise than the stderr magnitude and display the stderr itself
-# to two significant figures in standard index notation in the same units as the value.
 def test_format_value_string_unit_aware():
+    """
+    If no stderr is given, display to 5 significant figures in the appropriate units.
+    Otherwise, the stderr use a precision one order of magnitude more precise than the
+    stderr magnitude and display the stderr itself
+    to two significant figures in standard index notation in the same units as the value.
+    """
     tau = Parameter("tau", value=5.123456e-6)
     formatted_string = format_value_string("tau", tau, unit="s")
     assert formatted_string == r"tau: 5.1235$\pm$NaN μs"
@@ -168,9 +179,12 @@ def test_format_value_string_unit_aware():
     assert formatted_string == r"tau: 5123$\pm$10 "
 
 
-# The precision should be 5 significant figures if there is no stderr.
-# Otherwise the precision should be one order of magnitude  more precise than the stderr magnitude (and include trailing zeros)
 def test_value_precision():
+    """
+    The precision should be 5 significant figures if there is no stderr.
+    Otherwise the precision should be one order of magnitude  more precise than
+    the stderr magnitude (and include trailing zeros)
+    """
     val = 5.123456
 
     format_specifier = value_precision(val)
