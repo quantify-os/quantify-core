@@ -27,6 +27,20 @@
                     "name": "gettable_param",
                     "label": "gettable_param",
                     "unit": ""
+                },
+                "boolean_param": {
+                    "value": false,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "boolean_param",
+                    "label": "boolean_param",
+                    "unit": ""
+                },
+                "obsolete_param": {
+                    "value": 0,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "obsolete_param",
+                    "label": "obsolete_param",
+                    "unit": ""
                 }
             },
             "name": "DummyInstrument"
