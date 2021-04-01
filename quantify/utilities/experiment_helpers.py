@@ -21,7 +21,7 @@ def load_settings_onto_instrument(
     instrument : :class:`~qcodes.instrument.base.Instrument`
         the instrument to be configured.
     tuid : :class:`~quantify.data.types.TUID`
-        the TUID of the experiment.
+        the TUID of the experiment. If None use latest TUID.
     datadir : str
         path of the data directory. If `None`, uses `get_datadir()` to determine the data directory.
     Raises
