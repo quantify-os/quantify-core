@@ -89,7 +89,7 @@ class T1Analysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
 
-        self.dataset.Magnitude.plot(ax=axs, marker=".")
+        self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
 
         qpl.plot_fit(
             ax=axs,
