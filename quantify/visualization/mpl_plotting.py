@@ -119,24 +119,30 @@ def plot_fit(
 
     x_arr = fit_res.userkws[independent_var]
     x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-    y = model.eval(fit_res.params, **{independent_var: x})
+    fit_y = model.eval(fit_res.params, **{independent_var: x})
+    init_y = model.eval(fit_res.init_params, **{independent_var: x})
+
+    # Don't do range casting on real or pure imaginary numbers
+    if np.all(np.isreal(fit_y)) and np.all(np.isreal(init_y)):
+        range_casting = "real"
+    elif np.all(np.isreal(fit_y * 1j)) and np.all(np.isreal(init_y * 1j)):
+        range_casting = "imag"
+
     if range_casting != "angle":
         range_cast_func = getattr(np, range_casting)
-        y = range_cast_func(y)
+        fit_y = range_cast_func(fit_y)
     else:
-        y = np.angle(y, deg=True)
+        fit_y = np.angle(fit_y, deg=True)
 
-    ax.plot(x, y, label="Fit", c="C3")
+    ax.plot(x, fit_y, label="Fit", c="C3")
 
     if plot_init:
-        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-        y = model.eval(fit_res.init_params, **{independent_var: x})
         if range_casting != "angle":
             range_cast_func = getattr(np, range_casting)
-            y = range_cast_func(y)
+            init_y = range_cast_func(init_y)
         else:
-            y = np.angle(y, deg=True)
-        ax.plot(x, y, ls="--", c="grey", label="Guess")
+            init_y = np.angle(init_y, deg=True)
+        ax.plot(x, init_y, ls="--", c="grey", label="Guess")
 
 
 def plot_fit_complex_plane(
