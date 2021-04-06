@@ -1101,8 +1101,6 @@ class TestMeasurementControl:
         dset = self.MC._dataset
         # we stop after 4th iteration
         assert sum(np.isnan(dset.y0) ^ 1) == 4
-        assert not np.isnan(dset["x0"]).any()  # dataset is trimmed to remove NaN
-        assert not np.isnan(dset["y0"]).any()
 
         # Ensure force stop still possible
         gettable._num_interrupts = 5
@@ -1116,8 +1114,6 @@ class TestMeasurementControl:
         dset = self.MC._dataset
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
-        assert not np.isnan(dset["x0"]).any()  # dataset is trimmed to remove NaN
-        assert not np.isnan(dset["y0"]).any()
 
 
 class TestGridSetpoints:

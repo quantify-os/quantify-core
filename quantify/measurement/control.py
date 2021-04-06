@@ -4,7 +4,6 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 from __future__ import annotations
-import warnings
 import time
 import json
 import types
@@ -23,11 +22,7 @@ import adaptive
 from filelock import FileLock
 from qcodes import Instrument
 from qcodes import validators as vals
-from qcodes.instrument.parameter import (
-    Parameter,
-    ManualParameter,
-    InstrumentRefParameter,
-)
+from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.handling import (
     initialize_dataset,
@@ -110,16 +105,6 @@ class MeasurementControl(Instrument):
         )
 
         self.add_parameter(
-            "soft_avg",
-            label="Number of soft averages, read only.",
-            parameter_class=Parameter,
-            initial_cache_value=1,  # avoid calling _soft_avg_set_warning
-            get_cmd=lambda: self._soft_avg,
-            set_cmd=_soft_avg_set_warning,
-        )
-        self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
-
-        self.add_parameter(
             "instr_plotmon",
             docstring="Instrument responsible for live plotting. "
             "Can be set to str(None) to disable live plotting.",
@@ -140,7 +125,7 @@ class MeasurementControl(Instrument):
             initial_value=0.5,
             docstring=(
                 "Interval for updates during the data acquisition loop,"
-                " everytime more than `update_interval` time has elapsed "
+                " every time more than `update_interval` time has elapsed "
                 "when acquiring new data points, data is written to file "
                 "and the live monitoring is updated."
             ),
@@ -148,6 +133,8 @@ class MeasurementControl(Instrument):
             # minimum value set to avoid performance issues
             vals=vals.Numbers(min_value=0.1),
         )
+
+        self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
 
         # variables that are set before the start of any experiment.
         self._settable_pars = []
@@ -730,13 +717,6 @@ class MeasurementControl(Instrument):
         self._gettable_pars = []
         for gpar in gettable_pars:
             self._gettable_pars.append(Gettable(gpar))
-
-
-def _soft_avg_set_warning(val: int) -> None:  # pylint: disable=unused-argument
-    """
-    Deprecation warning for the soft averages parameter
-    """
-    warnings.warn("`.soft_avg` is read-only. Use e.g., `MC.run(soft_avg=3)` instead!")
 
 
 def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarray:
