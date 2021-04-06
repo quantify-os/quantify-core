@@ -15,6 +15,8 @@ def get_model_common_doc() -> str:
     return (
         lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
         .replace("\n    ", "\n")
+        .replace(" : str", " : :obj:`str`")
+        .replace("['x']", ":code:`['x']`")
         .replace(", optional", "")
         .replace(" optional", "")
         .replace("{'raise', 'propagate', 'omit'}", "")
