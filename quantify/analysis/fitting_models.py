@@ -14,6 +14,7 @@ def get_model_common_doc() -> str:
     """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
     return (
         lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        .replace("\n    ", "\n")
         .replace(", optional", "")
         .replace(" optional", "")
         .replace("{'raise', 'propagate', 'omit'}", "")
@@ -103,6 +104,7 @@ def hanger_func_complex_SI(
     .. math::
 
         \frac{1}{Q_c} = \mathrm{Re}\left(\frac{1}{|Q_e|e^{-i\theta}}\right)
+
     """
     slope_corr = 1 + alpha * (f - fr) / fr
 
