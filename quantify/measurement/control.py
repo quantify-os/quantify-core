@@ -405,7 +405,7 @@ class MeasurementControl(Instrument):
             self._check_interrupt()
 
     def _build_data(self, new_data, old_data):
-        if self.soft_avg() == 1:
+        if self._soft_avg == 1:
             return old_data + new_data
 
         return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
@@ -434,7 +434,7 @@ class MeasurementControl(Instrument):
             for val in new_data:
                 yi_name = f"y{y_offset}"
                 old_val = self._dataset[yi_name].values[idx]
-                if self.soft_avg() == 1 or np.isnan(old_val):
+                if self._soft_avg == 1 or np.isnan(old_val):
                     self._dataset[yi_name].values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
@@ -563,7 +563,7 @@ class MeasurementControl(Instrument):
         """
         The total number of setpoints to examine
         """
-        return len(self._setpoints) * self.soft_avg()
+        return len(self._setpoints) * self._soft_avg
 
     def _curr_setpoint_idx(self) -> int:
         """
