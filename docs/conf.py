@@ -32,7 +32,11 @@ if os.environ.get("READTHEDOCS", "False") == "True":
     # Commented out to not pollute the RTD output
     # os.environ["QT_DEBUG_PLUGINS"] = "1"
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    os.environ["SPHINXOPTS"] = "-W --keep-going -n"
+    # -W: Turn warnings into errors.
+    # --keep-going: Keep going processing when getting warnings to the end of build.
+    # -n: Run in nit-picky mode.
+    # -N: Do not emit colored output.
+    os.environ["SPHINXOPTS"] = "-W --keep-going -n -N"
 
 # -- General configuration ---------------------------------------------
 
