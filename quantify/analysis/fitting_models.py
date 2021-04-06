@@ -93,13 +93,40 @@ def get_model_common_doc() -> str:
     )
 
 
+def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> str:
+    """
+    Returns a sphinx `seealso` pointing to a function.
+
+    Intended to be used for building fitting models docstrings.
+
+    Parameters
+    ----------
+    function_name
+        name of the function to point to
+    role
+        a sphinx role, e.g. :code:"func"
+    prefix
+        string preceding the `seealso`
+
+    Returns
+    -------
+    :
+        resulting string
+    """
+    return f"{prefix}.. seealso:: :{role}:`~.{function_name}`\n"
+
+
 class ResonatorModel(lmfit.model.Model):
     """"""  # Avoid including Model docstring
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
 
-    __doc__ = "Resonator model\n\n" + get_model_common_doc()
+    __doc__ = (
+        "Resonator model\n\n"
+        + get_model_common_doc()
+        + mk_seealso("hanger_func_complex_SI")
+    )
 
     def __init__(self, *args, **kwargs):
         """"""  # Avoid including Model.__init__ docstring
