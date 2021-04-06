@@ -32,6 +32,7 @@ if os.environ.get("READTHEDOCS", "False") == "True":
     # Commented out to not pollute the RTD output
     # os.environ["QT_DEBUG_PLUGINS"] = "1"
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    os.environ["SPHINXOPTS"] = "-W --keep-going -n"
 
 # -- General configuration ---------------------------------------------
 
