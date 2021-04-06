@@ -34,7 +34,7 @@ def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> 
     function_name
         name of the function to point to
     role
-        a sphinx role, e.g. :code:"func"
+        a sphinx role, e.g. :code:`"func"`
     prefix
         string preceding the `seealso`
 
