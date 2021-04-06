@@ -4,6 +4,7 @@
 # Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
 # -----------------------------------------------------------------------------
 """Models and fit functions to be used with the lmfit fitting framework."""
+from __future__ import annotations
 
 import numpy as np
 import lmfit
@@ -85,10 +86,10 @@ def hanger_func_complex_SI(
 def get_model_common_doc() -> str:
     """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
     return (
-        lmfit.models.COMMON_DOC.replace("['x']", "List[str]")
-        .replace("str, optional", "str")
-        .replace(":class:`Model`", ":class:`~lmfit.model.Model`")
-        .replace("**kwargs : optional", "**kwargs : dict")
+        lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        .replace(", optional", "")
+        .replace(" optional", "")
+        .replace("{'raise', 'propagate', 'omit'}", "")
     )
 
 
@@ -154,7 +155,7 @@ class ResonatorModel(lmfit.model.Model):
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
 
-# Guesses the phase velocity based on the median of all the differences between consequtive phases
+# Guesses the phase velocity based on the median of all the differences between consecutive phases
 def phase_guess(S21, freq):
     phase = np.angle(S21)
 
