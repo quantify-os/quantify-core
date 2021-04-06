@@ -10,6 +10,39 @@ import numpy as np
 import lmfit
 
 
+def get_model_common_doc() -> str:
+    """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
+    return (
+        lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        .replace(", optional", "")
+        .replace(" optional", "")
+        .replace("{'raise', 'propagate', 'omit'}", "")
+    )
+
+
+def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> str:
+    """
+    Returns a sphinx `seealso` pointing to a function.
+
+    Intended to be used for building fitting models docstrings.
+
+    Parameters
+    ----------
+    function_name
+        name of the function to point to
+    role
+        a sphinx role, e.g. :code:"func"
+    prefix
+        string preceding the `seealso`
+
+    Returns
+    -------
+    :
+        resulting string
+    """
+    return f"{prefix}.. seealso:: :{role}:`~.{function_name}`\n"
+
+
 def hanger_func_complex_SI(
     f: float,
     fr: float,
@@ -21,7 +54,7 @@ def hanger_func_complex_SI(
     phi_0: float,
     alpha: float = 1,
 ) -> complex:
-    """
+    r"""
     This is the complex function for a hanger (lambda/4 resonator).
 
     Parameters
@@ -55,21 +88,21 @@ def hanger_func_complex_SI(
 
     .. math::
 
-        S_{21} = A \\left(1+\\alpha \\frac{f-f_r}{f_r} \\right)
-        \\left(1- \\frac{\\frac{Q_l}{|Q_e|}e^{i\\theta} }{1+2iQ_l \\frac{f-f_r}{f_r}} \\right)
-        e^{i (\\phi_v f + \\phi_0)}
+        S_{21} = A \left(1+\alpha \frac{f-f_r}{f_r} \right)
+        \left(1- \frac{\frac{Q_l}{|Q_e|}e^{i\theta} }{1+2iQ_l \frac{f-f_r}{f_r}} \right)
+        e^{i (\phi_v f + \phi_0)}
 
     The loaded and extrinsic quality factors are related to the internal and coupled Q according to:
 
     .. math::
 
-        \\frac{1}{Q_l} = \\frac{1}{Q_c}+\\frac{1}{Q_i}
+        \frac{1}{Q_l} = \frac{1}{Q_c}+\frac{1}{Q_i}
 
     and
 
     .. math::
 
-        \\frac{1}{Q_c} = \\mathrm{Re}\\left(\\frac{1}{|Q_e|e^{-i\\theta}}\\right)
+        \frac{1}{Q_c} = \mathrm{Re}\left(\frac{1}{|Q_e|e^{-i\theta}}\right)
     """
     slope_corr = 1 + alpha * (f - fr) / fr
 
@@ -81,39 +114,6 @@ def hanger_func_complex_SI(
     S21 = A * slope_corr * hanger_contribution * propagation_delay_corr
 
     return S21
-
-
-def get_model_common_doc() -> str:
-    """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
-    return (
-        lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
-        .replace(", optional", "")
-        .replace(" optional", "")
-        .replace("{'raise', 'propagate', 'omit'}", "")
-    )
-
-
-def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> str:
-    """
-    Returns a sphinx `seealso` pointing to a function.
-
-    Intended to be used for building fitting models docstrings.
-
-    Parameters
-    ----------
-    function_name
-        name of the function to point to
-    role
-        a sphinx role, e.g. :code:"func"
-    prefix
-        string preceding the `seealso`
-
-    Returns
-    -------
-    :
-        resulting string
-    """
-    return f"{prefix}.. seealso:: :{role}:`~.{function_name}`\n"
 
 
 class ResonatorModel(lmfit.model.Model):
