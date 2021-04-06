@@ -24,6 +24,7 @@ black
 pylint
 pre-commit
 scanpydoc
+docutils==0.16 # pinned due to issue #175
 
 # quantify-core only
 
