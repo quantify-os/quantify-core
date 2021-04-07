@@ -1,0 +1,54 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+import os
+import re
+import datetime
+import pprint
+from pathlib import Path
+import pytest
+
+
+def test_header():
+    skipfiles = {"__init__.py"}
+    skipdirs = {"docs", "."}
+    failures = {}
+    quantify_path = Path(__file__).resolve().parent.parent.resolve()
+    header = """
+    # Repository: https://gitlab.com/quantify-os/quantify-core
+    # Licensed according to the LICENCE file on the master branch
+    """
+    for root, _, files in os.walk(quantify_path):
+        # skip hidden folders, etc
+        if any(part.startswith(name) for part in Path(root).parts for name in skipdirs):
+            continue
+        for file_name in files:
+            if file_name[-3:] == ".py" and file_name not in skipfiles:
+                with open(Path(root) / file_name, "r") as file:
+                    lines_iter = (line for line in file)
+                    line_matches = [
+                        expected_line == line
+                        for expected_line, line in zip(header.split("\n"), lines_iter)
+                    ]
+                    if not all(line_matches):
+                        failures[file_name] = "No machining header found."
+    if failures:
+        pytest.fail("Bad headers:\n{}".format(pprint.pformat(failures)))
+
+
+def test_docs_copyright():
+    quantify_path = Path(__file__).resolve().parent.parent.resolve()
+    conf_file = quantify_path / "docs" / "conf.py"
+    copyright_found = False
+    current_year = str(datetime.datetime.now().year)
+    cr_match = 'copyright = "2020-20.*Qblox & Orange Quantum Systems'
+    with open(conf_file, "r") as file:
+        for line in file.readlines():
+            if re.match(cr_match, line):
+                if current_year in line:
+                    copyright_found = True
+                break
+
+    assert copyright_found, (
+        f"No correct copyright claim for {current_year} matching "
+        f"`{cr_match}` in {str(conf_file)}."
+    )
