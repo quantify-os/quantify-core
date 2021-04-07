@@ -57,7 +57,6 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx_rtd_theme",
     "sphinx.ext.mathjax",
-    "nbsphinx",
     "jupyter_sphinx",
     "sphinxcontrib.blockdiag",
     "sphinx_togglebutton",
