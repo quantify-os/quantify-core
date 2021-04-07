@@ -212,17 +212,23 @@ class MeasurementControl(Instrument):
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-    def run(self, name: str = "", soft_avg: int = 1):
+    def run(self, name: str = "", soft_avg: int = 1) -> xr.Dataset:
         """
         Starts a data acquisition loop.
 
         Parameters
         ----------
-        name : str
-            Name of the measurement. This name is included in the name of the data files.
+        name
+            Name of the measurement. It is included in the name of the data files.
+        soft_avg
+            Number of software averages to be performed by the measurement control.
+            E.g. if `soft_avg=3` the full dataset will be measured 3 times and the
+            measured values will be averaged element-wise, the averaged dataset is then
+            returned.
+
         Returns
         -------
-        :class:`xarray.Dataset`
+        :
             the dataset
         """
         self._soft_avg_validator(soft_avg)  # validate first
