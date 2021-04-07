@@ -122,7 +122,7 @@ alternative-install:
       - dist/*.whl
 
 docs-make-html:
-  needs: [test-3.8]  # run only if tests succeed
+  needs: []  # allow running in parallel with previous stage
   stage: Docs build
   image: "python:3.8"
   script:
