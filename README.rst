@@ -68,3 +68,5 @@ The software is free to use under the conditions specified in the license.
 
 
 --------------------------
+
+.. nothing-to-avoid-a-sphinx-warning:

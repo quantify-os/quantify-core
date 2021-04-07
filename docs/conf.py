@@ -200,4 +200,5 @@ set_type_checking_flag = False  # `False` is the default
 # used by scanpydoc.elegant_typehints to correctly link to external docs
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
+    "xarray.core.dataset.Dataset": "xarray.Dataset",
 }
