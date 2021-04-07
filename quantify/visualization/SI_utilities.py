@@ -1,9 +1,9 @@
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
 # pylint: disable=invalid-name  # disabled because of capital SI in module name
-# -----------------------------------------------------------------------------
-# Description:    Utilities for managing SI units with plotting systems.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+"""
+Utilities for managing SI units with plotting systems.
+"""
 import string
 from typing import Tuple
 import matplotlib

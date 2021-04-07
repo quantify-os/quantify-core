@@ -9,28 +9,29 @@ import pytest
 
 
 def test_header():
-    skipfiles = {"__init__.py"}
-    skipdirs = {"docs", "."}
-    failures = {}
+    skipfiles = {"__init__.py", "conftest.py", "setup.py"}
+    skipdirs = {"docs", ".", "tests"}
+    failures = []
     quantify_path = Path(__file__).resolve().parent.parent.resolve()
-    header = """
-    # Repository: https://gitlab.com/quantify-os/quantify-core
-    # Licensed according to the LICENCE file on the master branch
-    """
+    header_lines = [
+        "# Repository: https://gitlab.com/quantify-os/quantify-core",
+        "# Licensed according to the LICENCE file on the master branch",
+    ]
     for root, _, files in os.walk(quantify_path):
         # skip hidden folders, etc
         if any(part.startswith(name) for part in Path(root).parts for name in skipdirs):
             continue
         for file_name in files:
             if file_name[-3:] == ".py" and file_name not in skipfiles:
-                with open(Path(root) / file_name, "r") as file:
-                    lines_iter = (line for line in file)
+                file_path = Path(root) / file_name
+                with open(file_path, "r") as file:
+                    lines_iter = (line.strip() for line in file)
                     line_matches = [
                         expected_line == line
-                        for expected_line, line in zip(header.split("\n"), lines_iter)
+                        for expected_line, line in zip(header_lines, lines_iter)
                     ]
                     if not all(line_matches):
-                        failures[file_name] = "No machining header found."
+                        failures.append(str(file_path))
     if failures:
         pytest.fail("Bad headers:\n{}".format(pprint.pformat(failures)))
 

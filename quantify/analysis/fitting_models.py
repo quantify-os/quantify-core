@@ -1,8 +1,5 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing fitting models.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
 """Models and fit functions to be used with the lmfit fitting framework."""
 from __future__ import annotations
 
