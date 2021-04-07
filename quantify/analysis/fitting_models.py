@@ -11,7 +11,10 @@ import lmfit
 
 
 def get_model_common_doc() -> str:
-    """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
+    """
+    Returns a common docstring to be used with fitting
+    :class:`~lmfit.model.Model` s.
+    """
     return (
         lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
         .replace("\n    ", "\n")
@@ -23,11 +26,26 @@ def get_model_common_doc() -> str:
     )
 
 
+def get_guess_common_doc() -> str:
+    """
+    Returns a common docstring to be used for the fitting guess
+    :meth:`~lmfit.model.Model.guess`.
+    """
+    return (
+        lmfit.models.COMMON_GUESS_DOC.replace(
+            " : Parameters", " : :class:`~lmfit.parameter.Parameters`"
+        )
+        .replace("\n    ", "\n")
+        .replace(" optional", "")
+        .replace(" : array_like", " : :class:`~numpy.ndarray`")
+    )
+
+
 def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> str:
     """
     Returns a sphinx `seealso` pointing to a function.
 
-    Intended to be used for building fitting models docstrings.
+    Intended to be used for building fitting model docstrings.
 
     Parameters
     ----------
@@ -121,19 +139,19 @@ def hanger_func_complex_SI(
 
 
 class ResonatorModel(lmfit.model.Model):
-    """"""  # Avoid including Model docstring
+    """
+    Resonator model
+
+    Implementation and design patterns inspired by the
+    `complex resonator model example <https://lmfit.github.io/lmfit-py/examples/example_complex_resonator_model.html>`_
+    (lmfit documentation).
+
+    """  # pylint: disable=line-too-long
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
 
-    __doc__ = (
-        "Resonator model\n\n"
-        + get_model_common_doc()
-        + mk_seealso("hanger_func_complex_SI")
-    )
-
     def __init__(self, *args, **kwargs):
-        """"""  # Avoid including Model.__init__ docstring
         # pass in the defining equation so the user doesn't have to later.
         super().__init__(hanger_func_complex_SI, *args, **kwargs)
         self.set_param_hint("Ql", min=0)  # Enforce Q is positive
@@ -144,10 +162,6 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
     def guess(self, data, **kwargs):
-        """
-        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
-        """
-
         params = self.make_params()
 
         if kwargs.get("f", None) is None:
@@ -185,8 +199,13 @@ class ResonatorModel(lmfit.model.Model):
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
+    # Same design patter is used in lmfit.models
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("hanger_func_complex_SI")
+    guess.__doc__ = get_guess_common_doc()
 
-# Guesses the phase velocity based on the median of all the differences between consecutive phases
+
+# Guesses the phase velocity based on the median of all the differences between
+# consecutive phases
 def phase_guess(S21, freq):
     phase = np.angle(S21)
 
