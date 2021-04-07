@@ -194,9 +194,6 @@ suppress_warnings = ["autosectionlabel.*"]
 
 blockdiag_html_image_format = "SVG"
 
-# At some point we might want to make no warnings imperative
-autodoc_warningiserror = False
-
 # Cannot be set to `True` because plotly and qcodes break the docs build
 set_type_checking_flag = False  # `False` is the default
 
