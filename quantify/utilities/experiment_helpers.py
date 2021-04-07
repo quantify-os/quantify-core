@@ -50,8 +50,10 @@ def load_settings_onto_instrument(
                 val = par["value"]
                 try:
                     instrument.set(parname, par["value"])
-                except:
-                    warnings.warn(f"Parameter {parname} could not be set to {val}")
+                except Exception as exp:
+                    warnings.warn(
+                        f"Parameter {parname} of instrument {instrument.name} could not be set to {val} due to error:\n{exp}"
+                    )
         else:
             warnings.warn(
                 f"{instrument.name} does not possess a parameter {parname}. Could not set parameter."
