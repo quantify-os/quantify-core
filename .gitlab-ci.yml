@@ -42,6 +42,7 @@ before_script:
 stages:
   - Static Analysis
   - Test
+  - Docs build
   - Deploy
 
 .unix-script:
@@ -119,6 +120,17 @@ alternative-install:
   artifacts:
     paths:
       - dist/*.whl
+
+make-html:
+  needs: [test-3.8]  # run only if tests succeed
+  stage: Docs build
+  image: "python:3.8"
+  script:
+    - pip install --upgrade --upgrade-strategy eager -e .
+    - pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+    - cd docs; make html
+  extends:
+    - .develop-only-job
 
 black:
   stage: Static Analysis
