@@ -200,4 +200,5 @@ autodoc_warningiserror = False
 
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
+    "xarray.core.dataset.Dataset": "xarray.Dataset",
 }
