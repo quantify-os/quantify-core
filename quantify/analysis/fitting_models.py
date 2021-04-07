@@ -12,8 +12,16 @@ import lmfit
 
 def get_model_common_doc() -> str:
     """
-    Returns a common docstring to be used with fitting
+    Returns a common docstring to be used with custom fitting
     :class:`~lmfit.model.Model` s.
+
+    .. admonition:: Usage example for a custom fitting model
+        :class: dropdown, tip
+
+        See the usage example at the end of the :class:`~ResonatorModel` source-code:
+
+        .. literalinclude:: ../quantify/analysis/fitting_models.py
+            :pyobject: ResonatorModel
     """
     return (
         lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
@@ -28,8 +36,16 @@ def get_model_common_doc() -> str:
 
 def get_guess_common_doc() -> str:
     """
-    Returns a common docstring to be used for the fitting guess
-    :meth:`~lmfit.model.Model.guess`.
+    Returns a common docstring to be used for the :meth:`~lmfit.model.Model.guess`
+    method of custom fitting :class:`~lmfit.model.Model` s.
+
+    .. admonition:: Usage example for a custom fitting model
+        :class: dropdown, tip
+
+        See the usage example at the end of the :class:`~ResonatorModel` source-code:
+
+        .. literalinclude:: ../quantify/analysis/fitting_models.py
+            :pyobject: ResonatorModel
     """
     return (
         lmfit.models.COMMON_GUESS_DOC.replace(
@@ -45,7 +61,15 @@ def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> 
     """
     Returns a sphinx `seealso` pointing to a function.
 
-    Intended to be used for building fitting model docstrings.
+    Intended to be used for building custom fitting model docstrings.
+
+    .. admonition:: Usage example for a custom fitting model
+        :class: dropdown, tip
+
+        See the usage example at the end of the :class:`~ResonatorModel` source-code:
+
+        .. literalinclude:: ../quantify/analysis/fitting_models.py
+            :pyobject: ResonatorModel
 
     Parameters
     ----------
@@ -150,7 +174,6 @@ class ResonatorModel(lmfit.model.Model):
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
-
     def __init__(self, *args, **kwargs):
         # pass in the defining equation so the user doesn't have to later.
         super().__init__(hanger_func_complex_SI, *args, **kwargs)
