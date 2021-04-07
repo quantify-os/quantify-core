@@ -87,7 +87,7 @@ def plot_fit(
     fit_res,
     plot_init: bool = True,
     plot_numpoints: int = 1000,
-    range_casting: Literal["abs", "angle", "real", "imag"] = "abs",
+    range_casting: Literal["abs", "angle", "real", "imag"] = "real",
 ) -> None:
     """
     Plot a fit of an lmfit model with a real domain.
@@ -121,12 +121,6 @@ def plot_fit(
     x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
     fit_y = model.eval(fit_res.params, **{independent_var: x})
     init_y = model.eval(fit_res.init_params, **{independent_var: x})
-
-    # Don't do range casting on real or pure imaginary numbers
-    if np.all(np.isreal(fit_y)) and np.all(np.isreal(init_y)):
-        range_casting = "real"
-    elif np.all(np.isreal(fit_y * 1j)) and np.all(np.isreal(init_y * 1j)):
-        range_casting = "imag"
 
     if range_casting != "angle":
         range_cast_func = getattr(np, range_casting)
