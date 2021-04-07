@@ -26,17 +26,12 @@ sys.path.insert(0, package_path)
 # -- Env workaround ----------------------------------------------------
 
 # See #124 regarding RTD build for merge requests
-# To be removed after this PR gets merged and deployed on RTD
+# Could be removed after this PR gets merged and deployed on RTD
 # https://github.com/readthedocs/readthedocs.org/pull/7891
 if os.environ.get("READTHEDOCS", "False") == "True":
     # Commented out to not pollute the RTD output
     # os.environ["QT_DEBUG_PLUGINS"] = "1"
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    # -W: Turn warnings into errors.
-    # --keep-going: Keep going processing when getting warnings to the end of build.
-    # -n: Run in nit-picky mode.
-    # -N: Do not emit colored output.
-    os.environ["SPHINXOPTS"] = "-W --keep-going -n -N"
 
 # -- General configuration ---------------------------------------------
 
