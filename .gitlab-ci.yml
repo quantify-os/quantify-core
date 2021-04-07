@@ -121,7 +121,7 @@ alternative-install:
     paths:
       - dist/*.whl
 
-make-html:
+docs-make-html:
   needs: [test-3.8]  # run only if tests succeed
   stage: Docs build
   image: "python:3.8"
