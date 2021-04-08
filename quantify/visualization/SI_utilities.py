@@ -97,7 +97,7 @@ def set_cbarlabel(cbar, label, unit=None, **kw):
             lambda x, pos: f"{x * scale_factor:.6g}"
         )
         cbar.ax.yaxis.set_major_formatter(formatter)
-        cbar.set_label(label + f" ({unit})")
+        cbar.set_label(label + f" [{unit}]")
 
     else:
         cbar.set_label(label, **kw)
