@@ -10,7 +10,7 @@ import pytest
 
 def test_header():
     skipfiles = {"__init__.py", "conftest.py", "setup.py"}
-    skipdirs = {"docs", ".", "tests"}
+    skipdirs = {"docs", ".", "tests", "__pycache__"}
     failures = []
     quantify_path = Path(__file__).resolve().parent.parent.resolve()
     header_lines = [
