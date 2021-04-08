@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing the MeasurementControl.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing the MeasurementControl."""
 from __future__ import annotations
 import time
 import json

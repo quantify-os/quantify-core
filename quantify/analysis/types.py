@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing the types for use with the analysis classes
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing the types for use with the analysis classes"""
 from collections import OrderedDict
 from jsonschema import validate
 from quantify.utilities.general import load_json_schema
