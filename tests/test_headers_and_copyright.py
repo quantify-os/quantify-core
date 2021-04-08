@@ -25,6 +25,7 @@ def test_header():
             if file_name[-3:] == ".py" and file_name not in skipfiles:
                 file_path = Path(root) / file_name
                 with open(file_path, "r") as file:
+                    print(f"Processing: {str(file_path)}")
                     lines_iter = (line.strip() for line in file)
                     line_matches = [
                         expected_line == line
