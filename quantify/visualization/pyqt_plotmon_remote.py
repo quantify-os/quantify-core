@@ -536,9 +536,9 @@ class RemotePlotmon:
                 # exists to force reset the x- and y-axis scale
                 new_sc = TransformState(0, 1, True)
 
-                x = dset["x0"].values[~np.isnan(dset)["y0"]]
-                y = dset["x1"].values[~np.isnan(dset)["y0"]]
-                z = dset[yi].values[~np.isnan(dset)["y0"]]
+                x = dset["x0"].values[~np.isnan(dset)["y0"].data]
+                y = dset["x1"].values[~np.isnan(dset)["y0"].data]
+                z = dset[yi].values[~np.isnan(dset)["y0"].data]
                 # interpolation needs to be meaningful
                 if len(z) < 8:
                     break
