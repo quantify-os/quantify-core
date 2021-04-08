@@ -22,4 +22,4 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
     - [ ] test suite passes (gitlab-ci),
     - [ ] no degradation in code-coverage (codacy),
     - [ ] no (serious) new pylint code quality issues introduced (codacy),
-    - [ ] documentation builds successfully (readthedocs).
+    - [ ] documentation builds successfully (CI and readthedocs).
