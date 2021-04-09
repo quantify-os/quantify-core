@@ -14,7 +14,7 @@ Quantify-core
     :alt: Coverage
     :target: https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Coverage
 .. image:: https://readthedocs.com/projects/quantify-quantify-core/badge/?version=develop&token=2f68e7fc6a2426b5eb9b44bb2f764a9d75a9932f41c39efdf0a8a99bf33e6a34
-    :target: https://quantify-quantify-core.readthedocs-hosted.com/en/develop/?badge=develop
+    :target: https://quantify-quantify-core.readthedocs-hosted.com
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/badge/License-BSD%204--Clause-blue.svg
