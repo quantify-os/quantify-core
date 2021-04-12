@@ -23,3 +23,4 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
     - [ ] no degradation in code-coverage (codacy),
     - [ ] no (serious) new pylint code quality issues introduced (codacy),
     - [ ] documentation builds successfully (CI and readthedocs).
+- [ ] Changelog has been updated.
