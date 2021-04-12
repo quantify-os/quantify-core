@@ -236,7 +236,7 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 
 .. warning::
 
-    In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times ``ctrl`` + ``c``). Mind than performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
+    In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times ``ctrl`` + ``c``). Mind that performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
 
 .. jupyter-execute::
