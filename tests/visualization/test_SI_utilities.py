@@ -198,12 +198,12 @@ def test_value_precision():
     format_specifier = value_precision(930, stderr=31)
     assert format_specifier == ("{:.0f}", "{:.0f}")
 
+
 def test_format_value_ufloat():
     tau = uncertainties.ufloat(2.0, 0.1)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r'tau: 2.00$\pm$0.10 '
+    assert formatted_string == r"tau: 2.00$\pm$0.10 "
 
-    tau = uncertainties.ufloat(.0, np.NaN)
+    tau = uncertainties.ufloat(0.0, np.NaN)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r'tau: 0$\pm$NaN '
-    
+    assert formatted_string == r"tau: 0$\pm$NaN "
