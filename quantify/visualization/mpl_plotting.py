@@ -76,7 +76,7 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
         verticalalignment=kw.get("verticalalignment", "top"),
     )
 
-    for key in default_vals_for_new_kw.keys():
+    for key in default_vals_for_new_kw:
         kw[key] = default_vals_for_new_kw[key]
 
     kw["s"] = text
