@@ -45,21 +45,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.fit_res.update({"hanger_func_complex_SI": fit_res})
 
         fpars = fit_res.params
-        self.quantities_of_interest["Qi"] = ufloat(
-            fpars["Qi"].value, fpars["Qi"].stderr
-        )
-        self.quantities_of_interest["Qe"] = ufloat(
-            fpars["Qe"].value, fpars["Qe"].stderr
-        )
-        self.quantities_of_interest["Ql"] = ufloat(
-            fpars["Ql"].value, fpars["Ql"].stderr
-        )
-        self.quantities_of_interest["Qc"] = ufloat(
-            fpars["Qc"].value, fpars["Qc"].stderr
-        )
-        self.quantities_of_interest["fr"] = ufloat(
-            fpars["fr"].value, fpars["fr"].stderr
-        )
+        
+        for parameter in ['Qi', 'Qe', 'Ql', 'Qc', 'fr']:
+            self.quantities_of_interest[parameter] = ufloat(fpars[parameter].value, fpars[parameter].stderr)
 
         text_msg = "Summary\n"
         text_msg += format_value_string(
