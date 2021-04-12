@@ -68,7 +68,7 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
         the new text object
     """
     box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
-    default_vals_for_new_kw = dict(
+    new_kw_with_defaults = dict(
         x=kw.get("x", 1.05),
         y=kw.get("y", 0.95),
         transform=kw.get("transform", ax.transAxes),
@@ -77,9 +77,9 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
         s=text,
     )
 
-    kw.update(default_vals_for_new_kw)
+    new_kw_with_defaults.update(kw)
 
-    t_obj = ax.text(**kw)
+    t_obj = ax.text(**new_kw_with_defaults)
     return t_obj
 
 
