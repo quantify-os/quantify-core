@@ -74,12 +74,10 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
         transform=kw.get("transform", ax.transAxes),
         bbox=kw.get("bbox", box_props),
         verticalalignment=kw.get("verticalalignment", "top"),
+        s=text,
     )
 
-    for key in default_vals_for_new_kw:
-        kw[key] = default_vals_for_new_kw[key]
-
-    kw["s"] = text
+    kw.update(default_vals_for_new_kw)
 
     t_obj = ax.text(**kw)
     return t_obj
