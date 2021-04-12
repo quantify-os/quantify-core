@@ -237,7 +237,12 @@ class SafeFormatter(string.Formatter):
             raise e
 
 
-def format_value_string(par_name: str, parameter: Union[lmfit.Parameter, uncertainties.core.Variable], end_char="", unit=None) -> str:
+def format_value_string(
+    par_name: str,
+    parameter: Union[lmfit.Parameter, uncertainties.core.Variable],
+    end_char="",
+    unit=None,
+) -> str:
     """
     Format an lmfit par or uncertainties ufloat to a string of value with uncertainty.
 
