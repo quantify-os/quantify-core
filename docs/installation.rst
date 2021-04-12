@@ -17,7 +17,7 @@ We recommend using the `Anaconda <https://www.anaconda.com/products/individual#D
 
 If you are familiar with software development (package manager, git, terminal, Python, etc.) the following should get you running in no time. Otherwise, follow the `Detailed instructions`_ and learn a few productivity tips on your way.
 
-1. Install `Anaconda <https://www.anaconda.com/products/individual#Downloads>`_
+1. Install `Anaconda <https://www.anaconda.com/products/individual#Downloads>`_.
 
 #. Install Quantify (and JupyterLab) in a new conda environment, see also the `Conda cheat sheet <https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html>`_.
 
@@ -43,9 +43,22 @@ If you are familiar with software development (package manager, git, terminal, P
 Detailed instructions
 ^^^^^^^^^^^^^^^^^^^^^
 
-1. Install `Anaconda <https://www.anaconda.com/products/individual#Downloads>`_ (default options during installation should work well in most setups).
+1. Install `Anaconda <https://www.anaconda.com/products/individual#Downloads>`_.
 
-#. (Windows only) Install `Git BASH <https://gitforwindows.org/>`_ to have a unix-like bash terminal (default options during installation should work well in most setups).
+    On Windows, during the installation, we recommend to select the options:
+
+    - Install for `All Users (requires admin privileges)`; and
+    - `Add Anaconda3 the system PATH environment variable`.
+
+
+    .. admonition:: Instructions: Anaconda install (Windows)
+        :class: dropdown, info
+
+        .. figure:: /images/install/conda_install.gif
+              :width: 800
+              :name: conda_install
+
+#. (Windows only) Install `Git BASH <https://gitforwindows.org/>`_ to have a unix-like bash terminal (default options during installation should work well on most setups).
 
     .. tip::
 
@@ -55,14 +68,23 @@ Detailed instructions
 
         Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any python code using `JupyterLab <https://jupyterlab.readthedocs.io/en/stable/>`_ (installation steps below).
 
-#. (Windows only) Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc <https://superuser.com/a/602896>`_ (or in the `.bash_profile`) to expose the anaconda in bash terminal.
+#. (Windows only) Add :code:`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc` (or in the `.bash_profile`) to expose the anaconda in bash terminal (see instruction below if you need help).
 
     .. tip::
 
         If you followed the default anaconda installation the path to it will be similar to
-        :code:`/c/Users/<YOUR_USERNAME>/anaconda3/etc/profile.d/conda.sh`.
+        :code:`/c/Users/<YOUR_USERNAME>/anaconda3/etc/profile.d/conda.sh` or :code:`/c/ProgramData/Anaconda3/etc/profile.d/conda.sh`.
 
         Pro tip: you can drag and drop a file from the file explorer into the terminal and get the path of the file (instead of typing it manually).
+
+    .. admonition:: Instructions: expose anaconda in the bash terminal
+        :class: dropdown, info
+
+        Below we illustrate this process in Git Bash. You can find detailed step-by-step instructions `here <https://superuser.com/a/602896>`_.
+
+        .. figure:: /images/install/conda_source_installed_all_users.gif
+              :width: 800
+              :name: conda_source
 
     .. note::
 
@@ -77,7 +99,14 @@ Detailed instructions
 
     .. tip::
 
-        You can add :code:`conda activate quantify-env` at the end of the `.bashrc` (or `.bash_profile`) if you wish for this environment to be activated automatically in the terminal when it is opened.
+        You can add :code:`conda activate quantify-env` at the end of the `.bashrc` (or `.bash_profile`) if you wish for this environment to be activated automatically in the terminal when it is opened (see instructions below).
+
+    .. admonition:: Instructions: create conda env and auto-activate (Windows)
+        :class: dropdown, info
+
+        .. figure:: /images/install/conda_activate.gif
+              :width: 800
+              :name: conda_activate
 
 #. Install jupyter-lab in the new environment using::
 
@@ -156,7 +185,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
-#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_
+#. (Optional) Install `pre-commit` which will automatically format the code using `black <https://github.com/psf/black>`_:
 
     .. code-block::
 
