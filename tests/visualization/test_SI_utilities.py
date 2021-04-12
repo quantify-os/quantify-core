@@ -7,6 +7,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from lmfit.parameter import Parameter
+import uncertainties
 from quantify.visualization.SI_utilities import SI_prefix_and_scale_factor
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
 from quantify.visualization.SI_utilities import SI_val_to_msg_str
@@ -196,3 +197,13 @@ def test_value_precision():
 
     format_specifier = value_precision(930, stderr=31)
     assert format_specifier == ("{:.0f}", "{:.0f}")
+
+def test_format_value_ufloat():
+    tau = uncertainties.ufloat(2.0, 0.1)
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == 'tau: 2.0000$\\pm$0.1000 '
+
+    tau = uncertainties.ufloat(.0, np.NaN)
+    formatted_string = format_value_string("tau", tau)
+    assert formatted_string == r'tau: 0.0000$\\pm$nan '
+    
