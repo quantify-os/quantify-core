@@ -279,9 +279,9 @@ If for some reason you are not able to install or use Quantify using the prescri
 #. Install from source (run line by line)::
 
         $ git clone https://gitlab.com/quantify-os/quantify-core.git; cd quantify-core
-        $ pip install .
-        $ pip install -r requirements_dev.txt
-        $ pytest -v -n 2
+        $ pip install --upgrade --upgrade-strategy eager .
+        $ pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+        $ pytest -v
 
 #. The tests will either pass or not. In any case, please report your experience and which test do not pass by creating a `New issue` on the `issue tracker <https://gitlab.com/quantify-os/quantify-core/-/issues>`_, your efforts are much appreciated and will help us to understand the problems you might be facing.
 
