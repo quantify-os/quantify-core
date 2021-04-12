@@ -1,6 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Analysis abstract base class and several basic analyses."""
+"""Module containing the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
 import os
 import json
@@ -108,9 +108,6 @@ class BaseAnalysis(ABC):
         settings_overwrite: dict = None,
     ):
         """
-        Initializes the variables used in the analysis and to which data is stored.
-
-
         Parameters
         ----------
         label:
@@ -453,11 +450,15 @@ class Basic1DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
+        """
+        Creates a line plot x vs y for every data variable yi in the dataset.
+        """
 
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
         dataset = self.dataset_raw
-        # for compatibility with older datasets, in case "x0" is not a coordinate we use "dim_0"
+        # for compatibility with older datasets, in case "x0" is not a coordinate
+        # we use "dim_0"
         coords = tuple(dataset.coords)
         dims = tuple(dataset.dims)
         plot_against = coords[0] if coords else (dims[0] if dims else None)
@@ -471,7 +472,8 @@ class Basic1DAnalysis(BaseAnalysis):
                 adjust_axeslabels_SI(ax)
 
                 fig.suptitle(
-                    f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                    f"x0-{yi} {self.dataset_raw.attrs['name']}"
+                    f"\ntuid: {self.dataset_raw.attrs['tuid']}"
                 )
 
                 # add the figure and axis to the dicts for saving

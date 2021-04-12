@@ -11,7 +11,15 @@ from quantify.visualization.SI_utilities import format_value_string
 
 
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
+    """
+    Analysis for a spectroscopy experiment of a hanger resonator.
+    """
+
     def process_data(self):
+        """
+        Verifies that the data is measured as magnitude and phase and casts it to
+        a dataset of complex valued transmission :math:`S_{21}`.
+        """
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
@@ -32,6 +40,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
+        """
+        Fits a :class:`~quantify.analysis.fitting_models.ResonatorModel` to the data.
+        """
 
         mod = fm.ResonatorModel()
 
@@ -72,6 +83,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
+        """
+        Plots the measured and fitted transmission :math:`S_{21}` as the I and Q compoent
+        vs frequency, the magnitude and phase vs frequency, and on the complex I,Q
+        plane.
+        """
         self.create_fig_s21_real_imag()
         self.create_fig_s21_magn_phase()
         self.create_fig_s21_complex()
