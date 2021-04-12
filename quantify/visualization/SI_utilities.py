@@ -5,11 +5,12 @@
 Utilities for managing SI units with plotting systems.
 """
 import string
-from typing import Tuple
+from typing import Tuple, Union
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import uncertainties
+import lmfit
 
 golden_mean = (np.sqrt(5) - 1.0) / 2.0  # Aesthetic ratio
 single_col_figsize = (3.39, golden_mean * 3.39)
@@ -267,6 +268,8 @@ def format_value_string(par_name: str, parameter: Union[lmfit.Parameter, uncerta
     if isinstance(parameter, uncertainties.core.Variable):
         value = parameter.nominal_value
         stderr = parameter.std_dev
+        if np.isnan(stderr):
+            stderr = None
     else:
         value = parameter.value
         stderr = parameter.stderr
