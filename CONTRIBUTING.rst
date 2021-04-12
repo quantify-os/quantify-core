@@ -77,13 +77,13 @@ Thank you very much for your hard work in improving quantify!
 
     .. code-block::
 
-        # 1. Create and checkout a local branch with the changes of the merge request
+        $ # 1. Create and checkout a local branch with the changes of the merge request
         $ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
         $ git checkout -b thedude-awesome-project-update-docs FETCH_HEAD
 
-        # 2. Make changes and commit them
+        $ # 2. Make changes and commit them
 
-        # 3. Push to the forked project
+        $ # 3. Push to the forked project
         $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
 
     N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
