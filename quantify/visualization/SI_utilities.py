@@ -268,7 +268,6 @@ def format_value_string(
     ----------
     val_string : str
         The parameter and its error formatted as a string
-
     """
     if isinstance(parameter, uncertainties.core.Variable):
         value = parameter.nominal_value
