@@ -244,7 +244,7 @@ def format_value_string(
     unit=None,
 ) -> str:
     """
-    Format an lmfit par or uncertainties ufloat to a string of value with uncertainty.
+    Format an lmfit parameter or uncertainties ufloat to a string of value with uncertainty.
 
     If there is no stderr, use 5 significant figures.
     If there is a standard error use a precision one order of magnitude more precise
@@ -253,20 +253,21 @@ def format_value_string(
 
     Parameters
     ----------
-    par_name : str
+    par_name :
         the name of the parameter to use in the string
-    parameter :
-        An lmfit Parameter object or ufloat object. The value and stderr of this parameter
-        will be used.
-    end_char : str
+    parameter : :class:`lmfit.parameter.Parameter` or :class:`!uncertainties.core.Variable`
+        A :class:`~lmfit.parameter.Parameter` object or an object e.g.,
+        returned by :func:`!uncertainties.ufloat`. The value and stderr of this
+        parameter will be used.
+    end_char :
         A character that will be put at the end of the line.
-    unit : str
+    unit :
         a unit. If this is an SI unit it will be used in automatically
         determining a prefix for the unit and rescaling accordingly.
 
     Returns
-    ----------
-    val_string : str
+    -------
+    val_string :
         The parameter and its error formatted as a string
     """
     if isinstance(parameter, uncertainties.core.Variable):
