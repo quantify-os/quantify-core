@@ -69,11 +69,11 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
     """
     box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
     new_kw_with_defaults = dict(
-        x=kw.get("x", 1.05),
-        y=kw.get("y", 0.95),
-        transform=kw.get("transform", ax.transAxes),
-        bbox=kw.get("bbox", box_props),
-        verticalalignment=kw.get("verticalalignment", "top"),
+        x=1.05,
+        y=0.95,
+        transform=ax.transAxes,
+        bbox=box_props,
+        verticalalignment="top",
         s=text,
     )
 
