@@ -19,8 +19,8 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
 - [ ] New code is documented and docstrings use [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - [ ] Changelog has been updated (when applicable).
 - [ ] CI pipelines pass
-    - [ ] black code-formatting passes (gitlab-ci),
-    - [ ] test suite passes (gitlab-ci),
-    - [ ] no degradation in code-coverage (codacy),
-    - [ ] no (serious) new pylint code quality issues introduced (codacy),
-    - [ ] documentation builds successfully (CI and readthedocs).
+    - black code-formatting passes (gitlab-ci),
+    - test suite passes (gitlab-ci),
+    - no degradation in code-coverage (codacy),
+    - no (serious) new pylint code quality issues introduced (codacy),
+    - documentation builds successfully (CI and readthedocs).
