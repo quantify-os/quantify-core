@@ -69,6 +69,12 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "lmfit": ("https://lmfit.github.io/lmfit-py/", None),
     "dateutil": ("https://dateutil.readthedocs.io/en/stable/", None),
+    # uncertainties has limited docs, but we can still use something like
+    # :doc:`uncertainties <uncertainties:index>`
+    "uncertainties": (
+        "https://uncertainties-python-package.readthedocs.io/en/latest/",
+        None,
+    ),
 }
 
 
