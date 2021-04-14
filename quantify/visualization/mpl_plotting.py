@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing matplotlib plotting utilities.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing matplotlib plotting utilities."""
 from typing import Tuple, Union
 from typing_extensions import Literal
 import numpy as np
@@ -70,15 +68,18 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
         the new text object
     """
     box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
-    t_obj = ax.text(
-        x=kw.get("x", 1.05),
-        y=kw.get("y", 0.95),
+    new_kw_with_defaults = dict(
+        x=1.05,
+        y=0.95,
+        transform=ax.transAxes,
+        bbox=box_props,
+        verticalalignment="top",
         s=text,
-        transform=kw.get("transform", ax.transAxes),
-        bbox=kw.get("bbox", box_props),
-        verticalalignment=kw.get("verticalalignment", "top"),
-        **kw
     )
+
+    new_kw_with_defaults.update(kw)
+
+    t_obj = ax.text(**new_kw_with_defaults)
     return t_obj
 
 

@@ -34,6 +34,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
 
 .. jupyter-execute::
 
+    import lmfit
     import numpy as np
     import xarray as xr
     import matplotlib.pyplot as plt
@@ -208,7 +209,6 @@ For fitting we recommend using the lmfit library.  See https://lmfit.github.io/l
 
 .. jupyter-execute::
 
-    import lmfit
     # we create a model based on our function
     mod = lmfit.Model(cos_func)
     # and specify initial guesses for each parameter
