@@ -2,6 +2,11 @@
 Changelog
 ===========
 
+Unreleased
+----------
+
+* Add uncertainties support to format_value_string (#151)
+
 0.3.2 (2021-03-17)
 ------------------
 

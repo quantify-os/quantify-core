@@ -5,10 +5,12 @@
 Utilities for managing SI units with plotting systems.
 """
 import string
-from typing import Tuple
+from typing import Tuple, Union
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import uncertainties
+import lmfit
 
 golden_mean = (np.sqrt(5) - 1.0) / 2.0  # Aesthetic ratio
 single_col_figsize = (3.39, golden_mean * 3.39)
@@ -235,9 +237,15 @@ class SafeFormatter(string.Formatter):
             raise e
 
 
-def format_value_string(par_name: str, lmfit_par, end_char="", unit=None) -> str:
+def format_value_string(
+    par_name: str,
+    parameter: Union[lmfit.Parameter, uncertainties.core.Variable],
+    end_char="",
+    unit=None,
+) -> str:
     """
-    Format an lmfit par to a  string of value with uncertainty.
+    Format an lmfit parameter or uncertainties ufloat to a string of value with
+    uncertainty.
 
     If there is no stderr, use 5 significant figures.
     If there is a standard error use a precision one order of magnitude more precise
@@ -246,28 +254,36 @@ def format_value_string(par_name: str, lmfit_par, end_char="", unit=None) -> str
 
     Parameters
     ----------
-    par_name : str
+    par_name :
         the name of the parameter to use in the string
-    lmfit_par :
-        an lmfit Parameter object. The value and stderr of this parameter
-        will be used.
-    end_char : str
+    parameter : :class:`lmfit.parameter.Parameter` or :class:`!uncertainties.core.Variable`
+        A :class:`~lmfit.parameter.Parameter` object or an object e.g.,
+        returned by :func:`!uncertainties.ufloat`. The value and stderr of this
+        parameter will be used.
+    end_char :
         A character that will be put at the end of the line.
-    unit : str
+    unit :
         a unit. If this is an SI unit it will be used in automatically
         determining a prefix for the unit and rescaling accordingly.
 
     Returns
-    ----------
-    val_string : str
+    -------
+    :
         The parameter and its error formatted as a string
-
     """
+    if isinstance(parameter, uncertainties.core.Variable):
+        value = parameter.nominal_value
+        stderr = parameter.std_dev
+        if np.isnan(stderr):
+            stderr = None
+    else:
+        value = parameter.value
+        stderr = parameter.stderr
 
-    scale_factor, unit = SI_prefix_and_scale_factor(lmfit_par.value, unit)
-    val = lmfit_par.value * scale_factor
-    if lmfit_par.stderr is not None:
-        stderr = lmfit_par.stderr * scale_factor
+    scale_factor, unit = SI_prefix_and_scale_factor(value, unit)
+    val = value * scale_factor
+    if stderr is not None:
+        stderr = stderr * scale_factor
     else:
         stderr = None
 
