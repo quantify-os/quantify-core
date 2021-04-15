@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing the MeasurementControl.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing the MeasurementControl."""
 from __future__ import annotations
 import time
 import json
@@ -105,14 +103,6 @@ class MeasurementControl(Instrument):
         )
 
         self.add_parameter(
-            "soft_avg",
-            label="Number of soft averages",
-            parameter_class=ManualParameter,
-            vals=vals.Ints(1, int(1e8)),
-            initial_value=1,
-        )
-
-        self.add_parameter(
             "instr_plotmon",
             docstring="Instrument responsible for live plotting. "
             "Can be set to str(None) to disable live plotting.",
@@ -133,7 +123,7 @@ class MeasurementControl(Instrument):
             initial_value=0.5,
             docstring=(
                 "Interval for updates during the data acquisition loop,"
-                " everytime more than `update_interval` time has elapsed "
+                " every time more than `update_interval` time has elapsed "
                 "when acquiring new data points, data is written to file "
                 "and the live monitoring is updated."
             ),
@@ -142,6 +132,8 @@ class MeasurementControl(Instrument):
             vals=vals.Numbers(min_value=0.1),
         )
 
+        self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
+
         # variables that are set before the start of any experiment.
         self._settable_pars = []
         self._setpoints = []
@@ -149,6 +141,7 @@ class MeasurementControl(Instrument):
         self._gettable_pars = []
 
         # variables used for book keeping during acquisition loop.
+        self._soft_avg = 1
         self._nr_acquired_values = 0
         self._loop_count = 0
         self._begintime = time.time()
@@ -188,7 +181,6 @@ class MeasurementControl(Instrument):
         Resets specific variables that can change before `.run()`
         """
         self._plot_info = {"2D-grid": False}
-        self.soft_avg(1)
         # Reset to default interrupt handler
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
@@ -218,20 +210,27 @@ class MeasurementControl(Instrument):
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-    def run(self, name: str = ""):
+    def run(self, name: str = "", soft_avg: int = 1) -> xr.Dataset:
         """
         Starts a data acquisition loop.
 
         Parameters
         ----------
-        name : str
-            Name of the measurement. This name is included in the name of the data files.
+        name
+            Name of the measurement. It is included in the name of the data files.
+        soft_avg
+            Number of software averages to be performed by the measurement control.
+            E.g. if `soft_avg=3` the full dataset will be measured 3 times and the
+            measured values will be averaged element-wise, the averaged dataset is then
+            returned.
+
         Returns
         -------
-        :class:`xarray.Dataset`
+        :
             the dataset
         """
-
+        self._soft_avg_validator(soft_avg)  # validate first
+        self._soft_avg = soft_avg
         self._reset()
         self._init(name)
 
@@ -316,12 +315,6 @@ class MeasurementControl(Instrument):
                 for unused_par in unused_pars:
                     af_pars_copy.pop(unused_par, None)
                 adaptive_function(measure, **af_pars_copy)
-
-        if self.soft_avg() != 1:
-            raise ValueError(
-                "software averaging not allowed in adaptive loops; "
-                f"currently set to {self.soft_avg()}."
-            )
 
         self._reset()
         self.setpoints(
@@ -416,7 +409,7 @@ class MeasurementControl(Instrument):
             self._check_interrupt()
 
     def _build_data(self, new_data, old_data):
-        if self.soft_avg() == 1:
+        if self._soft_avg == 1:
             return old_data + new_data
 
         return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
@@ -445,7 +438,7 @@ class MeasurementControl(Instrument):
             for val in new_data:
                 yi_name = f"y{y_offset}"
                 old_val = self._dataset[yi_name].values[idx]
-                if self.soft_avg() == 1 or np.isnan(old_val):
+                if self._soft_avg == 1 or np.isnan(old_val):
                     self._dataset[yi_name].values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
@@ -574,7 +567,7 @@ class MeasurementControl(Instrument):
         """
         The total number of setpoints to examine
         """
-        return len(self._setpoints) * self.soft_avg()
+        return len(self._setpoints) * self._soft_avg
 
     def _curr_setpoint_idx(self) -> int:
         """

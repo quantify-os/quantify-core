@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Utilities for handling data.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Utilities for handling data."""
 from __future__ import annotations
 import os
 import sys
@@ -211,6 +209,39 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     raise exception
 
 
+def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
+    """
+    Converts any attribute of :obj:`~numpy.bool_` type to a :obj:`~bool`.
+
+    This is a patch to a bug in :mod:`xarray` 0.17.0.
+
+    .. seealso::
+
+        See issue #161 in quantify-core.
+        Our (accepted) pull request https://github.com/pydata/xarray/pull/4986
+        Version 0.17.1 will fix the problem but will have breaking changes,
+        for now we use this patch.
+
+    Parameters
+    ----------
+    dataset: :class:`~xarray.Dataset`
+        the :class:`~xarray.Dataset` to be patched in-place
+
+    """
+
+    def bool_cast_attributes(attrs: dict) -> None:
+        for attr_name, attr_val in attrs.items():
+            if isinstance(attr_val, np.bool_):
+                # cast to bool to avoid xarray 0.17.0 type exception
+                # for engine="h5netcdf"
+                attrs[attr_name] = bool(attr_val)
+
+    for data_array in dataset.variables.values():
+        bool_cast_attributes(data_array.attrs)
+
+    bool_cast_attributes(dataset.attrs)
+
+
 def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     """
     Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
@@ -224,6 +255,7 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     dataset: :class:`~xarray.Dataset`
         the :class:`~xarray.Dataset` to be written to file.
     """
+    _xarray_numpy_bool_patch(dataset)  # See issue #161 in quantify-core
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 
