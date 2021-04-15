@@ -25,6 +25,8 @@ If you are familiar with software development (package manager, git, terminal, P
 
     .. code-block::
 
+        $ # run the following commands step by step!
+
         $ conda create --name quantify-env python=3.8
         $ conda activate quantify-env
         $ conda install -c conda-forge jupyterlab
