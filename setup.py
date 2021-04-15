@@ -22,16 +22,15 @@ requirements = [
     "qcodes",
     "scipy>=1.5.0,!=1.6.0",
     "h5netcdf",
-    "xarray",
+    "xarray==0.17.0",  # 0.17.1 will introduce breaking changes, see issue #161
     "xxhash",
     "matplotlib",
     "lmfit",
-    "pyqt5>=5.15.2",
+    "pyqt5==5.15.1",  # pinned due to #170, https://bugreports.qt.io/browse/PYSIDE-1473
     "pyqtgraph",
     "jsonschema",
     "adaptive",
     "filelock",
-    "uncertainties",
     "appnope",
     "uncertainties",
 ]
@@ -65,6 +64,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.com/quantify-os/quantify-core",
-    version="0.3.1",
+    version="0.3.2",
     zip_safe=False,
 )

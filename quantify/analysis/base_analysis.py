@@ -1,3 +1,5 @@
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
 """Analysis abstract base class and several basic analyses."""
 from __future__ import annotations
 import os
@@ -19,6 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
 
+from quantify.visualization import mpl_plotting as qpl
 from quantify.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
 from quantify.data.handling import (
     load_dataset,
@@ -39,7 +42,7 @@ settings = AnalysisSettings(
             "svg",
         ],  # svg is superior but at least OneNote does not support it
         "mpl_exclude_fig_titles": False,
-        "mpl_transparent_background": False,
+        "mpl_transparent_background": True,
     }
 )
 """
@@ -73,7 +76,7 @@ class AnalysisSteps(Enum):
 
     .. tip::
 
-        A custom analysis flow (e.g. inserting new steps) can be created be implementing
+        A custom analysis flow (e.g. inserting new steps) can be created by implementing
         an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
     """
 
@@ -86,7 +89,7 @@ class AnalysisSteps(Enum):
     S04_ANALYZE_FIT_RESULTS = "analyze_fit_results"
     S05_CREATE_FIGURES = "create_figures"
     S06_ADJUST_FIGURES = "adjust_figures"
-    S07_SAVE_FIGURES_MPL = "save_figures_mpl"
+    S07_SAVE_FIGURES = "save_figures"
     S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
     S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
@@ -189,7 +192,9 @@ class BaseAnalysis(ABC):
                 raise RuntimeError(
                     "An exception occurred while executing "
                     f"{method}.\n\n"  # point to the culprit
-                    "Use `interrupt_before='<analysis step>'` to run a partial analysis. "
+                    "Use `interrupt_before=<analysis step>` to run a partial analysis,\n"
+                    "e.g., `interrupt_before=AnalysisSteps.S03_RUN_FITTING`. Note the steps are \n"
+                    "not specified as strings."
                     "Method names:\n"
                     f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
                 ) from e  # and raise the original exception
@@ -315,13 +320,20 @@ class BaseAnalysis(ABC):
             dataset = self.dataset
             write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
 
+    def save_figures(self):
+        """
+        Saves figures to disk. By default saves matplotlib figures.
+
+        Can be overloaded to make use of other plotting packages.
+        """
+        self.save_figures_mpl()
+
     def save_figures_mpl(self, close_figs: bool = True):
         """
         Saves all the matplotlib figures in the :code:`figs_mpl` dict
 
         Parameters
         ----------
-
         close_figs
             If True, closes `matplotlib` figures after saving
         """
@@ -427,11 +439,11 @@ class BaseAnalysis(ABC):
         for ax_id, ax in axs.items():
             if ax_id in ax_ids:
                 # For plots created with `imshow` or `pcolormesh`
-                for im_or_col in (
+                for image_or_collection in (
                     *ax.get_images(),
                     *(c for c in ax.collections if isinstance(c, QuadMesh)),
                 ):
-                    im_or_col.set_clim(vmin, vmax)
+                    image_or_collection.set_clim(vmin, vmax)
 
 
 class Basic1DAnalysis(BaseAnalysis):
@@ -442,22 +454,29 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        gridded_dataset = to_gridded_dataset(self.dataset_raw)
+        # NB we do not use `to_gridded_dataset` because that can potentially drop
+        # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
+        dataset = self.dataset_raw
+        # for compatibility with older datasets, in case "x0" is not a coordinate we use "dim_0"
+        coords = tuple(dataset.coords)
+        dims = tuple(dataset.dims)
+        plot_against = coords[0] if coords else (dims[0] if dims else None)
+        for yi, yvals in dataset.data_vars.items():
+            # for compatibility with older datasets, do not plot "x0" vx "x0"
+            if yi.startswith("y"):
+                fig, ax = plt.subplots()
+                fig_id = f"Line plot x0-{yi}"
+                # plot this variable against x0
+                yvals.plot.line(ax=ax, x=plot_against, marker=".")
+                adjust_axeslabels_SI(ax)
 
-        for yi, yvals in gridded_dataset.data_vars.items():
-            fig, ax = plt.subplots()
-            fig_id = f"Line plot x0-{yi}"
-            # plotting works because it is an xarray with associated dimensions.
-            yvals.plot(ax=ax, marker=".")
-            adjust_axeslabels_SI(ax)
+                fig.suptitle(
+                    f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                )
 
-            fig.suptitle(
-                f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
-            )
-
-            # add the figure and axis to the dicts for saving
-            self.figs_mpl[fig_id] = fig
-            self.axs_mpl[fig_id] = ax
+                # add the figure and axis to the dicts for saving
+                self.figs_mpl[fig_id] = fig
+                self.axs_mpl[fig_id] = ax
 
 
 class Basic2DAnalysis(BaseAnalysis):
@@ -480,6 +499,8 @@ class Basic2DAnalysis(BaseAnalysis):
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
             set_cbarlabel(quadmesh.colorbar, yvals.long_name, yvals.units)
+            # autodect degrees and radians to use circular colormap.
+            qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
             fig.suptitle(
                 f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
@@ -512,7 +533,7 @@ class Basic2DAnalysis(BaseAnalysis):
                     gridded_dataset["x1"].attrs["long_name"],
                     gridded_dataset["x1"].attrs["units"],
                 ),
-                ncol=len(gridded_dataset["x1"]) // 8,
+                ncol=max(len(gridded_dataset["x1"]) // 8, 1),
             )
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
@@ -532,8 +553,8 @@ def flatten_lmfit_modelresult(model):
 
     Notes
     -----
-    We use this method as opposed to :func:`lmfit.model.save_modelresult` as the
-    corresponding :func:`lmfit.model.load_modelresult` cannot handle loading data with
+    We use this method as opposed to :func:`~lmfit.model.save_modelresult` as the
+    corresponding :func:`~lmfit.model.load_modelresult` cannot handle loading data with
     a custom fit function.
     """
     assert isinstance(model, (lmfit.model.ModelResult, lmfit.minimizer.MinimizerResult))

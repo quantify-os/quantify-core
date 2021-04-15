@@ -378,15 +378,35 @@ def test_write_quantify_dataset():
     tmp_dir.cleanup()
 
 
+def test_write_quantify_dataset_np_bool():
+    dataset = mk_dataset_complex_array(complex_float=1.0j, complex_int=2.0j)
+
+    dataset.attrs["test_attr"] = np.bool_(True)
+    dataset.x0.attrs["test_attr"] = np.bool_(True)
+    dataset.y0.attrs["test_attr"] = np.bool_(False)
+
+    tmp_dir = tempfile.TemporaryDirectory()
+    path = Path(tmp_dir.name) / dh.DATASET_NAME
+    dh.write_dataset(path, dataset)
+
+    load_dataset = xr.load_dataset(path, engine="h5netcdf")
+
+    assert bool(load_dataset.attrs["test_attr"]) == True
+    assert bool(load_dataset.x0.attrs["test_attr"]) == True
+    assert bool(load_dataset.y0.attrs["test_attr"]) == False
+
+    tmp_dir.cleanup()
+
+
 def test_snapshot():
     empty_snap = dh.snapshot()
     assert empty_snap == {"instruments": {}, "parameters": {}}
     test_MC = MeasurementControl(name="MC")
 
-    test_MC.soft_avg(5)
+    test_MC.update_interval(0.77)
     snap = dh.snapshot()
     assert snap["instruments"].keys() == {"MC"}
-    assert snap["instruments"]["MC"]["parameters"]["soft_avg"]["value"] == 5
+    assert snap["instruments"]["MC"]["parameters"]["update_interval"]["value"] == 0.77
 
     test_MC.close()
 
@@ -469,6 +489,7 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
         data_vars={
             "y0": ("dim_0", np.array([complex_int] * 5)),
             "y1": ("dim_0", np.array([complex_float] * 5)),
-        }
+        },
+        coords={"x0": np.linspace(0, 5, 5)},
     )
     return dataset

@@ -1,9 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing utilities for color manipulation
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
-
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing utilities for color manipulation"""
 import colorsys
 import matplotlib.colors as mplc
 import numpy as np
@@ -19,8 +16,8 @@ def set_hlsa(
     l: float = None,
     s: float = None,
     a: float = None,
-    to_hex: bool = False,  # noqa: E741
-):
+    to_hex: bool = False,
+) -> tuple:
     """
     Accepts a `matplotlib` color specification and returns an RGB color
     with the specified HLS values plus an optional alpha

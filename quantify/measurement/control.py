@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing the MeasurementControl.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing the MeasurementControl."""
 from __future__ import annotations
 import time
 import json
@@ -13,6 +11,8 @@ from collections.abc import Iterable
 from collections import OrderedDict
 import itertools
 from itertools import chain
+import signal
+import threading
 
 import xarray as xr
 import numpy as np
@@ -103,14 +103,6 @@ class MeasurementControl(Instrument):
         )
 
         self.add_parameter(
-            "soft_avg",
-            label="Number of soft averages",
-            parameter_class=ManualParameter,
-            vals=vals.Ints(1, int(1e8)),
-            initial_value=1,
-        )
-
-        self.add_parameter(
             "instr_plotmon",
             docstring="Instrument responsible for live plotting. "
             "Can be set to str(None) to disable live plotting.",
@@ -131,7 +123,7 @@ class MeasurementControl(Instrument):
             initial_value=0.5,
             docstring=(
                 "Interval for updates during the data acquisition loop,"
-                " everytime more than `update_interval` time has elapsed "
+                " every time more than `update_interval` time has elapsed "
                 "when acquiring new data points, data is written to file "
                 "and the live monitoring is updated."
             ),
@@ -140,6 +132,8 @@ class MeasurementControl(Instrument):
             vals=vals.Numbers(min_value=0.1),
         )
 
+        self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
+
         # variables that are set before the start of any experiment.
         self._settable_pars = []
         self._setpoints = []
@@ -147,6 +141,7 @@ class MeasurementControl(Instrument):
         self._gettable_pars = []
 
         # variables used for book keeping during acquisition loop.
+        self._soft_avg = 1
         self._nr_acquired_values = 0
         self._loop_count = 0
         self._begintime = time.time()
@@ -158,6 +153,11 @@ class MeasurementControl(Instrument):
         self._exp_folder = None
         self._plotmon_name = ""
         self._plot_info = {"2D-grid": False}
+
+        # properly handling KeyboardInterrupts
+        self._thread_data = threading.local()
+        # counter for KeyboardInterrupts to allow forced interrupt
+        self._thread_data.events_num = 0
 
     ############################################
     # Methods used to control the measurements #
@@ -171,13 +171,18 @@ class MeasurementControl(Instrument):
         self._loop_count = 0
         self._begintime = time.time()
         self._batch_size_last = None
+        # Reset KeyboardInterrupt counter
+        self._thread_data.events_num = 0
+        # Assign handler to interrupt signal
+        signal.signal(signal.SIGINT, self._interrupt_handler)
 
     def _reset_post(self):
         """
         Resets specific variables that can change before `.run()`
         """
         self._plot_info = {"2D-grid": False}
-        self.soft_avg(1)
+        # Reset to default interrupt handler
+        signal.signal(signal.SIGINT, signal.default_int_handler)
 
     def _init(self, name):
         """
@@ -205,20 +210,27 @@ class MeasurementControl(Instrument):
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-    def run(self, name: str = ""):
+    def run(self, name: str = "", soft_avg: int = 1) -> xr.Dataset:
         """
         Starts a data acquisition loop.
 
         Parameters
         ----------
-        name : str
-            Name of the measurement. This name is included in the name of the data files.
+        name
+            Name of the measurement. It is included in the name of the data files.
+        soft_avg
+            Number of software averages to be performed by the measurement control.
+            E.g. if `soft_avg=3` the full dataset will be measured 3 times and the
+            measured values will be averaged element-wise, the averaged dataset is then
+            returned.
+
         Returns
         -------
-        :class:`xarray.Dataset`
+        :
             the dataset
         """
-
+        self._soft_avg_validator(soft_avg)  # validate first
+        self._soft_avg = soft_avg
         self._reset()
         self._init(name)
 
@@ -239,6 +251,8 @@ class MeasurementControl(Instrument):
         self._safe_write_dataset()  # Wrap up experiment and store data
         self._finish()
         self._reset_post()
+
+        self._check_interrupt()  # Propagate interruption
 
         return self._dataset
 
@@ -273,7 +287,8 @@ class MeasurementControl(Instrument):
             self._iterative_set_and_get(vec, self._nr_acquired_values)
             ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
-            self._update("Running adaptively")
+            self._update(".")
+            self._check_interrupt()
             return ret
 
         def subroutine():
@@ -301,18 +316,13 @@ class MeasurementControl(Instrument):
                     af_pars_copy.pop(unused_par, None)
                 adaptive_function(measure, **af_pars_copy)
 
-        if self.soft_avg() != 1:
-            raise ValueError(
-                "software averaging not allowed in adaptive loops; "
-                f"currently set to {self.soft_avg()}."
-            )
-
         self._reset()
         self.setpoints(
             np.empty((64, len(self._settable_pars)))
         )  # block out some space in the dataset
         self._init(name)
         try:
+            print("Running adaptively...")
             subroutine()
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
@@ -320,6 +330,9 @@ class MeasurementControl(Instrument):
         self._finish()
         self._dataset = trim_dataset(self._dataset)
         self._safe_write_dataset()  # Wrap up experiment and store data
+
+        self._check_interrupt()  # Propagate interruption
+
         return self._dataset
 
     def _run_iterative(self):
@@ -329,6 +342,7 @@ class MeasurementControl(Instrument):
                 self._iterative_set_and_get(row, self._curr_setpoint_idx())
                 self._nr_acquired_values += 1
                 self._update()
+                self._check_interrupt()
             self._loop_count += 1
 
     def _run_batched(self):
@@ -392,9 +406,10 @@ class MeasurementControl(Instrument):
 
             self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
+            self._check_interrupt()
 
     def _build_data(self, new_data, old_data):
-        if self.soft_avg() == 1:
+        if self._soft_avg == 1:
             return old_data + new_data
 
         return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
@@ -423,7 +438,7 @@ class MeasurementControl(Instrument):
             for val in new_data:
                 yi_name = f"y{y_offset}"
                 old_val = self._dataset[yi_name].values[idx]
-                if self.soft_avg() == 1 or np.isnan(old_val):
+                if self._soft_avg == 1 or np.isnan(old_val):
                     self._dataset[yi_name].values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
@@ -436,9 +451,36 @@ class MeasurementControl(Instrument):
     # Methods used to control the measurements #
     ############################################
 
+    def _interrupt_handler(self, signal, frame):
+        """
+        A proper handler for signal.SIGINT (a.k.a. KeyboardInterrupt).
+
+        Used to avoid affecting any other code, e.g. instruments drivers, and be able
+        safely stop the MC after an iteration finishes.
+        """
+        self._thread_data.events_num += 1
+        if self._thread_data.events_num >= 5:
+            raise KeyboardInterrupt
+        print(
+            f"\n\n[!!!] {self._thread_data.events_num} interruption(s) signaled. "
+            "Stopping after this iteration/batch.\n"
+            f"[Send more {5 -  self._thread_data.events_num} interruptions to force stop (not safe!)].\n"
+        )
+
+    def _check_interrupt(self):
+        """
+        Verifies if the user has signaled the interruption of the experiment.
+
+        Intended to be used after each iteration or after each batch of data.
+        """
+        if self._thread_data.events_num >= 1:
+            # It is safe to raise the KeyboardInterrupt here because we are guaranteed
+            # To be running MC code. The exception can be handled in a try-except
+            raise KeyboardInterrupt("Measurement interrupted")
+
     def _update(self, print_message: str = None):
         """
-        Do any updates to/from external systems, such as saving, plotting, checking for interrupts etc.
+        Do any updates to/from external systems, such as saving, plotting, etc.
         """
         update = (
             time.time() - self._last_upd > self.update_interval()
@@ -525,7 +567,7 @@ class MeasurementControl(Instrument):
         """
         The total number of setpoints to examine
         """
-        return len(self._setpoints) * self.soft_avg()
+        return len(self._setpoints) * self._soft_avg
 
     def _curr_setpoint_idx(self) -> int:
         """
@@ -555,7 +597,7 @@ class MeasurementControl(Instrument):
         """
         progress_percent = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
-        if not progress_message:
+        if self.verbose() and progress_message is None:
             t_left = (
                 round((100.0 - progress_percent) / progress_percent * elapsed_time, 1)
                 if progress_percent != 0
@@ -568,11 +610,13 @@ class MeasurementControl(Instrument):
             if self._batch_size_last is not None:
                 progress_message += f"last batch size: {self._batch_size_last:#6d}  "
 
+            print(progress_message, end="" if progress_percent < 100 else "\n")
+
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(progress_percent)
 
-        if self.verbose():
-            print(progress_message, end="" if progress_percent < 100 else "\n")
+        if self.verbose() and progress_message is not None:
+            print(progress_message, end="")
 
     def _safe_write_dataset(self):
         """

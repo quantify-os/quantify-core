@@ -1,6 +1,15 @@
 Tutorial 2. Advanced capabilities of the MeasurementControl
 ============================================================
 
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 2. Advanced capabilities of the MeasurementControl`
+
+    :jupyter-download:script:`Tutorial 2. Advanced capabilities of the MeasurementControl`
+
+
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the :ref:`User guide`!
 
 We **highly recommended** to begin with :ref:`Tutorial 1. Controlling a basic experiment using MeasurementControl` before proceeding.
@@ -83,10 +92,10 @@ The :class:`!Resonator` will return a Lorentzian shape centered on the resonant 
             return 1-np.array(list(map(lambda x: lorenz(1, self._test_width, x, self._test_resonance), freq())))
 
         def prepare(self) -> None:
-            print('Prepared Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
+            print('\nPrepared Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
 
         def finish(self) -> None:
-            print('Finished Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
+            print('\nFinished Resonator...')  # Adding this print statement is not required but added for illustrative purposes.
 
     gettable_res = Resonator()
 
@@ -148,19 +157,13 @@ Software Averaging: T1 Experiment
 ----------------------------------
 
 In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability.
-For this purpose, the :class:`~quantify.measurement.MeasurementControl` provides the `soft_avg` parameter.
+For this purpose, the :meth:`~quantify.measurement.MeasurementControl.run` provides the `soft_avg` argument.
 If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
 
 In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
 The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
 
 Note that in this example MC is still running in Batched mode.
-
-
-.. jupyter-execute::
-
-    MC.soft_avg(1)
-
 
 .. jupyter-execute::
 
@@ -194,15 +197,14 @@ We will then sweep through 0 to 300ms, getting our data from the mock Qubit. Let
     MC.settables(time_par)
     MC.setpoints(np.linspace(0.0, 300.0e-6, 300))
     MC.gettables(MockQubit())
-    MC.run('noisy')
+    MC.run('noisy')  # by default `.run` uses `soft_avg=1`
     plotmon.main_QtPlot
 
-Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` parameter of the :class:`~quantify.measurement.MeasurementControl` to 100, averaging the results and hopefully filtering out the noise.
+Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` argument of the :meth:`~quantify.measurement.MeasurementControl.run` to 100, averaging the results and hopefully filtering out the noise.
 
 .. jupyter-execute::
 
-    MC.soft_avg(100)
-    dset = MC.run('averaged')
+    dset = MC.run('averaged', soft_avg=100)
     plotmon.main_QtPlot
 
 Success! We now have a smooth decay curve based on the characteristics of our qubit. All that remains is to run a fit against the expected values and we can solve for T1.
@@ -224,18 +226,25 @@ Interrupting
 
 Sometimes experiments unfortunately do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration).
 Rather than waiting for this experiment to complete, instead we can interrupt any :class:`~quantify.measurement.MeasurementControl` loop using the standard interrupt signal.
-In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel will cause the same result.
+In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel (stop button) will cause the same result.
 
-When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it will perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
+When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it will wait to obtain the results of current iteration (or batch) and perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
 
 .. note::
+
     The exact means of triggering an interrupt will differ depending on your platform and environment; the important part is to cause a `KeyboardInterrupt` exception to be raised in the Python process.
 
 .. warning::
-    Pressing ``ctrl`` + ``c`` more than once might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
+
+    In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times ``ctrl`` + ``c``). Mind than performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
 
 .. jupyter-execute::
+    :raises: KeyboardInterrupt
+
+    import os
+    import signal
+    import sys
 
     class SlowGettable:
         def __init__(self):
@@ -245,11 +254,16 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 
         def get(self):
             time.sleep(1.0)
-            if time_par() == 8:
+            if time_par() == 4:
                 # This same exception rises when pressing `ctrl` + `c`
                 # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
-                raise KeyboardInterrupt
+                if sys.platform == "win32":
+                    # Emulating the kernel interrupt on windows might have side effects
+                    raise KeyboardInterrupt
+                else:
+                    os.kill(os.getpid(), signal.SIGINT)
             return time_par()
+
 
     time_par.batched = False
     MC.settables(time_par)
@@ -262,13 +276,3 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 .. jupyter-execute::
 
     plotmon.main_QtPlot
-
-
-
-.. seealso::
-
-    The complete source code of this tutorial can be found in
-
-    :jupyter-download:notebook:`Tutorial 2. Advanced capabilities of the MeasurementControl`
-
-    :jupyter-download:script:`Tutorial 2. Advanced capabilities of the MeasurementControl`

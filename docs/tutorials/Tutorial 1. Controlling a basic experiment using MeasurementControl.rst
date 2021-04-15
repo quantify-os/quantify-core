@@ -1,6 +1,15 @@
 Tutorial 1. Controlling a basic experiment using MeasurementControl
 =====================================================================
 
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Tutorial 1. Controlling a basic experiment using MeasurementControl`
+
+    :jupyter-download:script:`Tutorial 1. Controlling a basic experiment using MeasurementControl`
+
+
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the :ref:`User guide` !
 
 This tutorial covers basic usage of Quantify focusing on running basic experiments using :class:`~quantify.measurement.MeasurementControl`.
@@ -25,6 +34,7 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
 
 .. jupyter-execute::
 
+    import lmfit
     import numpy as np
     import xarray as xr
     import matplotlib.pyplot as plt
@@ -205,7 +215,6 @@ To give insight into the analysis framework, we first execute the analysis steps
 
         .. jupyter-execute::
 
-            import lmfit
             # we create a model based on our function
             mod = lmfit.Model(cos_func)
             # and specify initial guesses for each parameter
@@ -373,12 +382,3 @@ N.B. it is also possible to do this for higher dimensional loops
 .. jupyter-execute::
 
     plotmon.secondary_QtPlot
-
-
-.. seealso::
-
-    The complete source code of this tutorial can be found in
-
-    :jupyter-download:notebook:`Tutorial 1. Controlling a basic experiment using MeasurementControl`
-
-    :jupyter-download:script:`Tutorial 1. Controlling a basic experiment using MeasurementControl`

@@ -1,5 +1,9 @@
+.. include:: close_all_instruments.rst.txt
+
 .. admonition:: Example
     :class: dropdown, tip
+
+    In this example we use this function to create a custom colormap using several base colors for which we adjust the saturation and transparency (alpha, only visible when exporting the image).
 
     .. jupyter-execute::
 
@@ -13,16 +17,10 @@
             '#1f77b4',
             '#ff7f0e',
             '#2ca02c',
-            '#d62728',
-            '#9467bd',
-            '#8c564b',
-            '#e377c2',
-            '#7f7f7f',
-            '#bcbd22',
-            '#17becf'
+            '#d62728'
         ]
         all_colors = []
-        for col in color_cycle[:2]:
+        for col in color_cycle:
             hls = colorsys.rgb_to_hls(*mplc.to_rgb(mplc.to_rgb(col)))
             sat_vals = (np.linspace(0., 1.0, 20) ** 2) * hls[2]
             alpha_vals = np.linspace(0.4, 1.0, 20)

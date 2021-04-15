@@ -1,0 +1,144 @@
+[MASTER]
+
+# A comma-separated list of package or module names from where C extensions may
+# be loaded. Extensions are loading into the active Python interpreter and may
+# run arbitrary code.
+extension-pkg-whitelist=
+
+# Specify a score threshold to be exceeded before program exits with error.
+fail-under=10
+
+# Add files or directories to the blacklist. They should be base names, not
+# paths.
+ignore=CVS,
+       D212 # conflicts with D213
+
+# Add files or directories matching the regex patterns to the blacklist. The
+# regex matches against base names, not paths.
+ignore-patterns=
+
+# Python code to execute, usually for sys.path manipulation such as
+# pygtk.require().
+#init-hook=
+
+# Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
+# number of processors available to use.
+jobs=0
+
+# Control the amount of potential inferred values when inferring a single
+# object. This can help the performance when dealing with large functions or
+# complex, nested conditions.
+limit-inference-results=100
+
+# List of plugins (as comma separated values of python module names) to load,
+# usually to register additional checkers.
+load-plugins=
+
+# Pickle collected data for later comparisons.
+persistent=yes
+
+# When enabled, pylint would attempt to guess common misconfiguration and emit
+# user-friendly hints instead of false-positive error messages.
+suggestion-mode=yes
+
+# Allow loading of arbitrary C extensions. Extensions are imported into the
+# active Python interpreter and may run arbitrary code.
+unsafe-load-any-extension=no
+
+
+[MESSAGES CONTROL]
+
+# Only show warnings with the listed confidence levels. Leave empty to show
+# all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED.
+confidence=
+
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifiers separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once). You can also use "--disable=all" to
+# disable everything first and then reenable specific checks. For example, if
+# you want to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use "--disable=all --enable=classes
+# --disable=W".
+disable=protected-access,
+        missing-module-docstring,
+        logging-fstring-interpolation,
+        logging-not-lazy,
+        ungrouped-imports
+
+# Enable the message, report, category or checker with the given id(s). You can
+# either give multiple identifier separated by comma (,) or put this option
+# multiple time (only on the command line, not in the configuration file where
+# it should appear only once). See also the "--disable" option for examples.
+enable=c-extension-no-member,
+       D213 # Multi-line docstring summary should start at the second line
+
+
+[REPORTS]
+
+# Python expression which should return a score less than or equal to 10. You
+# have access to the variables 'error', 'warning', 'refactor', and 'convention'
+# which contain the number of messages in each category, as well as 'statement'
+# which is the total number of statements analyzed. This score is used by the
+# global evaluation report (RP0004).
+evaluation=10 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
+
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details.
+#msg-template=
+
+[FORMAT]
+
+# Maximum number of characters on a single line.
+max-line-length=88
+
+
+[BASIC]
+
+# Good variable names which should always be accepted, separated by a comma
+# p0,p1,etc. are for pulses
+# x0,x1,y0,y1,etc. are for quantify dataset variables
+good-names=i,j,k,e,x,y,_,yi,yj,yk,ys,xi,xj,xk,xs,zi,zj,zk,zs,ax,S21,S11,S12,S22,t,t0,t1,t2,t3,t4,x0,x1,x2,x3,x4,y0,y1,y2,y3,y4,p0,p1,p2,p3,p4
+
+# Naming style matching correct argument names.
+argument-naming-style=snake_case
+
+# Naming style matching correct attribute names.
+attr-naming-style=snake_case
+
+# Naming style matching correct class attribute names.
+class-attribute-naming-style=snake_case
+
+# Naming style matching correct function names.
+function-naming-style=snake_case
+
+# Naming style matching correct method names.
+method-naming-style=snake_case
+
+# Naming style matching correct module names.
+module-naming-style=snake_case
+
+# Naming style matching correct variable names.
+variable-naming-style=snake_case
+
+# Naming style matching correct class names.
+class-naming-style=PascalCase
+
+# Naming style matching correct constant names.
+const-naming-style=UPPER_CASE
+
+# Regular expression which should only match function or class names that do
+# not require a docstring.
+no-docstring-rgx=^_
+
+
+[LOGGING]
+
+# The type of string formatting that logging methods do. `old` means using %
+# formatting, `new` is for `{}` formatting.
+logging-format-style=new
+
+# Logging modules to check that the string format arguments are in logging
+# function parameter format.
+logging-modules=logging

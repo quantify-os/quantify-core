@@ -1,10 +1,7 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing the pyqtgraph based plotting monitor.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing the pyqtgraph based plotting monitor."""
 import warnings
-import time
 
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
@@ -12,7 +9,6 @@ from qcodes.instrument.parameter import Parameter
 from qcodes.utils.helpers import strip_attrs
 
 import pyqtgraph.multiprocess as pgmp
-from pyqtgraph.multiprocess.remoteproxy import NoResultError
 from quantify.data.handling import get_datadir
 from quantify.measurement.control import _DATASET_LOCKS_DIR
 
@@ -43,20 +39,11 @@ class PlotMonitor_pyqt(Instrument):
         # "commands" will be sent
         self.proc = pgmp.QtProcess(processRequests=False)
         # quantify module(s) in the remote process
-        self.remote_quantify = self.proc._import("quantify")
-        for i in range(5):
-            try:
-                self.remote_ppr = self.proc._import(
-                    "quantify.visualization.pyqt_plotmon_remote"
-                )
-            except NoResultError as exception:
-                # Try a few times before giving up
-                time.sleep(0.2)
-                if i == 4:
-                    raise exception
-            else:
-                break
-
+        timeout = 60
+        self.remote_quantify = self.proc._import("quantify", timeout=timeout)
+        self.remote_ppr = self.proc._import(
+            "quantify.visualization.pyqt_plotmon_remote", timeout=timeout
+        )
         # the interface to the remote object
         self.remote_plotmon = self.remote_ppr.RemotePlotmon(
             instr_name=self.name, dataset_locks_dir=_DATASET_LOCKS_DIR
@@ -219,7 +206,7 @@ class PlotMonitor_pyqt(Instrument):
 
     def close(self) -> None:
         """
-        (Modified form Instrument class)
+        (Modified from Instrument class)
 
         Irreversibly stop this instrument and free its resources.
 
