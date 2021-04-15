@@ -49,11 +49,12 @@ def load_settings_onto_instrument(
                 instrument.__dict__["parameters"][parname]
             ):  # Make sure the parameter is actually a settable
                 try:
+                    val = par["value"]
                     instrument.set(parname, par["value"])
                 except Exception as exp:
                     warnings.warn(
                         f"Parameter {parname} of instrument {instrument.name} could "
-                        "not be set to {val} due to error:\n{exp}"
+                        f"not be set to {val} due to error:\n{exp}"
                     )
         else:
             warnings.warn(
