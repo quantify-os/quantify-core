@@ -1,0 +1,57 @@
+{
+    "instruments": {
+        "DummyInstrument": {
+            "parameters": {
+                "IDN": {
+                    "value": {
+                        "vendor": null,
+                        "model": "DummyInstrument",
+                        "serial": null,
+                        "firmware": null
+                    },
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "IDN",
+                    "label": "IDN",
+                    "unit": ""
+                },
+                "settable_param": {
+                    "value": 5,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "settable_param",
+                    "label": "settable_param",
+                    "unit": ""
+                },
+                "gettable_param": {
+                    "value": 20,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "gettable_param",
+                    "label": "gettable_param",
+                    "unit": ""
+                },
+                "boolean_param": {
+                    "value": false,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "boolean_param",
+                    "label": "boolean_param",
+                    "unit": ""
+                },
+                "none_param": {
+                    "value": null,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "none_param",
+                    "label": "none_param",
+                    "unit": ""
+                },
+                "obsolete_param": {
+                    "value": 0,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "obsolete_param",
+                    "label": "obsolete_param",
+                    "unit": ""
+                }
+            },
+            "name": "DummyInstrument"
+        }
+    },
+    "parameters": {}
+}
