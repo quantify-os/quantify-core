@@ -126,7 +126,8 @@ def hanger_func_complex_SI(
         complex valued transmission
 
 
-    See eq. S4 from Bruno et al. (2015) `ArXiv:1502.04082 <https://arxiv.org/abs/1502.04082>`_.
+    See eq. S4 from Bruno et al. (2015)
+    `ArXiv:1502.04082 <https://arxiv.org/abs/1502.04082>`_.
 
     .. math::
 
@@ -134,7 +135,8 @@ def hanger_func_complex_SI(
         \left(1- \frac{\frac{Q_l}{|Q_e|}e^{i\theta} }{1+2iQ_l \frac{f-f_r}{f_r}} \right)
         e^{i (\phi_v f + \phi_0)}
 
-    The loaded and extrinsic quality factors are related to the internal and coupled Q according to:
+    The loaded and extrinsic quality factors are related to the internal and coupled Q
+    according to:
 
     .. math::
 
@@ -306,9 +308,11 @@ class ExpDecayModel(lmfit.model.Model):
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
 
-# Guesses the phase velocity based on the median of all the differences between
-# consecutive phases
 def phase_guess(S21, freq):
+    """
+    Guesses the phase velocity based on the median of all the differences between
+    consecutive phases
+    """
     phase = np.angle(S21)
 
     med_diff = np.median(np.diff(phase))

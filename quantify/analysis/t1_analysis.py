@@ -14,7 +14,8 @@ from quantify.visualization.SI_utilities import format_value_string
 
 class T1Analysis(ba.BaseAnalysis):
     """
-    Analysis class for a qubit T1 experiment, which fits an exponential decay and extracts the T1 time.
+    Analysis class for a qubit T1 experiment,
+    which fits an exponential decay and extracts the T1 time.
 
     Parameters
         ----------
@@ -56,8 +57,6 @@ class T1Analysis(ba.BaseAnalysis):
         guess = mod.guess(magn, delay=delay)
         fit_res = mod.fit(magn, params=guess, t=delay)
 
-        self.model = mod
-
         self.fit_res.update({"exp_decay_func": fit_res})
 
         fpars = fit_res.params
@@ -79,9 +78,12 @@ class T1Analysis(ba.BaseAnalysis):
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        self.create_fig_T1_decay()
+        self.create_fig_t1_decay()
 
-    def create_fig_T1_decay(self):
+    def create_fig_t1_decay(self):
+        """
+        Create a figure showing the exponential decay and fit.
+        """
 
         fig_id = "T1_decay"
         fig, axs = plt.subplots()
@@ -103,5 +105,6 @@ class T1Analysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\ntuid: "
+            f"{self.dataset_raw.attrs['tuid']}"
         )
