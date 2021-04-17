@@ -554,7 +554,8 @@ class Basic2DAnalysis(BaseAnalysis):
             fig_id = f"Linecuts x0x1-{yi}"
 
             lines = yvals.plot.line(x="x0", hue="x1", ax=ax)
-            # Change the color and labels of the line as we want to tweak this with respect to xarray default.
+            # Change the color and labels of the line as we want to tweak this with
+            # respect to xarray default.
             for line, z_value in zip(lines, np.array(gridded_dataset["x1"])):
                 # use the default colormap specified
                 cmap = matplotlib.cm.get_cmap()

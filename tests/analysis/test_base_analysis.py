@@ -334,7 +334,17 @@ def test_dataset_input_missing_tuid():
     # no TUID attribute present
 
     # test that analysis works correctly
-    a = ba.Basic1DAnalysis(dataset_raw=dset)
+    a_obj = ba.Basic1DAnalysis(dataset_raw=dset)
+    assert a_obj.dataset_raw == dset
+
+    # Figures where stored  to disk
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "figs_mpl" in analysis_dir
+
+    # test that the right figures get created.
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
 
 def test_dataset_input():
@@ -355,4 +365,15 @@ def test_dataset_input():
     dset = dset.set_coords(["x0"])
 
     # no TUID attribute present
-    a = ba.Basic1DAnalysis(dataset_raw=dset)
+    a_obj = ba.Basic1DAnalysis(dataset_raw=dset)
+
+    assert a_obj.dataset_raw == dset
+
+    # Figures where stored  to disk
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "figs_mpl" in analysis_dir
+
+    # test that the right figures get created.
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
