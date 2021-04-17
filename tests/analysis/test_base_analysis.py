@@ -1,6 +1,14 @@
+# pylint: disable=invalid-name # disabled because of capital SI in module name
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+
+
 import os
 import logging
 from pathlib import Path
+import numpy as np
+import xarray as xr
 from jsonschema import ValidationError
 import pytest
 import quantify.data.handling as dh
@@ -307,3 +315,44 @@ def test_display_figs():
     dh.set_datadir(get_test_data_dir())
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS)
     a_obj.display_figs_mpl()  # should display figures in the output
+
+
+def test_dataset_input_missing_tuid():
+
+    # Create a custom dataset
+    x0 = np.linspace(0, 2 * np.pi, 31)
+    y0 = np.cos(x0)
+    x0r = xr.DataArray(
+        x0, name="x0", attrs={"name": "t", "long_name": "Time", "units": "s"}
+    )
+    y0r = xr.DataArray(
+        y0, name="y0", attrs={"name": "A", "long_name": "Amplitude", "units": "V"}
+    )
+
+    dset = xr.Dataset({"x0": x0r, "y0": y0r}, attrs={"name": "custom cosine"})
+    dset = dset.set_coords(["x0"])
+    # no TUID attribute present
+
+    # test that analysis works correctly
+    a = ba.Basic1DAnalysis(dataset=dset)
+
+
+def test_dataset_input():
+    # Create a custom dataset
+    x0 = np.linspace(0, 2 * np.pi, 31)
+    y0 = np.cos(x0)
+    x0r = xr.DataArray(
+        x0, name="x0", attrs={"name": "t", "long_name": "Time", "units": "s"}
+    )
+    y0r = xr.DataArray(
+        y0, name="y0", attrs={"name": "A", "long_name": "Amplitude", "units": "V"}
+    )
+
+    dset = xr.Dataset(
+        {"x0": x0r, "y0": y0r},
+        attrs={"name": "custom cosine", "tuid": "20210417-191934-749-41de74"},
+    )
+    dset = dset.set_coords(["x0"])
+
+    # no TUID attribute present
+    a = ba.Basic1DAnalysis(dataset=dset)
