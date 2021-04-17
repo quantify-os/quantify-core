@@ -1,12 +1,88 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing fitting models.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
 """Models and fit functions to be used with the lmfit fitting framework."""
+from __future__ import annotations
 
 import numpy as np
 import lmfit
+
+
+def get_model_common_doc() -> str:
+    """
+    Returns a common docstring to be used with custom fitting
+    :class:`~lmfit.model.Model` s.
+
+    .. admonition:: Usage example for a custom fitting model
+        :class: dropdown, tip
+
+        See the usage example at the end of the :class:`~ResonatorModel` source-code:
+
+        .. literalinclude:: ../quantify/analysis/fitting_models.py
+            :pyobject: ResonatorModel
+    """
+    return (
+        lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        .replace("\n    ", "\n")
+        .replace(" : str", " : :obj:`str`")
+        .replace("['x']", ":code:`['x']`")
+        .replace(", optional", "")
+        .replace(" optional", "")
+        .replace("{'raise', 'propagate', 'omit'}", "")
+    )
+
+
+def get_guess_common_doc() -> str:
+    """
+    Returns a common docstring to be used for the :meth:`~lmfit.model.Model.guess`
+    method of custom fitting :class:`~lmfit.model.Model` s.
+
+    .. admonition:: Usage example for a custom fitting model
+        :class: dropdown, tip
+
+        See the usage example at the end of the :class:`~ResonatorModel` source-code:
+
+        .. literalinclude:: ../quantify/analysis/fitting_models.py
+            :pyobject: ResonatorModel
+    """
+    return (
+        lmfit.models.COMMON_GUESS_DOC.replace(
+            " : Parameters", " : :class:`~lmfit.parameter.Parameters`"
+        )
+        .replace("\n    ", "\n")
+        .replace(" optional", "")
+        .replace(" : array_like", " : :class:`~numpy.ndarray`")
+    )
+
+
+def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> str:
+    """
+    Returns a sphinx `seealso` pointing to a function.
+
+    Intended to be used for building custom fitting model docstrings.
+
+    .. admonition:: Usage example for a custom fitting model
+        :class: dropdown, tip
+
+        See the usage example at the end of the :class:`~ResonatorModel` source-code:
+
+        .. literalinclude:: ../quantify/analysis/fitting_models.py
+            :pyobject: ResonatorModel
+
+    Parameters
+    ----------
+    function_name
+        name of the function to point to
+    role
+        a sphinx role, e.g. :code:`"func"`
+    prefix
+        string preceding the `seealso`
+
+    Returns
+    -------
+    :
+        resulting string
+    """
+    return f"{prefix}.. seealso:: :{role}:`~.{function_name}`\n"
 
 
 def hanger_func_complex_SI(
@@ -20,7 +96,7 @@ def hanger_func_complex_SI(
     phi_0: float,
     alpha: float = 1,
 ) -> complex:
-    """
+    r"""
     This is the complex function for a hanger (lambda/4 resonator).
 
     Parameters
@@ -54,21 +130,22 @@ def hanger_func_complex_SI(
 
     .. math::
 
-        S_{21} = A \\left(1+\\alpha \\frac{f-f_r}{f_r} \\right)
-        \\left(1- \\frac{\\frac{Q_l}{|Q_e|}e^{i\\theta} }{1+2iQ_l \\frac{f-f_r}{f_r}} \\right)
-        e^{i (\\phi_v f + \\phi_0)}
+        S_{21} = A \left(1+\alpha \frac{f-f_r}{f_r} \right)
+        \left(1- \frac{\frac{Q_l}{|Q_e|}e^{i\theta} }{1+2iQ_l \frac{f-f_r}{f_r}} \right)
+        e^{i (\phi_v f + \phi_0)}
 
     The loaded and extrinsic quality factors are related to the internal and coupled Q according to:
 
     .. math::
 
-        \\frac{1}{Q_l} = \\frac{1}{Q_c}+\\frac{1}{Q_i}
+        \frac{1}{Q_l} = \frac{1}{Q_c}+\frac{1}{Q_i}
 
     and
 
     .. math::
 
-        \\frac{1}{Q_c} = \\mathrm{Re}\\left(\\frac{1}{|Q_e|e^{-i\\theta}}\\right)
+        \frac{1}{Q_c} = \mathrm{Re}\left(\frac{1}{|Q_e|e^{-i\theta}}\right)
+
     """
     slope_corr = 1 + alpha * (f - fr) / fr
 
@@ -125,15 +202,18 @@ def get_model_common_doc() -> str:
 
 
 class ResonatorModel(lmfit.model.Model):
-    """"""  # Avoid including Model docstring
+    """
+    Resonator model
+
+    Implementation and design patterns inspired by the
+    `complex resonator model example <https://lmfit.github.io/lmfit-py/examples/example_complex_resonator_model.html>`_
+    (lmfit documentation).
+
+    """  # pylint: disable=line-too-long
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
-
-    __doc__ = "Resonator model\n\n" + get_model_common_doc()
-
     def __init__(self, *args, **kwargs):
-        """"""  # Avoid including Model.__init__ docstring
         # pass in the defining equation so the user doesn't have to later.
         super().__init__(hanger_func_complex_SI, *args, **kwargs)
         self.set_param_hint("Ql", min=0)  # Enforce Q is positive
@@ -144,10 +224,6 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
     def guess(self, data, **kwargs):
-        """
-        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
-        """
-
         params = self.make_params()
 
         if kwargs.get("f", None) is None:
@@ -184,6 +260,10 @@ class ResonatorModel(lmfit.model.Model):
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
+
+    # Same design patter is used in lmfit.models
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("hanger_func_complex_SI")
+    guess.__doc__ = get_guess_common_doc()
 
 
 class T1Model(lmfit.model.Model):
@@ -229,7 +309,8 @@ class T1Model(lmfit.model.Model):
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
 
-# Guesses the phase velocity based on the median of all the differences between consequtive phases
+# Guesses the phase velocity based on the median of all the differences between
+# consecutive phases
 def phase_guess(S21, freq):
     phase = np.angle(S21)
 
