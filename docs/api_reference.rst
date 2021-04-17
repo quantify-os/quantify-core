@@ -11,6 +11,9 @@ quantify
 analysis
 =============
 
+.. automodule:: quantify.analysis
+    :members:
+
 base_analysis
 -------------
 

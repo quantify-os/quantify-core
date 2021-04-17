@@ -152,7 +152,7 @@ The size of these batches is automatically calculated but usually dependent on r
 
 Control mode is detected automatically based on the `.batched` attribute of the settable(s) and gettable(s); this is expanded upon in subsequent sections.
 
-.. note:: All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g. `settable_A.batched=True`, `settable_B.batched=False`).
+.. note:: All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g., `settable_A.batched=True`, `settable_B.batched=False`).
 
 
 Settables and Gettables
@@ -288,7 +288,7 @@ Data Directory
 The top level directory in the file system where output is saved to.
 This directory can be controlled using the :meth:`~quantify.data.handling.get_datadir` and :meth:`~quantify.data.handling.set_datadir` functions.
 
-We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:\Data*).
+We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., *D:\\Data*).
 
 Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
 
@@ -393,8 +393,42 @@ The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` us
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
-Examples
-==================================
+Analysis
+========
+
+To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
+
+The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
+The order of these steps is defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an Enumerate (:class:`~quantify.analysis.base_analysis.AnalysisSteps`) and the different steps are implemented as methods of the analysis class.
+An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to that analysis.
+
+The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures (take a look at the source code in the API reference).
+
+A slightly more complex example is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model from the :mod:`~quantify.analysis.fitting_models` module, and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
+
+
+Using existing analysis classes
+-------------------------------
+
+To be written.
+Example where we show how to use an analysis class
+- run a basic experiment.
+- run analysis and find file using label or tuid.
+- show plots using method.
+- hint there are a few more methods.
+- show how to extract some quantities.
+
+
+Creating a new analysis class
+-----------------------------
+
+To be written.
+
+
+
+
+Examples: Settables and Gettables
+=================================
 Below we give several examples of experiment using Settables and Gettables in different control modes.
 
 
