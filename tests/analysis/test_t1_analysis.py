@@ -9,8 +9,15 @@ from quantify.utilities._tests_helpers import get_test_data_dir
 
 
 class TestT1Analysis:
+    """
+    Test for T1 analysis class
+    """
+
     @classmethod
     def setup_class(cls):
+        """
+        Setup all necessary objects for tests
+        """
         dh.set_datadir(get_test_data_dir())
 
         tuids = ["20210322-205253-758-6689"]
@@ -20,6 +27,9 @@ class TestT1Analysis:
         cls.T1s = [1.07e-5]
 
     def test_raw_data_not_in_processed_dataset(self):
+        """
+        Test that all the relevant quantities are in the processed dataset
+        """
         for tuid in self.tuids:
             container = Path(dh.locate_experiment_container(tuid))
             file_path = container / "analysis_T1Analysis" / "processed_dataset.hdf5"
@@ -32,14 +42,19 @@ class TestT1Analysis:
             assert "Magnitude" in dataset.data_vars.keys()
 
     def test_figures_generated(self):
-        # test that the right figures get created.
+        """
+        Test that the right figures get created.
+        """
         for a_obj in self.a_objs:
             assert set(a_obj.figs_mpl.keys()) == {
                 "T1_decay",
             }
 
     def test_quantities_of_interest(self):
-        for a_obj, T1 in zip(self.a_objs, self.T1s):
+        """
+        Test that the fit returns the correct values
+        """
+        for a_obj, t_1 in zip(self.a_objs, self.T1s):
             assert set(a_obj.quantities_of_interest.keys()) == {
                 "T1",
                 "fit_msg",
@@ -49,5 +64,5 @@ class TestT1Analysis:
             assert isinstance(a_obj.quantities_of_interest["T1"], Variable)
             # Tests that the fitted values are correct (to within 5 standard deviations)
             assert a_obj.quantities_of_interest["T1"].nominal_value == approx(
-                T1, abs=5 * a_obj.quantities_of_interest["T1"].std_dev
+                t_1, abs=5 * a_obj.quantities_of_interest["T1"].std_dev
             )

@@ -268,6 +268,7 @@ class ExpDecayModel(lmfit.model.Model):
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
+    # pylint: disable=too-few-public-methods
 
     __doc__ = "T1 model\n\n" + get_model_common_doc()
 
