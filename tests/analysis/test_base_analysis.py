@@ -365,7 +365,9 @@ def test_dataset_input():
     dset = dset.set_coords(["x0"])
 
     # no TUID attribute present
-    a_obj = ba.Basic1DAnalysis(dataset_raw=dset)
+    a_obj = ba.Basic1DAnalysis(
+        dataset_raw=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
+    )
 
     assert a_obj.dataset_raw == dset
 
@@ -374,6 +376,9 @@ def test_dataset_input():
     assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
     analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
     assert "figs_mpl" in analysis_dir
+    assert "Line plot x0-y0.png" in os.listdir(
+        Path(exp_dir) / "analysis_Basic1DAnalysis" / "figs_mpl"
+    )
 
     # test that the right figures get created.
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}

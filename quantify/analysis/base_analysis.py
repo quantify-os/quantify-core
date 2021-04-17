@@ -306,7 +306,6 @@ class BaseAnalysis(ABC):
         Used to fit data to a model. Overwrite this method in a child class if this
         step is required for you analysis.
         """
-        pass
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_res) > 0:
@@ -344,7 +343,8 @@ class BaseAnalysis(ABC):
 
     def save_processed_dataset(self):
         """
-        Saves a copy of the (processed) self.dataset in the analysis folder of the experiment.
+        Saves a copy of the (processed) self.dataset in the analysis folder of the
+        experiment.
         """
 
         # if statement exist to be compatible with child classes that do not load data
@@ -404,7 +404,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         ymin
-            The bottom ylim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom ylim in data coordinates. Passing None leaves the limit
+            unchanged.
         ymax
             The top ylim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -431,7 +432,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         xmin
-            The bottom xlim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom xlim in data coordinates. Passing None leaves the limit
+            unchanged.
         xmax
             The top xlim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -458,7 +460,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         vmin
-            The bottom vlim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom vlim in data coordinates. Passing None leaves the limit
+            unchanged.
         vmax
             The top vlim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -541,7 +544,8 @@ class Basic2DAnalysis(BaseAnalysis):
             qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: "
+                f"{self.dataset_raw.attrs['tuid']}"
             )
 
             # add the figure and axis to the dicts for saving
@@ -578,7 +582,8 @@ class Basic2DAnalysis(BaseAnalysis):
             adjust_axeslabels_SI(ax)
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: "
+                f"{self.dataset_raw.attrs['tuid']}"
             )
 
             # add the figure and axis to the dicts for saving
@@ -588,7 +593,8 @@ class Basic2DAnalysis(BaseAnalysis):
 
 def flatten_lmfit_modelresult(model):
     """
-    Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
+    Flatten an lmfit model result to a dictionary in order to be able to save
+    it to disk.
 
     Notes
     -----
