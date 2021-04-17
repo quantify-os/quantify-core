@@ -337,8 +337,10 @@ def test_dataset_input_missing_tuid():
     a_obj = ba.Basic1DAnalysis(dataset_raw=dset)
     assert a_obj.dataset_raw == dset
 
-    # Figures where stored  to disk
     exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    # assert a copy of the dataset was stored to disk.
+    assert "dataset.hdf5" in os.listdir(exp_dir)
+    # Figures where stored  to disk
     assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
     analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
     assert "figs_mpl" in analysis_dir
@@ -371,8 +373,10 @@ def test_dataset_input():
 
     assert a_obj.dataset_raw == dset
 
-    # Figures where stored  to disk
     exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    # assert a copy of the dataset was stored to disk.
+    assert "dataset.hdf5" in os.listdir(exp_dir)
+    # assert figures where stored to disk.
     assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
     analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
     assert "figs_mpl" in analysis_dir

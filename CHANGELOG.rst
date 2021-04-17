@@ -6,6 +6,7 @@ Unreleased
 ----------
 
 * Add uncertainties support to format_value_string (#151)
+* Allow providing an xarray dataset as input for analysis (#181)
 
 0.3.2 (2021-03-17)
 ------------------

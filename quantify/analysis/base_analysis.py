@@ -29,6 +29,7 @@ from quantify.data.handling import (
     get_latest_tuid,
     get_datadir,
     gen_tuid,
+    DATASET_NAME,
     write_dataset,
     create_exp_folder,
     locate_experiment_container,
@@ -276,11 +277,20 @@ class BaseAnalysis(ABC):
                 self.dataset_raw.attrs["tuid"] = self.tuid
 
             # an experiment container is required to store output of the analysis.
-            # it is possible for this not to exist for a custom dataset.
+            # it is possible for this not to exist for a custom dataset as it can
+            # come from a source outside of the data directory.
             try:
                 locate_experiment_container(self.tuid)
             except FileNotFoundError:
-                create_exp_folder(tuid=self.tuid, name=self.dataset_raw.name)
+                # if the file did not exist, an experiment folder is created
+                # and a copy of the dataset_raw is stored there.
+                exp_folder = create_exp_folder(
+                    tuid=self.tuid, name=self.dataset_raw.name
+                )
+                write_dataset(
+                    path=os.path.join(exp_folder, DATASET_NAME),
+                    dataset=self.dataset_raw,
+                )
 
         if self.dataset_raw is None:
 
