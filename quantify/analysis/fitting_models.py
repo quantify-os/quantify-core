@@ -191,16 +191,6 @@ def exp_decay_func(
     return A + (B - A) * np.exp(-t / tau)
 
 
-def get_model_common_doc() -> str:
-    """Returns a common docstring to be used with fitting :class:`~lmfit.model.Model` s."""
-    return (
-        lmfit.models.COMMON_DOC.replace("['x']", "List[str]")
-        .replace("str, optional", "str")
-        .replace(":class:`Model`", ":class:`~lmfit.model.Model`")
-        .replace("**kwargs : optional", "**kwargs : dict")
-    )
-
-
 class ResonatorModel(lmfit.model.Model):
     """
     Resonator model
