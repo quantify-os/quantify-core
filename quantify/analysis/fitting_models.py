@@ -166,7 +166,7 @@ def exp_decay_func(
     tau: float,
     amplitude: float,
     offset: float,
-    n: float,
+    n_factor: float,
 ) -> float:
     """
     This is a general exponential decay function.
@@ -181,7 +181,7 @@ def exp_decay_func(
         The asymptote of the exponential decay, the value at t=infty
     offset:
         The amplitude or starting value of the exponential decay
-    n:
+    n_factor:
         exponential decay factor
 
     Returns
@@ -193,7 +193,7 @@ def exp_decay_func(
 
     y = \\mathrm{amplitude} * \\exp(-(t/\\tau)^n) + \\mathrm{offset}
     """
-    return amplitude * np.exp(-((t / tau) ** n)) + offset
+    return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
 
 
 class ResonatorModel(lmfit.model.Model):
@@ -281,7 +281,7 @@ class ExpDecayModel(lmfit.model.Model):
 
         self.set_param_hint("amplitude", vary=True)
         self.set_param_hint("offset", vary=True)
-        self.set_param_hint("n", expr="1", vary=False)
+        self.set_param_hint("n_factor", expr="1", vary=False)
 
     def guess(self, data, **kwargs):
         """
