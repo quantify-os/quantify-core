@@ -334,7 +334,7 @@ def test_dataset_input_missing_tuid():
     # no TUID attribute present
 
     # test that analysis works correctly
-    a = ba.Basic1DAnalysis(dataset=dset)
+    a = ba.Basic1DAnalysis(dataset_raw=dset)
 
 
 def test_dataset_input():
@@ -355,4 +355,4 @@ def test_dataset_input():
     dset = dset.set_coords(["x0"])
 
     # no TUID attribute present
-    a = ba.Basic1DAnalysis(dataset=dset)
+    a = ba.Basic1DAnalysis(dataset_raw=dset)
