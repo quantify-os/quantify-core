@@ -162,8 +162,9 @@ def hanger_func_complex_SI(
 def exp_decay_func(
     t: float,
     tau: float,
-    A: float,
-    B: float,
+    amplitude: float,
+    offset: float,
+    n: float,
 ) -> float:
     """
     This is a general exponential decay function.
@@ -174,10 +175,12 @@ def exp_decay_func(
         time
     tau:
         decay time
-    A:
+    amplitude:
         The asymptote of the exponential decay, the value at t=infty
-    B:
+    offset:
         The amplitude or starting value of the exponential decay
+    n:
+        exponential decay factor
 
     Returns
     -------
@@ -186,9 +189,9 @@ def exp_decay_func(
 
     .. math::
 
-    y = A + (B - A)\\exp(-t/\\tau)
+    y = \\mathrm{amplitude} * \\exp(-(t/\\tau)^n) + \\mathrm{offset}
     """
-    return A + (B - A) * np.exp(-t / tau)
+    return amplitude * np.exp(-((t / tau) ** n)) + offset
 
 
 class ResonatorModel(lmfit.model.Model):
@@ -256,8 +259,10 @@ class ResonatorModel(lmfit.model.Model):
     guess.__doc__ = get_guess_common_doc()
 
 
-class T1Model(lmfit.model.Model):
-    """"""  # Avoid including Model docstring
+class ExpDecayModel(lmfit.model.Model):
+    """
+    Model for an exponential decay, such as a qubit T1 measurement.
+    """  # Avoid including Model docstring
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
@@ -271,8 +276,9 @@ class T1Model(lmfit.model.Model):
         super().__init__(exp_decay_func, *args, **kwargs)
         self.set_param_hint("tau", min=0)  # Enforce T1 is positive
 
-        self.set_param_hint("A", vary=True)
-        self.set_param_hint("B", vary=True)
+        self.set_param_hint("amplitude", vary=True)
+        self.set_param_hint("offset", vary=True)
+        self.set_param_hint("n", expr="1", vary=False)
 
     def guess(self, data, **kwargs):
         """
@@ -286,14 +292,15 @@ class T1Model(lmfit.model.Model):
 
         delay = kwargs["delay"]
 
-        # To guess the upper and lower reference values, choose first and last values of data
-        self.set_param_hint("A", value=data[-1])
-        self.set_param_hint("B", value=data[0])
+        # To guess the upper amplitude and offset,
+        # use the first and last values of the data
+        self.set_param_hint("offset", value=data[-1])
+        self.set_param_hint("amplitude", value=data[0] - data[-1])
 
-        # The guess for T1 is somewhere in the middle of the time range
-        T1 = np.median(delay)
+        # The guess for tau is somewhere in the middle of the time range
+        tau = np.median(delay)
 
-        self.set_param_hint("tau", value=T1, min=0)
+        self.set_param_hint("tau", value=tau, min=0)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)

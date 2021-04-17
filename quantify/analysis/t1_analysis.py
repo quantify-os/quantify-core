@@ -49,7 +49,7 @@ class T1Analysis(ba.BaseAnalysis):
 
     def run_fitting(self):
 
-        mod = fm.T1Model()
+        mod = fm.ExpDecayModel()
 
         magn = np.array(self.dataset["Magnitude"])
         delay = np.array(self.dataset["x0"])
@@ -71,9 +71,11 @@ class T1Analysis(ba.BaseAnalysis):
             r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
         )
         text_msg += format_value_string(
-            r"$A$", fit_res.params["A"], end_char="\n", unit=unit
+            r"$amplitude$", fit_res.params["amplitude"], end_char="\n", unit=unit
         )
-        text_msg += format_value_string(r"$B$", fit_res.params["B"], unit=unit)
+        text_msg += format_value_string(
+            r"$offset$", fit_res.params["offset"], unit=unit
+        )
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
