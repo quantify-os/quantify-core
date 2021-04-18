@@ -74,9 +74,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
     def create_figures(self):
         """
-        Plots the measured and fitted transmission :math:`S_{21}` as the I and Q compoent
-        vs frequency, the magnitude and phase vs frequency, and on the complex I,Q
-        plane.
+        Plots the measured and fitted transmission :math:`S_{21}` as the I and Q
+        compoent vs frequency, the magnitude and phase vs frequency, and on the
+        complex I,Q plane.
         """
         self.create_fig_s21_real_imag()
         self.create_fig_s21_magn_phase()
