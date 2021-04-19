@@ -9,6 +9,7 @@ from quantify.utilities._tests_helpers import get_test_data_dir
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
+TUID_1D_ALLXY = "20210331-133734-718-aa9c83"
 # TUID_2D_2PLOTS = "20210126-162726-170-de4f78"
 TUID_2D_2PLOTS = "20210227-172939-723-53d82c"
 TUID_2D_CYCLIC = "20210227-172939-723-53d82c"
@@ -242,6 +243,16 @@ def test_basic1d_analysis(caplog):
 
     for log_msg, rec in zip(log_msgs, caplog.records):
         assert log_msg in str(rec.msg)
+
+
+def test_basic1d_analysis_plot_repeated_pnts(caplog):
+    dh.set_datadir(get_test_data_dir())
+    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY)
+
+    # test that the duplicated setpoints measured are plotted
+    assert len(a_obj.axs_mpl["Line plot x0-y0"].lines[0].get_data()[0]) == len(
+        a_obj.dataset_raw.x0
+    )
 
 
 def test_basic2d_analysis():

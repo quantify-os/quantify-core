@@ -157,19 +157,13 @@ Software Averaging: T1 Experiment
 ----------------------------------
 
 In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability.
-For this purpose, the :class:`~quantify.measurement.MeasurementControl` provides the `soft_avg` parameter.
+For this purpose, the :meth:`~quantify.measurement.MeasurementControl.run` provides the `soft_avg` argument.
 If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
 
 In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
 The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
 
 Note that in this example MC is still running in Batched mode.
-
-
-.. jupyter-execute::
-
-    MC.soft_avg(1)
-
 
 .. jupyter-execute::
 
@@ -203,15 +197,14 @@ We will then sweep through 0 to 300ms, getting our data from the mock Qubit. Let
     MC.settables(time_par)
     MC.setpoints(np.linspace(0.0, 300.0e-6, 300))
     MC.gettables(MockQubit())
-    MC.run('noisy')
+    MC.run('noisy')  # by default `.run` uses `soft_avg=1`
     plotmon.main_QtPlot
 
-Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` parameter of the :class:`~quantify.measurement.MeasurementControl` to 100, averaging the results and hopefully filtering out the noise.
+Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` argument of the :meth:`~quantify.measurement.MeasurementControl.run` to 100, averaging the results and hopefully filtering out the noise.
 
 .. jupyter-execute::
 
-    MC.soft_avg(100)
-    dset = MC.run('averaged')
+    dset = MC.run('averaged', soft_avg=100)
     plotmon.main_QtPlot
 
 Success! We now have a smooth decay curve based on the characteristics of our qubit. All that remains is to run a fit against the expected values and we can solve for T1.
@@ -243,7 +236,7 @@ When the :class:`~quantify.measurement.MeasurementControl` is interrupted, it wi
 
 .. warning::
 
-    In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times ``ctrl`` + ``c``). Mind than performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
+    In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times ``ctrl`` + ``c``). Mind that performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
 
 .. jupyter-execute::

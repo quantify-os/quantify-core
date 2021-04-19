@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing the pyqtgraph-based remote plotting monitor manager.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing the pyqtgraph-based remote plotting monitor manager."""
 from multiprocessing import Queue
 from collections.abc import Iterable
 from collections import deque, OrderedDict
@@ -538,9 +536,9 @@ class RemotePlotmon:
                 # exists to force reset the x- and y-axis scale
                 new_sc = TransformState(0, 1, True)
 
-                x = dset["x0"].values[~np.isnan(dset)["y0"]]
-                y = dset["x1"].values[~np.isnan(dset)["y0"]]
-                z = dset[yi].values[~np.isnan(dset)["y0"]]
+                x = dset["x0"].values[~np.isnan(dset)["y0"].data]
+                y = dset["x1"].values[~np.isnan(dset)["y0"].data]
+                z = dset[yi].values[~np.isnan(dset)["y0"].data]
                 # interpolation needs to be meaningful
                 if len(z) < 8:
                     break

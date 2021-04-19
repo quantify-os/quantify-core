@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing spectroscopy analysis.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing spectroscopy analysis."""
 import numpy as np
 import matplotlib.pyplot as plt
 from uncertainties import ufloat
@@ -47,25 +45,19 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.fit_res.update({"hanger_func_complex_SI": fit_res})
 
         fpars = fit_res.params
-        self.quantities_of_interest["Qi"] = ufloat(
-            fpars["Qi"].value, fpars["Qi"].stderr
-        )
-        self.quantities_of_interest["Qe"] = ufloat(
-            fpars["Qe"].value, fpars["Qe"].stderr
-        )
-        self.quantities_of_interest["Ql"] = ufloat(
-            fpars["Ql"].value, fpars["Ql"].stderr
-        )
-        self.quantities_of_interest["Qc"] = ufloat(
-            fpars["Qc"].value, fpars["Qc"].stderr
-        )
-        self.quantities_of_interest["fr"] = ufloat(
-            fpars["fr"].value, fpars["fr"].stderr
-        )
+
+        for parameter in ["Qi", "Qe", "Ql", "Qc", "fr"]:
+            self.quantities_of_interest[parameter] = ufloat(
+                fpars[parameter].value, fpars[parameter].stderr
+            )
 
         text_msg = "Summary\n"
-        text_msg += format_value_string(r"$Q_I$", fit_res.params["Qi"], end_char="\n")
-        text_msg += format_value_string(r"$Q_C$", fit_res.params["Qc"], end_char="\n")
+        text_msg += format_value_string(
+            r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
+        )
+        text_msg += format_value_string(
+            r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
+        )
         text_msg += format_value_string(r"$f_{res}$", fit_res.params["fr"], unit="Hz")
         self.quantities_of_interest["fit_msg"] = text_msg
 

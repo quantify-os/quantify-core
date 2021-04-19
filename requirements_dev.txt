@@ -6,7 +6,6 @@ wheel==0.33.6
 watchdog==0.9.0
 coverage
 sphinx>=2 # jupyter_sphinx requires sphinx>=2
-nbsphinx
 sphinx-rtd-theme==0.5.0rc2
 sphinxcontrib-blockdiag
 jupyter_sphinx>=0.3.2
@@ -23,6 +22,8 @@ pygments==2.6.1
 black
 pylint
 pre-commit
+scanpydoc
+docutils<0.17 # pinned due to issue #175
 
 # quantify-core only
 
