@@ -161,28 +161,28 @@ def hanger_func_complex_SI(
     return S21
 
 
-def Rabi_oscilliation(
+def cos_func(
     t: float,
-    omega: float,
-    A: float,
+    frequency: float,
+    amplitude: float,
     offset: float,
-    phi: float = 0,
+    phase: float = 0,
 ) -> float:
     """
-    The sinusoidal function for a qubit Rabi oscillation (starting at 0 when phi = 0).
+    An oscillating cosine function.
 
     Parameters
     ----------
     t:
-        Rabi pulse length
-    omega:
-        Rabi frequency
-    A:
-        Amplitude of output signal oscillation
+        Time / s
+    frequncy:
+        Rabi frequency / Hz
+    amplitude:
+        Amplitude of the oscillation
     offset:
         Output signal vertical offset
-    phi:
-        Phase offset
+    phase:
+        Phase offset / rad
 
     Returns
     -------
@@ -191,10 +191,10 @@ def Rabi_oscilliation(
 
     .. math::
 
-        y = -A\\cos(\\Omega t + \\phi) + \\mathrm{offset}
+        y = A\\cos(2\\pi ft + \\phi) + c
     """
 
-    return -A * np.cos(omega * t + phi) + offset
+    return amplitude * np.cos(2 * np.pi * frequency * t + phase) + offset
 
 
 def exp_decay_func(
