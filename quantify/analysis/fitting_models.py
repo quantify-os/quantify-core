@@ -126,7 +126,8 @@ def hanger_func_complex_SI(
         complex valued transmission
 
 
-    See eq. S4 from Bruno et al. (2015) `ArXiv:1502.04082 <https://arxiv.org/abs/1502.04082>`_.
+    See eq. S4 from Bruno et al. (2015)
+    `ArXiv:1502.04082 <https://arxiv.org/abs/1502.04082>`_.
 
     .. math::
 
@@ -134,7 +135,8 @@ def hanger_func_complex_SI(
         \left(1- \frac{\frac{Q_l}{|Q_e|}e^{i\theta} }{1+2iQ_l \frac{f-f_r}{f_r}} \right)
         e^{i (\phi_v f + \phi_0)}
 
-    The loaded and extrinsic quality factors are related to the internal and coupled Q according to:
+    The loaded and extrinsic quality factors are related to the internal and coupled Q
+    according to:
 
     .. math::
 
@@ -157,6 +159,41 @@ def hanger_func_complex_SI(
     S21 = A * slope_corr * hanger_contribution * propagation_delay_corr
 
     return S21
+
+
+def exp_decay_func(
+    t: float,
+    tau: float,
+    amplitude: float,
+    offset: float,
+    n_factor: float,
+) -> float:
+    """
+    This is a general exponential decay function.
+
+    Parameters
+    ----------
+    t:
+        time
+    tau:
+        decay time
+    amplitude:
+        The asymptote of the exponential decay, the value at t=infty
+    offset:
+        The amplitude or starting value of the exponential decay
+    n_factor:
+        exponential decay factor
+
+    Returns
+    -------
+    :
+        Output of exponential function as a float
+
+    .. math::
+
+    y = \\mathrm{amplitude} * \\exp(-(t/\\tau)^n) + \\mathrm{offset}
+    """
+    return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
 
 
 class ResonatorModel(lmfit.model.Model):
@@ -224,9 +261,59 @@ class ResonatorModel(lmfit.model.Model):
     guess.__doc__ = get_guess_common_doc()
 
 
-# Guesses the phase velocity based on the median of all the differences between
-# consecutive phases
+class ExpDecayModel(lmfit.model.Model):
+    """
+    Model for an exponential decay, such as a qubit T1 measurement.
+    """  # Avoid including Model docstring
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+    # pylint: disable=too-few-public-methods
+
+    __doc__ = "T1 model\n\n" + get_model_common_doc()
+
+    def __init__(self, *args, **kwargs):
+        """"""  # Avoid including Model.__init__ docstring
+        # pass in the defining equation so the user doesn't have to later.
+
+        super().__init__(exp_decay_func, *args, **kwargs)
+        self.set_param_hint("tau", min=0)  # Enforce T1 is positive
+
+        self.set_param_hint("amplitude", vary=True)
+        self.set_param_hint("offset", vary=True)
+        self.set_param_hint("n_factor", expr="1", vary=False)
+
+    def guess(self, data, **kwargs):
+        """
+        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
+        """
+
+        params = self.make_params()
+
+        if kwargs.get("delay", None) is None:
+            return None
+
+        delay = kwargs["delay"]
+
+        # To guess the upper amplitude and offset,
+        # use the first and last values of the data
+        self.set_param_hint("offset", value=data[-1])
+        self.set_param_hint("amplitude", value=data[0] - data[-1])
+
+        # The guess for tau is somewhere in the middle of the time range
+        tau = np.median(delay)
+
+        self.set_param_hint("tau", value=tau, min=0)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
+
+
 def phase_guess(S21, freq):
+    """
+    Guesses the phase velocity based on the median of all the differences between
+    consecutive phases
+    """
     phase = np.angle(S21)
 
     med_diff = np.median(np.diff(phase))
