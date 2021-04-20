@@ -393,13 +393,13 @@ The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` us
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
-Analysis
-========
+Analysis framework
+==================
 
 To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
 
 The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
-The order of these steps is defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an Enumerate (:class:`~quantify.analysis.base_analysis.AnalysisSteps`) and the different steps are implemented as methods of the analysis class.
+The order of these steps is defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an `Enumerate <:class:Enum>`_ (:class:`~quantify.analysis.base_analysis.AnalysisSteps`) and the different steps are implemented as methods of the analysis class.
 An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to that analysis.
 
 The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures (take a look at the source code in the API reference).
