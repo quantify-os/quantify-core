@@ -74,9 +74,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
     def create_figures(self):
         """
-        Plots the measured and fitted transmission :math:`S_{21}` as the I and Q compoent
-        vs frequency, the magnitude and phase vs frequency, and on the complex I,Q
-        plane.
+        Plots the measured and fitted transmission :math:`S_{21}` as the I and Q
+        component vs frequency, the magnitude and phase vs frequency,
+        and on the complex I,Q plane.
         """
         self.create_fig_s21_real_imag()
         self.create_fig_s21_magn_phase()
@@ -116,7 +116,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
 
     def create_fig_s21_magn_phase(self):
@@ -127,7 +128,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Magn"] = axs[0]
         self.axs_mpl[fig_id + "_Phase"] = axs[1]
 
-        # Add a textbox with the fit_message
+        # Add a text box with the fit_message
         qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
 
         axs[0].plot(self.dataset["x0"], np.abs(self.dataset.S21), marker=".")
@@ -155,7 +156,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
 
     def create_fig_s21_complex(self):
@@ -165,7 +167,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id] = ax
 
-        # Add a textbox with the fit_message
+        # Add a text box with the fit_message
         qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
         ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
@@ -180,5 +182,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset["S21"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )

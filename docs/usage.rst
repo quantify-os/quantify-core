@@ -387,7 +387,7 @@ This function reshapes the data and associates dimensions to the dataset [which 
 
 
 Snapshot
------------------
+--------
 
 The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` used in this experiment. This information is automatically collected for all Instruments in use.
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.

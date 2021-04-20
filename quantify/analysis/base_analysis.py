@@ -472,8 +472,8 @@ class Basic1DAnalysis(BaseAnalysis):
                 adjust_axeslabels_SI(ax)
 
                 fig.suptitle(
-                    f"x0-{yi} {self.dataset_raw.attrs['name']}"
-                    f"\ntuid: {self.dataset_raw.attrs['tuid']}"
+                    f"x0-{yi} {self.dataset_raw.attrs['name']}\n"
+                    f"tuid: {self.dataset_raw.attrs['tuid']}"
                 )
 
                 # add the figure and axis to the dicts for saving
@@ -505,7 +505,8 @@ class Basic2DAnalysis(BaseAnalysis):
             qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\n"
+                f"tuid: {self.dataset_raw.attrs['tuid']}"
             )
 
             # add the figure and axis to the dicts for saving
@@ -541,7 +542,8 @@ class Basic2DAnalysis(BaseAnalysis):
             adjust_axeslabels_SI(ax)
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\n"
+                f"tuid: {self.dataset_raw.attrs['tuid']}"
             )
 
             # add the figure and axis to the dicts for saving
