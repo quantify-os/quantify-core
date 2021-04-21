@@ -19,9 +19,6 @@ ba.settings["mpl_fig_formats"] = []
 
 
 class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
-    def __init__(self, **kw):
-        super().__init__(**kw)
-
     def run(self):
         self.var = False
         self.execute_analysis_steps()
@@ -37,9 +34,6 @@ class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
 
 
 class DummyAnalysisSubclassArgs(ba.Basic1DAnalysis):
-    def __init__(self, **kw):
-        super().__init__(**kw)
-
     def run(self, var=None):
         # pylint: disable=arguments-differ
         if var:
@@ -56,11 +50,11 @@ def test_run_partial(caplog):
 
     log_msgs = [
         "Executing",
-        "execution step 0: <bound method BaseAnalysis.extract_data of",
-        "execution step 1: <bound method BaseAnalysis.process_data of",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
     ]
 
-    for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
+    for log_msg, rec in zip(log_msgs, caplog.records):
         assert log_msg in str(rec.msg)
 
 
@@ -68,46 +62,36 @@ def test_flow_skip_step_continue_manually(caplog):
 
     dh.set_datadir(get_test_data_dir())
     # test both string or Enum member specification of the analysis steps
-    for step_stop, step_from in zip(
-        [
-            "run_fitting",
-            DummyAnalysisSubclassRaisesA.analysis_steps.STEP_2_RUN_FITTING,
-        ],
-        [
-            "create_figures",
-            DummyAnalysisSubclassRaisesA.analysis_steps.STEP_4_CREATE_FIGURES,
-        ],
-    ):
-        with caplog.at_level(logging.INFO):
-            a_obj = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
-                interrupt_before=step_stop
-            )
+    with caplog.at_level(logging.INFO):
+        a_obj = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
+            interrupt_before="run_fitting"
+        )
 
-        log_msgs = [
-            "Executing",
-            "execution step 0: <bound method BaseAnalysis.extract_data of",
-            "execution step 1: <bound method BaseAnalysis.process_data of",
-        ]
+    log_msgs = [
+        "Executing",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
+    ]
 
-        for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
-            assert log_msg in str(rec.msg)
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
 
-        a_obj.run_from(step=step_from)
+    a_obj.run_from(step="create_figures")
 
-        log_msgs = [
-            "Executing",
-            "execution step 0: <bound method BaseAnalysis.extract_data of",
-            "execution step 1: <bound method BaseAnalysis.process_data of",
-            # New steps:
-            "execution step 4: <bound method BaseAnalysis.create_figures of",
-            "execution step 5: <bound method BaseAnalysis.adjust_figures of",
-            "execution step 6: <bound method BaseAnalysis.save_figures_mpl of",
-            "execution step 7: <bound method BaseAnalysis.save_quantities_of_interest of",
-            "execution step 8: <bound method BaseAnalysis.save_processed_dataset of",
-        ]
+    log_msgs = [
+        "Executing",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
+        # New steps:
+        "<bound method BaseAnalysis.create_figures of",
+        "<bound method BaseAnalysis.adjust_figures of",
+        "<bound method BaseAnalysis.save_figures_mpl of",
+        "<bound method BaseAnalysis.save_quantities_of_interest of",
+        "<bound method BaseAnalysis.save_processed_dataset of",
+    ]
 
-        for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
-            assert log_msg in str(rec.msg)
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
 
 
 def test_pass_options():
@@ -142,15 +126,15 @@ def test_flow_ylim_all(caplog):
 
     log_msgs = [
         "Executing",
-        "execution step 0: <bound method BaseAnalysis.extract_data of",
-        "execution step 1: <bound method BaseAnalysis.process_data of",
-        "execution step 2: <bound method BaseAnalysis.run_fitting of",
-        "execution step 3: <bound method BaseAnalysis.analyze_fit_results of",
-        "execution step 4: <bound method BaseAnalysis.create_figures of",
-        "execution step 5: <bound method BaseAnalysis.adjust_figures of",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
+        "<bound method BaseAnalysis.run_fitting of",
+        "<bound method BaseAnalysis.analyze_fit_results of",
+        "<bound method BaseAnalysis.create_figures of",
+        "<bound method BaseAnalysis.adjust_figures of",
     ]
 
-    for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
+    for log_msg, rec in zip(log_msgs, caplog.records):
         assert log_msg in str(rec.msg)
 
 
@@ -223,17 +207,17 @@ def test_basic1d_analysis(caplog):
 
     log_msgs = [
         "Executing",
-        "execution step 0: <bound method BaseAnalysis.extract_data of",
-        "execution step 1: <bound method BaseAnalysis.process_data of",
-        "execution step 2: <bound method BaseAnalysis.run_fitting of",
-        "execution step 3: <bound method BaseAnalysis.analyze_fit_results of",
-        "execution step 4: <bound method BaseAnalysis.create_figures of",
-        "execution step 5: <bound method BaseAnalysis.adjust_figures of",
-        "execution step 6: <bound method BaseAnalysis.save_figures_mpl of",
-        "execution step 7: <bound method BaseAnalysis.save_quantities_of_interest of",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
+        "<bound method BaseAnalysis.run_fitting of",
+        "<bound method BaseAnalysis.analyze_fit_results of",
+        "<bound method BaseAnalysis.create_figures of",
+        "<bound method BaseAnalysis.adjust_figures of",
+        "<bound method BaseAnalysis.save_figures_mpl of",
+        "<bound method BaseAnalysis.save_quantities_of_interest of",
     ]
 
-    for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
+    for log_msg, rec in zip(log_msgs, caplog.records):
         assert log_msg in str(rec.msg)
 
 
