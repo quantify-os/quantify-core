@@ -60,45 +60,54 @@ def test_run_partial(caplog):
         "execution step 1: <bound method BaseAnalysis.process_data of",
     ]
 
-    for log_msg, rec in zip(log_msgs, caplog.records):
+    for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
         assert log_msg in str(rec.msg)
 
 
 def test_flow_skip_step_continue_manually(caplog):
 
     dh.set_datadir(get_test_data_dir())
-    with caplog.at_level(logging.INFO):
-        a_obj = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
-            interrupt_before=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_2_RUN_FITTING
-        )
+    # test both string or Enum member specification of the analysis steps
+    for step_stop, step_from in zip(
+        [
+            "run_fitting",
+            DummyAnalysisSubclassRaisesA.analysis_steps.STEP_2_RUN_FITTING,
+        ],
+        [
+            "create_figures",
+            DummyAnalysisSubclassRaisesA.analysis_steps.STEP_4_CREATE_FIGURES,
+        ],
+    ):
+        with caplog.at_level(logging.INFO):
+            a_obj = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
+                interrupt_before=step_stop
+            )
 
-    log_msgs = [
-        "Executing",
-        "execution step 0: <bound method BaseAnalysis.extract_data of",
-        "execution step 1: <bound method BaseAnalysis.process_data of",
-    ]
+        log_msgs = [
+            "Executing",
+            "execution step 0: <bound method BaseAnalysis.extract_data of",
+            "execution step 1: <bound method BaseAnalysis.process_data of",
+        ]
 
-    for log_msg, rec in zip(log_msgs, caplog.records):
-        assert log_msg in str(rec.msg)
+        for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
+            assert log_msg in str(rec.msg)
 
-    a_obj.run_from(
-        step=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_4_CREATE_FIGURES
-    )
+        a_obj.run_from(step=step_from)
 
-    log_msgs = [
-        "Executing",
-        "execution step 0: <bound method BaseAnalysis.extract_data of",
-        "execution step 1: <bound method BaseAnalysis.process_data of",
-        # New steps:
-        "execution step 4: <bound method BaseAnalysis.create_figures of",
-        "execution step 5: <bound method BaseAnalysis.adjust_figures of",
-        "execution step 6: <bound method BaseAnalysis.save_figures_mpl of",
-        "execution step 7: <bound method BaseAnalysis.save_quantities_of_interest of",
-        "execution step 8: <bound method BaseAnalysis.save_processed_dataset of",
-    ]
+        log_msgs = [
+            "Executing",
+            "execution step 0: <bound method BaseAnalysis.extract_data of",
+            "execution step 1: <bound method BaseAnalysis.process_data of",
+            # New steps:
+            "execution step 4: <bound method BaseAnalysis.create_figures of",
+            "execution step 5: <bound method BaseAnalysis.adjust_figures of",
+            "execution step 6: <bound method BaseAnalysis.save_figures_mpl of",
+            "execution step 7: <bound method BaseAnalysis.save_quantities_of_interest of",
+            "execution step 8: <bound method BaseAnalysis.save_processed_dataset of",
+        ]
 
-    for log_msg, rec in zip(log_msgs, caplog.records):
-        assert log_msg in str(rec.msg)
+        for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
+            assert log_msg in str(rec.msg)
 
 
 def test_pass_options():
@@ -114,7 +123,7 @@ def test_flow_xlim_all():
     step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
     a_obj.adjust_xlim(*xlim)
-    a_obj.run_after(step)
+    a_obj.run_from(step)
 
     for ax in a_obj.axs_mpl.values():
         assert ax.get_xlim() == xlim
@@ -126,7 +135,7 @@ def test_flow_ylim_all(caplog):
     step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
     a_obj.adjust_ylim(*ylim)
-    a_obj.run_after(step)
+    a_obj.run_from(step)
 
     for ax in a_obj.axs_mpl.values():
         assert ax.get_ylim() == ylim
@@ -141,7 +150,7 @@ def test_flow_ylim_all(caplog):
         "execution step 5: <bound method BaseAnalysis.adjust_figures of",
     ]
 
-    for log_msg, rec in zip(log_msgs, caplog.records):
+    for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
         assert log_msg in str(rec.msg)
 
 
@@ -151,7 +160,7 @@ def test_flow_clim_all():
     step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS).run_until(interrupt_before=step)
     a_obj.adjust_clim(*clim)
-    a_obj.run_after(step)
+    a_obj.run_from(step)
 
     ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
     assert ax.collections[0].get_clim() == clim
@@ -165,7 +174,7 @@ def test_flow_clim_specific():
     step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS).run_until(interrupt_before=step)
     a_obj.adjust_clim(*clim, ax_ids=["Heatmap x0x1-y1"])
-    a_obj.run_after(step)
+    a_obj.run_from(step)
 
     ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
     assert ax.collections[0].get_clim() == clim
@@ -224,7 +233,7 @@ def test_basic1d_analysis(caplog):
         "execution step 7: <bound method BaseAnalysis.save_quantities_of_interest of",
     ]
 
-    for log_msg, rec in zip(log_msgs, caplog.records):
+    for log_msg, rec in zip(log_msgs[-len(log_msgs) :], caplog.records):
         assert log_msg in str(rec.msg)
 
 

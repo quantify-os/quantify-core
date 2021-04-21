@@ -111,21 +111,25 @@ class BaseAnalysis(ABC):
 
         .. tip::
 
-            For scripting/development/debugging purposes the `interrupt_before` argument
+            For scripting/development/debugging purposes the :meth`~BaseAnalysis.run_until`
             can be used for a partial execution of the analysis. E.g.
 
             .. jupyter-execute::
 
                 from quantify.analysis.base_analysis import Basic1DAnalysis
 
-                a_obj = Basic1DAnalysis(label="my experiment").run(interrupt_before="extract_data")
+                a_obj = Basic1DAnalysis(label="my experiment").run_until(
+                    interrupt_before="extract_data"
+                )
 
             **OR** if you do not recall the exact method name and you are able to use
             auto-complete:
 
             .. jupyter-execute::
 
-                a_obj = Basic1DAnalysis(label="my experiment").run(interrupt_before=Basic1DAnalysis.analysis_steps.STEP_00_EXTRACT_DATA)
+                a_obj = Basic1DAnalysis(label="my experiment").run_until(
+                    interrupt_before=Basic1DAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
+                )
 
         Parameters
         ----------
@@ -193,8 +197,8 @@ class BaseAnalysis(ABC):
 
     def run(self) -> BaseAnalysis:
         """
-        This function is at the core of all analysis. It calls `.execute_analysis_steps`
-        which executes all the methods defined in the `.analysis_steps`.
+        This function is at the core of all analysis. It calls :meth:`~BaseAnalysis.execute_analysis_steps`
+        which executes all the methods defined in the :attr:`~BaseAnalysis.analysis_steps`.
 
         This function is typically called right after instantiating an analysis class.
 
@@ -252,13 +256,14 @@ class BaseAnalysis(ABC):
 
     def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
         """
-        Executes the analysis partially by calling `.run()` and stopping before the
+        Executes the analysis partially by calling :meth:`~BaseAnalysis.run` and stopping before the
         specified step.
 
         .. note::
 
-            Any code inside `.run()` is still executed. Only the
-            `.execute_analysis_steps()` (which is called by `.run()`) is affected.
+            Any code inside :meth:`~BaseAnalysis.run` is still executed. Only the
+            :meth:`~BaseAnalysis.execute_analysis_steps` [which is called by
+            :meth:`~BaseAnalysis.run`] is affected.
 
         Parameters
         ----------
@@ -267,7 +272,7 @@ class BaseAnalysis(ABC):
             the analysis step can be specified either as a string or as the member of
             the `.analysis_steps` enumerate member.
         **kwargs:
-            Any other keyword arguments to be passed to `.run()`
+            Any other keyword arguments to be passed to :meth:`~BaseAnalysis.run`
         """
 
         # Used by `execute_analysis_steps` to stop
@@ -632,22 +637,26 @@ def analysis_steps_to_str(
 
 def _get_modified_flow(
     flow_functions: tuple,
-    step_start: AnalysisSteps = None,
+    step_start: Union[str, AnalysisSteps] = None,
     step_start_inclusive: bool = True,
-    step_stop: AnalysisSteps = None,
+    step_stop: Union[str, AnalysisSteps] = None,
     step_stop_inclusive: bool = True,
 ):
     step_names = [meth.__name__ for meth in flow_functions]
 
     if step_start:
-        start_idx = step_names.index(step_start.value)
+        if not issubclass(type(step_start), str):
+            step_start = step_start.value
+        start_idx = step_names.index(step_start)
         if not step_start_inclusive:
             start_idx += 1
     else:
         start_idx = 0
 
     if step_stop:
-        stop_idx = step_names.index(step_stop.value)
+        if not issubclass(type(step_stop), str):
+            step_stop = step_stop.value
+        stop_idx = step_names.index(step_stop)
         if step_stop_inclusive:
             stop_idx += 1
     else:
