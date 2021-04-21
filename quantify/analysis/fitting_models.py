@@ -173,10 +173,10 @@ def cos_func(
 
     Parameters
     ----------
-    t:
-        Time / s
+    x:
+        The independent variable (time, for example)
     frequncy:
-        Rabi frequency / Hz
+        A generalised frequency (in units of inverse x)
     amplitude:
         Amplitude of the oscillation
     offset:
@@ -194,7 +194,7 @@ def cos_func(
         y = A\\cos(2\\pi ft + \\phi) + c
     """
 
-    return amplitude * np.cos(2 * np.pi * frequency * t + phase) + offset
+    return amplitude * np.cos(2 * np.pi * frequency * x + phase) + offset
 
 
 def exp_decay_func(
@@ -274,7 +274,7 @@ class ResonatorModel(lmfit.model.Model):
             fr_guess / min_delta_f
         )  # assume data actually samples the resonance reasonably
         Q_guess = np.sqrt(Q_min * Q_max)  # geometric mean, why not?
-        (phi_0_guess, phi_v_guess) = phase_guess(
+        (phi_0_guess, phi_v_guess) = resonator_phase_guess(
             data, f
         )  # Come up with a guess for phase velocity
 
@@ -346,7 +346,9 @@ class ExpDecayModel(lmfit.model.Model):
 
 
 class RabiModel(lmfit.model.Model):
-    """"""  # Avoid including Model docstring
+    """
+    Model for a Rabi oscillation as a function of mw drive amplitude
+    """  # Avoid including Model docstring
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
@@ -356,31 +358,40 @@ class RabiModel(lmfit.model.Model):
     def __init__(self, *args, **kwargs):
         """"""  # Avoid including Model.__init__ docstring
         # pass in the defining equation so the user doesn't have to later.
-        super().__init__(Rabi_oscilliation, *args, **kwargs)
-        self.set_param_hint("omega", min=0)  # Enforce Rabi frequency is positive
+        super().__init__(cos_func, *args, **kwargs)
 
-        # Pi time can be derived from Rabi frequency
-        self.set_param_hint("t_pi", expr="3.1426/omega", vary=False)
+        # Enforce oscillation frequency is positive
+        self.set_param_hint("frequency", min=0)
+        # Enforce amplitude is positive
+        self.set_param_hint("amplitude", min=0)
+
+        # Fix the phase at 0 so that the ouput is 0 when x=0
+        self.set_param_hint("phase", expr="0", vary=False)
+
+        # Pi-pulse amplitude can be derived from the oscillation frequency
+        self.set_param_hint("amp180", expr="1/frequency", vary=False)
 
     def guess(self, data, **kwargs):
         """
         For details on input parameters see :meth:`~lmfit.model.Model.guess`.
         """
+        amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
+        offs_guess = np.mean(data)
 
-        params = self.make_params()
+        freq_guess, ph_guess = fft_freq_phase_guess(data, x)
 
-        self.set_param_hint("omega", value=500e5, min=0)
-        self.set_param_hint("A", value=(max(data) - min(data)) / 2)
-        self.set_param_hint("offset", value=np.median(data) - 40e-6)
+        self.set_param_hint("frequency", value=freq_guess, min=0)
+        self.set_param_hint("amplitude", value=amp_guess, min=0)
+        self.set_param_hint("offset", value=offs_guess, min=0)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
 
-def phase_guess(S21, freq):
+def resonator_phase_guess(S21, freq):
     """
-    Guesses the phase velocity based on the median of all the differences between
-    consecutive phases
+    Guesses the phase velocity in resonator spectroscopy,
+    based on the median of all the differences between consecutive phases
     """
     phase = np.angle(S21)
 
@@ -392,3 +403,25 @@ def phase_guess(S21, freq):
     phi_0 = phase[0] - phi_v * freq[0]
 
     return phi_0, phi_v
+
+
+def fft_freq_phase_guess(data, t):
+    """
+    Guess for a cosine fit using FFT, only works for evenly spaced points
+    """
+
+    # Only first half of array is used, because the second half contains the
+    # negative frequecy components, and we want a positive frequency.
+    power = np.fft.fft(data)[: len(data) // 2]
+    freq = np.fft.fftfreq(len(data), t[1] - t[0])[: len(power)]
+    power[0] = 0  # Removes DC component from fourier transform
+
+    # Use absolute value of complex valued spectrum
+    abs_power = np.abs(power)
+    freq_guess = abs(freq[abs_power == max(abs_power)][0])
+    ph_guess = 2 * np.pi - (2 * np.pi * t[data == max(data)] * freq_guess)[0]
+    # the condition data == max(data) can have several solutions
+    #               (for example when discretization is visible)
+    # to prevent errors we pick the first solution
+
+    return freq_guess, ph_guess
