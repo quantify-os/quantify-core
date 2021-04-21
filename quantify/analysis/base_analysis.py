@@ -28,7 +28,6 @@ from quantify.data.handling import (
     load_dataset,
     get_latest_tuid,
     get_datadir,
-    gen_tuid,
     DATASET_NAME,
     write_dataset,
     create_exp_folder,
@@ -169,7 +168,8 @@ class BaseAnalysis(ABC):
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. Will create a directory if it does not exist yet.
+        Analysis dir based on the tuid. Will create a directory if it does not exist
+        yet.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
@@ -265,16 +265,12 @@ class BaseAnalysis(ABC):
         datafile.
         """
         if self.dataset_raw is not None:
-            if "tuid" in self.dataset_raw.attrs.keys():
-                self.tuid = TUID(self.dataset_raw.attrs["tuid"])
-            else:
-                # if the dataset does not contain a TUID, a tuid is generated based
-                # on the time this analysis is executed.
-                self.tuid = gen_tuid()
+            # pylint: disable=fixme
+            # FIXME: to be replaced by a validate_dateset see #187
+            if "tuid" not in self.dataset_raw.attrs.keys():
+                raise AttributeError('Invalid dataset, missing the "tuid" attribute')
 
-                # this is the only exception where the dataset_raw is modified as
-                # many analyses require this attribute to be present.
-                self.dataset_raw.attrs["tuid"] = self.tuid
+            self.tuid = TUID(self.dataset_raw.attrs["tuid"])
 
             # an experiment container is required to store output of the analysis.
             # it is possible for this not to exist for a custom dataset as it can

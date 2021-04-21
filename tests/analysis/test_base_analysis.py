@@ -317,7 +317,8 @@ def test_display_figs():
     a_obj.display_figs_mpl()  # should display figures in the output
 
 
-def test_dataset_input_missing_tuid():
+def test_dataset_input_invalid():
+    # a dataset with missing tuid is an invalid dataset
 
     # Create a custom dataset
     x0 = np.linspace(0, 2 * np.pi, 31)
@@ -333,20 +334,10 @@ def test_dataset_input_missing_tuid():
     dset = dset.set_coords(["x0"])
     # no TUID attribute present
 
-    # test that analysis works correctly
-    a_obj = ba.Basic1DAnalysis(dataset_raw=dset)
-    assert a_obj.dataset_raw == dset
-
-    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
-    # assert a copy of the dataset was stored to disk.
-    assert "dataset.hdf5" in os.listdir(exp_dir)
-    # Figures where stored  to disk
-    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
-    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
-    assert "figs_mpl" in analysis_dir
-
-    # test that the right figures get created.
-    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
+    # the Attribute Error is wrapped in a RuntimeError by the analysis.
+    # this wrapping will be removed with issue #183
+    with pytest.raises(RuntimeError):
+        ba.Basic1DAnalysis(dataset_raw=dset)
 
 
 def test_dataset_input():
