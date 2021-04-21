@@ -162,7 +162,7 @@ def hanger_func_complex_SI(
 
 
 def cos_func(
-    t: float,
+    x: float,
     frequency: float,
     amplitude: float,
     offset: float,
@@ -365,11 +365,11 @@ class RabiModel(lmfit.model.Model):
         # Enforce amplitude is positive
         self.set_param_hint("amplitude", min=0)
 
-        # Fix the phase at 0 so that the ouput is 0 when x=0
-        self.set_param_hint("phase", expr="0", vary=False)
+        # Fix the phase at pi so that the ouput is at a minimum when x=0
+        self.set_param_hint("phase", expr="3.141592653589793", vary=False)
 
         # Pi-pulse amplitude can be derived from the oscillation frequency
-        self.set_param_hint("amp180", expr="1/frequency", vary=False)
+        self.set_param_hint("amp180", expr="1/(2*frequency)", vary=False)
 
     def guess(self, data, **kwargs):
         """

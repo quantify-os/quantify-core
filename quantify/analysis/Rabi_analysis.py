@@ -34,43 +34,37 @@ class RabiAnalysis(ba.BaseAnalysis):
 
         mod = fm.RabiModel()
 
-        Magnitude = np.array(self.dataset["Magnitude"])
-        x0 = np.array(self.dataset["x0"])
-        guess = mod.guess(Magnitude)
-        fit_res = mod.fit(Magnitude, params=guess, t=x0)
-
-        self.model = mod
+        magnitude = np.array(self.dataset["Magnitude"])
+        drive_amp = np.array(self.dataset["x0"])
+        guess = mod.guess(magnitude, drive_amp=drive_amp)
+        fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
 
         self.fit_res.update({"Rabi_oscillation": fit_res})
 
         fpars = fit_res.params
-        self.quantities_of_interest["omega"] = ufloat(
-            fpars["omega"].value, fpars["omega"].stderr
-        )
-        self.quantities_of_interest["t_pi"] = ufloat(
-            fpars["t_pi"].value, fpars["t_pi"].stderr
+        self.quantities_of_interest["Pi-pulse amp"] = ufloat(
+            fpars["amp180"].value, fpars["amp180"].stderr
         )
 
         text_msg = "Summary\n"
         text_msg += format_value_string(
-            r"$\Omega$", fit_res.params["omega"], unit="Hz", end_char="\n"
+            "Pi-pulse amplitude", fit_res.params["amp180"], unit="V", end_char="\n"
         )
         text_msg += format_value_string(
-            r"$t_\pi$", fit_res.params["t_pi"], unit="s", end_char="\n"
+            "Oscillation amplitude",
+            fit_res.params["amplitude"],
+            unit="V",
+            end_char="\n",
         )
         text_msg += format_value_string(
-            r"$A$", fit_res.params["A"], unit="V", end_char="\n"
+            "Offset", fit_res.params["offset"], unit="V", end_char="\n"
         )
-        text_msg += format_value_string(
-            r"$\mathrm{offset}$", fit_res.params["offset"], unit="V", end_char="\n"
-        )
-        text_msg += format_value_string(r"$\phi$", fit_res.params["phi"])
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        self.create_fig_Rabi_oscillation()
+        self.create_fig_rabi_oscillation()
 
-    def create_fig_Rabi_oscillation(self):
+    def create_fig_rabi_oscillation(self):
 
         fig_id = "Rabi_oscillation"
         fig, axs = plt.subplots()
@@ -80,16 +74,16 @@ class RabiAnalysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
 
-        self.dataset.Magnitude.plot(ax=axs, marker=".")
+        self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
 
         qpl.plot_fit(
             ax=axs,
             fit_res=self.fit_res["Rabi_oscillation"],
-            plot_init=True,
+            plot_init=False,
             range_casting="real",
         )
 
-        qpl.set_ylabel(axs, r"Magnitude", self.dataset["Magnitude"].units)
+        qpl.set_ylabel(axs, r"Output voltage", self.dataset["Magnitude"].units)
         qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
