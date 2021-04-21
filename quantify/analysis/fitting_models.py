@@ -375,10 +375,15 @@ class RabiModel(lmfit.model.Model):
         """
         For details on input parameters see :meth:`~lmfit.model.Model.guess`.
         """
+        if kwargs.get("drive_amp", None) is None:
+            return None
+
+        drive_amp = kwargs["drive_amp"]
+
         amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
         offs_guess = np.mean(data)
 
-        freq_guess, ph_guess = fft_freq_phase_guess(data, x)
+        freq_guess, ph_guess = fft_freq_phase_guess(data, drive_amp)
 
         self.set_param_hint("frequency", value=freq_guess, min=0)
         self.set_param_hint("amplitude", value=amp_guess, min=0)
