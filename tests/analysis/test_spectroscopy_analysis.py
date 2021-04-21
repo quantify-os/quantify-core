@@ -18,7 +18,9 @@ class TestResonatorSpectroscopyAnalysis:
         )
 
         cls.tuids = tuid_list
-        cls.a_objs = [sa.ResonatorSpectroscopyAnalysis(tuid=tuid) for tuid in cls.tuids]
+        cls.a_objs = [
+            sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in cls.tuids
+        ]
 
         cls.frs = [
             4482627786.933104,

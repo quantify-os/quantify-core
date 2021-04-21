@@ -7,10 +7,11 @@ import json
 from abc import ABC
 from collections import OrderedDict
 from copy import deepcopy
-from typing import List
+from typing import List, Union
 from enum import Enum
 from pathlib import Path
 import logging
+import inspect
 
 from IPython.display import display
 import numpy as np
@@ -103,7 +104,6 @@ class BaseAnalysis(ABC):
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_before: [str, AnalysisSteps] = None,
         settings_overwrite: dict = None,
     ):
         """
@@ -133,10 +133,6 @@ class BaseAnalysis(ABC):
             Will look for a dataset that contains "label" in the name.
         tuid:
             If specified, will look for the dataset with the matching tuid.
-        interrupt_before:
-            Stops `.run` before executing the specified analysis step. For convenience
-            the analysis step can be specified either as a string or the member of the
-            enumerate.
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
@@ -149,7 +145,6 @@ class BaseAnalysis(ABC):
 
         self.label = label
         self.tuid = tuid
-        self.interrupt_before = interrupt_before
 
         # Allows individual setting per analysis instance
         # with defaults from global settings
@@ -165,6 +160,8 @@ class BaseAnalysis(ABC):
         self.axs_mpl = OrderedDict()
         self.quantities_of_interest = OrderedDict()
         self.fit_res = OrderedDict()
+
+        self._interrupt_before = None
 
     """
     Defines the steps of the analysis specified as an Enum.
@@ -225,21 +222,24 @@ class BaseAnalysis(ABC):
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            step_stop=self.interrupt_before,
+            step_stop=self._interrupt_before,  # can be set by `.run_until`
             step_stop_inclusive=False,
         )
 
-        self.logger.info(f"Executing run_analysis of {self.name}")
+        # Always reset so that it only has an effect when set by `.run_until`
+        self._interrupt_before = None
+
+        self.logger.info(f"Executing `.run()` of {self.name}")
         for i, method in enumerate(flow_methods):
             self.logger.info(f"execution step {i}: {method}")
             method()
 
-    def continue_analysis_from(self, step: AnalysisSteps):
+    def run_from(self, step: Union[str, AnalysisSteps]):
         """
-        Runs the analysis starting from specified method.
+        Runs the analysis starting from the specified method.
 
-        The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_before`.
+        The methods are called in the same order as in :meth:`~run`.
+        Useful when running a partial analysis.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
@@ -250,21 +250,33 @@ class BaseAnalysis(ABC):
         for method in flow_methods:
             method()
 
-    def continue_analysis_after(self, step: AnalysisSteps):
+    def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
         """
-        Runs the analysis starting from specified method.
+        Executes the analysis partially by calling `.run()` and stopping before the
+        specified step.
 
-        The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_before`.
+        .. note::
+
+            Any code inside `.run()` is still executed. Only the
+            `.execute_analysis_steps()` (which is called by `.run()`) is affected.
+
+        Parameters
+        ----------
+        interrupt_before:
+            Stops the analysis before executing the specified step. For convenience
+            the analysis step can be specified either as a string or as the member of
+            the `.analysis_steps` enumerate member.
+        **kwargs:
+            Any other keyword arguments to be passed to `.run()`
         """
-        flow_methods = _get_modified_flow(
-            flow_functions=self.get_flow(),
-            step_start=step,
-            step_start_inclusive=False,  # self.step will not be executed
-        )
 
-        for method in flow_methods:
-            method()
+        # Used by `execute_analysis_steps` to stop
+        self._interrupt_before = interrupt_before
+
+        run_params = dict(inspect.signature(self.run).parameters)
+        run_params.update(kwargs)
+
+        return self.run(**run_params)
 
     def get_flow(self) -> tuple:
         """
