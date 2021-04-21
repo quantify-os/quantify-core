@@ -8,7 +8,7 @@ Unreleased
 Breaking changes
 ~~~~~~~~~~~~~~~~
 
-* Analysis steps execution refactored and added optional arguments recipe (#184,)
+* Analysis steps execution refactored and added optional arguments recipe (#184, !158)
     - Any analysis class now requires explicit execution of the steps with `.run()`.
     - One-liner still available `a_obj = MyAnalysisClass().run()`
 
@@ -17,7 +17,7 @@ Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Add uncertainties support to format_value_string (!151)
-* Define how to pass optional arguments for analysis subclasses (#184)
+* Define how to pass optional arguments for analysis subclasses (#184, !158)
 
 
 0.3.2 (2021-03-17)
