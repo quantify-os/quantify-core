@@ -82,16 +82,15 @@ class AnalysisSteps(Enum):
 
     # Variables must start with a letter but we want them have sorted names
     # for auto-complete
-    S00_EXTRACT_DATA = "extract_data"
-    S01_PROCESS_DATA = "process_data"
-    S02_PREPARE_FITTING = "prepare_fitting"
-    S03_RUN_FITTING = "run_fitting"
-    S04_ANALYZE_FIT_RESULTS = "analyze_fit_results"
-    S05_CREATE_FIGURES = "create_figures"
-    S06_ADJUST_FIGURES = "adjust_figures"
-    S07_SAVE_FIGURES = "save_figures"
-    S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
-    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    STEP_0_EXTRACT_DATA = "extract_data"
+    STEP_1_PROCESS_DATA = "process_data"
+    STEP_2_RUN_FITTING = "run_fitting"
+    STEP_3_ANALYZE_FIT_RESULTS = "analyze_fit_results"
+    STEP_4_CREATE_FIGURES = "create_figures"
+    STEP_5_ADJUST_FIGURES = "adjust_figures"
+    STEP_6_SAVE_FIGURES = "save_figures"
+    STEP_7_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
+    STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
@@ -104,12 +103,29 @@ class BaseAnalysis(ABC):
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_before: AnalysisSteps = None,
+        interrupt_before: [str, AnalysisSteps] = None,
         settings_overwrite: dict = None,
     ):
         """
         Initializes the variables used in the analysis and to which data is stored.
 
+        .. tip::
+
+            For scripting/development/debugging purposes the `interrupt_before` argument
+            can be used for a partial execution of the analysis. E.g.
+
+            .. jupyter-execute::
+
+                from quantify.analysis.base_analysis import Basic1DAnalysis
+
+                a_obj = Basic1DAnalysis(label="my experiment").run(interrupt_before="extract_data")
+
+            **OR** if you do not recall the exact method name and you are able to use
+            auto-complete:
+
+            .. jupyter-execute::
+
+                a_obj = Basic1DAnalysis(label="my experiment").run(interrupt_before=Basic1DAnalysis.analysis_steps.STEP_00_EXTRACT_DATA)
 
         Parameters
         ----------
@@ -118,7 +134,9 @@ class BaseAnalysis(ABC):
         tuid:
             If specified, will look for the dataset with the matching tuid.
         interrupt_before:
-            Stops `run_analysis` before executing the specified step.
+            Stops `.run` before executing the specified analysis step. For convenience
+            the analysis step can be specified either as a string or the member of the
+            enumerate.
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
@@ -148,7 +166,12 @@ class BaseAnalysis(ABC):
         self.quantities_of_interest = OrderedDict()
         self.fit_res = OrderedDict()
 
-        self.run_analysis()
+    """
+    Defines the steps of the analysis specified as an Enum.
+    Can be overloaded in a subclass in order to define a custom analysis flow.
+    See `~AnalysisSteps` for a template.
+    """
+    analysis_steps = AnalysisSteps
 
     @property
     def name(self):
@@ -171,11 +194,34 @@ class BaseAnalysis(ABC):
 
         return analysis_dir
 
-    def run_analysis(self):
+    def run(self) -> BaseAnalysis:
         """
-        This function is at the core of all analysis and defines the flow of methods to call.
+        This function is at the core of all analysis. It calls `.execute_analysis_steps`
+        which executes all the methods defined in the `.analysis_steps`.
 
-        This function is typically called at the end of __init__.
+        This function is typically called right after instantiating an analysis class.
+
+        .. include:: ./docstring_examples/quantify.analysis.base_analysis.BaseAnalysis.run_custum_analysis_args.rst.txt
+
+        Returns
+        -------
+        :
+            The instance of the analysis object so that `.run()` can be analysis object
+            can be initialized, run and assigned to a variable on a single line:, e.g.
+            :code:`a_obj = MyAnalysis().run()`.
+        """
+        # The following two lines must be included when when implementing a custom
+        # analysis that requires passing in some (optional) arguments.
+        self.execute_analysis_steps()
+        return self
+
+    def execute_analysis_steps(self):
+        """
+        Executes the methods corresponding to the analysis steps as defined by the
+        `.analysis_steps`.
+
+        Intended to be called by `.run` when creating a custom analysis that requires
+        passing analysis configuration arguments to `.run`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
@@ -186,18 +232,7 @@ class BaseAnalysis(ABC):
         self.logger.info(f"Executing run_analysis of {self.name}")
         for i, method in enumerate(flow_methods):
             self.logger.info(f"execution step {i}: {method}")
-            try:
-                method()
-            except Exception as e:
-                raise RuntimeError(
-                    "An exception occurred while executing "
-                    f"{method}.\n\n"  # point to the culprit
-                    "Use `interrupt_before=<analysis step>` to run a partial analysis,\n"
-                    "e.g., `interrupt_before=AnalysisSteps.S03_RUN_FITTING`. Note the steps are \n"
-                    "not specified as strings."
-                    "Method names:\n"
-                    f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
-                ) from e  # and raise the original exception
+            method()
 
     def continue_analysis_from(self, step: AnalysisSteps):
         """
@@ -231,15 +266,6 @@ class BaseAnalysis(ABC):
         for method in flow_methods:
             method()
 
-    @property
-    def analysis_steps(self) -> AnalysisSteps:
-        """
-        Returns an Enum subclass that defines the steps of the analysis.
-
-        Can be overloaded in a subclass in order to define a custom analysis flow.
-        """
-        return AnalysisSteps
-
     def get_flow(self) -> tuple:
         """
         Returns a tuple with the ordered methods to be called by run analysis.
@@ -268,9 +294,6 @@ class BaseAnalysis(ABC):
         This method can be used to process, e.g., reshape, filter etc. the data
         before starting the analysis. By default this method is empty (pass).
         """
-
-    def prepare_fitting(self):
-        pass
 
     def run_fitting(self):
         pass

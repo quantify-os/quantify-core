@@ -56,7 +56,8 @@ def test_flow_exception_in_step():
 def test_flow_interrupt(caplog):
     dh.set_datadir(get_test_data_dir())
     _ = DummyAnalysisSubclassRaisesA(
-        tuid=TUID_1D_1PLOT, interrupt_before=ba.AnalysisSteps.S03_RUN_FITTING
+        tuid=TUID_1D_1PLOT,
+        interrupt_before=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_3_RUN_FITTING,
     )
 
     log_msgs = [
@@ -75,8 +76,9 @@ def test_flow_skip_step_continue_manually(caplog):
     dh.set_datadir(get_test_data_dir())
     with caplog.at_level(logging.INFO):
         a_obj = DummyAnalysisSubclassRaisesA(
-            tuid=TUID_1D_1PLOT, interrupt_before=ba.AnalysisSteps.S03_RUN_FITTING
-        )
+            tuid=TUID_1D_1PLOT,
+            interrupt_before=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_3_RUN_FITTING,
+        ).run()
 
     log_msgs = [
         "Executing run_analysis of",
@@ -88,7 +90,9 @@ def test_flow_skip_step_continue_manually(caplog):
     for log_msg, rec in zip(log_msgs, caplog.records):
         assert log_msg in str(rec.msg)
 
-    a_obj.continue_analysis_from(step=ba.AnalysisSteps.S05_CREATE_FIGURES)
+    a_obj.continue_analysis_from(
+        step=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_5_CREATE_FIGURES
+    )
 
     log_msgs = [
         "Executing run_analysis of",
@@ -111,8 +115,8 @@ def test_pass_options():
     """How to change default arguments of the methods in the analysis flow."""
     dh.set_datadir(get_test_data_dir())
 
-    step = ba.AnalysisSteps.S03_RUN_FITTING
-    a_obj = DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT, interrupt_before=step)
+    step = DummyAnalysisSubclassArgs.analysis_steps.STEP_3_RUN_FITTING
+    a_obj = DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT, interrupt_before=step).run()
     a_obj.run_fitting(var=7)
     a_obj.continue_analysis_after(step=step)
 
@@ -122,11 +126,11 @@ def test_pass_options():
 def test_flow_xlim_all():
     dh.set_datadir(get_test_data_dir())
     xlim = (0.0, 4.0)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES
+    step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(
         tuid=TUID_1D_2PLOTS,
         interrupt_before=step,
-    )
+    ).run()
     a_obj.adjust_xlim(*xlim)
     a_obj.continue_analysis_after(step)
 
@@ -137,11 +141,11 @@ def test_flow_xlim_all():
 def test_flow_ylim_all(caplog):
     dh.set_datadir(get_test_data_dir())
     ylim = (0.0, 0.8)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES
+    step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(
         tuid=TUID_1D_2PLOTS,
         interrupt_before=step,
-    )
+    ).run()
     a_obj.adjust_ylim(*ylim)
     a_obj.continue_analysis_after(step)
 
@@ -166,8 +170,8 @@ def test_flow_ylim_all(caplog):
 def test_flow_clim_all():
     dh.set_datadir(get_test_data_dir())
     clim = (1.0, 2.0)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES
-    a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_before=step)
+    step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
+    a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_before=step).run()
     a_obj.adjust_clim(*clim)
     a_obj.continue_analysis_after(step)
 
@@ -180,8 +184,8 @@ def test_flow_clim_all():
 def test_flow_clim_specific():
     dh.set_datadir(get_test_data_dir())
     clim = (0.0, 180.0)
-    step = ba.AnalysisSteps.S07_SAVE_FIGURES
-    a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_before=step)
+    step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
+    a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS, interrupt_before=step).run()
     a_obj.adjust_clim(*clim, ax_ids=["Heatmap x0x1-y1"])
     a_obj.continue_analysis_after(step)
 
@@ -194,7 +198,9 @@ def test_basic1danalysis_settings_validation():
     tuid = TUID_1D_1PLOT
 
     with pytest.raises(ValidationError) as excinfo:
-        _ = ba.Basic1DAnalysis(tuid=tuid, settings_overwrite={"mpl_fig_formats": "png"})
+        _ = ba.Basic1DAnalysis(
+            tuid=tuid, settings_overwrite={"mpl_fig_formats": "png"}
+        ).run()
 
     assert "'png' is not of type 'array'" in str(excinfo.value)
 
@@ -206,7 +212,7 @@ def test_basic1d_analysis(caplog):
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_1D_1PLOT
-    a_obj = ba.Basic1DAnalysis(tuid=tuid)
+    a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
 
     # test that the right figures get created.
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
@@ -217,7 +223,7 @@ def test_basic1d_analysis(caplog):
         "png",
         "svg",
     ]
-    a_obj = ba.Basic1DAnalysis(tuid=tuid)
+    a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
     ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
 
     # test that the right figures get created.
@@ -247,7 +253,7 @@ def test_basic1d_analysis(caplog):
 
 def test_basic1d_analysis_plot_repeated_pnts(caplog):
     dh.set_datadir(get_test_data_dir())
-    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY)
+    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY).run()
 
     # test that the duplicated setpoints measured are plotted
     assert len(a_obj.axs_mpl["Line plot x0-y0"].lines[0].get_data()[0]) == len(
@@ -263,7 +269,7 @@ def test_basic2d_analysis():
     ba.settings["mpl_fig_formats"] = [
         "svg",
     ]  # no png as this is very slow
-    a_obj = ba.Basic2DAnalysis(tuid=tuid)
+    a_obj = ba.Basic2DAnalysis(tuid=tuid).run()
     ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
 
     assert set(a_obj.figs_mpl.keys()) == {
@@ -287,7 +293,7 @@ def test_Basic2DAnalysis_cyclic_cmap_detection():
     ba.settings["mpl_fig_formats"] = [
         "svg",
     ]  # no png as this is very slow
-    a_obj = ba.Basic2DAnalysis(tuid=tuid)
+    a_obj = ba.Basic2DAnalysis(tuid=tuid).run()
     ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
 
     # no changes are made
@@ -305,5 +311,5 @@ def test_Basic2DAnalysis_cyclic_cmap_detection():
 
 def test_display_figs():
     dh.set_datadir(get_test_data_dir())
-    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS)
+    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run()
     a_obj.display_figs_mpl()  # should display figures in the output
