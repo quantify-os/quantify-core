@@ -1,5 +1,6 @@
 .. jupyter-execute::
     :hide-code:
+    :hide-output:
 
     # This scrip is intended to avoid multiple instances of an Instrument in the same kernel
     # It was introduced to solve an issue with the snapshot that only happened in the ReadTheDocs build

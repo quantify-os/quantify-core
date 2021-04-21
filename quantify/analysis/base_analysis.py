@@ -63,7 +63,8 @@ These can be overwritten for each instance of an analysis.
 
 class AnalysisSteps(Enum):
     """
-    An enumerate of the steps executed by the :class:`~BaseAnalysis` (and its subclasses).
+    An enumerate of the steps executed by the :class:`~BaseAnalysis` (and the default
+    for subclasses).
 
     The involved steps are specified below.
 
@@ -111,8 +112,9 @@ class BaseAnalysis(ABC):
 
         .. tip::
 
-            For scripting/development/debugging purposes the :meth`~BaseAnalysis.run_until`
-            can be used for a partial execution of the analysis. E.g.
+            For scripting/development/debugging purposes the
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run_until` can be used for a partial execution of
+            the analysis. E.g.,
 
             .. jupyter-execute::
 
@@ -122,8 +124,7 @@ class BaseAnalysis(ABC):
                     interrupt_before="extract_data"
                 )
 
-            **OR** if you do not recall the exact method name and you are able to use
-            auto-complete:
+            **OR** use the corresponding members of the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`:
 
             .. jupyter-execute::
 
@@ -197,8 +198,8 @@ class BaseAnalysis(ABC):
 
     def run(self) -> BaseAnalysis:
         """
-        This function is at the core of all analysis. It calls :meth:`~BaseAnalysis.execute_analysis_steps`
-        which executes all the methods defined in the :attr:`~BaseAnalysis.analysis_steps`.
+        This function is at the core of all analysis. It calls :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
+        which executes all the methods defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
 
         This function is typically called right after instantiating an analysis class.
 
@@ -207,9 +208,9 @@ class BaseAnalysis(ABC):
         Returns
         -------
         :
-            The instance of the analysis object so that `.run()` can be analysis object
-            can be initialized, run and assigned to a variable on a single line:, e.g.
-            :code:`a_obj = MyAnalysis().run()`.
+            The instance of the analysis object so that :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run()`
+            returns an analysis object. You can initialize, run and assign it to a variable on a
+            single line:, e.g. :code:`a_obj = MyAnalysis().run()`.
         """
         # The following two lines must be included when when implementing a custom
         # analysis that requires passing in some (optional) arguments.
@@ -219,18 +220,18 @@ class BaseAnalysis(ABC):
     def execute_analysis_steps(self):
         """
         Executes the methods corresponding to the analysis steps as defined by the
-        `.analysis_steps`.
+        :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
 
         Intended to be called by `.run` when creating a custom analysis that requires
-        passing analysis configuration arguments to `.run`.
+        passing analysis configuration arguments to :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            step_stop=self._interrupt_before,  # can be set by `.run_until`
+            step_stop=self._interrupt_before,  # can be set by .run_until
             step_stop_inclusive=False,
         )
 
-        # Always reset so that it only has an effect when set by `.run_until`
+        # Always reset so that it only has an effect when set by .run_until
         self._interrupt_before = None
 
         self.logger.info(f"Executing `.run()` of {self.name}")
@@ -242,8 +243,8 @@ class BaseAnalysis(ABC):
         """
         Runs the analysis starting from the specified method.
 
-        The methods are called in the same order as in :meth:`~run`.
-        Useful when running a partial analysis.
+        The methods are called in the same order as in :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
+        Useful when first running a partial analysis and continuing again.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
@@ -256,23 +257,23 @@ class BaseAnalysis(ABC):
 
     def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
         """
-        Executes the analysis partially by calling :meth:`~BaseAnalysis.run` and stopping before the
-        specified step.
+        Executes the analysis partially by calling :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` and
+        stopping before the specified step.
 
         .. note::
 
-            Any code inside :meth:`~BaseAnalysis.run` is still executed. Only the
-            :meth:`~BaseAnalysis.execute_analysis_steps` [which is called by
-            :meth:`~BaseAnalysis.run`] is affected.
+            Any code inside :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` is still executed. Only the
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps` [which is called by
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` ] is affected.
 
         Parameters
         ----------
         interrupt_before:
             Stops the analysis before executing the specified step. For convenience
             the analysis step can be specified either as a string or as the member of
-            the `.analysis_steps` enumerate member.
+            the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` enumerate member.
         **kwargs:
-            Any other keyword arguments to be passed to :meth:`~BaseAnalysis.run`
+            Any other keyword arguments to be passed to :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
         """
 
         # Used by `execute_analysis_steps` to stop
@@ -291,13 +292,13 @@ class BaseAnalysis(ABC):
 
     def extract_data(self):
         """
-        Populates `self.dataset_raw` with data from the experiment matching the tuid/label.
+        Populates `.dataset_raw` with data from the experiment matching the tuid/label.
 
         This method should be overwritten if an analysis does not relate to a single
         datafile.
         """
 
-        # if no TUID is specified use the label to search for the latest file with a match.
+        # if no TUID use the label to search for the latest file with a match.
         if self.tuid is None:
             self.tuid = get_latest_tuid(contains=self.label)
 
