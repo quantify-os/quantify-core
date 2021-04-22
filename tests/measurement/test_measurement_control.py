@@ -554,7 +554,7 @@ class TestMeasurementControl:
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
-        gettable.noise = 0.4
+        gettable.noise = 0.2
         gettable.set_return_2D()
         self.MC.settables(settables)
         self.MC.setpoints_grid([x0, x1])
