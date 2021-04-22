@@ -79,8 +79,9 @@ class AnalysisSteps(Enum):
     .. tip::
 
         A custom analysis flow (e.g. inserting new steps) can be created by implementing
-        an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
-    """
+        an object similar to this one and overloading the
+        :obj:`~BaseAnalysis.analysis_steps`.
+    """  # pylint: disable=line-too-long
 
     # Variables must start with a letter but we want them have sorted names
     # for auto-complete
@@ -113,8 +114,8 @@ class BaseAnalysis(ABC):
         .. tip::
 
             For scripting/development/debugging purposes the
-            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run_until` can be used for a partial execution of
-            the analysis. E.g.,
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run_until` can be used
+            for a partial execution of the analysis. E.g.,
 
             .. jupyter-execute::
 
@@ -124,7 +125,8 @@ class BaseAnalysis(ABC):
                     interrupt_before="extract_data"
                 )
 
-            **OR** use the corresponding members of the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`:
+            **OR** use the corresponding members of the
+            :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`:
 
             .. jupyter-execute::
 
@@ -168,11 +170,9 @@ class BaseAnalysis(ABC):
 
         self._interrupt_before = None
 
-    """
-    Defines the steps of the analysis specified as an Enum.
-    Can be overloaded in a subclass in order to define a custom analysis flow.
-    See `~AnalysisSteps` for a template.
-    """
+    # Defines the steps of the analysis specified as an Enum.
+    # Can be overloaded in a subclass in order to define a custom analysis flow.
+    # See `AnalysisSteps` for a template.
     analysis_steps = AnalysisSteps
 
     @property
@@ -184,7 +184,7 @@ class BaseAnalysis(ABC):
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. Will create a directory if it does not exist yet.
+        Analysis dir based on the tuid. It will create a directory if it does not exist.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
@@ -198,8 +198,10 @@ class BaseAnalysis(ABC):
 
     def run(self) -> BaseAnalysis:
         """
-        This function is at the core of all analysis. It calls :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
-        which executes all the methods defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
+        This function is at the core of all analysis. It calls
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
+        which executes all the methods defined in the
+        :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
 
         This function is typically called right after instantiating an analysis class.
 
@@ -208,10 +210,12 @@ class BaseAnalysis(ABC):
         Returns
         -------
         :
-            The instance of the analysis object so that :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run()`
-            returns an analysis object. You can initialize, run and assign it to a variable on a
+            The instance of the analysis object so that
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run()`
+            returns an analysis object.
+            You can initialize, run and assign it to a variable on a
             single line:, e.g. :code:`a_obj = MyAnalysis().run()`.
-        """
+        """  # pylint: disable=line-too-long
         # The following two lines must be included when when implementing a custom
         # analysis that requires passing in some (optional) arguments.
         self.execute_analysis_steps()
@@ -223,7 +227,8 @@ class BaseAnalysis(ABC):
         :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
 
         Intended to be called by `.run` when creating a custom analysis that requires
-        passing analysis configuration arguments to :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
+        passing analysis configuration arguments to
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
@@ -243,7 +248,8 @@ class BaseAnalysis(ABC):
         """
         Runs the analysis starting from the specified method.
 
-        The methods are called in the same order as in :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
+        The methods are called in the same order as in
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
         Useful when first running a partial analysis and continuing again.
         """
         flow_methods = _get_modified_flow(
@@ -257,13 +263,16 @@ class BaseAnalysis(ABC):
 
     def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
         """
-        Executes the analysis partially by calling :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` and
+        Executes the analysis partially by calling
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` and
         stopping before the specified step.
 
         .. note::
 
-            Any code inside :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` is still executed. Only the
-            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps` [which is called by
+            Any code inside :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
+            is still executed. Only the
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
+            [which is called by
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` ] is affected.
 
         Parameters
@@ -271,9 +280,11 @@ class BaseAnalysis(ABC):
         interrupt_before:
             Stops the analysis before executing the specified step. For convenience
             the analysis step can be specified either as a string or as the member of
-            the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` enumerate member.
+            the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`
+            enumerate member.
         **kwargs:
-            Any other keyword arguments to be passed to :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
+            Any other keyword arguments to be passed to
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
         """
 
         # Used by `execute_analysis_steps` to stop
@@ -352,7 +363,8 @@ class BaseAnalysis(ABC):
 
     def save_processed_dataset(self):
         """
-        Saves a copy of the (processed) self.dataset in the analysis folder of the experiment.
+        Saves a copy of the (processed) `.dataset` in the analysis folder of the
+        experiment.
         """
 
         # if statement exist to be compatible with child classes that do not load data
@@ -412,7 +424,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         ymin
-            The bottom ylim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom ylim in data coordinates. Passing :code:`None` leaves the
+            limit unchanged.
         ymax
             The top ylim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -439,7 +452,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         xmin
-            The bottom xlim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom xlim in data coordinates. Passing :code:`None` leaves the limit
+            unchanged.
         xmax
             The top xlim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -466,7 +480,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         vmin
-            The bottom vlim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom vlim in data coordinates. Passing :code:`None` leaves the limit
+            unchanged.
         vmax
             The top vlim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -498,7 +513,8 @@ class Basic1DAnalysis(BaseAnalysis):
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
         dataset = self.dataset_raw
-        # for compatibility with older datasets, in case "x0" is not a coordinate we use "dim_0"
+        # for compatibility with older datasets
+        # in case "x0" is not a coordinate we use "dim_0"
         coords = tuple(dataset.coords)
         dims = tuple(dataset.dims)
         plot_against = coords[0] if coords else (dims[0] if dims else None)
@@ -512,7 +528,8 @@ class Basic1DAnalysis(BaseAnalysis):
                 adjust_axeslabels_SI(ax)
 
                 fig.suptitle(
-                    f"x0-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                    f"x0-{yi} {self.dataset_raw.attrs['name']}\n"
+                    f"tuid: {self.dataset_raw.attrs['tuid']}"
                 )
 
                 # add the figure and axis to the dicts for saving
@@ -544,7 +561,8 @@ class Basic2DAnalysis(BaseAnalysis):
             qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\n"
+                f"tuid: {self.dataset_raw.attrs['tuid']}"
             )
 
             # add the figure and axis to the dicts for saving
@@ -557,7 +575,8 @@ class Basic2DAnalysis(BaseAnalysis):
             fig_id = f"Linecuts x0x1-{yi}"
 
             lines = yvals.plot.line(x="x0", hue="x1", ax=ax)
-            # Change the color and labels of the line as we want to tweak this with respect to xarray default.
+            # Change the color and labels of the line as we want to tweak this with
+            # respect to xarray default.
             for line, z_value in zip(lines, np.array(gridded_dataset["x1"])):
                 # use the default colormap specified
                 cmap = matplotlib.cm.get_cmap()
@@ -580,7 +599,8 @@ class Basic2DAnalysis(BaseAnalysis):
             adjust_axeslabels_SI(ax)
 
             fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\n"
+                f"tuid: {self.dataset_raw.attrs['tuid']}"
             )
 
             # add the figure and axis to the dicts for saving
@@ -590,7 +610,8 @@ class Basic2DAnalysis(BaseAnalysis):
 
 def flatten_lmfit_modelresult(model):
     """
-    Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
+    Flatten an lmfit model result to a dictionary in order to be able to save it
+    to disk.
 
     Notes
     -----
@@ -628,8 +649,8 @@ def analysis_steps_to_str(
     col0_len += len(analysis_steps.__name__) + 1
 
     string = f"{header_r:<{col0_len}}{sep}{header_l}\n\n"
-    string += "\n".join(
-        f"{analysis_steps.__name__+ '.' + name:<{col0_len}}{sep}{class_name + '.' + value}"
+    string += "\n".join(  # NB the `+ '.' +` is not redundant
+        f"{analysis_steps.__name__ + '.' + name:<{col0_len}}{sep}{class_name}.{value}"
         for name, value in zip(col0, col1)
     )
 

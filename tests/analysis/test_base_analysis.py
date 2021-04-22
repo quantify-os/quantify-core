@@ -1,3 +1,6 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
 import os
 import logging
 from pathlib import Path
@@ -17,7 +20,7 @@ TUID_2D_CYCLIC = "20210227-172939-723-53d82c"
 # disable figure saving for all analyses for performance
 ba.settings["mpl_fig_formats"] = []
 
-
+# pylint: disable=attribute-defined-outside-init
 class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
     def run(self):
         self.var = False
@@ -33,6 +36,7 @@ class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
         self.var = True
 
 
+# pylint: disable=attribute-defined-outside-init
 class DummyAnalysisSubclassArgs(ba.Basic1DAnalysis):
     def run(self, var=None):
         # pylint: disable=arguments-differ
@@ -221,7 +225,7 @@ def test_basic1d_analysis(caplog):
         assert log_msg in str(rec.msg)
 
 
-def test_basic1d_analysis_plot_repeated_pnts(caplog):
+def test_basic1d_analysis_plot_repeated_pnts():
     dh.set_datadir(get_test_data_dir())
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY).run()
 
@@ -255,7 +259,7 @@ def test_basic2d_analysis():
     assert "figs_mpl" in analysis_dir
 
 
-def test_Basic2DAnalysis_cyclic_cmap_detection():
+def test_basic2d_cyclic_cmap_detection():
     dh.set_datadir(get_test_data_dir())
 
     tuid = TUID_2D_CYCLIC
