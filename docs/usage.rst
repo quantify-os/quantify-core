@@ -200,7 +200,10 @@ In addition to using a library which fits these contracts (such as the :class:`~
 
     .. jupyter-execute::
 
-        t = ManualParameter('time', label='Time', unit='s')
+        t = ManualParameter(
+            'time', label='Time', unit='s',
+            vals=validators.Numbers() # accepts a single number, e.g. a float or integer
+        )
 
         class DualWave:
             def __init__(self):
@@ -233,8 +236,14 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
         .. jupyter-execute::
 
-            time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Arrays(), initial_value=np.array([1, 2, 3]))
-            signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()))
+            time = ManualParameter(
+                name='time', label='Time', unit='s',
+                vals=validators.Arrays() # accepts an array of values
+            )
+            signal = Parameter(
+                name='sig_a', label='Signal', unit='V',
+                get_cmd=lambda: np.cos(time())
+            )
 
             time.batched = True
             time.batch_size = 5
