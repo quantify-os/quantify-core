@@ -590,7 +590,7 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     Returns
     -------
     :class:`!uncertainties.UFloat` :
-        An object representing the main value and the uncertainty of the parameter.
+        An object representing the value and the uncertainty of the parameter.
     """
 
     value = param.value
