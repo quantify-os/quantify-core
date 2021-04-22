@@ -1,5 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
+"""Analysis module for a Rabi Oscillation experiment"""
 import numpy as np
 import matplotlib.pyplot as plt
 from uncertainties import ufloat
@@ -10,6 +11,11 @@ from quantify.visualization.SI_utilities import format_value_string
 
 
 class RabiAnalysis(ba.BaseAnalysis):
+    """
+    Fits a cosine curve to Rabi oscillation data and finds the qubit drive
+    amplitude reqired to implment a pi-pulse
+    """
+
     def process_data(self):
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
@@ -62,6 +68,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.create_fig_rabi_oscillation()
 
     def create_fig_rabi_oscillation(self):
+        """Plot Rabi ocillation figure"""
 
         fig_id = "Rabi_oscillation"
         fig, axs = plt.subplots()
@@ -84,5 +91,6 @@ class RabiAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            "tuid: {self.dataset_raw.attrs['tuid']}"
         )

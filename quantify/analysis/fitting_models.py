@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import numpy as np
+from typing import Tuple
 import lmfit
 
 
@@ -348,6 +349,8 @@ class ExpDecayModel(lmfit.model.Model):
 class RabiModel(lmfit.model.Model):
     """
     Model for a Rabi oscillation as a function of mw drive amplitude
+    Phase of oscillation is fixed at pi in order to ensure that the oscillation
+    is at a minimum when the drive amplitude is 0.
     """  # Avoid including Model docstring
 
     # pylint: disable=empty-docstring
@@ -396,6 +399,20 @@ def resonator_phase_guess(s21, freq):
     """
     Guesses the phase velocity in resonator spectroscopy,
     based on the median of all the differences between consecutive phases
+
+    Parameters
+    -----------
+    s21:
+        Resonator S21 data
+    freq:
+        Frequency of the spectroscopy pulse
+
+    Returns
+    -----------
+    phi_0:
+        Guess for the phase offset
+    ph_guess:
+        Guess for the phase velocity
     """
     phase = np.angle(s21)
 
@@ -409,9 +426,23 @@ def resonator_phase_guess(s21, freq):
     return phi_0, phi_v
 
 
-def fft_freq_phase_guess(data, t):
+def fft_freq_phase_guess(data: np.array, t: np.array) -> Tuple[float]:
     """
     Guess for a cosine fit using FFT, only works for evenly spaced points
+
+    Parameters
+    -----------
+    data:
+        Input data to FFT
+    t:
+        Independent variable (e.g. time)
+
+    Returns
+    -----------
+    freq_guess:
+        Guess for the frequency of the cosine function
+    ph_guess:
+        Guess for the phase of the cosine function
     """
 
     # Only first half of array is used, because the second half contains the
