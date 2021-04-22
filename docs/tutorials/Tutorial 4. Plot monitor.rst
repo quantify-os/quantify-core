@@ -34,7 +34,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
 
 
 QCoDeS drivers for our instruments
------------------------------------
+----------------------------------
 
 .. jupyter-execute::
 
@@ -42,9 +42,9 @@ QCoDeS drivers for our instruments
         def __init__(self, name: str):
             super().__init__(name=name)
 
-            self.add_parameter( name="amp_0", unit="A", parameter_class=ManualParameter, initial_value=0)
-            self.add_parameter( name="amp_1", unit="A", parameter_class=ManualParameter, initial_value=0)
-            self.add_parameter( name="offset", unit="A", parameter_class=ManualParameter, initial_value=0)
+            self.add_parameter(name="amp_0", unit="A", parameter_class=ManualParameter)
+            self.add_parameter(name="amp_1", unit="A", parameter_class=ManualParameter)
+            self.add_parameter(name="offset", unit="A", parameter_class=ManualParameter)
 
             self.add_parameter(name="adc", label="ADC input", unit="V", get_cmd=self._get_dac_value)
 
@@ -55,7 +55,7 @@ QCoDeS drivers for our instruments
 
 
 Instantiate the instruments
-----------------------------
+---------------------------
 
 
 .. jupyter-execute::
@@ -66,7 +66,7 @@ Instantiate the instruments
     device = Device("Device")
 
 Overview
-----------
+--------
 
 There are 3 parameters in the :class:`~quantify.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
 
@@ -106,10 +106,13 @@ The third relevant parameter is the *tuids_max_num*. It accepts an integer which
 
 
 Usage examples
----------------
+--------------
 
 .. jupyter-execute::
 
+    # set initial values to emulate the instrument state
+    device.amp_0(0.0)
+    device.amp_1(0.0)
     device.offset(0.0)
 
     n_pnts = 50
