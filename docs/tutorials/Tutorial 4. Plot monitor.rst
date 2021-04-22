@@ -282,6 +282,7 @@ We do not need the reference datasets anymore
 
     plotmon.main_QtPlot
 
+
 When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tuids_extra` will be plotted in the secondary window, in that order of priority.
 
 .. jupyter-execute::
@@ -297,6 +298,12 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
 
     plotmon.main_QtPlot
     plotmon.secondary_QtPlot
+
+.. note::
+
+    The secondary window displays the last dataset with a 2D structure, and it remains persistent until replaced by a new dataset with a 2D structure.
+
+    Mind that the data on the secondary window does not always display data corresponding to the same dataset as the main window.
 
 We still have the persistence of the previous dataset on the main window:
 
