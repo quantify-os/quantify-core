@@ -14,12 +14,12 @@
                     "max": Infinity,
                     "brute_step": null,
                     "vary": true,
-                    "stderr": 0.004145823924421452,
+                    "stderr": 0.004145823903699539,
                     "correl": {
-                        "amplitude": -0.1265219179788906,
-                        "offset": 0.3866283502376256
+                        "amplitude": -0.12652192022967199,
+                        "offset": 0.38662835167824267
                     },
-                    "value": 1.0023061313436763
+                    "value": 1.0023061313603603
                 },
                 "amplitude": {
                     "name": "amplitude",
@@ -29,27 +29,27 @@
                     "max": Infinity,
                     "brute_step": null,
                     "vary": true,
-                    "stderr": 1.087408961703321e-07,
+                    "stderr": 1.0883939308638281e-07,
                     "correl": {
-                        "frequency": -0.12652191797889056,
-                        "offset": -0.01493606527181412
+                        "frequency": -0.12652192022967199,
+                        "offset": -0.014936065869280452
                     },
-                    "value": 8.22938238664861e-06
+                    "value": 8.229382381763628e-06
                 },
                 "offset": {
                     "name": "offset",
                     "user_data": null,
                     "init_value": 2.375296925289954e-05,
-                    "min": 0,
+                    "min": -Infinity,
                     "max": Infinity,
                     "brute_step": null,
                     "vary": true,
-                    "stderr": 8.384276895181666e-08,
+                    "stderr": 8.383168095588883e-08,
                     "correl": {
-                        "frequency": 0.38662835023762554,
-                        "amplitude": -0.014936065271814196
+                        "frequency": 0.3866283516782429,
+                        "amplitude": -0.014936065869280517
                     },
-                    "value": 2.3971983859505386e-05
+                    "value": 2.397198385744733e-05
                 },
                 "phase": {
                     "name": "phase",
@@ -71,9 +71,9 @@
                     "max": Infinity,
                     "brute_step": null,
                     "vary": false,
-                    "stderr": 0.0020633841198146965,
+                    "stderr": 0.0020633841171714476,
                     "correl": null,
-                    "value": 0.49884958733087625
+                    "value": 0.4988495873225726
                 }
             }
         }

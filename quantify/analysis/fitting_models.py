@@ -168,7 +168,7 @@ def cos_func(
     offset: float,
     phase: float = 0,
 ) -> float:
-    """
+    r"""
     An oscillating cosine function.
 
     Parameters
@@ -204,7 +204,7 @@ def exp_decay_func(
     offset: float,
     n_factor: float,
 ) -> float:
-    """
+    r"""
     This is a general exponential decay function.
 
     Parameters
@@ -375,30 +375,29 @@ class RabiModel(lmfit.model.Model):
         """
         For details on input parameters see :meth:`~lmfit.model.Model.guess`.
         """
-        if kwargs.get("drive_amp", None) is None:
-            return None
-
         drive_amp = kwargs["drive_amp"]
+        if drive_amp is None:
+            return None
 
         amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
         offs_guess = np.mean(data)
 
-        freq_guess, ph_guess = fft_freq_phase_guess(data, drive_amp)
+        (freq_guess, _) = fft_freq_phase_guess(data, drive_amp)
 
         self.set_param_hint("frequency", value=freq_guess, min=0)
         self.set_param_hint("amplitude", value=amp_guess, min=0)
-        self.set_param_hint("offset", value=offs_guess, min=0)
+        self.set_param_hint("offset", value=offs_guess)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
 
-def resonator_phase_guess(S21, freq):
+def resonator_phase_guess(s21, freq):
     """
     Guesses the phase velocity in resonator spectroscopy,
     based on the median of all the differences between consecutive phases
     """
-    phase = np.angle(S21)
+    phase = np.angle(s21)
 
     med_diff = np.median(np.diff(phase))
     freq_step = np.median(np.diff(freq))
@@ -424,9 +423,9 @@ def fft_freq_phase_guess(data, t):
     # Use absolute value of complex valued spectrum
     abs_power = np.abs(power)
     freq_guess = abs(freq[abs_power == max(abs_power)][0])
-    ph_guess = 2 * np.pi - (2 * np.pi * t[data == max(data)] * freq_guess)[0]
     # the condition data == max(data) can have several solutions
     #               (for example when discretization is visible)
     # to prevent errors we pick the first solution
+    ph_guess = 2 * np.pi - (2 * np.pi * t[data == max(data)] * freq_guess)[0]
 
     return freq_guess, ph_guess
