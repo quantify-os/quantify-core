@@ -31,8 +31,8 @@ except ImportError:
 test_datadir = get_test_data_dir()
 
 # seed the randomization with fixed seed
-random.seed(202104221504)
-np.random.seed(202104221504)
+random.seed(202104)
+np.random.seed(202104)
 
 
 def CosFunc(t, amplitude, frequency, phase):
