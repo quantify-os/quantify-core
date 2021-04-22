@@ -14,11 +14,11 @@ class TestRabiAnalysis:
         dh.set_datadir(get_test_data_dir())
 
         cls.tuids = ["20210419-153127-883-fa4508"]
-        cls.a_objs = [Ra.RabiAnalysis(tuid=tuid) for tuid in cls.tuid_time_scan]
-        cls.values = [{"amp180": 498.8e-3}]
+        cls.a_objs = [Ra.RabiAnalysis(tuid=tuid) for tuid in cls.tuids]
+        cls.values = [{"Pi-pulse amp": 498.8e-3}]
 
     def test_raw_data_not_in_processed_dataset(self):
-        for tuid in self.tuid_time_scan:
+        for tuid in self.tuids:
             container = Path(dh.locate_experiment_container(tuid))
             file_path = container / "analysis_RabiAnalysis" / "processed_dataset.hdf5"
             dataset = dh.load_dataset_from_path(file_path)
@@ -31,19 +31,22 @@ class TestRabiAnalysis:
 
     def test_figures_generated(self):
         # test that the right figures get created.
-        for a_obj in self.a_time_scan:
+        for a_obj in self.a_objs:
             assert set(a_obj.figs_mpl.keys()) == {
                 "Rabi_oscillation",
             }
 
     def test_quantities_of_interest(self):
-        for a_obj, values in zip(self.a_time_scan, self.values_time_scan):
+        for a_obj, values in zip(self.a_objs, self.values):
             assert set(a_obj.quantities_of_interest.keys()) == {
-                "amp180",
+                "Pi-pulse amp",
+                "fit_msg",
+                "fit_res",
             }
 
-            assert isinstance(a_obj.quantities_of_interest["amp180"], Variable)
+            assert isinstance(a_obj.quantities_of_interest["Pi-pulse amp"], Variable)
             # Tests that the fitted values are correct (to within 5 standard deviations)
-            assert a_obj.quantities_of_interest["amp180"].nominal_value == approx(
-                values["amp180"], abs=5 * a_obj.quantities_of_interest["amp180"].std_dev
+            assert a_obj.quantities_of_interest["Pi-pulse amp"].nominal_value == approx(
+                values["Pi-pulse amp"],
+                abs=5 * a_obj.quantities_of_interest["Pi-pulse amp"].std_dev,
             )
