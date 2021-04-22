@@ -57,7 +57,7 @@ A parameter represents a state variable of the system.
     - A parameter can be get and/or set able.
     - Contains metadata such as units and labels.
     - Commonly implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class.
-    - A parameter implmemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
+    - A parameter implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
 
 Instrument
 -----------------
@@ -88,7 +88,7 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 
 - Enforce standardization of experiments
 - Standardized data storage
-- Live plotting of the experiment
+- :ref:`Live plotting of the experiment <tutorial_plotmon>`
 - n-dimensional sweeps
 - Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
@@ -106,7 +106,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     :hide-code:
 
     mw_source1 = Instrument("mw_source1")
-    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
     mw_source1.freq = ManualParameter(
         name='freq',
         label='Frequency',
@@ -116,7 +116,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     )
 
     pulsar_QRM = Instrument("pulsar_QRM")
-    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
     pulsar_QRM.signal = Parameter(
         name='sig_a',
         label='Signal',
@@ -200,7 +200,10 @@ In addition to using a library which fits these contracts (such as the :class:`~
 
     .. jupyter-execute::
 
-        t = ManualParameter('time', label='Time', unit='s')
+        t = ManualParameter(
+            'time', label='Time', unit='s',
+            vals=validators.Numbers() # accepts a single number, e.g. a float or integer
+        )
 
         class DualWave:
             def __init__(self):
@@ -233,8 +236,14 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
         .. jupyter-execute::
 
-            time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Arrays(), initial_value=np.array([1, 2, 3]))
-            signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()))
+            time = ManualParameter(
+                name='time', label='Time', unit='s',
+                vals=validators.Arrays() # accepts an array of values
+            )
+            signal = Parameter(
+                name='sig_a', label='Signal', unit='V',
+                get_cmd=lambda: np.cos(time())
+            )
 
             time.batched = True
             time.batch_size = 5
