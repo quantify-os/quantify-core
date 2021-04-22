@@ -576,7 +576,7 @@ def flatten_lmfit_modelresult(model):
 def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     """
     Safe conversion of an :class:`lmfit.parameter.Parameter` to
-    :code:`uncertainties.ufloat(nominal_value, std_dev)`.
+    :code:`uncertainties.ufloat(value, std_dev)`.
 
     This function is intended to be used in custom analyses to avoid errors when an
     `lmfit` fails and the `stderr` is :code:`None`.
@@ -593,10 +593,10 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
         An object representing the main value and the uncertainty of the parameter.
     """
 
-    nominal_value = param.value
-    std_dev = np.nan if param.stderr is None else param.stderr
+    value = param.value
+    stderr = np.nan if param.stderr is None else param.stderr
 
-    return ufloat(nominal_value, std_dev)
+    return ufloat(value, stderr)
 
 
 def analysis_steps_to_str(
