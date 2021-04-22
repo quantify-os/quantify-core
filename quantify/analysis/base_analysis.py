@@ -573,19 +573,19 @@ def flatten_lmfit_modelresult(model):
     return dic
 
 
-def lmfit_par_to_ufloat(param: lmfit.Parameter):
+def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     """
-    Safe conversion of an :class:`lmfit.Parameter` to
+    Safe conversion of an :class:`lmfit.parameter.Parameter` to
     :code:`uncertainties.ufloat(nominal_value, std_dev)`.
 
     This function is intended to be used in custom analyses to avoid errors when an
-    :mod:`lmfit` fails and the `stderr` is :code:`None`.
+    `lmfit` fails and the `stderr` is :code:`None`.
 
     Parameters
     ----------
 
     param:
-        The :class:`~lmfit.Parameter` to be converted
+        The :class:`~lmfit.parameter.Parameter` to be converted
 
     Returns
     -------
