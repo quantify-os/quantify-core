@@ -57,7 +57,7 @@ A parameter represents a state variable of the system.
     - A parameter can be get and/or set able.
     - Contains metadata such as units and labels.
     - Commonly implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class.
-    - A parameter implmemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
+    - A parameter implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
 
 Instrument
 -----------------
@@ -106,7 +106,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     :hide-code:
 
     mw_source1 = Instrument("mw_source1")
-    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
     mw_source1.freq = ManualParameter(
         name='freq',
         label='Frequency',
@@ -116,7 +116,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     )
 
     pulsar_QRM = Instrument("pulsar_QRM")
-    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
     pulsar_QRM.signal = Parameter(
         name='sig_a',
         label='Signal',
