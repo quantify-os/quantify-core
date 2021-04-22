@@ -205,7 +205,7 @@ class BaseAnalysis(ABC):
 
         This function is typically called right after instantiating an analysis class.
 
-        .. include:: ./docstring_examples/quantify.analysis.base_analysis.BaseAnalysis.run_custum_analysis_args.rst.txt
+        .. include:: ./docstring_examples/quantify.analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
 
         Returns
         -------
