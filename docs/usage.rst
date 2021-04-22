@@ -88,7 +88,7 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 
 - Enforce standardization of experiments
 - Standardized data storage
-- Live plotting of the experiment
+- :ref:`Live plotting of the experiment <tutorial_plotmon>`
 - n-dimensional sweeps
 - Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
