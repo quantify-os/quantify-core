@@ -13,9 +13,9 @@ class TestRabiAnalysis:
     def setup_class(cls):
         dh.set_datadir(get_test_data_dir())
 
-        cls.tuid_time_scan = ["20210326-120547-375-9a93cc"]
-        cls.a_time_scan = [Ra.RabiAnalysis(tuid=tuid) for tuid in cls.tuid_time_scan]
-        cls.values_time_scan = [{"omega": 400e5, "t_pi": 78.53e-9}]
+        cls.tuids = ["20210419-153127-883-fa4508"]
+        cls.a_objs = [Ra.RabiAnalysis(tuid=tuid) for tuid in cls.tuid_time_scan]
+        cls.values = [{"amp180": 498.8e-3}]
 
     def test_raw_data_not_in_processed_dataset(self):
         for tuid in self.tuid_time_scan:
@@ -39,18 +39,11 @@ class TestRabiAnalysis:
     def test_quantities_of_interest(self):
         for a_obj, values in zip(self.a_time_scan, self.values_time_scan):
             assert set(a_obj.quantities_of_interest.keys()) == {
-                "omega",
-                "t_pi",
-                "fit_msg",
-                "fit_res",
+                "amp180",
             }
 
-            assert isinstance(a_obj.quantities_of_interest["omega"], Variable)
-            assert isinstance(a_obj.quantities_of_interest["t_pi"], Variable)
+            assert isinstance(a_obj.quantities_of_interest["amp180"], Variable)
             # Tests that the fitted values are correct (to within 5 standard deviations)
-            assert a_obj.quantities_of_interest["omega"].nominal_value == approx(
-                values["omega"], abs=5 * a_obj.quantities_of_interest["omega"].std_dev
-            )
-            assert a_obj.quantities_of_interest["t_pi"].nominal_value == approx(
-                values["t_pi"], abs=5 * a_obj.quantities_of_interest["t_pi"].std_dev
+            assert a_obj.quantities_of_interest["amp180"].nominal_value == approx(
+                values["amp180"], abs=5 * a_obj.quantities_of_interest["amp180"].std_dev
             )
