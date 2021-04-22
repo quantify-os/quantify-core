@@ -16,6 +16,7 @@ from IPython.display import display
 import numpy as np
 import xarray as xr
 import lmfit
+from uncertainties import ufloat
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
@@ -570,6 +571,32 @@ def flatten_lmfit_modelresult(model):
                 dic["params"][param_name][k] = getattr(param, k)
         dic["params"][param_name]["value"] = getattr(param, "value")
     return dic
+
+
+def lmfit_par_to_ufloat(param: lmfit.Parameter):
+    """
+    Safe conversion of an :class:`lmfit.Parameter` to
+    :code:`uncertainties.ufloat(nominal_value, std_dev)`.
+
+    This function is intended to be used in custom analyses to avoid errors when an
+    :mod:`lmfit` fails and the `stderr` is :code:`None`.
+
+    Parameters
+    ----------
+
+    param:
+        The :class:`~lmfit.Parameter` to be converted
+
+    Returns
+    -------
+    :class:`!uncertainties.UFloat` :
+        An object representing the main value and the uncertainty of the parameter.
+    """
+
+    nominal_value = param.value
+    std_dev = np.nan if param.stderr is None else param.stderr
+
+    return ufloat(nominal_value, std_dev)
 
 
 def analysis_steps_to_str(

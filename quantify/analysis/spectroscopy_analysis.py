@@ -3,7 +3,6 @@
 """Module containing spectroscopy analysis."""
 import numpy as np
 import matplotlib.pyplot as plt
-from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
@@ -47,8 +46,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         fpars = fit_res.params
 
         for parameter in ["Qi", "Qe", "Ql", "Qc", "fr"]:
-            self.quantities_of_interest[parameter] = ufloat(
-                fpars[parameter].value, fpars[parameter].stderr
+            self.quantities_of_interest[parameter] = ba.lmfit_par_to_ufloat(
+                fpars[parameter]
             )
 
         text_msg = "Summary\n"

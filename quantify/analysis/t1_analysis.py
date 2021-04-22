@@ -57,9 +57,7 @@ class T1Analysis(ba.BaseAnalysis):
         self.fit_res.update({"exp_decay_func": fit_res})
 
         fpars = fit_res.params
-        self.quantities_of_interest["T1"] = ufloat(
-            fpars["tau"].value, fpars["tau"].stderr
-        )
+        self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(fpars["tau"])
 
         unit = self.dataset["Magnitude"].attrs["units"]
         text_msg = "Summary\n"
