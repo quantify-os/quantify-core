@@ -2,7 +2,6 @@
 # Licensed according to the LICENCE file on the master branch
 import numpy as np
 import matplotlib.pyplot as plt
-from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
@@ -57,9 +56,7 @@ class T1Analysis(ba.BaseAnalysis):
         self.fit_res.update({"exp_decay_func": fit_res})
 
         fpars = fit_res.params
-        self.quantities_of_interest["T1"] = ufloat(
-            fpars["tau"].value, fpars["tau"].stderr
-        )
+        self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(fpars["tau"])
 
         unit = self.dataset["Magnitude"].attrs["units"]
         text_msg = "Summary\n"

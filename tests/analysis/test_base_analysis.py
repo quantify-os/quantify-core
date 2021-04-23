@@ -6,6 +6,8 @@ import logging
 from pathlib import Path
 from jsonschema import ValidationError
 import pytest
+import lmfit
+import numpy as np
 import quantify.data.handling as dh
 from quantify.analysis import base_analysis as ba
 from quantify.utilities._tests_helpers import get_test_data_dir
@@ -287,3 +289,21 @@ def test_display_figs():
     dh.set_datadir(get_test_data_dir())
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run()
     a_obj.display_figs_mpl()  # should display figures in the output
+
+
+def test_lmfit_par_to_ufloat():
+    par = lmfit.Parameter("freq", value=4)
+    par.stderr = 1
+
+    ufloat_obj = ba.lmfit_par_to_ufloat(par)
+
+    assert ufloat_obj.nominal_value == 4
+    assert ufloat_obj.std_dev == 1
+
+    # Make sure None does not raise errors
+    par.stderr = None
+
+    ufloat_obj = ba.lmfit_par_to_ufloat(par)
+
+    assert ufloat_obj.nominal_value == 4
+    assert np.isnan(ufloat_obj.std_dev)
