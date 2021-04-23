@@ -12,19 +12,6 @@ class T1Analysis(ba.BaseAnalysis):
     """
     Analysis class for a qubit T1 experiment,
     which fits an exponential decay and extracts the T1 time.
-
-    Parameters
-        ----------
-        label:
-            Will look for a dataset that contains "label" in the name.
-        tuid:
-            If specified, will look for the dataset with the matching tuid.
-        interrupt_before:
-            Stops `run_analysis` before executing the specified step.
-        settings_overwrite:
-            A dictionary containing overrides for the global
-            `base_analysis.settings` for this specific instance.
-            See table below for available settings.
     """
 
     def process_data(self):

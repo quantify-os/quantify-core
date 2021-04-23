@@ -12,11 +12,10 @@ from quantify.visualization.SI_utilities import format_value_string
 class RabiAnalysis(ba.BaseAnalysis):
     """
     Fits a cosine curve to Rabi oscillation data and finds the qubit drive
-    amplitude reqired to implment a pi-pulse
+    amplitude required to implement a pi-pulse.
     """
 
     def process_data(self):
-
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
@@ -33,7 +32,6 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
-
         mod = fm.RabiModel()
 
         magnitude = np.array(self.dataset["Magnitude"])
@@ -67,7 +65,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.create_fig_rabi_oscillation()
 
     def create_fig_rabi_oscillation(self):
-        """Plot Rabi ocillation figure"""
+        """Plot Rabi oscillation figure"""
 
         fig_id = "Rabi_oscillation"
         fig, axs = plt.subplots()
