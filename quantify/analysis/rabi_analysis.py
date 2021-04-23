@@ -91,5 +91,5 @@ class RabiAnalysis(ba.BaseAnalysis):
 
         fig.suptitle(
             f"S21 {self.dataset_raw.attrs['name']}\n"
-            "tuid: {self.dataset_raw.attrs['tuid']}"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )

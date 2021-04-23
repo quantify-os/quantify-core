@@ -64,11 +64,9 @@ class T1Analysis(ba.BaseAnalysis):
             r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
         )
         text_msg += format_value_string(
-            r"$amplitude$", fit_res.params["amplitude"], end_char="\n", unit=unit
+            "amplitude", fit_res.params["amplitude"], end_char="\n", unit=unit
         )
-        text_msg += format_value_string(
-            r"$offset$", fit_res.params["offset"], unit=unit
-        )
+        text_msg += format_value_string("offset", fit_res.params["offset"], unit=unit)
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
