@@ -22,7 +22,7 @@ class TestT1Analysis:
 
         tuids = ["20210322-205253-758-6689"]
         cls.tuids = tuids
-        cls.a_objs = [ta.T1Analysis(tuid=tuid) for tuid in cls.tuids]
+        cls.a_objs = [ta.T1Analysis(tuid=tuid).run() for tuid in cls.tuids]
 
         cls.T1s = [1.07e-5]
 

@@ -7,15 +7,17 @@ import json
 from abc import ABC
 from collections import OrderedDict
 from copy import deepcopy
-from typing import List
+from typing import List, Union
 from enum import Enum
 from pathlib import Path
 import logging
+import inspect
 
 from IPython.display import display
 import numpy as np
 import xarray as xr
 import lmfit
+from uncertainties import ufloat
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.collections import QuadMesh
@@ -62,7 +64,8 @@ These can be overwritten for each instance of an analysis.
 
 class AnalysisSteps(Enum):
     """
-    An enumerate of the steps executed by the :class:`~BaseAnalysis` (and its subclasses).
+    An enumerate of the steps executed by the :class:`~BaseAnalysis` (and the default
+    for subclasses).
 
     The involved steps are specified below.
 
@@ -77,21 +80,21 @@ class AnalysisSteps(Enum):
     .. tip::
 
         A custom analysis flow (e.g. inserting new steps) can be created by implementing
-        an object similar to this one and overloading the :obj:`~BaseAnalysis.analysis_steps`.
-    """
+        an object similar to this one and overloading the
+        :obj:`~BaseAnalysis.analysis_steps`.
+    """  # pylint: disable=line-too-long
 
     # Variables must start with a letter but we want them have sorted names
     # for auto-complete
-    S00_EXTRACT_DATA = "extract_data"
-    S01_PROCESS_DATA = "process_data"
-    S02_PREPARE_FITTING = "prepare_fitting"
-    S03_RUN_FITTING = "run_fitting"
-    S04_ANALYZE_FIT_RESULTS = "analyze_fit_results"
-    S05_CREATE_FIGURES = "create_figures"
-    S06_ADJUST_FIGURES = "adjust_figures"
-    S07_SAVE_FIGURES = "save_figures"
-    S08_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
-    S09_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    STEP_0_EXTRACT_DATA = "extract_data"
+    STEP_1_PROCESS_DATA = "process_data"
+    STEP_2_RUN_FITTING = "run_fitting"
+    STEP_3_ANALYZE_FIT_RESULTS = "analyze_fit_results"
+    STEP_4_CREATE_FIGURES = "create_figures"
+    STEP_5_ADJUST_FIGURES = "adjust_figures"
+    STEP_6_SAVE_FIGURES = "save_figures"
+    STEP_7_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
+    STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
 class BaseAnalysis(ABC):
@@ -104,18 +107,40 @@ class BaseAnalysis(ABC):
         self,
         label: str = "",
         tuid: str = None,
-        interrupt_before: AnalysisSteps = None,
         settings_overwrite: dict = None,
     ):
         """
+        Initializes the variables used in the analysis and to which data is stored.
+
+        .. tip::
+
+            For scripting/development/debugging purposes the
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run_until` can be used
+            for a partial execution of the analysis. E.g.,
+
+            .. jupyter-execute::
+
+                from quantify.analysis.base_analysis import Basic1DAnalysis
+
+                a_obj = Basic1DAnalysis(label="my experiment").run_until(
+                    interrupt_before="extract_data"
+                )
+
+            **OR** use the corresponding members of the
+            :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`:
+
+            .. jupyter-execute::
+
+                a_obj = Basic1DAnalysis(label="my experiment").run_until(
+                    interrupt_before=Basic1DAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
+                )
+
         Parameters
         ----------
         label:
             Will look for a dataset that contains "label" in the name.
         tuid:
             If specified, will look for the dataset with the matching tuid.
-        interrupt_before:
-            Stops `run_analysis` before executing the specified step.
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
@@ -128,7 +153,6 @@ class BaseAnalysis(ABC):
 
         self.label = label
         self.tuid = tuid
-        self.interrupt_before = interrupt_before
 
         # Allows individual setting per analysis instance
         # with defaults from global settings
@@ -145,7 +169,12 @@ class BaseAnalysis(ABC):
         self.quantities_of_interest = OrderedDict()
         self.fit_res = OrderedDict()
 
-        self.run_analysis()
+        self._interrupt_before = None
+
+    # Defines the steps of the analysis specified as an Enum.
+    # Can be overloaded in a subclass in order to define a custom analysis flow.
+    # See `AnalysisSteps` for a template.
+    analysis_steps = AnalysisSteps
 
     @property
     def name(self):
@@ -156,7 +185,7 @@ class BaseAnalysis(ABC):
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. Will create a directory if it does not exist yet.
+        Analysis dir based on the tuid. It will create a directory if it does not exist.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
@@ -168,40 +197,61 @@ class BaseAnalysis(ABC):
 
         return analysis_dir
 
-    def run_analysis(self):
+    def run(self) -> BaseAnalysis:
         """
-        This function is at the core of all analysis and defines the flow of methods to call.
+        This function is at the core of all analysis. It calls
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
+        which executes all the methods defined in the
+        :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
 
-        This function is typically called at the end of __init__.
+        This function is typically called right after instantiating an analysis class.
+
+        .. include:: ./docstring_examples/quantify.analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
+
+        Returns
+        -------
+        :
+            The instance of the analysis object so that
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run()`
+            returns an analysis object.
+            You can initialize, run and assign it to a variable on a
+            single line:, e.g. :code:`a_obj = MyAnalysis().run()`.
+        """  # pylint: disable=line-too-long
+        # The following two lines must be included when when implementing a custom
+        # analysis that requires passing in some (optional) arguments.
+        self.execute_analysis_steps()
+        return self
+
+    def execute_analysis_steps(self):
+        """
+        Executes the methods corresponding to the analysis steps as defined by the
+        :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`.
+
+        Intended to be called by `.run` when creating a custom analysis that requires
+        passing analysis configuration arguments to
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
-            step_stop=self.interrupt_before,
+            step_stop=self._interrupt_before,  # can be set by .run_until
             step_stop_inclusive=False,
         )
 
-        self.logger.info(f"Executing run_analysis of {self.name}")
+        # Always reset so that it only has an effect when set by .run_until
+        self._interrupt_before = None
+
+        self.logger.info(f"Executing `.run()` of {self.name}")
         for i, method in enumerate(flow_methods):
             self.logger.info(f"execution step {i}: {method}")
-            try:
-                method()
-            except Exception as e:
-                raise RuntimeError(
-                    "An exception occurred while executing "
-                    f"{method}.\n\n"  # point to the culprit
-                    "Use `interrupt_before=<analysis step>` to run a partial analysis,\n"
-                    "e.g., `interrupt_before=AnalysisSteps.S03_RUN_FITTING`. Note the steps are \n"
-                    "not specified as strings."
-                    "Method names:\n"
-                    f"{analysis_steps_to_str(analysis_steps=self.analysis_steps, class_name=self.__class__.__name__)}"
-                ) from e  # and raise the original exception
+            method()
 
-    def continue_analysis_from(self, step: AnalysisSteps):
+    def run_from(self, step: Union[str, AnalysisSteps]):
         """
-        Runs the analysis starting from specified method.
+        Runs the analysis starting from the specified method.
 
-        The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_before`.
+        The methods are called in the same order as in
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
+        Useful when first running a partial analysis and continuing again.
         """
         flow_methods = _get_modified_flow(
             flow_functions=self.get_flow(),
@@ -212,30 +262,39 @@ class BaseAnalysis(ABC):
         for method in flow_methods:
             method()
 
-    def continue_analysis_after(self, step: AnalysisSteps):
+    def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
         """
-        Runs the analysis starting from specified method.
+        Executes the analysis partially by calling
+        :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` and
+        stopping before the specified step.
 
-        The methods are called in the same order as in :meth:`~run_analysis`.
-        Useful when the analysis interrupted at some stage with `interrupt_before`.
+        .. note::
+
+            Any code inside :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
+            is still executed. Only the
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
+            [which is called by
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` ] is affected.
+
+        Parameters
+        ----------
+        interrupt_before:
+            Stops the analysis before executing the specified step. For convenience
+            the analysis step can be specified either as a string or as the member of
+            the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`
+            enumerate member.
+        **kwargs:
+            Any other keyword arguments to be passed to
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
         """
-        flow_methods = _get_modified_flow(
-            flow_functions=self.get_flow(),
-            step_start=step,
-            step_start_inclusive=False,  # self.step will not be executed
-        )
 
-        for method in flow_methods:
-            method()
+        # Used by `execute_analysis_steps` to stop
+        self._interrupt_before = interrupt_before
 
-    @property
-    def analysis_steps(self) -> AnalysisSteps:
-        """
-        Returns an Enum subclass that defines the steps of the analysis.
+        run_params = dict(inspect.signature(self.run).parameters)
+        run_params.update(kwargs)
 
-        Can be overloaded in a subclass in order to define a custom analysis flow.
-        """
-        return AnalysisSteps
+        return self.run(**run_params)
 
     def get_flow(self) -> tuple:
         """
@@ -245,13 +304,13 @@ class BaseAnalysis(ABC):
 
     def extract_data(self):
         """
-        Populates `self.dataset_raw` with data from the experiment matching the tuid/label.
+        Populates `.dataset_raw` with data from the experiment matching the tuid/label.
 
         This method should be overwritten if an analysis does not relate to a single
         datafile.
         """
 
-        # if no TUID is specified use the label to search for the latest file with a match.
+        # if no TUID use the label to search for the latest file with a match.
         if self.tuid is None:
             self.tuid = get_latest_tuid(contains=self.label)
 
@@ -265,9 +324,6 @@ class BaseAnalysis(ABC):
         This method can be used to process, e.g., reshape, filter etc. the data
         before starting the analysis. By default this method is empty (pass).
         """
-
-    def prepare_fitting(self):
-        pass
 
     def run_fitting(self):
         pass
@@ -308,7 +364,8 @@ class BaseAnalysis(ABC):
 
     def save_processed_dataset(self):
         """
-        Saves a copy of the (processed) self.dataset in the analysis folder of the experiment.
+        Saves a copy of the (processed) `.dataset` in the analysis folder of the
+        experiment.
         """
 
         # if statement exist to be compatible with child classes that do not load data
@@ -368,7 +425,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         ymin
-            The bottom ylim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom ylim in data coordinates. Passing :code:`None` leaves the
+            limit unchanged.
         ymax
             The top ylim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -395,7 +453,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         xmin
-            The bottom xlim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom xlim in data coordinates. Passing :code:`None` leaves the limit
+            unchanged.
         xmax
             The top xlim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -422,7 +481,8 @@ class BaseAnalysis(ABC):
         Parameters
         ----------
         vmin
-            The bottom vlim in data coordinates. Passing None leaves the limit unchanged.
+            The bottom vlim in data coordinates. Passing :code:`None` leaves the limit
+            unchanged.
         vmax
             The top vlim in data coordinates. Passing None leaves the limit unchanged.
         ax_ids
@@ -457,8 +517,8 @@ class Basic1DAnalysis(BaseAnalysis):
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
         dataset = self.dataset_raw
-        # for compatibility with older datasets, in case "x0" is not a coordinate
-        # we use "dim_0"
+        # for compatibility with older datasets
+        # in case "x0" is not a coordinate we use "dim_0"
         coords = tuple(dataset.coords)
         dims = tuple(dataset.dims)
         plot_against = coords[0] if coords else (dims[0] if dims else None)
@@ -519,7 +579,8 @@ class Basic2DAnalysis(BaseAnalysis):
             fig_id = f"Linecuts x0x1-{yi}"
 
             lines = yvals.plot.line(x="x0", hue="x1", ax=ax)
-            # Change the color and labels of the line as we want to tweak this with respect to xarray default.
+            # Change the color and labels of the line as we want to tweak this with
+            # respect to xarray default.
             for line, z_value in zip(lines, np.array(gridded_dataset["x1"])):
                 # use the default colormap specified
                 cmap = matplotlib.cm.get_cmap()
@@ -553,7 +614,8 @@ class Basic2DAnalysis(BaseAnalysis):
 
 def flatten_lmfit_modelresult(model):
     """
-    Flatten an lmfit model result to a dictionary in order to be able to save it to disk.
+    Flatten an lmfit model result to a dictionary in order to be able to save it
+    to disk.
 
     Notes
     -----
@@ -576,6 +638,32 @@ def flatten_lmfit_modelresult(model):
     return dic
 
 
+def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
+    """
+    Safe conversion of an :class:`lmfit.parameter.Parameter` to
+    :code:`uncertainties.ufloat(value, std_dev)`.
+
+    This function is intended to be used in custom analyses to avoid errors when an
+    `lmfit` fails and the `stderr` is :code:`None`.
+
+    Parameters
+    ----------
+
+    param:
+        The :class:`~lmfit.parameter.Parameter` to be converted
+
+    Returns
+    -------
+    :class:`!uncertainties.UFloat` :
+        An object representing the value and the uncertainty of the parameter.
+    """
+
+    value = param.value
+    stderr = np.nan if param.stderr is None else param.stderr
+
+    return ufloat(value, stderr)
+
+
 def analysis_steps_to_str(
     analysis_steps: Enum, class_name: str = BaseAnalysis.__name__
 ):
@@ -591,8 +679,8 @@ def analysis_steps_to_str(
     col0_len += len(analysis_steps.__name__) + 1
 
     string = f"{header_r:<{col0_len}}{sep}{header_l}\n\n"
-    string += "\n".join(
-        f"{analysis_steps.__name__+ '.' + name:<{col0_len}}{sep}{class_name + '.' + value}"
+    string += "\n".join(  # NB the `+ '.' +` is not redundant
+        f"{analysis_steps.__name__ + '.' + name:<{col0_len}}{sep}{class_name}.{value}"
         for name, value in zip(col0, col1)
     )
 
@@ -601,22 +689,26 @@ def analysis_steps_to_str(
 
 def _get_modified_flow(
     flow_functions: tuple,
-    step_start: AnalysisSteps = None,
+    step_start: Union[str, AnalysisSteps] = None,
     step_start_inclusive: bool = True,
-    step_stop: AnalysisSteps = None,
+    step_stop: Union[str, AnalysisSteps] = None,
     step_stop_inclusive: bool = True,
 ):
     step_names = [meth.__name__ for meth in flow_functions]
 
     if step_start:
-        start_idx = step_names.index(step_start.value)
+        if not issubclass(type(step_start), str):
+            step_start = step_start.value
+        start_idx = step_names.index(step_start)
         if not step_start_inclusive:
             start_idx += 1
     else:
         start_idx = 0
 
     if step_stop:
-        stop_idx = step_names.index(step_stop.value)
+        if not issubclass(type(step_stop), str):
+            step_stop = step_stop.value
+        stop_idx = step_names.index(step_stop)
         if step_stop_inclusive:
             stop_idx += 1
     else:
