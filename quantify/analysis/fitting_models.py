@@ -3,8 +3,8 @@
 """Models and fit functions to be used with the lmfit fitting framework."""
 from __future__ import annotations
 
-import numpy as np
 from typing import Tuple
+import numpy as np
 import lmfit
 
 
@@ -55,7 +55,12 @@ def get_guess_common_doc() -> str:
     )
 
 
-def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> str:
+def mk_seealso(
+    function_name: str,
+    role: str = "func",
+    prefix: str = "\n\n",
+    module_location: str = ".",
+) -> str:
     """
     Returns a sphinx `seealso` pointing to a function.
 
@@ -77,15 +82,20 @@ def mk_seealso(function_name: str, role: str = "func", prefix: str = "\n\n") -> 
         a sphinx role, e.g. :code:`"func"`
     prefix
         string preceding the `seealso`
+    module_location
+        can be used to indicate a function outside this module, e.g.,
+        :code:`my_module.submodule` which contains the function.
 
     Returns
     -------
     :
         resulting string
     """
-    return f"{prefix}.. seealso:: :{role}:`~.{function_name}`\n"
+    return f"{prefix}.. seealso:: :{role}:`~{module_location}{function_name}`\n"
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=invalid-name
 def hanger_func_complex_SI(
     f: float,
     fr: float,
@@ -176,8 +186,8 @@ def cos_func(
     ----------
     x:
         The independent variable (time, for example)
-    frequncy:
-        A generalised frequency (in units of inverse x)
+    frequency:
+        A generalized frequency (in units of inverse x)
     amplitude:
         Amplitude of the oscillation
     offset:
@@ -192,7 +202,7 @@ def cos_func(
 
     .. math::
 
-        y = A\\cos(2\\pi ft + \\phi) + c
+        y = A\cos(2\pi ft + \phi) + c
     """
 
     return amplitude * np.cos(2 * np.pi * frequency * x + phase) + offset
@@ -215,9 +225,9 @@ def exp_decay_func(
     tau:
         decay time
     amplitude:
-        The asymptote of the exponential decay, the value at t=infty
+        asymptote of the exponential decay, the value at t=infinity
     offset:
-        The amplitude or starting value of the exponential decay
+        amplitude or starting value of the exponential decay
     n_factor:
         exponential decay factor
 
@@ -228,7 +238,7 @@ def exp_decay_func(
 
     .. math::
 
-    y = \\mathrm{amplitude} * \\exp(-(t/\\tau)^n) + \\mathrm{offset}
+        y = \mathrm{amplitude} * \exp(-(t/\tau)^n) + \mathrm{offset}
     """
     return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
 
@@ -255,13 +265,12 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qi", expr="1./(1./Ql-1./Qe*cos(theta))", vary=False)
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
-    def guess(self, data, **kwargs):
-        params = self.make_params()
-
-        if kwargs.get("f", None) is None:
+    # pylint: disable=too-many-locals
+    def guess(self, data, **kwargs) -> lmfit.parameter.Parameters:
+        f = kwargs.get("f", None)
+        if f is None:
             return None
 
-        f = kwargs["f"]
         argmin_s21 = np.abs(data).argmin()
         fmin = f.min()
         fmax = f.max()
@@ -307,10 +316,7 @@ class ExpDecayModel(lmfit.model.Model):
     # pylint: disable=abstract-method
     # pylint: disable=too-few-public-methods
 
-    __doc__ = "T1 model\n\n" + get_model_common_doc()
-
     def __init__(self, *args, **kwargs):
-        """"""  # Avoid including Model.__init__ docstring
         # pass in the defining equation so the user doesn't have to later.
 
         super().__init__(exp_decay_func, *args, **kwargs)
@@ -320,17 +326,11 @@ class ExpDecayModel(lmfit.model.Model):
         self.set_param_hint("offset", vary=True)
         self.set_param_hint("n_factor", expr="1", vary=False)
 
-    def guess(self, data, **kwargs):
-        """
-        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
-        """
+    def guess(self, data, **kwargs) -> lmfit.parameter.Parameters:
+        delay = kwargs.get("delay", None)
 
-        params = self.make_params()
-
-        if kwargs.get("delay", None) is None:
+        if delay is None:
             return None
-
-        delay = kwargs["delay"]
 
         # To guess the upper amplitude and offset,
         # use the first and last values of the data
@@ -345,11 +345,15 @@ class ExpDecayModel(lmfit.model.Model):
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
+    # Same design patter is used in lmfit.models
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("exp_decay_func")
+    guess.__doc__ = get_guess_common_doc()
+
 
 class RabiModel(lmfit.model.Model):
     """
-    Model for a Rabi oscillation as a function of mw drive amplitude
-    Phase of oscillation is fixed at pi in order to ensure that the oscillation
+    Model for a Rabi oscillation as a function of the microwave drive amplitude.
+    Phase of oscillation is fixed at :math:`pi` in order to ensure that the oscillation
     is at a minimum when the drive amplitude is 0.
     """
 
@@ -357,10 +361,7 @@ class RabiModel(lmfit.model.Model):
     # pylint: disable=abstract-method
     # pylint: disable=too-few-public-methods
 
-    __doc__ = "Rabi model\n\n" + get_model_common_doc()
-
     def __init__(self, *args, **kwargs):
-        """Initialise model and parameter hints"""
         # pass in the defining equation so the user doesn't have to later.
         super().__init__(cos_func, *args, **kwargs)
 
@@ -375,26 +376,8 @@ class RabiModel(lmfit.model.Model):
         # Pi-pulse amplitude can be derived from the oscillation frequency
         self.set_param_hint("amp180", expr="1/(2*frequency)", vary=False)
 
-    def guess(self, data, **kwargs):
-        """
-        Generate a guess for the for the parameters of the cosine function
-
-        For details on input parameters see :meth:`~lmfit.model.Model.guess`.
-
-        Parameters
-        ----------
-        data:
-            measured signal
-        drive_amp:
-            qubit drive amplitude
-
-        Returns:
-        ----------
-        params:
-            lmfit parameters object
-
-        """
-        drive_amp = kwargs["drive_amp"]
+    def guess(self, data, **kwargs) -> lmfit.parameter.Parameters:
+        drive_amp = kwargs.get("drive_amp", None)
         if drive_amp is None:
             return None
 
@@ -410,8 +393,12 @@ class RabiModel(lmfit.model.Model):
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kwargs)
 
+    # Same design patter is used in lmfit.models
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("cos_func")
+    guess.__doc__ = get_guess_common_doc()
 
-def resonator_phase_guess(s21, freq):
+
+def resonator_phase_guess(s21: np.ndarray, freq: np.ndarray) -> Tuple[float, float]:
     """
     Guesses the phase velocity in resonator spectroscopy,
     based on the median of all the differences between consecutive phases
@@ -427,7 +414,7 @@ def resonator_phase_guess(s21, freq):
     -----------
     phi_0:
         Guess for the phase offset
-    ph_guess:
+    phi_v:
         Guess for the phase velocity
     """
     phase = np.angle(s21)
@@ -442,7 +429,7 @@ def resonator_phase_guess(s21, freq):
     return phi_0, phi_v
 
 
-def fft_freq_phase_guess(data: np.array, t: np.array) -> Tuple[float]:
+def fft_freq_phase_guess(data: np.ndarray, t: np.ndarray) -> Tuple[float, float]:
     """
     Guess for a cosine fit using FFT, only works for evenly spaced points
 
