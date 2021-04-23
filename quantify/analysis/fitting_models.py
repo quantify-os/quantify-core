@@ -301,7 +301,7 @@ class ResonatorModel(lmfit.model.Model):
 class ExpDecayModel(lmfit.model.Model):
     """
     Model for an exponential decay, such as a qubit T1 measurement.
-    """  # Avoid including Model docstring
+    """
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
@@ -351,15 +351,16 @@ class RabiModel(lmfit.model.Model):
     Model for a Rabi oscillation as a function of mw drive amplitude
     Phase of oscillation is fixed at pi in order to ensure that the oscillation
     is at a minimum when the drive amplitude is 0.
-    """  # Avoid including Model docstring
+    """
 
     # pylint: disable=empty-docstring
     # pylint: disable=abstract-method
+    # pylint: disable=too-few-public-methods
 
     __doc__ = "Rabi model\n\n" + get_model_common_doc()
 
     def __init__(self, *args, **kwargs):
-        """"""  # Avoid including Model.__init__ docstring
+        """Initialise model and parameter hints"""
         # pass in the defining equation so the user doesn't have to later.
         super().__init__(cos_func, *args, **kwargs)
 
@@ -376,7 +377,22 @@ class RabiModel(lmfit.model.Model):
 
     def guess(self, data, **kwargs):
         """
+        Generate a guess for the for the parameters of the cosine function
+
         For details on input parameters see :meth:`~lmfit.model.Model.guess`.
+
+        Parameters
+        ----------
+        data:
+            measured signal
+        drive_amp:
+            qubit drive amplitude
+
+        Returns:
+        ----------
+        params:
+            lmfit parameters object
+
         """
         drive_amp = kwargs["drive_amp"]
         if drive_amp is None:
