@@ -1,9 +1,10 @@
 """Tests for analysis fitting models"""
+from pytest import approx
+import numpy as np
+
 import quantify.data.handling as dh
 from quantify.analysis import fitting_models as fm
 from quantify.utilities._tests_helpers import get_test_data_dir
-import numpy as np
-from pytest import approx
 
 
 def test_resonator_phase_guess():
@@ -26,8 +27,8 @@ def test_resonator_phase_guess():
         )
         (_, phi_v) = fm.resonator_phase_guess(s21, freq)
 
-        # We allow a certain tolerance on the accuracy of the guess, as this is only an intial input
-        # for our fit
+        # We allow a certain tolerance on the accuracy of the guess, as this is only an
+        # initial input for our fit
         guess_tolerance = 0.3
 
         assert phi_v == approx(real_phi_vs[idx], rel=guess_tolerance)
@@ -48,8 +49,8 @@ def test_fft_freq_phase_guess():
         magnitude = dataset["y0"]
         (freq_guess, _) = fm.fft_freq_phase_guess(magnitude, time)
 
-        # We allow a certain tolerance on the accuracy of the guess, as this is only an intial input
-        # for our fit
+        # We allow a certain tolerance on the accuracy of the guess, as this is only an
+        # initial input for our fit
         guess_tolerance = 0.3
 
         assert freq_guess == approx(real_freqs[idx], rel=guess_tolerance)

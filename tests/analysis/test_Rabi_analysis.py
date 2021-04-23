@@ -3,7 +3,7 @@ from pathlib import Path
 from pytest import approx
 from uncertainties.core import Variable
 import quantify.data.handling as dh
-from quantify.analysis import Rabi_analysis as Ra
+from quantify.analysis import rabi_analysis as ra
 from quantify.utilities._tests_helpers import get_test_data_dir
 
 
@@ -16,7 +16,7 @@ class TestRabiAnalysis:
         dh.set_datadir(get_test_data_dir())
 
         cls.tuids = "20210419-153127-883-fa4508"
-        cls.a_objs = Ra.RabiAnalysis(tuid=cls.tuids)
+        cls.a_objs = ra.RabiAnalysis(tuid=cls.tuids)
         cls.values = {"Pi-pulse amp": 498.8e-3}
 
     def test_raw_data_not_in_processed_dataset(self):
