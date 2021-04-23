@@ -262,6 +262,7 @@ class ResonatorModel(lmfit.model.Model):
         self.set_param_hint("Qc", expr="Qe/cos(theta)", vary=False)
 
     # pylint: disable=too-many-locals
+    # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
         f = kws.get("f", None)
         if f is None:
@@ -322,6 +323,7 @@ class ExpDecayModel(lmfit.model.Model):
         self.set_param_hint("offset", vary=True)
         self.set_param_hint("n_factor", expr="1", vary=False)
 
+    # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
         delay = kws.get("delay", None)
 
@@ -372,6 +374,7 @@ class RabiModel(lmfit.model.Model):
         # Pi-pulse amplitude can be derived from the oscillation frequency
         self.set_param_hint("amp180", expr="1/(2*frequency)", vary=False)
 
+    # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
         drive_amp = kws.get("drive_amp", None)
         if drive_amp is None:
