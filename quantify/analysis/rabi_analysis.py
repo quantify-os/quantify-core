@@ -3,7 +3,6 @@
 """Analysis module for a Rabi Oscillation experiment"""
 import numpy as np
 import matplotlib.pyplot as plt
-from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
@@ -45,8 +44,8 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.fit_res.update({"Rabi_oscillation": fit_res})
 
         fpars = fit_res.params
-        self.quantities_of_interest["Pi-pulse amp"] = ufloat(
-            fpars["amp180"].value, fpars["amp180"].stderr
+        self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
+            fpars["amp180"]
         )
 
         text_msg = "Summary\n"

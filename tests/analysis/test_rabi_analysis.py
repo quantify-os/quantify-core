@@ -1,3 +1,6 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
 """Tests for Rabi analysis module"""
 from pathlib import Path
 from pytest import approx
@@ -16,7 +19,7 @@ class TestRabiAnalysis:
         dh.set_datadir(get_test_data_dir())
 
         cls.tuids = "20210419-153127-883-fa4508"
-        cls.a_objs = ra.RabiAnalysis(tuid=cls.tuids)
+        cls.a_objs = ra.RabiAnalysis(tuid=cls.tuids).run()
         cls.values = {"Pi-pulse amp": 498.8e-3}
 
     def test_raw_data_not_in_processed_dataset(self):
