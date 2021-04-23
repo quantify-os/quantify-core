@@ -27,11 +27,16 @@ spectroscopy_analysis
 .. automodule:: quantify.analysis.spectroscopy_analysis
     :members:
 
-
 t1_analysis
 -----------
 
 .. automodule:: quantify.analysis.t1_analysis
+    :members:
+
+rabi_analysis
+-------------
+
+.. automodule:: quantify.analysis.rabi_analysis
     :members:
 
 fitting_models
