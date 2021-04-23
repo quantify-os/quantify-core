@@ -1,15 +1,15 @@
 .. _adaptive_tutorial:
 
-Tutorial 3. Adaptive Measurements
+Tutorial 4. Adaptive Measurements
 ==================================
 
 .. seealso::
 
     The complete source code of this tutorial can be found in
 
-    :jupyter-download:notebook:`Tutorial 3. Adaptive Measurements`
+    :jupyter-download:notebook:`Tutorial 4. Adaptive Measurements`
 
-    :jupyter-download:script:`Tutorial 3. Adaptive Measurements`
+    :jupyter-download:script:`Tutorial 4. Adaptive Measurements`
 
 
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`usage`. If you have some difficulties following the tutorial it might be worth reviewing the *User guide*!

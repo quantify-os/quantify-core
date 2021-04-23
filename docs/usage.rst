@@ -88,7 +88,7 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 
 - Enforce standardization of experiments
 - Standardized data storage
-- :ref:`Live plotting of the experiment <tutorial_plotmon>`
+- :ref:`Live plotting of the experiment <plotmon_tutorial>`
 - n-dimensional sweeps
 - Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
@@ -402,16 +402,31 @@ The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` us
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
+TODO:
+=====
+
+- exists
+- should be used
+- an extensible toolbox is provided
+- fitting models
+- how to build a custom analysis?
+
 Analysis framework
 ==================
 
-To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
+To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
 
 The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
-The order of these steps is defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an `Enumerate <:class:Enum>`_ (:class:`~quantify.analysis.base_analysis.AnalysisSteps`) and the different steps are implemented as methods of the analysis class.
-An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to that analysis.
+These steps and their order of execution is determined by the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an :class:`~enum.Enum` (:class:`~quantify.analysis.base_analysis.AnalysisSteps`). The corresponding steps are implemented as methods of the analysis class.
+An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to the custom analysis. Additionally, if required, a customized analysis flow can be specified by assigning it to the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute.
 
-The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures (take a look at the source code in the API reference).
+The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures. Take a look at the source code (also available in the API reference):
+
+.. admonition:: Basic1DAnalysis source code
+    :class: dropdown, note
+
+        .. literalinclude:: ../quantify/analysis/base_analysis.py
+            :pyobject: Basic1DAnalysis
 
 A slightly more complex example is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model from the :mod:`~quantify.analysis.fitting_models` module, and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
 
@@ -420,20 +435,21 @@ Using existing analysis classes
 -------------------------------
 
 To be written.
+
 Example where we show how to use an analysis class
-- run a basic experiment.
-- run analysis and find file using label or tuid.
+
+- run a basic experiment (collapsed).
+- run analysis and find file using label or tuid, show file written to the disk.
 - show plots using method.
-- hint there are a few more methods.
-- show how to extract some quantities.
+- hint there are a few more handy methods.
+- show how to extract some quantities (which quantities exactly ???).
+- analysis global/per instance (where to mention this ???)
 
 
 Creating a new analysis class
 -----------------------------
 
-To be written.
-
-
+- Point to the tutorial(s)
 
 
 Examples: Settables and Gettables
