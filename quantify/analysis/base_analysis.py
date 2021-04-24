@@ -686,7 +686,7 @@ def check_lmfit(fit_res: lmfit.ModelResult):
 
     if fit_res.errorbars is False:
         fit_warning = (
-            "lmfit could not find a good fit. " "Fitted parameters may not be accurate."
+            "lmfit could not find a good fit. Fitted parameters may not be accurate."
         )
         warnings.warn(fit_warning)
         return "Warning: " + fit_warning
