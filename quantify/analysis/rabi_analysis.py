@@ -91,7 +91,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         qpl.plot_fit(
             ax=axs,
             fit_res=self.fit_res["Rabi_oscillation"],
-            plot_init=False,
+            plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )
 
