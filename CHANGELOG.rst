@@ -19,6 +19,7 @@ Merged branches and closed issues
 * Add uncertainties support to format_value_string (!151)
 * Current analysis flow control interrupt_before interface requires UX improvements (#183, !158)
 * Define how to pass optional arguments for analysis subclasses (#184, !158)
+* Rabi analysis (!159)
 
 
 0.3.2 (2021-03-17)
