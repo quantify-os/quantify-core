@@ -672,11 +672,11 @@ def check_lmfit(fit_res: lmfit.ModelResult):
 
     Parameters
     -----------
-        fit_res: The :class:`~lmfit.ModelResult` object output by `lmfit`
+        fit_res: The :class:`~lmfit.model.ModelResult` object output by `lmfit`
 
     Returns
     -----------
-    string:
+    str:
         a warning message if there is a problem with the fit
     """
     if fit_res.success is False:
