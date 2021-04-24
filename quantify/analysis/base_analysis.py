@@ -12,6 +12,7 @@ from enum import Enum
 from pathlib import Path
 import logging
 import inspect
+import warnings
 
 from IPython.display import display
 import numpy as np
@@ -659,6 +660,14 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     stderr = np.nan if param.stderr is None else param.stderr
 
     return ufloat(value, stderr)
+
+
+# def check_lmfit(fit_res: lmfit.ModelResult):
+#     if fit_res.success is False:
+#         fit_warning = "fit failed. lmfit could not find a good fit"
+#         warnings.warn(fit_warning)
+#         return "Warning: " + fit_warning
+#     if
 
 
 def analysis_steps_to_str(

@@ -73,7 +73,7 @@ class TestRabiBadFit:
         """Setup test objects and check that the correct warning is given"""
         dh.set_datadir(get_test_data_dir())
 
-        cls.tuids = "20210424-001906-948-56939b"
+        cls.tuids = "20210424-184905-628-4400f3"
         with warns(
             UserWarning,
             match="lmfit could not find a good fit."
