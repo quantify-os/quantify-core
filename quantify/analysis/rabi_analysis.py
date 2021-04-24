@@ -39,6 +39,8 @@ class RabiAnalysis(ba.BaseAnalysis):
         guess = mod.guess(magnitude, drive_amp=drive_amp)
         fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
 
+        fit_warning = ba.check_lmfit(fit_res)
+
         self.fit_res.update({"Rabi_oscillation": fit_res})
 
         fpars = fit_res.params
@@ -46,19 +48,28 @@ class RabiAnalysis(ba.BaseAnalysis):
             fpars["amp180"]
         )
 
-        text_msg = "Summary\n"
-        text_msg += format_value_string(
-            "Pi-pulse amplitude", fit_res.params["amp180"], unit="V", end_char="\n"
-        )
-        text_msg += format_value_string(
-            "Oscillation amplitude",
-            fit_res.params["amplitude"],
-            unit="V",
-            end_char="\n",
-        )
-        text_msg += format_value_string(
-            "Offset", fit_res.params["offset"], unit="V", end_char="\n"
-        )
+        # If there is a problem with the fit, display an error message in the text box.
+        # Otherwise, display the parameters as normal.
+        if fit_warning is None:
+            self.quantities_of_interest["fit_success"] = True
+
+            text_msg = "Summary\n"
+            text_msg += format_value_string(
+                "Pi-pulse amplitude", fit_res.params["amp180"], unit="V", end_char="\n"
+            )
+            text_msg += format_value_string(
+                "Oscillation amplitude",
+                fit_res.params["amplitude"],
+                unit="V",
+                end_char="\n",
+            )
+            text_msg += format_value_string(
+                "Offset", fit_res.params["offset"], unit="V", end_char="\n"
+            )
+        else:
+            text_msg = fit_warning
+            self.quantities_of_interest["fit_success"] = False
+
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):

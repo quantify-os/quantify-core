@@ -662,12 +662,36 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     return ufloat(value, stderr)
 
 
-# def check_lmfit(fit_res: lmfit.ModelResult):
-#     if fit_res.success is False:
-#         fit_warning = "fit failed. lmfit could not find a good fit"
-#         warnings.warn(fit_warning)
-#         return "Warning: " + fit_warning
-#     if
+def check_lmfit(fit_res: lmfit.ModelResult):
+    """
+    Check that `lmfit` was able to successfully return a valid fit, and give
+    a warning if not.
+
+    The function looks at `lmfit`'s success parameter, and also checks whether
+    the fit was able to obtain valid error bars on the fitted parameters.
+
+    Parameters
+    -----------
+        fit_res: The :class:`~lmfit.ModelResult` object output by `lmfit`
+
+    Returns
+    -----------
+    string:
+        a warning message if there is a problem with the fit
+    """
+    if fit_res.success is False:
+        fit_warning = "fit failed. lmfit was not able to fit the data."
+        warnings.warn(fit_warning)
+        return "Warning: " + fit_warning
+
+    if fit_res.errorbars is False:
+        fit_warning = (
+            "lmfit could not find a good fit. " "Fitted parameters may not be accurate."
+        )
+        warnings.warn(fit_warning)
+        return "Warning: " + fit_warning
+
+    return None
 
 
 def analysis_steps_to_str(

@@ -73,11 +73,11 @@ class TestRabiBadFit:
         """Setup test objects and check that the correct warning is given"""
         dh.set_datadir(get_test_data_dir())
 
-        cls.tuids = "20210424-184905-628-4400f3"
+        cls.tuids = "20210424-191802-994-f16eb3"
         with warns(
             UserWarning,
             match="lmfit could not find a good fit."
-            " Fitted parameters may not be accurate",
+            " Fitted parameters may not be accurate.",
         ):
             cls.a_objs = ra.RabiAnalysis(tuid=cls.tuids).run()
 
@@ -115,5 +115,5 @@ class TestRabiBadFit:
         assert (
             a_obj.quantities_of_interest["fit_msg"]
             == "Warning: lmfit could not find a "
-            "good fit. Fitted parameters may not be accurate"
+            "good fit. Fitted parameters may not be accurate."
         )
