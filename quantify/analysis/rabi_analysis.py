@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Analysis module for a Rabi Oscillation experiment"""
+from textwrap import wrap
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -40,6 +41,10 @@ class RabiAnalysis(ba.BaseAnalysis):
         fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
 
         fit_warning = ba.check_lmfit(fit_res)
+        if fit_warning is not None:
+            fit_warning = "\n".join(
+                wrap(fit_warning, width=35, replace_whitespace=True)
+            )
 
         self.fit_res.update({"Rabi_oscillation": fit_res})
 

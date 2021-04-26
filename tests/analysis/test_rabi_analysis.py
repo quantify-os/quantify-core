@@ -114,6 +114,6 @@ class TestRabiBadFit:
         assert a_obj.quantities_of_interest["fit_success"] is False
         assert (
             a_obj.quantities_of_interest["fit_msg"]
-            == "Warning: lmfit could not find a "
-            "good fit. Fitted parameters may not be accurate."
+            == "Warning: lmfit could not find a\n"
+            "good fit. Fitted parameters may not\nbe accurate."
         )
