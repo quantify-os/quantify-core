@@ -84,8 +84,8 @@ class AnalysisSteps(Enum):
         :obj:`~BaseAnalysis.analysis_steps`.
     """  # pylint: disable=line-too-long
 
-    # Variables must start with a letter but we want them have sorted names
-    # for auto-complete
+    # Variables must start with a letter but we want them to have sorted names
+    # for auto-complete to indicate the execution order
     STEP_0_EXTRACT_DATA = "extract_data"
     STEP_1_PROCESS_DATA = "process_data"
     STEP_2_RUN_FITTING = "run_fitting"
@@ -146,6 +146,7 @@ class BaseAnalysis(ABC):
             `base_analysis.settings` for this specific instance.
             See table below for available settings.
 
+        .. rubric:: Settings schema
 
         .. jsonschema:: schemas/AnalysisSettings.json#/configurations
         """
@@ -171,10 +172,12 @@ class BaseAnalysis(ABC):
 
         self._interrupt_before = None
 
-    # Defines the steps of the analysis specified as an Enum.
-    # Can be overloaded in a subclass in order to define a custom analysis flow.
-    # See `AnalysisSteps` for a template.
     analysis_steps = AnalysisSteps
+    """
+    Defines the steps of the analysis specified as an :class:`~enum.Enum`.
+    Can be overloaded in a subclass in order to define a custom analysis flow.
+    See :class:`~quantify.analysis.base_analysis.AnalysisSteps` for a template.
+    """
 
     @property
     def name(self):
