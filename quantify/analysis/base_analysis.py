@@ -111,7 +111,6 @@ class BaseAnalysis(ABC):
         dataset_raw: xr.Dataset = None,
         tuid: str = None,
         label: str = "",
-        interrupt_before: AnalysisSteps = None,
         settings_overwrite: dict = None,
     ):
         """
@@ -363,14 +362,12 @@ class BaseAnalysis(ABC):
         This method can be used to process, e.g., reshape, filter etc. the data
         before starting the analysis. By default this method is empty (pass).
         """
-        pass
 
     def run_fitting(self):
         """
         Used to fit data to a model. Overwrite this method in a child class if this
         step is required for you analysis.
         """
-        pass
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_res) > 0:
