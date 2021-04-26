@@ -334,30 +334,27 @@ class BaseAnalysis(ABC):
                 raise AttributeError('Invalid dataset, missing the "tuid" attribute')
 
             self.tuid = TUID(self.dataset_raw.attrs["tuid"])
+            # an experiment container is required to store output of the analysis.
+            # it is possible for this not to exist for a custom dataset as it can
+            # come from a source outside of the data directory.
+            try:
+                locate_experiment_container(self.tuid)
+            except FileNotFoundError:
+                # if the file did not exist, an experiment folder is created
+                # and a copy of the dataset_raw is stored there.
+                exp_folder = create_exp_folder(
+                    tuid=self.tuid, name=self.dataset_raw.name
+                )
+                write_dataset(
+                    path=os.path.join(exp_folder, DATASET_NAME),
+                    dataset=self.dataset_raw,
+                )
 
         if self.dataset_raw is None:
-
             # if no TUID is specified use the label to search for the latest file with
             # a match.
             if self.tuid is None:
                 self.tuid = get_latest_tuid(contains=self.label)
-
-                # an experiment container is required to store output of the analysis.
-                # it is possible for this not to exist for a custom dataset as it can
-                # come from a source outside of the data directory.
-                try:
-                    locate_experiment_container(self.tuid)
-                except FileNotFoundError:
-                    # if the file did not exist, an experiment folder is created
-                    # and a copy of the dataset_raw is stored there.
-                    exp_folder = create_exp_folder(
-                        tuid=self.tuid, name=self.dataset_raw.name
-                    )
-                    write_dataset(
-                        path=os.path.join(exp_folder, DATASET_NAME),
-                        dataset=self.dataset_raw,
-                    )
-
             # Keep a reference to the original dataset.
             self.dataset_raw = load_dataset(tuid=self.tuid)
 

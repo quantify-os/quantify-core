@@ -311,10 +311,8 @@ def test_dataset_input_invalid():
     dset = dset.set_coords(["x0"])
     # no TUID attribute present
 
-    # the Attribute Error is wrapped in a RuntimeError by the analysis.
-    # this wrapping will be removed with issue #183
-    with pytest.raises(RuntimeError):
-        ba.Basic1DAnalysis(dataset_raw=dset)
+    with pytest.raises(AttributeError):
+        ba.Basic1DAnalysis(dataset_raw=dset).run()
 
 
 def test_dataset_input():
@@ -334,10 +332,10 @@ def test_dataset_input():
     )
     dset = dset.set_coords(["x0"])
 
-    # no TUID attribute present
+    # execute analysis with dataset as input argument
     a_obj = ba.Basic1DAnalysis(
         dataset_raw=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
-    )
+    ).run()
 
     assert a_obj.dataset_raw == dset
 
