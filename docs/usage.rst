@@ -57,7 +57,7 @@ A parameter represents a state variable of the system.
     - A parameter can be get and/or set able.
     - Contains metadata such as units and labels.
     - Commonly implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class.
-    - A parameter implmemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
+    - A parameter implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
 
 Instrument
 -----------------
@@ -88,7 +88,7 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 
 - Enforce standardization of experiments
 - Standardized data storage
-- Live plotting of the experiment
+- :ref:`Live plotting of the experiment <tutorial_plotmon>`
 - n-dimensional sweeps
 - Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
@@ -106,7 +106,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     :hide-code:
 
     mw_source1 = Instrument("mw_source1")
-    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
     mw_source1.freq = ManualParameter(
         name='freq',
         label='Frequency',
@@ -116,7 +116,7 @@ In the example below we want to set frequencies on a microwave source and acquir
     )
 
     pulsar_QRM = Instrument("pulsar_QRM")
-    # NB: for brevity only, this not the proper way of adding parameters to qcodes intruments
+    # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
     pulsar_QRM.signal = Parameter(
         name='sig_a',
         label='Signal',
@@ -152,7 +152,7 @@ The size of these batches is automatically calculated but usually dependent on r
 
 Control mode is detected automatically based on the `.batched` attribute of the settable(s) and gettable(s); this is expanded upon in subsequent sections.
 
-.. note:: All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g., `settable_A.batched=True`, `settable_B.batched=False`).
+.. note:: All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g. `settable_A.batched=True`, `settable_B.batched=False`).
 
 
 Settables and Gettables
@@ -200,7 +200,10 @@ In addition to using a library which fits these contracts (such as the :class:`~
 
     .. jupyter-execute::
 
-        t = ManualParameter('time', label='Time', unit='s')
+        t = ManualParameter(
+            'time', label='Time', unit='s',
+            vals=validators.Numbers() # accepts a single number, e.g. a float or integer
+        )
 
         class DualWave:
             def __init__(self):
@@ -233,8 +236,14 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
         .. jupyter-execute::
 
-            time = ManualParameter(name='time', label='Time', unit='s', vals=validators.Arrays(), initial_value=np.array([1, 2, 3]))
-            signal = Parameter(name='sig_a', label='Signal', unit='V', get_cmd=lambda: np.cos(time()))
+            time = ManualParameter(
+                name='time', label='Time', unit='s',
+                vals=validators.Arrays() # accepts an array of values
+            )
+            signal = Parameter(
+                name='sig_a', label='Signal', unit='V',
+                get_cmd=lambda: np.cos(time())
+            )
 
             time.batched = True
             time.batch_size = 5
@@ -288,7 +297,7 @@ Data Directory
 The top level directory in the file system where output is saved to.
 This directory can be controlled using the :meth:`~quantify.data.handling.get_datadir` and :meth:`~quantify.data.handling.set_datadir` functions.
 
-We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., *D:\\Data*).
+We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:\Data*).
 
 Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
 
@@ -393,42 +402,8 @@ The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` us
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
-Analysis
-========
-
-To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
-
-The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
-The order of these steps is defined in the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an Enumerate (:class:`~quantify.analysis.base_analysis.AnalysisSteps`) and the different steps are implemented as methods of the analysis class.
-An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to that analysis.
-
-The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures (take a look at the source code in the API reference).
-
-A slightly more complex example is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model from the :mod:`~quantify.analysis.fitting_models` module, and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
-
-
-Using existing analysis classes
--------------------------------
-
-To be written.
-Example where we show how to use an analysis class
-- run a basic experiment.
-- run analysis and find file using label or tuid.
-- show plots using method.
-- hint there are a few more methods.
-- show how to extract some quantities.
-
-
-Creating a new analysis class
------------------------------
-
-To be written.
-
-
-
-
-Examples: Settables and Gettables
-=================================
+Examples
+==================================
 Below we give several examples of experiment using Settables and Gettables in different control modes.
 
 

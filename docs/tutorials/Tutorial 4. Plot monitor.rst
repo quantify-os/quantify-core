@@ -1,3 +1,5 @@
+.. _tutorial_plotmon:
+
 Tutorial 4. Plot monitor
 =====================================================================
 
@@ -34,7 +36,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
 
 
 QCoDeS drivers for our instruments
------------------------------------
+----------------------------------
 
 .. jupyter-execute::
 
@@ -42,9 +44,9 @@ QCoDeS drivers for our instruments
         def __init__(self, name: str):
             super().__init__(name=name)
 
-            self.add_parameter( name="amp_0", unit="A", parameter_class=ManualParameter, initial_value=0)
-            self.add_parameter( name="amp_1", unit="A", parameter_class=ManualParameter, initial_value=0)
-            self.add_parameter( name="offset", unit="A", parameter_class=ManualParameter, initial_value=0)
+            self.add_parameter(name="amp_0", unit="A", parameter_class=ManualParameter)
+            self.add_parameter(name="amp_1", unit="A", parameter_class=ManualParameter)
+            self.add_parameter(name="offset", unit="A", parameter_class=ManualParameter)
 
             self.add_parameter(name="adc", label="ADC input", unit="V", get_cmd=self._get_dac_value)
 
@@ -55,7 +57,7 @@ QCoDeS drivers for our instruments
 
 
 Instantiate the instruments
-----------------------------
+---------------------------
 
 
 .. jupyter-execute::
@@ -66,7 +68,7 @@ Instantiate the instruments
     device = Device("Device")
 
 Overview
-----------
+--------
 
 There are 3 parameters in the :class:`~quantify.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
 
@@ -106,10 +108,13 @@ The third relevant parameter is the *tuids_max_num*. It accepts an integer which
 
 
 Usage examples
----------------
+--------------
 
 .. jupyter-execute::
 
+    # set initial values to emulate the instrument state
+    device.amp_0(0.0)
+    device.amp_1(0.0)
     device.offset(0.0)
 
     n_pnts = 50
@@ -277,6 +282,7 @@ We do not need the reference datasets anymore
 
     plotmon.main_QtPlot
 
+
 When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tuids_extra` will be plotted in the secondary window, in that order of priority.
 
 .. jupyter-execute::
@@ -292,6 +298,12 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
 
     plotmon.main_QtPlot
     plotmon.secondary_QtPlot
+
+.. note::
+
+    The secondary window displays the last dataset with a 2D structure, and it remains persistent until replaced by a new dataset with a 2D structure.
+
+    Mind that the data on the secondary window does not always display data corresponding to the same dataset as the main window.
 
 We still have the persistence of the previous dataset on the main window:
 
