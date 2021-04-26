@@ -1,9 +1,11 @@
+# pylint: disable=invalid-name # disabled because of capital SI in module name
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 import os
 import logging
 from pathlib import Path
+import xarray as xr
 from jsonschema import ValidationError
 import pytest
 import lmfit
@@ -289,6 +291,66 @@ def test_display_figs():
     dh.set_datadir(get_test_data_dir())
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run()
     a_obj.display_figs_mpl()  # should display figures in the output
+
+
+def test_dataset_input_invalid():
+    # a dataset with missing tuid is an invalid dataset
+
+    # Create a custom dataset
+    x0 = np.linspace(0, 2 * np.pi, 31)
+    y0 = np.cos(x0)
+    x0r = xr.DataArray(
+        x0, name="x0", attrs={"name": "t", "long_name": "Time", "units": "s"}
+    )
+    y0r = xr.DataArray(
+        y0, name="y0", attrs={"name": "A", "long_name": "Amplitude", "units": "V"}
+    )
+
+    dset = xr.Dataset({"x0": x0r, "y0": y0r}, attrs={"name": "custom cosine"})
+    dset = dset.set_coords(["x0"])
+    # no TUID attribute present
+
+    with pytest.raises(AttributeError):
+        ba.Basic1DAnalysis(dataset_raw=dset).run()
+
+
+def test_dataset_input():
+    # Create a custom dataset
+    x0 = np.linspace(0, 2 * np.pi, 31)
+    y0 = np.cos(x0)
+    x0r = xr.DataArray(
+        x0, name="x0", attrs={"name": "t", "long_name": "Time", "units": "s"}
+    )
+    y0r = xr.DataArray(
+        y0, name="y0", attrs={"name": "A", "long_name": "Amplitude", "units": "V"}
+    )
+
+    dset = xr.Dataset(
+        {"x0": x0r, "y0": y0r},
+        attrs={"name": "custom cosine", "tuid": "20210417-191934-749-41de74"},
+    )
+    dset = dset.set_coords(["x0"])
+
+    # execute analysis with dataset as input argument
+    a_obj = ba.Basic1DAnalysis(
+        dataset_raw=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
+    ).run()
+
+    assert a_obj.dataset_raw == dset
+
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    # assert a copy of the dataset was stored to disk.
+    assert "dataset.hdf5" in os.listdir(exp_dir)
+    # assert figures where stored to disk.
+    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "figs_mpl" in analysis_dir
+    assert "Line plot x0-y0.png" in os.listdir(
+        Path(exp_dir) / "analysis_Basic1DAnalysis" / "figs_mpl"
+    )
+
+    # test that the right figures get created.
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
 
 def test_lmfit_par_to_ufloat():
