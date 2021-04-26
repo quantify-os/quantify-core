@@ -29,7 +29,7 @@ Analyzing the experiment
 
 Quantify provides an analysis framework in the form of a :class:`~quantify.analysis.base_analysis.BaseAnalysis` class and several subclasses for simple cases (:class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, :class:`~quantify.analysis.base_analysis.Basic2DAnalysis`, :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`). The framework provides a structured, yet flexible, flow of the analysis steps. We encourage all users to adopt the framework by sub-classing the :class:`~quantify.analysis.base_analysis.BaseAnalysis`.
 
-To give insight into the analysis framework, we first execute the analysis steps *manually*, and afterwards showcase how to encapsulate these steps into a reusable analysis class. Feel free to skip directly to the `The analysis framework`_.
+To give insight into the analysis framework, we first execute the analysis steps *manually*, and afterwards showcase how to encapsulate these steps into a reusable analysis class. Feel free to skip directly to `The analysis framework`_.
 
 .. admonition:: Manual analysis steps
     :class: dropdown, toggle-shown
@@ -127,3 +127,7 @@ To give insight into the analysis framework, we first execute the analysis steps
             lmfit.model.save_modelresult(fit_res, join(exp_folder, 'fit_res.json'))
             # Save figure
             fig.savefig(join(exp_folder, 'Cosine fit.png'), dpi=300, bbox_inches='tight')
+
+The analysis framework
+----------------------
+

@@ -1,11 +1,11 @@
 .. _usage:
 
-===============
+==========
 User guide
-===============
+==========
 
 Introduction
-===============
+============
 
 A :mod:`quantify` experiment typically consists of a data-acquisition loop in which one or more parameters are set and one or more parameters are measured.
 
@@ -48,9 +48,10 @@ Bellow we import common utilities used in the examples.
 
 
 Instruments and Parameters
-========================================
+==========================
+
 Parameter
------------------
+---------
 
 A parameter represents a state variable of the system.
 
@@ -60,7 +61,7 @@ A parameter represents a state variable of the system.
     - A parameter implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
 
 Instrument
------------------
+----------
 
 An Instrument is a container for parameters that typically (but not necessarily) corresponds to a physical piece of hardware.
 
@@ -74,7 +75,7 @@ Instruments provide the following functionality.
 
 
 Measurement Control
-====================
+===================
 
 The :class:`~quantify.measurement.MeasurementControl` (MC) is in charge of the data-acquisition loop and is based on the notion that, in general, an experiment consists of the following three steps:
 
@@ -95,7 +96,7 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 
 
 Basic example, a 1D iterative measurement loop
-------------------------------------------------
+----------------------------------------------
 
 Running an experiment is simple!
 Simply define what parameters to set, and get, and what points to loop over.
@@ -136,7 +137,7 @@ The :class:`~quantify.measurement.MeasurementControl` can also be used to perfor
 Take a look at some of the tutorial notebooks for more in-depth examples on usage and application.
 
 Control Mode
------------------
+------------
 
 A very important aspect in the usage of the :class:`~quantify.measurement.MeasurementControl` is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
 Batched mode can be used to deal with constraints imposed by (hardware) resources or to reduce overhead.
@@ -156,7 +157,7 @@ Control mode is detected automatically based on the `.batched` attribute of the 
 
 
 Settables and Gettables
-========================================
+=======================
 
 Experiments typically involve varying some parameters and reading others. In Quantify we encapsulate these concepts as the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` respectively.
 As their name implies, a Settable is a parameter you set values to, and a Gettable is a parameter you get values from.
@@ -223,8 +224,6 @@ In addition to using a library which fits these contracts (such as the :class:`~
 Depending on which Control Mode the :class:`~quantify.measurement.MeasurementControl` is running in, the interfaces for Settables (their input interface) and Gettables (their output interface) are slightly different.
 
 
-
-
 .. note::
 
     It is also possible for batched Gettables return an array with length less than then the length of the setpoints, and similarly for the input of the Settables.
@@ -261,7 +260,7 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
 
 .batched and .batch_size
-----------------------------------------
+------------------------
 
 The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` objects can have a `bool` property `.batched` (defaults to `False` if not present); and a `int` property `.batch_size`.
 
@@ -274,7 +273,7 @@ Setting the `.batched` property to `True` enables the batch Control Mode in the 
 
 
 .prepare() and .finish()
-----------------------------------------
+------------------------
 
 Optionally the :meth:`!.prepare` and :meth:`!.finish` can be added.
 These methods can be used to setup and teardown work. For example, arming a piece of hardware with data and then closing a connection upon completion.
@@ -286,18 +285,19 @@ For `settables`, :meth:`!.prepare` runs once **before the start of a measurement
 For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()` which resets to `1` at the end of each experiment].
 
 Data storage & Analysis
-=========================
+=======================
+
 Along with the produced dataset, every :class:`~qcodes.instrument.parameter.Parameter` attached to QCoDeS :class:`~qcodes.instrument.base.Instrument` in an experiment run through the :class:`~quantify.measurement.MeasurementControl` of Quantify is stored in the `snapshot`_.
 
-This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded (see :func:`~quantify.utilities.experiment_helpers.load_settings_onto_instrument`) and re-run by anyone.
+This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded [see :func:`~quantify.utilities.experiment_helpers.load_settings_onto_instrument`] and re-run by anyone.
 
 Data Directory
------------------
+--------------
 
 The top level directory in the file system where output is saved to.
 This directory can be controlled using the :meth:`~quantify.data.handling.get_datadir` and :meth:`~quantify.data.handling.set_datadir` functions.
 
-We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., *D:\\Data*).
+We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., :code:`D:\\Data`).
 
 Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
 
@@ -305,12 +305,12 @@ Within the data directory experiments are first grouped by date -
 all experiments which take place on a certain date will be saved together in a subdirectory in the form ``YYYYmmDD``.
 
 Experiment Container
-----------------------------------
+--------------------
 
-Individual experiments are saved to their own subdirectories (of the Data Directory) named based on the :class:`~quantify.data.types.TUID` and the ``<experiment name (if any)>``.
+Individual experiments are saved to their own subdirectories (of the Data Directory) named based on the :class:`~quantify.data.types.TUID` and the :code:`<experiment name (if any)>`.
 
 .. note::
-    TUID: A Time-based Unique ID is of the form ``YYYYmmDD-HHMMSS-sss-<random 6 character string>`` and these subdirectories' names take the form ``YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>``.
+    TUID: A Time-based Unique ID is of the form :code:`YYYYmmDD-HHMMSS-sss-<random 6 character string>` and these subdirectories' names take the form :code:`YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>`.
 
 These subdirectories are termed 'Experiment Containers', typical output being the Dataset in hdf5 format and a JSON format file describing Parameters, Instruments and such.
 
@@ -331,7 +331,7 @@ A data directory with the name 'MyData' thus will look similar to:
     └─ 20200710
 
 Dataset
------------------
+-------
 
 The Dataset is implemented with a **specific** convention using the :class:`xarray.Dataset` class.
 
@@ -389,6 +389,7 @@ To allow for some of Xarray's more advanced functionality, such as the in-built 
 This function reshapes the data and associates dimensions to the dataset [which can also be used for 1D datasets].
 
 .. jupyter-execute::
+    :emphasize-lines: 1
 
     gridded_dset = dh.to_gridded_dataset(quantify_dataset)
     gridded_dset.y0.plot()
@@ -412,7 +413,7 @@ TODO:
 - how to build a custom analysis?
 
 Analysis framework
-==================
+------------------
 
 To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
 
@@ -461,7 +462,7 @@ Iterative control mode
 ----------------------
 
 Single-float-valued settable(s) and gettable(s)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Each settable accepts a single float value.
 - Gettables return a single float value.
