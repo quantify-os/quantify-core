@@ -498,15 +498,15 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
     return dataset
 
 def test_qcodes_NumpyJSONEncoder():
-    
     quantities_of_interest =  {
-            'list' : [1,2,3,4],
-            'np.array' : np.array([1,2,3,4]),
-            'ufloat' : uncertainties.ufloat(1.0,2.0)
+            'python_list' : [1,2,3,4],
+            'numpy_array' : np.array([1,2,3,4]),
+            'uncertainties_ufloat' : uncertainties.ufloat(1.0,2.0)
     }
-    
-    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
 
-    assert isinstance(encoded["list"], list)
-    assert (isinstance(encoded["np.array"], np.ndarray) or isinstance(encoded["np.array"], list))
-    assert (isinstance(encoded["ufloat"], dict))
+    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
+    decoded = json.loads(encoded)
+
+    assert isinstance(decoded["python_list"], list)
+    assert (isinstance(decoded["numpy_array"], np.ndarray) or isinstance(decoded["numpy_array"], list))
+    assert (isinstance(decoded["uncertainties_ufloat"], dict))
