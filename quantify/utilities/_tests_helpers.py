@@ -2,11 +2,17 @@
 # Licensed according to the LICENCE file on the master branch
 """Helpers for testing quantify."""
 import pathlib
+from typing import Union
 import os
 import shutil
 
 
-def get_test_data_dir():
+def get_test_data_dir() -> Union[pathlib.PosixPath, pathlib.WindowsPath]:
+    """
+    Returns the path to the `test_data` directory inside the repository.
+
+    Intended for development purposes.
+    """
     return pathlib.Path(__file__).parent.parent.parent.resolve() / "tests" / "test_data"
 
 
@@ -17,7 +23,7 @@ def rmdir_recursive(root_path):
 
     Parameters
     ----------
-    root_path : str
+    root_path :
         path of the directory to be removed.
     """
     if os.path.exists(root_path):
@@ -31,9 +37,9 @@ def remove_target_then_copy_from(source, target):
 
     Parameters
     ----------
-    source : str
+    source :
         path of the source directory.
-    target : str
+    target :
         path of the target directory
     """
     rmdir_recursive(target)

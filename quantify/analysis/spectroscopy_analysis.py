@@ -49,8 +49,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         freq = np.array(self.dataset["x0"])
         guess = mod.guess(S21, f=freq)
         fit_res = mod.fit(S21, params=guess, f=freq)
-
-        self.model = mod
+        fit_warning = ba.check_lmfit(fit_res)
 
         self.fit_res.update({"hanger_func_complex_SI": fit_res})
 
@@ -61,14 +60,22 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
                 fpars[parameter]
             )
 
-        text_msg = "Summary\n"
-        text_msg += format_value_string(
-            r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
-        )
-        text_msg += format_value_string(
-            r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
-        )
-        text_msg += format_value_string(r"$f_{res}$", fit_res.params["fr"], unit="Hz")
+        if fit_warning is None:
+            self.quantities_of_interest["fit_success"] = True
+            text_msg = "Summary\n"
+            text_msg += format_value_string(
+                r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
+            )
+            text_msg += format_value_string(
+                r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
+            )
+            text_msg += format_value_string(
+                r"$f_{res}$", fit_res.params["fr"], unit="Hz"
+            )
+        else:
+            text_msg = fit_warning
+            self.quantities_of_interest["fit_success"] = False
+
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
@@ -90,7 +97,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Im"] = axs[1]
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         self.dataset.S21.real.plot(ax=axs[0], marker=".")
         self.dataset.S21.imag.plot(ax=axs[1], marker=".")
@@ -115,7 +122,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
 
     def create_fig_s21_magn_phase(self):
@@ -127,7 +135,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Phase"] = axs[1]
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         axs[0].plot(self.dataset["x0"], np.abs(self.dataset.S21), marker=".")
         axs[1].plot(
@@ -154,7 +162,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
 
     def create_fig_s21_complex(self):
@@ -165,7 +174,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
 
@@ -179,5 +188,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset["S21"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
