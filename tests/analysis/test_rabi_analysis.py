@@ -81,19 +81,6 @@ class TestRabiBadFit:
         ):
             cls.a_objs = ra.RabiAnalysis(tuid=cls.tuids).run()
 
-    def test_raw_data_not_in_processed_dataset(self):
-        """Check that the required data is in the dataset"""
-        tuid = self.tuids
-        container = Path(dh.locate_experiment_container(tuid))
-        file_path = container / "analysis_RabiAnalysis" / "processed_dataset.hdf5"
-        dataset = dh.load_dataset_from_path(file_path)
-
-        assert "x0" in dataset.dims.keys()
-        assert "x0" in dataset.coords.keys()
-        assert "y0" not in dataset.data_vars.keys()
-        assert "y1" not in dataset.data_vars.keys()
-        assert "Magnitude" in dataset.data_vars.keys()
-
     def test_figures_generated(self):
         """test that the right figures get created"""
         a_obj = self.a_objs
