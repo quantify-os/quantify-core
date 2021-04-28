@@ -365,8 +365,22 @@ class BaseAnalysis(ABC):
 
     @classmethod
     def load_processed_dataset(cls, tuid: str = None, label: str = ""):
+        """
+        Given an experiment TUID/label, loads from the respective file the processed dataset associated with the Analysis subclass that calls this function. 
+
+        Parameters
+        ----------
+        tuid
+            TUID of the experiment from which to load the data.
+        label
+            If TUID is none, looks for the experiment containing "label" in the respective "tuid". If neither tuid nor label is specified, loads from the last experiment.
+
+        Returns
+        -------
+        :class:`!xarray.Dataset` :
+        A dataset containing the results of the analysis.
+        """
         # if no TUID use the label to search for the latest file with a match.
-        #TODO change doc
         if tuid is None:
             tuid = get_latest_tuid(contains=label)
 
@@ -383,9 +397,21 @@ class BaseAnalysis(ABC):
     @classmethod
     def load_quantities_of_interest(cls, tuid: str = None, label: str = ""):
         """
-        Saves a copy of the (processed) `.dataset` in the analysis folder of the
-        experiment.
-        """ #TODO change doc
+        Given an experiment TUID/label, loads from the respective file the quantities of interest associated with the Analysis subclass that calls this function. 
+
+        Parameters
+        ----------
+        tuid
+            TUID of the experiment from which to load the data.
+        label
+            If TUID is none, looks for the experiment containing "label" in the respective "tuid". If neither tuid nor label is specified, loads from the last experiment.
+
+        Returns
+        -------
+        :class:`!dict` :
+        A dictionary containing the loaded quantities of interest.
+        """
+
         # if no TUID use the label to search for the latest file with a match.
         if tuid is None:
             tuid = get_latest_tuid(contains=label)
