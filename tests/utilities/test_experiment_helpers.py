@@ -1,21 +1,19 @@
 import numpy as np
 from qcodes.instrument import Instrument, ManualParameter
-from pytest import warns
+import pytest
 from quantify.utilities.experiment_helpers import (
     create_plotmon_from_historical,
     load_settings_onto_instrument,
 )
 from quantify.data.handling import set_datadir
-from quantify.utilities._tests_helpers import get_test_data_dir
 
 
-def test_load_settings_onto_instrument():
+def test_load_settings_onto_instrument(tmp_test_data_dir):
     """
     Test that we can successfully load the settings of a dummy instrument
     """
-    test_datadir = get_test_data_dir()
     # Always set datadir before instruments
-    set_datadir(test_datadir)
+    set_datadir(tmp_test_data_dir)
 
     def get_func():
         return 20
@@ -39,7 +37,7 @@ def test_load_settings_onto_instrument():
     # The snapshot also contains an 'obsolete_param', that is not included here.
     # This represents a parameter which is no longer in the qcodes driver.
 
-    with warns(
+    with pytest.warns(
         UserWarning,
         match="DummyInstrument does not possess a parameter obsolete_param. Could not "
         "set parameter.",
@@ -60,12 +58,11 @@ def test_load_settings_onto_instrument():
     instr.close()
 
 
-def test_create_plotmon_from_historical():
+def test_create_plotmon_from_historical(tmp_test_data_dir):
     """
     Test for creating a plotmon based on a provided tuid
     """
-    test_datadir = get_test_data_dir()
-    set_datadir(test_datadir)
+    set_datadir(tmp_test_data_dir)
 
     tuid = "20200504-191556-002-4209ee"
     plotmon = create_plotmon_from_historical(tuid)
