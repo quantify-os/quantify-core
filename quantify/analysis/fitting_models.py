@@ -445,6 +445,54 @@ class RabiModel(lmfit.model.Model):
     guess.__doc__ = get_guess_common_doc()
 
 
+class DecayOscModel(lmfit.model.Model):
+    r"""
+    Model for a decaying oscillation which decays to a point which is not offset from the
+    centre of the of the oscillation (as in a Ramsey experiment, for example).
+    """
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, *args, **kwargs):
+        # pass in the defining equation so the user doesn't have to later.
+        super().__init__(cos_func, *args, **kwargs)
+
+        # Enforce oscillation frequency is positive
+        self.set_param_hint("frequency", min=0)
+        # Enforce amplitude is positive
+        self.set_param_hint("amplitude", min=0)
+
+        # Fix the n_factor at 1
+        self.set_param_hint("n_factor", expr="1", vary=False)
+        # Fix the oscillation offset at 0
+        self.set_param_hint("oscillation_offset", expr="0", vary=False)
+
+    # pylint: disable=missing-function-docstring
+    def guess(self, data, **kws) -> lmfit.parameter.Parameters:
+        time = kws.get("time", None)
+        if time is None:
+            return None
+
+        amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
+        exp_offs_guess = np.mean(data)
+
+        (freq_guess, phase_guess) = fft_freq_phase_guess(data, time)
+
+        self.set_param_hint("frequency", value=freq_guess, min=0)
+        self.set_param_hint("amplitude", value=amp_guess, min=0)
+        self.set_param_hint("exponential_offset", value=exp_offs_guess)
+        self.set_param_hint("phase", value=phase_guess)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kws)
+
+    # Same design patter is used in lmfit.models
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("exp_damp_osc_func")
+    guess.__doc__ = get_guess_common_doc()
+
+
 def resonator_phase_guess(s21: np.ndarray, freq: np.ndarray) -> Tuple[float, float]:
     """
     Guesses the phase velocity in resonator spectroscopy,
