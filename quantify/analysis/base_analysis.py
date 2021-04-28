@@ -149,9 +149,6 @@ class BaseAnalysis(ABC):
         label:
             if no dataset and no tuid is provided, will look for the most recent dataset
             that contains "label" in the name.
-        interrupt_before:
-            Stops `run_analysis` before executing the specified step.
-            If specified, will look for the dataset with the matching tuid.
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
