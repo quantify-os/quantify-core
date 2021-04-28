@@ -1,7 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Module containing spectroscopy analysis."""
-from textwrap import wrap
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -50,12 +49,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         freq = np.array(self.dataset["x0"])
         guess = mod.guess(S21, f=freq)
         fit_res = mod.fit(S21, params=guess, f=freq)
-
         fit_warning = ba.check_lmfit(fit_res)
-        if fit_warning is not None:
-            fit_warning = "\n".join(
-                wrap(fit_warning, width=35, replace_whitespace=True)
-            )
 
         self.fit_res.update({"hanger_func_complex_SI": fit_res})
 
@@ -103,7 +97,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Im"] = axs[1]
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         self.dataset.S21.real.plot(ax=axs[0], marker=".")
         self.dataset.S21.imag.plot(ax=axs[1], marker=".")
@@ -128,7 +122,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
 
     def create_fig_s21_magn_phase(self):
@@ -140,7 +135,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Phase"] = axs[1]
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         axs[0].plot(self.dataset["x0"], np.abs(self.dataset.S21), marker=".")
         axs[1].plot(
@@ -167,7 +162,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_xlabel(axs[1], self.dataset["x0"].long_name, self.dataset["x0"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )
 
     def create_fig_s21_complex(self):
@@ -178,7 +174,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
 
@@ -192,5 +188,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset["S21"].units)
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset_raw.attrs['name']}\n"
+            f"tuid: {self.dataset_raw.attrs['tuid']}"
         )

@@ -13,6 +13,7 @@ from pathlib import Path
 import logging
 import inspect
 import warnings
+from textwrap import wrap
 
 from IPython.display import display
 import numpy as np
@@ -687,7 +688,6 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
 
     Parameters
     ----------
-
     param:
         The :class:`~lmfit.parameter.Parameter` to be converted
 
@@ -703,7 +703,7 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     return ufloat(value, stderr)
 
 
-def check_lmfit(fit_res: lmfit.ModelResult):
+def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     """
     Check that `lmfit` was able to successfully return a valid fit, and give
     a warning if not.
@@ -712,13 +712,14 @@ def check_lmfit(fit_res: lmfit.ModelResult):
     the fit was able to obtain valid error bars on the fitted parameters.
 
     Parameters
-    -----------
-        fit_res: The :class:`~lmfit.model.ModelResult` object output by `lmfit`
+    ----------
+    fit_res:
+        The :class:`~lmfit.model.ModelResult` object output by `lmfit`
 
     Returns
-    -----------
-    str:
-        a warning message if there is a problem with the fit
+    -------
+    :
+        A warning message if there is a problem with the fit.
     """
     if fit_res.success is False:
         fit_warning = "fit failed. lmfit was not able to fit the data."
@@ -735,10 +736,62 @@ def check_lmfit(fit_res: lmfit.ModelResult):
     return None
 
 
+def wrap_text(
+    text: Union[str, None], width=35, replace_whitespace=True, **kwargs
+) -> Union[str, None]:
+    """
+    A text wrapping (braking over multiple lines) utility.
+
+    Intended to be used with :func:`~quantify.visualization.mpl_plotting.plot_textbox`
+    in order to avoid too wide figure when, e.g.,
+    :func:`~quantify.analysis.base_analysis.check_lmfit` fails and a warning message is
+    generated.
+
+    For usage see, for example, source code of
+    :meth:`~quantify.analysis.t1_analysis.T1Analysis.create_figures`.
+
+    Parameters
+    ----------
+    text:
+        The text string to be wrapped over several lines.
+    width:
+        Maximum line width in characters.
+    kwargs:
+        Any other keyword arguments to be passed to :func:`textwrap.wrap`.
+
+    Returns
+    -------
+    :
+        The wrapped text (or :code:`None` if text is :code:`None`).
+    """
+    if text is not None:
+        text = "\n".join(
+            wrap(text, width=width, replace_whitespace=replace_whitespace, **kwargs)
+        )
+
+    return text
+
+
 def analysis_steps_to_str(
     analysis_steps: Enum, class_name: str = BaseAnalysis.__name__
-):
-    """A utility for generating the docstring for the analysis steps"""
+) -> str:
+    """
+    A utility for generating the docstring for the analysis steps
+
+    Parameters
+    ----------
+    analysis_steps:
+        An :class:`~enum.Enum` similar to
+        :class:`quantify.analysis.base_analysis.AnalysisSteps`.
+    class_name:
+        The class name that has the `analysis_steps` methods and for which the
+        `analysis_steps` are intended.
+
+    Returns
+    -------
+    :
+        A formatted string version of the `analysis_steps` and corresponding methods.
+    """
     col0 = tuple(element.name for element in analysis_steps)
     col1 = tuple(element.value for element in analysis_steps)
 

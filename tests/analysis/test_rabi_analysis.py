@@ -42,9 +42,6 @@ def test_quantities_of_interest(analysis_obj):
     assert analysis_obj.quantities_of_interest["fit_success"] is True
 
 
-# Bad fit test
-
-
 @pytest.fixture(scope="session", autouse=True)
 def analysis_obj_bad_fit(tmp_test_data_dir):
     """
@@ -80,6 +77,6 @@ def test_quantities_of_interest_bad_fit(analysis_obj_bad_fit):
     assert analysis_obj_bad_fit.quantities_of_interest["fit_success"] is False
     assert (
         analysis_obj_bad_fit.quantities_of_interest["fit_msg"]
-        == "Warning: lmfit could not find a\n"
-        "good fit. Fitted parameters may not\nbe accurate."
+        == "Warning: lmfit could not find a good fit. Fitted parameters"
+        " may not be accurate."
     )
