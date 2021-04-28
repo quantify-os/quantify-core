@@ -4,7 +4,10 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
 from pytest import approx, warns
+import xarray as xr
+import numpy as np
 from uncertainties.core import Variable
+
 import quantify.data.handling as dh
 from quantify.analysis import rabi_analysis as ra
 
@@ -49,12 +52,47 @@ def analysis_obj_bad_fit(tmp_test_data_dir):
     cannot find a good fit.
     """
     dh.set_datadir(tmp_test_data_dir)
+    x0 = np.linspace(-0.5, 0.5, 30)
+    y0 = np.cos(x0 * 4 * np.pi) * 0.1 + 0.05
+    x0r = xr.DataArray(
+        x0,
+        name="x0",
+        attrs={
+            "batched": False,
+            "long_name": "Qubit drive amp",
+            "name": "drive_amp",
+            "units": "V",
+        },
+    )
+    y0r = xr.DataArray(
+        y0,
+        name="y0",
+        attrs={
+            "batched": False,
+            "long_name": "Signal level",
+            "name": "sig",
+            "units": "V",
+        },
+    )
+    dset = xr.Dataset(
+        {"x0": x0r, "y0": y0r},
+        attrs={
+            "name": "Mock_Rabi_power_scan_bad_fit",
+            "tuid": "20210424-191802-994-f16eb3",
+            "2D-grid": False,
+        },
+    )
+    dset = dset.set_coords(["x0"])
+
     with warns(
         UserWarning,
         match="lmfit could not find a good fit."
         " Fitted parameters may not be accurate.",
     ):
-        a_obj = ra.RabiAnalysis(tuid="20210424-191802-994-f16eb3").run()
+        a_obj = ra.RabiAnalysis(
+            dataset_raw=dset, settings_overwrite={"mpl_fig_formats": []}
+        ).run()
+
     return a_obj
 
 

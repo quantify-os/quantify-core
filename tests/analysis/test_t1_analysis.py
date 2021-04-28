@@ -2,7 +2,6 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
-from pathlib import Path
 import pytest
 from pytest import approx
 from uncertainties.core import Variable
