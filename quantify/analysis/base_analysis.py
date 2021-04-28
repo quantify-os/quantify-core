@@ -1,6 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Analysis abstract base class and several basic analyses."""
+"""Module containing the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
 import os
 import json
@@ -26,11 +26,14 @@ from qcodes.utils.helpers import NumpyJSONEncoder
 
 from quantify.visualization import mpl_plotting as qpl
 from quantify.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
+from quantify.data.types import TUID
 from quantify.data.handling import (
     load_dataset,
     get_latest_tuid,
     get_datadir,
+    DATASET_NAME,
     write_dataset,
+    create_exp_folder,
     locate_experiment_container,
     to_gridded_dataset,
 )
@@ -106,8 +109,9 @@ class BaseAnalysis(ABC):
 
     def __init__(
         self,
-        label: str = "",
+        dataset_raw: xr.Dataset = None,
         tuid: str = None,
+        label: str = "",
         settings_overwrite: dict = None,
     ):
         """
@@ -138,10 +142,14 @@ class BaseAnalysis(ABC):
 
         Parameters
         ----------
-        label:
-            Will look for a dataset that contains "label" in the name.
+        dataset_raw:
+            an unprocessed (raw) quantify dataset to perform the analysis on.
         tuid:
-            If specified, will look for the dataset with the matching tuid.
+            if no dataset is specified, will look for the dataset with the matching tuid
+            in the datadirectory.
+        label:
+            if no dataset and no tuid is provided, will look for the most recent dataset
+            that contains "label" in the name.
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
@@ -160,10 +168,14 @@ class BaseAnalysis(ABC):
         self.settings_overwrite = deepcopy(settings)
         self.settings_overwrite.update(settings_overwrite or dict())
 
-        # This will be overwritten
-        self.dataset = None
-        # Used to save a reference of the raw dataset
-        self.dataset_raw = None
+        # Used to have access to a reference of the raw dataset, see also
+        # self.extract_data
+        self.dataset_raw = dataset_raw
+
+        # Initialize an empty dataset for the processed data.
+        # This dataset will be overwritten during the analysis.
+        self.dataset = xr.Dataset()
+
         # To be populated by a subclass
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
@@ -186,7 +198,8 @@ class BaseAnalysis(ABC):
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. It will create a directory if it does not exist.
+        Analysis dir based on the tuid. Will create a directory if it does not exist
+        yet.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
@@ -305,20 +318,42 @@ class BaseAnalysis(ABC):
 
     def extract_data(self):
         """
-        Populates `.dataset_raw` with data from the experiment matching the tuid/label.
+        If no `dataset_raw` is provided, populates `self.dataset_raw` with data from
+        the experiment matching the tuid/label.
 
         This method should be overwritten if an analysis does not relate to a single
         datafile.
         """
+        if self.dataset_raw is not None:
+            # pylint: disable=fixme
+            # FIXME: to be replaced by a validate_dateset see #187
+            if "tuid" not in self.dataset_raw.attrs.keys():
+                raise AttributeError('Invalid dataset, missing the "tuid" attribute')
 
-        # if no TUID use the label to search for the latest file with a match.
-        if self.tuid is None:
-            self.tuid = get_latest_tuid(contains=self.label)
+            self.tuid = TUID(self.dataset_raw.attrs["tuid"])
+            # an experiment container is required to store output of the analysis.
+            # it is possible for this not to exist for a custom dataset as it can
+            # come from a source outside of the data directory.
+            try:
+                locate_experiment_container(self.tuid)
+            except FileNotFoundError:
+                # if the file did not exist, an experiment folder is created
+                # and a copy of the dataset_raw is stored there.
+                exp_folder = create_exp_folder(
+                    tuid=self.tuid, name=self.dataset_raw.name
+                )
+                write_dataset(
+                    path=os.path.join(exp_folder, DATASET_NAME),
+                    dataset=self.dataset_raw,
+                )
 
-        # Keep a reference to the original dataset.
-        self.dataset_raw = load_dataset(tuid=self.tuid)
-        # Initialize an empty dataset for the processed data.
-        self.dataset = xr.Dataset()
+        if self.dataset_raw is None:
+            # if no TUID is specified use the label to search for the latest file with
+            # a match.
+            if self.tuid is None:
+                self.tuid = get_latest_tuid(contains=self.label)
+            # Keep a reference to the original dataset.
+            self.dataset_raw = load_dataset(tuid=self.tuid)
 
     def process_data(self):
         """
@@ -327,7 +362,10 @@ class BaseAnalysis(ABC):
         """
 
     def run_fitting(self):
-        pass
+        """
+        Used to fit data to a model. Overwrite this method in a child class if this
+        step is required for you analysis.
+        """
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_res) > 0:
@@ -511,6 +549,9 @@ class Basic1DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
+        """
+        Creates a line plot x vs y for every data variable yi in the dataset.
+        """
 
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
@@ -612,8 +653,8 @@ class Basic2DAnalysis(BaseAnalysis):
 
 def flatten_lmfit_modelresult(model):
     """
-    Flatten an lmfit model result to a dictionary in order to be able to save it
-    to disk.
+    Flatten an lmfit model result to a dictionary in order to be able to save
+    it to disk.
 
     Notes
     -----

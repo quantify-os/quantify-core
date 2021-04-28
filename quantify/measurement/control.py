@@ -83,7 +83,7 @@ class MeasurementControl(Instrument):
         """
         super().__init__(name=name)
 
-        # Parameters are attributes that we include in logging and intend the user to change.
+        # Parameters are attributes included in logging and which the user can change.
 
         self.add_parameter(
             "verbose",
@@ -261,15 +261,17 @@ class MeasurementControl(Instrument):
         Starts a data acquisition loop using an adaptive function.
 
         .. warning ::
-            The functionality of this mode can be complex - it is recommended to read the relevant long form
-            documentation.
+            The functionality of this mode can be complex - it is recommended to read
+            the relevant long form documentation.
 
         Parameters
         ----------
         name : str
-            Name of the measurement. This name is included in the name of the data files.
+            Name of the measurement. This name is included in the name of the data
+            files.
         params : dict
-            Key value parameters describe the adaptive function to use, and any further parameters for that function.
+            Key value parameters describe the adaptive function to use, and any further
+            parameters for that function.
         Returns
         -------
         :class:`xarray.Dataset`
@@ -277,6 +279,13 @@ class MeasurementControl(Instrument):
         """
 
         def measure(vec) -> float:
+            """
+            This function executes the measurement and is passed to the adaptive
+            function (often a minimization algorithm) to be evaluated many times.
+
+            Although the measure function acquires (and stores) all gettable parameters,
+            only the first value is returned so as to have the
+            """
             if len(self._dataset["y0"]) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
 
@@ -285,6 +294,8 @@ class MeasurementControl(Instrument):
                 vec = [vec]
 
             self._iterative_set_and_get(vec, self._nr_acquired_values)
+            # only y0 is returned so as to match the function signature for a valid
+            # measurement function.
             ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update(".")
@@ -298,7 +309,7 @@ class MeasurementControl(Instrument):
             adaptive_function = params.get("adaptive_function")
             af_pars_copy = dict(params)
 
-            # leveraging the adaptive library
+            # if the adaptive function is part of the python adaptive library
             if isinstance(adaptive_function, type) and issubclass(
                 adaptive_function, adaptive.learner.BaseLearner
             ):
@@ -309,8 +320,8 @@ class MeasurementControl(Instrument):
                 learner = adaptive_function(measure, **af_pars_copy)
                 adaptive.runner.simple(learner, goal)
 
-            # free function
-            if isinstance(adaptive_function, types.FunctionType):
+            # any adaptive function with the right signature
+            elif isinstance(adaptive_function, types.FunctionType):
                 unused_pars = ["adaptive_function"]
                 for unused_par in unused_pars:
                     af_pars_copy.pop(unused_par, None)
