@@ -364,7 +364,7 @@ class BaseAnalysis(ABC):
                 fig.patch.set_alpha(0)
 
     @classmethod
-    def load_processed_dataset(cls, tuid: str = None, label: str = ""):
+    def load_processed_dataset(cls, tuid: str = None, label: str = "") -> xr.Dataset:
         """
         Given an experiment TUID/label, loads from the respective file the processed dataset associated with the Analysis subclass that calls this function. 
 
@@ -377,8 +377,8 @@ class BaseAnalysis(ABC):
 
         Returns
         -------
-        :class:`!xarray.Dataset` :
-        A dataset containing the results of the analysis.
+        :
+            A dataset containing the results of the analysis.
         """
         # if no TUID use the label to search for the latest file with a match.
         if tuid is None:
@@ -395,7 +395,7 @@ class BaseAnalysis(ABC):
         return load_dataset_from_path(analysis_dir / "processed_dataset.hdf5" )
     
     @classmethod
-    def load_quantities_of_interest(cls, tuid: str = None, label: str = ""):
+    def load_quantities_of_interest(cls, tuid: str = None, label: str = "") -> dict:
         """
         Given an experiment TUID/label, loads from the respective file the quantities of interest associated with the Analysis subclass that calls this function. 
 
@@ -408,8 +408,8 @@ class BaseAnalysis(ABC):
 
         Returns
         -------
-        :class:`!dict` :
-        A dictionary containing the loaded quantities of interest.
+        :
+            A dictionary containing the loaded quantities of interest.
         """
 
         # if no TUID use the label to search for the latest file with a match.
