@@ -13,6 +13,9 @@ from quantify.data.types import TUID
 from quantify.measurement.control import MeasurementControl
 from quantify.utilities._tests_helpers import get_test_data_dir
 import quantify.data.handling as dh
+from qcodes.utils.helpers import NumpyJSONEncoder
+import uncertainties
+import json
 
 
 test_datadir = get_test_data_dir()
@@ -493,3 +496,17 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
         coords={"x0": np.linspace(0, 5, 5)},
     )
     return dataset
+
+def test_qcodes_NumpyJSONEncoder():
+    
+    quantities_of_interest =  {
+            'list' : [1,2,3,4],
+            'np.array' : np.array([1,2,3,4]),
+            'ufloat' : uncertainties.ufloat(1.0,2.0)
+    }
+    
+    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
+
+    assert isinstance(encoded["list"], list)
+    assert (isinstance(encoded["np.array"], np.ndarray) or isinstance(encoded["np.array"], list))
+    assert (isinstance(encoded["ufloat"], dict))
