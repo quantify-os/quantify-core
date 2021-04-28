@@ -225,9 +225,9 @@ def exp_decay_func(
     tau:
         decay time
     amplitude:
-        asymptote of the exponential decay, the value at t=infinity
+        amplitude of the exponential decay
     offset:
-        amplitude or starting value of the exponential decay
+        asymptote of the exponential decay, the value at t=infinity
     n_factor:
         exponential decay factor
 
@@ -237,6 +237,54 @@ def exp_decay_func(
         Output of exponential function as a float
     """  # pylint: disable=line-too-long
     return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
+
+
+def exp_damp_osc_func(
+    t: float,
+    tau: float,
+    n_factor: float,
+    frequency: float,
+    phase: float,
+    amplitude: float,
+    oscillation_offset: float,
+    exponential_offset: float,
+):
+    r"""
+    A sinusoidal oscillation with an exponentially decaying envelope function:
+
+    :math:`y = \mathrm{amplitude} \times \exp\left(-(t/\tau)^\mathrm{n\_factor}\right)(\cos(2\pi\mathrm{frequency}\times t + \mathrm{phase}) + \mathrm{oscillation_offset}) + \mathrm{exponential_offset}`
+
+    Parameters
+    ----------
+    t:
+        time
+    tau:
+        decay time
+    n_factor:
+        exponential decay factor
+    frequency:
+        frequency of the oscillation
+    phase:
+        phase of the oscillation
+    amplitude:
+        initial amplitude of the oscillation
+    oscillation_offset:
+        vertical offset of cosine oscillation relative to exponential asymptote
+    exponential_offset:
+        offset of exponential asymptote
+
+    Returns
+    -------
+    :
+        Output of decaying cosine function as a float
+    """  # pylint: disable=line-too-long
+
+    return (
+        amplitude
+        * np.exp(-((t / tau) ** n_factor))
+        * (np.cos(2 * np.pi * frequency * t + phase) + oscillation_offset)
+        + exponential_offset
+    )
 
 
 class ResonatorModel(lmfit.model.Model):
