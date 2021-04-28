@@ -1,5 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
+from textwrap import wrap
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -40,20 +41,36 @@ class T1Analysis(ba.BaseAnalysis):
         guess = mod.guess(magn, delay=delay)
         fit_res = mod.fit(magn, params=guess, t=delay)
 
+        fit_warning = ba.check_lmfit(fit_res)
+        if fit_warning is not None:
+            fit_warning = "\n".join(
+                wrap(fit_warning, width=35, replace_whitespace=True)
+            )
+
         self.fit_res.update({"exp_decay_func": fit_res})
 
         fpars = fit_res.params
         self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(fpars["tau"])
 
-        unit = self.dataset["Magnitude"].attrs["units"]
-        text_msg = "Summary\n"
-        text_msg += format_value_string(
-            r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
-        )
-        text_msg += format_value_string(
-            "amplitude", fit_res.params["amplitude"], end_char="\n", unit=unit
-        )
-        text_msg += format_value_string("offset", fit_res.params["offset"], unit=unit)
+        # If there is a problem with the fit, display an error message in the text box.
+        # Otherwise, display the parameters as normal.
+        if fit_warning is None:
+            self.quantities_of_interest["fit_success"] = True
+            unit = self.dataset["Magnitude"].attrs["units"]
+            text_msg = "Summary\n"
+            text_msg += format_value_string(
+                r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
+            )
+            text_msg += format_value_string(
+                "amplitude", fit_res.params["amplitude"], end_char="\n", unit=unit
+            )
+            text_msg += format_value_string(
+                "offset", fit_res.params["offset"], unit=unit
+            )
+        else:
+            text_msg = fit_warning
+            self.quantities_of_interest["fit_success"] = False
+
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):

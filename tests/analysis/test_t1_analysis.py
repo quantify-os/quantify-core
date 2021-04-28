@@ -59,6 +59,7 @@ class TestT1Analysis:
                 "T1",
                 "fit_msg",
                 "fit_res",
+                "fit_success",
             }
 
             assert isinstance(a_obj.quantities_of_interest["T1"], Variable)

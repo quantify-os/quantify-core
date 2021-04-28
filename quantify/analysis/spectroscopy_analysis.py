@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Module containing spectroscopy analysis."""
+from textwrap import wrap
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -39,7 +40,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         guess = mod.guess(S21, f=freq)
         fit_res = mod.fit(S21, params=guess, f=freq)
 
-        self.model = mod
+        fit_warning = ba.check_lmfit(fit_res)
+        if fit_warning is not None:
+            fit_warning = "\n".join(
+                wrap(fit_warning, width=35, replace_whitespace=True)
+            )
 
         self.fit_res.update({"hanger_func_complex_SI": fit_res})
 
@@ -50,14 +55,22 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
                 fpars[parameter]
             )
 
-        text_msg = "Summary\n"
-        text_msg += format_value_string(
-            r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
-        )
-        text_msg += format_value_string(
-            r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
-        )
-        text_msg += format_value_string(r"$f_{res}$", fit_res.params["fr"], unit="Hz")
+        if fit_warning is None:
+            self.quantities_of_interest["fit_success"] = True
+            text_msg = "Summary\n"
+            text_msg += format_value_string(
+                r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
+            )
+            text_msg += format_value_string(
+                r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
+            )
+            text_msg += format_value_string(
+                r"$f_{res}$", fit_res.params["fr"], unit="Hz"
+            )
+        else:
+            text_msg = fit_warning
+            self.quantities_of_interest["fit_success"] = False
+
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):

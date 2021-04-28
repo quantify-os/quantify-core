@@ -76,6 +76,7 @@ class TestResonatorSpectroscopyAnalysis:
                 "fr",
                 "fit_res",
                 "fit_msg",
+                "fit_success",
             }
 
             fitted_freq = a_obj.quantities_of_interest["fr"]
