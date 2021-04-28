@@ -27,6 +27,7 @@ from quantify.visualization import mpl_plotting as qpl
 from quantify.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
 from quantify.data.handling import (
     load_dataset,
+    load_dataset_from_path,
     get_latest_tuid,
     get_datadir,
     write_dataset,
@@ -362,14 +363,51 @@ class BaseAnalysis(ABC):
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
+    @classmethod
+    def load_processed_dataset(cls, tuid: str = None, label: str = ""):
+        # if no TUID use the label to search for the latest file with a match.
+        #TODO change doc
+        if tuid is None:
+            tuid = get_latest_tuid(contains=label)
+
+        #Get Analysis directory from TUID
+        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+        analysis_dir = exp_folder / f"analysis_{cls.__name__}"
+
+        if not os.path.isdir(analysis_dir):
+            raise FileNotFoundError("Analysis not found in current experiment.")
+
+        #Load dataset and return
+        return load_dataset_from_path(analysis_dir / "processed_dataset.hdf5" )
+    
+    @classmethod
+    def load_quantities_of_interest(cls, tuid: str = None, label: str = ""):
+        """
+        Saves a copy of the (processed) `.dataset` in the analysis folder of the
+        experiment.
+        """ #TODO change doc
+        # if no TUID use the label to search for the latest file with a match.
+        if tuid is None:
+            tuid = get_latest_tuid(contains=label)
+
+        #Get Analysis directory from TUID
+        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+        analysis_dir = exp_folder / f"analysis_{cls.__name__}"
+
+        if not os.path.isdir(analysis_dir):
+            raise FileNotFoundError("Analysis not found in current experiment.")
+
+        #Load JSON file and return
+        with open(os.path.join(analysis_dir, "quantities_of_interest.json"), "r") as file:
+            quantities_of_interest = json.load(file)
+        
+        return quantities_of_interest
+
     def save_processed_dataset(self):
         """
         Saves a copy of the (processed) `.dataset` in the analysis folder of the
         experiment.
         """
-
-        # if statement exist to be compatible with child classes that do not load data
-        # onto the self.dataset object.
         if self.dataset is not None:
             dataset = self.dataset
             write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
