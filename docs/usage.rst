@@ -284,6 +284,8 @@ For `settables`, :meth:`!.prepare` runs once **before the start of a measurement
 
 For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()` which resets to `1` at the end of each experiment].
 
+.. _data_storage_and_analsysis:
+
 Data storage & Analysis
 =======================
 
@@ -398,15 +400,6 @@ The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` us
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
-TODO:
-=====
-
-- exists
-- should be used
-- an extensible toolbox is provided
-- fitting models
-- how to build a custom analysis?
-
 Analysis framework
 ------------------
 
@@ -424,7 +417,7 @@ The simplest example of an analysis class is the :class:`~quantify.analysis.base
         .. literalinclude:: ../quantify/analysis/base_analysis.py
             :pyobject: Basic1DAnalysis
 
-A slightly more complex example is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model from the :mod:`~quantify.analysis.fitting_models` module, and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
+A slightly more complex example is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model (from the :mod:`quantify.analysis.fitting_models` library), and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
 
 
 Using existing analysis classes
@@ -434,19 +427,58 @@ To be written.
 
 Example where we show how to use an analysis class
 
-- run a basic experiment (collapsed).
 - run analysis and find file using label or tuid, show file written to the disk.
 - show plots using method.
 - hint there are a few more handy methods.
 - show how to extract some quantities (which quantities exactly ???).
 - analysis global/per instance (where to mention this ???)
 
+Here we run a mock experiment that generates a dataset that we would like to analyze.
+
+.. admonition:: Generate a dataset labeled "Cosine experiment"
+    :class: dropdown, note
+
+
+    .. include:: tutorials/cosine_instrument.rst.txt
+
+    .. jupyter-execute::
+
+        MC.settables(pars.t)
+        MC.setpoints(np.linspace(0, 5, 50))
+        MC.gettables(pars.sig)
+        dataset = MC.run("Cosine experiment")
+        dataset
+
+Running an analysis is very simple. Below we execute the analysis against the last dataset containing in its label `"Cosine experiment"`.
+
+.. jupyter-execute::
+
+    from quantify.data import handling as dh
+    from quantify.analysis import base_analysis as ba
+    a_obj = ba.Basic1DAnalysis(label="Cosine experiment") # a tuid can also be provided
+    a_obj.run()
+    a_obj.display_figs_mpl()
+
+After the analysis is executed the experiment container will look similar to the following:
+
+.. jupyter-execute::
+
+    from directory_tree import display_tree  # pip install directory_tree
+    experiment_container_path = dh.locate_experiment_container(tuid=dataset.tuid)
+    display_tree(experiment_container_path)
+
+Alternatively we can pass a dataset directly to the analysis:
+
+.. jupyter-execute::
+
+    a_obj_2 = ba.Basic1DAnalysis(dataset_raw=dataset).run() # .run() on the same line is possible (it returns the analysis instance)
+    a_obj_2.display_figs_mpl()
+
 
 Creating a new analysis class
 -----------------------------
 
-- Point to the tutorial(s)
-
+Creating a new custom analysis for a particular type of dataset is showcased in the :ref:`analysis_framework_tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
 
 Examples: Settables and Gettables
 =================================
