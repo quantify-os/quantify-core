@@ -4,7 +4,7 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
 from pytest import approx
-from uncertainties.core import Variable
+from uncertainties.core import Variable, AffineScalarFunc
 
 import quantify.data.handling as dh
 from quantify.analysis import ramsey_analysis as ra
@@ -45,7 +45,7 @@ def test_quantities_of_interest(analysis_obj):
 
     assert isinstance(analysis_obj.quantities_of_interest["T2*"], Variable)
     assert isinstance(analysis_obj.quantities_of_interest["fitted_detuning"], Variable)
-    assert isinstance(analysis_obj.quantities_of_interest["detuning"], Variable)
+    assert isinstance(analysis_obj.quantities_of_interest["detuning"], AffineScalarFunc)
 
     # Tests that the fitted values are correct (to within 5 standard deviations)
     assert analysis_obj.quantities_of_interest["T2*"].nominal_value == approx(
@@ -108,10 +108,11 @@ def test_quantities_of_interest_qubit_freq(analysis_obj_qubit_freq):
         analysis_obj_qubit_freq.quantities_of_interest["fitted_detuning"], Variable
     )
     assert isinstance(
-        analysis_obj_qubit_freq.quantities_of_interest["detuning"], Variable
+        analysis_obj_qubit_freq.quantities_of_interest["detuning"], AffineScalarFunc
     )
     assert isinstance(
-        analysis_obj_qubit_freq.quantities_of_interest["qubit_frequency"], Variable
+        analysis_obj_qubit_freq.quantities_of_interest["qubit_frequency"],
+        AffineScalarFunc,
     )
 
     # Tests that the fitted values are correct (to within 5 standard deviations)
