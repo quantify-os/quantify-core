@@ -1,9 +1,11 @@
+# pylint: disable=invalid-name # disabled because of capital SI in module name
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 import os
 import logging
 from pathlib import Path
+import xarray as xr
 from jsonschema import ValidationError
 import pytest
 import lmfit
@@ -11,7 +13,6 @@ import xarray as xr
 import numpy as np
 import quantify.data.handling as dh
 from quantify.analysis import base_analysis as ba
-from quantify.utilities._tests_helpers import get_test_data_dir
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
@@ -22,6 +23,7 @@ TUID_2D_CYCLIC = "20210227-172939-723-53d82c"
 
 # disable figure saving for all analyses for performance
 ba.settings["mpl_fig_formats"] = []
+
 
 # pylint: disable=attribute-defined-outside-init
 class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
@@ -49,8 +51,8 @@ class DummyAnalysisSubclassArgs(ba.Basic1DAnalysis):
         return self
 
 
-def test_run_partial(caplog):
-    dh.set_datadir(get_test_data_dir())
+def test_run_partial(caplog, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     _ = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
         interrupt_before=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_2_RUN_FITTING
     )
@@ -65,9 +67,8 @@ def test_run_partial(caplog):
         assert log_msg in str(rec.msg)
 
 
-def test_flow_skip_step_continue_manually(caplog):
-
-    dh.set_datadir(get_test_data_dir())
+def test_flow_skip_step_continue_manually(caplog, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     # test both string or Enum member specification of the analysis steps
     with caplog.at_level(logging.INFO):
         a_obj = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
@@ -101,15 +102,15 @@ def test_flow_skip_step_continue_manually(caplog):
         assert log_msg in str(rec.msg)
 
 
-def test_pass_options():
+def test_pass_options(tmp_test_data_dir):
     """How to change default arguments of the methods in the analysis flow."""
-    dh.set_datadir(get_test_data_dir())
+    dh.set_datadir(tmp_test_data_dir)
     a_obj = DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT).run(var=7)
     assert a_obj.var == 7
 
 
-def test_flow_xlim_all():
-    dh.set_datadir(get_test_data_dir())
+def test_flow_xlim_all(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     xlim = (0.0, 4.0)
     step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
@@ -120,8 +121,8 @@ def test_flow_xlim_all():
         assert ax.get_xlim() == xlim
 
 
-def test_flow_ylim_all(caplog):
-    dh.set_datadir(get_test_data_dir())
+def test_flow_ylim_all(caplog, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     ylim = (0.0, 0.8)
     step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
@@ -145,8 +146,8 @@ def test_flow_ylim_all(caplog):
         assert log_msg in str(rec.msg)
 
 
-def test_flow_clim_all():
-    dh.set_datadir(get_test_data_dir())
+def test_flow_clim_all(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     clim = (1.0, 2.0)
     step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS).run_until(interrupt_before=step)
@@ -159,8 +160,8 @@ def test_flow_clim_all():
     assert ax.collections[0].get_clim() == clim
 
 
-def test_flow_clim_specific():
-    dh.set_datadir(get_test_data_dir())
+def test_flow_clim_specific(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     clim = (0.0, 180.0)
     step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
     a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS).run_until(interrupt_before=step)
@@ -171,8 +172,8 @@ def test_flow_clim_specific():
     assert ax.collections[0].get_clim() == clim
 
 
-def test_basic1danalysis_settings_validation():
-    dh.set_datadir(get_test_data_dir())
+def test_basic1danalysis_settings_validation(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuid = TUID_1D_1PLOT
 
     with pytest.raises(ValidationError) as excinfo:
@@ -183,11 +184,8 @@ def test_basic1danalysis_settings_validation():
     assert "'png' is not of type 'array'" in str(excinfo.value)
 
 
-# Run defaults at the end to overwrite the previous figures
-
-
-def test_basic1d_analysis(caplog):
-    dh.set_datadir(get_test_data_dir())
+def test_basic1d_analysis(caplog, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
 
     tuid = TUID_1D_1PLOT
     a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
@@ -228,8 +226,8 @@ def test_basic1d_analysis(caplog):
         assert log_msg in str(rec.msg)
 
 
-def test_basic1d_analysis_plot_repeated_pnts():
-    dh.set_datadir(get_test_data_dir())
+def test_basic1d_analysis_plot_repeated_pnts(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY).run()
 
     # test that the duplicated setpoints measured are plotted
@@ -238,8 +236,8 @@ def test_basic1d_analysis_plot_repeated_pnts():
     )
 
 
-def test_basic2d_analysis():
-    dh.set_datadir(get_test_data_dir())
+def test_basic2d_analysis(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
 
     tuid = TUID_2D_2PLOTS
     # here we see if figures are created
@@ -262,8 +260,8 @@ def test_basic2d_analysis():
     assert "figs_mpl" in analysis_dir
 
 
-def test_basic2d_cyclic_cmap_detection():
-    dh.set_datadir(get_test_data_dir())
+def test_basic2d_cyclic_cmap_detection(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
 
     tuid = TUID_2D_CYCLIC
     # here we see if figures are created
@@ -286,10 +284,71 @@ def test_basic2d_cyclic_cmap_detection():
     assert qm.get_cmap().name == "twilight_shifted"
 
 
-def test_display_figs():
-    dh.set_datadir(get_test_data_dir())
+def test_display_figs(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run()
     a_obj.display_figs_mpl()  # should display figures in the output
+
+
+def test_dataset_input_invalid():
+    # a dataset with missing tuid is an invalid dataset
+
+    # Create a custom dataset
+    x0 = np.linspace(0, 2 * np.pi, 31)
+    y0 = np.cos(x0)
+    x0r = xr.DataArray(
+        x0, name="x0", attrs={"name": "t", "long_name": "Time", "units": "s"}
+    )
+    y0r = xr.DataArray(
+        y0, name="y0", attrs={"name": "A", "long_name": "Amplitude", "units": "V"}
+    )
+
+    dset = xr.Dataset({"x0": x0r, "y0": y0r}, attrs={"name": "custom cosine"})
+    dset = dset.set_coords(["x0"])
+    # no TUID attribute present
+
+    with pytest.raises(AttributeError):
+        ba.Basic1DAnalysis(dataset_raw=dset).run()
+
+
+def test_dataset_input(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    # Create a custom dataset
+    x0 = np.linspace(0, 2 * np.pi, 31)
+    y0 = np.cos(x0)
+    x0r = xr.DataArray(
+        x0, name="x0", attrs={"name": "t", "long_name": "Time", "units": "s"}
+    )
+    y0r = xr.DataArray(
+        y0, name="y0", attrs={"name": "A", "long_name": "Amplitude", "units": "V"}
+    )
+
+    dset = xr.Dataset(
+        {"x0": x0r, "y0": y0r},
+        attrs={"name": "custom cosine", "tuid": "20210417-191934-749-41de74"},
+    )
+    dset = dset.set_coords(["x0"])
+
+    # execute analysis with dataset as input argument
+    a_obj = ba.Basic1DAnalysis(
+        dataset_raw=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
+    ).run()
+
+    assert a_obj.dataset_raw == dset
+
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, tmp_test_data_dir)
+    # assert a copy of the dataset was stored to disk.
+    assert "dataset.hdf5" in os.listdir(exp_dir)
+    # assert figures where stored to disk.
+    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "figs_mpl" in analysis_dir
+    assert "Line plot x0-y0.png" in os.listdir(
+        Path(exp_dir) / "analysis_Basic1DAnalysis" / "figs_mpl"
+    )
+
+    # test that the right figures get created.
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
 
 def test_lmfit_par_to_ufloat():
