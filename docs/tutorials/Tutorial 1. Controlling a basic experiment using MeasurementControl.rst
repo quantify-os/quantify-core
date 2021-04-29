@@ -77,31 +77,7 @@ We start by defining a simple model to mock our experiment setup (i.e. emulate p
 We will be generating a cosine with some normally distributed noise added on top of it.
 
 
-.. jupyter-execute::
-
-    from time import sleep
-    from quantify.analysis.fitting_models import cos_func
-
-    # We create an instrument to contain all the parameters of our model to ensure we have proper data logging.
-    from qcodes.instrument import Instrument
-
-    pars = Instrument('ParameterHolder')
-
-    # ManualParameter's is a handy class that preserves the QCoDeS' Parameter
-    # structure without necessarily having a connection to the physical world
-    pars.add_parameter('amp', initial_value=1, unit='V', label='Amplitude', parameter_class=ManualParameter)
-    pars.add_parameter('freq', initial_value=.5, unit='Hz', label='Frequency', parameter_class=ManualParameter)
-    pars.add_parameter('t', initial_value=1, unit='s', label='Time', parameter_class=ManualParameter)
-    pars.add_parameter('phi', initial_value=0, unit='Rad', label='Phase', parameter_class=ManualParameter)
-    pars.add_parameter('noise_level', initial_value=0.05, unit='V', label='Noise level', parameter_class=ManualParameter)
-    pars.add_parameter('acq_delay', initial_value=.1, unit='s', parameter_class=ManualParameter)
-
-    def cosine_model():
-        sleep(pars.acq_delay()) # simulates the acquisition delay of an instrument
-        return cos_func(pars.t(), pars.amp(), pars.freq(), phase=pars.phi(), offset=0) + np.random.randn() * pars.noise_level()
-
-    # We wrap our function in a Parameter to be able to associate metadata to it, e.g. units
-    sig = pars.add_parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
+.. include:: cosine_instrument.rst.txt
 
 
 Many experiments involving physical instruments are much slower than the time it takes to simulate our `cosine_model`, that is why we added a `sleep()` controlled by the `acq_delay`.
@@ -179,11 +155,11 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
 Analyzing the experiment
 ------------------------
 
-Plotting the data and saving the plots for a simple 1D case can be achieve in a few lines using a standard analysis from the :mod:`quantify.analysis` module. In the same module you can find several common analyses that might fit your needs. It also provides a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) -- a flexible framework for building custom analyses, which we explore in detail in `a dedicated tutorial <analysis_framework_tutorial>`_.
+Plotting the data and saving the plots for a simple 1D case can be achieve in a few lines using a standard analysis from the :mod:`quantify.analysis.base_analysis` module. In the same module you can find several common analyses that might fit your needs. It also provides a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) -- a flexible framework for building custom analyses, which we explore in detail in :ref:`a dedicated tutorial <analysis_framework_tutorial>`.
 
 The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
 The analysis loads the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
-See the data storage documentation for more details on the folder structure and files contained in the data directory.
+See the :ref:`data_storage_and_analsysis` for more details on the folder structure and files contained in the data directory.
 
 .. jupyter-execute::
 
@@ -195,9 +171,10 @@ See the data storage documentation for more details on the folder structure and 
 .. jupyter-execute::
 
     from quantify.analysis import base_analysis as ba
-    a_obj = ba.Basic1DAnalysis(tuid=tuid)
+    a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
     a_obj.display_figs_mpl()
 
+For guidance on custom analyses, e.g., fitting a model to the data, see :ref:`analysis_framework_tutorial`.
 
 A 2D Iterative loop
 -------------------
