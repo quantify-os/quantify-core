@@ -5,6 +5,8 @@ Changelog
 Unreleased
 ----------
 
+* Allow providing an xarray dataset as input for analysis (#181)
+
 Breaking changes
 ~~~~~~~~~~~~~~~~
 

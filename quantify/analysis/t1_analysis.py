@@ -1,6 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-from textwrap import wrap
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -40,12 +39,7 @@ class T1Analysis(ba.BaseAnalysis):
         delay = np.array(self.dataset["x0"])
         guess = mod.guess(magn, delay=delay)
         fit_res = mod.fit(magn, params=guess, t=delay)
-
         fit_warning = ba.check_lmfit(fit_res)
-        if fit_warning is not None:
-            fit_warning = "\n".join(
-                wrap(fit_warning, width=35, replace_whitespace=True)
-            )
 
         self.fit_res.update({"exp_decay_func": fit_res})
 
@@ -74,9 +68,6 @@ class T1Analysis(ba.BaseAnalysis):
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        self.create_fig_t1_decay()
-
-    def create_fig_t1_decay(self):
         """
         Create a figure showing the exponential decay and fit.
         """
@@ -87,7 +78,7 @@ class T1Analysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = axs
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(axs, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
 
