@@ -366,14 +366,18 @@ class BaseAnalysis(ABC):
     @classmethod
     def load_processed_dataset(cls, tuid: str = None, label: str = "") -> xr.Dataset:
         """
-        Given an experiment TUID/label, loads from the respective file the processed dataset associated with the Analysis subclass that calls this function.
+        Given an experiment TUID/label, loads from the respective file the
+        processed dataset associated with the Analysis subclass
+        that calls this function.
 
         Parameters
         ----------
         tuid
             TUID of the experiment from which to load the data.
         label
-            If TUID is none, looks for the experiment containing "label" in the respective "tuid". If neither tuid nor label is specified, loads from the last experiment.
+            If TUID is none, looks for the experiment containing "label"
+            in the respective "tuid".
+            If neither tuid nor label is specified, loads from the last experiment.
 
         Returns
         -------
@@ -397,14 +401,18 @@ class BaseAnalysis(ABC):
     @classmethod
     def load_quantities_of_interest(cls, tuid: str = None, label: str = "") -> dict:
         """
-        Given an experiment TUID/label, loads from the respective file the quantities of interest associated with the Analysis subclass that calls this function.
+        Given an experiment TUID/label, loads from the respective file the
+        quantities of interest associated with the Analysis subclass
+        that calls this function.
 
         Parameters
         ----------
         tuid
             TUID of the experiment from which to load the data.
         label
-            If TUID is none, looks for the experiment containing "label" in the respective "tuid". If neither tuid nor label is specified, loads from the last experiment.
+            If TUID is none, looks for the experiment containing "label"
+            in the respective "tuid".
+            If neither tuid nor label is specified, loads from the last experiment.
 
         Returns
         -------
