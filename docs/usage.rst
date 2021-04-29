@@ -14,7 +14,7 @@ The core of Quantify can be understood by understanding the following concepts:
 - `Instruments and Parameters`_
 - `Measurement Control`_
 - `Settables and Gettables`_
-- `Data storage & Analysis`_
+- `Data storage`_
 
 Code snippets
 -------------
@@ -284,10 +284,10 @@ For `settables`, :meth:`!.prepare` runs once **before the start of a measurement
 
 For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()` which resets to `1` at the end of each experiment].
 
-.. _data_storage_and_analsysis:
+.. _data_storage:
 
-Data storage & Analysis
-=======================
+Data storage
+============
 
 Along with the produced dataset, every :class:`~qcodes.instrument.parameter.Parameter` attached to QCoDeS :class:`~qcodes.instrument.base.Instrument` in an experiment run through the :class:`~quantify.measurement.MeasurementControl` of Quantify is stored in the `snapshot`_.
 
@@ -318,7 +318,7 @@ These subdirectories are termed 'Experiment Containers', typical output being th
 
 Furthermore, additional analysis such as fits can also be written to this directory, storing all data in one location.
 
-An experiment container within a data directory with the name `quantify-data` thus will look similar to:
+An experiment container within a data directory with the name `Experiments` thus will look similar to:
 
 .. jupyter-execute::
     :hide-code:
@@ -329,7 +329,7 @@ An experiment container within a data directory with the name `quantify-data` th
     import tempfile
     old_dir = dh.get_datadir()
     tmpdir = tempfile.TemporaryDirectory()
-    dh.set_datadir(tmpdir.name)
+    dh.set_datadir(Path(tmpdir.name) / "Experiments")
     # we generate a dummy dataset and few empty dirs for pretty printing
     (Path(dh.get_datadir()) / "20210301").mkdir()
     (Path(dh.get_datadir()) / "20210428").mkdir()
@@ -401,7 +401,7 @@ It is useful for quickly reconstructing a complex set-up or verifying that :clas
 
 
 Analysis framework
-------------------
+==================
 
 To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
 
@@ -427,11 +427,9 @@ To be written.
 
 Example where we show how to use an analysis class
 
-- run analysis and find file using label or tuid, show file written to the disk.
-- show plots using method.
 - hint there are a few more handy methods.
-- show how to extract some quantities (which quantities exactly ???).
-- analysis global/per instance (where to mention this ???)
+- show how to extract some quantities (which quantities exactly ???)
+- analysis settings global/per instance (where to mention this ???)
 
 Here we run a mock experiment that generates a dataset that we would like to analyze.
 
@@ -472,13 +470,13 @@ Alternatively we can pass a dataset directly to the analysis:
 .. jupyter-execute::
 
     a_obj_2 = ba.Basic1DAnalysis(dataset_raw=dataset).run() # .run() on the same line is possible (it returns the analysis instance)
-    a_obj_2.display_figs_mpl()
 
+For advanced usage, see also the :ref:`analysis API documentation <analysis_api>` and :ref:`analysis_framework_tutorial`.
 
-Creating a new analysis class
------------------------------
+Creating a custom analysis class
+--------------------------------
 
-Creating a new custom analysis for a particular type of dataset is showcased in the :ref:`analysis_framework_tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
+Creating a custom analysis for a particular type of dataset is showcased in the :ref:`analysis_framework_tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
 
 Examples: Settables and Gettables
 =================================

@@ -7,6 +7,7 @@ quantify
 .. automodule:: quantify
    :members:
 
+.. _analysis_api:
 
 analysis
 =============

@@ -141,6 +141,11 @@ class BaseAnalysis(ABC):
                     interrupt_before=Basic1DAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
                 )
 
+
+        .. rubric:: Settings schema:
+
+        .. jsonschema:: schemas/AnalysisSettings.json#/configurations
+
         Parameters
         ----------
         dataset_raw:
@@ -154,11 +159,7 @@ class BaseAnalysis(ABC):
         settings_overwrite:
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
-            See table below for available settings.
-
-        .. rubric:: Settings schema
-
-        .. jsonschema:: schemas/AnalysisSettings.json#/configurations
+            See `Settings schema` above for available settings.
         """
         self.logger = logging.getLogger(self.name)
 
@@ -322,7 +323,7 @@ class BaseAnalysis(ABC):
 
     def extract_data(self):
         """
-        If no `dataset_raw` is provided, populates `self.dataset_raw` with data from
+        If no `dataset_raw` is provided, populates :code:`.dataset_raw` with data from
         the experiment matching the tuid/label.
 
         This method should be overwritten if an analysis does not relate to a single
@@ -379,9 +380,18 @@ class BaseAnalysis(ABC):
                 self.quantities_of_interest["fit_res"][fr_name] = res
 
     def analyze_fit_results(self):
-        pass
+        """
+        To be implemented by subclasses what run fitting routines and require
+        post fitting analysis.
+        """
 
     def save_quantities_of_interest(self):
+        """
+        Saves the :code:`.quantities_of_interest` as a JSON file in the analysis directory.
+
+        The file is written using :func:`json.dump` with the
+        :class:`qcodes.utils.helpers.NumpyJSONEncoder` custom encoder.
+        """
         self._add_fit_res_to_qoi()
 
         with open(
@@ -390,12 +400,18 @@ class BaseAnalysis(ABC):
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
     def create_figures(self):
-        pass
+        """
+        To be implemented by subclasses that generate figures.
+        """
 
     def adjust_figures(self):
         """
         Perform global adjustments after creating the figures but
-        before saving them
+        before saving them.
+
+        By default applies `mpl_exclude_fig_titles` and `mpl_transparent_background`
+        from :code:`.settings_overwrite` to any matplotlib figures in
+        :code:`.figs_mpl`.
         """
         for fig in self.figs_mpl.values():
             if self.settings_overwrite["mpl_exclude_fig_titles"]:
@@ -407,7 +423,7 @@ class BaseAnalysis(ABC):
 
     def save_processed_dataset(self):
         """
-        Saves a copy of the (processed) `.dataset` in the analysis folder of the
+        Saves a copy of the (processed) :code:`.dataset` in the analysis folder of the
         experiment.
         """
 
@@ -427,12 +443,12 @@ class BaseAnalysis(ABC):
 
     def save_figures_mpl(self, close_figs: bool = True):
         """
-        Saves all the matplotlib figures in the :code:`figs_mpl` dict
+        Saves all the matplotlib figures in the :code:`.figs_mpl` dict.
 
         Parameters
         ----------
         close_figs
-            If True, closes `matplotlib` figures after saving
+            If True, closes matplotlib figures after saving.
         """
         dpi = self.settings_overwrite["mpl_dpi"]
         formats = self.settings_overwrite["mpl_fig_formats"]
@@ -451,7 +467,7 @@ class BaseAnalysis(ABC):
 
     def display_figs_mpl(self):
         """
-        Displays figures in self.figs_mpl in all frontends.
+        Displays figures in :code:`.figs_mpl` in all frontends.
         """
         for fig in self.figs_mpl.values():
             display(fig)

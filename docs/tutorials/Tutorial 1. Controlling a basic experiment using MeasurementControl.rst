@@ -118,7 +118,7 @@ The :ref:`dataset<Dataset>` is stored as a :class:`xarray.Dataset` (you can read
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
-See :ref:`Data storage & Analysis` in the :ref:`User guide` for details.
+See :ref:`data_storage` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
@@ -159,7 +159,7 @@ Plotting the data and saving the plots for a simple 1D case can be achieve in a 
 
 The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
 The analysis loads the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
-See the :ref:`data_storage_and_analsysis` for more details on the folder structure and files contained in the data directory.
+See the :ref:`data_storage` for more details on the folder structure and files contained in the data directory.
 
 .. jupyter-execute::
 
