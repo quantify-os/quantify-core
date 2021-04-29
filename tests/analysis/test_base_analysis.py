@@ -49,6 +49,7 @@ class DummyAnalysisSubclassArgs(ba.Basic1DAnalysis):
         self.execute_analysis_steps()
         return self
 
+
 def test_run_partial(caplog):
     dh.set_datadir(get_test_data_dir())
     _ = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
@@ -309,10 +310,15 @@ def test_lmfit_par_to_ufloat():
     assert ufloat_obj.nominal_value == 4
     assert np.isnan(ufloat_obj.std_dev)
 
+
 def test_load_analysis_output_files():
     dh.set_datadir(get_test_data_dir())
-    a_obj= DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT)
+    a_obj = DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT)
     a_obj.run()
 
-    assert isinstance(DummyAnalysisSubclassArgs.load_quantities_of_interest(TUID_1D_1PLOT), dict)
-    assert isinstance(DummyAnalysisSubclassArgs.load_processed_dataset(TUID_1D_1PLOT), xarray.Dataset)
+    assert isinstance(
+        DummyAnalysisSubclassArgs.load_quantities_of_interest(TUID_1D_1PLOT), dict
+    )
+    assert isinstance(
+        DummyAnalysisSubclassArgs.load_processed_dataset(TUID_1D_1PLOT), xarray.Dataset
+    )

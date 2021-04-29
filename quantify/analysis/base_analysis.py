@@ -366,7 +366,7 @@ class BaseAnalysis(ABC):
     @classmethod
     def load_processed_dataset(cls, tuid: str = None, label: str = "") -> xr.Dataset:
         """
-        Given an experiment TUID/label, loads from the respective file the processed dataset associated with the Analysis subclass that calls this function. 
+        Given an experiment TUID/label, loads from the respective file the processed dataset associated with the Analysis subclass that calls this function.
 
         Parameters
         ----------
@@ -384,20 +384,20 @@ class BaseAnalysis(ABC):
         if tuid is None:
             tuid = get_latest_tuid(contains=label)
 
-        #Get Analysis directory from TUID
+        # Get Analysis directory from TUID
         exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
         analysis_dir = exp_folder / f"analysis_{cls.__name__}"
 
         if not os.path.isdir(analysis_dir):
             raise FileNotFoundError("Analysis not found in current experiment.")
 
-        #Load dataset and return
-        return load_dataset_from_path(analysis_dir / "processed_dataset.hdf5" )
-    
+        # Load dataset and return
+        return load_dataset_from_path(analysis_dir / "processed_dataset.hdf5")
+
     @classmethod
     def load_quantities_of_interest(cls, tuid: str = None, label: str = "") -> dict:
         """
-        Given an experiment TUID/label, loads from the respective file the quantities of interest associated with the Analysis subclass that calls this function. 
+        Given an experiment TUID/label, loads from the respective file the quantities of interest associated with the Analysis subclass that calls this function.
 
         Parameters
         ----------
@@ -416,17 +416,19 @@ class BaseAnalysis(ABC):
         if tuid is None:
             tuid = get_latest_tuid(contains=label)
 
-        #Get Analysis directory from TUID
+        # Get Analysis directory from TUID
         exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
         analysis_dir = exp_folder / f"analysis_{cls.__name__}"
 
         if not os.path.isdir(analysis_dir):
             raise FileNotFoundError("Analysis not found in current experiment.")
 
-        #Load JSON file and return
-        with open(os.path.join(analysis_dir, "quantities_of_interest.json"), "r") as file:
+        # Load JSON file and return
+        with open(
+            os.path.join(analysis_dir, "quantities_of_interest.json"), "r"
+        ) as file:
             quantities_of_interest = json.load(file)
-        
+
         return quantities_of_interest
 
     def save_processed_dataset(self):
@@ -434,7 +436,7 @@ class BaseAnalysis(ABC):
         Saves a copy of the (processed) `.dataset` in the analysis folder of the
         experiment.
         """
-        
+
         # if statement exist to be compatible with child classes that do not load data
         # onto the self.dataset object.
         if self.dataset is not None:
