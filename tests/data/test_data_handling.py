@@ -506,7 +506,7 @@ def test_load_analysis_output_files():
     dh.set_datadir(get_test_data_dir())
 
     # We need to run an analysis first, so the files to be loaded are generated
-    a_obj = Basic1DAnalysis(tuid=TUID_1D_1PLOT).run()
+    Basic1DAnalysis(tuid=TUID_1D_1PLOT).run()
 
     assert isinstance(
         dh.load_quantities_of_interest(TUID_1D_1PLOT, Basic1DAnalysis.__name__), dict
