@@ -447,8 +447,8 @@ class RabiModel(lmfit.model.Model):
 
 class DecayOscModel(lmfit.model.Model):
     r"""
-    Model for a decaying oscillation which decays to a point which is not offset from the
-    centre of the of the oscillation (as in a Ramsey experiment, for example).
+    Model for a decaying oscillation which decays to a point with 0 offset from
+    the centre of the of the oscillation (as in a Ramsey experiment, for example).
     """
 
     # pylint: disable=empty-docstring
@@ -463,6 +463,8 @@ class DecayOscModel(lmfit.model.Model):
         self.set_param_hint("frequency", min=0)
         # Enforce amplitude is positive
         self.set_param_hint("amplitude", min=0)
+        # Enforce decay time is positive
+        self.set_param_hint("tau", min=0)
 
         # Fix the n_factor at 1
         self.set_param_hint("n_factor", expr="1", vary=False)
@@ -477,6 +479,7 @@ class DecayOscModel(lmfit.model.Model):
 
         amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
         exp_offs_guess = np.mean(data)
+        tau_guess = 2 / 3 * np.max(time)
 
         (freq_guess, phase_guess) = fft_freq_phase_guess(data, time)
 
@@ -484,6 +487,7 @@ class DecayOscModel(lmfit.model.Model):
         self.set_param_hint("amplitude", value=amp_guess, min=0)
         self.set_param_hint("exponential_offset", value=exp_offs_guess)
         self.set_param_hint("phase", value=phase_guess)
+        self.set_param_hint("tau", value=tau_guess, min=0)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kws)
