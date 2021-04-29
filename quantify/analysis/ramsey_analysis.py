@@ -61,22 +61,22 @@ class RamseyAnalysis(ba.BaseAnalysis):
         magnitude = np.array(self.dataset["Magnitude"])
         time = np.array(self.dataset["x0"])
         guess = mod.guess(magnitude, time=time)
-        fit_res = mod.fit(magnitude, params=guess, x=time)
+        fit_res = mod.fit(magnitude, params=guess, t=time)
 
         self.fit_res.update({"Ramsey_decay": fit_res})
 
-    def analyse_fit_results(self):
+    def analyze_fit_results(self):
         """
         Extract the real detuning and qubit frequency based on the artificial detuning
         and fitted detuning
         """
-        fit_warning = ba.check_lmfit(self.fit_res["RamseyDecay"])
+        fit_warning = ba.check_lmfit(self.fit_res["Ramsey_decay"])
         if fit_warning is not None:
             fit_warning = "\n".join(
                 wrap(fit_warning, width=35, replace_whitespace=True)
             )
 
-        fpars = self.fit_res["RamseyDecay"].params
+        fpars = self.fit_res["Ramsey_decay"].params
 
         self.quantities_of_interest["T2*"] = ba.lmfit_par_to_ufloat(fpars["tau"])
         self.quantities_of_interest["fitted_detuning"] = ba.lmfit_par_to_ufloat(
@@ -123,7 +123,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
                 text_msg += "\n"
                 text_msg += format_value_string(
                     "initial qubit frequency",
-                    self.qubit_frequency,
+                    ufloat(self.qubit_frequency, 0),
                     unit="Hz",
                     end_char="\n",
                 )
@@ -142,9 +142,9 @@ class RamseyAnalysis(ba.BaseAnalysis):
         self.create_fig_ramsey_decay()
 
     def create_fig_ramsey_decay(self):
-        """Plot Rabi oscillation figure"""
+        """Plot Ramsey decay figure"""
 
-        fig_id = "Ramsey_oscillation"
+        fig_id = "Ramsey_decay"
         fig, axs = plt.subplots()
         self.figs_mpl[fig_id] = fig
         self.axs_mpl[fig_id] = axs

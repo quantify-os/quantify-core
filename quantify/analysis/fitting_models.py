@@ -457,7 +457,7 @@ class DecayOscModel(lmfit.model.Model):
 
     def __init__(self, *args, **kwargs):
         # pass in the defining equation so the user doesn't have to later.
-        super().__init__(cos_func, *args, **kwargs)
+        super().__init__(exp_damp_osc_func, *args, **kwargs)
 
         # Enforce oscillation frequency is positive
         self.set_param_hint("frequency", min=0)
