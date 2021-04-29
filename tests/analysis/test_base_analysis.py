@@ -11,7 +11,6 @@ import pytest
 import lmfit
 import numpy as np
 import quantify.data.handling as dh
-from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.analysis import base_analysis as ba
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
@@ -367,16 +366,3 @@ def test_lmfit_par_to_ufloat():
 
     assert ufloat_obj.nominal_value == 4
     assert np.isnan(ufloat_obj.std_dev)
-
-
-def test_load_analysis_output_files():
-    dh.set_datadir(get_test_data_dir())
-    a_obj = DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT)
-    a_obj.run()
-
-    assert isinstance(
-        DummyAnalysisSubclassArgs.load_quantities_of_interest(TUID_1D_1PLOT), dict
-    )
-    assert isinstance(
-        DummyAnalysisSubclassArgs.load_processed_dataset(TUID_1D_1PLOT), xr.Dataset
-    )

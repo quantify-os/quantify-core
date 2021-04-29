@@ -30,10 +30,11 @@ from quantify.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarla
 from quantify.data.types import TUID
 from quantify.data.handling import (
     load_dataset,
-    load_dataset_from_path,
     get_latest_tuid,
     get_datadir,
     DATASET_NAME,
+    PROCESSED_DATASET_NAME,
+    QUANTITIES_OF_INTEREST_NAME,
     write_dataset,
     create_exp_folder,
     locate_experiment_container,
@@ -379,14 +380,6 @@ class BaseAnalysis(ABC):
     def analyze_fit_results(self):
         pass
 
-    def save_quantities_of_interest(self):
-        self._add_fit_res_to_qoi()
-
-        with open(
-            os.path.join(self.analysis_dir, "quantities_of_interest.json"), "w"
-        ) as file:
-            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
-
     def create_figures(self):
         pass
 
@@ -403,82 +396,6 @@ class BaseAnalysis(ABC):
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
 
-    @classmethod
-    def load_processed_dataset(cls, tuid: str = None, label: str = "") -> xr.Dataset:
-        """
-        Given an experiment TUID/label, loads from the respective file the
-        processed dataset associated with the Analysis subclass
-        that calls this function.
-
-        Parameters
-        ----------
-        tuid
-            TUID of the experiment from which to load the data.
-        label
-            If TUID is none, looks for the experiment containing "label"
-            in the respective "tuid".
-            If neither tuid nor label is specified, loads from the last experiment.
-
-        Returns
-        -------
-        :
-            A dataset containing the results of the analysis.
-        """
-        # if no TUID use the label to search for the latest file with a match.
-        if tuid is None:
-            tuid = get_latest_tuid(contains=label)
-
-        # Get Analysis directory from TUID
-        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{cls.__name__}"
-
-        if not os.path.isdir(analysis_dir):
-            raise FileNotFoundError("Analysis not found in current experiment.")
-
-        # Load dataset and return
-        return load_dataset_from_path(analysis_dir / "processed_dataset.hdf5")
-
-    @classmethod
-    def load_quantities_of_interest(cls, tuid: str = None, label: str = "") -> dict:
-        """
-        Given an experiment TUID/label, loads from the respective file the
-        quantities of interest associated with the Analysis subclass
-        that calls this function.
-
-        Parameters
-        ----------
-        tuid
-            TUID of the experiment from which to load the data.
-        label
-            If TUID is none, looks for the experiment containing "label"
-            in the respective "tuid".
-            If neither tuid nor label is specified, loads from the last experiment.
-
-        Returns
-        -------
-        :
-            A dictionary containing the loaded quantities of interest.
-        """
-
-        # if no TUID use the label to search for the latest file with a match.
-        if tuid is None:
-            tuid = get_latest_tuid(contains=label)
-
-        # Get Analysis directory from TUID
-        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{cls.__name__}"
-
-        if not os.path.isdir(analysis_dir):
-            raise FileNotFoundError("Analysis not found in current experiment.")
-
-        # Load JSON file and return
-        with open(
-            os.path.join(analysis_dir, "quantities_of_interest.json"), "r"
-        ) as file:
-            quantities_of_interest = json.load(file)
-
-        return quantities_of_interest
-
     def save_processed_dataset(self):
         """
         Saves a copy of the (processed) `.dataset` in the analysis folder of the
@@ -489,7 +406,15 @@ class BaseAnalysis(ABC):
         # onto the self.dataset object.
         if self.dataset is not None:
             dataset = self.dataset
-            write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
+            write_dataset(Path(self.analysis_dir) / PROCESSED_DATASET_NAME, dataset)
+
+    def save_quantities_of_interest(self):
+        self._add_fit_res_to_qoi()
+
+        with open(
+            os.path.join(self.analysis_dir, QUANTITIES_OF_INTEREST_NAME), "w"
+        ) as file:
+            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
     def save_figures(self):
         """

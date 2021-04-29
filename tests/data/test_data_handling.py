@@ -15,6 +15,10 @@ from qcodes import ManualParameter
 from quantify.data.types import TUID
 from quantify.measurement.control import MeasurementControl
 import quantify.data.handling as dh
+from quantify.utilities._tests_helpers import get_test_data_dir
+from quantify.analysis.base_analysis import Basic1DAnalysis
+
+TUID_1D_1PLOT = "20200430-170837-001-315f36"
 
 
 def test_gen_tuid():
@@ -496,3 +500,16 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
         coords={"x0": np.linspace(0, 5, 5)},
     )
     return dataset
+
+
+def test_load_analysis_output_files():
+    dh.set_datadir(get_test_data_dir())
+    a_obj = Basic1DAnalysis(tuid=TUID_1D_1PLOT)
+    a_obj.run()
+
+    assert isinstance(
+        dh.load_quantities_of_interest(TUID_1D_1PLOT, Basic1DAnalysis.__name__), dict
+    )
+    assert isinstance(
+        dh.load_processed_dataset(TUID_1D_1PLOT, Basic1DAnalysis.__name__), xr.Dataset
+    )
