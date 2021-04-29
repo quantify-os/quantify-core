@@ -9,9 +9,9 @@ import xarray as xr
 from jsonschema import ValidationError
 import pytest
 import lmfit
-import xarray as xr
 import numpy as np
 import quantify.data.handling as dh
+from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.analysis import base_analysis as ba
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
