@@ -1,7 +1,7 @@
 .. _adaptive_tutorial:
 
 Tutorial 4. Adaptive Measurements
-==================================
+=================================
 
 .. seealso::
 
@@ -41,7 +41,7 @@ The `MC` will then use this function to build the sweep. We import our usual mod
 
 
 Finding a minimum
--------------------
+-----------------
 
 We will create a mock Instrument our `MC` will interact with. In this case, it is a simple parabola centered at the origin.
 
@@ -125,7 +125,7 @@ Of course, this parabola has it's global minimum at the origin, thus these value
 We can see from the graphs that the values of the settables in the dataset snake towards 0 as expected. Success!
 
 Adaptive Sampling
--------------------
+-----------------
 
 Quantify is designed to be modular and the adaptive functions support is no different. To this end, the `MC` has first class support for the `adaptive` package.
 Let's see what the same experiment looks like with this module. Note the fields of the `af_pars` dictionary have changed to be compatible with the different adaptive function we are using.
@@ -179,9 +179,9 @@ We really don't want to sweep through a million points, so instead let's use an 
 
 
 FAQ
-----
+---
 
 Can I return multi-dimensional data from a Gettable in Adaptive Mode?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Yes, but only first dimension (y0) will be considered by the adaptive function; the remaining dimensions will merely be
 saved to the dataset.
