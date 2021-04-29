@@ -7,12 +7,11 @@ from pathlib import Path
 from jsonschema import ValidationError
 import pytest
 import lmfit
+import xarray as xr
 import numpy as np
 import quantify.data.handling as dh
 from quantify.analysis import base_analysis as ba
-from quantify.analysis import t1_analysis as t1_analysis
 from quantify.utilities._tests_helpers import get_test_data_dir
-import xarray
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
@@ -320,5 +319,5 @@ def test_load_analysis_output_files():
         DummyAnalysisSubclassArgs.load_quantities_of_interest(TUID_1D_1PLOT), dict
     )
     assert isinstance(
-        DummyAnalysisSubclassArgs.load_processed_dataset(TUID_1D_1PLOT), xarray.Dataset
+        DummyAnalysisSubclassArgs.load_processed_dataset(TUID_1D_1PLOT), xr.Dataset
     )
