@@ -2,10 +2,9 @@
 # Licensed according to the LICENCE file on the master branch
 """Analysis module for a Rabi Oscillation experiment"""
 from textwrap import wrap
+from typing import Union
 import numpy as np
 import matplotlib.pyplot as plt
-import xarray as xr
-from typing import Union
 from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
