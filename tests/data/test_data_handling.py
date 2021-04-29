@@ -504,8 +504,9 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
 
 def test_load_analysis_output_files():
     dh.set_datadir(get_test_data_dir())
-    a_obj = Basic1DAnalysis(tuid=TUID_1D_1PLOT)
-    a_obj.run()
+    
+    #We need to run an analysis first, so the files to be loaded are generated
+    a_obj = Basic1DAnalysis(tuid=TUID_1D_1PLOT).run()
 
     assert isinstance(
         dh.load_quantities_of_interest(TUID_1D_1PLOT, Basic1DAnalysis.__name__), dict
