@@ -5,6 +5,7 @@ from textwrap import wrap
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+from typing import Union
 from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
@@ -18,24 +19,28 @@ class RamseyAnalysis(ba.BaseAnalysis):
     and finds the true detuning, qubit frequency and T2* time.
     """
 
-    def __init__(
-        self,
-        dataset_raw: xr.Dataset = None,
-        tuid: str = None,
-        label: str = "",
-        settings_overwrite: dict = None,
-        artificial_detuning: float = 0,
-        qubit_frequency: float = None,
-    ):
+    # Overwrite the run method so that we can add the new optional arguments
+    # pylint: disable=attribute-defined-outside-init
+    def run(self, artificial_detuning: float = 0, qubit_frequency: float = None):
+        # pylint: disable=arguments-differ
+
         self.artificial_detuning = artificial_detuning
         self.qubit_frequency = qubit_frequency
+        return super().run()
 
-        super().__init__(
-            dataset_raw=dataset_raw,
-            label=label,
-            tuid=tuid,
-            settings_overwrite=settings_overwrite,
-        )
+    # pylint: disable=attribute-defined-outside-init
+    def run_until(
+        self,
+        interrupt_before: Union[str, ba.AnalysisSteps],
+        artificial_detuning: float = 0,
+        qubit_frequency: float = None,
+        **kwargs,
+    ):
+        # pylint: disable=arguments-differ
+
+        self.artificial_detuning = artificial_detuning
+        self.qubit_frequency = qubit_frequency
+        return super().run_until(interrupt_before=interrupt_before, kwargs=kwargs)
 
     def process_data(self):
         # y0 = amplitude, no check for the amplitude unit as the name/label is

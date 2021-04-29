@@ -13,9 +13,9 @@ from quantify.analysis import ramsey_analysis as ra
 @pytest.fixture(scope="session", autouse=True)
 def analysis_obj(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    a_obj = ra.RamseyAnalysis(
-        tuid="20210422-104958-297-7d6034", artificial_detuning=250e3
-    ).run()
+    a_obj = ra.RamseyAnalysis(tuid="20210422-104958-297-7d6034").run(
+        artificial_detuning=250e3
+    )
     return a_obj
 
 
@@ -69,11 +69,9 @@ def test_quantities_of_interest(analysis_obj):
 @pytest.fixture(scope="session", autouse=True)
 def analysis_obj_qubit_freq(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    a_obj = ra.RamseyAnalysis(
-        tuid="20210422-104958-297-7d6034",
-        artificial_detuning=250e3,
-        qubit_frequency=4.7149e9,
-    ).run()
+    a_obj = ra.RamseyAnalysis(tuid="20210422-104958-297-7d6034").run(
+        artificial_detuning=250e3, qubit_frequency=4.7149e9
+    )
     return a_obj
 
 
