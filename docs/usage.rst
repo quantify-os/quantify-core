@@ -316,19 +316,33 @@ These subdirectories are termed 'Experiment Containers', typical output being th
 
 Furthermore, additional analysis such as fits can also be written to this directory, storing all data in one location.
 
-A data directory with the name 'MyData' thus will look similar to:
+An experiment container within a data directory with the name `quantify-data` thus will look similar to:
 
-.. code-block:: none
+.. jupyter-execute::
+    :hide-code:
 
-    MyData
-    └─ 20200708
-    │  └─ 20200708-145048-800-60cf37
-    │  │  └─ file1.txt
-    │  └─ 20200708-145205-042-6d068a-bell_test
-    │     └─ dataset.hdf5
-    │     └─ snapshot.json
-    │     └─ lmfit.png
-    └─ 20200710
+    from directory_tree import display_tree
+    from quantify.data import handling as dh
+    from pathlib import Path
+    import tempfile
+    old_dir = dh.get_datadir()
+    tmpdir = tempfile.TemporaryDirectory()
+    dh.set_datadir(tmpdir.name)
+    # we generate a dummy dataset and few empty dirs for pretty printing
+    (Path(dh.get_datadir()) / "20210301").mkdir()
+    (Path(dh.get_datadir()) / "20210428").mkdir()
+    # run twice to have a dir with and without analysis
+
+.. include:: tutorials/generate_quantify_dataset_hide_code.rst.txt
+
+.. jupyter-execute::
+    :hide-code:
+
+    from quantify.analysis import base_analysis as ba
+    ba.Basic1DAnalysis(tuid=quantify_dataset.tuid).run()
+    display_tree(dh.get_datadir())  # to make sure the full path is displayed
+    dh.set_datadir(old_dir)
+    tmpdir.cleanup()
 
 Dataset
 -------
@@ -345,26 +359,7 @@ such as the :class:`~quantify.data.types.TUID` of the experiment which it was ge
 For example, consider an experiment varying time and amplitude against a Cosine function.
 The resulting dataset will look similar to the following:
 
-.. jupyter-execute::
-    :hide-code:
-
-    t = ManualParameter('t', initial_value=1, unit='s', label='Time')
-    amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
-    amp.batched = True
-    amp.batch_size = 3
-
-    def CosFunc():
-        return amp() * np.cos(t())
-
-    sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=CosFunc)
-    sig.batched = True
-    sig.batch_size = 6
-
-    MC.verbose(False) # Suppress printing
-    MC.settables([amp, t])
-    MC.setpoints_grid([np.linspace(-1, 1, 10), np.linspace(0, 10, 100)])
-    MC.gettables(sig)
-    quantify_dataset = MC.run('my experiment')
+.. include:: tutorials/generate_quantify_dataset_hide_code.rst.txt
 
 .. jupyter-execute::
 
