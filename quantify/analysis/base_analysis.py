@@ -434,6 +434,9 @@ class BaseAnalysis(ABC):
         Saves a copy of the (processed) `.dataset` in the analysis folder of the
         experiment.
         """
+        
+        # if statement exist to be compatible with child classes that do not load data
+        # onto the self.dataset object.
         if self.dataset is not None:
             dataset = self.dataset
             write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
