@@ -1,15 +1,13 @@
 """Tests for analysis fitting models"""
-from pytest import approx
+import pytest
 import numpy as np
-
 import quantify.data.handling as dh
 from quantify.analysis import fitting_models as fm
-from quantify.utilities._tests_helpers import get_test_data_dir
 
 
-def test_resonator_phase_guess():
+def test_resonator_phase_guess(tmp_test_data_dir):
     """Test for resonator_phase_guess function"""
-    dh.set_datadir(get_test_data_dir())
+    dh.set_datadir(tmp_test_data_dir)
     tuid_list = dh.get_tuids_containing(
         "Resonator_id", t_start="20210305", t_stop="20210306"
     )
@@ -31,12 +29,12 @@ def test_resonator_phase_guess():
         # initial input for our fit
         guess_tolerance = 0.3
 
-        assert phi_v == approx(real_phi_vs[idx], rel=guess_tolerance)
+        assert phi_v == pytest.approx(real_phi_vs[idx], rel=guess_tolerance)
 
 
-def test_fft_freq_phase_guess():
+def test_fft_freq_phase_guess(tmp_test_data_dir):
     """Test for fft_freq_phase_guess function"""
-    dh.set_datadir(get_test_data_dir())
+    dh.set_datadir(tmp_test_data_dir)
     tuid_list = ["20210419-153127-883-fa4508"]
     real_freqs = [1 / (2 * 498.8e-3)]
 
@@ -53,4 +51,4 @@ def test_fft_freq_phase_guess():
         # initial input for our fit
         guess_tolerance = 0.3
 
-        assert freq_guess == approx(real_freqs[idx], rel=guess_tolerance)
+        assert freq_guess == pytest.approx(real_freqs[idx], rel=guess_tolerance)

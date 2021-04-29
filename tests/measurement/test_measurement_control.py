@@ -19,7 +19,6 @@ from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
-from quantify.utilities._tests_helpers import get_test_data_dir
 
 try:
     from adaptive import SKOptLearner
@@ -28,7 +27,6 @@ try:
 except ImportError:
     WITH_SKOPTLEARNER = False
 
-test_datadir = get_test_data_dir()
 
 # seed the randomization with fixed seed
 random.seed(202104)
@@ -998,9 +996,9 @@ class TestMeasurementControl:
         inst_mon.close()
         self.MC.instrument_monitor("")
 
-    def test_instrument_settings_from_disk(self):
+    def test_instrument_settings_from_disk(self, tmp_test_data_dir):
         load_settings_onto_instrument(
-            self.dummy_parabola, TUID("20200814-134652-492-fbf254"), test_datadir
+            self.dummy_parabola, TUID("20200814-134652-492-fbf254"), tmp_test_data_dir
         )
         assert self.dummy_parabola.x() == 40.0
         assert self.dummy_parabola.y() == 90.0
@@ -1012,7 +1010,7 @@ class TestMeasurementControl:
             ValueError, match='Instrument "the mac" not found in snapshot'
         ):
             load_settings_onto_instrument(
-                non_existing, TUID("20200814-134652-492-fbf254"), test_datadir
+                non_existing, TUID("20200814-134652-492-fbf254"), tmp_test_data_dir
             )
 
         non_existing.close()

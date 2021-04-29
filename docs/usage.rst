@@ -153,7 +153,7 @@ The size of these batches is automatically calculated but usually dependent on r
 
 Control mode is detected automatically based on the `.batched` attribute of the settable(s) and gettable(s); this is expanded upon in subsequent sections.
 
-.. note:: All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g., `settable_A.batched=True`, `settable_B.batched=False`).
+.. note:: All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g. `settable_A.batched=True`, `settable_B.batched=False`).
 
 
 Settables and Gettables
