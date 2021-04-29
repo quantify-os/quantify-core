@@ -102,7 +102,10 @@ class RamseyAnalysis(ba.BaseAnalysis):
 
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                r"$T2^*$", self.quantities_of_interest["T2*"], unit="s", end_char="\n\n"
+                r"$T_2^*$",
+                self.quantities_of_interest["T2*"],
+                unit="s",
+                end_char="\n\n",
             )
             text_msg += format_value_string(
                 "artificial detuning",
