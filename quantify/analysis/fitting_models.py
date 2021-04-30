@@ -182,7 +182,7 @@ def cos_func(
     r"""
     An oscillating cosine function:
 
-    :math:`y = \mathrm{amplitude} \times \cos(2 \pi \times \mathrm{frequency} \times x + \mathrm{phase}) +  \mathrm{phase}`
+    :math:`y = \mathrm{amplitude} \times \cos(2 \pi \times \mathrm{frequency} \times x + \mathrm{phase}) +  \mathrm{offset}`
 
     Parameters
     ----------
