@@ -41,6 +41,7 @@ before_script:
   - sleep 3
   - pip install --upgrade --upgrade-strategy eager -e .
   - pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+  - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt # save the version of the packages installed for CI debugging
 
 stages:
   - Static Analysis
@@ -60,6 +61,7 @@ stages:
     paths:
       - htmlcov
       - coverage.xml
+      - frozen-requirements.txt
     reports:
       cobertura: coverage.xml
     when: always
@@ -130,6 +132,9 @@ docs-make-html-3.8:
     - cd docs; make html
   extends:
     - .develop-only-job
+  artifacts:
+    paths:
+      - frozen-requirements.txt
 
 black:
   stage: Static Analysis
