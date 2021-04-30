@@ -387,7 +387,8 @@ class BaseAnalysis(ABC):
 
     def save_quantities_of_interest(self):
         """
-        Saves the :code:`.quantities_of_interest` as a JSON file in the analysis directory.
+        Saves the :code:`.quantities_of_interest` as a JSON file in the analysis
+        directory.
 
         The file is written using :func:`json.dump` with the
         :class:`qcodes.utils.helpers.NumpyJSONEncoder` custom encoder.
