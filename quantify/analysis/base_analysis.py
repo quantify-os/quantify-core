@@ -118,6 +118,14 @@ class BaseAnalysis(ABC):
         """
         Initializes the variables used in the analysis and to which data is stored.
 
+        .. warning::
+
+            We highly discourage overloading the class initialization (even though this
+            goes against the pythonic style). If the analysis requires the user passing
+            in any arguments, the
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run()` should be
+            overloaded (see its docstring for an example).
+
         .. tip::
 
             For scripting/development/debugging purposes the
