@@ -291,7 +291,7 @@ Data storage
 
 Along with the produced dataset, every :class:`~qcodes.instrument.parameter.Parameter` attached to QCoDeS :class:`~qcodes.instrument.base.Instrument` in an experiment run through the :class:`~quantify.measurement.MeasurementControl` of Quantify is stored in the `snapshot`_.
 
-This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded [see :func:`~quantify.utilities.experiment_helpers.load_settings_onto_instrument`] and re-run by anyone.
+This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded [see :func:`~quantify.utilities.experiment_helpers.load_settings_onto_instrument`].
 
 Data Directory
 --------------
@@ -299,7 +299,7 @@ Data Directory
 The top level directory in the file system where output is saved to.
 This directory can be controlled using the :meth:`~quantify.data.handling.get_datadir` and :meth:`~quantify.data.handling.set_datadir` functions.
 
-We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., :code:`D:\\Data`).
+We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., :code:`D:\\quantify-data`).
 
 Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
 

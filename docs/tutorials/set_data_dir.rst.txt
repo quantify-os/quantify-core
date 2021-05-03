@@ -4,7 +4,7 @@
 .. admonition:: Tip: What data directory should I use?
     :class: dropdown, tip
 
-    We **highly recommended to** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. :code:`~/quantify-data` (unix) or :code:`D:\\Data\\quantify-data` (Windows).
+    We **highly recommended to** settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. :code:`~/quantify-data` (unix) or :code:`D:\\quantify-data` (Windows).
     The utilities to find/search/extract data only work if all the experiment containers are located within the same directory.
 
 .. jupyter-execute::
