@@ -1,7 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Analysis module for a Rabi Oscillation experiment"""
-from textwrap import wrap
 from typing import Union
 import numpy as np
 import matplotlib.pyplot as plt
@@ -60,14 +59,14 @@ class RamseyAnalysis(ba.BaseAnalysis):
         self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
-        mod = fm.DecayOscModel()
+        model = fm.DecayOscillationModel()
 
         magnitude = np.array(self.dataset["Magnitude"])
         time = np.array(self.dataset["x0"])
-        guess = mod.guess(magnitude, time=time)
-        fit_res = mod.fit(magnitude, params=guess, t=time)
+        guess = model.guess(magnitude, time=time)
+        fit_result = model.fit(magnitude, params=guess, t=time)
 
-        self.fit_res.update({"Ramsey_decay": fit_res})
+        self.fit_res.update({"Ramsey_decay": fit_result})
 
     def analyze_fit_results(self):
         """
@@ -76,11 +75,13 @@ class RamseyAnalysis(ba.BaseAnalysis):
         """
         fit_warning = ba.check_lmfit(self.fit_res["Ramsey_decay"])
 
-        fpars = self.fit_res["Ramsey_decay"].params
+        fit_parameters = self.fit_res["Ramsey_decay"].params
 
-        self.quantities_of_interest["T2*"] = ba.lmfit_par_to_ufloat(fpars["tau"])
+        self.quantities_of_interest["T2*"] = ba.lmfit_par_to_ufloat(
+            fit_parameters["tau"]
+        )
         self.quantities_of_interest["fitted_detuning"] = ba.lmfit_par_to_ufloat(
-            fpars["frequency"]
+            fit_parameters["frequency"]
         )
         self.quantities_of_interest["detuning"] = (
             self.quantities_of_interest["fitted_detuning"] - self.artificial_detuning

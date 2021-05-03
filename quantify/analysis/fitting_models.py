@@ -279,12 +279,11 @@ def exp_damp_osc_func(
         Output of decaying cosine function as a float
     """  # pylint: disable=line-too-long
 
-    return (
-        amplitude
-        * np.exp(-((t / tau) ** n_factor))
-        * (np.cos(2 * np.pi * frequency * t + phase) + oscillation_offset)
-        + exponential_offset
+    oscillation = amplitude * (
+        np.cos(2 * np.pi * frequency * t + phase) + oscillation_offset
     )
+    osc_decay = oscillation * np.exp(-((t / tau) ** n_factor)) + exponential_offset
+    return osc_decay
 
 
 class ResonatorModel(lmfit.model.Model):
@@ -445,7 +444,7 @@ class RabiModel(lmfit.model.Model):
     guess.__doc__ = get_guess_common_doc()
 
 
-class DecayOscModel(lmfit.model.Model):
+class DecayOscillationModel(lmfit.model.Model):
     r"""
     Model for a decaying oscillation which decays to a point with 0 offset from
     the centre of the of the oscillation (as in a Ramsey experiment, for example).

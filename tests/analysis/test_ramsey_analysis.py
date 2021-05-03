@@ -3,7 +3,6 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
-from pytest import approx
 from uncertainties.core import Variable, AffineScalarFunc
 
 import quantify.data.handling as dh
@@ -48,17 +47,19 @@ def test_quantities_of_interest(analysis_obj):
     assert isinstance(analysis_obj.quantities_of_interest["detuning"], AffineScalarFunc)
 
     # Tests that the fitted values are correct (to within 5 standard deviations)
-    assert analysis_obj.quantities_of_interest["T2*"].nominal_value == approx(
+    assert analysis_obj.quantities_of_interest["T2*"].nominal_value == pytest.approx(
         qois_values["T2*"],
         abs=5 * analysis_obj.quantities_of_interest["T2*"].std_dev,
     )
     assert analysis_obj.quantities_of_interest[
         "fitted_detuning"
-    ].nominal_value == approx(
+    ].nominal_value == pytest.approx(
         qois_values["fitted_detuning"],
         abs=5 * analysis_obj.quantities_of_interest["fitted_detuning"].std_dev,
     )
-    assert analysis_obj.quantities_of_interest["detuning"].nominal_value == approx(
+    assert analysis_obj.quantities_of_interest[
+        "detuning"
+    ].nominal_value == pytest.approx(
         qois_values["detuning"],
         abs=5 * analysis_obj.quantities_of_interest["detuning"].std_dev,
     )
@@ -116,26 +117,26 @@ def test_quantities_of_interest_qubit_freq(analysis_obj_qubit_freq):
     # Tests that the fitted values are correct (to within 5 standard deviations)
     assert analysis_obj_qubit_freq.quantities_of_interest[
         "T2*"
-    ].nominal_value == approx(
+    ].nominal_value == pytest.approx(
         qois_values["T2*"],
         abs=5 * analysis_obj_qubit_freq.quantities_of_interest["T2*"].std_dev,
     )
     assert analysis_obj_qubit_freq.quantities_of_interest[
         "fitted_detuning"
-    ].nominal_value == approx(
+    ].nominal_value == pytest.approx(
         qois_values["fitted_detuning"],
         abs=5
         * analysis_obj_qubit_freq.quantities_of_interest["fitted_detuning"].std_dev,
     )
     assert analysis_obj_qubit_freq.quantities_of_interest[
         "detuning"
-    ].nominal_value == approx(
+    ].nominal_value == pytest.approx(
         qois_values["detuning"],
         abs=5 * analysis_obj_qubit_freq.quantities_of_interest["detuning"].std_dev,
     )
     assert analysis_obj_qubit_freq.quantities_of_interest[
         "qubit_frequency"
-    ].nominal_value == approx(
+    ].nominal_value == pytest.approx(
         qois_values["qubit_frequency"],
         abs=5
         * analysis_obj_qubit_freq.quantities_of_interest["qubit_frequency"].std_dev,
