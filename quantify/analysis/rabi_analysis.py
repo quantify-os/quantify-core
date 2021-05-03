@@ -66,7 +66,7 @@ class RabiAnalysis(ba.BaseAnalysis):
                 "Offset", fit_res.params["offset"], unit="V", end_char="\n"
             )
         else:
-            text_msg = fit_warning
+            text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
         self.quantities_of_interest["fit_msg"] = text_msg
@@ -83,7 +83,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = axs
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
 
         self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
 

@@ -75,10 +75,6 @@ class RamseyAnalysis(ba.BaseAnalysis):
         and fitted detuning
         """
         fit_warning = ba.check_lmfit(self.fit_res["Ramsey_decay"])
-        if fit_warning is not None:
-            fit_warning = "\n".join(
-                wrap(fit_warning, width=35, replace_whitespace=True)
-            )
 
         fpars = self.fit_res["Ramsey_decay"].params
 
@@ -140,7 +136,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
                     unit="Hz",
                 )
         else:
-            text_msg = fit_warning
+            text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
         self.quantities_of_interest["fit_msg"] = text_msg

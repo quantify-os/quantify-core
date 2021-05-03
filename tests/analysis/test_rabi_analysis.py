@@ -115,6 +115,6 @@ def test_quantities_of_interest_bad_fit(analysis_obj_bad_fit):
     assert analysis_obj_bad_fit.quantities_of_interest["fit_success"] is False
     assert (
         analysis_obj_bad_fit.quantities_of_interest["fit_msg"]
-        == "Warning: lmfit could not find a good fit. Fitted parameters"
-        " may not be accurate."
+        == "Warning: lmfit could not find a\ngood fit. Fitted parameters"
+        " may not\nbe accurate."
     )

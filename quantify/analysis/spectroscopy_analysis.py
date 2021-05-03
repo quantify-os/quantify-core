@@ -73,7 +73,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
                 r"$f_{res}$", fit_res.params["fr"], unit="Hz"
             )
         else:
-            text_msg = fit_warning
+            text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
         self.quantities_of_interest["fit_msg"] = text_msg
@@ -97,7 +97,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Im"] = axs[1]
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
 
         self.dataset.S21.real.plot(ax=axs[0], marker=".")
         self.dataset.S21.imag.plot(ax=axs[1], marker=".")
@@ -135,7 +135,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id + "_Phase"] = axs[1]
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(axs[0], self.quantities_of_interest["fit_msg"])
 
         axs[0].plot(self.dataset["x0"], np.abs(self.dataset.S21), marker=".")
         axs[1].plot(
@@ -174,7 +174,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
         ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
 
