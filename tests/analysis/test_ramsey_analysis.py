@@ -32,7 +32,7 @@ def test_quantities_of_interest(analysis_obj):
         "fitted_detuning",
         "detuning",
         "fit_msg",
-        "fit_res",
+        "fit_result",
         "fit_success",
     }
 
@@ -91,7 +91,7 @@ def test_quantities_of_interest_qubit_freq(analysis_obj_qubit_freq):
         "detuning",
         "qubit_frequency",
         "fit_msg",
-        "fit_res",
+        "fit_result",
         "fit_success",
     }
 

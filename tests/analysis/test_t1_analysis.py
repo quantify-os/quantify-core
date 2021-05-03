@@ -42,7 +42,7 @@ def test_quantities_of_interest(analysis_objs):
         assert set(a_obj.quantities_of_interest.keys()) == {
             "T1",
             "fit_msg",
-            "fit_res",
+            "fit_result",
             "fit_success",
         }
 

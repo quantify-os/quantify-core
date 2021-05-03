@@ -370,10 +370,10 @@ class BaseAnalysis(ABC):
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_result) > 0:
-            self.quantities_of_interest["fit_res"] = OrderedDict()
+            self.quantities_of_interest["fit_result"] = OrderedDict()
             for fr_name, fit_result in self.fit_result.items():
                 res = flatten_lmfit_modelresult(fit_result)
-                self.quantities_of_interest["fit_res"][fr_name] = res
+                self.quantities_of_interest["fit_result"][fr_name] = res
 
     def analyze_fit_results(self):
         pass

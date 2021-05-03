@@ -31,7 +31,7 @@ def test_quantities_of_interest(analysis_obj):
     assert set(analysis_obj.quantities_of_interest.keys()) == {
         "Pi-pulse amp",
         "fit_msg",
-        "fit_res",
+        "fit_result",
         "fit_success",
     }
 
@@ -108,7 +108,7 @@ def test_quantities_of_interest_bad_fit(analysis_obj_bad_fit):
     assert set(analysis_obj_bad_fit.quantities_of_interest.keys()) == {
         "Pi-pulse amp",
         "fit_msg",
-        "fit_res",
+        "fit_result",
         "fit_success",
     }
 
