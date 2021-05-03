@@ -48,12 +48,12 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         S21 = np.array(self.dataset["S21"])
         freq = np.array(self.dataset["x0"])
         guess = mod.guess(S21, f=freq)
-        fit_res = mod.fit(S21, params=guess, f=freq)
-        fit_warning = ba.check_lmfit(fit_res)
+        fit_result = mod.fit(S21, params=guess, f=freq)
+        fit_warning = ba.check_lmfit(fit_result)
 
-        self.fit_res.update({"hanger_func_complex_SI": fit_res})
+        self.fit_result.update({"hanger_func_complex_SI": fit_result})
 
-        fpars = fit_res.params
+        fpars = fit_result.params
 
         for parameter in ["Qi", "Qe", "Ql", "Qc", "fr"]:
             self.quantities_of_interest[parameter] = ba.lmfit_par_to_ufloat(
@@ -64,13 +64,13 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             self.quantities_of_interest["fit_success"] = True
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                r"$Q_I$", fit_res.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
+                r"$Q_I$", fit_result.params["Qi"], unit="SI_PREFIX_ONLY", end_char="\n"
             )
             text_msg += format_value_string(
-                r"$Q_C$", fit_res.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
+                r"$Q_C$", fit_result.params["Qc"], unit="SI_PREFIX_ONLY", end_char="\n"
             )
             text_msg += format_value_string(
-                r"$f_{res}$", fit_res.params["fr"], unit="Hz"
+                r"$f_{res}$", fit_result.params["fr"], unit="Hz"
             )
         else:
             text_msg = ba.wrap_text(fit_warning)
@@ -104,14 +104,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs[0],
-            fit_res=self.fit_res["hanger_func_complex_SI"],
+            fit_res=self.fit_result["hanger_func_complex_SI"],
             plot_init=True,
             range_casting="real",
         )
 
         qpl.plot_fit(
             ax=axs[1],
-            fit_res=self.fit_res["hanger_func_complex_SI"],
+            fit_res=self.fit_result["hanger_func_complex_SI"],
             plot_init=True,
             range_casting="imag",
         )
@@ -144,14 +144,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs[0],
-            fit_res=self.fit_res["hanger_func_complex_SI"],
+            fit_res=self.fit_result["hanger_func_complex_SI"],
             plot_init=True,
             range_casting="abs",
         )
 
         qpl.plot_fit(
             ax=axs[1],
-            fit_res=self.fit_res["hanger_func_complex_SI"],
+            fit_res=self.fit_result["hanger_func_complex_SI"],
             plot_init=True,
             range_casting="angle",
         )
@@ -180,7 +180,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         qpl.plot_fit_complex_plane(
             ax=ax,
-            fit_res=self.fit_res["hanger_func_complex_SI"],
+            fit_res=self.fit_result["hanger_func_complex_SI"],
             plot_init=True,
         )
 

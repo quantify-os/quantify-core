@@ -38,12 +38,12 @@ class T1Analysis(ba.BaseAnalysis):
         magn = np.array(self.dataset["Magnitude"])
         delay = np.array(self.dataset["x0"])
         guess = mod.guess(magn, delay=delay)
-        fit_res = mod.fit(magn, params=guess, t=delay)
-        fit_warning = ba.check_lmfit(fit_res)
+        fit_result = mod.fit(magn, params=guess, t=delay)
+        fit_warning = ba.check_lmfit(fit_result)
 
-        self.fit_res.update({"exp_decay_func": fit_res})
+        self.fit_result.update({"exp_decay_func": fit_result})
 
-        fpars = fit_res.params
+        fpars = fit_result.params
         self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(fpars["tau"])
 
         # If there is a problem with the fit, display an error message in the text box.
@@ -53,13 +53,13 @@ class T1Analysis(ba.BaseAnalysis):
             unit = self.dataset["Magnitude"].attrs["units"]
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
+                r"$T1$", fit_result.params["tau"], end_char="\n", unit="s"
             )
             text_msg += format_value_string(
-                "amplitude", fit_res.params["amplitude"], end_char="\n", unit=unit
+                "amplitude", fit_result.params["amplitude"], end_char="\n", unit=unit
             )
             text_msg += format_value_string(
-                "offset", fit_res.params["offset"], unit=unit
+                "offset", fit_result.params["offset"], unit=unit
             )
         else:
             text_msg = ba.wrap_text(fit_warning)
@@ -84,7 +84,7 @@ class T1Analysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs,
-            fit_res=self.fit_res["exp_decay_func"],
+            fit_res=self.fit_result["exp_decay_func"],
             plot_init=False,
         )
 

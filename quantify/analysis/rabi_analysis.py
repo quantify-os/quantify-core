@@ -37,12 +37,12 @@ class RabiAnalysis(ba.BaseAnalysis):
         magnitude = np.array(self.dataset["Magnitude"])
         drive_amp = np.array(self.dataset["x0"])
         guess = mod.guess(magnitude, drive_amp=drive_amp)
-        fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
-        fit_warning = ba.check_lmfit(fit_res)
+        fit_result = mod.fit(magnitude, params=guess, x=drive_amp)
+        fit_warning = ba.check_lmfit(fit_result)
 
-        self.fit_res.update({"Rabi_oscillation": fit_res})
+        self.fit_result.update({"Rabi_oscillation": fit_result})
 
-        fpars = fit_res.params
+        fpars = fit_result.params
         self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
             fpars["amp180"]
         )
@@ -54,16 +54,19 @@ class RabiAnalysis(ba.BaseAnalysis):
 
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                "Pi-pulse amplitude", fit_res.params["amp180"], unit="V", end_char="\n"
-            )
-            text_msg += format_value_string(
-                "Oscillation amplitude",
-                fit_res.params["amplitude"],
+                "Pi-pulse amplitude",
+                fit_result.params["amp180"],
                 unit="V",
                 end_char="\n",
             )
             text_msg += format_value_string(
-                "Offset", fit_res.params["offset"], unit="V", end_char="\n"
+                "Oscillation amplitude",
+                fit_result.params["amplitude"],
+                unit="V",
+                end_char="\n",
+            )
+            text_msg += format_value_string(
+                "Offset", fit_result.params["offset"], unit="V", end_char="\n"
             )
         else:
             text_msg = ba.wrap_text(fit_warning)
@@ -89,7 +92,7 @@ class RabiAnalysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs,
-            fit_res=self.fit_res["Rabi_oscillation"],
+            fit_res=self.fit_result["Rabi_oscillation"],
             plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )

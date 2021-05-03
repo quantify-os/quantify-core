@@ -66,16 +66,16 @@ class RamseyAnalysis(ba.BaseAnalysis):
         guess = model.guess(magnitude, time=time)
         fit_result = model.fit(magnitude, params=guess, t=time)
 
-        self.fit_res.update({"Ramsey_decay": fit_result})
+        self.fit_result.update({"Ramsey_decay": fit_result})
 
     def analyze_fit_results(self):
         """
         Extract the real detuning and qubit frequency based on the artificial detuning
         and fitted detuning
         """
-        fit_warning = ba.check_lmfit(self.fit_res["Ramsey_decay"])
+        fit_warning = ba.check_lmfit(self.fit_result["Ramsey_decay"])
 
-        fit_parameters = self.fit_res["Ramsey_decay"].params
+        fit_parameters = self.fit_result["Ramsey_decay"].params
 
         self.quantities_of_interest["T2*"] = ba.lmfit_par_to_ufloat(
             fit_parameters["tau"]
@@ -160,7 +160,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs,
-            fit_res=self.fit_res["Ramsey_decay"],
+            fit_res=self.fit_result["Ramsey_decay"],
             plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )

@@ -181,7 +181,7 @@ class BaseAnalysis(ABC):
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
         self.quantities_of_interest = OrderedDict()
-        self.fit_res = OrderedDict()
+        self.fit_result = OrderedDict()
 
         self._interrupt_before = None
 
@@ -369,9 +369,9 @@ class BaseAnalysis(ABC):
         """
 
     def _add_fit_res_to_qoi(self):
-        if len(self.fit_res) > 0:
+        if len(self.fit_result) > 0:
             self.quantities_of_interest["fit_res"] = OrderedDict()
-            for fr_name, fit_result in self.fit_res.items():
+            for fr_name, fit_result in self.fit_result.items():
                 res = flatten_lmfit_modelresult(fit_result)
                 self.quantities_of_interest["fit_res"][fr_name] = res
 
