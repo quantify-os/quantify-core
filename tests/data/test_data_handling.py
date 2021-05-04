@@ -15,7 +15,6 @@ from qcodes import ManualParameter
 from quantify.data.types import TUID
 from quantify.measurement.control import MeasurementControl
 import quantify.data.handling as dh
-from quantify.utilities._tests_helpers import get_test_data_dir
 from quantify.analysis.base_analysis import Basic1DAnalysis
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
