@@ -211,4 +211,5 @@ set_type_checking_flag = False  # `False` is the default
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
+    "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
 }

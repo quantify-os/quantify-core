@@ -89,7 +89,7 @@ def create_plotmon_from_historical(
         the plotmon
     """
     # avoid creating a plotmon with the same name
-    name = tuid or get_latest_tuid(contains=label)
+    name = tuid = tuid or get_latest_tuid(contains=label)
     i = 0
     while name in PlotMonitor_pyqt._all_instruments:
         name += f"_{i}"
