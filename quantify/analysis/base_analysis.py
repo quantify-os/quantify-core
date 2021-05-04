@@ -87,7 +87,7 @@ class AnalysisSteps(Enum):
     .. tip::
 
         A custom analysis flow (e.g. inserting new steps) can be created by implementing
-        an object similar to this one and overloading the
+        an object similar to this one and overriding the
         :obj:`~BaseAnalysis.analysis_steps`.
     """  # pylint: disable=line-too-long
 
@@ -113,7 +113,7 @@ class BaseAnalysis(ABC):
     def __init__(
         self,
         dataset_raw: xr.Dataset = None,
-        tuid: str = None,
+        tuid: Union[TUID, str] = None,
         label: str = "",
         settings_overwrite: dict = None,
     ):
@@ -122,11 +122,10 @@ class BaseAnalysis(ABC):
 
         .. warning::
 
-            We highly discourage overloading the class initialization (even though this
-            goes against the pythonic style). If the analysis requires the user passing
-            in any arguments, the
+            We highly discourage overriding the class initialization.
+            If the analysis requires the user passing in any arguments, the
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run()` should be
-            overloaded (see its docstring for an example).
+            overridden and extended (see its docstring for an example).
 
         .. tip::
 
@@ -200,7 +199,7 @@ class BaseAnalysis(ABC):
     analysis_steps = AnalysisSteps
     """
     Defines the steps of the analysis specified as an :class:`~enum.Enum`.
-    Can be overloaded in a subclass in order to define a custom analysis flow.
+    Can be overridden in a subclass in order to define a custom analysis flow.
     See :class:`~quantify.analysis.base_analysis.AnalysisSteps` for a template.
     """
 
@@ -448,7 +447,7 @@ class BaseAnalysis(ABC):
         """
         Saves figures to disk. By default saves matplotlib figures.
 
-        Can be overloaded to make use of other plotting packages.
+        Can be overridden to make use of other plotting packages.
         """
         self.save_figures_mpl()
 
