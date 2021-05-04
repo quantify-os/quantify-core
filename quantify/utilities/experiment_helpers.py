@@ -2,6 +2,7 @@
 # Licensed according to the LICENCE file on the master branch
 """Helpers for performing experiments."""
 import warnings
+from typing import Union
 from qcodes import Instrument
 from quantify.data.types import TUID
 from quantify.data.handling import load_snapshot, get_latest_tuid
@@ -63,21 +64,38 @@ def load_settings_onto_instrument(
             )
 
 
-def create_plotmon_from_historical(tuid: TUID):
+def create_plotmon_from_historical(
+    tuid: Union[TUID, str] = None, label: str = None
+) -> PlotMonitor_pyqt:
     """
     Creates a plotmon using the dataset of the provided experiment denoted by the tuid
     in the datadir.
     Loads the data and draws any required figures.
 
+    NB Creating a new plotmon can be slow. Consider using
+    :func:`!PlotMonitor_pyqt.tuids_extra` to visualize dataset in the same plotmon.
+
     Parameters
     ----------
-    tuid : :class:`~quantify.data.types.TUID`
+    tuid
         the TUID of the experiment.
+    label
+        if the `tuid` is not provided, as label will be used to search for the latest
+        dataset.
+
     Returns
     -------
-    :class:`~quantify.visualization.PlotMonitor_pyqt`
-        the plot
+    :
+        the plotmon
     """
-    plot = PlotMonitor_pyqt(tuid)
-    plot.tuids_append(tuid)
-    return plot
+    # avoid creating a plotmon with the same name
+    name = tuid or get_latest_tuid(contains=label)
+    i = 0
+    while name in PlotMonitor_pyqt._all_instruments:
+        name += f"_{i}"
+
+    plotmon = PlotMonitor_pyqt(name)
+    plotmon.tuids_append(tuid)
+    plotmon.update()  # make sure everything is drawn
+
+    return plotmon

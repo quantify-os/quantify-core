@@ -268,9 +268,6 @@ In this case running a simple (non-interpolated) 2D analysis will not be meaning
 .. jupyter-execute::
 
     from quantify.utilities.experiment_helpers import create_plotmon_from_historical
-    from quantify.data.handling import get_tuids_containing
-
-    tuid = get_tuids_containing('2D radial setpoints')[0]
-    plotmon_loaded = create_plotmon_from_historical(tuid)
+    plotmon_loaded = create_plotmon_from_historical(label='2D radial setpoints')
 
     plotmon_loaded.secondary_QtPlot
