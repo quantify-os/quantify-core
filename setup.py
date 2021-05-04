@@ -33,6 +33,9 @@ requirements = [
     "filelock",
     "appnope",
     "uncertainties",
+    # used to display the structure of the experiments container in tutorials
+    # placed here to avoid errors when users download tutorials
+    "directory-tree>=0.0.2",
 ]
 
 setup_requirements = [

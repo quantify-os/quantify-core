@@ -29,4 +29,3 @@ docutils<0.17 # pinned due to issue #175
 
 scikit-learn
 scikit-optimize
-directory-tree>=0.0.2  # used to display the structure of the experiments container
