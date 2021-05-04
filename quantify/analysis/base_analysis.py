@@ -177,6 +177,9 @@ class BaseAnalysis(ABC):
         # This dataset will be overwritten during the analysis.
         self.dataset = xr.Dataset()
 
+        # A dictionary to contain the outputs of any custom analysis
+        self.analysis_result = {}
+
         # To be populated by a subclass
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
