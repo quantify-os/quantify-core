@@ -15,6 +15,7 @@ The core of Quantify can be understood by understanding the following concepts:
 - `Measurement Control`_
 - `Settables and Gettables`_
 - `Data storage`_
+- `Analysis`_
 
 Code snippets
 -------------
@@ -318,7 +319,7 @@ These subdirectories are termed 'Experiment Containers', typical output being th
 
 Furthermore, additional analysis such as fits can also be written to this directory, storing all data in one location.
 
-An experiment container within a data directory with the name `Experiments` thus will look similar to:
+An experiment container within a data directory with the name `"quantify-data"` thus will look similar to:
 
 .. jupyter-execute::
     :hide-code:
@@ -329,11 +330,10 @@ An experiment container within a data directory with the name `Experiments` thus
     import tempfile
     old_dir = dh.get_datadir()
     tmpdir = tempfile.TemporaryDirectory()
-    dh.set_datadir(Path(tmpdir.name) / "Experiments")
+    dh.set_datadir(Path(tmpdir.name) / "quantify-data")
     # we generate a dummy dataset and few empty dirs for pretty printing
     (Path(dh.get_datadir()) / "20210301").mkdir()
     (Path(dh.get_datadir()) / "20210428").mkdir()
-    # run twice to have a dir with and without analysis
 
 .. include:: tutorials/generate_quantify_dataset_hide_code.rst.txt
 
@@ -342,7 +342,7 @@ An experiment container within a data directory with the name `Experiments` thus
 
     from quantify.analysis import base_analysis as ba
     ba.Basic1DAnalysis(tuid=quantify_dataset.tuid).run()
-    display_tree(dh.get_datadir())  # to make sure the full path is displayed
+    print(display_tree(dh.get_datadir(), string_rep=True), end="")  # to make sure the full path is displayed
     dh.set_datadir(old_dir)
     tmpdir.cleanup()
 
@@ -400,38 +400,16 @@ The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` us
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
-Analysis framework
-==================
+.. _analysis_usage:
+
+Analysis
+========
 
 To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
 
 The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
-These steps and their order of execution is determined by the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an :class:`~enum.Enum` (:class:`~quantify.analysis.base_analysis.AnalysisSteps`). The corresponding steps are implemented as methods of the analysis class.
-An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to the custom analysis. Additionally, if required, a customized analysis flow can be specified by assigning it to the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute.
 
-The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures. Take a look at the source code (also available in the API reference):
-
-.. admonition:: Basic1DAnalysis source code
-    :class: dropdown, note
-
-        .. literalinclude:: ../quantify/analysis/base_analysis.py
-            :pyobject: Basic1DAnalysis
-
-A slightly more complex example is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model (from the :mod:`quantify.analysis.fitting_models` library), and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
-
-
-Using existing analysis classes
--------------------------------
-
-To be written.
-
-Example where we show how to use an analysis class
-
-- hint there are a few more handy methods.
-- show how to extract some quantities (which quantities exactly ???)
-- analysis settings global/per instance (where to mention this ???)
-
-Here we run a mock experiment that generates a dataset that we would like to analyze.
+To showcase the analysis usage we first run a mock experiment that generates a dataset that we would like to analyze.
 
 .. admonition:: Generate a dataset labeled "Cosine experiment"
     :class: dropdown, note
@@ -447,36 +425,73 @@ Here we run a mock experiment that generates a dataset that we would like to ana
         dataset = MC.run("Cosine experiment")
         dataset
 
-Running an analysis is very simple. Below we execute the analysis against the last dataset containing in its label `"Cosine experiment"`.
+Using an analysis class
+-----------------------
+
+TO DO
+=====
+
+- Replace analysis with CosineAnalysis
+- show how to extract quantities of interest and processed dataset
+- analysis settings global/per instance (where to mention this ???)
+- TUID toolbox
+- hint there are a few more handy methods int the base analysis
+
+How to use:
+- run
+- figures
+- datasaving
+- quantities of interest
+- processed dataset
+
+Running an analysis is very simple:
 
 .. jupyter-execute::
 
     from quantify.data import handling as dh
     from quantify.analysis import base_analysis as ba
-    a_obj = ba.Basic1DAnalysis(label="Cosine experiment") # a tuid can also be provided
+    a_obj = ba.Basic1DAnalysis(label="Cosine experiment")
     a_obj.run()
-    a_obj.display_figs_mpl()
+    a_obj.display_figs_mpl() # show the matplotlib figures in a Jupyter notebook
 
-After the analysis is executed the experiment container will look similar to the following:
+The analysis was executed against the last dataset containing in its label `"Cosine experiment"`.
+After the analysis the experiment container will look similar to the following:
 
 .. jupyter-execute::
 
     from directory_tree import display_tree  # pip install directory_tree
     experiment_container_path = dh.locate_experiment_container(tuid=dataset.tuid)
-    display_tree(experiment_container_path)
+    print(display_tree(experiment_container_path, string_rep=True), end="")
 
 Alternatively we can pass a dataset directly to the analysis:
 
 .. jupyter-execute::
 
-    a_obj_2 = ba.Basic1DAnalysis(dataset_raw=dataset).run() # .run() on the same line is possible (it returns the analysis instance)
-
-For advanced usage, see also the :ref:`analysis API documentation <analysis_api>` and :ref:`analysis_framework_tutorial`.
+    # .run() on the same line is also possible (it returns the analysis instance)
+    a_obj_2 = ba.Basic1DAnalysis(dataset_raw=dataset).run()
 
 Creating a custom analysis class
 --------------------------------
 
+The analysis steps and their order of execution is determined by the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an :class:`~enum.Enum` (:class:`~quantify.analysis.base_analysis.AnalysisSteps`). The corresponding steps are implemented as methods of the analysis class.
+An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to the custom analysis. Additionally, if required, a customized analysis flow can be specified by assigning it to the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute.
+
+The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures.
+
+Take a look at the source code (also available in the API reference):
+
+.. admonition:: Basic1DAnalysis source code
+    :class: dropdown, note
+
+        .. literalinclude:: ../quantify/analysis/base_analysis.py
+            :pyobject: Basic1DAnalysis
+
+A slightly more complex use case is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model (from the :mod:`quantify.analysis.fitting_models` library), and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
+
 Creating a custom analysis for a particular type of dataset is showcased in the :ref:`analysis_framework_tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
+
+.. seealso::
+    :ref:`Analysis API documentation <analysis_api>` and :ref:`analysis_framework_tutorial`.
 
 Examples: Settables and Gettables
 =================================

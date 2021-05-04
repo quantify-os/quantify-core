@@ -27,10 +27,22 @@ Both measurement policies can be 1D, 2D or higher dimensional. Quantify also sup
 
 ---
 
+TO DO
+=====
+
+- Review intro paragraph
+- Replace analysis example with CosineAnalysis
+- Add 2D analysis as well if possible
+
+---
+
 This tutorial is structured as follows.
 In the first section we use a 1D Iterative loop to explain the flow of a basic experiment.
 We start by setting up a noisy cosine model to serve as our mock setup and then use the MC to measure this.
 We then perform basic (manual) analysis on the data from this experiment. We show how to find and load a dataset, perform a basic fit, and store the results.
+
+Import modules and instantiate the MeasurementControl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. jupyter-execute::
 
@@ -66,12 +78,8 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     # By connecting to the MC the parameters will be updated in real-time during an experiment.
     MC.instrument_monitor(insmon.name)
 
-
-A 1D Iterative loop
--------------------
-
 Define a simple model
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
 We will be generating a cosine with some normally distributed noise added on top of it.
@@ -89,8 +97,11 @@ This allows us to exemplify (later in the tutorial) some of the features of the 
     # by setting this to a non-zero value we can see the live plotting in action for a slower experiment
     pars.acq_delay(0.0)
 
+A 1D Iterative loop
+-------------------
+
 Running the 1D experiment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time `t` in this case, what points to measure at, and what parameter to measure.
 We then tell the :ref:`MeasurementControl<Measurement Control>` `MC` to run which will return an :class:`~xarray.Dataset` object.
@@ -102,7 +113,7 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
     MC.settables(pars.t)                     # as a QCoDeS parameter, 't' obeys the JSON schema for a valid Settable and can be passed to the MC directly.
     MC.setpoints(np.linspace(0, 5, 50))
     MC.gettables(pars.sig)                   # as a QCoDeS parameter, 'sig' obeys the JSON schema for a valid Gettable and can be passed to the MC directly.
-    dset = MC.run('Cosine test')
+    dataset = MC.run('Cosine test')
 
 .. jupyter-execute::
 
@@ -112,7 +123,7 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
 
     # The dataset has a time-based unique identifier automatically assigned to it
     # The name of the experiment is stored as well
-    dset.attrs['tuid'], dset.attrs['name']
+    dataset.attrs['tuid'], dataset.attrs['name']
 
 The :ref:`dataset<Dataset>` is stored as a :class:`xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
@@ -122,7 +133,7 @@ See :ref:`data_storage` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
-    dset
+    dataset
 
 We can play with some live plotting options to see how the MC behaves when changing the update interval.
 
@@ -139,7 +150,7 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
     MC.settables(pars.t)
     MC.setpoints(np.linspace(0, 50, 1000))
     MC.gettables(pars.sig)
-    dset = MC.run('Many points live plot test')
+    dataset = MC.run('Many points live plot test')
 
 
 .. jupyter-execute::
@@ -157,22 +168,20 @@ Analyzing the experiment
 
 Plotting the data and saving the plots for a simple 1D case can be achieve in a few lines using a standard analysis from the :mod:`quantify.analysis.base_analysis` module. In the same module you can find several common analyses that might fit your needs. It also provides a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) -- a flexible framework for building custom analyses, which we explore in detail in :ref:`a dedicated tutorial <analysis_framework_tutorial>`.
 
-The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
-The analysis loads the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
-See the :ref:`data_storage` for more details on the folder structure and files contained in the data directory.
-
-.. jupyter-execute::
-
-    from quantify.data.handling import get_latest_tuid
-    # here we look for the latest datafile in the data directory named "Cosine test"
-    tuid = get_latest_tuid('Cosine test')
-    print('tuid: {}'.format(tuid))
+The :class:`~xarray.Dataset` generated by the MC contains all the information required to perform basic analysis of the experiment. Running an analysis can be as simple as:
 
 .. jupyter-execute::
 
     from quantify.analysis import base_analysis as ba
-    a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
+    a_obj = ba.Basic1DAnalysis(label='Cosine test').run()
     a_obj.display_figs_mpl()
+
+Here the analysis loads the latest dataset on disk matching a search based on the :code:`label`.
+
+See :class:`~quantify.analysis.base_analysis.BaseAnalysis` for alternative dataset specification.
+The :ref:`data_storage` contains more details on the folder structure and
+files contained in the data directory. The the :mod:`quantify.data.handling` module provides
+convenience data searching and handling utilities like :meth:`~quantify.data.handling.get_latest_tuid`.
 
 For guidance on custom analyses, e.g., fitting a model to the data, see :ref:`analysis_framework_tutorial`.
 
@@ -197,23 +206,22 @@ Method 1 - a quick grid
 .. jupyter-execute::
 
     times = np.linspace(0, 5, 500)
-    amps = np.linspace(-1, 1, 31)
+    amps = np.linspace(-1, 0, 31)
 
     MC.settables([pars.t, pars.amp])
     # MC takes care of creating a meshgrid
     MC.setpoints_grid([times, amps])
     MC.gettables(pars.sig)
-    dset = MC.run('2D Cosine test')
-
-
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
+    dataset = MC.run('2D Cosine test')
 
 .. jupyter-execute::
 
     plotmon.secondary_QtPlot
+
+.. jupyter-execute::
+
+    a_obj = ba.Basic2DAnalysis(label='2D Cosine test').run()
+    a_obj.display_figs_mpl()
 
 
 Method 2 - custom tuples in 2D
@@ -223,21 +231,19 @@ N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    r = np.linspace(0, 1.5, 2000)
-    dt = np.linspace(0, 1, 2000)
-
-    f = 10
-
+    r = np.linspace(0, 1.2, 200)
+    dt = np.linspace(0, 0.5, 200)
+    f = 3
     theta = np.cos(2*np.pi*f*dt)
-    def polar_coords(r, theta):
 
+    def polar_coords(r, theta):
         x = r*np.cos(2*np.pi*theta)
         y = r*np.sin(2*np.pi*theta)
         return x, y
 
     x, y = polar_coords(r, theta)
     setpoints = np.column_stack([x, y])
-    setpoints
+    setpoints[:5] # show a few points
 
 
 .. jupyter-execute::
@@ -251,14 +257,20 @@ N.B. it is also possible to do this for higher dimensional loops
     MC.settables([pars.t, pars.amp])
     MC.setpoints(setpoints)
     MC.gettables(pars.sig)
-    dset = MC.run('2D radial setpoints')
-
-
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
+    dataset = MC.run('2D radial setpoints')
 
 .. jupyter-execute::
 
     plotmon.secondary_QtPlot
+
+In this case running a simple (non-interpolated) 2D analysis will not be meaningful. Nevertheless the dataset can be loaded back using the :func:`~quantify.utilities.experiment_helpers.create_plotmon_from_historical`
+
+.. jupyter-execute::
+
+    from quantify.utilities.experiment_helpers import create_plotmon_from_historical
+    from quantify.data.handling import get_tuids_containing
+
+    tuid = get_tuids_containing('2D radial setpoints')[0]
+    plotmon_loaded = create_plotmon_from_historical(tuid)
+
+    plotmon_loaded.secondary_QtPlot
