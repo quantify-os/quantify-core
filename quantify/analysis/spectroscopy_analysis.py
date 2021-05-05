@@ -29,9 +29,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             np.deg2rad(self.dataset_raw.y1)
         ) + 1j * self.dataset_raw.y0 * np.sin(np.deg2rad(self.dataset_raw.y1))
         self.dataset["S21"] = S21
-        self.dataset.S12.attrs["name"] = "S21"
-        self.dataset.S12.attrs["units"] = self.dataset_raw.y0.units
-        self.dataset.S12.attrs["long_name"] = "Transmission, $S_{21}$"
+        self.dataset.S21.attrs["name"] = "S21"
+        self.dataset.S21.attrs["units"] = self.dataset_raw.y0.units
+        self.dataset.S21.attrs["long_name"] = "Transmission, $S_{21}$"
 
         self.dataset["x0"] = self.dataset_raw.x0
         self.dataset = self.dataset.set_coords("x0")
@@ -45,7 +45,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         mod = fm.ResonatorModel()
 
-        S21 = np.array(self.dataset["S21"])
+        S21 = np.array(self.dataset.S21)
         freq = np.array(self.dataset.x0)
         guess = mod.guess(S21, f=freq)
         fit_res = mod.fit(S21, params=guess, f=freq)
@@ -119,8 +119,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             range_casting="imag",
         )
 
-        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset.S12.units)
-        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset.S12.units)
+        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset.S21.units)
+        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset.S21.units)
         axs[0].set_xlabel("")
         qpl.set_xlabel(axs[1], self.dataset.x0.long_name, self.dataset.x0.units)
 
@@ -154,7 +154,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             range_casting="angle",
         )
 
-        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset.S12.units)
+        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset.S21.units)
         qpl.set_ylabel(axs[1], r"$\angle S_{21}$", "deg")
         axs[0].set_xlabel("")
         qpl.set_xlabel(axs[1], self.dataset.x0.long_name, self.dataset.x0.units)
@@ -179,7 +179,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             plot_init=True,
         )
 
-        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset.S12.units)
-        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset.S12.units)
+        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset.S21.units)
+        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset.S21.units)
 
         qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")
