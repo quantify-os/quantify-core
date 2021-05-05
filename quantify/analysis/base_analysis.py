@@ -268,7 +268,7 @@ class BaseAnalysis(ABC):
         # Always reset so that it only has an effect when set by .run_until
         self._interrupt_before = None
 
-        self.logger.info(f"Executing `.run()` of {self.name}")
+        self.logger.info(f"Executing `.analysis_steps` of {self.name}")
         for i, method in enumerate(flow_methods):
             self.logger.info(f"execution step {i}: {method}")
             method()
