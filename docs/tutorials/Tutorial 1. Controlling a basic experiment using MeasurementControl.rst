@@ -32,7 +32,6 @@ TO DO
 
 - Review intro paragraph
 - Replace analysis example with CosineAnalysis
-- Add 2D analysis as well if possible
 
 ---
 
