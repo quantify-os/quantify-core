@@ -4,7 +4,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
-from quantify.visualization import mpl_plotting as qpl
 
 
 class AllXYAnalysis(ba.BaseAnalysis):
