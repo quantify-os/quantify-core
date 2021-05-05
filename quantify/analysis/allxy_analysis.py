@@ -83,6 +83,7 @@ class AllXYAnalysis(ba.BaseAnalysis):
 
         self.analysis_result["normalized_data"] = data_normalized
         self.analysis_result["deviation"] = deviation
+        self.quantities_of_interest["deviation"] = deviation.item()
 
     def create_figures(self):
         data = self.analysis_result
