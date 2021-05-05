@@ -19,31 +19,35 @@ class RabiAnalysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
 
-        self.dataset["Magnitude"] = self.dataset_raw["y0"]
-        self.dataset["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].units
-        self.dataset["Magnitude"].attrs["long_name"] = "Magnitude, $|S_{21}|$"
+        self.dataset["Magnitude"] = self.dataset_raw.y0
+        self.dataset.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset.Magnitude.attrs["units"] = self.dataset_raw.y0.units
+        self.dataset.Magnitude.attrs["long_name"] = "Magnitude, $|S_{21}|$"
 
-        self.dataset["x0"] = self.dataset_raw["x0"]
+        self.dataset["x0"] = self.dataset_raw.x0
         self.dataset = self.dataset.set_coords("x0")
         # replace the default dim_0 with x0
         self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
+        """
+        Fits a :class:`~quantify.analysis.fitting_models.RabiModel` to the data.
+        """
         mod = fm.RabiModel()
 
         magnitude = np.array(self.dataset["Magnitude"])
-        drive_amp = np.array(self.dataset["x0"])
+        drive_amp = np.array(self.dataset.x0)
         guess = mod.guess(magnitude, drive_amp=drive_amp)
         fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
-        fit_warning = ba.check_lmfit(fit_res)
 
         self.fit_results.update({"Rabi_oscillation": fit_res})
 
-        fpars = fit_res.params
-        self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
-            fpars["amp180"]
-        )
+    def analyze_fit_results(self):
+        """
+        Checks fit success and populates :code:`.quantities_of_interest`.
+        """
+        fit_res = self.fit_results["Rabi_oscillation"]
+        fit_warning = ba.check_lmfit(fit_res)
 
         # If there is a problem with the fit, display an error message in the text box.
         # Otherwise, display the parameters as normal.
@@ -67,6 +71,10 @@ class RabiAnalysis(ba.BaseAnalysis):
             text_msg = fit_warning
             self.quantities_of_interest["fit_success"] = False
 
+        fpars = fit_res.params
+        self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
+            fpars["amp180"]
+        )
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
@@ -76,23 +84,23 @@ class RabiAnalysis(ba.BaseAnalysis):
         """Plot Rabi oscillation figure"""
 
         fig_id = "Rabi_oscillation"
-        fig, axs = plt.subplots()
+        fig, ax = plt.subplots()
         self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = axs
+        self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
-        self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
+        self.dataset.Magnitude.plot(ax=ax, marker=".", linestyle="")
 
         qpl.plot_fit(
-            ax=axs,
+            ax=ax,
             fit_res=self.fit_results["Rabi_oscillation"],
             plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )
 
-        qpl.set_ylabel(axs, r"Output voltage", self.dataset["Magnitude"].units)
-        qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
+        qpl.set_ylabel(ax, r"Output voltage", self.dataset.Magnitude.units)
+        qpl.set_xlabel(ax, self.dataset.x0.long_name, self.dataset.x0.units)
 
         qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")

@@ -371,14 +371,18 @@ class BaseAnalysis(ABC):
 
     def process_data(self):
         """
-        This method can be used to process, e.g., reshape, filter etc. the data
-        before starting the analysis. By default this method is empty (pass).
+        To be implemented by subclasses.
+
+        Should process, e.g., reshape, filter etc. the data
+        before starting the analysis.
         """
 
     def run_fitting(self):
         """
-        Used to fit data to a model. Overwrite this method in a child class if this
-        step is required for you analysis.
+        To be implemented by subclasses.
+
+        Should create fitting model(s) and fit data to the model(s) adding the result
+        to the :code:`.fit_results` dictionary.
         """
 
     def _add_fit_res_to_qoi(self):
@@ -390,13 +394,19 @@ class BaseAnalysis(ABC):
 
     def analyze_fit_results(self):
         """
-        To be implemented by subclasses what run fitting routines and require
-        post fitting analysis.
+        To be implemented by subclasses.
+
+        Should analyze and process the :code:`.fit_results` and add the quantities of
+        interest to the :code:`.quantities_of_interest` dictionary.
         """
 
     def create_figures(self):
         """
-        To be implemented by subclasses that generate figures.
+        To be implemented by subclasses.
+
+        Should generate figures of interest. matplolib figures and axes objects should
+        be added to the :code:`.figs_mpl` and :code:`axs_mpl` dictionaries.,
+        respectively.
         """
 
     def adjust_figures(self):
@@ -407,6 +417,8 @@ class BaseAnalysis(ABC):
         By default applies `mpl_exclude_fig_titles` and `mpl_transparent_background`
         from :code:`.settings_overwrite` to any matplotlib figures in
         :code:`.figs_mpl`.
+
+        Can be extended in a subclass for additional adjustments.
         """
         for fig in self.figs_mpl.values():
             if self.settings_overwrite["mpl_exclude_fig_titles"]:
@@ -447,7 +459,7 @@ class BaseAnalysis(ABC):
         """
         Saves figures to disk. By default saves matplotlib figures.
 
-        Can be overridden to make use of other plotting packages.
+        Can be overridden or extended to make use of other plotting packages.
         """
         self.save_figures_mpl()
 
@@ -756,9 +768,7 @@ def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     return None
 
 
-def wrap_text(
-    text: Union[str, None], width=35, replace_whitespace=True, **kwargs
-) -> Union[str, None]:
+def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
     """
     A text wrapping (braking over multiple lines) utility.
 
@@ -785,11 +795,16 @@ def wrap_text(
         The wrapped text (or :code:`None` if text is :code:`None`).
     """
     if text is not None:
-        text = "\n".join(
-            wrap(text, width=width, replace_whitespace=replace_whitespace, **kwargs)
+        # make sure existing line breaks are preserved
+        text_lines = text.split("\n")
+        wrapped_text = "\n".join(
+            "\n".join(
+                wrap(line, width=width, replace_whitespace=replace_whitespace, **kwargs)
+            )
+            for line in text_lines
         )
 
-    return text
+    return wrapped_text
 
 
 def analysis_steps_to_str(
