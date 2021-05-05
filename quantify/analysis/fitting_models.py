@@ -244,7 +244,8 @@ class CosineModel(lmfit.model.Model):
     Exemplary lmfit model with a guess for a cosine.
 
     .. note::
-        The :mod:`lmfit` module provides several fitting models that might fit
+
+        The :mod:`lmfit.models` module provides several fitting models that might fit
         your needs out of the box.
     """
 
