@@ -568,22 +568,6 @@ a_obj = CosineAnalysis(label="Cosine experiment").run()
 a_obj.display_figs_mpl()
 
 # %%
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# %%
-logger.info("bla")
-
-# %%
-a_obj.logger.setLevel("INFO")
-a_obj.run()
-
-# %%
-a_obj.logger.info("bla")
-
-# %%
 print(
     display_tree(
         Path(locate_experiment_container(a_obj.dataset_raw.tuid)), string_rep=True
@@ -593,6 +577,9 @@ print(
 # %%
 import logging
 
-logging.info("")  # call to info too early
+# actiavate logging and set global level to show warnings only
+logging.basicConfig(level=logging.WARNING)
 
-# %%
+# set analysis logger level to info (the logger is inherited from BaseAnalysis)
+a_obj.logger.setLevel(level=logging.INFO)
+a_obj.run()

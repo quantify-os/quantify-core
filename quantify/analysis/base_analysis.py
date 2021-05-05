@@ -170,6 +170,8 @@ class BaseAnalysis(ABC):
             `base_analysis.settings` for this specific instance.
             See `Settings schema` above for available settings.
         """
+        # NB at least logging.basicConfig() needs to be called in the python kernel
+        # in order to see the logger messages
         self.logger = logging.getLogger(self.name)
 
         self.label = label
@@ -270,7 +272,7 @@ class BaseAnalysis(ABC):
 
         self.logger.info(f"Executing `.analysis_steps` of {self.name}")
         for i, method in enumerate(flow_methods):
-            self.logger.info(f"execution step {i}: {method}")
+            self.logger.info(f"executing step {i}: {method}")
             method()
 
     def run_from(self, step: Union[str, AnalysisSteps]):
