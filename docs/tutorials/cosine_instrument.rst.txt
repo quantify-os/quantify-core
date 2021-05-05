@@ -15,7 +15,7 @@
     pars.add_parameter('t', initial_value=1, unit='s', label='Time', parameter_class=ManualParameter)
     pars.add_parameter('phi', initial_value=0, unit='Rad', label='Phase', parameter_class=ManualParameter)
     pars.add_parameter('noise_level', initial_value=0.05, unit='V', label='Noise level', parameter_class=ManualParameter)
-    pars.add_parameter('acq_delay', initial_value=.1, unit='s', parameter_class=ManualParameter)
+    pars.add_parameter('acq_delay', initial_value=.02, unit='s', parameter_class=ManualParameter)
 
     def cosine_model():
         sleep(pars.acq_delay()) # simulates the acquisition delay of an instrument

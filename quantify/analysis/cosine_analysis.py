@@ -27,7 +27,7 @@ class CosineAnalysis(ba.BaseAnalysis):
         In some cases, you might need to process the data, e.g., reshape, filter etc.,
         before starting the analysis. This is the method where it should be done.
 
-        See :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_dataset`
+        See :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data`
         for an implementation example.
         """  # pylint: disable=line-too-long
 

@@ -239,6 +239,9 @@ def exp_decay_func(
     return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
 
 
+# This class is used a literal include in the docs so the pylint options are here
+# pylint: disable=empty-docstring
+# pylint: disable=abstract-method
 class CosineModel(lmfit.model.Model):
     """
     Exemplary lmfit model with a guess for a cosine.
@@ -249,8 +252,6 @@ class CosineModel(lmfit.model.Model):
         your needs out of the box.
     """
 
-    # pylint: disable=empty-docstring
-    # pylint: disable=abstract-method
     def __init__(self, *args, **kwargs):
         # pass in the model's equation
         super().__init__(cos_func, *args, **kwargs)
@@ -263,8 +264,6 @@ class CosineModel(lmfit.model.Model):
             "phase", vary=True, min=-np.pi, max=np.pi
         )  # enforce phase range
 
-    # pylint: disable=empty-docstring
-    # pylint: disable=abstract-method
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
 
         # guess parameters based on the data

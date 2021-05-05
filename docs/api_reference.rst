@@ -15,6 +15,7 @@ analysis
 .. automodule:: quantify.analysis
     :members:
 
+
 base_analysis
 -------------
 
@@ -22,6 +23,12 @@ base_analysis
     :members:
     :show-inheritance:
 
+cosine_analysis
+---------------
+
+.. automodule:: quantify.analysis.cosine_analysis
+    :members:
+    :show-inheritance:
 
 spectroscopy_analysis
 ---------------------

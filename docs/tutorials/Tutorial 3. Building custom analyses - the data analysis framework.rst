@@ -45,6 +45,12 @@ We mock an experiment in order to generate a toy dataset to use in this tutorial
 .. admonition:: Create dataset with mock experiment
     :class: dropdown
 
+    .. jupyter-execute::
+
+        MC = MeasurementControl("MC")
+        plotmon = pqm.PlotMonitor_pyqt("plotmon")
+        MC.instr_plotmon(plotmon.name)
+
     .. include:: cosine_instrument.rst.txt
 
     .. jupyter-execute::
@@ -72,11 +78,11 @@ Manual analysis steps
         dataset = load_dataset(tuid)
         dataset
 
-#. Performing fits and extracting quantities of interest
+#. Performing a fit
 
     We have a sinusoidal signal in the experiment dataset, the goal is to find the underlying parameters.
     We extract these parameters by performing a fit to a model, a cosine function in this case.
-    For fitting we recommend using the lmfit library. See :ref:`the lmfit documentation <https://lmfit.github.io/lmfit-py/model.html>` on how to fit data to a custom model.
+    For fitting we recommend using the lmfit library. See `the lmfit documentation <https://lmfit.github.io/lmfit-py/model.html>`_ on how to fit data to a custom model.
 
     .. jupyter-execute::
 
@@ -136,7 +142,7 @@ Manual analysis steps
 
 #. Plotting and saving figures
 
-    We would like to save a plot of our data and fit in our lab logbook but the figure is not fully satisfactory: there are no units and no reference to the original dataset.
+    We would like to save a plot of our data and fit in our lab logbook but the figure above is not fully satisfactory: there are no units and no reference to the original dataset.
 
     Below we create our own plot for full control over the appearance and we store it on disk in the same `experiment directory`.
     For plotting we use the ubiquitous matplolib and some visualization utilities.
@@ -316,10 +322,10 @@ Let's now observe how such a class could look like.
             """This is a special method that python calls when an instance of this class is created."""
 
             self.label = label
-            self.tuid = None
-            self.dataset_raw = None
 
             # objects to be filled up later when running the analysis
+            self.tuid = None
+            self.dataset_raw = None
             self.fit_results = OrderedDict()
             self.quantities_of_interst = OrderedDict()
             self.figs_mpl = OrderedDict()
@@ -335,8 +341,6 @@ Let's now observe how such a class could look like.
             self.create_figures()
             self.save_quantities_of_interst()
             self.save_figures()
-
-            return self
 
         def extract_data(self):
             self.tuid = get_latest_tuid(contains=self.label)
@@ -407,6 +411,7 @@ Running the analysis is now as simple as:
 
     a_obj = MyCosineAnalysis(label="Cosine experiment")
     a_obj.run()
+    a_obj.figs_mpl["cos-data-and-fit"]
 
 The first line will instantiate the class by calling the :code:`.__init__()` method.
 
@@ -422,17 +427,27 @@ Extending the BaseAnalysis
 While the above stand-alone class provides the gist of an analysis, we can do even better by defining a structured framework that all analysis need to adhere to and factoring out the pieces of code that are common to most analyses.
 Beside that, the overall functionality can be improved.
 
-Here is where the :clas:`~quantify.base_analysis.BaseAnalysis` enters the scene.
-It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented when we making use of the analysis framework.
+Here is where the :class:`~quantify.analysis.base_analysis.BaseAnalysis` enters the scene.
+It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented where we are making use of the analysis framework. For completeness, a fully documented :class:`~quantify.analysis.fitting_models.CosineModel` that can serve as a template is shown as well.
 
 .. jupyter-execute::
     :hide-code:
 
     from quantify.analysis.cosine_analysis import CosineAnalysis
 
+.. toggle::
+    :show:
 
-.. literalinclude:: ../quantify/analysis/cosine_analysis.py
-    :pyobject: CosineAnalysis
+    .. literalinclude:: ../../quantify/analysis/fitting_models.py
+        :pyobject: CosineModel
+
+
+.. toggle::
+    :show:
+
+    .. literalinclude:: ../../quantify/analysis/cosine_analysis.py
+        :pyobject: CosineAnalysis
+
 
 Now we can simply execute it against our latest experiment as follows:
 
@@ -451,10 +466,11 @@ Inspecting the `experiment directory` yields:
 
 
 As you can conclude from the :class:`!CosineAnalysis` code, we did not implement quite a few methods in there.
-These are provided by the :clas:`~quantify.base_analysis.BaseAnalysis`.
+These are provided by the :class:`~quantify.analysis.base_analysis.BaseAnalysis`.
 To gain some insight on what exactly is being executed we can enable the logging module and use the internal logger of the analysis instance:
 
 .. jupyter-execute::
+    :stderr:
 
     import logging
     # activate logging and set global level to show warnings only

@@ -436,7 +436,6 @@ TO DO
 - analysis settings global/per instance (where to mention this ???)
 - TUID toolbox
 - hint there are a few more handy methods int the base analysis
-- use logging to show the execution of the steps (???)
 
 How to use:
 - run
