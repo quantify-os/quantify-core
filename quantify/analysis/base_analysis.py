@@ -33,6 +33,8 @@ from quantify.data.handling import (
     get_latest_tuid,
     get_datadir,
     DATASET_NAME,
+    PROCESSED_DATASET_NAME,
+    QUANTITIES_OF_INTEREST_NAME,
     write_dataset,
     create_exp_folder,
     locate_experiment_container,
@@ -378,14 +380,6 @@ class BaseAnalysis(ABC):
     def analyze_fit_results(self):
         pass
 
-    def save_quantities_of_interest(self):
-        self._add_fit_res_to_qoi()
-
-        with open(
-            os.path.join(self.analysis_dir, "quantities_of_interest.json"), "w"
-        ) as file:
-            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
-
     def create_figures(self):
         pass
 
@@ -412,7 +406,15 @@ class BaseAnalysis(ABC):
         # onto the self.dataset object.
         if self.dataset is not None:
             dataset = self.dataset
-            write_dataset(Path(self.analysis_dir) / "processed_dataset.hdf5", dataset)
+            write_dataset(Path(self.analysis_dir) / PROCESSED_DATASET_NAME, dataset)
+
+    def save_quantities_of_interest(self):
+        self._add_fit_res_to_qoi()
+
+        with open(
+            os.path.join(self.analysis_dir, QUANTITIES_OF_INTEREST_NAME), "w"
+        ) as file:
+            json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
     def save_figures(self):
         """
