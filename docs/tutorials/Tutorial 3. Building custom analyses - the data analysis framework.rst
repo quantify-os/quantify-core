@@ -435,18 +435,11 @@ It allows us to focus only on the particular aspect of our custom analysis by im
 
     from quantify.analysis.cosine_analysis import CosineAnalysis
 
-.. toggle::
-    :show:
+.. literalinclude:: ../../quantify/analysis/fitting_models.py
+    :pyobject: CosineModel
 
-    .. literalinclude:: ../../quantify/analysis/fitting_models.py
-        :pyobject: CosineModel
-
-
-.. toggle::
-    :show:
-
-    .. literalinclude:: ../../quantify/analysis/cosine_analysis.py
-        :pyobject: CosineAnalysis
+.. literalinclude:: ../../quantify/analysis/cosine_analysis.py
+    :pyobject: CosineAnalysis
 
 
 Now we can simply execute it against our latest experiment as follows:
