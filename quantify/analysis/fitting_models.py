@@ -239,6 +239,50 @@ def exp_decay_func(
     return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
 
 
+class CosineModel(lmfit.model.Model):
+    """
+    Exemplary lmfit model with a guess for a cosine.
+
+    .. note::
+        The :mod:`lmfit` module provides several fitting models that might fit
+        your needs out of the box.
+    """
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+    def __init__(self, *args, **kwargs):
+        # pass in the model's equation
+        super().__init__(cos_func, *args, **kwargs)
+
+        # configure constraints that are independent from the data to be fitted
+        self.set_param_hint("frequency", min=0, vary=True)  # enforce positive frequency
+        self.set_param_hint("amplitude", min=0, vary=True)  # enforce positive amplitude
+        self.set_param_hint("offset", vary=True)
+        self.set_param_hint(
+            "phase", vary=True, min=-np.pi, max=np.pi
+        )  # enforce phase range
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+    def guess(self, data, **kws) -> lmfit.parameter.Parameters:
+
+        # guess parameters based on the data
+
+        self.set_param_hint("offset", value=np.average(data))
+        self.set_param_hint("amplitude", value=(np.max(data) - np.min(data)) / 2)
+        # a simple educated guess based on experiment type
+        # a more elaborate but general approach is to use a Fourier transform
+        self.set_param_hint("frequency", value=1.2)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kws)
+
+    # Same design patter is used in lmfit.models to inherit common docstrings.
+    # We adjust these common docstrings to our docs build pipeline
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("cos_func")
+    guess.__doc__ = get_guess_common_doc()
+
+
 class ResonatorModel(lmfit.model.Model):
     """
     Resonator model
