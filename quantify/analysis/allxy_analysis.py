@@ -17,12 +17,12 @@ class AllXYAnalysis(ba.BaseAnalysis):
         raw_data = self.dataset_raw["y0"]
         number_points = len(raw_data)
 
-        # Raise an exception if there are too few points for a complete ALLXY
-        # experiment
+        # Raise an exception if we do not have the correct number of points for a
+        # complete ALLXY experiment
         if number_points % 21 != 0:
             raise ValueError(
-                "Invalid datset. The number of calibration points in an "
-                "ALLXY experiment must be a multiple of 21"
+                "Invalid dataset. The number of calibration points in an "
+                "AllXY experiment must be a multiple of 21"
             )
 
         repeats = int(round(number_points / 21))
