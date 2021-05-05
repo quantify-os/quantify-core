@@ -4,14 +4,40 @@
 from typing import Tuple, Union
 from typing_extensions import Literal
 import numpy as np
+import xarray as xr
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.text import Text
 from matplotlib.collections import QuadMesh, Collection
 from matplotlib.image import AxesImage
 from matplotlib.colorbar import Colorbar
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
+
+
+def set_suptitle_from_dataset(
+    fig: Figure, dataset: xr.Dataset, prefix: str = ""
+) -> None:
+    """
+    Sets the suptitle of a matplotlib figure based on
+
+    - (optional) prefix
+    - data.name
+    - dataset.tuid
+
+    Intended for tagging figures with unique ID of the original dataset.
+
+    Parameters
+    ----------
+    prefix
+        Optional string to pre-pend, e.g., :code:`x0-y0`.
+    fig
+        The matplotlib figure.
+    dataset
+        A dataset expected to have a :code:`.attrs["name"]` and a :code:`attrs["tuid"]`.
+    """
+    fig.suptitle(f"{prefix} {dataset.name}\ntuid: {dataset.tuid}")
 
 
 def set_cyclic_colormap(

@@ -18,12 +18,10 @@ class RabiAnalysis(ba.BaseAnalysis):
     def process_data(self):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
-        # y1 = phase in deg, this unit should always be correct
-        # assert self.dataset_raw["y1"].attrs["units"] == "deg"
 
         self.dataset["Magnitude"] = self.dataset_raw["y0"]
         self.dataset["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].attrs["units"]
+        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].units
         self.dataset["Magnitude"].attrs["long_name"] = "Magnitude, $|S_{21}|$"
 
         self.dataset["x0"] = self.dataset_raw["x0"]
@@ -40,7 +38,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
         fit_warning = ba.check_lmfit(fit_res)
 
-        self.fit_res.update({"Rabi_oscillation": fit_res})
+        self.fit_results.update({"Rabi_oscillation": fit_res})
 
         fpars = fit_res.params
         self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
@@ -89,7 +87,7 @@ class RabiAnalysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs,
-            fit_res=self.fit_res["Rabi_oscillation"],
+            fit_res=self.fit_results["Rabi_oscillation"],
             plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )
@@ -97,7 +95,4 @@ class RabiAnalysis(ba.BaseAnalysis):
         qpl.set_ylabel(axs, r"Output voltage", self.dataset["Magnitude"].units)
         qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
 
-        fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\n"
-            f"tuid: {self.dataset_raw.attrs['tuid']}"
-        )
+        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")

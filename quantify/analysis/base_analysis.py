@@ -192,7 +192,7 @@ class BaseAnalysis(ABC):
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
         self.quantities_of_interest = OrderedDict()
-        self.fit_res = OrderedDict()
+        self.fit_results = OrderedDict()
 
         self._interrupt_before = None
 
@@ -382,9 +382,9 @@ class BaseAnalysis(ABC):
         """
 
     def _add_fit_res_to_qoi(self):
-        if len(self.fit_res) > 0:
+        if len(self.fit_results) > 0:
             self.quantities_of_interest["fit_res"] = OrderedDict()
-            for fr_name, fit_result in self.fit_res.items():
+            for fr_name, fit_result in self.fit_results.items():
                 res = flatten_lmfit_modelresult(fit_result)
                 self.quantities_of_interest["fit_res"][fr_name] = res
 
@@ -600,10 +600,7 @@ class Basic1DAnalysis(BaseAnalysis):
                 yvals.plot.line(ax=ax, x=plot_against, marker=".")
                 adjust_axeslabels_SI(ax)
 
-                fig.suptitle(
-                    f"x0-{yi} {self.dataset_raw.attrs['name']}\n"
-                    f"tuid: {self.dataset_raw.attrs['tuid']}"
-                )
+                qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0-{yi}")
 
                 # add the figure and axis to the dicts for saving
                 self.figs_mpl[fig_id] = fig
@@ -633,10 +630,7 @@ class Basic2DAnalysis(BaseAnalysis):
             # autodect degrees and radians to use circular colormap.
             qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
-            fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\n"
-                f"tuid: {self.dataset_raw.attrs['tuid']}"
-            )
+            qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0x1-{yi}")
 
             # add the figure and axis to the dicts for saving
             self.figs_mpl[fig_id] = fig
@@ -663,18 +657,15 @@ class Basic2DAnalysis(BaseAnalysis):
             ax.legend(
                 loc=(1.05, 0.0),
                 title="{} ({})".format(
-                    gridded_dataset["x1"].attrs["long_name"],
-                    gridded_dataset["x1"].attrs["units"],
+                    gridded_dataset["x1"].long_name,
+                    gridded_dataset["x1"].units,
                 ),
                 ncol=max(len(gridded_dataset["x1"]) // 8, 1),
             )
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
 
-            fig.suptitle(
-                f"x0x1-{yi} {self.dataset_raw.attrs['name']}\n"
-                f"tuid: {self.dataset_raw.attrs['tuid']}"
-            )
+            qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0x1-{yi}")
 
             # add the figure and axis to the dicts for saving
             self.figs_mpl[fig_id] = fig

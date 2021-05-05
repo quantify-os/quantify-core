@@ -19,11 +19,11 @@ class T1Analysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dataset_raw["y1"].attrs["units"] == "deg"
+        assert self.dataset_raw["y1"].units == "deg"
 
         self.dataset["Magnitude"] = self.dataset_raw["y0"]
         self.dataset["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].attrs["units"]
+        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].units
         self.dataset["Magnitude"].attrs["long_name"] = "Magnitude"
 
         self.dataset["x0"] = self.dataset_raw["x0"]
@@ -41,7 +41,7 @@ class T1Analysis(ba.BaseAnalysis):
         fit_res = mod.fit(magn, params=guess, t=delay)
         fit_warning = ba.check_lmfit(fit_res)
 
-        self.fit_res.update({"exp_decay_func": fit_res})
+        self.fit_results.update({"exp_decay_func": fit_res})
 
         fpars = fit_res.params
         self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(fpars["tau"])
@@ -50,7 +50,7 @@ class T1Analysis(ba.BaseAnalysis):
         # Otherwise, display the parameters as normal.
         if fit_warning is None:
             self.quantities_of_interest["fit_success"] = True
-            unit = self.dataset["Magnitude"].attrs["units"]
+            unit = self.dataset["Magnitude"].units
             text_msg = "Summary\n"
             text_msg += format_value_string(
                 r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
@@ -84,14 +84,11 @@ class T1Analysis(ba.BaseAnalysis):
 
         qpl.plot_fit(
             ax=axs,
-            fit_res=self.fit_res["exp_decay_func"],
+            fit_res=self.fit_results["exp_decay_func"],
             plot_init=False,
         )
 
         qpl.set_ylabel(axs, "Magnitude", self.dataset["Magnitude"].units)
         qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
 
-        fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: "
-            f"{self.dataset_raw.attrs['tuid']}"
-        )
+        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")
