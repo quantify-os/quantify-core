@@ -212,6 +212,7 @@ Method 1 - a quick grid
 
 .. jupyter-execute::
 
+    from quantify.analysis import base_analysis as ba
     a_obj = ba.Basic2DAnalysis(label='2D Cosine test').run()
     a_obj.display_figs_mpl()
 
