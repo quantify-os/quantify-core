@@ -161,7 +161,7 @@ class BaseAnalysis(ABC):
             an unprocessed (raw) quantify dataset to perform the analysis on.
         tuid:
             if no dataset is specified, will look for the dataset with the matching tuid
-            in the datadirectory.
+            in the data directory.
         label:
             if no dataset and no tuid is provided, will look for the most recent dataset
             that contains "label" in the name.
