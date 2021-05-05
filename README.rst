@@ -22,7 +22,7 @@ Quantify-core
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
-.. image:: https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=for-the-badge
+.. image:: https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat
     :target: http://unitary.fund
 
 Quantify is a python based data acquisition platform focused on Quantum Computing and solid-state physics experiments.
