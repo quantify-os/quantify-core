@@ -1,45 +1,16 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Analysis module for a AllXY experiment"""
-from typing import Union
 import numpy as np
 import matplotlib.pyplot as plt
-from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
-from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
-from quantify.visualization.SI_utilities import format_value_string
 
 
 class AllXYAnalysis(ba.BaseAnalysis):
     """
     Normalises the data from an AllXY experiment and plots against an ideal curve
-    Parameters
-    ------------
-    repeats:
-        Specifies how many repeats of each data point where taken. If None, this
-        is infered from the length of the dataset.
     """
-
-    # Overwrite the run method so that we can add the new optional arguments
-    # pylint: disable=attribute-defined-outside-init
-    # def run(self, repeats: float = None):
-    #     # pylint: disable=arguments-differ
-
-    #     self.repeats = repeats
-    #     return super().run()
-
-    # # pylint: disable=attribute-defined-outside-init
-    # def run_until(
-    #     self,
-    #     interrupt_before: Union[str, ba.AnalysisSteps],
-    #     repeats: float = None,
-    #     **kwargs,
-    # ):
-    #     # pylint: disable=arguments-differ
-
-    #     self.repeats = repeats
-    #     return super().run_until(interrupt_before=interrupt_before, kwargs=kwargs)
 
     def process_data(self):
         points = self.dataset_raw["x0"]
