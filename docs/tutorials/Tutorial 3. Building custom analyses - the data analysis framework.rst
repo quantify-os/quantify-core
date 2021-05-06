@@ -262,11 +262,11 @@ Most of the code related to the fitting model is now packed in a single object, 
         # add a reference to the origal dataset in the figure title
         fig.suptitle(f"{dataset.attrs['name']}\ntuid: {dataset.attrs['tuid']}")
 
-    def save_quantities_of_interst(tuid: str, quantities_of_interst: dict) -> None:
+    def save_quantities_of_interest(tuid: str, quantities_of_interest: dict) -> None:
         exp_folder = Path(locate_experiment_container(tuid))
         # Save fit results
-        with open(exp_folder / "quantities_of_interst.json", "w") as file:
-            json.dump(quantities_of_interst, file)
+        with open(exp_folder / "quantities_of_interest.json", "w") as file:
+            json.dump(quantities_of_interest, file)
 
 
     def save_mpl_figure(tuid: str, fig: matplotlib.figure.Figure) -> None:
