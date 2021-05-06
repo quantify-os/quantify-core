@@ -327,7 +327,7 @@ Let's now observe how such a class could look like.
             self.tuid = None
             self.dataset_raw = None
             self.fit_results = OrderedDict()
-            self.quantities_of_interst = OrderedDict()
+            self.quantities_of_interest = OrderedDict()
             self.figs_mpl = OrderedDict()
             self.axs_mpl = OrderedDict()
 
