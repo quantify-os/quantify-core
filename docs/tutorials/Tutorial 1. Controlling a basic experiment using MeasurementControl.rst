@@ -103,7 +103,7 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
 .. jupyter-execute::
 
     MC.settables(pars.t)                     # as a QCoDeS parameter, 't' obeys the JSON schema for a valid Settable and can be passed to the MC directly.
-    MC.setpoints(np.linspace(0, 5, 50))
+    MC.setpoints(np.linspace(0, 2, 50))
     MC.gettables(pars.sig)                   # as a QCoDeS parameter, 'sig' obeys the JSON schema for a valid Gettable and can be passed to the MC directly.
     dataset = MC.run('Cosine test')
 

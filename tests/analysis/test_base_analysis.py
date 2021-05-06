@@ -231,7 +231,7 @@ def test_basic1d_analysis_plot_repeated_pnts(tmp_test_data_dir):
 
     # test that the duplicated setpoints measured are plotted
     assert len(a_obj.axs_mpl["Line plot x0-y0"].lines[0].get_data()[0]) == len(
-        a_obj.dataset_raw.x0
+        a_obj.dataset.x0
     )
 
 
@@ -307,7 +307,7 @@ def test_dataset_input_invalid():
     # no TUID attribute present
 
     with pytest.raises(AttributeError):
-        ba.Basic1DAnalysis(dataset_raw=dset).run()
+        ba.Basic1DAnalysis(dataset=dset).run()
 
 
 def test_dataset_input(tmp_test_data_dir):
@@ -330,10 +330,10 @@ def test_dataset_input(tmp_test_data_dir):
 
     # execute analysis with dataset as input argument
     a_obj = ba.Basic1DAnalysis(
-        dataset_raw=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
+        dataset=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
     ).run()
 
-    assert a_obj.dataset_raw == dset
+    assert a_obj.dataset == dset
 
     exp_dir = dh.locate_experiment_container(a_obj.tuid, tmp_test_data_dir)
     # assert a copy of the dataset was stored to disk.

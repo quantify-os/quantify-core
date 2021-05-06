@@ -112,7 +112,7 @@ class BaseAnalysis(ABC):
 
     def __init__(
         self,
-        dataset_raw: xr.Dataset = None,
+        dataset: xr.Dataset = None,
         tuid: Union[TUID, str] = None,
         label: str = "",
         settings_overwrite: dict = None,
@@ -157,7 +157,7 @@ class BaseAnalysis(ABC):
 
         Parameters
         ----------
-        dataset_raw:
+        dataset:
             an unprocessed (raw) quantify dataset to perform the analysis on.
         tuid:
             if no dataset is specified, will look for the dataset with the matching tuid
@@ -184,11 +184,11 @@ class BaseAnalysis(ABC):
 
         # Used to have access to a reference of the raw dataset, see also
         # self.extract_data
-        self.dataset_raw = dataset_raw
+        self.dataset = dataset
 
         # Initialize an empty dataset for the processed data.
         # This dataset will be overwritten during the analysis.
-        self.dataset = xr.Dataset()
+        self.dataset_processed = xr.Dataset()
 
         # To be populated by a subclass
         self.figs_mpl = OrderedDict()
@@ -334,19 +334,19 @@ class BaseAnalysis(ABC):
 
     def extract_data(self):
         """
-        If no `dataset_raw` is provided, populates :code:`.dataset_raw` with data from
+        If no `dataset` is provided, populates :code:`.dataset` with data from
         the experiment matching the tuid/label.
 
         This method should be overwritten if an analysis does not relate to a single
         datafile.
         """
-        if self.dataset_raw is not None:
+        if self.dataset is not None:
             # pylint: disable=fixme
             # FIXME: to be replaced by a validate_dateset see #187
-            if "tuid" not in self.dataset_raw.attrs.keys():
+            if "tuid" not in self.dataset.attrs.keys():
                 raise AttributeError('Invalid dataset, missing the "tuid" attribute')
 
-            self.tuid = TUID(self.dataset_raw.attrs["tuid"])
+            self.tuid = TUID(self.dataset.attrs["tuid"])
             # an experiment container is required to store output of the analysis.
             # it is possible for this not to exist for a custom dataset as it can
             # come from a source outside of the data directory.
@@ -354,22 +354,20 @@ class BaseAnalysis(ABC):
                 locate_experiment_container(self.tuid)
             except FileNotFoundError:
                 # if the file did not exist, an experiment folder is created
-                # and a copy of the dataset_raw is stored there.
-                exp_folder = create_exp_folder(
-                    tuid=self.tuid, name=self.dataset_raw.name
-                )
+                # and a copy of the dataset is stored there.
+                exp_folder = create_exp_folder(tuid=self.tuid, name=self.dataset.name)
                 write_dataset(
                     path=os.path.join(exp_folder, DATASET_NAME),
-                    dataset=self.dataset_raw,
+                    dataset=self.dataset,
                 )
 
-        if self.dataset_raw is None:
+        if self.dataset is None:
             # if no TUID is specified use the label to search for the latest file with
             # a match.
             if self.tuid is None:
                 self.tuid = get_latest_tuid(contains=self.label)
             # Keep a reference to the original dataset.
-            self.dataset_raw = load_dataset(tuid=self.tuid)
+            self.dataset = load_dataset(tuid=self.tuid)
 
     def process_data(self):
         """
@@ -438,9 +436,11 @@ class BaseAnalysis(ABC):
 
         # if statement exist to be compatible with child classes that do not load data
         # onto the self.dataset object.
-        if self.dataset is not None:
-            dataset = self.dataset
-            write_dataset(Path(self.analysis_dir) / PROCESSED_DATASET_NAME, dataset)
+        if self.dataset_processed is not None:
+            dataset_processed = self.dataset_processed
+            write_dataset(
+                Path(self.analysis_dir) / PROCESSED_DATASET_NAME, dataset_processed
+            )
 
     def save_quantities_of_interest(self):
         """
@@ -599,7 +599,7 @@ class Basic1DAnalysis(BaseAnalysis):
 
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
-        dataset = self.dataset_raw
+        dataset = self.dataset
         # for compatibility with older datasets
         # in case "x0" is not a coordinate we use "dim_0"
         coords = tuple(dataset.coords)
@@ -614,7 +614,7 @@ class Basic1DAnalysis(BaseAnalysis):
                 yvals.plot.line(ax=ax, x=plot_against, marker=".")
                 adjust_axeslabels_SI(ax)
 
-                qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0-{yi}")
+                qpl.set_suptitle_from_dataset(fig, self.dataset, f"x0-{yi}")
 
                 # add the figure and axis to the dicts for saving
                 self.figs_mpl[fig_id] = fig
@@ -629,7 +629,7 @@ class Basic2DAnalysis(BaseAnalysis):
 
     def create_figures(self):
 
-        gridded_dataset = to_gridded_dataset(self.dataset_raw)
+        gridded_dataset = to_gridded_dataset(self.dataset)
 
         # plot heatmaps of the data
         for yi, yvals in gridded_dataset.data_vars.items():
@@ -644,7 +644,7 @@ class Basic2DAnalysis(BaseAnalysis):
             # autodect degrees and radians to use circular colormap.
             qpl.set_cyclic_colormap(quadmesh, shifted=yvals.min() < 0, unit=yvals.units)
 
-            qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0x1-{yi}")
+            qpl.set_suptitle_from_dataset(fig, self.dataset, f"x0x1-{yi}")
 
             # add the figure and axis to the dicts for saving
             self.figs_mpl[fig_id] = fig
@@ -679,7 +679,7 @@ class Basic2DAnalysis(BaseAnalysis):
             # adjust the labels to be SI aware
             adjust_axeslabels_SI(ax)
 
-            qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0x1-{yi}")
+            qpl.set_suptitle_from_dataset(fig, self.dataset, f"x0x1-{yi}")
 
             # add the figure and axis to the dicts for saving
             self.figs_mpl[fig_id] = fig

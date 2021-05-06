@@ -34,9 +34,9 @@ class CosineAnalysis(ba.BaseAnalysis):
     def run_fitting(self):
         # create a fitting model based on a cosine function
         model = CosineModel()
-        guess = model.guess(self.dataset_raw.y0.values)
+        guess = model.guess(self.dataset.y0.values)
         result = model.fit(
-            self.dataset_raw.y0.values, x=self.dataset_raw.x0.values, params=guess
+            self.dataset.y0.values, x=self.dataset.x0.values, params=guess
         )
         self.fit_results.update({"cosine": result})
 
@@ -46,12 +46,12 @@ class CosineAnalysis(ba.BaseAnalysis):
         self.figs_mpl.update({fig_id: fig})
         self.axs_mpl.update({fig_id: ax})
 
-        self.dataset_raw.y0.plot(ax=ax, x="x0", marker="o", linestyle="")
+        self.dataset.y0.plot(ax=ax, x="x0", marker="o", linestyle="")
         qpl.plot_fit(ax, self.fit_results["cosine"])
         qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         adjust_axeslabels_SI(ax)
-        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "x0-y0")
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "x0-y0")
         ax.legend()
 
     def analyze_fit_results(self):
@@ -62,7 +62,7 @@ class CosineAnalysis(ba.BaseAnalysis):
         # Otherwise, display the parameters as normal.
         if fit_warning is None:
             self.quantities_of_interest["fit_success"] = True
-            unit = self.dataset_raw.y0.units
+            unit = self.dataset.y0.units
             text_msg = "Summary\n"
             text_msg += format_value_string(
                 r"$f$", fit_res.params["frequency"], end_char="\n", unit="Hz"

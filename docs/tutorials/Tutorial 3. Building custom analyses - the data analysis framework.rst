@@ -325,7 +325,7 @@ Let's now observe how such a class could look like.
 
             # objects to be filled up later when running the analysis
             self.tuid = None
-            self.dataset_raw = None
+            self.dataset = None
             self.fit_results = OrderedDict()
             self.quantities_of_interest = OrderedDict()
             self.figs_mpl = OrderedDict()
@@ -344,14 +344,14 @@ Let's now observe how such a class could look like.
 
         def extract_data(self):
             self.tuid = get_latest_tuid(contains=self.label)
-            self.dataset_raw = load_dataset(tuid)
+            self.dataset = load_dataset(tuid)
 
         def run_fitting(self):
             """Fits a CosineModel to the data."""
             model = CosineModel()
-            guess = model.guess(self.dataset_raw.y0.values)
+            guess = model.guess(self.dataset.y0.values)
             result = model.fit(
-                self.dataset_raw.y0.values, x=self.dataset_raw.x0.values, params=guess
+                self.dataset.y0.values, x=self.dataset.x0.values, params=guess
             )
             self.fit_results.update({"cosine": result})
 
@@ -370,20 +370,20 @@ Let's now observe how such a class could look like.
 
         def plot_fit(self, fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes):
             # plot data
-            self.dataset_raw.y0.plot.line(ax=ax, x="x0", marker="o", label="Data")
+            self.dataset.y0.plot.line(ax=ax, x="x0", marker="o", label="Data")
 
             # plot fit
-            x_fit = np.linspace(self.dataset_raw["x0"][0], self.dataset_raw["x0"][-1], 1000)
+            x_fit = np.linspace(self.dataset["x0"][0], self.dataset["x0"][-1], 1000)
             y_fit = cos_func(x=x_fit, **fit_result.best_values)
             ax.plot(x_fit, y_fit, label="Fit")
             ax.legend()
 
             # set units-aware tick labels
             set_xlabel(
-                ax, self.dataset_raw.x0.long_name, self.dataset_raw.x0.attrs["units"]
+                ax, self.dataset.x0.long_name, self.dataset.x0.attrs["units"]
             )
             set_ylabel(
-                ax, self.dataset_raw.y0.long_name, self.dataset_raw.y0.attrs["units"]
+                ax, self.dataset.y0.long_name, self.dataset.y0.attrs["units"]
             )
 
             # add a reference to the origal dataset in the figure title
@@ -419,7 +419,7 @@ As expected this will save similar files into the `experiment directory`:
 
 .. jupyter-execute::
 
-    print(display_tree(locate_experiment_container(a_obj.dataset_raw.tuid), string_rep=True))
+    print(display_tree(locate_experiment_container(a_obj.dataset.tuid), string_rep=True))
 
 Extending the BaseAnalysis
 --------------------------
@@ -455,7 +455,7 @@ Inspecting the `experiment directory` yields:
 
 .. jupyter-execute::
 
-    print(display_tree(locate_experiment_container(a_obj.dataset_raw.tuid), string_rep=True))
+    print(display_tree(locate_experiment_container(a_obj.dataset.tuid), string_rep=True))
 
 
 As you can conclude from the :class:`!CosineAnalysis` code, we did not implement quite a few methods in there.

@@ -19,17 +19,17 @@ class T1Analysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dataset_raw.y1.units == "deg"
+        assert self.dataset.y1.units == "deg"
 
-        self.dataset["Magnitude"] = self.dataset_raw.y0
-        self.dataset.Magnitude.attrs["name"] = "Magnitude"
-        self.dataset.Magnitude.attrs["units"] = self.dataset_raw.y0.units
-        self.dataset.Magnitude.attrs["long_name"] = "Magnitude"
+        self.dataset_processed["Magnitude"] = self.dataset.y0
+        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset_processed.Magnitude.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.Magnitude.attrs["long_name"] = "Magnitude"
 
-        self.dataset["x0"] = self.dataset_raw.x0
-        self.dataset = self.dataset.set_coords("x0")
+        self.dataset_processed["x0"] = self.dataset.x0
+        self.dataset_processed = self.dataset_processed.set_coords("x0")
         # replace the default dim_0 with x0
-        self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
+        self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
         """
@@ -38,8 +38,8 @@ class T1Analysis(ba.BaseAnalysis):
 
         mod = fm.ExpDecayModel()
 
-        magn = np.array(self.dataset["Magnitude"])
-        delay = np.array(self.dataset.x0)
+        magn = np.array(self.dataset_processed["Magnitude"])
+        delay = np.array(self.dataset_processed.x0)
         guess = mod.guess(magn, delay=delay)
         fit_res = mod.fit(magn, params=guess, t=delay)
 
@@ -57,7 +57,7 @@ class T1Analysis(ba.BaseAnalysis):
         # Otherwise, display the parameters as normal.
         if fit_warning is None:
             self.quantities_of_interest["fit_success"] = True
-            unit = self.dataset.Magnitude.units
+            unit = self.dataset_processed.Magnitude.units
             text_msg = "Summary\n"
             text_msg += format_value_string(
                 r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
@@ -90,7 +90,7 @@ class T1Analysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
-        self.dataset.Magnitude.plot(ax=ax, marker=".", linestyle="")
+        self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
 
         qpl.plot_fit(
             ax=ax,
@@ -98,7 +98,9 @@ class T1Analysis(ba.BaseAnalysis):
             plot_init=False,
         )
 
-        qpl.set_ylabel(ax, "Magnitude", self.dataset.Magnitude.units)
-        qpl.set_xlabel(ax, self.dataset.x0.long_name, self.dataset.x0.units)
+        qpl.set_ylabel(ax, "Magnitude", self.dataset_processed.Magnitude.units)
+        qpl.set_xlabel(
+            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+        )
 
-        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
