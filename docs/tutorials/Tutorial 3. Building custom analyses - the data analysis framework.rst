@@ -339,7 +339,7 @@ Let's now observe how such a class could look like.
             self.run_fitting()
             self.analyze_fit_results()
             self.create_figures()
-            self.save_quantities_of_interst()
+            self.save_quantities_of_interest()
             self.save_figures()
 
         def extract_data(self):
