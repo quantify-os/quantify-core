@@ -365,8 +365,8 @@ Let's now observe how such a class could look like.
 
         def save_quantities_of_interest(self):
             exp_folder = Path(locate_experiment_container(self.tuid))
-            with open(exp_folder / "quantities_of_interst.json", "w") as file:
-                json.dump(self.quantities_of_interst, file)
+            with open(exp_folder / "quantities_of_interest.json", "w") as file:
+                json.dump(self.quantities_of_interest, file)
 
         def plot_fit(self, fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes):
             # plot data
