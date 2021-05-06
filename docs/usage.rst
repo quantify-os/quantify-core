@@ -409,7 +409,7 @@ To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` modu
 
 The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
 
-To showcase the analysis usage we first run a mock experiment that generates a dataset that we would like to analyze.
+To showcase the analysis usage we generates a dataset that we would like to analyze.
 
 .. admonition:: Generate a dataset labeled "Cosine experiment"
     :class: dropdown, note
@@ -420,7 +420,7 @@ To showcase the analysis usage we first run a mock experiment that generates a d
     .. jupyter-execute::
 
         MC.settables(pars.t)
-        MC.setpoints(np.linspace(0, 5, 50))
+        MC.setpoints(np.linspace(0, 2, 50))
         MC.gettables(pars.sig)
         dataset = MC.run("Cosine experiment")
         dataset
@@ -428,47 +428,42 @@ To showcase the analysis usage we first run a mock experiment that generates a d
 Using an analysis class
 -----------------------
 
-TO DO
-=====
-
-- Replace analysis with CosineAnalysis
-- show how to extract quantities of interest and processed dataset
-- analysis settings global/per instance (where to mention this ???)
-- TUID toolbox
-- hint there are a few more handy methods int the base analysis
-
-How to use:
-- run
-- figures
-- datasaving
-- quantities of interest
-- processed dataset
 
 Running an analysis is very simple:
 
 .. jupyter-execute::
 
-    from quantify.data import handling as dh
-    from quantify.analysis import base_analysis as ba
-    a_obj = ba.Basic1DAnalysis(label="Cosine experiment")
-    a_obj.run()
-    a_obj.display_figs_mpl() # show the matplotlib figures in a Jupyter notebook
+    import quantify.data.handling as dh
+    from quantify.analysis import cosine_analysis as ca
 
-The analysis was executed against the last dataset containing in its label `"Cosine experiment"`.
+    a_obj = ca.CosineAnalysis(label='Cosine experiment')
+    a_obj.run()                 # execute the analysis.
+    a_obj.display_figs_mpl()    # displays the figures created in previous step.
+
+The analysis was executed against the last dataset that has the label `"Cosine experiment"` in the filename.
+
 After the analysis the experiment container will look similar to the following:
 
 .. jupyter-execute::
 
-    from directory_tree import display_tree  # pip install directory_tree
+    from directory_tree import display_tree
     experiment_container_path = dh.locate_experiment_container(tuid=dataset.tuid)
     print(display_tree(experiment_container_path, string_rep=True), end="")
 
-Alternatively we can pass a dataset directly to the analysis:
+
+The analysis object contains several useful methods and attributes such as the :code:`quantities_of_interest`, intended to store relevant quantities extracted during analysis, and the processed dataset.
 
 .. jupyter-execute::
 
-    # .run() on the same line is also possible (it returns the analysis instance)
-    a_obj_2 = ba.Basic1DAnalysis(dataset_raw=dataset).run()
+    # for example, the fitted frequency and amplitude are stored
+    freq = a_obj.quantities_of_interest['frequency']
+    amp = a_obj.quantities_of_interest['amplitude']
+    print(f"frequency {freq}")
+    print(f"amplitude {amp}")
+
+The use of these methods and attributes is described in more detail in :ref:`analysis_framework_tutorial`.
+
+
 
 Creating a custom analysis class
 --------------------------------

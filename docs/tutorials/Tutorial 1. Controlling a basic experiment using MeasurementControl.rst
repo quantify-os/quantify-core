@@ -10,6 +10,9 @@ Tutorial 1. Controlling a basic experiment using MeasurementControl
     :jupyter-download:script:`Tutorial 1. Controlling a basic experiment using MeasurementControl`
 
 
+Introduction
+------------
+
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the :ref:`User guide` !
 
 This tutorial covers basic usage of Quantify focusing on running basic experiments using :class:`~quantify.measurement.MeasurementControl`.
@@ -24,8 +27,6 @@ In a :ref:`Batched<Control Mode>` measurement, the :class:`~quantify.measurement
 This is useful in resource constrained or overhead heavy situations.
 
 Both measurement policies can be 1D, 2D or higher dimensional. Quantify also supports adaptive measurements in which the datapoints are determined during the measurement loop, which are explored in subsequent tutorials.
-
----
 
 This tutorial is structured as follows.
 In the first section we use a 1D Iterative loop to explain the flow of a basic experiment.
