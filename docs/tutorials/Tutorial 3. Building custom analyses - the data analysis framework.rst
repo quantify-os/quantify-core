@@ -280,8 +280,8 @@ Now the execution of the entire analysis becomes much more readable and clean:
 
     dataset = extract_data(label="Cosine experiment")
     fit_result = run_fitting(dataset=dataset)
-    quantities_of_interst = analyze_fit_results(fit_result=fit_result)
-    save_quantities_of_interst(dataset.tuid, quantities_of_interst)
+    quantities_of_interest = analyze_fit_results(fit_result=fit_result)
+    save_quantities_of_interest(dataset.tuid, quantities_of_interest)
     fig, ax = plt.subplots()
     plot_fit(fig=fig, ax=ax, dataset=dataset, fit_result=fit_result)
     save_mpl_figure(dataset.tuid, fig)
