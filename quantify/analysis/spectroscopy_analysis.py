@@ -23,20 +23,20 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dataset_raw.y1.units == "deg"
+        assert self.dataset.y1.units == "deg"
 
-        S21 = self.dataset_raw.y0 * np.cos(
-            np.deg2rad(self.dataset_raw.y1)
-        ) + 1j * self.dataset_raw.y0 * np.sin(np.deg2rad(self.dataset_raw.y1))
-        self.dataset["S21"] = S21
-        self.dataset.S21.attrs["name"] = "S21"
-        self.dataset.S21.attrs["units"] = self.dataset_raw.y0.units
-        self.dataset.S21.attrs["long_name"] = "Transmission, $S_{21}$"
+        S21 = self.dataset.y0 * np.cos(
+            np.deg2rad(self.dataset.y1)
+        ) + 1j * self.dataset.y0 * np.sin(np.deg2rad(self.dataset.y1))
+        self.dataset_processed["S21"] = S21
+        self.dataset_processed.S21.attrs["name"] = "S21"
+        self.dataset_processed.S21.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.S21.attrs["long_name"] = "Transmission, $S_{21}$"
 
-        self.dataset["x0"] = self.dataset_raw.x0
-        self.dataset = self.dataset.set_coords("x0")
+        self.dataset_processed["x0"] = self.dataset.x0
+        self.dataset_processed = self.dataset_processed.set_coords("x0")
         # replace the default dim_0 with x0
-        self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
+        self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
         """
@@ -45,8 +45,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         mod = fm.ResonatorModel()
 
-        S21 = np.array(self.dataset.S21)
-        freq = np.array(self.dataset.x0)
+        S21 = np.array(self.dataset_processed.S21)
+        freq = np.array(self.dataset_processed.x0)
         guess = mod.guess(S21, f=freq)
         fit_res = mod.fit(S21, params=guess, f=freq)
         self.fit_results.update({"hanger_func_complex_SI": fit_res})
@@ -102,8 +102,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
-        self.dataset.S21.real.plot(ax=axs[0], marker=".")
-        self.dataset.S21.imag.plot(ax=axs[1], marker=".")
+        self.dataset_processed.S21.real.plot(ax=axs[0], marker=".")
+        self.dataset_processed.S21.imag.plot(ax=axs[1], marker=".")
 
         qpl.plot_fit(
             ax=axs[0],
@@ -119,12 +119,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             range_casting="imag",
         )
 
-        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset.S21.units)
-        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset.S21.units)
+        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset_processed.S21.units)
+        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset_processed.S21.units)
         axs[0].set_xlabel("")
-        qpl.set_xlabel(axs[1], self.dataset.x0.long_name, self.dataset.x0.units)
+        qpl.set_xlabel(
+            axs[1], self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+        )
 
-        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
 
     def create_fig_s21_magn_phase(self):
 
@@ -137,8 +139,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(axs[0], ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
-        axs[0].plot(self.dataset.x0, np.abs(self.dataset.S21), marker=".")
-        axs[1].plot(self.dataset.x0, np.angle(self.dataset.S21, deg=True), marker=".")
+        axs[0].plot(
+            self.dataset_processed.x0, np.abs(self.dataset_processed.S21), marker="."
+        )
+        axs[1].plot(
+            self.dataset_processed.x0,
+            np.angle(self.dataset_processed.S21, deg=True),
+            marker=".",
+        )
 
         qpl.plot_fit(
             ax=axs[0],
@@ -154,12 +162,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             range_casting="angle",
         )
 
-        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset.S21.units)
+        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset_processed.S21.units)
         qpl.set_ylabel(axs[1], r"$\angle S_{21}$", "deg")
         axs[0].set_xlabel("")
-        qpl.set_xlabel(axs[1], self.dataset.x0.long_name, self.dataset.x0.units)
+        qpl.set_xlabel(
+            axs[1], self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+        )
 
-        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
 
     def create_fig_s21_complex(self):
 
@@ -171,7 +181,9 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
-        ax.plot(self.dataset.S21.real, self.dataset.S21.imag, marker=".")
+        ax.plot(
+            self.dataset_processed.S21.real, self.dataset_processed.S21.imag, marker="."
+        )
 
         qpl.plot_fit_complex_plane(
             ax=ax,
@@ -179,7 +191,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             plot_init=True,
         )
 
-        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset.S21.units)
-        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset.S21.units)
+        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset_processed.S21.units)
+        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset_processed.S21.units)
 
-        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "S21")
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
