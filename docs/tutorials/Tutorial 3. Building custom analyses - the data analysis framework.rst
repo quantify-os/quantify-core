@@ -356,7 +356,7 @@ Let's now observe how such a class could look like.
             self.fit_results.update({"cosine": result})
 
         def analyze_fit_results(self):
-            self.quantities_of_interst.update(
+            self.quantities_of_interest.update(
                 {
                     "amplitude": self.fit_results["cosine"].params["amplitude"].value,
                     "frequency": self.fit_results["cosine"].params["frequency"].value,
