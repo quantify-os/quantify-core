@@ -51,7 +51,7 @@ class CosineAnalysis(ba.BaseAnalysis):
         qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
 
         adjust_axeslabels_SI(ax)
-        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, f"x0-y0")
+        qpl.set_suptitle_from_dataset(fig, self.dataset_raw, "x0-y0")
         ax.legend()
 
     def analyze_fit_results(self):

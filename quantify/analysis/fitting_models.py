@@ -242,6 +242,7 @@ def exp_decay_func(
 # This class is used a literal include in the docs so the pylint options are here
 # pylint: disable=empty-docstring
 # pylint: disable=abstract-method
+# pylint: disable=too-few-public-methods
 class CosineModel(lmfit.model.Model):
     """
     Exemplary lmfit model with a guess for a cosine.
@@ -264,6 +265,7 @@ class CosineModel(lmfit.model.Model):
             "phase", vary=True, min=-np.pi, max=np.pi
         )  # enforce phase range
 
+    # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
 
         # guess parameters based on the data
