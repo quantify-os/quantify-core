@@ -112,11 +112,11 @@ Manual analysis steps
 
     .. jupyter-execute::
 
-        quantities_of_interst = {
+        quantities_of_interest = {
             "amplitude": fit_result.params["amplitude"].value,
             "frequency": fit_result.params["frequency"].value,
         }
-        quantities_of_interst
+        quantities_of_interest
 
     Now that we have the relevant quantities, we want to store them in the same
     `experiment directory` where the raw dataset is stored.
@@ -137,8 +137,8 @@ Manual analysis steps
 
     .. jupyter-execute::
 
-        with open(exp_folder / "quantities_of_interst.json", "w") as file:
-            json.dump(quantities_of_interst, file)
+        with open(exp_folder / "quantities_of_interest.json", "w") as file:
+            json.dump(quantities_of_interest, file)
 
 #. Plotting and saving figures
 
@@ -178,7 +178,7 @@ Reusable fitting model and analysis steps
 
 The previous steps achieve our goal, however, the code above is not easily reusable and hard to maintain or debug.
 We can do better then this! We can package our code in functions that perform specific tasks.
-In addition, we will use the objected-oriented interface of `lmfit` to farther structure our code.
+In addition, we will use the objected-oriented interface of `lmfit` to further structure our code.
 We explore the details of the object-oriented approach later in this tutorial.
 
 .. jupyter-execute::
@@ -262,11 +262,11 @@ Most of the code related to the fitting model is now packed in a single object, 
         # add a reference to the origal dataset in the figure title
         fig.suptitle(f"{dataset.attrs['name']}\ntuid: {dataset.attrs['tuid']}")
 
-    def save_quantities_of_interst(tuid: str, quantities_of_interst: dict) -> None:
+    def save_quantities_of_interest(tuid: str, quantities_of_interest: dict) -> None:
         exp_folder = Path(locate_experiment_container(tuid))
         # Save fit results
-        with open(exp_folder / "quantities_of_interst.json", "w") as file:
-            json.dump(quantities_of_interst, file)
+        with open(exp_folder / "quantities_of_interest.json", "w") as file:
+            json.dump(quantities_of_interest, file)
 
 
     def save_mpl_figure(tuid: str, fig: matplotlib.figure.Figure) -> None:
@@ -280,8 +280,8 @@ Now the execution of the entire analysis becomes much more readable and clean:
 
     dataset = extract_data(label="Cosine experiment")
     fit_result = run_fitting(dataset=dataset)
-    quantities_of_interst = analyze_fit_results(fit_result=fit_result)
-    save_quantities_of_interst(dataset.tuid, quantities_of_interst)
+    quantities_of_interest = analyze_fit_results(fit_result=fit_result)
+    save_quantities_of_interest(dataset.tuid, quantities_of_interest)
     fig, ax = plt.subplots()
     plot_fit(fig=fig, ax=ax, dataset=dataset, fit_result=fit_result)
     save_mpl_figure(dataset.tuid, fig)
@@ -327,7 +327,7 @@ Let's now observe how such a class could look like.
             self.tuid = None
             self.dataset_raw = None
             self.fit_results = OrderedDict()
-            self.quantities_of_interst = OrderedDict()
+            self.quantities_of_interest = OrderedDict()
             self.figs_mpl = OrderedDict()
             self.axs_mpl = OrderedDict()
 
@@ -339,7 +339,7 @@ Let's now observe how such a class could look like.
             self.run_fitting()
             self.analyze_fit_results()
             self.create_figures()
-            self.save_quantities_of_interst()
+            self.save_quantities_of_interest()
             self.save_figures()
 
         def extract_data(self):
@@ -356,17 +356,17 @@ Let's now observe how such a class could look like.
             self.fit_results.update({"cosine": result})
 
         def analyze_fit_results(self):
-            self.quantities_of_interst.update(
+            self.quantities_of_interest.update(
                 {
                     "amplitude": self.fit_results["cosine"].params["amplitude"].value,
                     "frequency": self.fit_results["cosine"].params["frequency"].value,
                 }
             )
 
-        def save_quantities_of_interst(self):
+        def save_quantities_of_interest(self):
             exp_folder = Path(locate_experiment_container(self.tuid))
-            with open(exp_folder / "quantities_of_interst.json", "w") as file:
-                json.dump(self.quantities_of_interst, file)
+            with open(exp_folder / "quantities_of_interest.json", "w") as file:
+                json.dump(self.quantities_of_interest, file)
 
         def plot_fit(self, fig: matplotlib.figure.Figure, ax: matplotlib.axes.Axes):
             # plot data
