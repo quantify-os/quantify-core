@@ -25,7 +25,7 @@ this._datadir = None
 
 DATASET_NAME = "dataset.hdf5"
 QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
-PROCESSED_DATASET_NAME = "processed_dataset.hdf5"
+PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
 def gen_tuid(ts: datetime.datetime = None) -> TUID:
