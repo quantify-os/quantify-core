@@ -178,7 +178,7 @@ Reusable fitting model and analysis steps
 
 The previous steps achieve our goal, however, the code above is not easily reusable and hard to maintain or debug.
 We can do better then this! We can package our code in functions that perform specific tasks.
-In addition, we will use the objected-oriented interface of `lmfit` to farther structure our code.
+In addition, we will use the objected-oriented interface of `lmfit` to further structure our code.
 We explore the details of the object-oriented approach later in this tutorial.
 
 .. jupyter-execute::
