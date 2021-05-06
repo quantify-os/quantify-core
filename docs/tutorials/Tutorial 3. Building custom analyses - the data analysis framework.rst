@@ -112,11 +112,11 @@ Manual analysis steps
 
     .. jupyter-execute::
 
-        quantities_of_interst = {
+        quantities_of_interest = {
             "amplitude": fit_result.params["amplitude"].value,
             "frequency": fit_result.params["frequency"].value,
         }
-        quantities_of_interst
+        quantities_of_interest
 
     Now that we have the relevant quantities, we want to store them in the same
     `experiment directory` where the raw dataset is stored.
