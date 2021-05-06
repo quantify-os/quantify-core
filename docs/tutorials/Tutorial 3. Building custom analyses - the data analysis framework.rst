@@ -137,8 +137,8 @@ Manual analysis steps
 
     .. jupyter-execute::
 
-        with open(exp_folder / "quantities_of_interst.json", "w") as file:
-            json.dump(quantities_of_interst, file)
+        with open(exp_folder / "quantities_of_interest.json", "w") as file:
+            json.dump(quantities_of_interest, file)
 
 #. Plotting and saving figures
 
