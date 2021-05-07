@@ -2,8 +2,8 @@
 Changelog
 ===========
 
-Unreleased
-----------
+0.4.0 (2021-05-07)
+------------------
 
 * Allow providing an xarray dataset as input for analysis (#181)
 
@@ -22,14 +22,13 @@ Breaking changes
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Add uncertainties support to format_value_string (!151)
-* Current analysis flow control interrupt_before interface requires UX improvements (#183, !158)
-* Define how to pass optional arguments for analysis subclasses (#184, !158)
-* Rabi analysis (!159)
-* Add a warning when an analysis class returns a bad fit (!163)
-* Provide methods for loading quantities of interest and processed dataset (#191, !165)
-* Analysis `.dataset` and `.dataset_raw` renamed (!171)
-* Added documentation for the analysis (!155, #177)
+* Added uncertainties support to format_value_string. (!151)
+* UX improvements over current analysis flow control interrupt_before interface. (#183, !158)
+* Defined how to pass optional arguments for analysis subclasses. (#184, !158)
+* Added Rabi analysis subclass. (!159)
+* Added warning when an analysis class returns a bad fit. (!163)
+* Provide methods for loading quantities of interest and processed dataset. (#191, !165)
+* Renamed analysis variables `.dataset` and `.dataset_raw`. (!171)
 
 
 0.3.2 (2021-03-17)
