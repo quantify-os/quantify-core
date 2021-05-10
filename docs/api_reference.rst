@@ -52,7 +52,7 @@ rabi_analysis
     :show-inheritance:
 
 ramsey_analysis
--------------
+---------------
 
 .. automodule:: quantify.analysis.ramsey_analysis
     :members:
