@@ -597,9 +597,7 @@ class Basic1DAnalysis(BaseAnalysis):
     """
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
-
-    .. include:: ./docstring_examples/quantify.analysis.base_analysis.Basic1DAnalysis.rst.txt
-    """  # pylint: disable=line-too-long
+    """
 
     def create_figures(self):
         """
@@ -634,10 +632,7 @@ class Basic2DAnalysis(BaseAnalysis):
     """
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
-
-
-    .. include:: ./docstring_examples/quantify.analysis.base_analysis.Basic2DAnalysis.rst.txt
-    """  # pylint: disable=line-too-long
+    """
 
     def create_figures(self):
 
