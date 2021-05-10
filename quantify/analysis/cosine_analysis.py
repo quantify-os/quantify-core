@@ -32,6 +32,9 @@ class CosineAnalysis(ba.BaseAnalysis):
         """  # pylint: disable=line-too-long
 
     def run_fitting(self):
+        """
+        Fits a :class:`~quantify.analysis.fitting_models.CosineModel` to the data.
+        """
         # create a fitting model based on a cosine function
         model = CosineModel()
         guess = model.guess(self.dataset.y0.values)

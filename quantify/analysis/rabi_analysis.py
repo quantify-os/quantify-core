@@ -17,6 +17,9 @@ class RabiAnalysis(ba.BaseAnalysis):
     """  # pylint: disable=line-too-long
 
     def process_data(self):
+        """
+        Populates the :code:`.dataset_processed`.
+        """
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
 
@@ -81,10 +84,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        self.create_fig_rabi_oscillation()
-
-    def create_fig_rabi_oscillation(self):
-        """Plot Rabi oscillation figure"""
+        """Creates Rabi oscillation figure"""
 
         fig_id = "Rabi_oscillation"
         fig, ax = plt.subplots()

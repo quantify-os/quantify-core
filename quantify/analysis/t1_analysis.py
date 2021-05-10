@@ -17,6 +17,9 @@ class T1Analysis(ba.BaseAnalysis):
     """
 
     def process_data(self):
+        """
+        Populates the :code:`.dataset_processed`.
+        """
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.

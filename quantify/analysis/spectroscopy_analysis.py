@@ -90,11 +90,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         component vs frequency, the magnitude and phase vs frequency,
         and on the complex I,Q plane.
         """
-        self.create_fig_s21_real_imag()
-        self.create_fig_s21_magn_phase()
-        self.create_fig_s21_complex()
+        self._create_fig_s21_real_imag()
+        self._create_fig_s21_magn_phase()
+        self._create_fig_s21_complex()
 
-    def create_fig_s21_real_imag(self):
+    def _create_fig_s21_real_imag(self):
 
         fig_id = "S21-RealImag"
         fig, axs = plt.subplots(2, 1, sharex=True)
@@ -131,7 +131,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
 
-    def create_fig_s21_magn_phase(self):
+    def _create_fig_s21_magn_phase(self):
 
         fig_id = "S21-MagnPhase"
         fig, axs = plt.subplots(2, 1, sharex=True)
@@ -174,7 +174,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
 
-    def create_fig_s21_complex(self):
+    def _create_fig_s21_complex(self):
 
         fig_id = "S21-complex"
         fig, ax = plt.subplots()

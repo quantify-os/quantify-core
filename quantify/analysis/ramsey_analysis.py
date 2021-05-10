@@ -18,15 +18,29 @@ class RamseyAnalysis(ba.BaseAnalysis):
     """  # pylint: disable=line-too-long
 
     # Override the run method so that we can add the new optional arguments
-    # pylint: disable=attribute-defined-outside-init
+    # pylint: disable=attribute-defined-outside-init, arguments-differ
     def run(self, artificial_detuning: float = 0, qubit_frequency: float = None):
-        # pylint: disable=arguments-differ
+        """
+        Parameters
+        ----------
+        artificial_detuning:
 
+        qubit_frequency:
+
+        Returns
+        -------
+        :class:`~quantify.analysis.ramsey_analysis.RamseyAnalysis`:
+            The instance of this analysis.
+
+        """  # NB the return type need to be specified manually to avoid circular import
         self.artificial_detuning = artificial_detuning
         self.qubit_frequency = qubit_frequency
         return super().run()
 
     def process_data(self):
+        """
+        Populates the :code:`.dataset_processed`.
+        """
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
@@ -48,6 +62,10 @@ class RamseyAnalysis(ba.BaseAnalysis):
         self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
+        """
+        Fits a :class:`quantify.analysis.fitting_models.DecayOscillationModel` to the
+        data.
+        """
         model = fm.DecayOscillationModel()
 
         magnitude = np.array(self.dataset_processed["Magnitude"])
@@ -132,9 +150,6 @@ class RamseyAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        self.create_fig_ramsey_decay()
-
-    def create_fig_ramsey_decay(self):
         """Plot Ramsey decay figure"""
 
         fig_id = "Ramsey_decay"
