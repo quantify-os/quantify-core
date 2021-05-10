@@ -1,6 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Analysis module for a Rabi Oscillation experiment"""
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -13,7 +12,9 @@ class RabiAnalysis(ba.BaseAnalysis):
     """
     Fits a cosine curve to Rabi oscillation data and finds the qubit drive
     amplitude required to implement a pi-pulse.
-    """
+
+    .. include:: ./docstring_examples/quantify.analysis.base_analysis.RabiAnalysis.rst.txt
+    """  # pylint: disable=line-too-long
 
     def process_data(self):
         # y0 = amplitude, no check for the amplitude unit as the name/label is

@@ -1,6 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Module containing spectroscopy analysis."""
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -12,7 +11,9 @@ from quantify.visualization.SI_utilities import format_value_string
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
     """
     Analysis for a spectroscopy experiment of a hanger resonator.
-    """
+
+    .. include:: ./docstring_examples/quantify.analysis.base_analysis.ResonatorSpectroscopyAnalysis.rst.txt
+    """  # pylint: disable=line-too-long
 
     def process_data(self):
         """

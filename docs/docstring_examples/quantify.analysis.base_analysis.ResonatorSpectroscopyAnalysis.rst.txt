@@ -1,0 +1,33 @@
+.. admonition:: Examples
+    :class: dropdown, tip
+
+    .. jupyter-execute::
+        :hide-code:
+        :hide-output:
+
+        from quantify.utilities._docs_helpers import create_tmp_dir_from_test_dataset
+        import quantify.data.handling as dh
+
+        tuid = "20210305-152943-497-ad8670"
+        tmp_path, tmp_dir = create_tmp_dir_from_test_dataset(tuid=tuid)
+        dh.set_datadir(tmp_path)
+
+    .. jupyter-execute::
+
+        import quantify.analysis.spectroscopy_analysis as sa
+        a_obj = sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run()
+        a_obj.display_figs_mpl()
+
+    .. jupyter-execute::
+
+        a_obj.dataset
+
+    .. jupyter-execute::
+
+        a_obj.dataset_processed
+
+    .. jupyter-execute::
+        :hide-code:
+        :hide-output:
+
+        tmp_dir.cleanup()

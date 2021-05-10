@@ -299,6 +299,12 @@ class BaseAnalysis(ABC):
         :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` and
         stopping before the specified step.
 
+        .. warning::
+
+            This method is not intended to be overwritten/extended.
+            See the examples below on passing arguments to
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
+
         .. note::
 
             Any code inside :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
@@ -306,6 +312,8 @@ class BaseAnalysis(ABC):
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
             [which is called by
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` ] is affected.
+
+        .. include:: docstring_examples/quantify.analysis.base_analysis.BaseAnalysis.run_until.rst.txt
 
         Parameters
         ----------
@@ -315,9 +323,9 @@ class BaseAnalysis(ABC):
             the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`
             enumerate member.
         **kwargs:
-            Any other keyword arguments to be passed to
+            Any other keyword arguments will be passed to
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
-        """
+        """  # pylint: disable=line-too-long
 
         # Used by `execute_analysis_steps` to stop
         self._interrupt_before = interrupt_before
@@ -591,7 +599,9 @@ class Basic1DAnalysis(BaseAnalysis):
     """
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
-    """
+
+    .. include:: ./docstring_examples/quantify.analysis.base_analysis.Basic1DAnalysis.rst.txt
+    """  # pylint: disable=line-too-long
 
     def create_figures(self):
         """
@@ -626,7 +636,10 @@ class Basic2DAnalysis(BaseAnalysis):
     """
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
-    """
+
+
+    .. include:: ./docstring_examples/quantify.analysis.base_analysis.Basic2DAnalysis.rst.txt
+    """  # pylint: disable=line-too-long
 
     def create_figures(self):
 
