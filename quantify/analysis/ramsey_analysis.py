@@ -1,7 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Analysis module for a Rabi Oscillation experiment"""
-from typing import Union
 import numpy as np
 import matplotlib.pyplot as plt
 from uncertainties import ufloat
@@ -17,7 +16,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
     and finds the true detuning, qubit frequency and T2* time.
     """
 
-    # Overwrite the run method so that we can add the new optional arguments
+    # Override the run method so that we can add the new optional arguments
     # pylint: disable=attribute-defined-outside-init
     def run(self, artificial_detuning: float = 0, qubit_frequency: float = None):
         # pylint: disable=arguments-differ
@@ -26,36 +25,23 @@ class RamseyAnalysis(ba.BaseAnalysis):
         self.qubit_frequency = qubit_frequency
         return super().run()
 
-    # pylint: disable=attribute-defined-outside-init
-    def run_until(
-        self,
-        interrupt_before: Union[str, ba.AnalysisSteps],
-        artificial_detuning: float = 0,
-        qubit_frequency: float = None,
-        **kwargs,
-    ):
-        # pylint: disable=arguments-differ
-
-        self.artificial_detuning = artificial_detuning
-        self.qubit_frequency = qubit_frequency
-        return super().run_until(interrupt_before=interrupt_before, kwargs=kwargs)
-
     def process_data(self):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dataset["y1"].attrs["units"] == "deg"
+        assert self.dataset.y1.units == "deg"
 
-        mag = self.dataset["y0"]
+        mag = self.dataset.y0
+        # TODO solve NaNs properly when #176 has a solution, pylint: disable=fixme
         valid_meas = np.logical_not(np.isnan(mag))
         self.dataset_processed["Magnitude"] = mag[valid_meas]
         self.dataset_processed["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset_processed["Magnitude"].attrs["units"] = self.dataset["y0"].attrs[
-            "units"
-        ]
-        self.dataset_processed["Magnitude"].attrs["long_name"] = "Magnitude, $|S_{21}|$"
+        self.dataset_processed["Magnitude"].attrs["units"] = self.dataset.y0.units
+        self.dataset_processed["Magnitude"].attrs[
+            "long_name"
+        ] = r"Magnitude, $|S_{21}|$"
 
-        self.dataset_processed["x0"] = self.dataset["x0"][valid_meas]
+        self.dataset_processed["x0"] = self.dataset.x0[valid_meas]
         self.dataset_processed = self.dataset_processed.set_coords("x0")
         # replace the default dim_0 with x0
         self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
@@ -64,7 +50,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
         model = fm.DecayOscillationModel()
 
         magnitude = np.array(self.dataset_processed["Magnitude"])
-        time = np.array(self.dataset_processed["x0"])
+        time = np.array(self.dataset_processed.x0)
         guess = model.guess(magnitude, time=time)
         fit_result = model.fit(magnitude, params=guess, t=time)
 
@@ -151,31 +137,27 @@ class RamseyAnalysis(ba.BaseAnalysis):
         """Plot Ramsey decay figure"""
 
         fig_id = "Ramsey_decay"
-        fig, axs = plt.subplots()
+        fig, ax = plt.subplots()
         self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = axs
+        self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
-        self.dataset_processed.Magnitude.plot(ax=axs, marker=".", linestyle="")
+        self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
 
         qpl.plot_fit(
-            ax=axs,
+            ax=ax,
             fit_res=self.fit_results["Ramsey_decay"],
             plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )
 
-        qpl.set_ylabel(
-            axs, r"Output voltage", self.dataset_processed["Magnitude"].units
-        )
+        qpl.set_ylabel(ax, r"Output voltage", self.dataset_processed["Magnitude"].units)
         qpl.set_xlabel(
-            axs,
-            self.dataset_processed["x0"].long_name,
-            self.dataset_processed["x0"].units,
+            ax,
+            self.dataset_processed.x0.long_name,
+            self.dataset_processed.x0.units,
         )
 
-        fig.suptitle(
-            f"S21 {self.dataset.attrs['name']}\n" f"tuid: {self.dataset.attrs['tuid']}"
-        )
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
