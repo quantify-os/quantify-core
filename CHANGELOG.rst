@@ -14,6 +14,10 @@ Breaking changes
     - Any analysis class now requires explicit execution of the steps with `.run()`.
     - One-liner still available `a_obj = MyAnalysisClass().run()`
 
+* Analysis dataset variables and filename changed for consistency (!171):
+    - `BaseAnalysis.dataset_raw` renamed to `BaseAnalysis.dataset`
+    - `BaseAnalysis.dataset` renamed to `BaseAnalysis.dataset_processed`
+    - "processed_dataset.hdf5" renamed to "dataset.hdf5"
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,6 +29,8 @@ Merged branches and closed issues
 * Add a warning when an analysis class returns a bad fit (!163)
 * Provide methods for loading quantities of interest and processed dataset (#191, !165)
 * Ramsey analysis (!166)
+* Analysis `.dataset` and `.dataset_raw` renamed (!171)
+* Added documentation for the analysis (!155, #177)
 
 
 0.3.2 (2021-03-17)

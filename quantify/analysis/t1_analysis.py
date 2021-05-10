@@ -19,38 +19,46 @@ class T1Analysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dataset_raw["y1"].attrs["units"] == "deg"
+        assert self.dataset.y1.units == "deg"
 
-        self.dataset["Magnitude"] = self.dataset_raw["y0"]
-        self.dataset["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].attrs["units"]
-        self.dataset["Magnitude"].attrs["long_name"] = "Magnitude"
+        self.dataset_processed["Magnitude"] = self.dataset.y0
+        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset_processed.Magnitude.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.Magnitude.attrs["long_name"] = "Magnitude"
 
-        self.dataset["x0"] = self.dataset_raw["x0"]
-        self.dataset = self.dataset.set_coords("x0")
+        self.dataset_processed["x0"] = self.dataset.x0
+        self.dataset_processed = self.dataset_processed.set_coords("x0")
         # replace the default dim_0 with x0
-        self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
+        self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
+        """
+        Fits a :class:`~quantify.analysis.fitting_models.ExpDecayModel` to the data.
+        """
 
         mod = fm.ExpDecayModel()
 
-        magn = np.array(self.dataset["Magnitude"])
-        delay = np.array(self.dataset["x0"])
+        magn = np.array(self.dataset_processed["Magnitude"])
+        delay = np.array(self.dataset_processed.x0)
         guess = mod.guess(magn, delay=delay)
+
         fit_result = mod.fit(magn, params=guess, t=delay)
-        fit_warning = ba.check_lmfit(fit_result)
 
-        self.fit_result.update({"exp_decay_func": fit_result})
+        self.fit_results.update({"exp_decay_func": fit_result})
 
-        fpars = fit_result.params
-        self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(fpars["tau"])
+    def analyze_fit_results(self):
+        """
+        Checks fit success and populates :code:`.quantities_of_interest`.
+        """
+
+        fit_result = self.fit_results["exp_decay_func"]
+        fit_warning = ba.wrap_text(ba.check_lmfit(fit_result))
 
         # If there is a problem with the fit, display an error message in the text box.
         # Otherwise, display the parameters as normal.
         if fit_warning is None:
             self.quantities_of_interest["fit_success"] = True
-            unit = self.dataset["Magnitude"].attrs["units"]
+            unit = self.dataset_processed.Magnitude.units
             text_msg = "Summary\n"
             text_msg += format_value_string(
                 r"$T1$", fit_result.params["tau"], end_char="\n", unit="s"
@@ -65,6 +73,9 @@ class T1Analysis(ba.BaseAnalysis):
             text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
+        self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(
+            fit_result.params["tau"]
+        )
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
@@ -73,25 +84,24 @@ class T1Analysis(ba.BaseAnalysis):
         """
 
         fig_id = "T1_decay"
-        fig, axs = plt.subplots()
+        fig, ax = plt.subplots()
         self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = axs
+        self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
         qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
 
-        self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
+        self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
 
         qpl.plot_fit(
-            ax=axs,
-            fit_res=self.fit_result["exp_decay_func"],
+            ax=ax,
+            fit_res=self.fit_results["exp_decay_func"],
             plot_init=False,
         )
 
-        qpl.set_ylabel(axs, "Magnitude", self.dataset["Magnitude"].units)
-        qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
-
-        fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\ntuid: "
-            f"{self.dataset_raw.attrs['tuid']}"
+        qpl.set_ylabel(ax, "Magnitude", self.dataset_processed.Magnitude.units)
+        qpl.set_xlabel(
+            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
         )
+
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
