@@ -63,7 +63,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
 
     def run_fitting(self):
         """
-        Fits a :class:`quantify.analysis.fitting_models.DecayOscillationModel` to the
+        Fits a :class:`~quantify.analysis.fitting_models.DecayOscillationModel` to the
         data.
         """
         model = fm.DecayOscillationModel()
@@ -78,7 +78,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
     def analyze_fit_results(self):
         """
         Extract the real detuning and qubit frequency based on the artificial detuning
-        and fitted detuning
+        and fitted detuning.
         """
         fit_warning = ba.check_lmfit(self.fit_results["Ramsey_decay"])
 
