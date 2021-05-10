@@ -13,6 +13,7 @@
         dh.set_datadir(tmp_path)
 
     .. jupyter-execute::
+        :stderr:
 
         import quantify.analysis.spectroscopy_analysis as sa
         a_obj = sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run()
