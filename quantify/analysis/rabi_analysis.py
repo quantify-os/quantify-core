@@ -12,9 +12,7 @@ class RabiAnalysis(ba.BaseAnalysis):
     """
     Fits a cosine curve to Rabi oscillation data and finds the qubit drive
     amplitude required to implement a pi-pulse.
-
-    .. include:: ./docstring_examples/quantify.analysis.base_analysis.RabiAnalysis.rst.txt
-    """  # pylint: disable=line-too-long
+    """
 
     def process_data(self):
         """

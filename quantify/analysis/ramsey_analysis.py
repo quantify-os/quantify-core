@@ -13,9 +13,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
     """
     Fits a decaying cosine curve to Ramsey data (possibly with artificial detuning)
     and finds the true detuning, qubit frequency and T2* time.
-
-    .. include:: ./docstring_examples/quantify.analysis.base_analysis.RamseyAnalysis.rst.txt
-    """  # pylint: disable=line-too-long
+    """
 
     # Override the run method so that we can add the new optional arguments
     # pylint: disable=attribute-defined-outside-init, arguments-differ

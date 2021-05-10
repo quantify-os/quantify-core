@@ -12,8 +12,6 @@ class T1Analysis(ba.BaseAnalysis):
     """
     Analysis class for a qubit T1 experiment,
     which fits an exponential decay and extracts the T1 time.
-
-    .. include:: ./docstring_examples/quantify.analysis.base_analysis.T1Analysis.rst.txt
     """
 
     def process_data(self):

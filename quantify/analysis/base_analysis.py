@@ -313,8 +313,6 @@ class BaseAnalysis(ABC):
             [which is called by
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` ] is affected.
 
-        .. include:: docstring_examples/quantify.analysis.base_analysis.BaseAnalysis.run_until.rst.txt
-
         Parameters
         ----------
         interrupt_before:

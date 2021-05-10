@@ -11,9 +11,7 @@ from quantify.visualization.SI_utilities import format_value_string
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
     """
     Analysis for a spectroscopy experiment of a hanger resonator.
-
-    .. include:: ./docstring_examples/quantify.analysis.base_analysis.ResonatorSpectroscopyAnalysis.rst.txt
-    """  # pylint: disable=line-too-long
+    """
 
     def process_data(self):
         """
