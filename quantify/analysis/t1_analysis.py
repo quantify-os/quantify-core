@@ -15,6 +15,9 @@ class T1Analysis(ba.BaseAnalysis):
     """
 
     def process_data(self):
+        """
+        Populates the :code:`.dataset_processed`.
+        """
 
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
@@ -41,17 +44,18 @@ class T1Analysis(ba.BaseAnalysis):
         magn = np.array(self.dataset_processed["Magnitude"])
         delay = np.array(self.dataset_processed.x0)
         guess = mod.guess(magn, delay=delay)
-        fit_res = mod.fit(magn, params=guess, t=delay)
 
-        self.fit_results.update({"exp_decay_func": fit_res})
+        fit_result = mod.fit(magn, params=guess, t=delay)
+
+        self.fit_results.update({"exp_decay_func": fit_result})
 
     def analyze_fit_results(self):
         """
         Checks fit success and populates :code:`.quantities_of_interest`.
         """
 
-        fit_res = self.fit_results["exp_decay_func"]
-        fit_warning = ba.check_lmfit(fit_res)
+        fit_result = self.fit_results["exp_decay_func"]
+        fit_warning = ba.wrap_text(ba.check_lmfit(fit_result))
 
         # If there is a problem with the fit, display an error message in the text box.
         # Otherwise, display the parameters as normal.
@@ -60,20 +64,20 @@ class T1Analysis(ba.BaseAnalysis):
             unit = self.dataset_processed.Magnitude.units
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                r"$T1$", fit_res.params["tau"], end_char="\n", unit="s"
+                r"$T1$", fit_result.params["tau"], end_char="\n", unit="s"
             )
             text_msg += format_value_string(
-                "amplitude", fit_res.params["amplitude"], end_char="\n", unit=unit
+                "amplitude", fit_result.params["amplitude"], end_char="\n", unit=unit
             )
             text_msg += format_value_string(
-                "offset", fit_res.params["offset"], unit=unit
+                "offset", fit_result.params["offset"], unit=unit
             )
         else:
-            text_msg = fit_warning
+            text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
         self.quantities_of_interest["T1"] = ba.lmfit_par_to_ufloat(
-            fit_res.params["tau"]
+            fit_result.params["tau"]
         )
         self.quantities_of_interest["fit_msg"] = text_msg
 
@@ -88,7 +92,7 @@ class T1Analysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
         self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
 

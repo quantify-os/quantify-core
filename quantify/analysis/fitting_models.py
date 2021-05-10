@@ -225,9 +225,9 @@ def exp_decay_func(
     tau:
         decay time
     amplitude:
-        asymptote of the exponential decay, the value at t=infinity
+        amplitude of the exponential decay
     offset:
-        amplitude or starting value of the exponential decay
+        asymptote of the exponential decay, the value at t=infinity
     n_factor:
         exponential decay factor
 
@@ -237,6 +237,53 @@ def exp_decay_func(
         Output of exponential function as a float
     """  # pylint: disable=line-too-long
     return amplitude * np.exp(-((t / tau) ** n_factor)) + offset
+
+
+def exp_damp_osc_func(
+    t: float,
+    tau: float,
+    n_factor: float,
+    frequency: float,
+    phase: float,
+    amplitude: float,
+    oscillation_offset: float,
+    exponential_offset: float,
+):
+    r"""
+    A sinusoidal oscillation with an exponentially decaying envelope function:
+
+    :math:`y = \mathrm{amplitude} \times \exp\left(-(t/\tau)^\mathrm{n\_factor}\right)(\cos(2\pi\mathrm{frequency}\times t + \mathrm{phase}) + \mathrm{oscillation_offset}) + \mathrm{exponential_offset}`
+
+    Parameters
+    ----------
+    t:
+        time
+    tau:
+        decay time
+    n_factor:
+        exponential decay factor
+    frequency:
+        frequency of the oscillation
+    phase:
+        phase of the oscillation
+    amplitude:
+        initial amplitude of the oscillation
+    oscillation_offset:
+        vertical offset of cosine oscillation relative to exponential asymptote
+    exponential_offset:
+        offset of exponential asymptote
+
+    Returns
+    -------
+    :
+        Output of decaying cosine function as a float
+    """  # pylint: disable=line-too-long
+
+    oscillation = amplitude * (
+        np.cos(2 * np.pi * frequency * t + phase) + oscillation_offset
+    )
+    osc_decay = oscillation * np.exp(-((t / tau) ** n_factor)) + exponential_offset
+    return osc_decay
 
 
 # This class is used a literal include in the docs so the pylint options are here
@@ -440,6 +487,58 @@ class RabiModel(lmfit.model.Model):
 
     # Same design patter is used in lmfit.models
     __init__.__doc__ = get_model_common_doc() + mk_seealso("cos_func")
+    guess.__doc__ = get_guess_common_doc()
+
+
+class DecayOscillationModel(lmfit.model.Model):
+    r"""
+    Model for a decaying oscillation which decays to a point with 0 offset from
+    the centre of the of the oscillation (as in a Ramsey experiment, for example).
+    """
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self, *args, **kwargs):
+        # pass in the defining equation so the user doesn't have to later.
+        super().__init__(exp_damp_osc_func, *args, **kwargs)
+
+        # Enforce oscillation frequency is positive
+        self.set_param_hint("frequency", min=0)
+        # Enforce amplitude is positive
+        self.set_param_hint("amplitude", min=0)
+        # Enforce decay time is positive
+        self.set_param_hint("tau", min=0)
+
+        # Fix the n_factor at 1
+        self.set_param_hint("n_factor", expr="1", vary=False)
+        # Fix the oscillation offset at 0
+        self.set_param_hint("oscillation_offset", expr="0", vary=False)
+
+    # pylint: disable=missing-function-docstring
+    def guess(self, data, **kws) -> lmfit.parameter.Parameters:
+        time = kws.get("time", None)
+        if time is None:
+            return None
+
+        amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
+        exp_offs_guess = np.mean(data)
+        tau_guess = 2 / 3 * np.max(time)
+
+        (freq_guess, phase_guess) = fft_freq_phase_guess(data, time)
+
+        self.set_param_hint("frequency", value=freq_guess, min=0)
+        self.set_param_hint("amplitude", value=amp_guess, min=0)
+        self.set_param_hint("exponential_offset", value=exp_offs_guess)
+        self.set_param_hint("phase", value=phase_guess)
+        self.set_param_hint("tau", value=tau_guess, min=0)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kws)
+
+    # Same design patter is used in lmfit.models
+    __init__.__doc__ = get_model_common_doc() + mk_seealso("exp_damp_osc_func")
     guess.__doc__ = get_guess_common_doc()
 
 

@@ -1,6 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Analysis module for a Rabi Oscillation experiment"""
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
@@ -16,6 +15,9 @@ class RabiAnalysis(ba.BaseAnalysis):
     """
 
     def process_data(self):
+        """
+        Populates the :code:`.dataset_processed`.
+        """
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
 
@@ -38,16 +40,16 @@ class RabiAnalysis(ba.BaseAnalysis):
         magnitude = np.array(self.dataset_processed["Magnitude"])
         drive_amp = np.array(self.dataset_processed.x0)
         guess = mod.guess(magnitude, drive_amp=drive_amp)
-        fit_res = mod.fit(magnitude, params=guess, x=drive_amp)
+        fit_result = mod.fit(magnitude, params=guess, x=drive_amp)
 
-        self.fit_results.update({"Rabi_oscillation": fit_res})
+        self.fit_results.update({"Rabi_oscillation": fit_result})
 
     def analyze_fit_results(self):
         """
         Checks fit success and populates :code:`.quantities_of_interest`.
         """
-        fit_res = self.fit_results["Rabi_oscillation"]
-        fit_warning = ba.check_lmfit(fit_res)
+        fit_result = self.fit_results["Rabi_oscillation"]
+        fit_warning = ba.wrap_text(ba.check_lmfit(fit_result))
 
         # If there is a problem with the fit, display an error message in the text box.
         # Otherwise, display the parameters as normal.
@@ -56,32 +58,31 @@ class RabiAnalysis(ba.BaseAnalysis):
 
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                "Pi-pulse amplitude", fit_res.params["amp180"], unit="V", end_char="\n"
-            )
-            text_msg += format_value_string(
-                "Oscillation amplitude",
-                fit_res.params["amplitude"],
+                "Pi-pulse amplitude",
+                fit_result.params["amp180"],
                 unit="V",
                 end_char="\n",
             )
             text_msg += format_value_string(
-                "Offset", fit_res.params["offset"], unit="V", end_char="\n"
+                "Oscillation amplitude",
+                fit_result.params["amplitude"],
+                unit="V",
+                end_char="\n",
+            )
+            text_msg += format_value_string(
+                "Offset", fit_result.params["offset"], unit="V", end_char="\n"
             )
         else:
-            text_msg = fit_warning
+            text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
-        fpars = fit_res.params
         self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
-            fpars["amp180"]
+            fit_result.params["amp180"]
         )
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        self.create_fig_rabi_oscillation()
-
-    def create_fig_rabi_oscillation(self):
-        """Plot Rabi oscillation figure"""
+        """Creates Rabi oscillation figure"""
 
         fig_id = "Rabi_oscillation"
         fig, ax = plt.subplots()
@@ -89,7 +90,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(ax, ba.wrap_text(self.quantities_of_interest["fit_msg"]))
+        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
         self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
 

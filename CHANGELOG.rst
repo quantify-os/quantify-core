@@ -2,6 +2,14 @@
 Changelog
 ===========
 
+Unreleased
+----------
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Ramsey analysis (!166)
+
 0.4.0 (2021-05-10)
 ------------------
 

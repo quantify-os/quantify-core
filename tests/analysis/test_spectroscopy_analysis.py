@@ -77,7 +77,7 @@ def test_quantities_of_interest(analysis_objs):
             "Ql",
             "Qc",
             "fr",
-            "fit_res",
+            "fit_result",
             "fit_msg",
             "fit_success",
         }

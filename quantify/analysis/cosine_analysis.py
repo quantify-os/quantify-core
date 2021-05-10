@@ -32,6 +32,9 @@ class CosineAnalysis(ba.BaseAnalysis):
         """  # pylint: disable=line-too-long
 
     def run_fitting(self):
+        """
+        Fits a :class:`~quantify.analysis.fitting_models.CosineModel` to the data.
+        """
         # create a fitting model based on a cosine function
         model = CosineModel()
         guess = model.guess(self.dataset.y0.values)
@@ -41,6 +44,9 @@ class CosineAnalysis(ba.BaseAnalysis):
         self.fit_results.update({"cosine": result})
 
     def create_figures(self):
+        """
+        Creates a figure with the data and the fit.
+        """
         fig, ax = plt.subplots()
         fig_id = "cos_fit"
         self.figs_mpl.update({fig_id: fig})
@@ -55,6 +61,9 @@ class CosineAnalysis(ba.BaseAnalysis):
         ax.legend()
 
     def analyze_fit_results(self):
+        """
+        Checks fit success and populates :code:`quantities_of_interest`.
+        """
         fit_res = self.fit_results["cosine"]
         fit_warning = ba.check_lmfit(fit_res)
 

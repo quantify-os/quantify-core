@@ -51,6 +51,13 @@ rabi_analysis
     :members:
     :show-inheritance:
 
+ramsey_analysis
+---------------
+
+.. automodule:: quantify.analysis.ramsey_analysis
+    :members:
+    :show-inheritance:
+
 fitting_models
 --------------
 

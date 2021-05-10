@@ -194,6 +194,7 @@ class BaseAnalysis(ABC):
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
         self.quantities_of_interest = OrderedDict()
+
         self.fit_results = OrderedDict()
 
         self._interrupt_before = None
@@ -298,6 +299,12 @@ class BaseAnalysis(ABC):
         :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run` and
         stopping before the specified step.
 
+        .. warning::
+
+            This method is not intended to be overwritten/extended.
+            See the examples below on passing arguments to
+            :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`.
+
         .. note::
 
             Any code inside :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
@@ -314,9 +321,9 @@ class BaseAnalysis(ABC):
             the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps`
             enumerate member.
         **kwargs:
-            Any other keyword arguments to be passed to
+            Any other keyword arguments will be passed to
             :meth:`~quantify.analysis.base_analysis.BaseAnalysis.run`
-        """
+        """  # pylint: disable=line-too-long
 
         # Used by `execute_analysis_steps` to stop
         self._interrupt_before = interrupt_before
@@ -387,10 +394,10 @@ class BaseAnalysis(ABC):
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_results) > 0:
-            self.quantities_of_interest["fit_res"] = OrderedDict()
+            self.quantities_of_interest["fit_result"] = OrderedDict()
             for fr_name, fit_result in self.fit_results.items():
                 res = flatten_lmfit_modelresult(fit_result)
-                self.quantities_of_interest["fit_res"][fr_name] = res
+                self.quantities_of_interest["fit_result"][fr_name] = res
 
     def analyze_fit_results(self):
         """
@@ -806,7 +813,7 @@ def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
             for line in text_lines
         )
 
-    return wrapped_text
+        return wrapped_text
 
 
 def analysis_steps_to_str(
