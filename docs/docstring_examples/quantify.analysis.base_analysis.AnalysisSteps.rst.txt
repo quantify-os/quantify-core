@@ -36,9 +36,10 @@
     .. jupyter-execute::
 
         from quantify.analysis import base_analysis as ba
-        from quantify.analysis.base_analysis import AnalysisSteps as steps
 
-        a_obj = ba.Basic1DAnalysis(
-            tuid=dataset.attrs["tuid"],
-            interrupt_before=steps.S03_RUN_FITTING,
+        a_obj = ba.Basic1DAnalysis(tuid=dataset.attrs["tuid"]).run_until(
+            interrupt_before="run_fitting"
         )
+
+        # We can also continue from a specific step
+        a_obj.run_from(step="run_fitting")

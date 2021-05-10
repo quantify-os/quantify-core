@@ -1,3 +1,6 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
 import os
 from pathlib import Path
 import shutil
@@ -11,11 +14,10 @@ import numpy as np
 from qcodes import ManualParameter
 from quantify.data.types import TUID
 from quantify.measurement.control import MeasurementControl
-from quantify.utilities._tests_helpers import get_test_data_dir
 import quantify.data.handling as dh
+from quantify.analysis.base_analysis import Basic1DAnalysis
 
-
-test_datadir = get_test_data_dir()
+TUID_1D_1PLOT = "20200430-170837-001-315f36"
 
 
 def test_gen_tuid():
@@ -75,7 +77,7 @@ def test_initialize_dataset_2D():
     assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
-def test_getset_datadir():
+def test_getset_datadir(tmp_test_data_dir):
     # here to ensure we always start with default datadir
     dh._datadir = None
 
@@ -84,7 +86,7 @@ def test_getset_datadir():
         # potential dataloss
         dh.get_datadir()
 
-    new_dir_path = os.path.join(test_datadir, "test_datadir2")
+    new_dir_path = os.path.join(tmp_test_data_dir, "test_datadir2")
     os.mkdir(new_dir_path)
     dh.set_datadir(new_dir_path)
     assert os.path.split(dh.get_datadir())[-1] == "test_datadir2"
@@ -99,8 +101,8 @@ def test_getset_datadir():
         dh.set_datadir("")
 
 
-def test_load_dataset():
-    dh.set_datadir(test_datadir)
+def test_load_dataset(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuid = "20200430-170837-001-315f36"
     dataset = dh.load_dataset(tuid=tuid)
     assert dataset.attrs["tuid"] == tuid
@@ -118,38 +120,38 @@ def test_load_dataset():
         dh.load_dataset(tuid=tuid)
 
 
-def test_get_latest_tuid_empty_datadir():
-    valid_dir_but_no_data = get_test_data_dir() / "empty"
+def test_get_latest_tuid_empty_datadir(tmp_test_data_dir):
+    valid_dir_but_no_data = tmp_test_data_dir / "empty"
     dh.set_datadir(valid_dir_but_no_data)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid()
     assert "There are no valid day directories" in str(excinfo.value)
 
 
-def test_get_latest_tuid_no_match():
-    dh.set_datadir(test_datadir)
+def test_get_latest_tuid_no_match(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     with pytest.raises(FileNotFoundError) as excinfo:
         dh.get_latest_tuid(contains="nonexisting_label")
     assert "No experiment found containing" in str(excinfo.value)
 
 
-def test_get_latest_tuid_correct_tuid():
-    dh.set_datadir(test_datadir)
+def test_get_latest_tuid_correct_tuid(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuid = dh.get_latest_tuid(contains="36-Cosine")
     exp_tuid = "20200430-170837-001-315f36"
     assert tuid == exp_tuid
 
 
-def test_get_tuids_containing():
-    dh.set_datadir(test_datadir)
+def test_get_tuids_containing(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuids = dh.get_tuids_containing("Cosine test")
     assert len(tuids) == 2
     assert tuids[0] == "20200430-170837-001-315f36"
     assert tuids[1] == "20200504-191556-002-4209ee"
 
 
-def test_get_tuids_containing_between_strings():
-    dh.set_datadir(test_datadir)
+def test_get_tuids_containing_between_strings(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
 
     t_start = "20201124"
     t_stop = "20201125"
@@ -208,7 +210,8 @@ def test_get_tuids_containing_between_strings():
     ]
 
 
-def test_get_tuids_containing_between_exclusive_t_stop():
+def test_get_tuids_containing_between_exclusive_t_stop(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     t_start = "20201124-180000"
     t_stop = "20201124-184722"  # test if t_stop is inclusive
 
@@ -219,7 +222,8 @@ def test_get_tuids_containing_between_exclusive_t_stop():
     ]
 
 
-def test_get_tuids_containing_between_inclusive_t_start():
+def test_get_tuids_containing_between_inclusive_t_start(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     t_start = "20201124-184709"  # test if t_stop is inclusive
     t_stop = "20201124-184723"
 
@@ -231,7 +235,8 @@ def test_get_tuids_containing_between_inclusive_t_start():
     ]
 
 
-def test_get_tuids_containing_reverse():
+def test_get_tuids_containing_reverse(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     t_start = "20200814"
     t_stop = "20201124-190000"
 
@@ -246,7 +251,8 @@ def test_get_tuids_containing_reverse():
     ]
 
 
-def test_get_tuids_containing_between_datetimes():
+def test_get_tuids_containing_between_datetimes(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     t_start = "20200430-170836"
     t_stop = "20200504-200000"
     t_start = dateutil.parser.parse(t_start)
@@ -257,8 +263,8 @@ def test_get_tuids_containing_between_datetimes():
     assert tuids[1] == "20200504-191556-002-4209ee"
 
 
-def test_get_tuids_containing_options():
-    dh.set_datadir(test_datadir)
+def test_get_tuids_containing_options(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
 
     tuids = dh.get_tuids_containing("Cosine test", t_start="20200501")
     assert len(tuids) == 1
@@ -278,8 +284,8 @@ def test_get_tuids_containing_options():
     assert tuids[0] == "20200430-170837-001-315f36"
 
 
-def test_get_tuids_containing_max_results():
-    dh.set_datadir(test_datadir)
+def test_get_tuids_containing_max_results(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuids = dh.get_tuids_containing(
         "Cosine test",
         t_start="20200430",
@@ -291,8 +297,8 @@ def test_get_tuids_containing_max_results():
     assert tuids == ["20200504-191556-002-4209ee"]
 
 
-def test_get_tuids_containing_None_arg():
-    dh.set_datadir(test_datadir)
+def test_get_tuids_containing_none_arg(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     for empties in [
         ("20200505", None),
         (None, "20200430"),
@@ -305,12 +311,12 @@ def test_get_tuids_containing_None_arg():
             )
 
 
-def test_misplaced_exp_container():
+def test_misplaced_exp_container(tmp_test_data_dir):
     """
     Ensures user is warned if a dataset was misplaced
     """
     tmp_data_path = os.path.join(
-        test_datadir,
+        tmp_test_data_dir,
         "misplaced_exp_container",
     )
     date = "20201006"
@@ -324,8 +330,8 @@ def test_misplaced_exp_container():
     shutil.rmtree(tmp_data_path)
 
 
-def test_locate_experiment_container():
-    dh.set_datadir(test_datadir)
+def test_locate_experiment_container(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuid = "20200430-170837-001-315f36"
     experiment_container = dh.locate_experiment_container(tuid=tuid)
     path_parts = Path(experiment_container).parts
@@ -333,11 +339,11 @@ def test_locate_experiment_container():
     assert tuid in path_parts[-1]
     assert "Cosine test" in path_parts[-1]
     assert path_parts[-2] == "20200430"
-    assert path_parts[-3] == os.path.split(test_datadir)[-1]
+    assert path_parts[-3] == os.path.split(tmp_test_data_dir)[-1]
 
 
-def test_load_dataset_from_path():
-    dh.set_datadir(test_datadir)
+def test_load_dataset_from_path(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
 
     tuid = "20200430-170837-001-315f36"
     path = Path(dh.locate_experiment_container(tuid=tuid)) / dh.DATASET_NAME
@@ -378,15 +384,35 @@ def test_write_quantify_dataset():
     tmp_dir.cleanup()
 
 
+def test_write_quantify_dataset_np_bool():
+    dataset = mk_dataset_complex_array(complex_float=1.0j, complex_int=2.0j)
+
+    dataset.attrs["test_attr"] = np.bool_(True)
+    dataset.x0.attrs["test_attr"] = np.bool_(True)
+    dataset.y0.attrs["test_attr"] = np.bool_(False)
+
+    tmp_dir = tempfile.TemporaryDirectory()
+    path = Path(tmp_dir.name) / dh.DATASET_NAME
+    dh.write_dataset(path, dataset)
+
+    load_dataset = xr.load_dataset(path, engine="h5netcdf")
+
+    assert bool(load_dataset.attrs["test_attr"]) == True
+    assert bool(load_dataset.x0.attrs["test_attr"]) == True
+    assert bool(load_dataset.y0.attrs["test_attr"]) == False
+
+    tmp_dir.cleanup()
+
+
 def test_snapshot():
     empty_snap = dh.snapshot()
     assert empty_snap == {"instruments": {}, "parameters": {}}
     test_MC = MeasurementControl(name="MC")
 
-    test_MC.soft_avg(5)
+    test_MC.update_interval(0.77)
     snap = dh.snapshot()
     assert snap["instruments"].keys() == {"MC"}
-    assert snap["instruments"]["MC"]["parameters"]["soft_avg"]["value"] == 5
+    assert snap["instruments"]["MC"]["parameters"]["update_interval"]["value"] == 0.77
 
     test_MC.close()
 
@@ -433,8 +459,8 @@ def test_dynamic_dataset():
     assert "tuid" in set(dset.attrs)
 
 
-def test_to_gridded_dataset():
-    dh.set_datadir(test_datadir)
+def test_to_gridded_dataset(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     tuid = "20200504-191556-002-4209ee"
     dset_orig = dh.load_dataset(tuid)
     dset_gridded = dh.to_gridded_dataset(dset_orig)
@@ -469,6 +495,21 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
         data_vars={
             "y0": ("dim_0", np.array([complex_int] * 5)),
             "y1": ("dim_0", np.array([complex_float] * 5)),
-        }
+        },
+        coords={"x0": np.linspace(0, 5, 5)},
     )
     return dataset
+
+
+def test_load_analysis_output_files(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    # We need to run an analysis first, so the files to be loaded are generated
+    Basic1DAnalysis(tuid=TUID_1D_1PLOT).run()
+
+    assert isinstance(
+        dh.load_quantities_of_interest(TUID_1D_1PLOT, Basic1DAnalysis.__name__), dict
+    )
+    assert isinstance(
+        dh.load_processed_dataset(TUID_1D_1PLOT, Basic1DAnalysis.__name__), xr.Dataset
+    )

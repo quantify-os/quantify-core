@@ -19,7 +19,6 @@ from quantify.data.types import TUID
 from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
 from quantify.visualization.instrument_monitor import InstrumentMonitor
 from quantify.utilities.experiment_helpers import load_settings_onto_instrument
-from quantify.utilities._tests_helpers import get_test_data_dir
 
 try:
     from adaptive import SKOptLearner
@@ -28,7 +27,10 @@ try:
 except ImportError:
     WITH_SKOPTLEARNER = False
 
-test_datadir = get_test_data_dir()
+
+# seed the randomization with fixed seed
+random.seed(202104)
+np.random.seed(202104)
 
 
 def CosFunc(t, amplitude, frequency, phase):
@@ -271,8 +273,7 @@ class TestMeasurementControl:
         self.MC.gettables(rand_get)
         r_dset = self.MC.run("random")
 
-        self.MC.soft_avg(50)
-        avg_dset = self.MC.run("averaged")
+        avg_dset = self.MC.run("averaged", soft_avg=50)
 
         expected_vals = 0.5 * np.arange(100.0)
         r_delta = abs(r_dset["y0"].values - expected_vals)
@@ -339,8 +340,7 @@ class TestMeasurementControl:
         expected_vals = batched_mock_values(xn_0)
         yn_0 = abs(noisy_dset["y0"].values - expected_vals)
 
-        self.MC.soft_avg(1000)
-        avg_dset = self.MC.run("averaged")
+        avg_dset = self.MC.run("averaged", soft_avg=1000)
         yavg_0 = abs(avg_dset["y0"].values - expected_vals)
 
         np.testing.assert_array_equal(xn_0, setpoints)
@@ -556,7 +556,7 @@ class TestMeasurementControl:
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
-        gettable.noise = 0.4
+        gettable.noise = 0.2
         gettable.set_return_2D()
         self.MC.settables(settables)
         self.MC.setpoints_grid([x0, x1])
@@ -569,8 +569,7 @@ class TestMeasurementControl:
         yn_0 = abs(noisy_dset["y0"].values - expected_vals[0])
         yn_1 = abs(noisy_dset["y1"].values - expected_vals[1])
 
-        self.MC.soft_avg(1000)
-        avg_dset = self.MC.run("avg_batched_grid")
+        avg_dset = self.MC.run("avg_batched_grid", soft_avg=1000)
         yavg_0 = abs(avg_dset["y0"].values - expected_vals[0])
         yavg_1 = abs(avg_dset["y1"].values - expected_vals[1])
 
@@ -660,8 +659,7 @@ class TestMeasurementControl:
         self.MC.settables(settable)
         self.MC.setpoints(setpoints)
         self.MC.gettables(gettable)
-        self.MC.soft_avg(1000)
-        dset = self.MC.run("varying")
+        dset = self.MC.run("varying", soft_avg=1000)
 
         assert np.array_equal(dset["x0"], setpoints)
         np.testing.assert_array_almost_equal(dset.y0, 2 * setpoints, decimal=2)
@@ -765,8 +763,7 @@ class TestMeasurementControl:
         self.MC.settables([batched_settable_t, batched_settable_0, batched_settable_1])
         self.MC.setpoints_grid([times, amps, freqs])
         self.MC.gettables([noisy_gettable, nd_gettable])
-        self.MC.soft_avg(1000)
-        dset = self.MC.run()
+        dset = self.MC.run(soft_avg=1000)
 
         exp_sp = grid_setpoints([times, amps, freqs])
         np.testing.assert_array_almost_equal(dset.y0, exp_sp[:, 0], decimal=2)
@@ -821,8 +818,7 @@ class TestMeasurementControl:
         setpoints = [freqs, times, other_freqs, amps]
         self.MC.setpoints_grid(setpoints)
         self.MC.gettables(sig2)
-        self.MC.soft_avg(2)
-        dset = self.MC.run("bla")
+        dset = self.MC.run("bla", soft_avg=2)
 
         assert isinstance(freq(), Iterable)
         assert not isinstance(t(), Iterable)
@@ -850,15 +846,6 @@ class TestMeasurementControl:
         delattr(amp, "batched")
         delattr(sig2, "batched")
         _, _, _, _ = t(1), amp(1), freq(1), other_freq(1)  # Reset globals
-
-    def test_adaptive_no_averaging(self):
-        self.MC.soft_avg(5)
-        with pytest.raises(
-            ValueError,
-            match=r"software averaging not allowed in adaptive loops; currently set to 5",
-        ):
-            self.MC.run_adaptive("fail", {})
-        self.MC.soft_avg(1)
 
     def test_adaptive_nelder_mead(self):
         self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
@@ -1009,9 +996,9 @@ class TestMeasurementControl:
         inst_mon.close()
         self.MC.instrument_monitor("")
 
-    def test_instrument_settings_from_disk(self):
+    def test_instrument_settings_from_disk(self, tmp_test_data_dir):
         load_settings_onto_instrument(
-            self.dummy_parabola, TUID("20200814-134652-492-fbf254"), test_datadir
+            self.dummy_parabola, TUID("20200814-134652-492-fbf254"), tmp_test_data_dir
         )
         assert self.dummy_parabola.x() == 40.0
         assert self.dummy_parabola.y() == 90.0
@@ -1023,7 +1010,7 @@ class TestMeasurementControl:
             ValueError, match='Instrument "the mac" not found in snapshot'
         ):
             load_settings_onto_instrument(
-                non_existing, TUID("20200814-134652-492-fbf254"), test_datadir
+                non_existing, TUID("20200814-134652-492-fbf254"), tmp_test_data_dir
             )
 
         non_existing.close()

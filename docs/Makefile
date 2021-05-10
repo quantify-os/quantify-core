@@ -1,9 +1,9 @@
 # Minimal makefile for Sphinx documentation
 #
 
-# You can set these variables from the command line.
+# -vv can be appended below to activate sphinx verbose mode
 SPHINXOPTS    = -W --keep-going -n
-SPHINXBUILD   = python3 -msphinx
+SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = quantify
 SOURCEDIR     = .
 BUILDDIR      = _build

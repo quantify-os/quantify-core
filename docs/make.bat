@@ -5,11 +5,13 @@ pushd %~dp0
 REM Command file for Sphinx documentation
 
 if "%SPHINXBUILD%" == "" (
-	set SPHINXBUILD=python3 -msphinx
+	set SPHINXBUILD=python -msphinx
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
 set SPHINXPROJ=quantify
+REM -vv can be appended below to activate sphinx verbose mode
+set SPHINXOPTS=-W --keep-going -n
 
 if "%1" == "" goto help
 
@@ -27,6 +29,7 @@ if errorlevel 9009 (
 )
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS%
+set SPHINXEXITCODE=%ERRORLEVEL%
 goto end
 
 :help
@@ -34,3 +37,5 @@ goto end
 
 :end
 popd
+REM Exit with same code as sphinx to make sure the pipeline jobs can pass/fail correctly
+exit /b %SPHINXEXITCODE%

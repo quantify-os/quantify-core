@@ -10,6 +10,9 @@ Tutorial 1. Controlling a basic experiment using MeasurementControl
     :jupyter-download:script:`Tutorial 1. Controlling a basic experiment using MeasurementControl`
 
 
+Introduction
+------------
+
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) :ref:`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the :ref:`User guide` !
 
 This tutorial covers basic usage of Quantify focusing on running basic experiments using :class:`~quantify.measurement.MeasurementControl`.
@@ -25,15 +28,17 @@ This is useful in resource constrained or overhead heavy situations.
 
 Both measurement policies can be 1D, 2D or higher dimensional. Quantify also supports adaptive measurements in which the datapoints are determined during the measurement loop, which are explored in subsequent tutorials.
 
----
-
 This tutorial is structured as follows.
 In the first section we use a 1D Iterative loop to explain the flow of a basic experiment.
 We start by setting up a noisy cosine model to serve as our mock setup and then use the MC to measure this.
-We then perform basic (manual) analysis on the data from this experiment. We show how to find and load a dataset, perform a basic fit, and store the results.
+We then execute an analysis on the data from this experiment.
+
+Import modules and instantiate the MeasurementControl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. jupyter-execute::
 
+    import lmfit
     import numpy as np
     import xarray as xr
     import matplotlib.pyplot as plt
@@ -65,45 +70,14 @@ We then perform basic (manual) analysis on the data from this experiment. We sho
     # By connecting to the MC the parameters will be updated in real-time during an experiment.
     MC.instrument_monitor(insmon.name)
 
-
-A 1D Iterative loop
--------------------------------
-
 Define a simple model
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
 We will be generating a cosine with some normally distributed noise added on top of it.
 
 
-.. jupyter-execute::
-
-    from time import sleep
-
-    # We create an instrument to contain all the parameters of our model to ensure we have proper data logging.
-    from qcodes.instrument import Instrument
-
-    pars = Instrument('ParameterHolder')
-
-    # ManualParameter's is a handy class that preserves the QCoDeS' Parameter
-    # structure without necessarily having a connection to the physical world
-    pars.add_parameter('amp', initial_value=1, unit='V', label='Amplitude', parameter_class=ManualParameter)
-    pars.add_parameter('freq', initial_value=.5, unit='Hz', label='Frequency', parameter_class=ManualParameter)
-    pars.add_parameter('t', initial_value=1, unit='s', label='Time', parameter_class=ManualParameter)
-    pars.add_parameter('phi', initial_value=0, unit='Rad', label='Phase', parameter_class=ManualParameter)
-    pars.add_parameter('noise_level', initial_value=0.05, unit='V', label='Noise level', parameter_class=ManualParameter)
-    pars.add_parameter('acq_delay', initial_value=.1, unit='s', parameter_class=ManualParameter)
-
-    def cos_func(t, amplitude, frequency, phase, offset):
-        """A simple cosine function"""
-        return amplitude * np.cos(2 * np.pi * frequency * t + phase) + offset
-
-    def cosine_model():
-        sleep(pars.acq_delay()) # simulates the acquisition delay of an instrument
-        return cos_func(pars.t(), pars.amp(), pars.freq(), phase=pars.phi(), offset=0) + np.random.randn() * pars.noise_level()
-
-    # We wrap our function in a Parameter to be able to associate metadata to it, e.g. units
-    sig = pars.add_parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)
+.. include:: cosine_instrument.rst.txt
 
 
 Many experiments involving physical instruments are much slower than the time it takes to simulate our `cosine_model`, that is why we added a `sleep()` controlled by the `acq_delay`.
@@ -115,8 +89,11 @@ This allows us to exemplify (later in the tutorial) some of the features of the 
     # by setting this to a non-zero value we can see the live plotting in action for a slower experiment
     pars.acq_delay(0.0)
 
+A 1D Iterative loop
+-------------------
+
 Running the 1D experiment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The complete experiment is defined in just 4 lines of code. We specify what parameter we want to set, time `t` in this case, what points to measure at, and what parameter to measure.
 We then tell the :ref:`MeasurementControl<Measurement Control>` `MC` to run which will return an :class:`~xarray.Dataset` object.
@@ -126,9 +103,9 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
 .. jupyter-execute::
 
     MC.settables(pars.t)                     # as a QCoDeS parameter, 't' obeys the JSON schema for a valid Settable and can be passed to the MC directly.
-    MC.setpoints(np.linspace(0, 5, 50))
+    MC.setpoints(np.linspace(0, 2, 50))
     MC.gettables(pars.sig)                   # as a QCoDeS parameter, 'sig' obeys the JSON schema for a valid Gettable and can be passed to the MC directly.
-    dset = MC.run('Cosine test')
+    dataset = MC.run('Cosine test')
 
 .. jupyter-execute::
 
@@ -138,17 +115,17 @@ We use the :class:`~quantify.measurement.Settable` and :class:`~quantify.measure
 
     # The dataset has a time-based unique identifier automatically assigned to it
     # The name of the experiment is stored as well
-    dset.attrs['tuid'], dset.attrs['name']
+    dataset.attrs['tuid'], dataset.attrs['name']
 
-The :ref:`dataset<Dataset>` is stored as a :class:`xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
+The :ref:`dataset<Dataset>` is stored as an :class:`xarray.Dataset` (you can read more about xarray project at http://xarray.pydata.org/).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
-See :ref:`Data storage & Analysis` in the :ref:`User guide` for details.
+See :ref:`data_storage` in the :ref:`User guide` for details.
 
 .. jupyter-execute::
 
-    dset
+    dataset
 
 We can play with some live plotting options to see how the MC behaves when changing the update interval.
 
@@ -165,7 +142,7 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
     MC.settables(pars.t)
     MC.setpoints(np.linspace(0, 50, 1000))
     MC.gettables(pars.sig)
-    dset = MC.run('Many points live plot test')
+    dataset = MC.run('Many points live plot test')
 
 
 .. jupyter-execute::
@@ -177,109 +154,32 @@ In order to avoid an experiment being bottlenecked by the `update_interval` we r
 
     pars.noise_level(0) #let's disable noise from here on to get prettier figures
 
+
 Analyzing the experiment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
-Loading the data
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Plotting the data and saving the plots for a simple 1D case can be achieve in a few lines using a standard analysis from the :mod:`quantify.analysis.base_analysis` module. In the same module you can find several common analyses that might fit your needs. It also provides a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) -- a flexible framework for building custom analyses, which we explore in detail in :ref:`a dedicated tutorial <analysis_framework_tutorial>`.
 
-The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment and information on where the data is stored.
-We can alternatively load the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
-See the data storage documentation for more details on the folder structure and files contained in the data directory.
+The :class:`~xarray.Dataset` generated by the MC contains all the information required to perform basic analysis of the experiment. Running an analysis can be as simple as:
 
 .. jupyter-execute::
 
-    from quantify.data.handling import load_dataset, get_latest_tuid
+    from quantify.analysis import cosine_analysis as ca
+    a_obj = ca.CosineAnalysis(label='Cosine test').run()
+    a_obj.display_figs_mpl()
 
-    # here we look for the latest datafile in the datadirectory named "Cosine test"
-    # note that this is not he last dataset but one dataset earlier
-    tuid = get_latest_tuid('Cosine test')
-    print('tuid: {}'.format(tuid))
-    dset = load_dataset(tuid)
+Here the analysis loads the latest dataset on disk matching a search based on the :code:`label`. See :class:`~quantify.analysis.base_analysis.BaseAnalysis` for alternative dataset specification.
 
-    dset
+After loading the data, it executes the different steps of the analysis and saves the  results into a directory within the experiment container.
 
-Performing fits and extracting quantities of interest
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The :ref:`data_storage` contains more details on the folder structure and
+files contained in the data directory. The the :mod:`quantify.data.handling` module provides
+convenience data searching and handling utilities like :meth:`~quantify.data.handling.get_latest_tuid`.
 
-We have used a cosine function to "mock" an experiment, the goal of the experiment is to find the underlying parameters.
-We extract these parameters by performing a fit to a model, which coincidentally, is based on the same cosine function.
-For fitting we recommend using the lmfit library.  See https://lmfit.github.io/lmfit-py/model.html on how to fit data to a custom model.
-
-.. jupyter-execute::
-
-    import lmfit
-    # we create a model based on our function
-    mod = lmfit.Model(cos_func)
-    # and specify initial guesses for each parameter
-    mod.set_param_hint('amplitude', value=.8, vary=True)
-    mod.set_param_hint('frequency', value=.4)
-    mod.set_param_hint('phase', value=0, vary=False)
-    mod.set_param_hint('offset', value=0, vary=False)
-    params = mod.make_params()
-    # and here we perform the fit.
-    fit_res = mod.fit(dset['y0'].values, t=dset['x0'].values, params=params)
-
-    # It is possible to get a quick visualization of our fit using a build-in method of lmfit
-    fit_res.plot_fit(show_init=True)
-
-
-.. jupyter-execute::
-
-    fit_res.params
-
-
-.. jupyter-execute::
-
-    # And we can print an overview of the fitting results
-    print(fit_res.fit_report())
-
-
-Plotting and saving the results of the analysis
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. jupyter-execute::
-
-    # We include some visualization utilities in quantify
-    from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
-
-
-.. jupyter-execute::
-
-    f, ax = plt.subplots()
-
-    ax.plot(dset['x0'], dset['y0'], marker='o', label='Data')
-    x_fit = np.linspace(dset['x0'][0], dset['x0'][-1], 1000)
-    y_fit = cos_func(t=x_fit, **fit_res.best_values)
-    ax.plot(x_fit, y_fit, label='Fit')
-    ax.legend()
-
-    set_xlabel(ax, dset['x0'].attrs['long_name'], dset['x0'].attrs['units'])
-    set_ylabel(ax, dset['y0'].attrs['long_name'], dset['y0'].attrs['units'])
-    ax.set_title('{}\n{}'.format(tuid, 'Cosine test'))
-
-Now that we have analyzed our data and created a figure, we probably want to store the results of our analysis.
-We will want to store the figure and the results of the fit in the `experiment folder`.
-
-
-.. jupyter-execute::
-
-    from quantify.data.handling import locate_experiment_container
-    # Here we are using this function as a convenient way of retrieving the experiment
-    # folder without using an absolute path
-    exp_folder = locate_experiment_container(dset.tuid)
-
-
-.. jupyter-execute::
-
-    from os.path import join
-    # Save fit results
-    lmfit.model.save_modelresult(fit_res, join(exp_folder, 'fit_res.json'))
-    # Save figure
-    f.savefig(join(exp_folder, 'Cosine fit.png'), dpi=300, bbox_inches='tight')
+For guidance on creating custom analyses, e.g., fitting a model to the data, see :ref:`analysis_framework_tutorial` where we showcase the implementation of the analysis above.
 
 A 2D Iterative loop
----------------------------------
+-------------------
 
 It is often desired to measure heatmaps (2D grids) of some parameter.
 This can be done by specifying two settables.
@@ -287,7 +187,7 @@ The setpoints of the grid can be specified in two ways.
 
 
 Method 1 - a quick grid
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 
 .. jupyter-execute::
@@ -299,47 +199,45 @@ Method 1 - a quick grid
 .. jupyter-execute::
 
     times = np.linspace(0, 5, 500)
-    amps = np.linspace(-1, 1, 31)
+    amps = np.linspace(-1, 0, 31)
 
     MC.settables([pars.t, pars.amp])
     # MC takes care of creating a meshgrid
     MC.setpoints_grid([times, amps])
     MC.gettables(pars.sig)
-    dset = MC.run('2D Cosine test')
-
-
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
+    dataset = MC.run('2D Cosine test')
 
 .. jupyter-execute::
 
     plotmon.secondary_QtPlot
 
+.. jupyter-execute::
+
+    from quantify.analysis import base_analysis as ba
+    a_obj = ba.Basic2DAnalysis(label='2D Cosine test').run()
+    a_obj.display_figs_mpl()
+
 
 Method 2 - custom tuples in 2D
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 N.B. it is also possible to do this for higher dimensional loops
 
 .. jupyter-execute::
 
-    r = np.linspace(0, 1.5, 2000)
-    dt = np.linspace(0, 1, 2000)
-
-    f = 10
-
+    r = np.linspace(0, 1.2, 200)
+    dt = np.linspace(0, 0.5, 200)
+    f = 3
     theta = np.cos(2*np.pi*f*dt)
-    def polar_coords(r, theta):
 
+    def polar_coords(r, theta):
         x = r*np.cos(2*np.pi*theta)
         y = r*np.sin(2*np.pi*theta)
         return x, y
 
     x, y = polar_coords(r, theta)
     setpoints = np.column_stack([x, y])
-    setpoints
+    setpoints[:5] # show a few points
 
 
 .. jupyter-execute::
@@ -353,14 +251,17 @@ N.B. it is also possible to do this for higher dimensional loops
     MC.settables([pars.t, pars.amp])
     MC.setpoints(setpoints)
     MC.gettables(pars.sig)
-    dset = MC.run('2D radial setpoints')
-
-
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
+    dataset = MC.run('2D radial setpoints')
 
 .. jupyter-execute::
 
     plotmon.secondary_QtPlot
+
+In this case running a simple (non-interpolated) 2D analysis will not be meaningful. Nevertheless the dataset can be loaded back using the :func:`~quantify.utilities.experiment_helpers.create_plotmon_from_historical`
+
+.. jupyter-execute::
+
+    from quantify.utilities.experiment_helpers import create_plotmon_from_historical
+    plotmon_loaded = create_plotmon_from_historical(label='2D radial setpoints')
+
+    plotmon_loaded.secondary_QtPlot

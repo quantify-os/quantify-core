@@ -1,0 +1,33 @@
+.. include:: close_all_instruments.rst.txt
+
+.. admonition:: Implementing a custom analysis that requires user input
+    :class: dropdown, note
+
+    When implementing your own custom analysis you might need to pass in a few
+    configuration arguments. That should be achieved by overriding this
+    function as show below.
+
+    .. jupyter-execute::
+
+        from quantify.analysis.base_analysis import BaseAnalysis
+
+        class MyAnalysis(BaseAnalysis):
+            '''A docstring for the custom analysis.'''
+            def run(self, optional_argument_one: float=3.5e9):
+                '''
+                A docstring with relevant notes about the analysis execution.
+
+                Parameters
+                ----------
+                optional_argument_one:
+                    Explanation of the usage of this parameter
+                '''
+                # Save the value to be used in some step of the analysis
+                self.optional_argument_one = optional_argument_one
+
+                # Execute the analysis steps
+                self.execute_analysis_steps()
+                # Return the analysis object
+                return self
+
+            # ... other relevant methods ...

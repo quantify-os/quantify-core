@@ -1,19 +1,43 @@
-# -----------------------------------------------------------------------------
-# Description:    Module containing matplotlib plotting utilities.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Module containing matplotlib plotting utilities."""
 from typing import Tuple, Union
 from typing_extensions import Literal
 import numpy as np
+import xarray as xr
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.text import Text
 from matplotlib.collections import QuadMesh, Collection
 from matplotlib.image import AxesImage
 from matplotlib.colorbar import Colorbar
 from quantify.visualization.SI_utilities import set_xlabel, set_ylabel, set_cbarlabel
+
+
+def set_suptitle_from_dataset(
+    fig: Figure, dataset: xr.Dataset, prefix: str = ""
+) -> None:
+    """
+    Sets the suptitle of a matplotlib figure based on
+
+    - (optional) prefix
+    - data.name
+    - dataset.tuid
+
+    Intended for tagging figures with unique ID of the original dataset.
+
+    Parameters
+    ----------
+    prefix
+        Optional string to pre-pend, e.g., :code:`x0-y0`.
+    fig
+        The matplotlib figure.
+    dataset
+        A dataset expected to have a :code:`.attrs["name"]` and a :code:`attrs["tuid"]`.
+    """
+    fig.suptitle(f"{prefix} {dataset.name}\ntuid: {dataset.tuid}")
 
 
 def set_cyclic_colormap(
@@ -70,15 +94,18 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
         the new text object
     """
     box_props = dict(boxstyle="round", pad=0.4, facecolor="white", alpha=0.5)
-    t_obj = ax.text(
-        x=kw.get("x", 1.05),
-        y=kw.get("y", 0.95),
+    new_kw_with_defaults = dict(
+        x=1.05,
+        y=0.95,
+        transform=ax.transAxes,
+        bbox=box_props,
+        verticalalignment="top",
         s=text,
-        transform=kw.get("transform", ax.transAxes),
-        bbox=kw.get("bbox", box_props),
-        verticalalignment=kw.get("verticalalignment", "top"),
-        **kw
     )
+
+    new_kw_with_defaults.update(kw)
+
+    t_obj = ax.text(**new_kw_with_defaults)
     return t_obj
 
 
@@ -87,7 +114,7 @@ def plot_fit(
     fit_res,
     plot_init: bool = True,
     plot_numpoints: int = 1000,
-    range_casting: Literal["abs", "angle", "real", "imag"] = "abs",
+    range_casting: Literal["abs", "angle", "real", "imag"] = "real",
 ) -> None:
     """
     Plot a fit of an lmfit model with a real domain.
@@ -119,24 +146,24 @@ def plot_fit(
 
     x_arr = fit_res.userkws[independent_var]
     x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-    y = model.eval(fit_res.params, **{independent_var: x})
+    fit_y = model.eval(fit_res.params, **{independent_var: x})
+    init_y = model.eval(fit_res.init_params, **{independent_var: x})
+
     if range_casting != "angle":
         range_cast_func = getattr(np, range_casting)
-        y = range_cast_func(y)
+        fit_y = range_cast_func(fit_y)
     else:
-        y = np.angle(y, deg=True)
+        fit_y = np.angle(fit_y, deg=True)
 
-    ax.plot(x, y, label="Fit", c="C3")
+    ax.plot(x, fit_y, label="Fit", c="C3")
 
     if plot_init:
-        x = np.linspace(np.min(x_arr), np.max(x_arr), plot_numpoints)
-        y = model.eval(fit_res.init_params, **{independent_var: x})
         if range_casting != "angle":
             range_cast_func = getattr(np, range_casting)
-            y = range_cast_func(y)
+            init_y = range_cast_func(init_y)
         else:
-            y = np.angle(y, deg=True)
-        ax.plot(x, y, ls="--", c="grey", label="Guess")
+            init_y = np.angle(init_y, deg=True)
+        ax.plot(x, init_y, ls="--", c="grey", label="Guess")
 
 
 def plot_fit_complex_plane(

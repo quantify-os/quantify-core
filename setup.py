@@ -26,13 +26,16 @@ requirements = [
     "xxhash",
     "matplotlib",
     "lmfit",
-    "pyqt5>=5.15.2",
+    "pyqt5==5.15.1",  # pinned due to #170, https://bugreports.qt.io/browse/PYSIDE-1473
     "pyqtgraph",
     "jsonschema",
     "adaptive",
     "filelock",
     "appnope",
     "uncertainties",
+    # used to display the structure of the experiments container in tutorials
+    # placed here to avoid errors when users download tutorials
+    "directory-tree>=0.0.2",
 ]
 
 setup_requirements = [
@@ -64,6 +67,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.com/quantify-os/quantify-core",
-    version="0.3.2",
+    version="0.4.0",
     zip_safe=False,
 )

@@ -1,8 +1,6 @@
-# -----------------------------------------------------------------------------
-# Description:    Utilities for handling data.
-# Repository:     https://gitlab.com/quantify-os/quantify-core
-# Copyright (C) Qblox BV & Orange Quantum Systems Holding BV (2020-2021)
-# -----------------------------------------------------------------------------
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
+"""Utilities for handling data."""
 from __future__ import annotations
 import os
 import sys
@@ -26,6 +24,8 @@ this = sys.modules[__name__]
 this._datadir = None
 
 DATASET_NAME = "dataset.hdf5"
+QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
+PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
 def gen_tuid(ts: datetime.datetime = None) -> TUID:
@@ -211,6 +211,100 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     raise exception
 
 
+def load_quantities_of_interest(tuid: TUID, analysis_name: str) -> dict:
+    """
+    Given an experiment TUID and the name of an analysis previously run on it,
+    retrieves the corresponding "quantities of interest" data.
+
+    Parameters
+    ----------
+    tuid
+        TUID of the experiment.
+    analysis_name
+        Name of the Analysis from which to load the data.
+
+    Returns
+    -------
+    :
+        A dictionary containing the loaded quantities of interest.
+    """
+
+    # Get Analysis directory from TUID
+    exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+    analysis_dir = exp_folder / f"analysis_{analysis_name}"
+
+    if not analysis_dir.is_dir():
+        raise FileNotFoundError("Analysis not found in current experiment.")
+
+    # Load JSON file and return
+    with open(os.path.join(analysis_dir, QUANTITIES_OF_INTEREST_NAME), "r") as file:
+        quantities_of_interest = json.load(file)
+
+    return quantities_of_interest
+
+
+def load_processed_dataset(tuid: TUID, analysis_name: str) -> xr.Dataset:
+    """
+    Given an experiment TUID and the name of an analysis previously run on it,
+    retrieves the processed dataset resulting from that analysis.
+
+    Parameters
+    ----------
+    tuid
+        TUID of the experiment from which to load the data.
+    analysis_name
+        Name of the Analysis from which to load the data.
+
+    Returns
+    -------
+    :
+        A dataset containing the results of the analysis.
+    """
+
+    # Get Analysis directory from TUID
+    exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+    analysis_dir = exp_folder / f"analysis_{analysis_name}"
+
+    if not analysis_dir.is_dir():
+        raise FileNotFoundError("Analysis not found in current experiment.")
+
+    # Load dataset and return
+    return load_dataset_from_path(analysis_dir / PROCESSED_DATASET_NAME)
+
+
+def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
+    """
+    Converts any attribute of :obj:`~numpy.bool_` type to a :obj:`~bool`.
+
+    This is a patch to a bug in :mod:`xarray` 0.17.0.
+
+    .. seealso::
+
+        See issue #161 in quantify-core.
+        Our (accepted) pull request https://github.com/pydata/xarray/pull/4986
+        Version 0.17.1 will fix the problem but will have breaking changes,
+        for now we use this patch.
+
+    Parameters
+    ----------
+    dataset: :class:`~xarray.Dataset`
+        the :class:`~xarray.Dataset` to be patched in-place
+
+    """
+
+    def bool_cast_attributes(attrs: dict) -> None:
+        for attr_name, attr_val in attrs.items():
+            if isinstance(attr_val, np.bool_):
+                # cast to bool to avoid xarray 0.17.0 type exception
+                # for engine="h5netcdf"
+                attrs[attr_name] = bool(attr_val)
+
+    for data_array in dataset.variables.values():
+        bool_cast_attributes(data_array.attrs)
+
+    bool_cast_attributes(dataset.attrs)
+
+
 def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     """
     Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
@@ -224,6 +318,7 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     dataset: :class:`~xarray.Dataset`
         the :class:`~xarray.Dataset` to be written to file.
     """
+    _xarray_numpy_bool_patch(dataset)  # See issue #161 in quantify-core
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 

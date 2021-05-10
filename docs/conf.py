@@ -26,7 +26,7 @@ sys.path.insert(0, package_path)
 # -- Env workaround ----------------------------------------------------
 
 # See #124 regarding RTD build for merge requests
-# To be removed after this PR gets merged and deployed on RTD
+# Could be removed after this PR gets merged and deployed on RTD
 # https://github.com/readthedocs/readthedocs.org/pull/7891
 if os.environ.get("READTHEDOCS", "False") == "True":
     # Commented out to not pollute the RTD output
@@ -52,10 +52,10 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx_rtd_theme",
     "sphinx.ext.mathjax",
-    "nbsphinx",
     "jupyter_sphinx",
     "sphinxcontrib.blockdiag",
     "sphinx_togglebutton",
+    "scanpydoc.elegant_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -69,6 +69,12 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "lmfit": ("https://lmfit.github.io/lmfit-py/", None),
     "dateutil": ("https://dateutil.readthedocs.io/en/stable/", None),
+    # uncertainties has limited docs, but we can still use something like
+    # :doc:`uncertainties <uncertainties:index>`
+    "uncertainties": (
+        "https://uncertainties-python-package.readthedocs.io/en/latest/",
+        None,
+    ),
 }
 
 
@@ -104,8 +110,12 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-# Document both class doctring and __init__ docstring
-autoclass_content = "both"
+# Document __init__ docstring together with class doctring (when __init__ is present)
+napoleon_include_init_with_doc = True
+# NB the line below could be used for a similar result
+# BUT the line below ALWAYS includes the __init__ docstring even if it come from the
+# parent class which is undesired for analysis subclasses, for example.
+# autoclass_content = "both"
 
 # -- Options for HTML output -------------------------------------------
 
@@ -189,4 +199,17 @@ texinfo_documents = [
 
 # -- Other Options -----------------------------------------------------
 
+# avoid duplicate label warning even when manual label has been used
+suppress_warnings = ["autosectionlabel.*"]
+
 blockdiag_html_image_format = "SVG"
+
+# Cannot be set to `True` because plotly and qcodes break the docs build
+set_type_checking_flag = False  # `False` is the default
+
+# used by scanpydoc.elegant_typehints to correctly link to external docs
+qualname_overrides = {
+    "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
+    "xarray.core.dataset.Dataset": "xarray.Dataset",
+    "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
+}
