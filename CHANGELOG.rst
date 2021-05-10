@@ -6,7 +6,7 @@ Changelog
 ------------------
 * Release of the analysis framework including basic analyses, example classes and documentation on how to make a custom analysis class.
 * Various bug fixes.
-
+* First beta-release of quantify-core.
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
