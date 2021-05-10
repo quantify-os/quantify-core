@@ -4,12 +4,14 @@ Changelog
 
 0.4.0 (2021-05-10)
 ------------------
+
 * Release of the analysis framework including basic analyses, example classes and documentation on how to make a custom analysis class.
 * Various bug fixes.
 * First beta-release of quantify-core.
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * Defined how to pass optional arguments for analysis subclasses. (#184, !158)
 * Added warning when an analysis class returns a bad fit and improve UX. (!163)
 * Renamed analysis variables `.dataset` and `.dataset_raw` for consistency. (#197, !171)
@@ -33,7 +35,7 @@ Merged branches and closed issues
 * Plot duplicate setpoints in a 1D dataset (#173, !134)
 * Downgrade and pin pyqt5 version (#170, !134)
 * Sphinx autodoc function parameters and output types based on type hints!113
-* Implemented numpy.bool_ patch for xarray 0.17.0 (temp fix for #161, !131)
+* Implemented :code:`numpy.bool_` patch for xarray 0.17.0 (temp fix for #161, !131)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
