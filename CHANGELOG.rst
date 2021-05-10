@@ -2,10 +2,38 @@
 Changelog
 ===========
 
-0.4.0 (2021-05-07)
+0.4.0 (2021-05-10)
 ------------------
+* Release of the analysis framework including basic analyses, example classes and documentation on how to make a custom analysis class.
+* Various bug fixes.
 
-* Allow providing an xarray dataset as input for analysis (#181)
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Defined how to pass optional arguments for analysis subclasses. (#184, !158)
+* Added warning when an analysis class returns a bad fit and improve UX. (!163)
+* Renamed analysis variables `.dataset` and `.dataset_raw` for consistency. (#197, !171)
+* add support for ufloat in format_value_string (!151)
+* Provide methods for loading quantities of interest and processed dataset. (#191, !165)
+* Added Rabi analysis subclass. (!159)
+* fix for the multiple kwargs keys being passed into ax.text (!154)
+* log the pip packages in the CI (same as in scheduler) (!168)
+* UX improvements over current analysis flow control interrupt_before interface. (#183, !158)
+* Allow providing an xarray dataset as input for analysis (#181, !156)
+* Adds pytest fixture tmpdir_factory whenever possible. (!162)
+* Fixes a bug with range-casting in the plot_fit function in the mpl_plotting module (!142)
+* Utility function to handle the None edge case when converting lmfit pars to ufloat (#186, !160)
+* T1 analysis (!137)
+* Fixed a bug with loading settings onto an instrument (#166, !139)
+* Storing quantities of interest in spectroscopy analysis simplified (!152)
+* fix warning: Using a non-tuple sequence for multidimensional indexing is deprecated (!147)
+* simplified header for all python files (#92, !146)
+* Drop MeasurementControl soft_avg parameter in favor of MC.run(soft_avg=3) (!144)
+* Better displaying of lmfit parameters and standard errors (!133)
+* Plot duplicate setpoints in a 1D dataset (#173, !134)
+* Downgrade and pin pyqt5 version (#170, !134)
+* Sphinx autodoc function parameters and output types based on type hints!113
+* Implemented numpy.bool_ patch for xarray 0.17.0 (temp fix for #161, !131)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
@@ -17,18 +45,8 @@ Breaking changes
 * Analysis dataset variables and filename changed for consistency (!171):
     - `BaseAnalysis.dataset_raw` renamed to `BaseAnalysis.dataset`
     - `BaseAnalysis.dataset` renamed to `BaseAnalysis.dataset_processed`
-    - "processed_dataset.hdf5" renamed to "dataset.hdf5"
-
-Merged branches and closed issues
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Added uncertainties support to format_value_string. (!151)
-* UX improvements over current analysis flow control interrupt_before interface. (#183, !158)
-* Defined how to pass optional arguments for analysis subclasses. (#184, !158)
-* Added Rabi analysis subclass. (!159)
-* Added warning when an analysis class returns a bad fit. (!163)
-* Provide methods for loading quantities of interest and processed dataset. (#191, !165)
-* Renamed analysis variables `.dataset` and `.dataset_raw`. (!171)
+    - "processed_dataset.hdf5" renamed to "dataset_processed.hdf5"
+* The MeasurementControl soft_avg parameter has been removed. The same fucntionality is now available through MC.run(soft_avg=n) (!144)
 
 
 0.3.2 (2021-03-17)
