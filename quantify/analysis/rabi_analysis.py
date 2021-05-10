@@ -74,7 +74,6 @@ class RabiAnalysis(ba.BaseAnalysis):
             text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
-        fpars = fit_res.params
         self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
             fit_result.params["amp180"]
         )
@@ -92,7 +91,7 @@ class RabiAnalysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
+        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
         self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
 

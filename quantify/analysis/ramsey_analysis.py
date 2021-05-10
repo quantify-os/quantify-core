@@ -44,38 +44,40 @@ class RamseyAnalysis(ba.BaseAnalysis):
         # y0 = amplitude, no check for the amplitude unit as the name/label is
         # often different.
         # y1 = phase in deg, this unit should always be correct
-        assert self.dataset_raw["y1"].attrs["units"] == "deg"
+        assert self.dataset["y1"].attrs["units"] == "deg"
 
-        mag = self.dataset_raw["y0"]
+        mag = self.dataset["y0"]
         valid_meas = np.logical_not(np.isnan(mag))
-        self.dataset["Magnitude"] = mag[valid_meas]
-        self.dataset["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset["Magnitude"].attrs["units"] = self.dataset_raw["y0"].attrs["units"]
-        self.dataset["Magnitude"].attrs["long_name"] = "Magnitude, $|S_{21}|$"
+        self.dataset_processed["Magnitude"] = mag[valid_meas]
+        self.dataset_processed["Magnitude"].attrs["name"] = "Magnitude"
+        self.dataset_processed["Magnitude"].attrs["units"] = self.dataset["y0"].attrs[
+            "units"
+        ]
+        self.dataset_processed["Magnitude"].attrs["long_name"] = "Magnitude, $|S_{21}|$"
 
-        self.dataset["x0"] = self.dataset_raw["x0"][valid_meas]
-        self.dataset = self.dataset.set_coords("x0")
+        self.dataset_processed["x0"] = self.dataset["x0"][valid_meas]
+        self.dataset_processed = self.dataset_processed.set_coords("x0")
         # replace the default dim_0 with x0
-        self.dataset = self.dataset.swap_dims({"dim_0": "x0"})
+        self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
         model = fm.DecayOscillationModel()
 
-        magnitude = np.array(self.dataset["Magnitude"])
-        time = np.array(self.dataset["x0"])
+        magnitude = np.array(self.dataset_processed["Magnitude"])
+        time = np.array(self.dataset_processed["x0"])
         guess = model.guess(magnitude, time=time)
         fit_result = model.fit(magnitude, params=guess, t=time)
 
-        self.fit_result.update({"Ramsey_decay": fit_result})
+        self.fit_results.update({"Ramsey_decay": fit_result})
 
     def analyze_fit_results(self):
         """
         Extract the real detuning and qubit frequency based on the artificial detuning
         and fitted detuning
         """
-        fit_warning = ba.check_lmfit(self.fit_result["Ramsey_decay"])
+        fit_warning = ba.check_lmfit(self.fit_results["Ramsey_decay"])
 
-        fit_parameters = self.fit_result["Ramsey_decay"].params
+        fit_parameters = self.fit_results["Ramsey_decay"].params
 
         self.quantities_of_interest["T2*"] = ba.lmfit_par_to_ufloat(
             fit_parameters["tau"]
@@ -156,19 +158,24 @@ class RamseyAnalysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         qpl.plot_textbox(axs, self.quantities_of_interest["fit_msg"])
 
-        self.dataset.Magnitude.plot(ax=axs, marker=".", linestyle="")
+        self.dataset_processed.Magnitude.plot(ax=axs, marker=".", linestyle="")
 
         qpl.plot_fit(
             ax=axs,
-            fit_res=self.fit_result["Ramsey_decay"],
+            fit_res=self.fit_results["Ramsey_decay"],
             plot_init=not self.quantities_of_interest["fit_success"],
             range_casting="real",
         )
 
-        qpl.set_ylabel(axs, r"Output voltage", self.dataset["Magnitude"].units)
-        qpl.set_xlabel(axs, self.dataset["x0"].long_name, self.dataset["x0"].units)
+        qpl.set_ylabel(
+            axs, r"Output voltage", self.dataset_processed["Magnitude"].units
+        )
+        qpl.set_xlabel(
+            axs,
+            self.dataset_processed["x0"].long_name,
+            self.dataset_processed["x0"].units,
+        )
 
         fig.suptitle(
-            f"S21 {self.dataset_raw.attrs['name']}\n"
-            f"tuid: {self.dataset_raw.attrs['tuid']}"
+            f"S21 {self.dataset.attrs['name']}\n" f"tuid: {self.dataset.attrs['tuid']}"
         )

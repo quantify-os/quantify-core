@@ -807,7 +807,7 @@ def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
             for line in text_lines
         )
 
-    return wrapped_text
+        return wrapped_text
 
 
 def analysis_steps_to_str(
