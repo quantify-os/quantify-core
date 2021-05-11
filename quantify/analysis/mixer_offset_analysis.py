@@ -29,7 +29,7 @@ class MixerOffsetAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["offset_channel_1"] = offset_min_1
 
         text_msg = "Summary\n"
-        # TODO: get rid of these ufloats one the MR on format_value_string is merged
+        # TODO: get rid of these ufloats once the MR on format_value_string is merged
         text_msg += format_value_string(
             "Mixer offset channel 0", ufloat(offset_min_0, 0), end_char="\n", unit=unit
         )
@@ -39,9 +39,6 @@ class MixerOffsetAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest["plot_msg"] = text_msg
 
     def create_figures(self):
-        self._fig_interpolating2D()
-
-    def _fig_interpolating2D(self):
 
         fig_id = "mixer_offset_2D"
 
