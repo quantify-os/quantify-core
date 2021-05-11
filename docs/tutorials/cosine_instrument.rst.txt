@@ -1,0 +1,25 @@
+.. jupyter-execute::
+
+    from time import sleep
+    from quantify.analysis.fitting_models import cos_func
+
+    # We create an instrument to contain all the parameters of our model to ensure we have proper data logging.
+    from qcodes.instrument import Instrument
+
+    pars = Instrument('ParameterHolder')
+
+    # ManualParameter's is a handy class that preserves the QCoDeS' Parameter
+    # structure without necessarily having a connection to the physical world
+    pars.add_parameter('amp', initial_value=1, unit='V', label='Amplitude', parameter_class=ManualParameter)
+    pars.add_parameter('freq', initial_value=.5, unit='Hz', label='Frequency', parameter_class=ManualParameter)
+    pars.add_parameter('t', initial_value=1, unit='s', label='Time', parameter_class=ManualParameter)
+    pars.add_parameter('phi', initial_value=0, unit='Rad', label='Phase', parameter_class=ManualParameter)
+    pars.add_parameter('noise_level', initial_value=0.05, unit='V', label='Noise level', parameter_class=ManualParameter)
+    pars.add_parameter('acq_delay', initial_value=.02, unit='s', parameter_class=ManualParameter)
+
+    def cosine_model():
+        sleep(pars.acq_delay()) # simulates the acquisition delay of an instrument
+        return cos_func(pars.t(), pars.amp(), pars.freq(), phase=pars.phi(), offset=0) + np.random.randn() * pars.noise_level()
+
+    # We wrap our function in a Parameter to be able to associate metadata to it, e.g. units
+    pars.add_parameter(name='sig', label='Signal level', unit='V', get_cmd=cosine_model)

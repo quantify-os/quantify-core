@@ -90,7 +90,7 @@ def analysis_obj_bad_fit(tmp_test_data_dir):
         " Fitted parameters may not be accurate.",
     ):
         a_obj = ra.RabiAnalysis(
-            dataset_raw=dset, settings_overwrite={"mpl_fig_formats": []}
+            dataset=dset, settings_overwrite={"mpl_fig_formats": []}
         ).run()
 
     return a_obj

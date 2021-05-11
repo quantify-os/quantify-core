@@ -24,6 +24,8 @@ this = sys.modules[__name__]
 this._datadir = None
 
 DATASET_NAME = "dataset.hdf5"
+QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
+PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
 def gen_tuid(ts: datetime.datetime = None) -> TUID:
@@ -207,6 +209,67 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
         )
     # raise the last exception
     raise exception
+
+
+def load_quantities_of_interest(tuid: TUID, analysis_name: str) -> dict:
+    """
+    Given an experiment TUID and the name of an analysis previously run on it,
+    retrieves the corresponding "quantities of interest" data.
+
+    Parameters
+    ----------
+    tuid
+        TUID of the experiment.
+    analysis_name
+        Name of the Analysis from which to load the data.
+
+    Returns
+    -------
+    :
+        A dictionary containing the loaded quantities of interest.
+    """
+
+    # Get Analysis directory from TUID
+    exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+    analysis_dir = exp_folder / f"analysis_{analysis_name}"
+
+    if not analysis_dir.is_dir():
+        raise FileNotFoundError("Analysis not found in current experiment.")
+
+    # Load JSON file and return
+    with open(os.path.join(analysis_dir, QUANTITIES_OF_INTEREST_NAME), "r") as file:
+        quantities_of_interest = json.load(file)
+
+    return quantities_of_interest
+
+
+def load_processed_dataset(tuid: TUID, analysis_name: str) -> xr.Dataset:
+    """
+    Given an experiment TUID and the name of an analysis previously run on it,
+    retrieves the processed dataset resulting from that analysis.
+
+    Parameters
+    ----------
+    tuid
+        TUID of the experiment from which to load the data.
+    analysis_name
+        Name of the Analysis from which to load the data.
+
+    Returns
+    -------
+    :
+        A dataset containing the results of the analysis.
+    """
+
+    # Get Analysis directory from TUID
+    exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+    analysis_dir = exp_folder / f"analysis_{analysis_name}"
+
+    if not analysis_dir.is_dir():
+        raise FileNotFoundError("Analysis not found in current experiment.")
+
+    # Load dataset and return
+    return load_dataset_from_path(analysis_dir / PROCESSED_DATASET_NAME)
 
 
 def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
