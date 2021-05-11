@@ -9,11 +9,9 @@ from quantify.visualization.SI_utilities import format_value_string
 from quantify.visualization import mpl_plotting as qpl
 
 
-class MixerOffsetAnalysis(ba.BaseAnalysis):
+class InterpolationAnalysis2D(ba.BaseAnalysis):
     """
-    An analysis class for a an interpolating mixer offset optimisation. Extracts the
-    optimal mixer offset values and plots an interpolated 2D plot of the spectral power
-    versus mixer offset for both channnels
+    An analysis class which generates a 2D interpolating plot
     """
 
     def process_data(self):
@@ -25,22 +23,28 @@ class MixerOffsetAnalysis(ba.BaseAnalysis):
         offset_min_1 = float(
             self.dataset["x1"][np.argmin(self.dataset["y0"].values)].values
         )
-        self.quantities_of_interest["offset_channel_0"] = offset_min_0
-        self.quantities_of_interest["offset_channel_1"] = offset_min_1
+        self.quantities_of_interest[self.dataset["x0"].attrs["name"]] = offset_min_0
+        self.quantities_of_interest[self.dataset["x1"].attrs["name"]] = offset_min_1
 
         text_msg = "Summary\n"
         # TODO: get rid of these ufloats once the MR on format_value_string is merged
         text_msg += format_value_string(
-            "Mixer offset channel 0", ufloat(offset_min_0, 0), end_char="\n", unit=unit
+            self.dataset["x0"].attrs["name"],
+            ufloat(offset_min_0, 0),
+            end_char="\n",
+            unit=unit,
         )
         text_msg += format_value_string(
-            "Mixer offset channel 1", ufloat(offset_min_1, 0), end_char="\n", unit=unit
+            self.dataset["x1"].attrs["name"],
+            ufloat(offset_min_1, 0),
+            end_char="\n",
+            unit=unit,
         )
         self.quantities_of_interest["plot_msg"] = text_msg
 
     def create_figures(self):
 
-        fig_id = "mixer_offset_2D"
+        fig_id = "2D_interpolating"
 
         xvals0 = self.dataset["x0"].values
         xvals1 = self.dataset["x1"].values
@@ -66,10 +70,10 @@ class MixerOffsetAnalysis(ba.BaseAnalysis):
         # Scatter plot of measured datapoints
         ax.scatter(xvals0, xvals1, s=2, c="red", alpha=1)
 
-        qpl.set_xlabel(ax, "Mixer offset channel 0", self.dataset["x0"].units)
-        qpl.set_ylabel(ax, "Mixer offset channel 1", self.dataset["x1"].units)
+        qpl.set_xlabel(ax, self.dataset["x0"].attrs["name"], self.dataset["x0"].units)
+        qpl.set_ylabel(ax, self.dataset["x1"].attrs["name"], self.dataset["x1"].units)
         fig.suptitle(
-            f"Mixer {self.dataset.attrs['name']}\n"
+            f"{self.dataset.attrs['name'] } 2D interpolating analysis\n"
             f"tuid: {self.dataset.attrs['tuid']}"
         )
         qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"], x=1.32)

@@ -5,7 +5,7 @@
 import pytest
 from pytest import approx
 import quantify.data.handling as dh
-from quantify.analysis import mixer_offset_analysis as ma
+from quantify.analysis import interpolation_analysis2D as ia
 
 tuids = ["20210419-170747-902-9c5a05"]
 offsets = [[0.0008868002631485698, 0.006586920009126688]]
@@ -18,7 +18,7 @@ def analysis_objs(tmp_test_data_dir):
     analysis object.
     """
     dh.set_datadir(tmp_test_data_dir)
-    a_objs = [ma.MixerOffsetAnalysis(tuid=tuid).run() for tuid in tuids]
+    a_objs = [ia.InterpolationAnalysis2D(tuid=tuid).run() for tuid in tuids]
 
     return a_objs
 
@@ -29,7 +29,7 @@ def test_figures_generated(analysis_objs):
     """
     for a_obj in analysis_objs:
         assert set(a_obj.figs_mpl.keys()) == {
-            "mixer_offset_2D",
+            "2D_interpolating",
         }
 
 
@@ -39,17 +39,21 @@ def test_quantities_of_interest(analysis_objs):
     """
     for a_obj, offset in zip(analysis_objs, offsets):
         assert set(a_obj.quantities_of_interest.keys()) == {
-            "offset_channel_0",
-            "offset_channel_1",
+            "sequencer0_offset_awg_path0",
+            "sequencer0_offset_awg_path1",
             "plot_msg",
         }
 
-        assert isinstance(a_obj.quantities_of_interest["offset_channel_0"], float)
-        assert isinstance(a_obj.quantities_of_interest["offset_channel_1"], float)
+        assert isinstance(
+            a_obj.quantities_of_interest["sequencer0_offset_awg_path0"], float
+        )
+        assert isinstance(
+            a_obj.quantities_of_interest["sequencer0_offset_awg_path1"], float
+        )
         # Tests that the fitted values are correct (to within 5 standard deviations)
-        assert a_obj.quantities_of_interest["offset_channel_0"] == approx(
+        assert a_obj.quantities_of_interest["sequencer0_offset_awg_path0"] == approx(
             offset[0], rel=0.05
         )
-        assert a_obj.quantities_of_interest["offset_channel_1"] == approx(
+        assert a_obj.quantities_of_interest["sequencer0_offset_awg_path1"] == approx(
             offset[1], rel=0.05
         )
