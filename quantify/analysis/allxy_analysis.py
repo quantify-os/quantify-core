@@ -12,9 +12,9 @@ class AllXYAnalysis(ba.BaseAnalysis):
     """
 
     def process_data(self):
-        points = self.dataset_raw["x0"]
+        points = self.dataset["x0"]
         self.analysis_result["calibration points"] = points
-        raw_data = self.dataset_raw["y0"]
+        raw_data = self.dataset["y0"]
         number_points = len(raw_data)
 
         # Raise an exception if we do not have the correct number of points for a
@@ -93,8 +93,8 @@ class AllXYAnalysis(ba.BaseAnalysis):
         ax.set(ylabel=r"$F$ $|1 \rangle$")
         ax.legend(loc=4)
         fig.suptitle(
-            f"Normalised {self.dataset_raw.attrs['name']}\n"
-            f"tuid: {self.dataset_raw.attrs['tuid']}"
+            f"Normalised {self.dataset.attrs['name']}\n"
+            f"tuid: {self.dataset.attrs['tuid']}"
         )
 
         fig_id = "AllXY"
