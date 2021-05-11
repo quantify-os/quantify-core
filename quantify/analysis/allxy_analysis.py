@@ -90,7 +90,7 @@ class AllXYAnalysis(ba.BaseAnalysis):
         ax.text(1, 1, deviation_text, fontsize=11)
         ax.xaxis.set_ticks(data["experiment numbers"])
         ax.set_xticklabels(labels, rotation=60)
-        ax.set(ylabel=r"$F$ $|1 \rangle$")
+        ax.set(ylabel=r"Normalized readout signal")
         ax.legend(loc=4)
         fig.suptitle(
             f"Normalised {self.dataset.attrs['name']}\n"
