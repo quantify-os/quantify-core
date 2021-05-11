@@ -507,17 +507,36 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
 
 def test_qcodes_numpyjsonencoder():
     quantities_of_interest = {
+        "python_tuple": (1, 2, 3, 4),
         "python_list": [1, 2, 3, 4],
         "numpy_array": np.array([1, 2, 3, 4]),
+        "numpy_array_complex": np.array([1, 2], dtype=complex),
         "uncertainties_ufloat": uncertainties.ufloat(1.0, 2.0),
+        "complex": complex(1.0, 2.0),
+        "nan_value": float("nan"),
+        "inf_value": float("inf"),
+        "-inf_value": float("-inf"),
     }
 
     encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
     decoded = json.loads(encoded)
 
+    assert isinstance(decoded["python_tuple"], list)
     assert isinstance(decoded["python_list"], list)
     assert isinstance(decoded["numpy_array"], (list, np.ndarray))
-    assert isinstance(decoded["uncertainties_ufloat"], dict)
+    assert decoded["uncertainties_ufloat"] == {
+        "__dtype__": "UFloat",
+        "nominal_value": 1.0,
+        "std_dev": 2.0,
+    }
+    assert decoded["complex"] == {"__dtype__": "complex", "re": 1.0, "im": 2.0}
+    assert decoded["numpy_array_complex"] == [
+        {"__dtype__": "complex", "re": 1.0, "im": 0.0},
+        {"__dtype__": "complex", "re": 2.0, "im": 0.0},
+    ]
+    assert np.isnan(decoded["nan_value"])
+    assert decoded["inf_value"] == float("inf")
+    assert decoded["-inf_value"] == float("-inf")
 
 
 def test_load_analysis_output_files(tmp_test_data_dir):
