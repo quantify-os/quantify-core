@@ -78,6 +78,8 @@ class TUID:
             raise ValueError("Invalid format: uid is not alphanumeric.")
 
         if tuid[8] != "-" or tuid[15] != "-" or tuid[19] != "-":
-            raise ValueError(f"Invalid TUID format: seperator at positions 8, 15 and 19 should be '-'.")
+            raise ValueError(
+                f"Invalid TUID format: seperator at positions 8, 15 and 19 should be '-'."
+            )
 
         return True
