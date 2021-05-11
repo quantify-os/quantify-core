@@ -66,8 +66,8 @@ class MixerOffsetAnalysis(ba.BaseAnalysis):
         # Scatter plot of measured datapoints
         ax.scatter(xvals0, xvals1, s=2, c="red", alpha=1)
 
-        ax.set_xlabel(f'Mixer offset channel 0 [{self.dataset["x0"].units}]')
-        ax.set_ylabel(f'Mixer offset channel 1 [{self.dataset["x0"].units}]')
+        qpl.set_xlabel(ax, "Mixer offset channel 0", self.dataset["x0"].units)
+        qpl.set_ylabel(ax, "Mixer offset channel 1", self.dataset["x1"].units)
         fig.suptitle(
             f"Mixer {self.dataset.attrs['name']}\n"
             f"tuid: {self.dataset.attrs['tuid']}"
