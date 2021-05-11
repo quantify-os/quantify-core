@@ -67,7 +67,19 @@ class TUID:
             Invalid format
         """
         cls.datetime(tuid)  # verify date format
-        if len(cls.uuid(tuid)) != 6:
-            raise ValueError("Invalid format")
+
+        uid = cls.uuid(tuid)
+
+        if len(uid) != 6:
+            raise ValueError(
+                "Invalid format: uid has invalid length {len(uid)} (should be 6)."
+            )
+        if not uid.isalnum():
+            raise ValueError("Invalid format: uid is not alphanumeric.")
+
+        if tuid[8] != "-" or tuid[15] != "-" or tuid[19] != "-":
+            raise ValueError(
+                f"Invalid TUID format: seperator at positions 8, 15 and 19 should be '-'."
+            )
 
         return True
