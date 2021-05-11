@@ -12,8 +12,8 @@ from quantify.visualization import mpl_plotting as qpl
 class MixerOffsetAnalysis(ba.BaseAnalysis):
     """
     An analysis class for a an interpolating mixer offset optimisation. Extracts the
-    optimal mixer offset values and plots figures of the spectral power versus mixer
-    offset on each channel as well as an interpolated 2D plot for both channnels
+    optimal mixer offset values and plots an interpolated 2D plot of the spectral power
+    versus mixer offset for both channnels
     """
 
     def process_data(self):
