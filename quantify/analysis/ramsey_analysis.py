@@ -23,11 +23,10 @@ class RamseyAnalysis(ba.BaseAnalysis):
         ----------
         artificial_detuning:
             The detuning in Hz that will be emulated by adding an extra phase in
-            software
-
+            software.
         qubit_frequency:
             The initial recorded value of the qubit frequency in software (before
-            accurate fitting is done) in Hz
+            accurate fitting is done) in Hz.
 
         Returns
         -------
