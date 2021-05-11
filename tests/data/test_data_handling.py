@@ -516,9 +516,7 @@ def test_qcodes_numpyjsonencoder():
     decoded = json.loads(encoded)
 
     assert isinstance(decoded["python_list"], list)
-    assert isinstance(decoded["numpy_array"], np.ndarray) or isinstance(
-        decoded["numpy_array"], list
-    )
+    assert isinstance(decoded["numpy_array"], (list, np.ndarray))
     assert isinstance(decoded["uncertainties_ufloat"], dict)
 
 
