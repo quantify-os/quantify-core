@@ -1,15 +1,15 @@
-.. _tutorial_plotmon:
+.. _plotmon_tutorial:
 
-Tutorial 4. Plot monitor
+Tutorial 5. Plot monitor
 =====================================================================
 
 .. seealso::
 
     The complete source code of this tutorial can be found in
 
-    :jupyter-download:notebook:`Tutorial 4. Plot monitor`
+    :jupyter-download:notebook:`Tutorial 5. Plot monitor`
 
-    :jupyter-download:script:`Tutorial 4. Plot monitor`
+    :jupyter-download:script:`Tutorial 5. Plot monitor`
 
 
 In this tutorial we dive into the capabilities of the plot monitor.

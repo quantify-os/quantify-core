@@ -1,11 +1,11 @@
 .. _usage:
 
-===============
+==========
 User guide
-===============
+==========
 
 Introduction
-===============
+============
 
 A :mod:`quantify` experiment typically consists of a data-acquisition loop in which one or more parameters are set and one or more parameters are measured.
 
@@ -14,7 +14,8 @@ The core of Quantify can be understood by understanding the following concepts:
 - `Instruments and Parameters`_
 - `Measurement Control`_
 - `Settables and Gettables`_
-- `Data storage & Analysis`_
+- `Data storage`_
+- `Analysis`_
 
 Code snippets
 -------------
@@ -48,9 +49,10 @@ Bellow we import common utilities used in the examples.
 
 
 Instruments and Parameters
-========================================
+==========================
+
 Parameter
------------------
+---------
 
 A parameter represents a state variable of the system.
 
@@ -60,7 +62,7 @@ A parameter represents a state variable of the system.
     - A parameter implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
 
 Instrument
------------------
+----------
 
 An Instrument is a container for parameters that typically (but not necessarily) corresponds to a physical piece of hardware.
 
@@ -74,7 +76,7 @@ Instruments provide the following functionality.
 
 
 Measurement Control
-====================
+===================
 
 The :class:`~quantify.measurement.MeasurementControl` (MC) is in charge of the data-acquisition loop and is based on the notion that, in general, an experiment consists of the following three steps:
 
@@ -88,14 +90,14 @@ Quantify provides two helper classes, :class:`~quantify.measurement.Settable` an
 
 - Enforce standardization of experiments
 - Standardized data storage
-- :ref:`Live plotting of the experiment <tutorial_plotmon>`
+- :ref:`Live plotting of the experiment <plotmon_tutorial>`
 - n-dimensional sweeps
 - Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
 
 
 Basic example, a 1D iterative measurement loop
-------------------------------------------------
+----------------------------------------------
 
 Running an experiment is simple!
 Simply define what parameters to set, and get, and what points to loop over.
@@ -136,7 +138,7 @@ The :class:`~quantify.measurement.MeasurementControl` can also be used to perfor
 Take a look at some of the tutorial notebooks for more in-depth examples on usage and application.
 
 Control Mode
------------------
+------------
 
 A very important aspect in the usage of the :class:`~quantify.measurement.MeasurementControl` is the Control Mode, which specifies whether the setpoints are processed iteratively or in batches.
 Batched mode can be used to deal with constraints imposed by (hardware) resources or to reduce overhead.
@@ -156,7 +158,7 @@ Control mode is detected automatically based on the `.batched` attribute of the 
 
 
 Settables and Gettables
-========================================
+=======================
 
 Experiments typically involve varying some parameters and reading others. In Quantify we encapsulate these concepts as the :class:`~quantify.measurement.Settable` and :class:`~quantify.measurement.Gettable` respectively.
 As their name implies, a Settable is a parameter you set values to, and a Gettable is a parameter you get values from.
@@ -223,8 +225,6 @@ In addition to using a library which fits these contracts (such as the :class:`~
 Depending on which Control Mode the :class:`~quantify.measurement.MeasurementControl` is running in, the interfaces for Settables (their input interface) and Gettables (their output interface) are slightly different.
 
 
-
-
 .. note::
 
     It is also possible for batched Gettables return an array with length less than then the length of the setpoints, and similarly for the input of the Settables.
@@ -261,7 +261,7 @@ Depending on which Control Mode the :class:`~quantify.measurement.MeasurementCon
 
 
 .batched and .batch_size
-----------------------------------------
+------------------------
 
 The :py:class:`~quantify.measurement.Gettable` and :py:class:`~quantify.measurement.Settable` objects can have a `bool` property `.batched` (defaults to `False` if not present); and a `int` property `.batch_size`.
 
@@ -274,7 +274,7 @@ Setting the `.batched` property to `True` enables the batch Control Mode in the 
 
 
 .prepare() and .finish()
-----------------------------------------
+------------------------
 
 Optionally the :meth:`!.prepare` and :meth:`!.finish` can be added.
 These methods can be used to setup and teardown work. For example, arming a piece of hardware with data and then closing a connection upon completion.
@@ -285,19 +285,22 @@ For `settables`, :meth:`!.prepare` runs once **before the start of a measurement
 
 For batched `gettables`, :meth:`!.prepare` runs **before the measurement of each batch**. For iterative `gettables`, the :meth:`!.prepare` runs before each loop counting towards soft-averages [controlled by :meth:`!MC.soft_avg()` which resets to `1` at the end of each experiment].
 
-Data storage & Analysis
-=========================
+.. _data_storage:
+
+Data storage
+============
+
 Along with the produced dataset, every :class:`~qcodes.instrument.parameter.Parameter` attached to QCoDeS :class:`~qcodes.instrument.base.Instrument` in an experiment run through the :class:`~quantify.measurement.MeasurementControl` of Quantify is stored in the `snapshot`_.
 
-This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded (see :func:`~quantify.utilities.experiment_helpers.load_settings_onto_instrument`) and re-run by anyone.
+This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded [see :func:`~quantify.utilities.experiment_helpers.load_settings_onto_instrument`].
 
 Data Directory
------------------
+--------------
 
 The top level directory in the file system where output is saved to.
 This directory can be controlled using the :meth:`~quantify.data.handling.get_datadir` and :meth:`~quantify.data.handling.set_datadir` functions.
 
-We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g. *D:\Data*).
+We recommend to change the default directory when starting the python kernel (after importing Quantify); and to settle for a single common data directory for all notebooks/experiments within your measurement setup/PC (e.g., :code:`D:\\quantify-data`).
 
 Quantify provides utilities to find/search and extract data, which expects all your experiment containers to be located within the same directory (under the corresponding date subdirectory).
 
@@ -305,33 +308,46 @@ Within the data directory experiments are first grouped by date -
 all experiments which take place on a certain date will be saved together in a subdirectory in the form ``YYYYmmDD``.
 
 Experiment Container
-----------------------------------
+--------------------
 
-Individual experiments are saved to their own subdirectories (of the Data Directory) named based on the :class:`~quantify.data.types.TUID` and the ``<experiment name (if any)>``.
+Individual experiments are saved to their own subdirectories (of the Data Directory) named based on the :class:`~quantify.data.types.TUID` and the :code:`<experiment name (if any)>`.
 
 .. note::
-    TUID: A Time-based Unique ID is of the form ``YYYYmmDD-HHMMSS-sss-<random 6 character string>`` and these subdirectories' names take the form ``YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>``.
+    TUID: A Time-based Unique ID is of the form :code:`YYYYmmDD-HHMMSS-sss-<random 6 character string>` and these subdirectories' names take the form :code:`YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>`.
 
 These subdirectories are termed 'Experiment Containers', typical output being the Dataset in hdf5 format and a JSON format file describing Parameters, Instruments and such.
 
 Furthermore, additional analysis such as fits can also be written to this directory, storing all data in one location.
 
-A data directory with the name 'MyData' thus will look similar to:
+An experiment container within a data directory with the name `"quantify-data"` thus will look similar to:
 
-.. code-block:: none
+.. jupyter-execute::
+    :hide-code:
 
-    MyData
-    └─ 20200708
-    │  └─ 20200708-145048-800-60cf37
-    │  │  └─ file1.txt
-    │  └─ 20200708-145205-042-6d068a-bell_test
-    │     └─ dataset.hdf5
-    │     └─ snapshot.json
-    │     └─ lmfit.png
-    └─ 20200710
+    from directory_tree import display_tree
+    from quantify.data import handling as dh
+    from pathlib import Path
+    import tempfile
+    old_dir = dh.get_datadir()
+    tmpdir = tempfile.TemporaryDirectory()
+    dh.set_datadir(Path(tmpdir.name) / "quantify-data")
+    # we generate a dummy dataset and few empty dirs for pretty printing
+    (Path(dh.get_datadir()) / "20210301").mkdir()
+    (Path(dh.get_datadir()) / "20210428").mkdir()
+
+.. include:: tutorials/generate_quantify_dataset_hide_code.rst.txt
+
+.. jupyter-execute::
+    :hide-code:
+
+    from quantify.analysis import base_analysis as ba
+    ba.Basic1DAnalysis(tuid=quantify_dataset.tuid).run()
+    print(display_tree(dh.get_datadir(), string_rep=True), end="")  # to make sure the full path is displayed
+    dh.set_datadir(old_dir)
+    tmpdir.cleanup()
 
 Dataset
------------------
+-------
 
 The Dataset is implemented with a **specific** convention using the :class:`xarray.Dataset` class.
 
@@ -345,26 +361,7 @@ such as the :class:`~quantify.data.types.TUID` of the experiment which it was ge
 For example, consider an experiment varying time and amplitude against a Cosine function.
 The resulting dataset will look similar to the following:
 
-.. jupyter-execute::
-    :hide-code:
-
-    t = ManualParameter('t', initial_value=1, unit='s', label='Time')
-    amp = ManualParameter('amp', initial_value=1, unit='V', label='Amplitude')
-    amp.batched = True
-    amp.batch_size = 3
-
-    def CosFunc():
-        return amp() * np.cos(t())
-
-    sig = Parameter(name='sig', label='Signal level', unit='V', get_cmd=CosFunc)
-    sig.batched = True
-    sig.batch_size = 6
-
-    MC.verbose(False) # Suppress printing
-    MC.settables([amp, t])
-    MC.setpoints_grid([np.linspace(-1, 1, 10), np.linspace(0, 10, 100)])
-    MC.gettables(sig)
-    quantify_dataset = MC.run('my experiment')
+.. include:: tutorials/generate_quantify_dataset_hide_code.rst.txt
 
 .. jupyter-execute::
 
@@ -389,6 +386,7 @@ To allow for some of Xarray's more advanced functionality, such as the in-built 
 This function reshapes the data and associates dimensions to the dataset [which can also be used for 1D datasets].
 
 .. jupyter-execute::
+    :emphasize-lines: 1
 
     gridded_dset = dh.to_gridded_dataset(quantify_dataset)
     gridded_dset.y0.plot()
@@ -396,14 +394,102 @@ This function reshapes the data and associates dimensions to the dataset [which 
 
 
 Snapshot
------------------
+--------
 
 The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` used in this experiment. This information is automatically collected for all Instruments in use.
 It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
 
 
-Examples
-==================================
+.. _analysis_usage:
+
+Analysis
+========
+
+To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
+
+The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
+
+To showcase the analysis usage we generates a dataset that we would like to analyze.
+
+.. admonition:: Generate a dataset labeled "Cosine experiment"
+    :class: dropdown, note
+
+
+    .. include:: tutorials/cosine_instrument.rst.txt
+
+    .. jupyter-execute::
+
+        MC.settables(pars.t)
+        MC.setpoints(np.linspace(0, 2, 50))
+        MC.gettables(pars.sig)
+        dataset = MC.run("Cosine experiment")
+        dataset
+
+Using an analysis class
+-----------------------
+
+
+Running an analysis is very simple:
+
+.. jupyter-execute::
+
+    import quantify.data.handling as dh
+    from quantify.analysis import cosine_analysis as ca
+
+    a_obj = ca.CosineAnalysis(label='Cosine experiment')
+    a_obj.run()                 # execute the analysis.
+    a_obj.display_figs_mpl()    # displays the figures created in previous step.
+
+The analysis was executed against the last dataset that has the label `"Cosine experiment"` in the filename.
+
+After the analysis the experiment container will look similar to the following:
+
+.. jupyter-execute::
+
+    from directory_tree import display_tree
+    experiment_container_path = dh.locate_experiment_container(tuid=dataset.tuid)
+    print(display_tree(experiment_container_path, string_rep=True), end="")
+
+
+The analysis object contains several useful methods and attributes such as the :code:`quantities_of_interest`, intended to store relevant quantities extracted during analysis, and the processed dataset.
+
+.. jupyter-execute::
+
+    # for example, the fitted frequency and amplitude are stored
+    freq = a_obj.quantities_of_interest['frequency']
+    amp = a_obj.quantities_of_interest['amplitude']
+    print(f"frequency {freq}")
+    print(f"amplitude {amp}")
+
+The use of these methods and attributes is described in more detail in :ref:`analysis_framework_tutorial`.
+
+
+
+Creating a custom analysis class
+--------------------------------
+
+The analysis steps and their order of execution is determined by the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an :class:`~enum.Enum` (:class:`~quantify.analysis.base_analysis.AnalysisSteps`). The corresponding steps are implemented as methods of the analysis class.
+An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to the custom analysis. Additionally, if required, a customized analysis flow can be specified by assigning it to the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute.
+
+The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures.
+
+Take a look at the source code (also available in the API reference):
+
+.. admonition:: Basic1DAnalysis source code
+    :class: dropdown, note
+
+        .. literalinclude:: ../quantify/analysis/base_analysis.py
+            :pyobject: Basic1DAnalysis
+
+A slightly more complex use case is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model (from the :mod:`quantify.analysis.fitting_models` library), and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
+
+Creating a custom analysis for a particular type of dataset is showcased in the :ref:`analysis_framework_tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
+
+.. seealso::
+    :ref:`Analysis API documentation <analysis_api>` and :ref:`analysis_framework_tutorial`.
+
+Examples: Settables and Gettables
+=================================
 Below we give several examples of experiment using Settables and Gettables in different control modes.
 
 
@@ -411,7 +497,7 @@ Iterative control mode
 ----------------------
 
 Single-float-valued settable(s) and gettable(s)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Each settable accepts a single float value.
 - Gettables return a single float value.

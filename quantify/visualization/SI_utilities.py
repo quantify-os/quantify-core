@@ -239,7 +239,11 @@ class SafeFormatter(string.Formatter):
 
 def format_value_string(
     par_name: str,
-    parameter: Union[lmfit.Parameter, uncertainties.core.Variable],
+    parameter: Union[
+        lmfit.Parameter,
+        uncertainties.core.Variable,
+        uncertainties.core.AffineScalarFunc,
+    ],
     end_char="",
     unit=None,
 ) -> str:
@@ -271,7 +275,9 @@ def format_value_string(
     :
         The parameter and its error formatted as a string
     """
-    if isinstance(parameter, uncertainties.core.Variable):
+    if isinstance(
+        parameter, (uncertainties.core.Variable, uncertainties.core.AffineScalarFunc)
+    ):
         value = parameter.nominal_value
         stderr = parameter.std_dev
         if np.isnan(stderr):

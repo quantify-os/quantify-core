@@ -22,6 +22,9 @@ Quantify-core
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
+.. image:: https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat
+    :target: http://unitary.fund
+
 Quantify is a python based data acquisition platform focused on Quantum Computing and solid-state physics experiments.
 It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spiritual successor of `PycQED <https://github.com/DiCarloLab-Delft/PycQED_py3>`_.
 Quantify currently consists of `quantify-core <https://pypi.org/project/quantify-core/>`_ and `quantify-scheduler <https://pypi.org/project/quantify-scheduler/>`_.
@@ -38,7 +41,7 @@ Quantify-core is the core module that contains all basic functionality to contro
 
 .. caution::
 
-    This is a pre-release **alpha version**, major changes are expected. Use for testing & development purposes only.
+    This is a pre-release **beta version**, major changes are expected. Use for testing & development purposes only.
 
 About
 --------
@@ -61,12 +64,6 @@ Quantify-core is maintained by The Quantify consortium consisting of Qblox and O
 
 |_|
 
-
 |_|
 
 The software is free to use under the conditions specified in the license.
-
-
---------------------------
-
-.. nothing-to-avoid-a-sphinx-warning:

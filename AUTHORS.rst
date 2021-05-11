@@ -12,6 +12,8 @@ Developers
 * Victor Negîrneac <vnegirneac@qblox.com>
 * Damien Crielaard <dcrielaard@qblox.com>
 * Thomas Reynders <thomas@orangeqs.com>
+* Adam Lawrence <adam@orangeqs.com>
+* Diogo Valada <dvalada@qblox.com>
 
 Contributors
 ------------
