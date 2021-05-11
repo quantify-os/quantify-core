@@ -19,7 +19,7 @@ with open("requirements_dev.txt") as test_reqs:
 
 requirements = [
     "numpy!=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
-    "qcodes",
+    "qcodes>=0.25.0",
     "scipy>=1.5.0,!=1.6.0",
     "h5netcdf",
     "xarray==0.17.0",  # 0.17.1 will introduce breaking changes, see issue #161
