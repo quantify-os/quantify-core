@@ -198,7 +198,6 @@ test-win-3.7.9:
     - .win-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
-  allow_failure: true # allowed to fail due to quantify-scheduler#121
 
 test-win-3.8.9:
   stage: Test
@@ -208,7 +207,6 @@ test-win-3.8.9:
     - .win-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
-  allow_failure: true # allowed to fail due to quantify-scheduler#121
 
 test-win-latest:
   stage: Test
@@ -263,7 +261,7 @@ docs-win-make-html-3.7.9:
     - .docs-win-and-artifacts
     - .run-for-develop-only
   # Allowed to fail since the build was successful with font warnings.
-  # Also due to quantify-scheduler#121
+  # See quantify-core#196
   allow_failure: true
 
 docs-win-make-html-3.8.9:
@@ -274,7 +272,6 @@ docs-win-make-html-3.8.9:
     - .docs-win-and-artifacts
     - .run-for-develop-only
   # Allowed to fail due to asyncio problems (quantify-core#182)
-  # Also due to quantify-scheduler#121
   allow_failure: true
 
 docs-win-make-html-latest:
@@ -285,7 +282,6 @@ docs-win-make-html-latest:
     - .docs-win-and-artifacts
     - .run-for-develop-only
   # Allowed to fail due to asyncio problems (quantify-core#182)
-  # Also due to quantify-scheduler#121
   allow_failure: true
 
 # ######################################################################################
