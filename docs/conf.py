@@ -204,12 +204,43 @@ suppress_warnings = ["autosectionlabel.*"]
 
 blockdiag_html_image_format = "SVG"
 
-# Cannot be set to `True` because plotly and qcodes break the docs build
-set_type_checking_flag = False  # `False` is the default
-
 # used by scanpydoc.elegant_typehints to correctly link to external docs
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
     "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
 }
+
+# -- Options for auto documenting typehints ----------------------------
+
+# Please see https://gitlab.com/quantify-os/quantify/-/issues/10 regarding
+
+# below should be imported all "problematic" modules that might raise strange issues
+# when building the docs
+# e.g., to "partially initialized module", or "most likely due to a circular import"
+
+# This is a practical solution. We tried fixing certain things upstream, e.g.:
+# https://github.com/QCoDeS/Qcodes/pull/2909
+# but the issues popped up again, so this is the best and easier solution so far
+
+# pylint: disable=wrong-import-position,unused-import
+import qcodes
+
+# When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
+# sphinx' kernel loads the modules corresponding to the typehints and is able to
+# auto document types. The modules listed above create issues when loaded with
+# `typing.TYPE_CHECKING = True` so we import them beforehand to avoid nasty issues.
+
+# It is a good practice to make use of the following construct to import modules that
+# are used for type hints ONLY! the construct is the following:
+
+# if typing.TYPE_CHECKING:
+#     import my_expensive_to_import_module as my_module
+
+# NB if you run into any circular import issue it is because you are importing module
+# member directly from a module, i.e.:
+
+# if typing.TYPE_CHECKING:
+#     from my_expensive_to_import_module import BlaClass # Potential circular import
+
+set_type_checking_flag = True  # this will run `typing.TYPE_CHECKING = True`
