@@ -6,12 +6,16 @@ from pathlib import Path
 import shutil
 import tempfile
 from datetime import datetime
+import json
 import dateutil
+import uncertainties
+
 
 import pytest
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter
+from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.types import TUID
 from quantify.measurement.control import MeasurementControl
 import quantify.data.handling as dh
@@ -499,6 +503,40 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
         coords={"x0": np.linspace(0, 5, 5)},
     )
     return dataset
+
+
+def test_qcodes_numpyjsonencoder():
+    quantities_of_interest = {
+        "python_tuple": (1, 2, 3, 4),
+        "python_list": [1, 2, 3, 4],
+        "numpy_array": np.array([1, 2, 3, 4]),
+        "numpy_array_complex": np.array([1, 2], dtype=complex),
+        "uncertainties_ufloat": uncertainties.ufloat(1.0, 2.0),
+        "complex": complex(1.0, 2.0),
+        "nan_value": float("nan"),
+        "inf_value": float("inf"),
+        "-inf_value": float("-inf"),
+    }
+
+    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
+    decoded = json.loads(encoded)
+
+    assert isinstance(decoded["python_tuple"], list)
+    assert isinstance(decoded["python_list"], list)
+    assert isinstance(decoded["numpy_array"], (list, np.ndarray))
+    assert decoded["uncertainties_ufloat"] == {
+        "__dtype__": "UFloat",
+        "nominal_value": 1.0,
+        "std_dev": 2.0,
+    }
+    assert decoded["complex"] == {"__dtype__": "complex", "re": 1.0, "im": 2.0}
+    assert decoded["numpy_array_complex"] == [
+        {"__dtype__": "complex", "re": 1.0, "im": 0.0},
+        {"__dtype__": "complex", "re": 2.0, "im": 0.0},
+    ]
+    assert np.isnan(decoded["nan_value"])
+    assert decoded["inf_value"] == float("inf")
+    assert decoded["-inf_value"] == float("-inf")
 
 
 def test_load_analysis_output_files(tmp_test_data_dir):
