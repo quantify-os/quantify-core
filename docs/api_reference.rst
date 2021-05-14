@@ -58,6 +58,13 @@ ramsey_analysis
     :members:
     :show-inheritance:
 
+allxy_analysis
+---------------
+
+.. automodule:: quantify.analysis.allxy_analysis
+    :members:
+    :show-inheritance:
+
 fitting_models
 --------------
 
