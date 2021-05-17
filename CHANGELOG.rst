@@ -45,6 +45,7 @@ Merged branches and closed issues
 * Sphinx autodoc function parameters and output types based on type hints!113
 * Implemented :code:`numpy.bool_` patch for xarray 0.17.0 (temp fix for #161, !131)
 * AllXY analysis (!177)
+* Echo analysis (!176)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
