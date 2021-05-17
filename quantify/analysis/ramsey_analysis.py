@@ -2,7 +2,6 @@
 # Licensed according to the LICENCE file on the master branch
 import numpy as np
 import matplotlib.pyplot as plt
-from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.analysis import fitting_models as fm
 from quantify.visualization import mpl_plotting as qpl
@@ -114,7 +113,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
             )
             text_msg += format_value_string(
                 "artificial detuning",
-                ufloat(self.artificial_detuning, 0),
+                self.artificial_detuning,
                 unit="Hz",
                 end_char="\n",
             )
@@ -135,7 +134,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
                 text_msg += "\n"
                 text_msg += format_value_string(
                     "initial qubit frequency",
-                    ufloat(self.qubit_frequency, 0),
+                    self.qubit_frequency,
                     unit="Hz",
                     end_char="\n",
                 )
