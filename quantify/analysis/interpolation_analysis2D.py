@@ -17,26 +17,22 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
     def process_data(self):
         unit = self.dataset["y0"].units
 
-        offset_min_0 = float(
-            self.dataset["x0"][np.argmin(self.dataset["y0"].values)].values
-        )
-        offset_min_1 = float(
-            self.dataset["x1"][np.argmin(self.dataset["y0"].values)].values
-        )
-        self.quantities_of_interest[self.dataset["x0"].attrs["name"]] = offset_min_0
-        self.quantities_of_interest[self.dataset["x1"].attrs["name"]] = offset_min_1
+        min_0 = float(self.dataset["x0"][np.argmin(self.dataset["y0"].values)].values)
+        min_1 = float(self.dataset["x1"][np.argmin(self.dataset["y0"].values)].values)
+        self.quantities_of_interest[self.dataset["x0"].attrs["name"]] = min_0
+        self.quantities_of_interest[self.dataset["x1"].attrs["name"]] = min_1
 
         text_msg = "Summary\n"
-        # TODO: get rid of these ufloats once the MR on format_value_string is merged
+
         text_msg += format_value_string(
             self.dataset["x0"].attrs["name"],
-            ufloat(offset_min_0, 0),
+            min_0,
             end_char="\n",
             unit=unit,
         )
         text_msg += format_value_string(
             self.dataset["x1"].attrs["name"],
-            ufloat(offset_min_1, 0),
+            min_1,
             end_char="\n",
             unit=unit,
         )
