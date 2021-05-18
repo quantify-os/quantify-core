@@ -14,25 +14,57 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
     An analysis class which generates a 2D interpolating plot
     """
 
+    # Override the run method so that we can add the new optional arguments
+    # pylint: disable=attribute-defined-outside-init, arguments-differ
+    def run(self, minimize: bool = True):
+        """
+        Parameters
+        ----------
+        minimize:
+            Boolean which determines whether to minimise or maximise the function.
+            True for minimize.
+            False for maximize.
+
+        Returns
+        -------
+        :class:`~quantify.analysis.interpolation_analysis2D.InterpolationAnalysis2D`:
+            The instance of this analysis.
+
+        """  # NB the return type need to be specified manually to avoid circular import
+        self.minimize = minimize
+        return super().run()
+
     def process_data(self):
         unit = self.dataset["y0"].units
 
-        min_0 = float(self.dataset["x0"][np.argmin(self.dataset["y0"].values)].values)
-        min_1 = float(self.dataset["x1"][np.argmin(self.dataset["y0"].values)].values)
-        self.quantities_of_interest[self.dataset["x0"].attrs["name"]] = min_0
-        self.quantities_of_interest[self.dataset["x1"].attrs["name"]] = min_1
+        if self.minimize:
+            optimum_0 = float(
+                self.dataset["x0"][np.argmin(self.dataset["y0"].values)].values
+            )
+            optimum_1 = float(
+                self.dataset["x1"][np.argmin(self.dataset["y0"].values)].values
+            )
+        else:
+            optimum_0 = float(
+                self.dataset["x0"][np.argmax(self.dataset["y0"].values)].values
+            )
+            optimum_1 = float(
+                self.dataset["x1"][np.argmax(self.dataset["y0"].values)].values
+            )
+        self.quantities_of_interest[self.dataset["x0"].attrs["name"]] = optimum_0
+        self.quantities_of_interest[self.dataset["x1"].attrs["name"]] = optimum_1
 
         text_msg = "Summary\n"
 
         text_msg += format_value_string(
             self.dataset["x0"].attrs["name"],
-            min_0,
+            optimum_0,
             end_char="\n",
             unit=unit,
         )
         text_msg += format_value_string(
             self.dataset["x1"].attrs["name"],
-            min_1,
+            optimum_1,
             end_char="\n",
             unit=unit,
         )
