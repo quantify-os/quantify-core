@@ -45,6 +45,8 @@ Merged branches and closed issues
 * Sphinx autodoc function parameters and output types based on type hints!113
 * Implemented :code:`numpy.bool_` patch for xarray 0.17.0 (temp fix for #161, !131)
 * Interpolating 2D analysis (!180)
+* Allow for unit-aware printing of floats and other values with no error (!167, #193)
+* Echo analysis (!176)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~

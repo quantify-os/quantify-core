@@ -65,6 +65,13 @@ interpolation_analysis2D
     :members:
     :show-inheritance:
 
+echo_analysis
+---------------
+
+.. automodule:: quantify.analysis.echo_analysis
+    :members:
+    :show-inheritance:
+
 fitting_models
 --------------
 

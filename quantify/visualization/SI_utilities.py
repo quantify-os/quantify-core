@@ -243,6 +243,7 @@ def format_value_string(
         lmfit.Parameter,
         uncertainties.core.Variable,
         uncertainties.core.AffineScalarFunc,
+        float,
     ],
     end_char="",
     unit=None,
@@ -260,10 +261,11 @@ def format_value_string(
     ----------
     par_name :
         the name of the parameter to use in the string
-    parameter : :class:`lmfit.parameter.Parameter` or :class:`!uncertainties.core.Variable`
+    parameter : :class:`lmfit.parameter.Parameter`,
+        :class:`!uncertainties.core.Variable` or float.
         A :class:`~lmfit.parameter.Parameter` object or an object e.g.,
         returned by :func:`!uncertainties.ufloat`. The value and stderr of this
-        parameter will be used.
+        parameter will be used. If a float is given, the stderr is taken to be None.
     end_char :
         A character that will be put at the end of the line.
     unit :
@@ -282,9 +284,12 @@ def format_value_string(
         stderr = parameter.std_dev
         if np.isnan(stderr):
             stderr = None
-    else:
+    elif isinstance(parameter, lmfit.Parameter):
         value = parameter.value
         stderr = parameter.stderr
+    else:
+        value = parameter
+        stderr = None
 
     scale_factor, unit = SI_prefix_and_scale_factor(value, unit)
     val = value * scale_factor
@@ -296,9 +301,14 @@ def format_value_string(
     (val_format_specifier, err_format_specifier) = value_precision(val, stderr)
 
     fmt = SafeFormatter(missing="NaN")
-    val_string = ": " + val_format_specifier + r"$\pm$" + err_format_specifier + " {}{}"
-    # par name is excluded from the format command to allow latex {} characters.
-    val_string = par_name + fmt.format(val_string, val, stderr, unit, end_char)
+    if stderr is not None:
+        val_string = fr": {val_format_specifier}$\pm${err_format_specifier} {{}}{{}}"
+        # par name is excluded from the format command to allow latex {} characters.
+        val_string = par_name + fmt.format(val_string, val, stderr, unit, end_char)
+    else:
+        val_string = f": {val_format_specifier} {{}}{{}}"
+        # par name is excluded from the format command to allow latex {} characters.
+        val_string = par_name + fmt.format(val_string, val, unit, end_char)
     return val_string
 
 
