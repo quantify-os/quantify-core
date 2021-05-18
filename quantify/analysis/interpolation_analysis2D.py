@@ -2,7 +2,6 @@
 # Licensed according to the LICENCE file on the master branch
 import numpy as np
 import matplotlib.pyplot as plt
-from uncertainties import ufloat
 from quantify.analysis import base_analysis as ba
 from quantify.visualization.plot_interpolation import interpolate_heatmap
 from quantify.visualization.SI_utilities import format_value_string
