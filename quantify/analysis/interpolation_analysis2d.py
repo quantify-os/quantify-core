@@ -27,7 +27,7 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
         Returns
         -------
         :class:`~quantify.analysis.interpolation_analysis2D.InterpolationAnalysis2D`:
-            The instance of this analysis.
+            The instance of this analysis.git
 
         """  # NB the return type need to be specified manually to avoid circular import
         self.minimize = minimize

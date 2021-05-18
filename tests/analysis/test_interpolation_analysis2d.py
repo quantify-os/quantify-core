@@ -5,7 +5,7 @@
 import pytest
 from pytest import approx
 import quantify.data.handling as dh
-from quantify.analysis import interpolation_analysis2D as ia
+from quantify.analysis import interpolation_analysis2d as ia
 
 tuids = ["20210419-170747-902-9c5a05"]
 offsets = [[0.0008868002631485698, 0.006586920009126688]]
