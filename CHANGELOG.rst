@@ -44,8 +44,9 @@ Merged branches and closed issues
 * Downgrade and pin pyqt5 version (#170, !134)
 * Sphinx autodoc function parameters and output types based on type hints!113
 * Implemented :code:`numpy.bool_` patch for xarray 0.17.0 (temp fix for #161, !131)
-* AllXY analysis (!177)
+* Allow for unit-aware printing of floats and other values with no error (!167, #193)
 * Echo analysis (!176)
+* AllXY analysis (!177)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
