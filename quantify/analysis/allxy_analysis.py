@@ -1,14 +1,16 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Analysis module for a AllXY experiment"""
+from __future__ import annotations
 import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
+from quantify.visualization import mpl_plotting as qpl
 
 
 class AllXYAnalysis(ba.BaseAnalysis):
     """
-    Normalises the data from an AllXY experiment and plots against an ideal curve
+    Normalizes the data from an AllXY experiment and plots against an ideal curve
     """
 
     def process_data(self):
@@ -37,7 +39,7 @@ class AllXYAnalysis(ba.BaseAnalysis):
         )
         self.analysis_result["experiment numbers"] = np.arange(0, 21, 1)
 
-        ### callibration points for normalization ###
+        ### calibration points for normalization ###
         # II is set as 0 cal point
         zero = np.sum(raw_data[points == 0]) / len(raw_data[points == 0])
         # average of XI and YI is set as the 1 cal point
@@ -59,6 +61,9 @@ class AllXYAnalysis(ba.BaseAnalysis):
         data = self.analysis_result
 
         fig, ax = plt.subplots()
+        fig_id = "AllXY"
+        self.figs_mpl[fig_id] = fig
+        self.axs_mpl[fig_id] = ax
 
         labels = [
             "II",
@@ -90,13 +95,6 @@ class AllXYAnalysis(ba.BaseAnalysis):
         ax.text(1, 1, deviation_text, fontsize=11)
         ax.xaxis.set_ticks(data["experiment numbers"])
         ax.set_xticklabels(labels, rotation=60)
-        ax.set(ylabel=r"Normalized readout signal")
+        ax.set(ylabel="Normalized readout signal")
         ax.legend(loc=4)
-        fig.suptitle(
-            f"Normalised {self.dataset.attrs['name']}\n"
-            f"tuid: {self.dataset.attrs['tuid']}"
-        )
-
-        fig_id = "AllXY"
-        self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = ax
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "Normalized")
