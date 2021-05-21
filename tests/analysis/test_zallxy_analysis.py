@@ -5,7 +5,7 @@
 import pytest
 
 import quantify.data.handling as dh
-from quantify.analysis import allxy_analysis as aa
+from quantify.analysis import zallxy_analysis as aa
 
 
 @pytest.fixture(scope="session", autouse=True)
