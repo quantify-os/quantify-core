@@ -41,6 +41,13 @@ def test_quantities_of_interest(analysis_obj):
     )
 
 
+def test_dataset_processed(analysis_obj):
+    """some analysis results for the figure are stored in the processed dataset"""
+    assert len(analysis_obj.dataset_processed.experiment_numbers)
+    assert len(analysis_obj.dataset_processed.ideal_data)
+    assert len(analysis_obj.dataset_processed.normalized_data)
+
+
 # Test that the analysis returns an error when the number of datapoints
 # is not a multiple of 21
 def test_analysis_obj_invalid_data(tmp_test_data_dir):

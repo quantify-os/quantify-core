@@ -3,6 +3,7 @@
 """Analysis module for a AllXY experiment"""
 from __future__ import annotations
 import numpy as np
+import xarray as xr
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
 from quantify.visualization import mpl_plotting as qpl
@@ -15,7 +16,6 @@ class AllXYAnalysis(ba.BaseAnalysis):
 
     def process_data(self):
         points = self.dataset["x0"]
-        self.analysis_result["calibration points"] = points
         raw_data = self.dataset["y0"]
         number_points = len(raw_data)
 
@@ -30,14 +30,23 @@ class AllXYAnalysis(ba.BaseAnalysis):
         repeats = int(round(number_points / 21))
 
         ### Creating the ideal data ###
-        self.analysis_result["ideal_data"] = np.concatenate(
-            (
-                0 * np.ones(5 * repeats),
-                0.5 * np.ones(12 * repeats),
-                np.ones(4 * repeats),
-            )
+        ideal_data = xr.DataArray(
+            data=np.concatenate(
+                (
+                    0 * np.ones(5 * repeats),
+                    0.5 * np.ones(12 * repeats),
+                    np.ones(4 * repeats),
+                )
+            ),
+            name="ideal_data",
+            dims="dim_0",
         )
-        self.analysis_result["experiment numbers"] = np.arange(0, 21, 1)
+
+        experiment_numbers = xr.DataArray(
+            data=np.arange(0, 21, 1),
+            name="experiment_numbers",
+            dims="dim_1",  # has less points than "dim_0", so we use different dims
+        )
 
         ### calibration points for normalization ###
         # II is set as 0 cal point
@@ -47,18 +56,22 @@ class AllXYAnalysis(ba.BaseAnalysis):
             raw_data[np.logical_or(points == 17, points == 18)]
         )
 
-        data_normalized = (raw_data - zero) / (one - zero)
+        normalized_data = xr.DataArray(
+            data=(raw_data - zero) / (one - zero),
+            name="normalized_data",
+            dims="dim_0",
+        )
+
+        # save processed dataset
+        self.dataset_processed = xr.merge(
+            [experiment_numbers, ideal_data, normalized_data]
+        )
 
         ### Analyzing Data ###
-        data_error = data_normalized - self.analysis_result["ideal_data"]
-        deviation = np.mean(abs(data_error))
-
-        self.analysis_result["normalized_data"] = data_normalized
-        self.analysis_result["deviation"] = deviation
-        self.quantities_of_interest["deviation"] = deviation.item()
+        deviation = np.mean(abs(normalized_data - ideal_data)).item()
+        self.quantities_of_interest["deviation"] = deviation
 
     def create_figures(self):
-        data = self.analysis_result
 
         fig, ax = plt.subplots()
         fig_id = "AllXY"
@@ -89,11 +102,15 @@ class AllXYAnalysis(ba.BaseAnalysis):
             "yy",
         ]
 
-        ax.plot(data["calibration points"], data["normalized_data"], "o-")
-        ax.plot(data["calibration points"], data["ideal_data"], label="Ideal data")
-        deviation_text = r"Deviation: %#.2g" % data["deviation"]
-        ax.text(1, 1, deviation_text, fontsize=11)
-        ax.xaxis.set_ticks(data["experiment numbers"])
+        ax.plot(self.dataset.x0, self.dataset_processed.normalized_data, "o-")
+        ax.plot(
+            self.dataset.x0,
+            self.dataset_processed.ideal_data,
+            label="Ideal data",
+        )
+        deviation = self.quantities_of_interest["deviation"]
+        ax.text(1, 1, f"Deviation: {deviation:#.2g}", fontsize=11)
+        ax.xaxis.set_ticks(self.dataset_processed.experiment_numbers)
         ax.set_xticklabels(labels, rotation=60)
         ax.set(ylabel="Normalized readout signal")
         ax.legend(loc=4)
