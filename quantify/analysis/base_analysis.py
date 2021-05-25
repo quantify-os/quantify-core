@@ -443,7 +443,7 @@ class BaseAnalysis(ABC):
         Saves a copy of the processed :code:`.dataset_processed` in the analysis folder
         of the experiment.
         """
-        if self.dataset_processed:
+        if self.dataset_processed is not None:
             write_dataset(
                 Path(self.analysis_dir) / PROCESSED_DATASET_NAME, self.dataset_processed
             )
