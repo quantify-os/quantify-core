@@ -62,9 +62,8 @@ class AllXYAnalysis(ba.BaseAnalysis):
             dims="dim_0",
         )
 
-        # save processed dataset
         self.dataset_processed = xr.merge(
-            [experiment_numbers, ideal_data, normalized_data]
+            [self.dataset_processed, experiment_numbers, ideal_data, normalized_data]
         )
 
         ### Analyzing Data ###
