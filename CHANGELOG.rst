@@ -9,6 +9,9 @@ Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Ramsey analysis (!166)
+* Echo analysis (!176)
+* AllXY analysis (!177)
+* InterpolationAnalysis2D (!180)
 
 0.4.0 (2021-05-10)
 ------------------
@@ -46,8 +49,6 @@ Merged branches and closed issues
 * Implemented :code:`numpy.bool_` patch for xarray 0.17.0 (temp fix for #161, !131)
 * Interpolating 2D analysis (!180)
 * Allow for unit-aware printing of floats and other values with no error (!167, #193)
-* Echo analysis (!176)
-* AllXY analysis (!177)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
