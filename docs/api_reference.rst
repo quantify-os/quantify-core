@@ -58,10 +58,10 @@ ramsey_analysis
     :members:
     :show-inheritance:
 
-interpolation_analysis2d
-------------------------
+interpolation_analysis
+----------------------
 
-.. automodule:: quantify.analysis.interpolation_analysis2d
+.. automodule:: quantify.analysis.interpolation_analysis
     :members:
     :show-inheritance:
 
