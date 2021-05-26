@@ -47,6 +47,7 @@ Merged branches and closed issues
 * Interpolating 2D analysis (!180)
 * Allow for unit-aware printing of floats and other values with no error (!167, #193)
 * Echo analysis (!176)
+* AllXY analysis (!177)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~

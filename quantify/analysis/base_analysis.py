@@ -190,6 +190,9 @@ class BaseAnalysis(ABC):
         # This dataset will be overwritten during the analysis.
         self.dataset_processed = xr.Dataset()
 
+        # A dictionary to contain the outputs of any custom analysis
+        self.analysis_result = {}
+
         # To be populated by a subclass
         self.figs_mpl = OrderedDict()
         self.axs_mpl = OrderedDict()
@@ -437,16 +440,12 @@ class BaseAnalysis(ABC):
 
     def save_processed_dataset(self):
         """
-        Saves a copy of the (processed) :code:`.dataset` in the analysis folder of the
-        experiment.
+        Saves a copy of the processed :code:`.dataset_processed` in the analysis folder
+        of the experiment.
         """
-
-        # if statement exist to be compatible with child classes that do not load data
-        # onto the self.dataset object.
         if self.dataset_processed is not None:
-            dataset_processed = self.dataset_processed
             write_dataset(
-                Path(self.analysis_dir) / PROCESSED_DATASET_NAME, dataset_processed
+                Path(self.analysis_dir) / PROCESSED_DATASET_NAME, self.dataset_processed
             )
 
     def save_quantities_of_interest(self):
