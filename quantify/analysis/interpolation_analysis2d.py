@@ -10,7 +10,7 @@ from quantify.visualization import mpl_plotting as qpl
 
 class InterpolationAnalysis2D(ba.BaseAnalysis):
     """
-    An analysis class which generates a 2D interpolating plot
+    An analysis class which generates a 2D interpolating plot.
     """
 
     # Override the run method so that we can add the new optional arguments
@@ -20,14 +20,14 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
         Parameters
         ----------
         minimize:
-            Boolean which determines whether to minimise or maximise the function.
+            Boolean which determines whether to minimize or maximize the function.
             True for minimize.
             False for maximize.
 
         Returns
         -------
-        :class:`~quantify.analysis.interpolation_analysis2D.InterpolationAnalysis2D`:
-            The instance of this analysis.git
+        :class:`~quantify.analysis.interpolation_analysis2d.InterpolationAnalysis2D`:
+            The instance of this analysis.
 
         """  # NB the return type need to be specified manually to avoid circular import
         self.minimize = minimize
@@ -99,10 +99,7 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
 
         qpl.set_xlabel(ax, self.dataset["x0"].attrs["name"], self.dataset["x0"].units)
         qpl.set_ylabel(ax, self.dataset["x1"].attrs["name"], self.dataset["x1"].units)
-        fig.suptitle(
-            f"{self.dataset.attrs['name'] } 2D interpolating analysis\n"
-            f"tuid: {self.dataset.attrs['tuid']}"
-        )
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "2D interpolating analysis")
         qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"], x=1.32)
 
         self.figs_mpl[fig_id] = fig
