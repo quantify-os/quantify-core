@@ -4,11 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from quantify.analysis import base_analysis as ba
 from quantify.visualization.plot_interpolation import interpolate_heatmap
-from quantify.visualization.SI_utilities import format_value_string
+from quantify.visualization.SI_utilities import (
+    format_value_string,
+    adjust_axeslabels_SI,
+)
 from quantify.visualization import mpl_plotting as qpl
 
 
-class InterpolationAnalysisND(ba.BaseAnalysis):
+class OptimizationAnalysis(ba.BaseAnalysis):
     """
     An analysis class which extracts the optimal quantities from an N-dimensional
     interpolating experiment.
@@ -73,8 +76,36 @@ class InterpolationAnalysisND(ba.BaseAnalysis):
 
         self.quantities_of_interest["plot_msg"] = text_msg
 
+    def create_figures(self):
+        """
+        Plot each of the x variables against each of the y variables
+        """
 
-class InterpolationAnalysis2D(InterpolationAnalysisND):
+        for xi, xvals in self.dataset.coords.items():
+            x_name = self.dataset[xi].attrs["name"]
+            for yi, yvals in self.dataset.data_vars.items():
+                y_name = self.dataset[yi].attrs["name"]
+                fig, ax = plt.subplots()
+                fig_id = f"Line plot {x_name} vs {y_name}"
+
+                ax.plot(xvals, yvals, marker=".", linewidth="0.5", markersize="4.5")
+                adjust_axeslabels_SI(ax)
+
+                qpl.set_xlabel(ax, x_name, self.dataset[xi].units)
+                qpl.set_ylabel(ax, y_name, self.dataset[yi].units)
+
+                qpl.set_suptitle_from_dataset(
+                    fig, self.dataset, f"{x_name} vs {y_name} optimization:"
+                )
+
+                qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"])
+
+                # add the figure and axis to the dicts for saving
+                self.figs_mpl[fig_id] = fig
+                self.axs_mpl[fig_id] = ax
+
+
+class InterpolationAnalysis2D(ba.BaseAnalysis):
     """
     An analysis class for the 2D case which generates a 2D interpolating plot.
     """
@@ -119,7 +150,7 @@ class InterpolationAnalysis2D(InterpolationAnalysisND):
             qpl.set_suptitle_from_dataset(
                 fig, self.dataset, f"{variable_name} interpolating analysis:"
             )
-            qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"], x=1.32)
+            # qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"], x=1.32)
 
             self.figs_mpl[fig_id] = fig
             self.axs_mpl[fig_id] = ax
