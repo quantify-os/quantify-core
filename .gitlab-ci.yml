@@ -20,8 +20,6 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
   QT_QPA_PLATFORM: offscreen
-  # avoids "sporadic" matplotlib switch to a GUI backend, see e.g. quantify-core!177
-  MPLBACKEND: agg
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -103,6 +101,9 @@ stages:
   - python -m pip install --upgrade pip
 
 .unix-before-script:
+  variables:
+    # avoids "sporadic" matplotlib switch to a GUI backend, see e.g. quantify-core!177
+    MPLBACKEND: agg # only necessary for unix that runs with headless display
   before_script:
     - *unix_before_script_no_install
     - *pip_install_and_freeze
