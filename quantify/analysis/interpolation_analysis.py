@@ -81,28 +81,76 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         Plot each of the x variables against each of the y variables
         """
 
-        for xi, xvals in self.dataset.coords.items():
-            x_name = self.dataset[xi].attrs["name"]
-            for yi, yvals in self.dataset.data_vars.items():
-                y_name = self.dataset[yi].attrs["name"]
-                fig, ax = plt.subplots()
-                fig_id = f"Line plot {x_name} vs {y_name}"
+        figs, axs = iteration_plots(self.dataset, self.quantities_of_interest)
+        self.figs_mpl.update(figs)
+        self.axs_mpl.update(axs)
 
-                ax.plot(xvals, yvals, marker=".", linewidth="0.5", markersize="4.5")
-                adjust_axeslabels_SI(ax)
+        figs, axs = x_vs_y_plots(self.dataset, self.quantities_of_interest)
+        self.figs_mpl.update(figs)
+        self.axs_mpl.update(axs)
 
-                qpl.set_xlabel(ax, x_name, self.dataset[xi].units)
-                qpl.set_ylabel(ax, y_name, self.dataset[yi].units)
 
-                qpl.set_suptitle_from_dataset(
-                    fig, self.dataset, f"{x_name} vs {y_name} optimization:"
-                )
+def iteration_plots(dataset, quantities_of_interest):
+    """
+    For every x and y varible, plot a graph of that variable versus the iteration index.
+    """
 
-                qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"])
+    figs = {}
+    axs = {}
+    all_variables = list(dataset.coords.items()) + list(dataset.data_vars.items())
+    for var, var_vals in all_variables:
+        var_name = dataset[var].attrs["name"]
 
-                # add the figure and axis to the dicts for saving
-                self.figs_mpl[fig_id] = fig
-                self.axs_mpl[fig_id] = ax
+        fig, ax = plt.subplots()
+        fig_id = f"Line plot {var_name} vs iteration"
+
+        ax.plot(var_vals, marker=".", linewidth="0.5", markersize="4.5")
+        adjust_axeslabels_SI(ax)
+
+        qpl.set_ylabel(ax, var_name, dataset[var].units)
+
+        qpl.set_suptitle_from_dataset(fig, dataset, f"{var_name} vs iteration number:")
+
+        qpl.plot_textbox(ax, quantities_of_interest["plot_msg"])
+
+        # add the figure and axis to the dicts for saving
+        figs[fig_id] = fig
+        axs[fig_id] = ax
+
+    return figs, axs
+
+
+def x_vs_y_plots(dataset, quantities_of_interest):
+    """
+    Plot every x coordinate against every y variable
+    """
+
+    figs = {}
+    axs = {}
+    for xi, xvals in dataset.coords.items():
+        x_name = dataset[xi].attrs["name"]
+        for yi, yvals in dataset.data_vars.items():
+            y_name = dataset[yi].attrs["name"]
+            fig, ax = plt.subplots()
+            fig_id = f"Line plot {x_name} vs {y_name}"
+
+            ax.plot(xvals, yvals, marker=".", linewidth="0.5", markersize="4.5")
+            adjust_axeslabels_SI(ax)
+
+            qpl.set_xlabel(ax, x_name, dataset[xi].units)
+            qpl.set_ylabel(ax, y_name, dataset[yi].units)
+
+            qpl.set_suptitle_from_dataset(
+                fig, dataset, f"{x_name} vs {y_name} optimization:"
+            )
+
+            qpl.plot_textbox(ax, quantities_of_interest["plot_msg"])
+
+            # add the figure and axis to the dicts for saving
+            figs[fig_id] = fig
+            axs[fig_id] = ax
+
+    return figs, axs
 
 
 class InterpolationAnalysis2D(ba.BaseAnalysis):
