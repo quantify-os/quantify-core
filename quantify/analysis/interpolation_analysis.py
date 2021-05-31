@@ -24,7 +24,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         Parameters
         ----------
         minimize:
-            Boolean which determines whether to minimize or maximize the function.
+            Boolean which determines whether to report the minimum or the maximum.
             True for minimize.
             False for maximize.
 
