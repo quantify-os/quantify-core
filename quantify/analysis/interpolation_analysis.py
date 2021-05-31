@@ -108,6 +108,7 @@ def iteration_plots(dataset, quantities_of_interest):
         adjust_axeslabels_SI(ax)
 
         qpl.set_ylabel(ax, var_name, dataset[var].units)
+        qpl.set_xlabel(ax, "iteration index")
 
         qpl.set_suptitle_from_dataset(fig, dataset, f"{var_name} vs iteration number:")
 
