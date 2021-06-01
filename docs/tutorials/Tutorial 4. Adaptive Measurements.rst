@@ -138,7 +138,7 @@ The :class:`~quantify.analysis.optimization_analysis.OptimizationAnalysis` class
     a_obj.run()
     a_obj.display_figs_mpl()
 
-The analysis outputs plots of every dependent variable in the dataset versus every independent variable. It also gives plots of each of the variables versus the number of iteration steps completed. The figures show the data converging on the optimal value.
+The analysis generates plots of each of the variables versus the number of iteration steps completed. The figures show the data converging on the optimal value.
 
 The :class:`~quantify.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap which interpolates between a set of irregularly spaced datapoints.
 

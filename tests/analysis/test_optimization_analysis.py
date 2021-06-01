@@ -30,8 +30,6 @@ def test_figures_generated(analysis_objs):
     """
     for a_obj in analysis_objs:
         assert set(a_obj.figs_mpl.keys()) == {
-            "Line plot sequencer0_offset_awg_path0 vs SignalHound_fixed_frequency",
-            "Line plot sequencer0_offset_awg_path1 vs SignalHound_fixed_frequency",
             "Line plot sequencer0_offset_awg_path0 vs iteration",
             "Line plot sequencer0_offset_awg_path1 vs iteration",
             "Line plot SignalHound_fixed_frequency vs iteration",

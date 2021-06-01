@@ -92,10 +92,6 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         self.figs_mpl.update(figs)
         self.axs_mpl.update(axs)
 
-        figs, axs = x_vs_y_plots(self.dataset, self.quantities_of_interest)
-        self.figs_mpl.update(figs)
-        self.axs_mpl.update(axs)
-
 
 def iteration_plots(dataset, quantities_of_interest):
     """
@@ -124,38 +120,5 @@ def iteration_plots(dataset, quantities_of_interest):
         # add the figure and axis to the dicts for saving
         figs[fig_id] = fig
         axs[fig_id] = ax
-
-    return figs, axs
-
-
-def x_vs_y_plots(dataset, quantities_of_interest):
-    """
-    Plot every x coordinate against every y variable
-    """
-
-    figs = {}
-    axs = {}
-    for xi, xvals in dataset.coords.items():
-        x_name = dataset[xi].attrs["name"]
-        for yi, yvals in dataset.data_vars.items():
-            y_name = dataset[yi].attrs["name"]
-            fig, ax = plt.subplots()
-            fig_id = f"Line plot {x_name} vs {y_name}"
-
-            ax.plot(xvals, yvals, marker=".", linewidth="0.5", markersize="4.5")
-            adjust_axeslabels_SI(ax)
-
-            qpl.set_xlabel(ax, x_name, dataset[xi].units)
-            qpl.set_ylabel(ax, y_name, dataset[yi].units)
-
-            qpl.set_suptitle_from_dataset(
-                fig, dataset, f"{x_name} vs {y_name} optimization:"
-            )
-
-            qpl.plot_textbox(ax, quantities_of_interest["plot_msg"])
-
-            # add the figure and axis to the dicts for saving
-            figs[fig_id] = fig
-            axs[fig_id] = ax
 
     return figs, axs
