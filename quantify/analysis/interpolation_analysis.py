@@ -40,7 +40,17 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
             fig.colorbar(mappable, ax=ax, label=f"{variable_name} [{unit}]")
 
             # Scatter plot of measured datapoints
-            ax.scatter(xvals0, xvals1, s=2, c="red", alpha=1)
+            ax.plot(
+                xvals0,
+                xvals1,
+                marker=".",
+                linewidth=0.5,
+                markerfacecolor="red",
+                markeredgecolor="red",
+                markersize=3,
+                c="white",
+                alpha=1,
+            )
 
             qpl.set_xlabel(
                 ax, self.dataset["x0"].attrs["name"], self.dataset["x0"].units
