@@ -41,6 +41,7 @@ class DummyAnalysisSubclassRaisesA(ba.BasicAnalysis):
 
 
 # pylint: disable=attribute-defined-outside-init
+# pylint: disable=too-few-public-methods
 class DummyAnalysisSubclassArgs(ba.BasicAnalysis):
     def run(self, var=None):
         # pylint: disable=arguments-differ
