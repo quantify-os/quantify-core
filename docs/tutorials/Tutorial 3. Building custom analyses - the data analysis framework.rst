@@ -12,7 +12,7 @@ Tutorial 3. Building custom analyses - the data analysis framework
     :jupyter-download:script:`Tutorial 3. Building custom analyses - the data analysis framework`
 
 
-Quantify provides an analysis framework in the form of a :class:`~quantify.analysis.base_analysis.BaseAnalysis` class and several subclasses for simple cases (e.g., :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, :class:`~quantify.analysis.base_analysis.Basic2DAnalysis`, :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`). The framework provides a structured, yet flexible, flow of the analysis steps. We encourage all users to adopt the framework by sub-classing the :class:`~quantify.analysis.base_analysis.BaseAnalysis`.
+Quantify provides an analysis framework in the form of a :class:`~quantify.analysis.base_analysis.BaseAnalysis` class and several subclasses for simple cases (e.g., :class:`~quantify.analysis.base_analysis.BasicAnalysis`, :class:`~quantify.analysis.base_analysis.Basic2DAnalysis`, :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`). The framework provides a structured, yet flexible, flow of the analysis steps. We encourage all users to adopt the framework by sub-classing the :class:`~quantify.analysis.base_analysis.BaseAnalysis`.
 
 To give insight into the concepts and ideas behind the analysis framework, we first write analysis scripts to *"manually"* analyze the data as if we had a new type of experiment in our hands.
 Next, we encapsulate these steps into reusable functions packing everything together into a simple python class.

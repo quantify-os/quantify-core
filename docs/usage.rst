@@ -341,7 +341,7 @@ An experiment container within a data directory with the name `"quantify-data"` 
     :hide-code:
 
     from quantify.analysis import base_analysis as ba
-    ba.Basic1DAnalysis(tuid=quantify_dataset.tuid).run()
+    ba.BasicAnalysis(tuid=quantify_dataset.tuid).run()
     print(display_tree(dh.get_datadir(), string_rep=True), end="")  # to make sure the full path is displayed
     dh.set_datadir(old_dir)
     tmpdir.cleanup()
@@ -405,7 +405,7 @@ It is useful for quickly reconstructing a complex set-up or verifying that :clas
 Analysis
 ========
 
-To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
+To aid with data analysis, quantify comes with an :mod:`~quantify.analysis` module containing a base data-analysis class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) that is intended to serve as a template for analysis scripts and several standard analyses such as the :class:`~quantify.analysis.base_analysis.BasicAnalysis`, the :class:`~quantify.analysis.base_analysis.Basic2DAnalysis` and the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`.
 
 The idea behind the analysis class is that most analyses follow a common structure consisting of steps such as data extraction, data processing, fitting to some model, creating figures, and saving the analysis results.
 
@@ -471,15 +471,15 @@ Creating a custom analysis class
 The analysis steps and their order of execution is determined by the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute as an :class:`~enum.Enum` (:class:`~quantify.analysis.base_analysis.AnalysisSteps`). The corresponding steps are implemented as methods of the analysis class.
 An analysis class inheriting from the abstract-base-class (:class:`~quantify.analysis.base_analysis.BaseAnalysis`) will only have to implement those methods that are unique to the custom analysis. Additionally, if required, a customized analysis flow can be specified by assigning it to the :attr:`~quantify.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute.
 
-The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.Basic1DAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.Basic1DAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures.
+The simplest example of an analysis class is the :class:`~quantify.analysis.base_analysis.BasicAnalysis` that only implements the :meth:`~quantify.analysis.base_analysis.BasicAnalysis.create_figures` method and relies on the base class for data extraction and saving of the figures.
 
 Take a look at the source code (also available in the API reference):
 
-.. admonition:: Basic1DAnalysis source code
+.. admonition:: BasicAnalysis source code
     :class: dropdown, note
 
         .. literalinclude:: ../quantify/analysis/base_analysis.py
-            :pyobject: Basic1DAnalysis
+            :pyobject: BasicAnalysis
 
 A slightly more complex use case is the :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model (from the :mod:`quantify.analysis.fitting_models` library), and :meth:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
 
