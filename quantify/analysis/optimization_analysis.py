@@ -29,7 +29,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
 
         Returns
         -------
-        :class:`~quantify.analysis.interpolation_analysis.OptimizationAnalysis`:
+        :class:`~quantify.analysis.optimization_analysis.OptimizationAnalysis`:
             The instance of this analysis.
 
         """  # NB the return type need to be specified manually to avoid circular import
