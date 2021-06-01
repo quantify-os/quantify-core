@@ -73,6 +73,18 @@ class OptimizationAnalysis(ba.BaseAnalysis):
                     unit=self.dataset[x_var].units,
                 )
 
+            # Find the corresponding optimal y value
+            optimum = float(np.min(self.dataset[y_var].values))
+
+            self.quantities_of_interest[self.dataset[y_var].attrs["name"]] = optimum
+
+            text_msg += format_value_string(
+                self.dataset[y_var].attrs["name"],
+                optimum,
+                end_char="\n",
+                unit=self.dataset[y_var].units,
+            )
+
         self.quantities_of_interest["plot_msg"] = text_msg
 
     def create_figures(self):

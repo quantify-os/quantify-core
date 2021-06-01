@@ -9,6 +9,7 @@ from quantify.analysis import optimization_analysis as oa
 
 tuids = ["20210419-170747-902-9c5a05"]
 offsets = [[0.0008868002631485698, 0.006586920009126688]]
+POWER = -118.08462066650391
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -39,12 +40,13 @@ def test_figures_generated(analysis_objs):
 
 def test_quantities_of_interest(analysis_objs):
     """
-    Test that the fit returns the correct values
+    Test that the optimization returns the correct values
     """
     for a_obj, offset in zip(analysis_objs, offsets):
         assert set(a_obj.quantities_of_interest.keys()) == {
             "sequencer0_offset_awg_path0",
             "sequencer0_offset_awg_path1",
+            "SignalHound_fixed_frequency",
             "plot_msg",
         }
 
@@ -54,10 +56,16 @@ def test_quantities_of_interest(analysis_objs):
         assert isinstance(
             a_obj.quantities_of_interest["sequencer0_offset_awg_path1"], float
         )
-        # Tests that the fitted values are correct (to within 5 standard deviations)
+        assert isinstance(
+            a_obj.quantities_of_interest["SignalHound_fixed_frequency"], float
+        )
+        # Tests that the optimal values are correct
         assert a_obj.quantities_of_interest["sequencer0_offset_awg_path0"] == approx(
             offset[0], rel=0.05
         )
         assert a_obj.quantities_of_interest["sequencer0_offset_awg_path1"] == approx(
             offset[1], rel=0.05
+        )
+        assert a_obj.quantities_of_interest["SignalHound_fixed_frequency"] == approx(
+            POWER, rel=0.05
         )
