@@ -37,7 +37,7 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
                 aspect="auto",
                 origin="lower",
             )
-            fig.colorbar(mappable, ax=ax, label=f"{variable_name} [{unit}]")
+            cbar = fig.colorbar(mappable, ax=ax)
 
             # Scatter plot of measured datapoints
             ax.plot(
@@ -59,10 +59,10 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
             qpl.set_ylabel(
                 ax, self.dataset["x1"].attrs["name"], self.dataset["x1"].units
             )
+            qpl.set_cbarlabel(cbar, variable_name, unit)
             qpl.set_suptitle_from_dataset(
                 fig, self.dataset, f"{variable_name} interpolating analysis:"
             )
-            # qpl.plot_textbox(ax, self.quantities_of_interest["plot_msg"], x=1.32)
 
             self.figs_mpl[fig_id] = fig
             self.axs_mpl[fig_id] = ax

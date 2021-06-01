@@ -614,12 +614,12 @@ class BasicAnalysis(BaseAnalysis):
         plot_against = coords if coords else (dims if dims else [None])
         for idx, xi in enumerate(plot_against):
             for yi, yvals in dataset.data_vars.items():
-                # for compatibility with older datasets, do not plot "x0" vx "x0"
+                # for compatibility with older datasets, do not plot "x0" vs "x0"
                 if yi.startswith("y"):
                     fig, ax = plt.subplots()
 
                     fig_id = f"Line plot x{idx}-{yi}"
-                    # plot this variable against x0
+
                     yvals.plot.line(ax=ax, x=xi, marker=".")
 
                     adjust_axeslabels_SI(ax)

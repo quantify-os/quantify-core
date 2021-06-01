@@ -39,6 +39,9 @@ class OptimizationAnalysis(ba.BaseAnalysis):
     def process_data(self):
         text_msg = "Summary\n"
 
+        arg_optimum_func = np.argmin if self.minimize else np.argmax
+        optimum_func = np.min if self.minimize else np.max
+
         # Go through every y variable and find the optimal point
         for y_var in self.dataset.data_vars:
             text_msg += "\n"
@@ -51,18 +54,11 @@ class OptimizationAnalysis(ba.BaseAnalysis):
 
             # Find the optimum for each x coordinate
             for x_var in self.dataset.coords:
-                if self.minimize:
-                    optimum = float(
-                        self.dataset[x_var][
-                            np.argmin(self.dataset[y_var].values)
-                        ].values
-                    )
-                else:
-                    optimum = float(
-                        self.dataset[x_var][
-                            np.argmax(self.dataset[y_var].values)
-                        ].values
-                    )
+                optimum = float(
+                    self.dataset[x_var][
+                        arg_optimum_func(self.dataset[y_var].values)
+                    ].values
+                )
 
                 self.quantities_of_interest[self.dataset[x_var].attrs["name"]] = optimum
 
@@ -74,7 +70,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
                 )
 
             # Find the corresponding optimal y value
-            optimum = float(np.min(self.dataset[y_var].values))
+            optimum = float(optimum_func(self.dataset[y_var].values))
 
             self.quantities_of_interest[self.dataset[y_var].attrs["name"]] = optimum
 
