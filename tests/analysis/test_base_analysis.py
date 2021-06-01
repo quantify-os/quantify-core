@@ -339,11 +339,11 @@ def test_dataset_input(tmp_test_data_dir):
     # assert a copy of the dataset was stored to disk.
     assert "dataset.hdf5" in os.listdir(exp_dir)
     # assert figures where stored to disk.
-    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
-    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "analysis_BasicAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_BasicAnalysis")
     assert "figs_mpl" in analysis_dir
     assert "Line plot x0-y0.png" in os.listdir(
-        Path(exp_dir) / "analysis_Basic1DAnalysis" / "figs_mpl"
+        Path(exp_dir) / "analysis_BasicAnalysis" / "figs_mpl"
     )
 
     # test that the right figures get created.

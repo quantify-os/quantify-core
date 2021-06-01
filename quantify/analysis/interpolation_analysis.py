@@ -45,6 +45,7 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
                 xvals1,
                 marker=".",
                 linewidth=0.5,
+                linestyle="",
                 markerfacecolor="red",
                 markeredgecolor="red",
                 markersize=3,

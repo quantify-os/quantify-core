@@ -592,7 +592,7 @@ class BaseAnalysis(ABC):
                     image_or_collection.set_clim(vmin, vmax)
 
 
-class Basic1DAnalysis(BaseAnalysis):
+class BasicAnalysis(BaseAnalysis):
     """
     A basic analysis that extracts the data from the latest file matching the label
     and plots and stores the data in the experiment container.
@@ -600,7 +600,8 @@ class Basic1DAnalysis(BaseAnalysis):
 
     def create_figures(self):
         """
-        Creates a line plot x vs y for every data variable yi in the dataset.
+        Creates a line plot x vs y for every data variable yi and coordinate xi in the
+        dataset.
         """
 
         # NB we do not use `to_gridded_dataset` because that can potentially drop
@@ -608,23 +609,29 @@ class Basic1DAnalysis(BaseAnalysis):
         dataset = self.dataset
         # for compatibility with older datasets
         # in case "x0" is not a coordinate we use "dim_0"
-        coords = tuple(dataset.coords)
-        dims = tuple(dataset.dims)
-        plot_against = coords[0] if coords else (dims[0] if dims else None)
-        for yi, yvals in dataset.data_vars.items():
-            # for compatibility with older datasets, do not plot "x0" vx "x0"
-            if yi.startswith("y"):
-                fig, ax = plt.subplots()
-                fig_id = f"Line plot x0-{yi}"
-                # plot this variable against x0
-                yvals.plot.line(ax=ax, x=plot_against, marker=".")
-                adjust_axeslabels_SI(ax)
+        coords = list(dataset.coords)
+        dims = list(dataset.dims)
+        plot_against = coords if coords else (dims if dims else [None])
+        for idx, xi in enumerate(plot_against):
+            for yi, yvals in dataset.data_vars.items():
+                # for compatibility with older datasets, do not plot "x0" vx "x0"
+                if yi.startswith("y"):
+                    fig, ax = plt.subplots()
 
-                qpl.set_suptitle_from_dataset(fig, self.dataset, f"x0-{yi}")
+                    fig_id = f"Line plot x{idx}-{yi}"
+                    # plot this variable against x0
+                    yvals.plot.line(ax=ax, x=xi, marker=".")
 
-                # add the figure and axis to the dicts for saving
-                self.figs_mpl[fig_id] = fig
-                self.axs_mpl[fig_id] = ax
+                    adjust_axeslabels_SI(ax)
+
+                    qpl.set_suptitle_from_dataset(fig, self.dataset, f"x{idx}-{yi}")
+
+                    # add the figure and axis to the dicts for saving
+                    self.figs_mpl[fig_id] = fig
+                    self.axs_mpl[fig_id] = ax
+
+
+Basic1DAnalysis = BasicAnalysis
 
 
 class Basic2DAnalysis(BaseAnalysis):
