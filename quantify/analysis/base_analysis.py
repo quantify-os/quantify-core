@@ -631,7 +631,15 @@ class BasicAnalysis(BaseAnalysis):
                     self.axs_mpl[fig_id] = ax
 
 
-Basic1DAnalysis = BasicAnalysis
+class Basic1DAnalysis(BasicAnalysis):
+    """
+    Alias of :class:`~quantify.analysis.base_analysis.BasicAnalysis`:,
+    used for backwards compatibility
+    """
+
+    def run(self) -> BaseAnalysis:
+        warnings.warn("This class is deprecated. Use `BasicAnalysis`")
+        return super().run()
 
 
 class Basic2DAnalysis(BaseAnalysis):
