@@ -65,6 +65,13 @@ interpolation_analysis
     :members:
     :show-inheritance:
 
+optimization_analysis
+----------------------
+
+.. automodule:: quantify.analysis.optimization_analysis
+    :members:
+    :show-inheritance:
+
 allxy_analysis
 --------------
 
