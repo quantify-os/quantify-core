@@ -135,9 +135,9 @@ class BaseAnalysis(ABC):
 
             .. jupyter-execute::
 
-                from quantify.analysis.base_analysis import Basic1DAnalysis
+                from quantify.analysis.base_analysis import BasicAnalysis
 
-                a_obj = Basic1DAnalysis(label="my experiment").run_until(
+                a_obj = BasicAnalysis(label="my experiment").run_until(
                     interrupt_before="extract_data"
                 )
 
@@ -146,8 +146,8 @@ class BaseAnalysis(ABC):
 
             .. jupyter-execute::
 
-                a_obj = Basic1DAnalysis(label="my experiment").run_until(
-                    interrupt_before=Basic1DAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
+                a_obj = BasicAnalysis(label="my experiment").run_until(
+                    interrupt_before=BasicAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
                 )
 
 
