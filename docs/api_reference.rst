@@ -58,15 +58,29 @@ ramsey_analysis
     :members:
     :show-inheritance:
 
+interpolation_analysis
+----------------------
+
+.. automodule:: quantify.analysis.interpolation_analysis
+    :members:
+    :show-inheritance:
+
+optimization_analysis
+----------------------
+
+.. automodule:: quantify.analysis.optimization_analysis
+    :members:
+    :show-inheritance:
+
 allxy_analysis
----------------
+--------------
 
 .. automodule:: quantify.analysis.allxy_analysis
     :members:
     :show-inheritance:
 
 echo_analysis
----------------
+-------------
 
 .. automodule:: quantify.analysis.echo_analysis
     :members:

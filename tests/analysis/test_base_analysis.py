@@ -25,7 +25,7 @@ ba.settings["mpl_fig_formats"] = []
 
 
 # pylint: disable=attribute-defined-outside-init
-class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
+class DummyAnalysisSubclassRaisesA(ba.BasicAnalysis):
     def run(self):
         self.var = False
         self.execute_analysis_steps()
@@ -41,7 +41,8 @@ class DummyAnalysisSubclassRaisesA(ba.Basic1DAnalysis):
 
 
 # pylint: disable=attribute-defined-outside-init
-class DummyAnalysisSubclassArgs(ba.Basic1DAnalysis):
+# pylint: disable=too-few-public-methods
+class DummyAnalysisSubclassArgs(ba.BasicAnalysis):
     def run(self, var=None):
         # pylint: disable=arguments-differ
         if var:
@@ -111,8 +112,8 @@ def test_pass_options(tmp_test_data_dir):
 def test_flow_xlim_all(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     xlim = (0.0, 4.0)
-    step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
-    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
+    step = ba.BasicAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
+    a_obj = ba.BasicAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
     a_obj.adjust_xlim(*xlim)
     a_obj.run_from(step)
 
@@ -123,8 +124,8 @@ def test_flow_xlim_all(tmp_test_data_dir):
 def test_flow_ylim_all(caplog, tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     ylim = (0.0, 0.8)
-    step = ba.Basic1DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
-    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
+    step = ba.BasicAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
+    a_obj = ba.BasicAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
     a_obj.adjust_ylim(*ylim)
     a_obj.run_from(step)
 
@@ -171,23 +172,23 @@ def test_flow_clim_specific(tmp_test_data_dir):
     assert ax.collections[0].get_clim() == clim
 
 
-def test_basic1danalysis_settings_validation(tmp_test_data_dir):
+def test_basic_analysis_settings_validation(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     tuid = TUID_1D_1PLOT
 
     with pytest.raises(ValidationError) as excinfo:
-        _ = ba.Basic1DAnalysis(
+        _ = ba.BasicAnalysis(
             tuid=tuid, settings_overwrite={"mpl_fig_formats": "png"}
         ).run()
 
     assert "'png' is not of type 'array'" in str(excinfo.value)
 
 
-def test_basic1d_analysis(caplog, tmp_test_data_dir):
+def test_basic_analysis(caplog, tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
 
     tuid = TUID_1D_1PLOT
-    a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
+    a_obj = ba.BasicAnalysis(tuid=tuid).run()
 
     # test that the right figures get created.
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
@@ -198,15 +199,15 @@ def test_basic1d_analysis(caplog, tmp_test_data_dir):
         "png",
         "svg",
     ]
-    a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
+    a_obj = ba.BasicAnalysis(tuid=tuid).run()
     ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
 
     # test that the right figures get created.
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
 
     exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
-    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
-    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "analysis_BasicAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_BasicAnalysis")
     assert "figs_mpl" in analysis_dir
 
     log_msgs = [
@@ -225,9 +226,20 @@ def test_basic1d_analysis(caplog, tmp_test_data_dir):
         assert log_msg in str(rec.msg)
 
 
-def test_basic1d_analysis_plot_repeated_pnts(tmp_test_data_dir):
+def test_basic1d_analysis(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_ALLXY).run()
+
+    tuid = TUID_1D_1PLOT
+    with pytest.warns(DeprecationWarning, match="Use `BasicAnalysis`"):
+        a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
+
+    # test that the right figures get created.
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
+
+
+def test_basic_analysis_plot_repeated_pnts(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    a_obj = ba.BasicAnalysis(tuid=TUID_1D_ALLXY).run()
 
     # test that the duplicated setpoints measured are plotted
     assert len(a_obj.axs_mpl["Line plot x0-y0"].lines[0].get_data()[0]) == len(
@@ -285,7 +297,7 @@ def test_basic2d_cyclic_cmap_detection(tmp_test_data_dir):
 
 def test_display_figs(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    a_obj = ba.Basic1DAnalysis(tuid=TUID_1D_2PLOTS).run()
+    a_obj = ba.BasicAnalysis(tuid=TUID_1D_2PLOTS).run()
     a_obj.display_figs_mpl()  # should display figures in the output
 
 
@@ -307,7 +319,7 @@ def test_dataset_input_invalid():
     # no TUID attribute present
 
     with pytest.raises(AttributeError):
-        ba.Basic1DAnalysis(dataset=dset).run()
+        ba.BasicAnalysis(dataset=dset).run()
 
 
 def test_dataset_input(tmp_test_data_dir):
@@ -329,7 +341,7 @@ def test_dataset_input(tmp_test_data_dir):
     dset = dset.set_coords(["x0"])
 
     # execute analysis with dataset as input argument
-    a_obj = ba.Basic1DAnalysis(
+    a_obj = ba.BasicAnalysis(
         dataset=dset, settings_overwrite={"mpl_fig_formats": ["png"]}
     ).run()
 
@@ -339,11 +351,11 @@ def test_dataset_input(tmp_test_data_dir):
     # assert a copy of the dataset was stored to disk.
     assert "dataset.hdf5" in os.listdir(exp_dir)
     # assert figures where stored to disk.
-    assert "analysis_Basic1DAnalysis" in os.listdir(exp_dir)
-    analysis_dir = os.listdir(Path(exp_dir) / "analysis_Basic1DAnalysis")
+    assert "analysis_BasicAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_BasicAnalysis")
     assert "figs_mpl" in analysis_dir
     assert "Line plot x0-y0.png" in os.listdir(
-        Path(exp_dir) / "analysis_Basic1DAnalysis" / "figs_mpl"
+        Path(exp_dir) / "analysis_BasicAnalysis" / "figs_mpl"
     )
 
     # test that the right figures get created.

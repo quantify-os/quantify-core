@@ -25,6 +25,7 @@ The `MC` will then use this function to build the sweep. We import our usual mod
     from quantify.measurement.control import MeasurementControl
     import quantify.visualization.pyqt_plotmon as pqm
     from quantify.visualization.instrument_monitor import InstrumentMonitor
+    import quantify.analysis.optimization_analysis as oa
 
 
 .. include:: set_data_dir.rst.txt
@@ -123,6 +124,31 @@ Of course, this parabola has it's global minimum at the origin, thus these value
 
 
 We can see from the graphs that the values of the settables in the dataset snake towards 0 as expected. Success!
+
+Analysis
+~~~~~~~~~
+
+There are several analysis classes available in quantify which can be used to visualize and extract relevant information from the results of these adaptive measurements. 
+
+The :class:`~quantify.analysis.optimization_analysis.OptimizationAnalysis` class searches the dataset for the optimal datapoint and provides a number of useful plots to visualize the convergence of the measurement result around the minimum.
+
+.. jupyter-execute::
+
+    a_obj = oa.OptimizationAnalysis(dset)
+    a_obj.run()
+    a_obj.display_figs_mpl()
+
+The analysis generates plots of each of the variables versus the number of iteration steps completed. The figures show the data converging on the optimal value.
+
+The :class:`~quantify.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap which interpolates between a set of irregularly spaced datapoints.
+
+.. jupyter-execute::
+
+    from quantify.analysis.interpolation_analysis import InterpolationAnalysis2D
+
+    a_obj = InterpolationAnalysis2D(dset)
+    a_obj.run()
+    a_obj.display_figs_mpl()
 
 Adaptive Sampling
 -----------------

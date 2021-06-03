@@ -19,7 +19,7 @@ from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify.data.types import TUID
 from quantify.measurement.control import MeasurementControl
 import quantify.data.handling as dh
-from quantify.analysis.base_analysis import Basic1DAnalysis
+from quantify.analysis.base_analysis import BasicAnalysis
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 
@@ -543,11 +543,11 @@ def test_load_analysis_output_files(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
 
     # We need to run an analysis first, so the files to be loaded are generated
-    Basic1DAnalysis(tuid=TUID_1D_1PLOT).run()
+    BasicAnalysis(tuid=TUID_1D_1PLOT).run()
 
     assert isinstance(
-        dh.load_quantities_of_interest(TUID_1D_1PLOT, Basic1DAnalysis.__name__), dict
+        dh.load_quantities_of_interest(TUID_1D_1PLOT, BasicAnalysis.__name__), dict
     )
     assert isinstance(
-        dh.load_processed_dataset(TUID_1D_1PLOT, Basic1DAnalysis.__name__), xr.Dataset
+        dh.load_processed_dataset(TUID_1D_1PLOT, BasicAnalysis.__name__), xr.Dataset
     )

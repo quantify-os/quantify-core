@@ -35,7 +35,7 @@
 
         from quantify.analysis import base_analysis as ba
 
-        a_obj = ba.Basic1DAnalysis(tuid=dataset.tuid).run_until(
+        a_obj = ba.BasicAnalysis(tuid=dataset.tuid).run_until(
             interrupt_before="run_fitting"
         )
 
