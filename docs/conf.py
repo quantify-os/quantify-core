@@ -211,6 +211,8 @@ qualname_overrides = {
     "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
 }
 
+autodoc_member_order = "groupwise"
+
 # -- Options for auto documenting typehints ----------------------------
 
 # Please see https://gitlab.com/quantify-os/quantify/-/issues/10 regarding
