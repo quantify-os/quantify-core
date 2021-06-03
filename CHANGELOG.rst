@@ -11,7 +11,7 @@ Merged branches and closed issues
 * Ramsey analysis (!166)
 * Echo analysis (!176)
 * AllXY analysis (!177)
-* Interpolating 2D analysis (!180)
+* Interpolating 2D analysis, Optimization analysis (!180)
 * Allow for unit-aware printing of floats and other values with no error (!167, #193)
 
 0.4.0 (2021-05-10)
