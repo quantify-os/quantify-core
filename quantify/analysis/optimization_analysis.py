@@ -22,7 +22,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         """
         Parameters
         ----------
-        minimize:
+        minimize
             Boolean which determines whether to report the minimum or the maximum.
             True for minimize.
             False for maximize.
@@ -37,55 +37,57 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         return super().run()
 
     def process_data(self):
+        """
+        Finds the optimal (minimum or maximum) for y0 and saves the xi and y0
+        values in the :code:`quantities_of_interest`.
+        """
         text_msg = "Summary\n"
 
         arg_optimum_func = np.argmin if self.minimize else np.argmax
         optimum_func = np.min if self.minimize else np.max
+        optimum_text = "mimimum" if self.minimize else "maximum"
 
         # Go through every y variable and find the optimal point
-        for y_var in self.dataset.data_vars:
-            text_msg += "\n"
-            if self.minimize:
-                optimum_text = "mimimum"
-            else:
-                optimum_text = "maximum"
-            variable_name = self.dataset[y_var].attrs["name"]
-            text_msg += f"{variable_name} {optimum_text}:\n"
+        y_var_name = "y0"
 
-            # Find the optimum for each x coordinate
-            for x_var in self.dataset.coords:
-                optimum = float(
-                    self.dataset[x_var][
-                        arg_optimum_func(self.dataset[y_var].values)
-                    ].values
-                )
+        text_msg += "\n"
+        variable_name = self.dataset[y_var_name].attrs["name"]
+        text_msg += f"{variable_name} {optimum_text}:\n"
 
-                self.quantities_of_interest[self.dataset[x_var].attrs["name"]] = optimum
+        # Find the optimum for each x coordinate
+        for x_var in self.dataset.coords:
+            optimum = float(
+                self.dataset[x_var][
+                    arg_optimum_func(self.dataset[y_var_name].values)
+                ].values
+            )
 
-                text_msg += format_value_string(
-                    self.dataset[x_var].attrs["name"],
-                    optimum,
-                    end_char="\n",
-                    unit=self.dataset[x_var].units,
-                )
-
-            # Find the corresponding optimal y value
-            optimum = float(optimum_func(self.dataset[y_var].values))
-
-            self.quantities_of_interest[self.dataset[y_var].attrs["name"]] = optimum
+            self.quantities_of_interest[self.dataset[x_var].attrs["name"]] = optimum
 
             text_msg += format_value_string(
-                self.dataset[y_var].attrs["name"],
+                self.dataset[x_var].attrs["name"],
                 optimum,
                 end_char="\n",
-                unit=self.dataset[y_var].units,
+                unit=self.dataset[x_var].units,
             )
+
+        # Find the corresponding optimal y value
+        optimum = float(optimum_func(self.dataset[y_var_name].values))
+
+        self.quantities_of_interest[self.dataset[y_var_name].attrs["name"]] = optimum
+
+        text_msg += format_value_string(
+            self.dataset[y_var_name].attrs["name"],
+            optimum,
+            end_char="\n",
+            unit=self.dataset[y_var_name].units,
+        )
 
         self.quantities_of_interest["plot_msg"] = text_msg
 
     def create_figures(self):
         """
-        Plot each of the x variables against each of the y variables
+        Plot each of the x variables against each of the y variables.
         """
 
         figs, axs = iteration_plots(self.dataset, self.quantities_of_interest)
@@ -95,7 +97,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
 
 def iteration_plots(dataset, quantities_of_interest):
     """
-    For every x and y varible, plot a graph of that variable versus the iteration index.
+    For every x and y variable, plot a graph of that variable vs the iteration index.
     """
 
     figs = {}

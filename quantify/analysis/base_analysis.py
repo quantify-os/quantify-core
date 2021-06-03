@@ -633,12 +633,12 @@ class BasicAnalysis(BaseAnalysis):
 
 class Basic1DAnalysis(BasicAnalysis):
     """
-    Alias of :class:`~quantify.analysis.base_analysis.BasicAnalysis`:,
-    used for backwards compatibility
+    Deprecated. Alias of :class:`~quantify.analysis.base_analysis.BasicAnalysis`
+    for backwards compatibility.
     """
 
     def run(self) -> BaseAnalysis:
-        warnings.warn("This class is deprecated. Use `BasicAnalysis`")
+        warnings.warn("Use `BasicAnalysis`", category=DeprecationWarning)
         return super().run()
 
 

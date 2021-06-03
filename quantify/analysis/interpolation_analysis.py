@@ -8,10 +8,12 @@ from quantify.visualization import mpl_plotting as qpl
 
 class InterpolationAnalysis2D(ba.BaseAnalysis):
     """
-    An analysis class which generates a 2D interpolating plot.
+    An analysis class which generates a 2D interpolating plot for each yi variable in
+    the dataset.
     """
 
     def create_figures(self):
+        """Create a 2D interpolating figure for each yi."""
 
         for y_var in self.dataset.data_vars:
             variable_name = self.dataset[y_var].attrs["name"]
