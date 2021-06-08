@@ -211,7 +211,15 @@ qualname_overrides = {
     "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
 }
 
-autodoc_member_order = "groupwise"
+autodoc_default_options = {
+    "members": True,  # equivalent to `:members` under each `.. automodule` or autoclass
+    "member-order": "groupwise",
+}
+
+if os.environ.get("READTHEDOCS", "False") == "False":
+    # for local build and CI force documentation to build for private members
+    # this make sure the docstrings of private members are also correctly formatted, etc
+    autodoc_default_options["private-members"] = True
 
 # -- Options for auto documenting typehints ----------------------------
 
