@@ -28,13 +28,13 @@ QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
 PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
-def gen_tuid(ts: datetime.datetime = None) -> TUID:
+def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
     """
     Generates a :class:`~quantify.data.types.TUID` based on current time.
 
     Parameters
     ----------
-    ts
+    time_stamp
         Optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns
@@ -42,10 +42,10 @@ def gen_tuid(ts: datetime.datetime = None) -> TUID:
     :
         Timestamp based uid.
     """
-    if ts is None:
-        ts = datetime.datetime.now()
-    # ts gives microsecs by default
-    (date_time, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
+    if time_stamp is None:
+        time_stamp = datetime.datetime.now()
+    # time_stamp gives microsecs by default
+    (date_time, micro) = time_stamp.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
     date_time = f"{date_time}{int(int(micro) / 1000):03d}-"
     # the tuid is composed of the timestamp and a 6 character uuid.
@@ -360,8 +360,8 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
     """
     Creates an empty folder to store an experiment container.
 
-    If the folder already exists, simply returns the experiment folder corresponding to the
-    :class:`~quantify.data.types.TUID`.
+    If the folder already exists, simply returns the experiment folder corresponding to
+    the :class:`~quantify.data.types.TUID`.
 
     Parameters
     ----------
@@ -390,6 +390,7 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
     return exp_folder
 
 
+# pylint: disable=too-many-locals
 def initialize_dataset(
     settable_pars: Iterable, setpoints: np.ndarray, gettable_pars: Iterable
 ):
@@ -427,8 +428,9 @@ def initialize_dataset(
     numpoints = len(setpoints[:, 0])
     j = 0
     for getpar in gettable_pars:
-        #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
-        #  so we can iterate through when defining the axis in the dataset
+        # it's possible for one Gettable to return multiple axes. to handle this, zip
+        # the axis info together
+        # so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
             itrbl = zip([getpar.name], [getpar.label], [getpar.unit])
         else:
@@ -638,6 +640,7 @@ def get_latest_tuid(contains: str = "") -> TUID:
     return get_tuids_containing(contains, max_results=1, reverse=True)[0]
 
 
+# pylint: disable=too-many-locals
 def get_tuids_containing(
     contains: str,
     t_start: Union[datetime.datetime, str] = None,
