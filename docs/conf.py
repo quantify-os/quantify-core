@@ -216,7 +216,11 @@ autodoc_default_options = {
     "member-order": "groupwise",
 }
 
-if os.environ.get("READTHEDOCS", "False") == "False":
+# For debugging the CI just add `or True` on the line below
+if os.environ.get("GITLAB_CI", "false") == "true":
+    print(
+        "\n[INFO] Building docs with private-members...\n[INFO] See `conf.py` for details.\n"
+    )
     # for local build and CI force documentation to build for private members
     # this make sure the docstrings of private members are also correctly formatted, etc
     autodoc_default_options["private-members"] = True
