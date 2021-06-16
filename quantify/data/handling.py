@@ -289,7 +289,7 @@ def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
 
         See issue #161 in quantify-core.
         Our (accepted) pull request https://github.com/pydata/xarray/pull/4986
-        Version 0.17.1 will fix the problem but will have breaking changes,
+        Version >0.17.0 will fix the problem but will have breaking changes,
         for now we use this patch.
 
     Parameters

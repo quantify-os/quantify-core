@@ -212,7 +212,6 @@ qualname_overrides = {
 }
 
 autodoc_default_options = {
-    "members": True,  # equivalent to `:members` under each `.. automodule` or autoclass
     "member-order": "groupwise",
 }
 
