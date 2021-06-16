@@ -13,6 +13,7 @@ Merged branches and closed issues
 * AllXY analysis (!177)
 * Interpolating 2D analysis, Optimization analysis (!180)
 * Allow for unit-aware printing of floats and other values with no error (!167, #193)
+* Quantities of interest saving to JSON now supports more types, including ufloat (!164, #152)
 
 0.4.0 (2021-05-10)
 ------------------
