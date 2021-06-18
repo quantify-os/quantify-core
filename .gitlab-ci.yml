@@ -4,9 +4,6 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
 
-services:
-  - docker:dind
-
 .shared-windows-runners:
   tags:
   - shared-windows
@@ -15,7 +12,8 @@ services:
 
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:3.7
+#image: python:3.7
+image: docker:19.03.12
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -23,6 +21,7 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
   QT_QPA_PLATFORM: offscreen
+  DOCKER_HOST: tcp://docker:2375
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -40,6 +39,9 @@ stages:
   - Test
   - Docs build
   - Deploy
+
+services:
+  - docker:19.03.12-dind
 
 # ######################################################################################
 # Reusable code
