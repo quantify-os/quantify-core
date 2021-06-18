@@ -36,6 +36,7 @@ stages:
   - Test
   - Docs build
   - Deploy
+  - Build docker images
 
 # ######################################################################################
 # Reusable code
@@ -319,6 +320,5 @@ build_unix_3.8_image:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
     - docker push $IMAGE_TAG
-  rules:
-    when: manual
-    allow_failure: true
+  when: manual
+  allow_failure: true
