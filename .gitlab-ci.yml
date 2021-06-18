@@ -32,11 +32,11 @@ cache:
     - venv/
 
 stages:
+  - Build docker images
   - Static Analysis
   - Test
   - Docs build
   - Deploy
-  - Build docker images
 
 # ######################################################################################
 # Reusable code
