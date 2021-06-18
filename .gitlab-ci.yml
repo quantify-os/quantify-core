@@ -4,6 +4,9 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
 
+services:
+  - docker:dind
+
 .shared-windows-runners:
   tags:
   - shared-windows
@@ -310,14 +313,14 @@ build_unix_3.8_image:
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
   before_script:
-    - apt update
-    - apt install -y -q apt-transport-https ca-certificates curl gnupg lsb-release
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    - apt update
-    - apt install -y -q docker-ce docker-ce-cli containerd.io
-  script:
+    # - apt update
+    # - apt install -y -q apt-transport-https ca-certificates curl gnupg lsb-release
+    # - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    # - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # - apt update
+    # - apt install -y -q docker-ce docker-ce-cli containerd.io
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
     - docker push $IMAGE_TAG
   when: manual
