@@ -1,5 +1,5 @@
+# pylint: disable=wrong-import-position,unused-import,invalid-name
 #!/usr/bin/env python
-# pylint: disable=wrong-import-position,unused-import
 #
 # Quantify documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  9 13:47:02 2017.
