@@ -54,7 +54,7 @@ def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
     return tuid
 
 
-def get_datadir():
+def get_datadir() -> str:
     """
     Returns the current data directory.
     The data directory can be changed using :func:`~quantify.data.handling.set_datadir`.
