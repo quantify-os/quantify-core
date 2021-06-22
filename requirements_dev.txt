@@ -25,6 +25,8 @@ pre-commit
 scanpydoc>=0.7.1 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
 docutils<0.17 # pinned due to issue #175
 
+numpy<1.21.0 # see quantify-core#221
+
 # quantify-core only
 
 scikit-learn
