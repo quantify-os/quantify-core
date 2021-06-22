@@ -36,7 +36,6 @@ requirements = [
     # used to display the structure of the experiments container in tutorials
     # placed here to avoid errors when users download tutorials
     "directory-tree>=0.0.2",
-    "asteval<0.9.24",  # see quantify-core#
 ]
 
 setup_requirements = [
