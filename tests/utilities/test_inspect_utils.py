@@ -14,3 +14,18 @@ def test_get_classes():
     # Assert
     assert "TUID" in classes
     assert isinstance(classes["TUID"], type)
+
+
+def test_get_functions():
+    # Arrange
+    expected = {
+        "get_members_of_module": inspect_utils.get_members_of_module,
+        "get_classes": inspect_utils.get_classes,
+        "get_functions": inspect_utils.get_functions,
+    }
+
+    # Act
+    functions = inspect_utils.get_functions(inspect_utils)
+
+    # Assert
+    assert functions == expected
