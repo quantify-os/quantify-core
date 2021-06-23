@@ -11,7 +11,10 @@ ENV MPLBACKEND=agg
 SHELL ["/bin/bash", "-c"]
 
 # copy the build context files so that we can get the setup and pip
-COPY . .
+COPY /builds/quantify-os/quantify-core /builds
+
+WORKDIR /builds
+RUN ls
 
 # Print out python version for debugging
 RUN python -V

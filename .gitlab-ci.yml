@@ -320,9 +320,8 @@ build_unix_3.8_image:
     - apt install -y -q docker-ce docker-ce-cli containerd.io
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - env
     - pwd
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 $CI_PROJECT_DIR
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
     - docker push $IMAGE_TAG
   when: manual
   allow_failure: true
