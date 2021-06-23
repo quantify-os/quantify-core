@@ -14,33 +14,14 @@ with open("CHANGELOG.rst") as history_file:
 with open("AUTHORS.rst") as authors_file:
     authors = authors_file.read()
 
-with open("requirements_dev.txt") as test_reqs:
-    test_requirements = test_reqs.read().splitlines()
+with open("requirements_installation.txt") as installation_requirements_file:
+    requirements = installation_requirements_file.read().splitlines()
 
-requirements = [
-    "numpy!=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
-    "qcodes>=0.25.0",
-    "scipy>=1.5.0,!=1.6.0",
-    "h5netcdf",
-    "xarray==0.17.0",  # 0.17.1 will introduce breaking changes, see issue #161
-    "xxhash",
-    "matplotlib",
-    "lmfit",
-    "pyqt5==5.15.1",  # pinned due to #170, https://bugreports.qt.io/browse/PYSIDE-1473
-    "pyqtgraph",
-    "jsonschema",
-    "adaptive",
-    "filelock",
-    "appnope",
-    "uncertainties",
-    # used to display the structure of the experiments container in tutorials
-    # placed here to avoid errors when users download tutorials
-    "directory-tree>=0.0.2",
-]
+with open("requirements_setup.txt") as setup_requirements_file:
+    setup_requirements = setup_requirements_file.read().splitlines()
 
-setup_requirements = [
-    "pytest-runner",
-]
+with open("requirements_dev.txt") as test_requirements_file:
+    test_requirements = test_requirements_file.read().splitlines()
 
 setup(
     author="The Quantify consortium consisting of Qblox and Orange Quantum Systems",

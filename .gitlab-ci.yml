@@ -158,13 +158,13 @@ services:
 #     - .save-test-artifacts
 #     - .run-for-develop-only
 
-test-unix-3.8:
-  stage: Test
-  image: $CI_REGISTRY_IMAGE:python_3.8
-  extends:
-    # - .unix-before-script
-    - .unix-run-pytest
-    - .save-test-artifacts
+# test-unix-3.8:
+#   stage: Test
+#   image: $CI_REGISTRY_IMAGE:python_3.8
+#   extends:
+#     # - .unix-before-script
+#     - .unix-run-pytest
+#     - .save-test-artifacts
 
 # test-unix-latest:
 #   stage: Test
@@ -323,5 +323,5 @@ build_unix_3.8_image:
     - pwd
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
     - docker push $IMAGE_TAG
-  when: manual
+  # when: manual
   allow_failure: true

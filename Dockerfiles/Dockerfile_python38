@@ -10,10 +10,12 @@ ENV MPLBACKEND=agg
 
 SHELL ["/bin/bash", "-c"]
 
-# copy the build context files so that we can get the setup and pip
-COPY /builds/quantify-os/quantify-core /builds
 
-WORKDIR /builds
+WORKDIR /pip_env
+
+COPY requirements_installation.txt requirements_installation.txt
+COPY requirements_dev.txt requirements_dev.txt
+
 RUN ls
 
 # Print out python version for debugging
@@ -28,7 +30,7 @@ RUN apt install -y xvfb
 RUN pwd
 RUN ls
 
-RUN pip install --upgrade --upgrade-strategy eager -e .
+RUN pip install --upgrade --upgrade-strategy eager -r requirements_installation.txt
 RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
 #save the version of the packages installed for CI debugging
 RUN pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
