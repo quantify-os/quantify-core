@@ -8,7 +8,7 @@ ENV TZ=Europe/Amsterdam
 # only necessary for unix that runs with headless display
 ENV MPLBACKEND=agg
 
-CMD [ "/bin/bash" ]
+SHELL ["/bin/bash", "-c"]
 
 # Print out python version for debugging
 RUN python -V
