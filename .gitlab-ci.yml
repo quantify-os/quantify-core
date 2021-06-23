@@ -12,8 +12,7 @@ workflow:
 
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-#image: python:3.7
-image: docker:19.03.12
+image: python:3.7
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -22,6 +21,7 @@ variables:
   QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
   QT_QPA_PLATFORM: offscreen
   DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/reference/pip_install/#caching
@@ -41,7 +41,7 @@ stages:
   - Deploy
 
 services:
-  - docker:19.03.12-dind
+  - docker:dind
 
 # ######################################################################################
 # Reusable code
@@ -149,161 +149,161 @@ services:
   script:
     - pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
-# ######################################################################################
-# Test Unix
-# ######################################################################################
+# # ######################################################################################
+# # Test Unix
+# # ######################################################################################
 
-test-unix-3.7:
-  stage: Test
-  image: "python:3.7"
-  extends:
-    - .unix-before-script
-    - .unix-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
+# test-unix-3.7:
+#   stage: Test
+#   image: "python:3.7"
+#   extends:
+#     - .unix-before-script
+#     - .unix-run-pytest
+#     - .save-test-artifacts
+#     - .run-for-develop-only
 
-test-unix-3.8:
-  stage: Test
-  image: "python:3.8"
-  extends:
-    - .unix-before-script
-    - .unix-run-pytest
-    - .save-test-artifacts
+# test-unix-3.8:
+#   stage: Test
+#   image: "python:3.8"
+#   extends:
+#     - .unix-before-script
+#     - .unix-run-pytest
+#     - .save-test-artifacts
 
-test-unix-latest:
-  stage: Test
-  image: "python:latest"
-  extends:
-    - .unix-before-script
-    - .unix-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-  allow_failure: true
+# test-unix-latest:
+#   stage: Test
+#   image: "python:latest"
+#   extends:
+#     - .unix-before-script
+#     - .unix-run-pytest
+#     - .save-test-artifacts
+#     - .run-for-develop-only
+#   allow_failure: true
 
-alternative-install-unix:
-  needs: []  # allow running in parallel with previous stage
-  stage: Test
-  extends:
-    - .run-for-develop-only
-  script:
-    - *unix_before_script_no_install
-    - python setup.py bdist_wheel
-    # an alternative approach is to install and run:
-    - pip install dist/*
-    # run the command here
-  artifacts:
-    paths:
-      - dist/*.whl
+# alternative-install-unix:
+#   needs: []  # allow running in parallel with previous stage
+#   stage: Test
+#   extends:
+#     - .run-for-develop-only
+#   script:
+#     - *unix_before_script_no_install
+#     - python setup.py bdist_wheel
+#     # an alternative approach is to install and run:
+#     - pip install dist/*
+#     # run the command here
+#   artifacts:
+#     paths:
+#       - dist/*.whl
 
-# ######################################################################################
-# Test Windows
-# ######################################################################################
+# # ######################################################################################
+# # Test Windows
+# # ######################################################################################
 
-test-win-3.7.9:
-  stage: Test
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.7.9
-    - .win-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
+# test-win-3.7.9:
+#   stage: Test
+#   extends:
+#     - .shared-windows-runners
+#     - .win-before-script-3.7.9
+#     - .win-run-pytest
+#     - .save-test-artifacts
+#     - .run-for-develop-only
 
-test-win-3.8.9:
-  stage: Test
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.8.9
-    - .win-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
+# test-win-3.8.9:
+#   stage: Test
+#   extends:
+#     - .shared-windows-runners
+#     - .win-before-script-3.8.9
+#     - .win-run-pytest
+#     - .save-test-artifacts
+#     - .run-for-develop-only
 
-test-win-latest:
-  stage: Test
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-latest
-    - .win-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-  # latest version always allowed to fail due to unforeseen changes
-  allow_failure: true
+# test-win-latest:
+#   stage: Test
+#   extends:
+#     - .shared-windows-runners
+#     - .win-before-script-latest
+#     - .win-run-pytest
+#     - .save-test-artifacts
+#     - .run-for-develop-only
+#   # latest version always allowed to fail due to unforeseen changes
+#   allow_failure: true
 
-# ######################################################################################
-# Docs build Unix
-# ######################################################################################
+# # ######################################################################################
+# # Docs build Unix
+# # ######################################################################################
 
-docs-unix-make-html-3.7:
-  stage: Docs build
-  image: "python:3.7"
-  extends:
-    - .unix-before-script
-    - .docs-unix-and-artifacts
-    - .run-for-develop-only
+# docs-unix-make-html-3.7:
+#   stage: Docs build
+#   image: "python:3.7"
+#   extends:
+#     - .unix-before-script
+#     - .docs-unix-and-artifacts
+#     - .run-for-develop-only
 
-docs-unix-make-html-3.8:
-  stage: Docs build
-  image: "python:3.8"
-  extends:
-    - .unix-before-script
-    - .docs-unix-and-artifacts
-    - .run-for-develop-only
+# docs-unix-make-html-3.8:
+#   stage: Docs build
+#   image: "python:3.8"
+#   extends:
+#     - .unix-before-script
+#     - .docs-unix-and-artifacts
+#     - .run-for-develop-only
 
-docs-unix-make-html-latest:
-  stage: Docs build
-  image: "python:latest"
-  extends:
-    - .unix-before-script
-    - .docs-unix-and-artifacts
-    - .run-for-develop-only
-  # latest version always allowed to fail due to unforeseen changes
-  allow_failure: true
+# docs-unix-make-html-latest:
+#   stage: Docs build
+#   image: "python:latest"
+#   extends:
+#     - .unix-before-script
+#     - .docs-unix-and-artifacts
+#     - .run-for-develop-only
+#   # latest version always allowed to fail due to unforeseen changes
+#   allow_failure: true
 
-# ######################################################################################
-# Docs build Windows
-# ######################################################################################
+# # ######################################################################################
+# # Docs build Windows
+# # ######################################################################################
 
-docs-win-make-html-3.7.9:
-  stage: Docs build
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.7.9
-    - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail since the build was successful with font warnings.
-  # See quantify-core#196
-  allow_failure: true
+# docs-win-make-html-3.7.9:
+#   stage: Docs build
+#   extends:
+#     - .shared-windows-runners
+#     - .win-before-script-3.7.9
+#     - .docs-win-and-artifacts
+#     - .run-for-develop-only
+#   # Allowed to fail since the build was successful with font warnings.
+#   # See quantify-core#196
+#   allow_failure: true
 
-docs-win-make-html-3.8.9:
-  stage: Docs build
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.8.9
-    - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core#182)
-  allow_failure: true
+# docs-win-make-html-3.8.9:
+#   stage: Docs build
+#   extends:
+#     - .shared-windows-runners
+#     - .win-before-script-3.8.9
+#     - .docs-win-and-artifacts
+#     - .run-for-develop-only
+#   # Allowed to fail due to asyncio problems (quantify-core#182)
+#   allow_failure: true
 
-docs-win-make-html-latest:
-  stage: Docs build
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-latest
-    - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core#182)
-  allow_failure: true
+# docs-win-make-html-latest:
+#   stage: Docs build
+#   extends:
+#     - .shared-windows-runners
+#     - .win-before-script-latest
+#     - .docs-win-and-artifacts
+#     - .run-for-develop-only
+#   # Allowed to fail due to asyncio problems (quantify-core#182)
+#   allow_failure: true
 
-# ######################################################################################
-# Static Analysis
-# ######################################################################################
+# # ######################################################################################
+# # Static Analysis
+# # ######################################################################################
 
-black:
-  stage: Static Analysis
-  image: python:3.8
-  extends:
-    - .unix-before-script
-  script:
-    - black --check --fast .
+# black:
+#   stage: Static Analysis
+#   image: python:3.8
+#   extends:
+#     - .unix-before-script
+#   script:
+#     - black --check --fast .
 
 # ######################################################################################
 # Build Docker images
@@ -315,14 +315,15 @@ build_unix_3.8_image:
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
   before_script:
-    # - apt update
-    # - apt install -y -q apt-transport-https ca-certificates curl gnupg lsb-release
-    # - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    # - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    # - apt update
-    # - apt install -y -q docker-ce docker-ce-cli containerd.io
+    - apt update
+    - apt install -y -q apt-transport-https ca-certificates curl gnupg lsb-release
+    - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    - apt update
+    - apt install -y -q docker-ce docker-ce-cli containerd.io
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
+    - env
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
     - docker push $IMAGE_TAG
   when: manual
