@@ -320,7 +320,8 @@ build_unix_3.8_image:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - env
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
+    - pwd
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 $CI_PROJECT_DIR
     - docker push $IMAGE_TAG
   when: manual
   allow_failure: true
