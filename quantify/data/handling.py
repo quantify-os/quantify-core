@@ -121,7 +121,6 @@ def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
     # This will raise a file not found error if no data exists on the specified date
     exp_folders = list(filter(lambda x: tuid in x, os.listdir(daydir)))
     if len(exp_folders) == 0:
-        print(os.listdir(daydir))
         raise FileNotFoundError(f"File with tuid: {tuid} was not found.")
 
     # We assume that the length is 1 as tuid is assumed to be unique
