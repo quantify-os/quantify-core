@@ -323,5 +323,5 @@ build_unix_3.8_image:
     - pwd
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/Dockerfile_python38 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true

@@ -10,13 +10,10 @@ ENV MPLBACKEND=agg
 
 SHELL ["/bin/bash", "-c"]
 
-
 WORKDIR /pip_env
 
 COPY requirements_installation.txt requirements_installation.txt
 COPY requirements_dev.txt requirements_dev.txt
-
-RUN ls
 
 # Print out python version for debugging
 RUN python -V
@@ -26,9 +23,6 @@ RUN source venv/bin/activate
 RUN apt update
 # Sets up a headless display
 RUN apt install -y xvfb
-
-RUN pwd
-RUN ls
 
 RUN pip install --upgrade --upgrade-strategy eager -r requirements_installation.txt
 RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
