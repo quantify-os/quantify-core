@@ -107,11 +107,7 @@ services:
   - python -m pip install --upgrade pip
 
 .unix-before-script:
-  variables:
-    # avoids "sporadic" matplotlib switch to a GUI backend, see e.g. quantify-core!177
-    MPLBACKEND: agg # only necessary for unix that runs with headless display
   before_script:
-    - *unix_before_script_no_install
     - *pip_install_and_freeze
 
 .win-before-script-3.7.9:
@@ -162,13 +158,13 @@ services:
 #     - .save-test-artifacts
 #     - .run-for-develop-only
 
-# test-unix-3.8:
-#   stage: Test
-#   image: "python:3.8"
-#   extends:
-#     - .unix-before-script
-#     - .unix-run-pytest
-#     - .save-test-artifacts
+test-unix-3.8:
+  stage: Test
+  image: $CI_REGISTRY_IMAGE:python_3.8
+  extends:
+    - .unix-before-script
+    - .unix-run-pytest
+    - .save-test-artifacts
 
 # test-unix-latest:
 #   stage: Test
