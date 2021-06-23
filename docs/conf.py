@@ -228,16 +228,7 @@ autodoc_member_order = "groupwise"
 
 # qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
 # here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
-import typing
-
-typing.TYPE_CHECKING = True
-import scipy
-
-# lmfit seem to be importing something from scipy that otherwise does not get imported
-import lmfit
-
-typing.TYPE_CHECKING = False
-
+import lmfit  # related to quantify-core#218 and quantify-core#221
 import qcodes
 
 # When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
