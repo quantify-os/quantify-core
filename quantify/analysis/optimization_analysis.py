@@ -43,44 +43,46 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         """
         text_msg = "Summary\n"
 
-        arg_optimum_func = np.argmin if self.minimize else np.argmax
-        optimum_func = np.min if self.minimize else np.max
+        arg_optimum_function = np.argmin if self.minimize else np.argmax
+        optimum_function = np.min if self.minimize else np.max
         optimum_text = "mimimum" if self.minimize else "maximum"
 
         # Go through every y variable and find the optimal point
-        y_var_name = "y0"
+        y_variable = "y0"
 
         text_msg += "\n"
-        variable_name = self.dataset[y_var_name].attrs["name"]
+        variable_name = self.dataset[y_variable].attrs["name"]
         text_msg += f"{variable_name} {optimum_text}:\n"
 
         # Find the optimum for each x coordinate
-        for x_var in self.dataset.coords:
+        for x_variable in self.dataset.coords:
             optimum = float(
-                self.dataset[x_var][
-                    arg_optimum_func(self.dataset[y_var_name].values)
+                self.dataset[x_variable][
+                    arg_optimum_function(self.dataset[y_variable].values)
                 ].values
             )
 
-            self.quantities_of_interest[self.dataset[x_var].attrs["name"]] = optimum
+            self.quantities_of_interest[
+                self.dataset[x_variable].attrs["name"]
+            ] = optimum
 
             text_msg += format_value_string(
-                self.dataset[x_var].attrs["name"],
+                self.dataset[x_variable].attrs["name"],
                 optimum,
                 end_char="\n",
-                unit=self.dataset[x_var].units,
+                unit=self.dataset[x_variable].units,
             )
 
         # Find the corresponding optimal y value
-        optimum = float(optimum_func(self.dataset[y_var_name].values))
+        optimum = float(optimum_function(self.dataset[y_variable].values))
 
-        self.quantities_of_interest[self.dataset[y_var_name].attrs["name"]] = optimum
+        self.quantities_of_interest[self.dataset[y_variable].attrs["name"]] = optimum
 
         text_msg += format_value_string(
-            self.dataset[y_var_name].attrs["name"],
+            self.dataset[y_variable].attrs["name"],
             optimum,
             end_char="\n",
-            unit=self.dataset[y_var_name].units,
+            unit=self.dataset[y_variable].units,
         )
 
         self.quantities_of_interest["plot_msg"] = text_msg
@@ -103,19 +105,21 @@ def iteration_plots(dataset, quantities_of_interest):
     figs = {}
     axs = {}
     all_variables = list(dataset.coords.items()) + list(dataset.data_vars.items())
-    for var, var_vals in all_variables:
-        var_name = dataset[var].attrs["name"]
+    for variable, values in all_variables:
+        variable_name = dataset[variable].attrs["name"]
 
         fig, ax = plt.subplots()
-        fig_id = f"Line plot {var_name} vs iteration"
+        fig_id = f"Line plot {variable_name} vs iteration"
 
-        ax.plot(var_vals, marker=".", linewidth="0.5", markersize="4.5")
+        ax.plot(values, marker=".", linewidth="0.5", markersize="4.5")
         adjust_axeslabels_SI(ax)
 
-        qpl.set_ylabel(ax, var_name, dataset[var].units)
+        qpl.set_ylabel(ax, variable_name, dataset[variable].units)
         qpl.set_xlabel(ax, "iteration index")
 
-        qpl.set_suptitle_from_dataset(fig, dataset, f"{var_name} vs iteration number:")
+        qpl.set_suptitle_from_dataset(
+            fig, dataset, f"{variable_name} vs iteration number:"
+        )
 
         qpl.plot_textbox(ax, quantities_of_interest["plot_msg"])
 

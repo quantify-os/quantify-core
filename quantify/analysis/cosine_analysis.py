@@ -64,8 +64,8 @@ class CosineAnalysis(ba.BaseAnalysis):
         """
         Checks fit success and populates :code:`quantities_of_interest`.
         """
-        fit_res = self.fit_results["cosine"]
-        fit_warning = ba.check_lmfit(fit_res)
+        fit_result = self.fit_results["cosine"]
+        fit_warning = ba.check_lmfit(fit_result)
 
         # If there is a problem with the fit, display an error message in the text box.
         # Otherwise, display the parameters as normal.
@@ -74,18 +74,18 @@ class CosineAnalysis(ba.BaseAnalysis):
             unit = self.dataset.y0.units
             text_msg = "Summary\n"
             text_msg += format_value_string(
-                r"$f$", fit_res.params["frequency"], end_char="\n", unit="Hz"
+                r"$f$", fit_result.params["frequency"], end_char="\n", unit="Hz"
             )
             text_msg += format_value_string(
-                r"$A$", fit_res.params["amplitude"], unit=unit
+                r"$A$", fit_result.params["amplitude"], unit=unit
             )
         else:
             text_msg = fit_warning
             self.quantities_of_interest["fit_success"] = False
 
         # save values and fit uncertainty
-        for parname in ["frequency", "amplitude"]:
-            self.quantities_of_interest[parname] = ba.lmfit_par_to_ufloat(
-                fit_res.params[parname]
+        for parameter_name in ["frequency", "amplitude"]:
+            self.quantities_of_interest[parameter_name] = ba.lmfit_par_to_ufloat(
+                fit_result.params[parameter_name]
             )
         self.quantities_of_interest["fit_msg"] = text_msg

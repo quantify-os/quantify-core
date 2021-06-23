@@ -15,22 +15,27 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
     def create_figures(self):
         """Create a 2D interpolating figure for each yi."""
 
-        for y_var in self.dataset.data_vars:
-            variable_name = self.dataset[y_var].attrs["name"]
-            unit = self.dataset[y_var].units
+        for y_variable in self.dataset.data_vars:
+            variable_name = self.dataset[y_variable].attrs["name"]
+            unit = self.dataset[y_variable].units
             fig_id = f"{variable_name} interpolating"
 
-            xvals0 = self.dataset["x0"].values
-            xvals1 = self.dataset["x1"].values
-            yvals = self.dataset[y_var].values
+            x_values_0 = self.dataset["x0"].values
+            x_values_1 = self.dataset["x1"].values
+            y_values = self.dataset[y_variable].values
 
             fig, ax = plt.subplots()
             # Interpolated 2D heatmap
-            extent = (min(xvals0), max(xvals0), min(xvals1), max(xvals1))
+            extent = (
+                min(x_values_0),
+                max(x_values_0),
+                min(x_values_1),
+                max(x_values_1),
+            )
             interpolated_datset = interpolate_heatmap(
-                xvals0,
-                xvals1,
-                yvals,
+                x_values_0,
+                x_values_1,
+                y_values,
                 interp_method="linear",
             )
             mappable = ax.imshow(
@@ -43,8 +48,8 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
 
             # Scatter plot of measured datapoints
             ax.plot(
-                xvals0,
-                xvals1,
+                x_values_0,
+                x_values_1,
                 marker=".",
                 linewidth=0.5,
                 linestyle="",

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=wrong-import-position, unused-import, invalid-name
 #
 # Quantify documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  9 13:47:02 2017.
@@ -225,7 +226,9 @@ autodoc_member_order = "groupwise"
 # https://github.com/QCoDeS/Qcodes/pull/2909
 # but the issues popped up again, so this is the best and easier solution so far
 
-# pylint: disable=wrong-import-position,unused-import
+# qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
+# here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
+import lmfit  # related to quantify-core#218 and quantify-core#221
 import qcodes
 
 # When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
