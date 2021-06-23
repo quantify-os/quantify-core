@@ -310,6 +310,7 @@ build_unix_3.8_image:
   image: python:3.8
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
+    DOCKER_BUILDKIT: 1
   before_script:
     - apt update
     - apt install -y -q apt-transport-https ca-certificates curl gnupg lsb-release

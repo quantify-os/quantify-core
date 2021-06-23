@@ -10,6 +10,9 @@ ENV MPLBACKEND=agg
 
 SHELL ["/bin/bash", "-c"]
 
+# copy the build context files so that we can get the setup and pip
+COPY . .
+
 # Print out python version for debugging
 RUN python -V
 RUN pip install virtualenv
