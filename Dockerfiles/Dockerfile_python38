@@ -18,7 +18,8 @@ RUN source venv/bin/activate
 RUN apt update
 # Sets up a headless display
 RUN apt install -y xvfb
-RUN sleep 3
+
+RUN pwd
 
 RUN pip install --upgrade --upgrade-strategy eager -e .
 RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
