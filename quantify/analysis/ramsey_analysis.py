@@ -46,17 +46,15 @@ class RamseyAnalysis(ba.BaseAnalysis):
         # y1 = phase in deg, this unit should always be correct
         assert self.dataset.y1.units == "deg"
 
-        mag = self.dataset.y0
+        magnitude = self.dataset.y0
         # TODO solve NaNs properly when #176 has a solution, pylint: disable=fixme
-        valid_meas = np.logical_not(np.isnan(mag))
-        self.dataset_processed["Magnitude"] = mag[valid_meas]
-        self.dataset_processed["Magnitude"].attrs["name"] = "Magnitude"
-        self.dataset_processed["Magnitude"].attrs["units"] = self.dataset.y0.units
-        self.dataset_processed["Magnitude"].attrs[
-            "long_name"
-        ] = r"Magnitude, $|S_{21}|$"
+        valid_measurement = np.logical_not(np.isnan(magnitude))
+        self.dataset_processed["Magnitude"] = magnitude[valid_measurement]
+        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset_processed.Magnitude.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.Magnitude.attrs["long_name"] = r"Magnitude, $|S_{21}|$"
 
-        self.dataset_processed["x0"] = self.dataset.x0[valid_meas]
+        self.dataset_processed["x0"] = self.dataset.x0[valid_measurement]
         self.dataset_processed = self.dataset_processed.set_coords("x0")
         # replace the default dim_0 with x0
         self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
@@ -68,8 +66,8 @@ class RamseyAnalysis(ba.BaseAnalysis):
         """
         model = fm.DecayOscillationModel()
 
-        magnitude = np.array(self.dataset_processed["Magnitude"])
-        time = np.array(self.dataset_processed.x0)
+        magnitude = self.dataset_processed["Magnitude"].values
+        time = self.dataset_processed.x0.values
         guess = model.guess(magnitude, time=time)
         fit_result = model.fit(magnitude, params=guess, t=time)
 
@@ -169,7 +167,7 @@ class RamseyAnalysis(ba.BaseAnalysis):
             range_casting="real",
         )
 
-        qpl.set_ylabel(ax, r"Output voltage", self.dataset_processed["Magnitude"].units)
+        qpl.set_ylabel(ax, r"Output voltage", self.dataset_processed.Magnitude.units)
         qpl.set_xlabel(
             ax,
             self.dataset_processed.x0.long_name,

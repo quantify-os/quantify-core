@@ -35,12 +35,12 @@ class RabiAnalysis(ba.BaseAnalysis):
         """
         Fits a :class:`~quantify.analysis.fitting_models.RabiModel` to the data.
         """
-        mod = fm.RabiModel()
+        model = fm.RabiModel()
 
-        magnitude = np.array(self.dataset_processed["Magnitude"])
-        drive_amp = np.array(self.dataset_processed.x0)
-        guess = mod.guess(magnitude, drive_amp=drive_amp)
-        fit_result = mod.fit(magnitude, params=guess, x=drive_amp)
+        magnitude = self.dataset_processed["Magnitude"].values
+        drive_amplitude = self.dataset_processed.x0.values
+        guess = model.guess(magnitude, drive_amp=drive_amplitude)
+        fit_result = model.fit(magnitude, params=guess, x=drive_amplitude)
 
         self.fit_results.update({"Rabi_oscillation": fit_result})
 
@@ -76,7 +76,7 @@ class RabiAnalysis(ba.BaseAnalysis):
             text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
 
-        self.quantities_of_interest["Pi-pulse amp"] = ba.lmfit_par_to_ufloat(
+        self.quantities_of_interest["Pi-pulse amplitude"] = ba.lmfit_par_to_ufloat(
             fit_result.params["amp180"]
         )
         self.quantities_of_interest["fit_msg"] = text_msg
