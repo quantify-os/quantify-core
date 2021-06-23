@@ -5,16 +5,19 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Amsterdam
 
-ENV MPLBACKEND=agg # only necessary for unix that runs with headless display
+# only necessary for unix that runs with headless display
+ENV MPLBACKEND=agg
 
 CMD [ "/bin/bash" ]
 
-RUN python -V  # Print out python version for debugging
+# Print out python version for debugging
+RUN python -V
 RUN pip install virtualenv
 RUN virtualenv venv
 RUN source venv/bin/activate
 RUN apt update
-RUN apt install -y xvfb  # Sets up a headless display
+# Sets up a headless display
+RUN apt install -y xvfb
 RUN sleep 3
 
 #RUN pip install --upgrade --upgrade-strategy eager -e .
