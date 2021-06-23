@@ -162,7 +162,7 @@ test-unix-3.8:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
-    - .unix-before-script
+    # - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
 

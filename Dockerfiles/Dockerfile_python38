@@ -20,7 +20,7 @@ RUN apt update
 RUN apt install -y xvfb
 RUN sleep 3
 
-#RUN pip install --upgrade --upgrade-strategy eager -e .
-#RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
-#RUN save the version of the packages installed for CI debugging
-#RUN pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
+RUN pip install --upgrade --upgrade-strategy eager -e .
+RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+RUN save the version of the packages installed for CI debugging
+RUN pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
