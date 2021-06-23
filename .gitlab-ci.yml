@@ -158,13 +158,13 @@ services:
 #     - .save-test-artifacts
 #     - .run-for-develop-only
 
-# test-unix-3.8:
-#   stage: Test
-#   image: $CI_REGISTRY_IMAGE:python_3.8
-#   extends:
-#     # - .unix-before-script
-#     - .unix-run-pytest
-#     - .save-test-artifacts
+test-unix-3.8:
+  stage: Test
+  image: $CI_REGISTRY_IMAGE:python_3.8
+  extends:
+    - .unix-before-script
+    - .unix-run-pytest
+    - .save-test-artifacts
 
 # test-unix-latest:
 #   stage: Test
