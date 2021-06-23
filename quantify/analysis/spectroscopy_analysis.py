@@ -42,13 +42,13 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         Fits a :class:`~quantify.analysis.fitting_models.ResonatorModel` to the data.
         """
 
-        mod = fm.ResonatorModel()
+        model = fm.ResonatorModel()
 
-        S21 = np.array(self.dataset_processed.S21)
-        freq = np.array(self.dataset_processed.x0)
-        guess = mod.guess(S21, f=freq)
+        S21 = self.dataset_processed.S21.values
+        frequency = self.dataset_processed.x0.values
+        guess = model.guess(S21, f=frequency)
 
-        fit_result = mod.fit(S21, params=guess, f=freq)
+        fit_result = model.fit(S21, params=guess, f=frequency)
 
         self.fit_results.update({"hanger_func_complex_SI": fit_result})
 

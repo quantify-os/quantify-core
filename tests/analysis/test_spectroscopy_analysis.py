@@ -9,19 +9,19 @@ from uncertainties.core import Variable
 import quantify.data.handling as dh
 from quantify.analysis import spectroscopy_analysis as sa
 
-frs = [
+fr_list = [
     4482627786.933104,
     4482670162.566818,
     4540287828.70407,
     4576421867.293702,
 ]
-Qls = [
+Ql_list = [
     4983.385483402395,
     4192.005581230714,
     4910.617635185228,
     6437.377871269456,
 ]
-Qes = [
+Qe_list = [
     6606.202849302761,
     7317.398211359418,
     5216.566199947343,
@@ -30,20 +30,20 @@ Qes = [
 
 
 @pytest.fixture(scope="session", autouse=True)
-def analysis_objs(tmp_test_data_dir):
+def analyses(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    tuids = dh.get_tuids_containing(
+    tuid_list = dh.get_tuids_containing(
         "Resonator_id", t_start="20210305", t_stop="20210306"
     )
 
-    a_objs = [sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in tuids]
+    analysis = [sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in tuid_list]
 
-    return a_objs
+    return analysis
 
 
-def test_raw_data_not_in_processed_dataset(analysis_objs):
-    for a_obj in analysis_objs:
-        container = Path(dh.locate_experiment_container(a_obj.tuid))
+def test_raw_data_not_in_processed_dataset(analyses):
+    for analysis in analyses:
+        container = Path(dh.locate_experiment_container(analysis.tuid))
         file_path = (
             container
             / "analysis_ResonatorSpectroscopyAnalysis"
@@ -58,10 +58,10 @@ def test_raw_data_not_in_processed_dataset(analysis_objs):
         assert "S21" in dataset_processed.data_vars.keys()
 
 
-def test_figures_generated(analysis_objs):
+def test_figures_generated(analyses):
     # test that the right figures get created.
-    for a_obj in analysis_objs:
-        assert set(a_obj.figs_mpl.keys()) == {
+    for analysis in analyses:
+        assert set(analysis.figs_mpl.keys()) == {
             "S21-RealImag",
             "S21-MagnPhase",
             "S21-complex",
@@ -69,9 +69,9 @@ def test_figures_generated(analysis_objs):
 
 
 # pylint: disable=invalid-name
-def test_quantities_of_interest(analysis_objs):
-    for a_obj, fr, Ql, Qe in zip(analysis_objs, frs, Qls, Qes):
-        assert set(a_obj.quantities_of_interest.keys()) == {
+def test_quantities_of_interest(analyses):
+    for analysis, fr, Ql, Qe in zip(analyses, fr_list, Ql_list, Qe_list):
+        assert set(analysis.quantities_of_interest.keys()) == {
             "Qi",
             "Qe",
             "Ql",
@@ -82,15 +82,15 @@ def test_quantities_of_interest(analysis_objs):
             "fit_success",
         }
 
-        fitted_freq = a_obj.quantities_of_interest["fr"]
+        fitted_freq = analysis.quantities_of_interest["fr"]
         assert isinstance(fitted_freq, Variable)
         # Tests that the fitted values are correct (to within 5 standard deviations)
-        assert a_obj.quantities_of_interest["fr"].nominal_value == approx(
-            fr, abs=5 * a_obj.quantities_of_interest["fr"].std_dev
+        assert analysis.quantities_of_interest["fr"].nominal_value == approx(
+            fr, abs=5 * analysis.quantities_of_interest["fr"].std_dev
         )
-        assert a_obj.quantities_of_interest["Ql"].nominal_value == approx(
-            Ql, abs=5 * a_obj.quantities_of_interest["Ql"].std_dev
+        assert analysis.quantities_of_interest["Ql"].nominal_value == approx(
+            Ql, abs=5 * analysis.quantities_of_interest["Ql"].std_dev
         )
-        assert a_obj.quantities_of_interest["Qe"].nominal_value == approx(
-            Qe, abs=5 * a_obj.quantities_of_interest["Qe"].std_dev
+        assert analysis.quantities_of_interest["Qe"].nominal_value == approx(
+            Qe, abs=5 * analysis.quantities_of_interest["Qe"].std_dev
         )
