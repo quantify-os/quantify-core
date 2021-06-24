@@ -28,24 +28,24 @@ QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
 PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
-def gen_tuid(ts: datetime.datetime = None) -> TUID:
+def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
     """
     Generates a :class:`~quantify.data.types.TUID` based on current time.
 
     Parameters
     ----------
-    ts: :class:`~datetime.datetime`
-        optional, can be passed to ensure the tuid is based on a specific time.
+    time_stamp
+        Optional, can be passed to ensure the tuid is based on a specific time.
 
     Returns
     -------
-    :class:`~quantify.data.types.TUID`
-        timestamp based uid.
+    :
+        Timestamp based uid.
     """
-    if ts is None:
-        ts = datetime.datetime.now()
-    # ts gives microsecs by default
-    (date_time, micro) = ts.strftime("%Y%m%d-%H%M%S-.%f").split(".")
+    if time_stamp is None:
+        time_stamp = datetime.datetime.now()
+    # time_stamp gives microsecs by default
+    (date_time, micro) = time_stamp.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
     date_time = f"{date_time}{int(int(micro) / 1000):03d}-"
     # the tuid is composed of the timestamp and a 6 character uuid.
@@ -54,22 +54,22 @@ def gen_tuid(ts: datetime.datetime = None) -> TUID:
     return tuid
 
 
-def get_datadir():
+def get_datadir() -> str:
     """
     Returns the current data directory.
-    The data directory can be changed using :func:`~quantify.data.handling.set_datadir`
+    The data directory can be changed using :func:`~quantify.data.handling.set_datadir`.
 
     Returns
     -------
-    str
-        the current data directory
+    :
+        The current data directory.
     """
     set_datadir_import = "from " + this.__name__ + " import set_datadir"
 
     if this._datadir is None or not os.path.isdir(this._datadir):
         raise NotADirectoryError(
-            "The datadir is not valid. Please set the datadir after importing Quantify.\n"
-            "We recommend to settle for a single common data directory for all \n"
+            "The datadir is not valid. Please set the datadir after importing Quantify."
+            "\nWe recommend to settle for a single common data directory for all \n"
             "notebooks/experiments within your measurement setup/PC.\n"
             "E.g. '~/quantify-data' (unix), or 'D:\\Data\\quantify-data' (Windows).\n"
             "The datadir can be changed as follows:\n\n"
@@ -86,8 +86,9 @@ def set_datadir(datadir: str) -> None:
 
     Parameters
     ----------
-    datadir : str
-            path of the data directory. If set to ``None``, resets the datadir to the default datadir (``<top_level>/data``).
+    datadir
+        Path of the data directory. If set to ``None``, resets the datadir to the
+        default datadir (``<top_level>/data``).
     """
     if not os.path.isdir(datadir):
         os.mkdir(datadir)
@@ -101,9 +102,11 @@ def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
     Parameters
     ----------
     tuid
-        a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
+        A :class:`~quantify.data.types.TUID` string. It is also possible to specify only
+        the first part of a tuid.
     datadir
-        path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine the data directory.
+        Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
+        the data directory.
     Returns
     -------
     :
@@ -144,22 +147,26 @@ def load_dataset(
 
     .. tip::
 
-        This method also works when specifying only the first part of a :class:`~quantify.data.types.TUID`.
+        This method also works when specifying only the first part of a
+        :class:`~quantify.data.types.TUID`.
 
     .. note::
 
-        This method uses :func:`~.load_dataset` to ensure the file is closed after loading as datasets are
-        intended to be immutable after performing the initial experiment.
+        This method uses :func:`~.load_dataset` to ensure the file is closed after
+        loading as datasets are intended to be immutable after performing the initial
+        experiment.
 
     Parameters
     ----------
-    tuid : str
-        a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
-    datadir : str
-        path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine the data directory.
+    tuid
+        A :class:`~quantify.data.types.TUID` string. It is also possible to specify only
+        the first part of a tuid.
+    datadir
+        Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
+        the data directory.
     Returns
     -------
-    :class:`xarray.Dataset`
+    :
         The dataset.
     Raises
     ------
@@ -183,12 +190,12 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     Parameters
     ----------
     path
-        path to the dataset
+        Path to the dataset.
 
     Returns
     -------
-    :class:`~xarray.Dataset`
-        the loaded :class:`~xarray.Dataset`
+    :
+        The loaded dataset.
     """
     exceptions = []
     engines = ["h5netcdf", "netcdf4", None]
@@ -275,19 +282,19 @@ def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
     """
     Converts any attribute of :obj:`~numpy.bool_` type to a :obj:`~bool`.
 
-    This is a patch to a bug in :mod:`xarray` 0.17.0.
+    This is a patch to a bug in xarray 0.17.0.
 
     .. seealso::
 
         See issue #161 in quantify-core.
         Our (accepted) pull request https://github.com/pydata/xarray/pull/4986
-        Version 0.17.1 will fix the problem but will have breaking changes,
+        Version >0.17.0 will fix the problem but will have breaking changes,
         for now we use this patch.
 
     Parameters
     ----------
-    dataset: :class:`~xarray.Dataset`
-        the :class:`~xarray.Dataset` to be patched in-place
+    dataset
+        The dataset to be patched in-place.
 
     """
 
@@ -313,9 +320,9 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     Parameters
     ----------
     path
-        path to the file including filename and extension
-    dataset: :class:`~xarray.Dataset`
-        the :class:`~xarray.Dataset` to be written to file.
+        Path to the file including filename and extension
+    dataset
+        The :class:`~xarray.Dataset` to be written to file.
     """
     _xarray_numpy_bool_patch(dataset)  # See issue #161 in quantify-core
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
@@ -327,15 +334,17 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
 
     Parameters
     ----------
-    tuid : str
-        a :class:`~quantify.data.types.TUID` string. It is also possible to specify only the first part of a tuid.
-    datadir : str
-        path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine the data directory.
-    file : str
-        filename to load
+    tuid
+        A :class:`~quantify.data.types.TUID` string. It is also possible to specify only
+        the first part of a tuid.
+    datadir
+        Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
+        the data directory.
+    file
+        Filename to load.
     Returns
     -------
-    dict
+    :
         The snapshot.
     Raises
     ------
@@ -350,22 +359,22 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
     """
     Creates an empty folder to store an experiment container.
 
-    If the folder already exists, simply returns the experiment folder corresponding to the
-    :class:`~quantify.data.types.TUID`.
+    If the folder already exists, simply returns the experiment folder corresponding to
+    the :class:`~quantify.data.types.TUID`.
 
     Parameters
     ----------
-    tuid : :class:`~quantify.data.types.TUID`
-        a timestamp based human-readable unique identifier.
-    name : str
-        optional name to identify the folder
-    datadir : str
+    tuid
+        A timestamp based human-readable unique identifier.
+    name
+        Optional name to identify the folder.
+    datadir
         path of the data directory.
         If ``None``, uses :meth:`~get_datadir` to determine the data directory.
     Returns
     -------
-    str
-        full path of the experiment folder following format:
+    :
+        Full path of the experiment folder following format:
         ``/datadir/YYYYmmDD/YYYYmmDD-HHMMSS-sss-******-name/``.
     """
     TUID.is_valid(tuid)
@@ -380,6 +389,7 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
     return exp_folder
 
 
+# pylint: disable=too-many-locals
 def initialize_dataset(
     settable_pars: Iterable, setpoints: np.ndarray, gettable_pars: Iterable
 ):
@@ -388,16 +398,16 @@ def initialize_dataset(
 
     Parameters
     ----------
-    settable_pars : list
-        a list of M settables
-    setpoints : :class:`numpy.ndarray`
-        an (N*M) array
-    gettable_pars : list
-        a list of gettables
+    settable_pars
+        A list of M settables.
+    setpoints
+        An (N*M) array.
+    gettable_pars
+        A list of gettables.
     Returns
     -------
-    :class:`~xarray.Dataset`
-        the dataset
+    :
+        The dataset.
     """
 
     darrs = []
@@ -417,8 +427,9 @@ def initialize_dataset(
     numpoints = len(setpoints[:, 0])
     j = 0
     for getpar in gettable_pars:
-        #  it's possible for one Gettable to return multiple axes. to handle this, zip the axis info together
-        #  so we can iterate through when defining the axis in the dataset
+        # it's possible for one Gettable to return multiple axes. to handle this, zip
+        # the axis info together
+        # so we can iterate through when defining the axis in the dataset
         if not isinstance(getpar.name, list):
             itrbl = zip([getpar.name], [getpar.label], [getpar.unit])
         else:
@@ -458,12 +469,12 @@ def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
     Parameters
     ----------
-    dataset: :class:`xarray.Dataset`
-        the dataset to resize.
+    dataset
+        The dataset to resize.
     Returns
     -------
-    :class:`~xarray.Dataset`
-        The resized dataset
+    :
+        The resized dataset.
     """
     darrs = []
 
@@ -491,11 +502,11 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
     Parameters
     ----------
-    dataset : :class:`xarray.Dataset`
-        the dataset to trim.
+    dataset
+        The dataset to trim.
     Returns
     -------
-    :class:`xarray.Dataset`
+    :
         The dataset, trimmed and resized if necessary or unchanged.
     """
     coords = tuple(dataset.coords.keys())
@@ -525,36 +536,42 @@ def to_gridded_dataset(
     coords_names: Iterable = None,
 ) -> xr.Dataset:
     """
-    Converts a flattened (a.k.a. "stacked") dataset as the one generated by the :func:`~initialize_dataset`
-    to a dataset in which the measured values are mapped onto a grid in the `xarray` format.
+    Converts a flattened (a.k.a. "stacked") dataset as the one generated by the
+    :func:`~initialize_dataset` to a dataset in which the measured values are mapped
+    onto a grid in the `xarray` format.
 
-    This will be meaningful only if the data itself corresponds to a gridded measurement.
+    This will be meaningful only if the data itself corresponds to a gridded
+    measurement.
 
-    .. note:: Each individual :code:`(x0[i], x1[i], x2[i], ...)` setpoint must be unique.
+    .. note::
+
+        Each individual :code:`(x0[i], x1[i], x2[i], ...)` setpoint must be unique.
 
     Conversions applied:
 
     - The names :code:`"x0", "x1", ...` will correspond to the names of the Dimensions.
-    - The unique values for each of the :code:`x0, x1, ...` Variables are converted to Coordinates.
-    - The :code:`y0, y1, ...` Variables are reshaped into a (multi-)dimensional grid and associated to the Coordinates.
+    - The unique values for each of the :code:`x0, x1, ...` Variables are converted to
+        Coordinates.
+    - The :code:`y0, y1, ...` Variables are reshaped into a (multi-)dimensional grid
+        and associated to the Coordinates.
 
     .. seealso:: :meth:`~quantify.measurement.MeasurementControl.setpoints_grid`
 
     Parameters
     ----------
-    quantify_dataset: :class:`~xarray.Dataset`
-        input dataset in the format generated by the :class:`~initialize_dataset`
+    quantify_dataset
+        Input dataset in the format generated by the :class:`~initialize_dataset`.
     dimension
-        the flattened xarray Dimension
+        The flattened xarray Dimension.
     coords_names
-        optionally specify explicitly which Variables correspond to orthogonal
+        Optionally specify explicitly which Variables correspond to orthogonal
         coordinates, e.g. datasets holds values for :code:`("x0", "x1")` but only "x0"
-        is independent: :code:`to_gridded_dataset(dset, coords_names=["x0"])`
+        is independent: :code:`to_gridded_dataset(dset, coords_names=["x0"])`.
 
     Returns
     -------
-    :class:`~xarray.Dataset`
-        the new dataset
+    :
+        The new dataset.
 
 
     .. include:: ./docstring_examples/quantify.data.handling.to_gridded_dataset.rst.txt
@@ -601,26 +618,28 @@ def get_latest_tuid(contains: str = "") -> TUID:
 
     .. tip::
 
-        This function is similar to :func:`~get_tuids_containing` but is preferred if one is only interested in the
-        most recent :class:`~quantify.data.types.TUID` for performance reasons.
+        This function is similar to :func:`~get_tuids_containing` but is preferred if
+        one is only interested in the most recent :class:`~quantify.data.types.TUID`
+        for performance reasons.
 
     Parameters
     ----------
-    contains : str
-        an optional string contained in the experiment name.
+    contains
+        An optional string contained in the experiment name.
     Returns
     -------
-    :class:`~quantify.data.types.TUID`
-        the latest TUID
+    :
+        The latest TUID.
     Raises
     ------
     FileNotFoundError
-        No data found
+        No data found.
     """
     # `max_results=1, reverse=True` makes sure the tuid is found efficiently asap
     return get_tuids_containing(contains, max_results=1, reverse=True)[0]
 
 
+# pylint: disable=too-many-locals
 def get_tuids_containing(
     contains: str,
     t_start: Union[datetime.datetime, str] = None,
@@ -639,7 +658,7 @@ def get_tuids_containing(
     Parameters
     ----------
     contains
-        a string contained in the experiment name.
+        A string contained in the experiment name.
     t_start
         datetime to search from, inclusive. If a string is specified, it will be
         converted to a datetime object using :obj:`~dateutil.parser.parse`.
@@ -649,17 +668,17 @@ def get_tuids_containing(
         converted to a datetime object using :obj:`~dateutil.parser.parse`.
         If no value is specified, will use the current time as a reference t_stop.
     max_results
-        maximum number of results to return. Defaults to unlimited.
+        Maximum number of results to return. Defaults to unlimited.
     reverse
-        if False, sorts tuids chronologically, if True sorts by most recent.
+        If False, sorts tuids chronologically, if True sorts by most recent.
     Returns
     -------
     list
-        A list of :class:`~quantify.data.types.TUID`: objects
+        A list of :class:`~quantify.data.types.TUID`: objects.
     Raises
     ------
     FileNotFoundError
-        No data found
+        No data found.
     """
     datadir = get_datadir()
     if isinstance(t_start, str):
@@ -715,7 +734,8 @@ def get_tuids_containing(
             # Check for inconsistent folder structure for datasets portability
             if daydir != expname[:8]:
                 raise FileNotFoundError(
-                    f"Experiment container '{expname}' is in wrong day directory '{daydir}'"
+                    f"Experiment container '{expname}' is in wrong day directory "
+                    f"'{daydir}'"
                 )
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
@@ -727,15 +747,16 @@ def get_tuids_containing(
 
 def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
     """
-    State of all instruments setup as a JSON-compatible dictionary (everything that the custom JSON encoder class
-    :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
+    State of all instruments setup as a JSON-compatible dictionary (everything that the
+    custom JSON encoder class :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
 
     Parameters
     ----------
     update
-        if True, first gets all values before filling the snapshot.
+        If True, first gets all values before filling the snapshot.
     clean
-        if True, removes certain keys from the snapshot to create a more readable and compact snapshot.
+        If True, removes certain keys from the snapshot to create a more readable and
+        compact snapshot.
     """
 
     snap = OrderedDict(
@@ -776,20 +797,22 @@ def _xi_and_yi_match(dsets: Iterable) -> bool:
     Checks if all xi and yi data variables in `dsets` match:
 
     Returns `True` only when all these conditions are met:
-        - Same number of xi's
-        - Same number of yi's
-        - Same attributes for xi's across `dsets`
-        - Same attributes for yi's across `dsets`
-        - Same order of the xi's across `dsets`
-        - Same order of the yi's across `dsets`
-    Otherwise returns `False`
+
+    - Same number of xi's
+    - Same number of yi's
+    - Same attributes for xi's across `dsets`
+    - Same attributes for yi's across `dsets`
+    - Same order of the xi's across `dsets`
+    - Same order of the yi's across `dsets`
+
+    Otherwise returns `False`.
     """
     return _vars_match(dsets, var_type="x") and _vars_match(dsets, var_type="y")
 
 
 def _vars_match(dsets: Iterable, var_type="x") -> bool:
     """
-    Checks if all the datasets have matching xi or yi
+    Checks if all the datasets have matching xi or yi.
     """
 
     def get_xi_attrs(dset):
@@ -821,6 +844,7 @@ def _is_batched(obj) -> bool:
 
     Returns
     -------
-        the `.batched` attribute of the settable/gettable `obj`, `False` if not present.
+    :
+        The `.batched` attribute of the settable/gettable `obj`, `False` if not present.
     """
     return getattr(obj, "batched", False)
