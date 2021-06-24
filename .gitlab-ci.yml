@@ -192,28 +192,29 @@ docs-unix-make-html-latest:
 #   stage: Docs build
 #   extends:
 #     - .shared-windows-runners
-#     - .win-before-script-3.7.9
+#     - .pip-install-and-freeze
 #     - .docs-win-and-artifacts
 #     - .run-for-develop-only
 #   # Allowed to fail since the build was successful with font warnings.
 #   # See quantify-core#196
 #   allow_failure: true
 
-# docs-win-make-html-3.8.9:
-#   stage: Docs build
-#   extends:
-#     - .shared-windows-runners
-#     - .win-before-script-3.8.9
-#     - .docs-win-and-artifacts
-#     - .run-for-develop-only
-#   # Allowed to fail due to asyncio problems (quantify-core#182)
-#   allow_failure: true
+docs-win-make-html-3.8.9:
+  stage: Docs build
+  image: $CI_REGISTRY_IMAGE:win_python_3.8
+  extends:
+    - .shared-windows-runners
+    - .pip-install-and-freeze
+    - .docs-win-and-artifacts
+    # - .run-for-develop-only
+  # Allowed to fail due to asyncio problems (quantify-core#182)
+  allow_failure: true
 
 # docs-win-make-html-latest:
 #   stage: Docs build
 #   extends:
 #     - .shared-windows-runners
-#     - .win-before-script-latest
+#     - .pip-install-and-freeze
 #     - .docs-win-and-artifacts
 #     - .run-for-develop-only
 #   # Allowed to fail due to asyncio problems (quantify-core#182)
