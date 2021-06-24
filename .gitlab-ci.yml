@@ -316,7 +316,7 @@ build_win_3.8_image:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/windows/Dockerfile_python38 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python38 .
     - docker push $IMAGE_TAG
   # when: manual
   allow_failure: true
