@@ -39,13 +39,13 @@ class T1Analysis(ba.BaseAnalysis):
         Fits a :class:`~quantify.analysis.fitting_models.ExpDecayModel` to the data.
         """
 
-        mod = fm.ExpDecayModel()
+        model = fm.ExpDecayModel()
 
-        magn = np.array(self.dataset_processed["Magnitude"])
-        delay = np.array(self.dataset_processed.x0)
-        guess = mod.guess(magn, delay=delay)
+        magnitude = self.dataset_processed["Magnitude"].values
+        delay = self.dataset_processed.x0.values
+        guess = model.guess(magnitude, delay=delay)
 
-        fit_result = mod.fit(magn, params=guess, t=delay)
+        fit_result = model.fit(magnitude, params=guess, t=delay)
 
         self.fit_results.update({"exp_decay_func": fit_result})
 
