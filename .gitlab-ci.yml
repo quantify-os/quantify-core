@@ -17,6 +17,7 @@ image: python:3.7
 variables:
   QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
   QT_QPA_PLATFORM: offscreen
+  DOCKER_BUILDKIT: 1
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay
 
@@ -79,11 +80,6 @@ services:
   # save the version of the packages installed for CI debugging
   - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
 
-.upgrade-pip: &upgrade_pip
-  - python -V
-  - python -m pip --version
-  - python -m pip install --upgrade pip
-
 .unix-before-script:
   before_script:
     - *pip_install_and_freeze
@@ -134,7 +130,7 @@ test-unix-3.7:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
 
 test-unix-3.8:
   stage: Test
@@ -151,7 +147,7 @@ test-unix-latest:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
   allow_failure: true
 
 
@@ -198,7 +194,7 @@ docs-unix-make-html-3.7:
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
 
 docs-unix-make-html-3.8:
   stage: Docs build
@@ -206,7 +202,7 @@ docs-unix-make-html-3.8:
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
 
 docs-unix-make-html-latest:
   stage: Docs build
@@ -214,7 +210,7 @@ docs-unix-make-html-latest:
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
   # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
 
@@ -257,13 +253,13 @@ docs-unix-make-html-latest:
 # # Static Analysis
 # # ######################################################################################
 
-black:
-  stage: Static Analysis
-  image: $CI_REGISTRY_IMAGE:python_3.8
-  extends:
-    - .unix-before-script
-  script:
-    - black --check --fast .
+# black:
+#   stage: Static Analysis
+#   image: $CI_REGISTRY_IMAGE:python_3.8
+#   extends:
+#     - .unix-before-script
+#   script:
+#     - black --check --fast .
 
 # ######################################################################################
 # Build Docker images
@@ -274,13 +270,12 @@ build_unix_3.7_image:
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.7
-    DOCKER_BUILDKIT: 1
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python37 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_unix_3.8_image:
@@ -288,13 +283,12 @@ build_unix_3.8_image:
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
-    DOCKER_BUILDKIT: 1
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python38 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_unix_3.9_image:
@@ -302,13 +296,12 @@ build_unix_3.9_image:
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.9
-    DOCKER_BUILDKIT: 1
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python39 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_unix_latest_image:
@@ -316,13 +309,12 @@ build_unix_latest_image:
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_latest
-    DOCKER_BUILDKIT: 1
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python_latest .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_win_3.8_image:
@@ -332,7 +324,6 @@ build_win_3.8_image:
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.8
-    DOCKER_BUILDKIT: 1
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
