@@ -15,17 +15,14 @@ COPY requirements_dev.txt requirements_dev.txt
 RUN echo "Hello World"
 
 # Print out python version for debugging
-# RUN choco install python --version=3.8.9 -y -f
-# RUN $env:PATH+=";C:\Python38;C:\Python38\Scripts"
-# RUN python -V
-# RUN pip install virtualenv
-# RUN virtualenv venv
+RUN python -V
+RUN python -m pip --version
+RUN python -m pip install --upgrade pip
+RUN pip install virtualenv
+RUN virtualenv venv
 # RUN source venv/bin/activate
-# RUN apt update
-# Sets up a headless display
-# RUN apt install -y xvfb
 
-# RUN pip install --upgrade --upgrade-strategy eager -r requirements_installation.txt
-# RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+RUN pip install --upgrade --upgrade-strategy eager -r requirements_installation.txt
+RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
 # #save the version of the packages installed for CI debugging
-# RUN pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
+RUN pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt

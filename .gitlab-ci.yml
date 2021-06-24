@@ -309,9 +309,10 @@ build_win_3.8_image:
   stage: Build docker images
   extends:
     - .shared-windows-runners
-  image: docker:stable
+  image: docker:windowsservercore
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.8
+    DOCKER_HOST: ""
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
