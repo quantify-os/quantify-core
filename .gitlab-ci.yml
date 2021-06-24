@@ -137,7 +137,6 @@ test-win-3.8:
   stage: Test
   image: $CI_REGISTRY_IMAGE:win_python_3.8
   script:
-    - dir C:\python\
     - Get-Childitem -Path C:\ -Include xarray* -Recurse -ErrorAction SilentlyContinue
   extends:
     - .shared-windows-runners
