@@ -87,26 +87,14 @@ services:
 .win-before-script-3.7.9:
   # version 3.7.10 not available on chocolatey
   before_script:
-    - choco install python --version=3.7.9 -y -f
-    - $env:PATH+=";C:\Python37;C:\Python37\Scripts"
-    - *upgrade_pip
     - *pip_install_and_freeze
 
 .win-before-script-3.8.9:
   before_script:
-    - choco install python --version=3.8.9 -y -f
-    - $env:PATH+=";C:\Python38;C:\Python38\Scripts"
-    - *upgrade_pip
     - *pip_install_and_freeze
 
 .win-before-script-latest:
   before_script:
-    # For latest we do not specify a version
-    # choco does not allow to specify a minor version (--version=3.9 does not work)
-    - choco install python -y -f
-    # assume here the latest is 3.9 will fail when a 3.10 is available
-    - $env:PATH+=";C:\Python39;C:\Python39\Scripts"
-    - *upgrade_pip
     - *pip_install_and_freeze
 
 .unix-run-pytest:
