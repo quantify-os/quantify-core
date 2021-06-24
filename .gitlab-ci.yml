@@ -161,7 +161,7 @@ docs-unix-make-html-3.7:
   stage: Docs build
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
-    - .unix-before-script
+    - .pip-install-and-freeze
     - .docs-unix-and-artifacts
     - .run-for-develop-only
 
@@ -169,7 +169,7 @@ docs-unix-make-html-3.8:
   stage: Docs build
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
-    - .unix-before-script
+    - .pip-install-and-freeze
     - .docs-unix-and-artifacts
     - .run-for-develop-only
 
@@ -177,7 +177,7 @@ docs-unix-make-html-latest:
   stage: Docs build
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
-    - .unix-before-script
+    - .pip-install-and-freeze
     - .docs-unix-and-artifacts
     - .run-for-develop-only
   # latest version always allowed to fail due to unforeseen changes
