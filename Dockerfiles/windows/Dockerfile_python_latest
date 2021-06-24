@@ -4,8 +4,6 @@ LABEL maintainer="Quantify Consortium"
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV TZ=Europe/Amsterdam
 
-WORKDIR /pip_env
-
 COPY requirements_installation.txt requirements_installation.txt
 COPY requirements_dev.txt requirements_dev.txt
 
