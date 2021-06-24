@@ -14,8 +14,6 @@ workflow:
 # https://hub.docker.com/r/library/python/tags/
 image: python:3.7
 
-# Change pip's cache directory to be inside the project directory since we can
-# only cache local items.
 variables:
   QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
   QT_QPA_PLATFORM: offscreen
@@ -129,14 +127,14 @@ services:
 # # Test Unix
 # # ######################################################################################
 
-# test-unix-3.7:
-#   stage: Test
-#   image: "python:3.7"
-#   extends:
-#     - .unix-before-script
-#     - .unix-run-pytest
-#     - .save-test-artifacts
-#     - .run-for-develop-only
+test-unix-3.7:
+  stage: Test
+  image: $CI_REGISTRY_IMAGE:python_3.7
+  extends:
+    - .unix-before-script
+    - .unix-run-pytest
+    - .save-test-artifacts
+    # - .run-for-develop-only
 
 test-unix-3.8:
   stage: Test
@@ -146,30 +144,16 @@ test-unix-3.8:
     - .unix-run-pytest
     - .save-test-artifacts
 
-# test-unix-latest:
-#   stage: Test
-#   image: "python:latest"
-#   extends:
-#     - .unix-before-script
-#     - .unix-run-pytest
-#     - .save-test-artifacts
-#     - .run-for-develop-only
-#   allow_failure: true
+test-unix-latest:
+  stage: Test
+  image: $CI_REGISTRY_IMAGE:python_latest
+  extends:
+    - .unix-before-script
+    - .unix-run-pytest
+    - .save-test-artifacts
+    # - .run-for-develop-only
+  allow_failure: true
 
-# alternative-install-unix:
-#   needs: []  # allow running in parallel with previous stage
-#   stage: Test
-#   extends:
-#     - .run-for-develop-only
-#   script:
-#     - *unix_before_script_no_install
-#     - python setup.py bdist_wheel
-#     # an alternative approach is to install and run:
-#     - pip install dist/*
-#     # run the command here
-#   artifacts:
-#     paths:
-#       - dist/*.whl
 
 # # ######################################################################################
 # # Test Windows
@@ -208,31 +192,31 @@ test-unix-3.8:
 # # Docs build Unix
 # # ######################################################################################
 
-# docs-unix-make-html-3.7:
-#   stage: Docs build
-#   image: "python:3.7"
-#   extends:
-#     - .unix-before-script
-#     - .docs-unix-and-artifacts
-#     - .run-for-develop-only
+docs-unix-make-html-3.7:
+  stage: Docs build
+  image: $CI_REGISTRY_IMAGE:python_3.7
+  extends:
+    - .unix-before-script
+    - .docs-unix-and-artifacts
+    # - .run-for-develop-only
 
-# docs-unix-make-html-3.8:
-#   stage: Docs build
-#   image: "python:3.8"
-#   extends:
-#     - .unix-before-script
-#     - .docs-unix-and-artifacts
-#     - .run-for-develop-only
+docs-unix-make-html-3.8:
+  stage: Docs build
+  image: $CI_REGISTRY_IMAGE:python_3.8
+  extends:
+    - .unix-before-script
+    - .docs-unix-and-artifacts
+    # - .run-for-develop-only
 
-# docs-unix-make-html-latest:
-#   stage: Docs build
-#   image: "python:latest"
-#   extends:
-#     - .unix-before-script
-#     - .docs-unix-and-artifacts
-#     - .run-for-develop-only
-#   # latest version always allowed to fail due to unforeseen changes
-#   allow_failure: true
+docs-unix-make-html-latest:
+  stage: Docs build
+  image: $CI_REGISTRY_IMAGE:python_latest
+  extends:
+    - .unix-before-script
+    - .docs-unix-and-artifacts
+    # - .run-for-develop-only
+  # latest version always allowed to fail due to unforeseen changes
+  allow_failure: true
 
 # # ######################################################################################
 # # Docs build Windows
@@ -273,17 +257,31 @@ test-unix-3.8:
 # # Static Analysis
 # # ######################################################################################
 
-# black:
-#   stage: Static Analysis
-#   image: python:3.8
-#   extends:
-#     - .unix-before-script
-#   script:
-#     - black --check --fast .
+black:
+  stage: Static Analysis
+  image: $CI_REGISTRY_IMAGE:python_3.8
+  extends:
+    - .unix-before-script
+  script:
+    - black --check --fast .
 
 # ######################################################################################
 # Build Docker images
 # ######################################################################################
+
+build_unix_3.7_image:
+  stage: Build docker images
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.7
+    DOCKER_BUILDKIT: 1
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python37 .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
 
 build_unix_3.8_image:
   stage: Build docker images
@@ -292,15 +290,53 @@ build_unix_3.8_image:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
     DOCKER_BUILDKIT: 1
   before_script:
-    # - apt update
-    # - apt install -y -q apt-transport-https ca-certificates curl gnupg lsb-release
-    # - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    # - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    # - apt update
-    # - apt install -y -q docker-ce docker-ce-cli containerd.io
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python38 .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
+
+build_unix_3.9_image:
+  stage: Build docker images
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.9
+    DOCKER_BUILDKIT: 1
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python39 .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
+
+build_unix_latest_image:
+  stage: Build docker images
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_latest
+    DOCKER_BUILDKIT: 1
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python_latest .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
+
+build_win_3.8_image:
+  stage: Build docker images
+  extends:
+    - .shared-windows-runners
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.8
+    DOCKER_BUILDKIT: 1
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/windows/Dockerfile_python38 .
     - docker push $IMAGE_TAG
   # when: manual
   allow_failure: true
