@@ -4,23 +4,15 @@ LABEL maintainer="Quantify Consortium"
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV TZ=Europe/Amsterdam
 
-# only necessary for unix that runs with headless display
-ENV MPLBACKEND=agg
-
 WORKDIR /pip_env
 
 COPY requirements_installation.txt requirements_installation.txt
 COPY requirements_dev.txt requirements_dev.txt
 
-RUN echo "Hello World"
-
 # Print out python version for debugging
 RUN python -V
 RUN python -m pip --version
 RUN python -m pip install --upgrade pip
-RUN pip install virtualenv
-RUN virtualenv venv
-# RUN source venv/bin/activate
 
 RUN pip install --upgrade --upgrade-strategy eager -r requirements_installation.txt
 RUN pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt

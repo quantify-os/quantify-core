@@ -71,31 +71,12 @@ services:
     paths:
       - frozen-requirements.txt
 
-# this uses YML anchors syntax to be able to reuse this snippets
-# anchor usage https://docs.gitlab.com/ee/ci/yaml/#anchors
-# Create an anchor called `pip_install_and_freeze`
-.pip-install-and-freeze: &pip_install_and_freeze
+.pip-install-and-freeze:
+  before_script:
   - pip install --upgrade --upgrade-strategy eager -e .
   - pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
   # save the version of the packages installed for CI debugging
   - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
-
-.unix-before-script:
-  before_script:
-    - *pip_install_and_freeze
-
-.win-before-script-3.7.9:
-  # version 3.7.10 not available on chocolatey
-  before_script:
-    - *pip_install_and_freeze
-
-.win-before-script-3.8.9:
-  before_script:
-    - *pip_install_and_freeze
-
-.win-before-script-latest:
-  before_script:
-    - *pip_install_and_freeze
 
 .unix-run-pytest:
   script:
@@ -115,7 +96,7 @@ test-unix-3.7:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
-    - .unix-before-script
+    - .pip-install-and-freeze
     - .unix-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
@@ -124,7 +105,7 @@ test-unix-3.8:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
-    - .unix-before-script
+    - .pip-install-and-freeze
     - .unix-run-pytest
     - .save-test-artifacts
 
@@ -132,7 +113,7 @@ test-unix-latest:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
-    - .unix-before-script
+    - .pip-install-and-freeze
     - .unix-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
@@ -152,14 +133,14 @@ test-unix-latest:
 #     - .save-test-artifacts
 #     - .run-for-develop-only
 
-# test-win-3.8.9:
-#   stage: Test
-#   extends:
-#     - .shared-windows-runners
-#     - .win-before-script-3.8.9
-#     - .win-run-pytest
-#     - .save-test-artifacts
-#     - .run-for-develop-only
+test-win-3.8:
+  stage: Test
+  extends:
+    - .shared-windows-runners
+    - .pip-install-and-freeze
+    - .win-run-pytest
+    - .save-test-artifacts
+    # - .run-for-develop-only
 
 # test-win-latest:
 #   stage: Test
@@ -305,6 +286,23 @@ build_unix_latest_image:
   when: manual
   allow_failure: true
 
+build_win_3.7_image:
+  stage: Build docker images
+  extends:
+    - .shared-windows-runners
+  image: docker:windowsservercore
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.7
+    DOCKER_HOST: ""
+    DOCKER_BUILDKIT: 0
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python37 .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
+
 build_win_3.8_image:
   stage: Build docker images
   extends:
@@ -318,6 +316,40 @@ build_win_3.8_image:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python38 .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
+
+build_win_3.9_image:
+  stage: Build docker images
+  extends:
+    - .shared-windows-runners
+  image: docker:windowsservercore
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.9
+    DOCKER_HOST: ""
+    DOCKER_BUILDKIT: 0
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python39 .
+    - docker push $IMAGE_TAG
+  # when: manual
+  allow_failure: true
+
+build_win_latest_image:
+  stage: Build docker images
+  extends:
+    - .shared-windows-runners
+  image: docker:windowsservercore
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_latest
+    DOCKER_HOST: ""
+    DOCKER_BUILDKIT: 0
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python_latest .
     - docker push $IMAGE_TAG
   # when: manual
   allow_failure: true
