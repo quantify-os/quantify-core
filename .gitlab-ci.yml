@@ -136,10 +136,12 @@ test-unix-latest:
 test-win-3.8:
   stage: Test
   image: $CI_REGISTRY_IMAGE:win_python_3.8
+  script:
+    - Get-Childitem -Path C:\ -Include pip -Recurse -ErrorAction SilentlyContinue
   extends:
     - .shared-windows-runners
-    - .pip-install-and-freeze
-    - .win-run-pytest
+    # - .pip-install-and-freeze
+    # - .win-run-pytest
     - .save-test-artifacts
     # - .run-for-develop-only
 
@@ -302,7 +304,7 @@ build_win_3.7_image:
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python37 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_win_3.8_image:
@@ -319,7 +321,7 @@ build_win_3.8_image:
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python38 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_win_3.9_image:
@@ -336,7 +338,7 @@ build_win_3.9_image:
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python39 .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
 
 build_win_latest_image:
@@ -353,5 +355,5 @@ build_win_latest_image:
   script:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python_latest .
     - docker push $IMAGE_TAG
-  # when: manual
+  when: manual
   allow_failure: true
