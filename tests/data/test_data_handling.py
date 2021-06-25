@@ -16,10 +16,10 @@ import xarray as xr
 import numpy as np
 from qcodes import ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify.data.types import TUID
-from quantify.measurement.control import MeasurementControl
-import quantify.data.handling as dh
-from quantify.analysis.base_analysis import BasicAnalysis
+from quantify_core.data.types import TUID
+from quantify_core.measurement.control import MeasurementControl
+import quantify_core.data.handling as dh
+from quantify_core.analysis.base_analysis import BasicAnalysis
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 

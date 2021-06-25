@@ -135,13 +135,13 @@ stages:
 
 .unix-run-pytest:
   script:
-    - xvfb-run pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - xvfb-run pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
     # send the coverage.xml file to codacy
     - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
 
 .win-run-pytest:
   script:
-    - pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
 # ######################################################################################
 # Test Unix

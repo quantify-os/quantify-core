@@ -23,9 +23,9 @@ We will create a fictional device and showcase how the plot monitor can be used.
     from qcodes.instrument.base import Instrument
     from qcodes.instrument.parameter import Parameter, ManualParameter
 
-    from quantify.measurement import MeasurementControl
-    from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
-    from quantify.data.handling import get_tuids_containing
+    from quantify_core.measurement import MeasurementControl
+    from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
+    from quantify_core.data.handling import get_tuids_containing
 
     # Display any variable or statement on its own line
     from IPython.core.interactiveshell import InteractiveShell
@@ -70,7 +70,7 @@ Instantiate the instruments
 Overview
 --------
 
-There are 3 parameters in the :class:`~quantify.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
+There are 3 parameters in the :class:`~quantify_core.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
 
 Two main parameters determine the datasets being displayed: *tuids* and *tuids_extra*.
 
@@ -88,14 +88,14 @@ The interface is the same for both. The parameters accept a list of tuids or an 
     # plotmon.tuids(["20201124-184709-137-8a5112", "20201124-184716-237-918bee"])
     # plotmon.tuids_extra(["20201124-184722-988-0463d4", "20201124-184729-618-85970f"])
 
-The difference is that the :class:`~quantify.measurement.MeasurementControl` uses `tuids` and overrides them when running measurements.
+The difference is that the :class:`~quantify_core.measurement.MeasurementControl` uses `tuids` and overrides them when running measurements.
 
 
 .. note::
 
     All the datasets must have matching data variables (settables and gettables).
 
-The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the :class:`~quantify.measurement.MeasurementControl` is running.
+The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the :class:`~quantify_core.measurement.MeasurementControl` is running.
 
 .. jupyter-execute::
 

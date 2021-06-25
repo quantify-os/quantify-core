@@ -4,8 +4,8 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
 from pytest import approx
-import quantify.data.handling as dh
-from quantify.analysis import optimization_analysis as oa
+import quantify_core.data.handling as dh
+from quantify_core.analysis import optimization_analysis as oa
 
 tuid_list = ["20210419-170747-902-9c5a05"]
 offset_list = [[0.0008868002631485698, 0.006586920009126688]]

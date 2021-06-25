@@ -10,8 +10,8 @@ from jsonschema import ValidationError
 import pytest
 import lmfit
 import numpy as np
-import quantify.data.handling as dh
-from quantify.analysis import base_analysis as ba
+import quantify_core.data.handling as dh
+from quantify_core.analysis import base_analysis as ba
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"

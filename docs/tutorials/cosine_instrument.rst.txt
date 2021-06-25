@@ -1,7 +1,7 @@
 .. jupyter-execute::
 
     from time import sleep
-    from quantify.analysis.fitting_models import cos_func
+    from quantify_core.analysis.fitting_models import cos_func
 
     # We create an instrument to contain all the parameters of our model to ensure we have proper data logging.
     from qcodes.instrument import Instrument

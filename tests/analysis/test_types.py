@@ -1,5 +1,5 @@
 import pytest
-from quantify.analysis.types import AnalysisSettings
+from quantify_core.analysis.types import AnalysisSettings
 from jsonschema import ValidationError
 
 

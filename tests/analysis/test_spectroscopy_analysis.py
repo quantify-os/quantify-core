@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 from pytest import approx
 from uncertainties.core import Variable
-import quantify.data.handling as dh
-from quantify.analysis import spectroscopy_analysis as sa
+import quantify_core.data.handling as dh
+from quantify_core.analysis import spectroscopy_analysis as sa
 
 fr_list = [
     4482627786.933104,
