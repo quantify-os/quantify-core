@@ -139,13 +139,14 @@ test-win-3.8:
     MSYS_NO_PATHCONV: 1
     PYTEST_COMMAND: 'pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes'
   script:
-    - "docker run -v $(pwd):$(pwd) -w $(pwd) $DOCKER_IMAGE pytest --version"
+    - "docker run -v %cd%:%cd% -w %cd% $DOCKER_IMAGE pytest --version"
   extends:
     - .shared-windows-runners
     # - .pip-install-and-freeze
     # - .win-run-pytest
     - .save-test-artifacts
     # - .run-for-develop-only
+  allow_failure: true
 
 # test-win-latest:
 #   stage: Test
