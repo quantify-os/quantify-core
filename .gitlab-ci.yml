@@ -135,10 +135,10 @@ test-win-3.8:
   variables:
     DOCKER_HOST: ""
     DOCKER_BUILDKIT: 0
-    PYTEST_COMMAND: 'powershell pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes'
+    PYTEST_COMMAND: 'pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes'
     DOCKER_IMAGE: $CI_REGISTRY_IMAGE:win_python_3.8
   script:
-    - docker run -v ${CI_PROJECT_DIR}:"C:\builds" $DOCKER_IMAGE $PYTEST_COMMAND
+    - "docker run -v %cd%:%cd% -w %cd% $DOCKER_IMAGE pytest --version"
   extends:
     - .shared-windows-runners
     # - .pip-install-and-freeze
