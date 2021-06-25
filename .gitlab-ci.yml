@@ -98,13 +98,13 @@ test-unix-3.7:
     - .save-test-artifacts
     - .run-for-develop-only
 
-test-unix-3.8:
-  stage: Test
-  image: $CI_REGISTRY_IMAGE:python_3.8
-  extends:
-    - .pip-install-and-freeze
-    - .unix-run-pytest
-    - .save-test-artifacts
+# test-unix-3.8:
+#   stage: Test
+#   image: $CI_REGISTRY_IMAGE:python_3.8
+#   extends:
+#     - .pip-install-and-freeze
+#     - .unix-run-pytest
+#     - .save-test-artifacts
 
 test-unix-latest:
   stage: Test
@@ -203,16 +203,16 @@ docs-unix-make-html-latest:
 #   # See quantify-core#196
 #   allow_failure: true
 
-docs-win-make-html-3.8.9:
-  stage: Docs build
-  image: $CI_REGISTRY_IMAGE:win_python_3.8
-  extends:
-    - .shared-windows-runners
-    - .pip-install-and-freeze
-    - .docs-win-and-artifacts
-    # - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core#182)
-  allow_failure: true
+# docs-win-make-html-3.8.9:
+#   stage: Docs build
+#   image: $CI_REGISTRY_IMAGE:win_python_3.8
+#   extends:
+#     - .shared-windows-runners
+#     - .pip-install-and-freeze
+#     - .docs-win-and-artifacts
+#     # - .run-for-develop-only
+#   # Allowed to fail due to asyncio problems (quantify-core#182)
+#   allow_failure: true
 
 # docs-win-make-html-latest:
 #   stage: Docs build
