@@ -8,10 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lmfit.parameter import Parameter
 import uncertainties
-from quantify.visualization.SI_utilities import SI_prefix_and_scale_factor
-from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
-from quantify.visualization.SI_utilities import SI_val_to_msg_str
-from quantify.visualization.SI_utilities import (
+from quantify_core.visualization.SI_utilities import SI_prefix_and_scale_factor
+from quantify_core.visualization.SI_utilities import set_xlabel, set_ylabel
+from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
+from quantify_core.visualization.SI_utilities import (
     SafeFormatter,
     format_value_string,
     value_precision,

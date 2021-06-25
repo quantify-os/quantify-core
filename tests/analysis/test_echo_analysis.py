@@ -4,8 +4,8 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
 from uncertainties.core import Variable
-import quantify.data.handling as dh
-from quantify.analysis import echo_analysis as ea
+import quantify_core.data.handling as dh
+from quantify_core.analysis import echo_analysis as ea
 
 tuid_list = ["20210420-001339-580-97bdef"]
 t2_echo_list = [10.00e-6]

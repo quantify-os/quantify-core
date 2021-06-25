@@ -8,8 +8,8 @@ import xarray as xr
 import numpy as np
 from uncertainties.core import Variable
 
-import quantify.data.handling as dh
-from quantify.analysis import rabi_analysis as ra
+import quantify_core.data.handling as dh
+from quantify_core.analysis import rabi_analysis as ra
 
 
 @pytest.fixture(scope="session", autouse=True)

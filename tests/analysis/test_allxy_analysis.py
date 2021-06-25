@@ -4,8 +4,8 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
 
-import quantify.data.handling as dh
-from quantify.analysis import allxy_analysis as aa
+import quantify_core.data.handling as dh
+from quantify_core.analysis import allxy_analysis as aa
 
 
 @pytest.fixture(scope="session", autouse=True)

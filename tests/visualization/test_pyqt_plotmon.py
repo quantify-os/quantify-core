@@ -8,9 +8,9 @@ from distutils.dir_util import copy_tree
 
 import pytest
 import numpy as np
-from quantify.visualization import PlotMonitor_pyqt
-from quantify.data.types import TUID
-import quantify.data.handling as dh
+from quantify_core.visualization import PlotMonitor_pyqt
+from quantify_core.data.types import TUID
+import quantify_core.data.handling as dh
 
 
 @pytest.fixture(scope="function")

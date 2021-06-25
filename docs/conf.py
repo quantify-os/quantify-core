@@ -136,7 +136,7 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = [
-    "quantify.css",
+    "quantify_core.css",
 ]
 
 # Output file base name for HTML help builder.
@@ -209,7 +209,7 @@ blockdiag_html_image_format = "SVG"
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
-    "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
+    "quantify_core.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify_core.visualization.PlotMonitor_pyqt",
 }
 
 autodoc_default_options = {

@@ -5,8 +5,8 @@
 import pytest
 from pytest import approx
 from uncertainties.core import Variable
-import quantify.data.handling as dh
-from quantify.analysis import t1_analysis as ta
+import quantify_core.data.handling as dh
+from quantify_core.analysis import t1_analysis as ta
 
 tuid_list = ["20210322-205253-758-6689"]
 t1_list = [1.07e-5]

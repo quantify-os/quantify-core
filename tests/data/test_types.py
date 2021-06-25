@@ -1,5 +1,5 @@
 from datetime import datetime
-from quantify.data.types import TUID
+from quantify_core.data.types import TUID
 import pytest
 
 
