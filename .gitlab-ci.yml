@@ -133,12 +133,13 @@ test-unix-latest:
 test-win-3.8:
   stage: Test
   variables:
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE:win_python_3.8
     DOCKER_HOST: ""
     DOCKER_BUILDKIT: 0
+    MSYS_NO_PATHCONV: 1
     PYTEST_COMMAND: 'pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes'
-    DOCKER_IMAGE: $CI_REGISTRY_IMAGE:win_python_3.8
   script:
-    - "docker run -v %cd%:%cd% -w %cd% $DOCKER_IMAGE pytest --version"
+    - "docker run -v $(pwd):$(pwd) -w $(pwd) $DOCKER_IMAGE pytest --version"
   extends:
     - .shared-windows-runners
     # - .pip-install-and-freeze
