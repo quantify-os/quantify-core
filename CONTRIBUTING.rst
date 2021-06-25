@@ -44,6 +44,33 @@ After an issue is created, the progress of the issues is tracked on the `GitLab 
 The maintainers will update the state using `labels <https://gitlab.com/quantify-os/quantify-core/-/labels>`_ .
 Once an issue is ready for review a Merge Request can be opened.
 
+Issues workflow
+~~~~~~~~~~~~~~~
+
+The workflow of the issues is managed using the ``State | <state>`` labels that specifies the current state of the issue. These are intended to be used for issues only, and in *exceptional* cases for Merge Requests that have no associated issue.
+
+An issue does not need to go through all the steps. But we differentiate this many to accommodate for the more nuanced cases.
+
+*Progress captain* denotes the the person who is ultimately responsible if any progress is to be made on a specific issue or Merge Request. Note that it can be as simple as asking someone for help/review/merge, or doing these requests again (we are all bandwidth-limited).
+
+.. tip:: Hovering the mouse over each label in GitLab will show these descriptions.
+
+- ``State | 1. Needs refinement``
+    - *Progress captain*: creator of the issue.
+    - The problem in the new issue is not reproducible and/or not clear enough to allow for the design of a solution.
+- ``State | 2. Workable (design)``
+    - *Progress captain*: None.
+    - The problem is recognized and understood. Anyone can pick up the issue. Issues with critical priority will be prioritized by maintainers.
+- ``State | 3. In design...``
+    - *Progress captain*: assignee & creator of the issue/project owners/maintainers/developers/community.
+    - The relevant parties are working to propose and converge on a particular solution/implementation. Issue must have at least one assignee.
+- ``State | 4. Workable (implementation)``
+    - *Progress captain*: None.
+    - The solution is clear. Anyone can pick up the issue implementation.
+- ``State | 5. In progress...``
+    - *Progress captain*: assignee.
+    - The current assignee is actively working on fixing the issue according to the agreed-upon solution and creating a Merge Request.
+
 Merge Request Guidelines
 ------------------------
 
@@ -62,7 +89,7 @@ Before you submit a merge request, check that it meets these guidelines:
         - No degradation in code coverage.
         - Documentation should build.
 
-#. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review. There is a template that you can use when creating a new merge request that you can select in the gitlab interface.
+#. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review. There is a template that you can use when creating a new merge request that you can select in the GitLab interface.
 #. Make sure to keep selected the checkbox `Allow commits from members who can merge to the target branch`. This allows maintainers to `collaborate across forks <https://docs.gitlab.com/ee/user/project/merge_requests/allow_collaboration.html>`_ for fine tunning and small fixes before the merge request is accepted.
 
 Congratulations! The maintainers will now review your work and suggest any necessary changes.
@@ -88,3 +115,36 @@ Thank you very much for your hard work in improving quantify!
 
     N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 
+Merge Requests workflow
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The workflow of the Merge Requests (MRs) is managed using the ``MR State | <state>`` labels that specifies the current state of the MR as described below, and the *progress captain* denotes the same as in the `Issues workflow`_.
+
+.. tip:: Hovering the mouse over each label in GitLab will show these descriptions.
+
+- ``MR State | 1. In progress...``
+    - *Progress captain*: assignee.
+    - MR not ready for complete review. Equivalent to Draft/WIP. The assignee is responsible for asking help/advice by tagging relevant people.
+    - Next state: ``2. Review me!``.
+- ``MR State | 2. Review me!``
+    - *Progress captain*: assignee.
+    - MR was submitted and is ready for a first complete review. Assignee may tag potential reviewers in the comments (do not assign someone without their consent). Maintainers should be tagged in case of a week of inactivity.
+    - Next state: ``3. In review...``.
+- ``MR State | 3. In review...``
+    - *Progress captain*: reviewer.
+    - A reviewer with enough expertise is reviewing the MR (the reviewer should self-assign as such). If there are no concerns so far and the reviewer does not have enough expertise, the ``2. Review me!`` label should be activated again.
+    - Next state: ``4. Change requested`` or ``5. Merge me!``.
+- ``MR State | 4. Change requested``
+    - *Progress captain*: assignee.
+    - Reviewer's comments need to be addressed (comments/code/test/docs/etc.). Conflict with target branch should be addressed carefully.
+    - Next state: ``5. Review me (again)!``.
+- ``MR State | 5. Review me (again)!``
+    - *Progress captain*: assignee & reviewer.
+    - MR is ready for review after addressing the reviewer's concerns. The assignee should request the reviewers for approval. Reviewers should move the MR to the next state.
+    - Next state: ``4. Change requested`` or ``6. Merge me!``.
+- ``MR State | 6. Merge me!``
+    - *Progress captain*: assignee & maintainer.
+    - MR ready to be merged. Assignee should tag maintainers.
+    - Next state: Merged or ``4. Change requested``.
+
+When moving the MRs between states, the next *progress captain* should be tagged in the comments. This is the only reliable way for them to get notified.
