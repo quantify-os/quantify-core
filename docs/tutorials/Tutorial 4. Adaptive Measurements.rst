@@ -16,16 +16,16 @@ Following this Tutorial requires familiarity with the **core concepts** of Quant
 
 We **highly recommended** to first follow :ref:`Tutorial 1. Controlling a basic experiment using MeasurementControl` and :ref:`Tutorial 2. Advanced capabilities of the MeasurementControl`.
 
-In this tutorial, we explore the adaptive functionality of the :class:`~quantify.measurement.MeasurementControl`.
+In this tutorial, we explore the adaptive functionality of the :class:`~quantify_core.measurement.MeasurementControl`.
 With this mode, instead of predefining a grid of values to sweep through, we provide an optimization function and an initial state to the `MC`.
 The `MC` will then use this function to build the sweep. We import our usual modules and setup an `MC` with visualization:
 
 .. jupyter-execute::
 
-    from quantify.measurement.control import MeasurementControl
-    import quantify.visualization.pyqt_plotmon as pqm
-    from quantify.visualization.instrument_monitor import InstrumentMonitor
-    import quantify.analysis.optimization_analysis as oa
+    from quantify_core.measurement.control import MeasurementControl
+    import quantify_core.visualization.pyqt_plotmon as pqm
+    from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+    import quantify_core.analysis.optimization_analysis as oa
 
 
 .. include:: set_data_dir.rst.txt
@@ -130,7 +130,7 @@ Analysis
 
 There are several analysis classes available in quantify which can be used to visualize and extract relevant information from the results of these adaptive measurements. 
 
-The :class:`~quantify.analysis.optimization_analysis.OptimizationAnalysis` class searches the dataset for the optimal datapoint and provides a number of useful plots to visualize the convergence of the measurement result around the minimum.
+The :class:`~quantify_core.analysis.optimization_analysis.OptimizationAnalysis` class searches the dataset for the optimal datapoint and provides a number of useful plots to visualize the convergence of the measurement result around the minimum.
 
 .. jupyter-execute::
 
@@ -140,11 +140,11 @@ The :class:`~quantify.analysis.optimization_analysis.OptimizationAnalysis` class
 
 The analysis generates plots of each of the variables versus the number of iteration steps completed. The figures show the data converging on the optimal value.
 
-The :class:`~quantify.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap which interpolates between a set of irregularly spaced datapoints.
+The :class:`~quantify_core.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap which interpolates between a set of irregularly spaced datapoints.
 
 .. jupyter-execute::
 
-    from quantify.analysis.interpolation_analysis import InterpolationAnalysis2D
+    from quantify_core.analysis.interpolation_analysis import InterpolationAnalysis2D
 
     a_obj = InterpolationAnalysis2D(dset)
     a_obj.run()

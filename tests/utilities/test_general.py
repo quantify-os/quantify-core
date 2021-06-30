@@ -1,4 +1,4 @@
-from quantify.utilities.general import delete_keys_from_dict, make_hash
+from quantify_core.utilities.general import delete_keys_from_dict, make_hash
 
 
 def test_delete_keys_from_dict():

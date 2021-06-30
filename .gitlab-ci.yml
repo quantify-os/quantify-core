@@ -80,10 +80,13 @@ services:
 
 .unix-run-pytest:
   script:
-    - xvfb-run pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - xvfb-run pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
     # send the coverage.xml file to codacy
     - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
 
+.win-run-pytest:
+  script:
+    - pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
 # # ######################################################################################
 # # Test Unix
@@ -98,13 +101,13 @@ test-unix-3.7:
     - .save-test-artifacts
     - .run-for-develop-only
 
-# test-unix-3.8:
-#   stage: Test
-#   image: $CI_REGISTRY_IMAGE:python_3.8
-#   extends:
-#     - .pip-install-and-freeze
-#     - .unix-run-pytest
-#     - .save-test-artifacts
+test-unix-3.8:
+  stage: Test
+  image: $CI_REGISTRY_IMAGE:python_3.8
+  extends:
+    - .pip-install-and-freeze
+    - .unix-run-pytest
+    - .save-test-artifacts
 
 test-unix-latest:
   stage: Test
@@ -121,14 +124,14 @@ test-unix-latest:
 # # Test Windows
 # # ######################################################################################
 
-# test-win-3.7.9:
-#   stage: Test
-#   extends:
-#     - .shared-windows-runners
-#     - .win-before-script-3.7.9
-#     - .win-run-pytest
-#     - .save-test-artifacts
-#     - .run-for-develop-only
+test-win-3.7.9:
+  stage: Test
+  extends:
+    - .shared-windows-runners
+    - .win-before-script-3.7.9
+    - .win-run-pytest
+    - .save-test-artifacts
+    - .run-for-develop-only
 
 test-win-3.8:
   stage: Test
@@ -142,22 +145,22 @@ test-win-3.8:
     - "docker run -v %cd%:%cd% -w %cd% $DOCKER_IMAGE pytest --version"
   extends:
     - .shared-windows-runners
-    # - .pip-install-and-freeze
-    # - .win-run-pytest
+    - .pip-install-and-freeze
+    - .win-run-pytest
     - .save-test-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
   allow_failure: true
 
-# test-win-latest:
-#   stage: Test
-#   extends:
-#     - .shared-windows-runners
-#     - .win-before-script-latest
-#     - .win-run-pytest
-#     - .save-test-artifacts
-#     - .run-for-develop-only
-#   # latest version always allowed to fail due to unforeseen changes
-#   allow_failure: true
+test-win-latest:
+  stage: Test
+  extends:
+    - .shared-windows-runners
+    - .win-before-script-latest
+    - .win-run-pytest
+    - .save-test-artifacts
+    - .run-for-develop-only
+  # latest version always allowed to fail due to unforeseen changes
+  allow_failure: true
 
 # # ######################################################################################
 # # Docs build Unix
@@ -193,49 +196,49 @@ docs-unix-make-html-latest:
 # # Docs build Windows
 # # ######################################################################################
 
-# docs-win-make-html-3.7.9:
-#   stage: Docs build
-#   extends:
-#     - .shared-windows-runners
-#     - .pip-install-and-freeze
-#     - .docs-win-and-artifacts
-#     - .run-for-develop-only
-#   # Allowed to fail since the build was successful with font warnings.
-#   # See quantify-core#196
-#   allow_failure: true
+docs-win-make-html-3.7.9:
+  stage: Docs build
+  extends:
+    - .shared-windows-runners
+    - .pip-install-and-freeze
+    - .docs-win-and-artifacts
+    - .run-for-develop-only
+  # Allowed to fail since the build was successful with font warnings.
+  # See quantify-core#196
+  allow_failure: true
 
-# docs-win-make-html-3.8.9:
-#   stage: Docs build
-#   image: $CI_REGISTRY_IMAGE:win_python_3.8
-#   extends:
-#     - .shared-windows-runners
-#     - .pip-install-and-freeze
-#     - .docs-win-and-artifacts
-#     # - .run-for-develop-only
-#   # Allowed to fail due to asyncio problems (quantify-core#182)
-#   allow_failure: true
+docs-win-make-html-3.8.9:
+  stage: Docs build
+  image: $CI_REGISTRY_IMAGE:win_python_3.8
+  extends:
+    - .shared-windows-runners
+    - .pip-install-and-freeze
+    - .docs-win-and-artifacts
+    # - .run-for-develop-only
+  # Allowed to fail due to asyncio problems (quantify-core#182)
+  allow_failure: true
 
-# docs-win-make-html-latest:
-#   stage: Docs build
-#   extends:
-#     - .shared-windows-runners
-#     - .pip-install-and-freeze
-#     - .docs-win-and-artifacts
-#     - .run-for-develop-only
-#   # Allowed to fail due to asyncio problems (quantify-core#182)
-#   allow_failure: true
+docs-win-make-html-latest:
+  stage: Docs build
+  extends:
+    - .shared-windows-runners
+    - .pip-install-and-freeze
+    - .docs-win-and-artifacts
+    - .run-for-develop-only
+  # Allowed to fail due to asyncio problems (quantify-core#182)
+  allow_failure: true
 
 # # ######################################################################################
 # # Static Analysis
 # # ######################################################################################
 
-# black:
-#   stage: Static Analysis
-#   image: $CI_REGISTRY_IMAGE:python_3.8
-#   extends:
-#     - .unix-before-script
-#   script:
-#     - black --check --fast .
+black:
+  stage: Static Analysis
+  image: $CI_REGISTRY_IMAGE:python_3.8
+  extends:
+    - .unix-before-script
+  script:
+    - black --check --fast .
 
 # ######################################################################################
 # Build Docker images

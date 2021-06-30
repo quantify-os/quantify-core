@@ -1,8 +1,8 @@
 """Tests for analysis fitting models"""
 import pytest
 import numpy as np
-import quantify.data.handling as dh
-from quantify.analysis import fitting_models as fm
+import quantify_core.data.handling as dh
+from quantify_core.analysis import fitting_models as fm
 
 
 def test_resonator_phase_guess(tmp_test_data_dir):

@@ -13,12 +13,12 @@ from scipy import optimize
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify.measurement.control import MeasurementControl, grid_setpoints
-import quantify.data.handling as dh
-from quantify.data.types import TUID
-from quantify.visualization.pyqt_plotmon import PlotMonitor_pyqt
-from quantify.visualization.instrument_monitor import InstrumentMonitor
-from quantify.utilities.experiment_helpers import load_settings_onto_instrument
+from quantify_core.measurement.control import MeasurementControl, grid_setpoints
+import quantify_core.data.handling as dh
+from quantify_core.data.types import TUID
+from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
+from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+from quantify_core.utilities.experiment_helpers import load_settings_onto_instrument
 
 try:
     from adaptive import SKOptLearner

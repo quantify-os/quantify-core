@@ -5,8 +5,8 @@
 import pytest
 from uncertainties.core import Variable, AffineScalarFunc
 
-import quantify.data.handling as dh
-from quantify.analysis import ramsey_analysis as ra
+import quantify_core.data.handling as dh
+from quantify_core.analysis import ramsey_analysis as ra
 
 
 @pytest.fixture(scope="session", autouse=True)
