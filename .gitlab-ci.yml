@@ -138,6 +138,7 @@ test-unix-3.7:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
+    - .pip-install-and-freeze
     - .unix-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
@@ -146,6 +147,7 @@ test-unix-3.8:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
+    - .pip-install-and-freeze
     - .unix-run-pytest
     - .save-test-artifacts
 
@@ -153,6 +155,7 @@ test-unix-latest:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
+    - .pip-install-and-freeze
     - .unix-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
