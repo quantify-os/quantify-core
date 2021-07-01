@@ -1,8 +1,12 @@
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_PIPELINE_SOURCE == "push"'
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: '$CI_OPEN_MERGE_REQUESTS || $CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: always
+
 
 .shared-windows-runners:
   tags:
