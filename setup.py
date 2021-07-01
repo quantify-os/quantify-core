@@ -14,7 +14,7 @@ with open("CHANGELOG.rst") as history_file:
 with open("AUTHORS.rst") as authors_file:
     authors = authors_file.read()
 
-with open("requirements_installation.txt") as installation_requirements_file:
+with open("requirements.txt") as installation_requirements_file:
     requirements = installation_requirements_file.read().splitlines()
 
 with open("requirements_setup.txt") as setup_requirements_file:
