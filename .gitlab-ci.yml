@@ -359,7 +359,7 @@ black:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python37 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python37 .
     - docker push $IMAGE_TAG
 
 build-unix-3.7-image-manual:
@@ -380,7 +380,7 @@ build-unix-3.7-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python38 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python38 .
     - docker push $IMAGE_TAG
 
 
@@ -402,7 +402,7 @@ build-unix-3.8-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python39 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python39 .
     - docker push $IMAGE_TAG
 
 build-unix-3.9-image-manual:
@@ -423,7 +423,7 @@ build-unix-3.9-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python_latest .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python_latest .
     - docker push $IMAGE_TAG
 
 build-unix-latest-image-manual:
@@ -447,7 +447,7 @@ build-unix-latest-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python37 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python37 .
     - docker push $IMAGE_TAG
 
 build-win-3.7-image-manual:
@@ -471,7 +471,7 @@ build-win-3.7-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python38 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python38 .
     - docker push $IMAGE_TAG
 
 build-win-3.8-image-manual:
@@ -495,7 +495,7 @@ build-win-3.8-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python39 .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python39 .
     - docker push $IMAGE_TAG
 
 build-win-3.9-image-manual:
@@ -519,7 +519,7 @@ build-win-3.9-image-nightly:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python_latest .
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python_latest .
     - docker push $IMAGE_TAG
 
 build-win-latest-image-manual:
