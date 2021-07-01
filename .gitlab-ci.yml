@@ -107,9 +107,8 @@ services:
 
 .unix-before-script:
   variables:
-    XDG_RUNTIME_DIR: $CI_PROJECT_DIR/tmp_xdg_runtime_dir  # solves an issue with PyQt5
+    XDG_RUNTIME_DIR: /tmp/runtime-root  # solves an issue with PyQt5
   before_script:
-    - mkdir -p $CI_PROJECT_DIR/tmp_xdg_runtime_dir
     - *pip_install_and_freeze_unix
 
 .win-before-script-3.7.9:
