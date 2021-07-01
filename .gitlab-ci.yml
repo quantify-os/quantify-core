@@ -87,6 +87,8 @@ services:
   - python -m pip install --upgrade pip
 
 .unix-before-script:
+  variables:
+    XDG_RUNTIME_DIR: /tmp/runtime-root
   before_script:
     - *pip_install_and_freeze
 
