@@ -63,7 +63,7 @@ services:
   rules:
     # variable set in GitLab -> CI/CD -> Schedules
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
-      - when: never  # do not run if we are building docker images
+      when: never  # do not run if we are building docker images
     # Only run when merging to develop branch
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
     - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
