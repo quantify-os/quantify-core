@@ -77,6 +77,13 @@ services:
     # variable set in GitLab -> CI/CD -> Schedules
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
 
+.run-always-except-docker-images:
+  rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
+      when: never  # do not run if we are building docker images
+    - when: always
+
 .docs-unix-and-artifacts:
   needs: []  # allow running in parallel with previous stage
   script:
@@ -175,6 +182,7 @@ test-unix-3.8: # no rules, always runs such that a minimal test is done on every
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
+    - .run-always-except-docker-images
 
 test-unix-latest:
   stage: Test Unix
@@ -347,6 +355,8 @@ black:
   image: $CI_REGISTRY_IMAGE:python_3.8
   script:
     - black --check --fast .
+  extends:
+    - .run-always-except-docker-images
 
 # ######################################################################################
 # Build Docker images
