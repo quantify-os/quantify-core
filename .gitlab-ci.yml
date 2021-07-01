@@ -53,6 +53,11 @@ services:
     reports:
       cobertura: coverage.xml
 
+# START rules
+
+# Controlling when a job runs and when not it is a bit messy
+# Every job should be either manual or extend (only) one of the following.
+
 .run-nightly-docker-images-build:
   rules:
     # variable set in GitLab -> CI/CD -> Schedules
@@ -83,6 +88,8 @@ services:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
       when: never  # do not run if we are building docker images
     - when: always
+
+# END rules
 
 .docs-unix-and-artifacts:
   needs: []  # allow running in parallel with previous stage
