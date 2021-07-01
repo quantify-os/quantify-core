@@ -62,6 +62,12 @@ services:
     # variable set in GitLab -> CI/CD -> Schedules
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
 
+.run-nighly-only:
+  # make any job extend from this if it should run only on develop
+  rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
+
 .docs-unix-and-artifacts:
   needs: []  # allow running in parallel with previous stage
   script:
@@ -154,7 +160,7 @@ test-unix-3.7:
     - .save-test-artifacts
     - .run-for-develop-and-nighly-only
 
-test-unix-3.8:
+test-unix-3.8: # no rules, always runs such that a minimal test is done on every push
   stage: Test Unix
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
@@ -192,7 +198,7 @@ test-win-3.7.9-manual:
 test-win-3.7.9-nightly:
   extends:
     - .test-win-3.7.9
-    - .run-for-develop-and-nighly-only
+    - .run-nighly-only
 
 .test-win-3.8.9:
   stage: Test/docs win
@@ -210,7 +216,7 @@ test-win-3.8.9-manual:
 test-win-3.8.9-nightly:
   extends:
     - .test-win-3.8.9
-    - .run-for-develop-and-nighly-only
+    - .run-nighly-only
 
 .test-win-latest:
   stage: Test/docs win
@@ -230,7 +236,7 @@ test-win-latest-manual:
 test-win-latest-nightly:
   extends:
     - .test-win-latest
-    - .run-for-develop-and-nighly-only
+    - .run-nighly-only
 
 # # ######################################################################################
 # # Docs build Unix
@@ -284,6 +290,7 @@ docs-win-make-html-3.7.9-manual:
 docs-win-make-html-3.7.9-nightly:
   extends:
     - .docs-win-make-html-3.7.9
+    - .run-nighly-only
 
 .docs-win-make-html-3.8.9:
   stage: Test/docs win
@@ -302,6 +309,7 @@ docs-win-make-html-3.8.9-manual:
 docs-win-make-html-3.8.9-nightly:
   extends:
     - .docs-win-make-html-3.8.9
+    - .run-nighly-only
 
 .docs-win-make-html-latest:
   stage: Test/docs win
@@ -320,6 +328,7 @@ docs-win-make-html-latest-manual:
 docs-win-make-html-latest-nightly:
   extends:
     - .docs-win-make-html-latest
+    - .run-nighly-only
 
 # # ######################################################################################
 # # Static Analysis
