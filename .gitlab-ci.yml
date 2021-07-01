@@ -33,8 +33,9 @@ cache:
 
 stages:
   - Static Analysis
-  - Test
-  - Docs build
+  - Test Unix
+  - Docs Unix
+  - Test/docs win
   - Deploy
 
 # ######################################################################################
@@ -148,7 +149,7 @@ stages:
 # ######################################################################################
 
 test-unix-3.7:
-  stage: Test
+  stage: Test Unix
   image: "python:3.7"
   extends:
     - .unix-before-script
@@ -157,7 +158,7 @@ test-unix-3.7:
     - .run-for-develop-only
 
 test-unix-3.8:
-  stage: Test
+  stage: Test Unix
   image: "python:3.8"
   extends:
     - .unix-before-script
@@ -165,7 +166,7 @@ test-unix-3.8:
     - .save-test-artifacts
 
 test-unix-latest:
-  stage: Test
+  stage: Test Unix
   image: "python:latest"
   extends:
     - .unix-before-script
@@ -176,7 +177,7 @@ test-unix-latest:
 
 alternative-install-unix:
   needs: []  # allow running in parallel with previous stage
-  stage: Test
+  stage: Test Unix
   extends:
     - .run-for-develop-only
   script:
@@ -194,40 +195,40 @@ alternative-install-unix:
 # ######################################################################################
 
 test-win-3.7.9:
-  stage: Test
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  when: manual
 
 test-win-3.8.9:
-  stage: Test
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  when: manual
 
 test-win-latest:
-  stage: Test
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  when: manual
   # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
 
 # ######################################################################################
-# Docs build Unix
+# Docs Unix Unix
 # ######################################################################################
 
 docs-unix-make-html-3.7:
-  stage: Docs build
+  stage: Docs Unix
   image: "python:3.7"
   extends:
     - .unix-before-script
@@ -235,7 +236,7 @@ docs-unix-make-html-3.7:
     - .run-for-develop-only
 
 docs-unix-make-html-3.8:
-  stage: Docs build
+  stage: Docs Unix
   image: "python:3.8"
   extends:
     - .unix-before-script
@@ -243,7 +244,7 @@ docs-unix-make-html-3.8:
     - .run-for-develop-only
 
 docs-unix-make-html-latest:
-  stage: Docs build
+  stage: Docs Unix
   image: "python:latest"
   extends:
     - .unix-before-script
@@ -253,37 +254,37 @@ docs-unix-make-html-latest:
   allow_failure: true
 
 # ######################################################################################
-# Docs build Windows
+# Docs Unix Windows
 # ######################################################################################
 
 docs-win-make-html-3.7.9:
-  stage: Docs build
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
     - .docs-win-and-artifacts
-    - .run-for-develop-only
+  when: manual
   # Allowed to fail since the build was successful with font warnings.
   # See quantify-core#196
   allow_failure: true
 
 docs-win-make-html-3.8.9:
-  stage: Docs build
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
     - .docs-win-and-artifacts
-    - .run-for-develop-only
+  when: manual
   # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
 
 docs-win-make-html-latest:
-  stage: Docs build
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
     - .docs-win-and-artifacts
-    - .run-for-develop-only
+  when: manual
   # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
 
