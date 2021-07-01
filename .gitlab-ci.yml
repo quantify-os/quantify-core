@@ -431,6 +431,8 @@ build-unix-latest-image-nightly:
     - .build-unix-latest-image
     - .run-nightly-docker-images-build
 
+# Commented out because not being used yet, keeping here for future reference
+
 .build-win-3.7-image:
   stage: Build windows images
   extends:
@@ -445,84 +447,12 @@ build-unix-latest-image-nightly:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python37 .
     - docker push $IMAGE_TAG
 
-build-win-3.7-image-manual:
-  extends:
-    - .build-win-3.7-image
-  when: manual
+# build-win-3.7-image-manual:
+#   extends:
+#     - .build-win-3.7-image
+#   when: manual
 
-build-win-3.7-image-nightly:
-  extends:
-    - .build-win-3.7-image
-    - .run-nightly-docker-images-build
-
-.build-win-3.8-image:
-  stage: Build windows images
-  extends:
-    - .shared-windows-runners
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.8
-    DOCKER_HOST: ""
-    DOCKER_BUILDKIT: 0
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python38 .
-    - docker push $IMAGE_TAG
-
-build-win-3.8-image-manual:
-  extends:
-    - .build-win-3.8-image
-  when: manual
-
-build-win-3.8-image-nightly:
-  extends:
-    - .build-win-3.8-image
-    - .run-nightly-docker-images-build
-
-.build-win-3.9-image:
-  stage: Build windows images
-  extends:
-    - .shared-windows-runners
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.9
-    DOCKER_HOST: ""
-    DOCKER_BUILDKIT: 0
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python39 .
-    - docker push $IMAGE_TAG
-
-build-win-3.9-image-manual:
-  extends:
-    - .build-win-3.9-image
-  when: manual
-
-build-win-3.9-image-nightly:
-  extends:
-    - .build-win-3.9-image
-    - .run-nightly-docker-images-build
-
-.build-win-latest-image:
-  stage: Build windows images
-  extends:
-    - .shared-windows-runners
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_latest
-    DOCKER_HOST: ""
-    DOCKER_BUILDKIT: 0
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python_latest .
-    - docker push $IMAGE_TAG
-
-build-win-latest-image-manual:
-  extends:
-    - .build-win-latest-image
-  when: manual
-
-build-win-latest-image-nightly:
-  extends:
-    - .build-win-latest-image
-    - .run-nightly-docker-images-build
+# build-win-3.7-image-nightly:
+#   extends:
+#     - .build-win-3.7-image
+#     - .run-nightly-docker-images-build
