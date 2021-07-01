@@ -28,12 +28,14 @@ variables:
   DOCKER_DRIVER: overlay
 
 stages:
-  - Build unix images
-  - Build windows images
+  - Build unix images manual
+  - Build unix images nightly
+  - Build windows images manual
   - Static Analysis
   - Test Unix
   - Docs Unix
-  - Test/docs win
+  - Test/docs win manual
+  - Test/docs win nighly
   - Deploy
 
 services:
@@ -206,7 +208,6 @@ test-unix-latest:
 # # ######################################################################################
 
 .test-win-3.7.9:
-  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
@@ -214,17 +215,18 @@ test-unix-latest:
     - .save-test-artifacts
 
 test-win-3.7.9-manual:
+  stage: Test/docs win manual
   extends:
     - .test-win-3.7.9
   when: manual
 
 test-win-3.7.9-nightly:
+  stage: Test/docs win nighly
   extends:
     - .test-win-3.7.9
     - .run-nighly-only
 
 .test-win-3.8.9:
-  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
@@ -232,17 +234,18 @@ test-win-3.7.9-nightly:
     - .save-test-artifacts
 
 test-win-3.8.9-manual:
+  stage: Test/docs win manual
   extends:
     - .test-win-3.8.9
   when: manual
 
 test-win-3.8.9-nightly:
+  stage: Test/docs win nighly
   extends:
     - .test-win-3.8.9
     - .run-nighly-only
 
 .test-win-latest:
-  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
@@ -252,11 +255,13 @@ test-win-3.8.9-nightly:
   allow_failure: true
 
 test-win-latest-manual:
+  stage: Test/docs win manual
   extends:
     - .test-win-latest
   when: manual
 
 test-win-latest-nightly:
+  stage: Test/docs win nighly
   extends:
     - .test-win-latest
     - .run-nighly-only
@@ -296,7 +301,6 @@ docs-unix-make-html-latest:
 # ######################################################################################
 
 .docs-win-make-html-3.7.9:
-  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
@@ -306,17 +310,18 @@ docs-unix-make-html-latest:
   allow_failure: true
 
 docs-win-make-html-3.7.9-manual:
+  stage: Test/docs win manual
   extends:
     - .docs-win-make-html-3.7.9
   when: manual
 
 docs-win-make-html-3.7.9-nightly:
+  stage: Test/docs win nighly
   extends:
     - .docs-win-make-html-3.7.9
     - .run-nighly-only
 
 .docs-win-make-html-3.8.9:
-  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
@@ -325,17 +330,18 @@ docs-win-make-html-3.7.9-nightly:
   allow_failure: true
 
 docs-win-make-html-3.8.9-manual:
+  stage: Test/docs win manual
   extends:
     - .docs-win-make-html-3.8.9
   when: manual
 
 docs-win-make-html-3.8.9-nightly:
+  stage: Test/docs win nighly
   extends:
     - .docs-win-make-html-3.8.9
     - .run-nighly-only
 
 .docs-win-make-html-latest:
-  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
@@ -344,11 +350,13 @@ docs-win-make-html-3.8.9-nightly:
   allow_failure: true
 
 docs-win-make-html-latest-manual:
+  stage: Test/docs win manual
   extends:
     - .docs-win-make-html-latest
   when: manual
 
 docs-win-make-html-latest-nightly:
+  stage: Test/docs win nighly
   extends:
     - .docs-win-make-html-latest
     - .run-nighly-only
@@ -370,7 +378,6 @@ black:
 # ######################################################################################
 
 .build-unix-3.7-image:
-  stage: Build unix images
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.7
@@ -381,17 +388,19 @@ black:
     - docker push $IMAGE_TAG
 
 build-unix-3.7-image-manual:
+  stage: Build unix images manual
   extends:
     - .build-unix-3.7-image
   when: manual
 
 build-unix-3.7-image-nightly:
+  stage: Build unix images nightly
   extends:
     - .build-unix-3.7-image
     - .run-nightly-docker-images-build
 
+
 .build-unix-3.8-image:
-  stage: Build unix images
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
@@ -401,40 +410,20 @@ build-unix-3.7-image-nightly:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python38 .
     - docker push $IMAGE_TAG
 
-
 build-unix-3.8-image-manual:
+  stage: Build unix images manual
   extends:
     - .build-unix-3.8-image
   when: manual
 
 build-unix-3.8-image-nightly:
+  stage: Build unix images nightly
   extends:
     - .build-unix-3.8-image
     - .run-nightly-docker-images-build
 
-.build-unix-3.9-image:
-  stage: Build unix images
-  image: docker:stable
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.9
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python39 .
-    - docker push $IMAGE_TAG
-
-build-unix-3.9-image-manual:
-  extends:
-    - .build-unix-3.9-image
-  when: manual
-
-build-unix-3.9-image-nightly:
-  extends:
-    - .build-unix-3.9-image
-    - .run-nightly-docker-images-build
 
 .build-unix-latest-image:
-  stage: Build unix images
   image: docker:stable
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:python_latest
@@ -445,11 +434,13 @@ build-unix-3.9-image-nightly:
     - docker push $IMAGE_TAG
 
 build-unix-latest-image-manual:
+  stage: Build unix images manual
   extends:
     - .build-unix-latest-image
   when: manual
 
 build-unix-latest-image-nightly:
+  stage: Build unix images nightly
   extends:
     - .build-unix-latest-image
     - .run-nightly-docker-images-build
@@ -457,7 +448,6 @@ build-unix-latest-image-nightly:
 # Commented out because not being used yet, keeping here for future reference
 
 .build-win-3.7-image:
-  stage: Build windows images
   extends:
     - .shared-windows-runners
   variables:
@@ -471,11 +461,13 @@ build-unix-latest-image-nightly:
     - docker push $IMAGE_TAG
 
 # build-win-3.7-image-manual:
+#   stage: Build windows images manual
 #   extends:
 #     - .build-win-3.7-image
 #   when: manual
 
 # build-win-3.7-image-nightly:
+#   stage: Build windows images nightly
 #   extends:
 #     - .build-win-3.7-image
 #     - .run-nightly-docker-images-build
