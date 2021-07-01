@@ -25,8 +25,9 @@ stages:
   - Build unix images
   - Build windows images
   - Static Analysis
-  - Test
-  - Docs build
+  - Test Unix
+  - Docs Unix
+  - Test/docs win
   - Deploy
 
 services:
@@ -132,7 +133,7 @@ services:
 # # ######################################################################################
 
 test-unix-3.7:
-  stage: Test
+  stage: Test Unix
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
     - .unix-before-script
@@ -141,7 +142,7 @@ test-unix-3.7:
     - .run-for-develop-only
 
 test-unix-3.8:
-  stage: Test
+  stage: Test Unix
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
     - .unix-before-script
@@ -149,7 +150,7 @@ test-unix-3.8:
     - .save-test-artifacts
 
 test-unix-latest:
-  stage: Test
+  stage: Test Unix
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
     - .unix-before-script
@@ -163,31 +164,31 @@ test-unix-latest:
 # # ######################################################################################
 
 test-win-3.7.9:
-  stage: Test
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  when: manual
 
 test-win-3.8.9:
-  stage: Test
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  when: manual
 
 test-win-latest:
-  stage: Test
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  when: manual
   # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
 
@@ -196,7 +197,7 @@ test-win-latest:
 # # ######################################################################################
 
 docs-unix-make-html-3.7:
-  stage: Docs build
+  stage: Docs Unix
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
     - .unix-before-script
@@ -204,7 +205,7 @@ docs-unix-make-html-3.7:
     - .run-for-develop-only
 
 docs-unix-make-html-3.8:
-  stage: Docs build
+  stage: Docs Unix
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
     - .unix-before-script
@@ -212,7 +213,7 @@ docs-unix-make-html-3.8:
     - .run-for-develop-only
 
 docs-unix-make-html-latest:
-  stage: Docs build
+  stage: Docs Unix
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
     - .unix-before-script
@@ -221,39 +222,38 @@ docs-unix-make-html-latest:
   # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
 
-# # ######################################################################################
-# # Docs build Windows
-# # ######################################################################################
+# ######################################################################################
+# Docs Unix Windows
+# ######################################################################################
 
 docs-win-make-html-3.7.9:
-  stage: Docs build
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
     - .docs-win-and-artifacts
-    - .run-for-develop-only
+  when: manual
   # Allowed to fail since the build was successful with font warnings.
   # See quantify-core#196
   allow_failure: true
 
 docs-win-make-html-3.8.9:
-  stage: Docs build
-  image: $CI_REGISTRY_IMAGE:win_python_3.8
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
     - .docs-win-and-artifacts
-    - .run-for-develop-only
+  when: manual
   # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
 
 docs-win-make-html-latest:
-  stage: Docs build
+  stage: Test/docs win
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
     - .docs-win-and-artifacts
-    - .run-for-develop-only
+  when: manual
   # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
 
@@ -282,7 +282,6 @@ build_unix_3.7_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python37 .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_unix_3.8_image:
   stage: Build unix images
@@ -295,7 +294,6 @@ build_unix_3.8_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python38 .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_unix_3.9_image:
   stage: Build unix images
@@ -308,7 +306,6 @@ build_unix_3.9_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python39 .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_unix_latest_image:
   stage: Build unix images
@@ -321,7 +318,6 @@ build_unix_latest_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/Dockerfiles/unix/Dockerfile_python_latest .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_win_3.7_image:
   stage: Build windows images
@@ -337,7 +333,6 @@ build_win_3.7_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python37 .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_win_3.8_image:
   stage: Build windows images
@@ -353,7 +348,6 @@ build_win_3.8_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python38 .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_win_3.9_image:
   stage: Build windows images
@@ -369,7 +363,6 @@ build_win_3.9_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python39 .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
 
 build_win_latest_image:
   stage: Build windows images
@@ -385,5 +378,3 @@ build_win_latest_image:
     - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\Dockerfiles\windows\Dockerfile_python_latest .
     - docker push $IMAGE_TAG
   when: manual
-  allow_failure: true
-
