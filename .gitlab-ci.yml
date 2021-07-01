@@ -1,7 +1,9 @@
 workflow:
+  # these rules define if a pipeline will be created for certain events
+  # note that each job needs its on rules that define when it will run
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never
+      when: never  # avoid duplicate pipelines for pushes for branches with a MR opened
     - if: '$CI_OPEN_MERGE_REQUESTS || $CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
@@ -59,14 +61,18 @@ services:
 .run-for-develop-and-nighly-only:
   # make any job extend from this if it should run only on develop
   rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
+      - when: never  # do not run if we are building docker images
     # Only run when merging to develop branch
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
     - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
     # variable set in GitLab -> CI/CD -> Schedules
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
+    - when: always
 
 .run-nighly-only:
-  # make any job extend from this if it should run only on develop
+  # make any job extend from this if it should run only on develop and nightly runs
   rules:
     # variable set in GitLab -> CI/CD -> Schedules
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
