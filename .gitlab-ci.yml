@@ -53,18 +53,14 @@ services:
     # variable set in GitLab -> CI/CD -> Schedules
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
 
-.run-nightly:
-  rules:
-    # variable set in GitLab -> CI/CD -> Schedules
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
-
-.run-for-develop-only:
+.run-for-develop-and-nighly-only:
   # make any job extend from this if it should run only on develop
   rules:
     # Only run when merging to develop branch
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
     - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
-
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
 
 .docs-unix-and-artifacts:
   needs: []  # allow running in parallel with previous stage
@@ -156,8 +152,7 @@ test-unix-3.7:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
 
 test-unix-3.8:
   stage: Test Unix
@@ -166,7 +161,6 @@ test-unix-3.8:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    - .run-nightly
 
 test-unix-latest:
   stage: Test Unix
@@ -175,8 +169,7 @@ test-unix-latest:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
   allow_failure: true
 
 # # ######################################################################################
@@ -199,8 +192,7 @@ test-win-3.7.9-manual:
 test-win-3.7.9-nightly:
   extends:
     - .test-win-3.7.9
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
 
 .test-win-3.8.9:
   stage: Test/docs win
@@ -218,8 +210,7 @@ test-win-3.8.9-manual:
 test-win-3.8.9-nightly:
   extends:
     - .test-win-3.8.9
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
 
 .test-win-latest:
   stage: Test/docs win
@@ -239,8 +230,7 @@ test-win-latest-manual:
 test-win-latest-nightly:
   extends:
     - .test-win-latest
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
 
 # # ######################################################################################
 # # Docs build Unix
@@ -252,8 +242,7 @@ docs-unix-make-html-3.7:
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
 
 docs-unix-make-html-3.8:
   stage: Docs Unix
@@ -261,8 +250,7 @@ docs-unix-make-html-3.8:
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
 
 docs-unix-make-html-latest:
   stage: Docs Unix
@@ -270,8 +258,7 @@ docs-unix-make-html-latest:
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    - .run-for-develop-only
-    - .run-nightly
+    - .run-for-develop-and-nighly-only
   # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
 
@@ -297,7 +284,6 @@ docs-win-make-html-3.7.9-manual:
 docs-win-make-html-3.7.9-nightly:
   extends:
     - .docs-win-make-html-3.7.9
-    - .run-nightly
 
 .docs-win-make-html-3.8.9:
   stage: Test/docs win
@@ -316,7 +302,6 @@ docs-win-make-html-3.8.9-manual:
 docs-win-make-html-3.8.9-nightly:
   extends:
     - .docs-win-make-html-3.8.9
-    - .run-nightly
 
 .docs-win-make-html-latest:
   stage: Test/docs win
@@ -335,7 +320,6 @@ docs-win-make-html-latest-manual:
 docs-win-make-html-latest-nightly:
   extends:
     - .docs-win-make-html-latest
-    - .run-nightly
 
 # # ######################################################################################
 # # Static Analysis
