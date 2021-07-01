@@ -81,19 +81,14 @@ services:
   # save the version of the packages installed for CI debugging
   - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
 
-.unix-before-script-no-install: &unix_before_script_no_install
-  - python -V  # Print out python version for debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - apt update
-  - apt install -y xvfb  # Sets up a headless display
-  - sleep 3
-
 .upgrade-pip: &upgrade_pip
   - python -V
   - python -m pip --version
   - python -m pip install --upgrade pip
+
+.unix-before-script:
+  before_script:
+    - *pip_install_and_freeze
 
 .win-before-script-3.7.9:
   # version 3.7.10 not available on chocolatey
@@ -138,7 +133,7 @@ test-unix-3.7:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
-    - .pip-install-and-freeze
+    - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
@@ -147,7 +142,7 @@ test-unix-3.8:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
-    - .pip-install-and-freeze
+    - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
 
@@ -155,7 +150,7 @@ test-unix-latest:
   stage: Test
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
-    - .pip-install-and-freeze
+    - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
     - .run-for-develop-only
@@ -202,7 +197,7 @@ docs-unix-make-html-3.7:
   stage: Docs build
   image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
-    - .pip-install-and-freeze
+    - .unix-before-script
     - .docs-unix-and-artifacts
     - .run-for-develop-only
 
@@ -210,7 +205,7 @@ docs-unix-make-html-3.8:
   stage: Docs build
   image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
-    - .pip-install-and-freeze
+    - .unix-before-script
     - .docs-unix-and-artifacts
     - .run-for-develop-only
 
@@ -218,7 +213,7 @@ docs-unix-make-html-latest:
   stage: Docs build
   image: $CI_REGISTRY_IMAGE:python_latest
   extends:
-    - .pip-install-and-freeze
+    - .unix-before-script
     - .docs-unix-and-artifacts
     - .run-for-develop-only
   # latest version always allowed to fail due to unforeseen changes
@@ -232,7 +227,7 @@ docs-win-make-html-3.7.9:
   stage: Docs build
   extends:
     - .shared-windows-runners
-    - .pip-install-and-freeze
+    - .win-before-script-3.7.9
     - .docs-win-and-artifacts
     - .run-for-develop-only
   # Allowed to fail since the build was successful with font warnings.
@@ -244,9 +239,9 @@ docs-win-make-html-3.8.9:
   image: $CI_REGISTRY_IMAGE:win_python_3.8
   extends:
     - .shared-windows-runners
-    - .pip-install-and-freeze
+    - .win-before-script-3.8.9
     - .docs-win-and-artifacts
-    # - .run-for-develop-only
+    - .run-for-develop-only
   # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
 
@@ -254,7 +249,7 @@ docs-win-make-html-latest:
   stage: Docs build
   extends:
     - .shared-windows-runners
-    - .pip-install-and-freeze
+    - .win-before-script-latest
     - .docs-win-and-artifacts
     - .run-for-develop-only
   # Allowed to fail due to asyncio problems (quantify-core#182)
@@ -263,279 +258,6 @@ docs-win-make-html-latest:
 # # ######################################################################################
 # # Static Analysis
 # # ######################################################################################
-
-black:
-  stage: Static Analysis
-  image: $CI_REGISTRY_IMAGE:python_3.8
-  script:
-    - black --check --fast .
-
-workflow:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
-
-.shared-windows-runners:
-  tags:
-  - shared-windows
-  - windows
-  - windows-1809
-
-# Official language image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python/tags/
-image: python:3.7
-
-variables:
-  QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
-  QT_QPA_PLATFORM: offscreen
-  DOCKER_BUILDKIT: 1
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay
-
-stages:
-  - Build unix images
-  - Build windows images
-  - Static Analysis
-  - Test
-  - Docs build
-  - Deploy
-
-services:
-  - docker:dind
-
-# ######################################################################################
-# Reusable code
-# ######################################################################################
-
-.save-test-artifacts:
-  needs: []  # allow running in parallel with previous stage
-  artifacts:
-    paths:
-      - htmlcov
-      - coverage.xml
-      - frozen-requirements.txt
-    reports:
-      cobertura: coverage.xml
-    when: always
-
-.run-for-develop-only:
-  # make any job extend from this if it should run only on develop
-  rules:
-    # Only run when merging to develop branch
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
-
-.docs-unix-and-artifacts:
-  needs: []  # allow running in parallel with previous stage
-  script:
-    - cd docs
-    - make html
-  artifacts:
-    paths:
-      - frozen-requirements.txt
-
-.docs-win-and-artifacts:
-  needs: []  # allow running in parallel with previous stage
-  script:
-    - cd docs
-    - .\make.bat html
-  artifacts:
-    paths:
-      - frozen-requirements.txt
-
-# this uses YML anchors syntax to be able to reuse this snippets
-# anchor usage https://docs.gitlab.com/ee/ci/yaml/#anchors
-# Create an anchor called `pip_install_and_freeze`
-.pip-install-and-freeze: &pip_install_and_freeze
-  - pip install --upgrade --upgrade-strategy eager -e .
-  - pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
-  # save the version of the packages installed for CI debugging
-  - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
-
-.unix-before-script-no-install: &unix_before_script_no_install
-  - python -V  # Print out python version for debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - apt update
-  - apt install -y xvfb  # Sets up a headless display
-  - sleep 3
-
-.upgrade-pip: &upgrade_pip
-  - python -V
-  - python -m pip --version
-  - python -m pip install --upgrade pip
-
-.unix-before-script:
-  variables:
-    # avoids "sporadic" matplotlib switch to a GUI backend, see e.g. quantify-core!177
-    MPLBACKEND: agg # only necessary for unix that runs with headless display
-  before_script:
-    - *unix_before_script_no_install
-    - *pip_install_and_freeze
-
-.win-before-script-3.7.9:
-  # version 3.7.10 not available on chocolatey
-  before_script:
-    - choco install python --version=3.7.9 -y -f
-    - $env:PATH+=";C:\Python37;C:\Python37\Scripts"
-    - *upgrade_pip
-    - *pip_install_and_freeze
-
-.win-before-script-3.8.9:
-  before_script:
-    - choco install python --version=3.8.9 -y -f
-    - $env:PATH+=";C:\Python38;C:\Python38\Scripts"
-    - *upgrade_pip
-    - *pip_install_and_freeze
-
-.win-before-script-latest:
-  before_script:
-    # For latest we do not specify a version
-    # choco does not allow to specify a minor version (--version=3.9 does not work)
-    - choco install python -y -f
-    # assume here the latest is 3.9 will fail when a 3.10 is available
-    - $env:PATH+=";C:\Python39;C:\Python39\Scripts"
-    - *upgrade_pip
-    - *pip_install_and_freeze
-
-.unix-run-pytest:
-  script:
-    - xvfb-run pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
-    # send the coverage.xml file to codacy
-    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
-
-.win-run-pytest:
-  script:
-    - pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
-
-# ######################################################################################
-# Test Unix
-# ######################################################################################
-
-test-unix-3.7:
-  stage: Test
-  image: $CI_REGISTRY_IMAGE:python_3.7
-  extends:
-    - .unix-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-
-test-unix-3.8:
-  stage: Test
-  image: $CI_REGISTRY_IMAGE:python_3.8
-  extends:
-    - .unix-run-pytest
-    - .save-test-artifacts
-
-test-unix-latest:
-  stage: Test
-  image: $CI_REGISTRY_IMAGE:python_latest
-  extends:
-    - .unix-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-  allow_failure: true
-
-# ######################################################################################
-# Test Windows
-# ######################################################################################
-
-test-win-3.7.9:
-  stage: Test
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.7.9
-    - .win-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-
-test-win-3.8.9:
-  stage: Test
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.8.9
-    - .win-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-
-test-win-latest:
-  stage: Test
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-latest
-    - .win-run-pytest
-    - .save-test-artifacts
-    - .run-for-develop-only
-  # latest version always allowed to fail due to unforeseen changes
-  allow_failure: true
-
-# ######################################################################################
-# Docs build Unix
-# ######################################################################################
-
-docs-unix-make-html-3.7:
-  stage: Docs build
-  image: $CI_REGISTRY_IMAGE:python_3.7
-  extends:
-    - .docs-unix-and-artifacts
-    - .run-for-develop-only
-
-docs-unix-make-html-3.8:
-  stage: Docs build
-  image: $CI_REGISTRY_IMAGE:python_3.8
-  extends:
-    - .docs-unix-and-artifacts
-    - .run-for-develop-only
-
-docs-unix-make-html-latest:
-  stage: Docs build
-  image: $CI_REGISTRY_IMAGE:python_latest
-  extends:
-    - .docs-unix-and-artifacts
-    - .run-for-develop-only
-  # latest version always allowed to fail due to unforeseen changes
-  allow_failure: true
-
-# ######################################################################################
-# Docs build Windows
-# ######################################################################################
-
-docs-win-make-html-3.7.9:
-  stage: Docs build
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.7.9
-    - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail since the build was successful with font warnings.
-  # See quantify-core#196
-  allow_failure: true
-
-docs-win-make-html-3.8.9:
-  stage: Docs build
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-3.8.9
-    - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core#182)
-  allow_failure: true
-
-docs-win-make-html-latest:
-  stage: Docs build
-  extends:
-    - .shared-windows-runners
-    - .win-before-script-latest
-    - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core#182)
-  allow_failure: true
-
-# ######################################################################################
-# Static Analysis
-# ######################################################################################
 
 black:
   stage: Static Analysis
@@ -603,7 +325,6 @@ build_win_3.7_image:
   stage: Build windows images
   extends:
     - .shared-windows-runners
-  image: docker:windowsservercore
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.7
     DOCKER_HOST: ""
@@ -620,7 +341,6 @@ build_win_3.8_image:
   stage: Build windows images
   extends:
     - .shared-windows-runners
-  image: docker:windowsservercore
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.8
     DOCKER_HOST: ""
@@ -637,7 +357,6 @@ build_win_3.9_image:
   stage: Build windows images
   extends:
     - .shared-windows-runners
-  image: docker:windowsservercore
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.9
     DOCKER_HOST: ""
@@ -654,7 +373,6 @@ build_win_latest_image:
   stage: Build windows images
   extends:
     - .shared-windows-runners
-  image: docker:windowsservercore
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_latest
     DOCKER_HOST: ""
