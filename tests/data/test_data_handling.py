@@ -63,7 +63,7 @@ def test_initialize_dataset():
     assert set(dataset.dims.keys()) == {"dim_0"}
 
 
-def test_initialize_dataset_2D():
+def test_initialize_dataset_2d():
     xpar = ManualParameter("x", unit="m", label="X position")
     ypar = ManualParameter("y", unit="m", label="Y position")
     getpar = ManualParameter("z", unit="V", label="Signal amplitude")
@@ -436,31 +436,44 @@ def test_dynamic_dataset():
     dset["x1"].values[:] = x1_vals
     dset["y0"].values[:] = y0_vals
 
-    dset = dh.grow_dataset(dset)
-    assert len(dset["x0"]) == len(dset["x1"]) == len(dset["y0"]) == 16
-    assert np.isnan(dset["x0"][8:]).all()
-    assert np.isnan(dset["x1"][8:]).all()
-    assert np.isnan(dset["y0"][8:]).all()
+    dset_grown = dh.grow_dataset(dset)
+    assert len(dset_grown["x0"]) == len(dset_grown["x1"]) == len(dset_grown["y0"]) == 16
+    assert np.isnan(dset_grown["x0"][8:]).all()
+    assert np.isnan(dset_grown["x1"][8:]).all()
+    assert np.isnan(dset_grown["y0"][8:]).all()
+    assert dset_grown.attrs == dset.attrs
+    assert dset_grown.x0.attrs == dset.x0.attrs
+    assert dset_grown.x1.attrs == dset.x1.attrs
+    assert dset_grown.y0.attrs == dset.y0.attrs
 
     x0_vals_ext = np.random.random(3)
     x1_vals_ext = np.random.random(3)
     y0_vals_ext = np.random.random(3)
 
-    dset["x0"].values[8:11] = x0_vals_ext
-    dset["x1"].values[8:11] = x1_vals_ext
-    dset["y0"].values[8:11] = y0_vals_ext
+    dset_grown["x0"].values[8:11] = x0_vals_ext
+    dset_grown["x1"].values[8:11] = x1_vals_ext
+    dset_grown["y0"].values[8:11] = y0_vals_ext
 
-    dset = dh.trim_dataset(dset)
-    assert len(dset["x0"]) == len(dset["x1"]) == len(dset["y0"]) == 11
-    np.array_equal(dset["x0"], np.concatenate([x0_vals, x0_vals_ext]))
-    np.array_equal(dset["x1"], np.concatenate([x1_vals, x1_vals_ext]))
-    np.array_equal(dset["y0"], np.concatenate([y0_vals, y0_vals_ext]))
+    dset_trimmed = dh.trim_dataset(dset_grown)
+    assert (
+        len(dset_trimmed["x0"])
+        == len(dset_trimmed["x1"])
+        == len(dset_trimmed["y0"])
+        == 11
+    )
+    np.array_equal(dset_trimmed["x0"], np.concatenate([x0_vals, x0_vals_ext]))
+    np.array_equal(dset_trimmed["x1"], np.concatenate([x1_vals, x1_vals_ext]))
+    np.array_equal(dset_trimmed["y0"], np.concatenate([y0_vals, y0_vals_ext]))
 
-    assert not np.isnan(dset["x0"]).any()
-    assert not np.isnan(dset["x1"]).any()
-    assert not np.isnan(dset["y0"]).any()
+    assert not np.isnan(dset_trimmed["x0"]).any()
+    assert not np.isnan(dset_trimmed["x1"]).any()
+    assert not np.isnan(dset_trimmed["y0"]).any()
+    assert dset_trimmed.attrs == dset.attrs
+    assert dset_trimmed.x0.attrs == dset.x0.attrs
+    assert dset_trimmed.x1.attrs == dset.x1.attrs
+    assert dset_trimmed.y0.attrs == dset.y0.attrs
 
-    assert "tuid" in set(dset.attrs)
+    assert "tuid" in dset_trimmed.attrs
 
 
 def test_to_gridded_dataset(tmp_test_data_dir):

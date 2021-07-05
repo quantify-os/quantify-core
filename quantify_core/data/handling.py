@@ -459,6 +459,8 @@ def initialize_dataset(
 
     dataset = xr.merge(darrs)
     dataset = dataset.set_coords(coords)
+    # xarray>=0.18.0 tries to combine attrs which we do not want at all
+    dataset.attrs = dict()
     dataset.attrs["tuid"] = gen_tuid()
     return dataset
 
@@ -490,7 +492,9 @@ def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
         )
     coords = tuple(dataset.coords.keys())
     dataset = dataset.drop_dims(["dim_0"])
-    dataset = dataset.merge(xr.merge(darrs))
+    merged_data_arrays = xr.merge(darrs)
+    merged_data_arrays.attrs = dict()  # xarray>=0.18.0 tries to merge attrs
+    dataset = dataset.merge(merged_data_arrays)
     dataset = dataset.set_coords(coords)
     return dataset
 
@@ -523,7 +527,9 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
                     )
                 )
             dataset = dataset.drop_dims(["dim_0"])
-            dataset = dataset.merge(xr.merge(darrs))
+            merged_data_arrays = xr.merge(darrs)
+            merged_data_arrays.attrs = dict()  # xarray>=0.18.0 tries to merge attrs
+            dataset = dataset.merge(merged_data_arrays)
             dataset = dataset.set_coords(coords)
             break
 
