@@ -19,6 +19,7 @@ Merged branches and closed issues
 * Allow for unit-aware printing of floats and other values with no error (!167, #193)
 * Quantities of interest saving to JSON now supports more types, including ufloat (!164, #152)
 * Added new utility class quantify_core.utilities.inspect_utils
+* Support xarray >0.18.0 (!198, #223)
 
 0.4.0 (2021-05-10)
 ------------------
