@@ -26,7 +26,7 @@ from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization import _appnope
 
 
-class RemotePlotmon:
+class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
     """
     A remote Pyqtgraph-based plot monitor manager.
 
@@ -48,7 +48,8 @@ class RemotePlotmon:
 
         # Used to assign which dataset will be plotted on the secondary
         # window
-        self._tuid_2D = None
+        self._tuid_2d = None
+        self._tuids_2d = None
 
         # keep all datasets in one place and update/remove as needed
         self._dsets = dict()
@@ -162,6 +163,7 @@ class RemotePlotmon:
                 self._dsets.pop(discard_tuid, None)
 
     def tuids_append(self, tuid: str, datadir: str):
+        """Appends a tuid to be plotted"""
         # ensures the same datadir as in the main process
         set_datadir(datadir)
         # verify tuid
@@ -180,8 +182,8 @@ class RemotePlotmon:
             tuple(self._dsets[t] for t in self._tuids_extra) + (dset,)
         ):
             # Force reset the user-defined extra datasets
-            # Needs to be manual otherwise we go in circles checking for _xi_and_yi_match
-            [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
+            # Must be manual otherwise we go in circles checking for _xi_and_yi_match
+            _ = [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
             self._tuids_extra = []
 
         self._tuids.appendleft(tuid)
@@ -217,10 +219,12 @@ class RemotePlotmon:
             itertools.chain(dsets.values(), self._dsets.values())
         ):
             # Reset the extra tuids
-            [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
+            _ = [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
 
         # Discard old dsets
-        [self._dsets.pop(t, None) for t in self._tuids if t not in self._tuids_extra]
+        _ = [
+            self._dsets.pop(t, None) for t in self._tuids if t not in self._tuids_extra
+        ]
 
         self._tuids = deque(tuids)
         self._dsets.update(dsets)
@@ -260,7 +264,7 @@ class RemotePlotmon:
             self._pop_old_dsets(max_tuids=0)
 
         # Discard old dsets
-        [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
+        _ = [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
 
         self._dsets.update(extra_dsets)
         self._tuids_extra = tuids
@@ -292,6 +296,7 @@ class RemotePlotmon:
             remote=False,
         )
 
+    # pylint: disable=too-many-statements, too-many-locals, too-many-branches
     def _initialize_plot_monitor(self):
         """
         Clears data in plot monitors and sets it up with the data from the dataset
@@ -308,7 +313,7 @@ class RemotePlotmon:
 
         if not len(self._dsets):
             # Nothing to be done
-            return None
+            return
 
         # we have forced all xi and yi to match so any dset will do here
         a_dset = next(iter(self._dsets.values()))
@@ -332,16 +337,16 @@ class RemotePlotmon:
         )
         # In case only extra datasets are present
         symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
-        symbolsBrush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
-        symbolsBrush = tuple(reversed(symbolsBrush))
+        symbols_brush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
+        symbols_brush = tuple(reversed(symbols_brush))
 
         plot_idx = 1
         for yi in get_parnames:
             for xi in set_parnames:
-                for tuid, symb, symbBrush, color in zip(
+                for tuid, symb, symb_brush, color in zip(
                     itertools.chain(reversed(self._tuids_extra), reversed(self._tuids)),
                     symbols,
-                    symbolsBrush,
+                    symbols_brush,
                     all_colors,
                 ):
                     dset = self._dsets[tuid]
@@ -356,7 +361,7 @@ class RemotePlotmon:
                         symbol=symb,
                         symbolSize=6,
                         symbolPen=color,
-                        symbolBrush=symbBrush,
+                        symbolBrush=symb_brush,
                         color=color,
                         name=_mk_legend(dset),
                     )
@@ -379,14 +384,14 @@ class RemotePlotmon:
         # Below are some "extra" checks that are not currently strictly required
 
         all_tuids_it = itertools.chain(self._tuids, self._tuids_extra)
-        self._tuids_2D = tuple(
+        self._tuids_2d = tuple(
             tuid
             for tuid in all_tuids_it
             if (len(_get_parnames(self._dsets[tuid], "x")) == 2)
         )
-        self._tuid_2D = self._tuids_2D[0] if self._tuids_2D else None
+        self._tuid_2d = self._tuids_2d[0] if self._tuids_2d else None
 
-        dset = self._dsets[self._tuid_2D] if self._tuid_2D else None
+        dset = self._dsets[self._tuid_2d] if self._tuid_2d else None
 
         # Add a square heatmap
 
@@ -394,7 +399,10 @@ class RemotePlotmon:
         self._im_scatters = []
         self._im_scatters_last = []
 
-        if dset and dset.attrs["2D-grid"]:
+        is_uniformly_spaced = dset and dset.attrs.get(
+            "grid_2d_uniformly_spaced", dset.attrs.get("2D-grid", False)
+        )  # "2D-grid" is for legacy datasets support"
+        if is_uniformly_spaced:
             plot_idx = 1
             for yi in get_parnames:
 
@@ -423,7 +431,8 @@ class RemotePlotmon:
                 plot_idx += 1
 
         #############################################################
-        # if data is not on a grid but is 2D it makes sense to interpolate
+
+        # if data is not on a uniformly spaced grid but is 2D then interpolate
 
         elif dset and len(set_parnames) == 2:
             plot_idx = 1
@@ -487,7 +496,11 @@ class RemotePlotmon:
 
         self.secondary_QtPlot.update_plot()
 
+    # pylint: disable=too-many-locals
     def update(self, tuid: str, datadir: str):
+        """
+        Updates the plots to reflect the latest data.
+        """
 
         if tuid and tuid not in self._dsets.keys():
             # makes it easy to directly add a dataset and monitor it
@@ -506,7 +519,7 @@ class RemotePlotmon:
         set_parnames = _get_parnames(dset, "x")
         get_parnames = _get_parnames(dset, "y")
 
-        update_2D = tuid is not None and tuid == self._tuid_2D
+        update_2d = tuid is not None and tuid == self._tuid_2d
 
         #############################################################
 
@@ -519,19 +532,22 @@ class RemotePlotmon:
 
         #############################################################
         # Add a square heatmap
-        if update_2D and dset.attrs["2D-grid"]:
+        is_uniformly_spaced = dset.attrs.get(
+            "grid_2d_uniformly_spaced", dset.attrs.get("2D-grid", False)
+        )  # "2D-grid" is for legacy datasets support"
+        if update_2d and is_uniformly_spaced:
             for yidx, yi in enumerate(get_parnames):
-                Z = np.reshape(
+                z_data = np.reshape(
                     dset[yi].values,
                     (dset.attrs["xlen"], dset.attrs["ylen"]),
                     order="F",
                 ).T
-                self.secondary_QtPlot.traces[yidx]["config"]["z"] = Z
+                self.secondary_QtPlot.traces[yidx]["config"]["z"] = z_data
             self.secondary_QtPlot.update_plot()
 
         #############################################################
         # if data is not on a grid but is 2D it makes sense to interpolate
-        elif update_2D and len(set_parnames) == 2:
+        elif update_2d and len(set_parnames) == 2:
             for yidx, yi in enumerate(get_parnames):
                 # exists to force reset the x- and y-axis scale
                 new_sc = TransformState(0, 1, True)
@@ -586,13 +602,14 @@ class RemotePlotmon:
 
         return traces
 
-    def _set_QtPlot_geometry(self, x, y, w, h, which="main_QtPlot"):
+    # pylint: disable=too-many-arguments
+    def _set_qt_plot_geometry(self, x, y, width, height, which="main_QtPlot"):
         """
         Sets position and size of the window on screen
         """
-        getattr(self, which).win.setGeometry(x, y, w, h)
+        getattr(self, which).win.setGeometry(x, y, width, height)
 
-    def _get_QtPlot_geometry(self, which="main_QtPlot"):
+    def _get_qt_plot_geometry(self, which="main_QtPlot"):
         """
         Gets position and size of the window on screen
         """
@@ -609,6 +626,8 @@ def _safe_load_dataset(tuid, dataset_locks_dir):
 
 
 def _mk_legend(dset):
-    HHMMSS = dset.attrs["tuid"].split("-")[1]
+    hh_mm_ss = dset.attrs["tuid"].split("-")[1]
     # HH:mm:SS
-    return ":".join([HHMMSS[:2], HHMMSS[2:4], HHMMSS[4:]]) + " " + dset.attrs["name"]
+    return (
+        ":".join([hh_mm_ss[:2], hh_mm_ss[2:4], hh_mm_ss[4:]]) + " " + dset.attrs["name"]
+    )

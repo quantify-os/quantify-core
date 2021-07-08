@@ -80,7 +80,6 @@ def analysis_bad_fit(tmp_test_data_dir):
         attrs={
             "name": "Mock_Rabi_power_scan_bad_fit",
             "tuid": "20210424-191802-994-f16eb3",
-            "2D-grid": False,
         },
     )
     dataset = dataset.set_coords(["x0"])

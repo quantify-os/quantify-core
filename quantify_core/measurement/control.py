@@ -30,6 +30,7 @@ from quantify_core.data.handling import (
     trim_dataset,
     DATASET_NAME,
     write_dataset,
+    _is_uniformly_spaced_array,
 )
 from quantify_core.utilities.general import call_if_has_method
 from quantify_core.measurement.types import Settable, Gettable, is_batched
@@ -38,7 +39,7 @@ from quantify_core.measurement.types import Settable, Gettable, is_batched
 _DATASET_LOCKS_DIR = tempfile.gettempdir()
 
 
-class MeasurementControl(Instrument):
+class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attributes
     """
     Instrument responsible for controlling the data acquisition loop.
 
@@ -78,8 +79,8 @@ class MeasurementControl(Instrument):
 
         Parameters
         ----------
-        name : str
-            name of this instrument
+        name
+            name of this instrument.
         """
         super().__init__(name=name)
 
@@ -152,7 +153,8 @@ class MeasurementControl(Instrument):
         self._dataset = None
         self._exp_folder = None
         self._plotmon_name = ""
-        self._plot_info = {"2D-grid": False}
+        # attributes named as if they are python attributes, e.g. dset.drid_2d == True
+        self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
 
         # properly handling KeyboardInterrupts
         self._thread_data = threading.local()
@@ -178,9 +180,9 @@ class MeasurementControl(Instrument):
 
     def _reset_post(self):
         """
-        Resets specific variables that can change before `.run()`
+        Resets specific variables that can change before `.run()`.
         """
-        self._plot_info = {"2D-grid": False}
+        self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
         # Reset to default interrupt handler
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
@@ -223,11 +225,6 @@ class MeasurementControl(Instrument):
             E.g. if `soft_avg=3` the full dataset will be measured 3 times and the
             measured values will be averaged element-wise, the averaged dataset is then
             returned.
-
-        Returns
-        -------
-        :
-            the dataset
         """
         self._soft_avg_validator(soft_avg)  # validate first
         self._soft_avg = soft_avg
@@ -256,7 +253,7 @@ class MeasurementControl(Instrument):
 
         return self._dataset
 
-    def run_adaptive(self, name, params):
+    def run_adaptive(self, name, params) -> xr.Dataset:
         """
         Starts a data acquisition loop using an adaptive function.
 
@@ -266,16 +263,12 @@ class MeasurementControl(Instrument):
 
         Parameters
         ----------
-        name : str
+        name
             Name of the measurement. This name is included in the name of the data
             files.
-        params : dict
+        params
             Key value parameters describe the adaptive function to use, and any further
             parameters for that function.
-        Returns
-        -------
-        :class:`xarray.Dataset`
-            the dataset
         """
 
         def measure(vec) -> float:
@@ -356,7 +349,7 @@ class MeasurementControl(Instrument):
                 self._check_interrupt()
             self._loop_count += 1
 
-    def _run_batched(self):
+    def _run_batched(self):  # pylint: disable=too-many-locals
         batch_size = self._get_batch_size()
         where_batched = self._get_where_batched()
         where_iterative = self._get_where_iterative()
@@ -427,10 +420,14 @@ class MeasurementControl(Instrument):
 
     def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
         """
-        Processes one row of setpoints. Sets all settables, gets all gettables, encodes new data in dataset
+        Processes one row of setpoints. Sets all settables, gets all gettables, encodes
+        new data in dataset.
 
         .. note ::
-            Note: some lines in this function are redundant depending on mode (sweep vs adaptive). Specifically
+
+            Note: some lines in this function are redundant depending on mode (sweep vs
+            adaptive). Specifically:
+
                 - in sweep, the x dimensions are already filled
                 - in adaptive, soft_avg is always 1
         """
@@ -445,7 +442,8 @@ class MeasurementControl(Instrument):
             # if the gettable returned a float, cast to list
             if np.isscalar(new_data):
                 new_data = [new_data]
-            # iterate through the data list, each element is different y for these x coordinates
+            # iterate through the data list, each element is different y for these
+            # x coordinates
             for val in new_data:
                 yi_name = f"y{y_offset}"
                 old_val = self._dataset[yi_name].values[idx]
@@ -475,7 +473,8 @@ class MeasurementControl(Instrument):
         print(
             f"\n\n[!!!] {self._thread_data.events_num} interruption(s) signaled. "
             "Stopping after this iteration/batch.\n"
-            f"[Send more {5 -  self._thread_data.events_num} interruptions to force stop (not safe!)].\n"
+            f"[Send {5 -  self._thread_data.events_num} more interruptions to force"
+            f"stop (not safe!)].\n"
         )
 
     def _check_interrupt(self):
@@ -615,8 +614,9 @@ class MeasurementControl(Instrument):
                 else ""
             )
             progress_message = (
-                f"\r{int(progress_percent):#3d}% completed  elapsed time: "
-                f"{int(round(elapsed_time, 1)):#6d}s  time left: {int(round(t_left, 1)):#6d}s  "
+                f"\r{int(progress_percent):#3d}% completed | elapsed time: "
+                f"{int(round(elapsed_time, 1)):#6d}s | "
+                f"time left: {int(round(t_left, 1)):#6d}s  "
             )
             if self._batch_size_last is not None:
                 progress_message += f"last batch size: {self._batch_size_last:#6d}  "
@@ -652,13 +652,14 @@ class MeasurementControl(Instrument):
         """
         Define the settable parameters for the acquisition loop.
 
-        The :class:`~quantify_core.measurement.Settable` helper class defines the requirements for a Settable object.
+        The :class:`~quantify_core.measurement.Settable` helper class defines the
+        requirements for a Settable object.
 
         Parameters
         ---------
         settable_pars
-            parameter(s) to be set during the acquisition loop, accepts a list or tuple of multiple Settable objects
-            or a single Settable object.
+            parameter(s) to be set during the acquisition loop, accepts a list or tuple
+            of multiple Settable objects or a single Settable object.
         """
         # for native nD compatibility we treat this like a list of settables.
         if not isinstance(settable_pars, (list, tuple)):
@@ -688,36 +689,42 @@ class MeasurementControl(Instrument):
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
 
-    def setpoints_grid(self, setpoints: Iterable[np.array]):
+    def setpoints_grid(self, setpoints: Iterable[np.ndarray]):
         """
         Makes a grid from the provided `setpoints` assuming each array element
         corresponds to an orthogonal dimension.
         The resulting gridded points determine values to be set in the acquisition loop.
 
-        The gridding is such that the inner most loop corresponds to the batched settable
-        with the smallest `.batch_size`.
+        The gridding is such that the inner most loop corresponds to the batched
+        settable with the smallest `.batch_size`.
 
         Parameters
         ----------
-        setpoints : list
-            The values to loop over in the experiment. The grid is reshaped in the same order.
+        setpoints
+            The values to loop over in the experiment. The grid is reshaped in the same
+            order.
 
 
         .. include:: ./docstring_examples/quantify_core.measurement.control.setpoints_grid.rst.txt
-        """
+        """  # pylint: disable=line-too-long
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
 
         if len(setpoints) == 2:
             self._plot_info["xlen"] = len(setpoints[0])
             self._plot_info["ylen"] = len(setpoints[1])
-            self._plot_info["2D-grid"] = True
+            self._plot_info["grid_2d"] = True
+            is_uniform = all(  # used in plotmon to detect need for interpolation
+                _is_uniformly_spaced_array(setpoints[i]) for i in (0, 1)
+            )
+            self._plot_info["grid_2d_uniformly_spaced"] = is_uniform
 
     def gettables(self, gettable_pars):
         """
         Define the parameters to be acquired during the acquisition loop.
 
-        The :class:`~quantify_core.measurement.Gettable` helper class defines the requirements for a Gettable object.
+        The :class:`~quantify_core.measurement.Gettable` helper class defines the
+        requirements for a Gettable object.
 
         Parameters
         ----------
@@ -751,8 +758,8 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
         A list of arrays that defines the values to loop over in the experiment for each
         orthogonal dimension. The grid is reshaped in the same order.
     settables
-        A list of settable objects to which the elements in the `setpoints` correspond to.
-        Used to correctly grid data when mixing batched and iterative settables.
+        A list of settable objects to which the elements in the `setpoints` correspond
+        to. Used to correctly grid data when mixing batched and iterative settables.
 
     Returns
     -------
@@ -788,7 +795,8 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
         coordinates_batched_set = set(coordinates_batched)
         inner_coord_name = coordinates_batched[np.argmin(batch_sizes)]
         coordinates_batched_set.remove(inner_coord_name)
-        # The inner most coordinate must correspond to the batched settable with min `.batch_size`
+        # The inner most coordinate must correspond to the batched settable with
+        # min `.batch_size`
         stack_order = (
             coordinates_iterative
             + sorted(coordinates_batched_set, reverse=True)
