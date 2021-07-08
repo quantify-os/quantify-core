@@ -564,3 +564,27 @@ def test_load_analysis_output_files(tmp_test_data_dir):
     assert isinstance(
         dh.load_processed_dataset(TUID_1D_1PLOT, BasicAnalysis.__name__), xr.Dataset
     )
+
+
+def test_is_uniformly_spaced_array():
+
+    x0 = [1, 1.1, 1.2, 1.3, 1.4]
+    x0_ng = [1, 1.1, 1.2, 1.3, 1.401]
+
+    x1 = [1e-9, 1.1e-9, 1.2e-9, 1.3e-9, 1.4e-9]
+    x1_ng = [1e-9, 1.1e-9, 1.2e-9, 1.3e-9, 1.401e-9]
+
+    x2 = [1e9, 1.1e9, 1.2e9, 1.3e9, 1.4e9]
+    x2_ng = [1e9, 1.1e9, 1.2e9, 1.3e9, 1.401e9]
+
+    cases = [
+        (True, x0),
+        (True, x1),
+        (True, x2),
+        (False, x0_ng),
+        (False, x1_ng),
+        (False, x2_ng),
+    ]
+
+    for expected, points in cases:
+        assert dh._is_uniformly_spaced_array(points) == expected
