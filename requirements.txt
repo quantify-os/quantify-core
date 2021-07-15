@@ -8,7 +8,7 @@ xarray>=0.17.0
 xxhash
 matplotlib
 lmfit
-pyqt5==5.15.1  # pinned due to #170, https://bugreports.qt.io/browse/PYSIDE-1473
+pyqt5>5.15.2  # 5.15.2 has known bug, #170, https://bugreports.qt.io/browse/PYSIDE-1473
 pyqtgraph
 jsonschema
 adaptive
