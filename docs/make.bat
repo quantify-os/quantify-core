@@ -11,7 +11,7 @@ set SOURCEDIR=.
 set BUILDDIR=_build
 set SPHINXPROJ=quantify_core
 REM -vv can be appended below to activate sphinx verbose mode
-set SPHINXOPTS=-W --keep-going -n
+set SPHINXOPTS=-W --keep-going -n -w build_errors.log
 
 if "%1" == "" goto help
 
