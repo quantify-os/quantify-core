@@ -2,7 +2,7 @@
 #
 
 # -vv can be appended below to activate sphinx verbose mode
-SPHINXOPTS    = -W --keep-going -n
+SPHINXOPTS    = -W --keep-going -n -w build_errors.log
 SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = quantify_core
 SOURCEDIR     = .
