@@ -25,7 +25,7 @@ def create_tmp_dir_from_test_dataset(tuid: Union[TUID, str]):
 
     Parameters
     ----------
-    tuid:
+    tuid
         Identifier of the experiment container that will be copied into the
         temporary directory.
 
