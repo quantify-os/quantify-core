@@ -95,24 +95,27 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
 
         return header + out if out.strip() != "" else ""
 
-    def make_rst_block(cell_source):
-        return "\n\n\n" + "".join(cell_source)
+    def make_rst_block(cell_source, prefix="\n\n\n"):
+        return prefix + "".join(cell_source)
 
-    def cell_to_rst_str(cell):
+    def cell_to_rst_str(cell, is_first_cell: bool = False):
         cell_type = cell["cell_type"]
         cell_source = cell["source"]
 
         if cell_type == "code":
             return make_jupyter_sphinx_block(cell_source)
 
-        return make_rst_block(cell_source)
+        return make_rst_block(cell_source, prefix="" if is_first_cell else "\n\n\n")
 
     with open(Path(notebook_filepath), "r") as file:
         json_dict = json.load(file)
 
     rst_str = ""
-    for cell in json_dict["cells"]:
-        rst_str += cell_to_rst_str(cell)
+    for i, cell in enumerate(json_dict["cells"]):
+        rst_str += cell_to_rst_str(cell, not i)
+
+    if rst_str[-1] != "\n":
+        rst_str += "\n"
 
     with open(Path(output_filepath), "w") as file:
         file.write(rst_str)
