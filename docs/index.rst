@@ -1,5 +1,5 @@
 Welcome to Quantify's documentation!
-======================================
+====================================
 
 .. include:: readme.rst
 
@@ -16,7 +16,7 @@ Welcome to Quantify's documentation!
 
 
 Tutorials
-==============
+=========
 
 .. toctree::
    :maxdepth: 2
@@ -28,9 +28,10 @@ Tutorials
    tutorials/Tutorial 4. Adaptive Measurements.rst
    tutorials/Tutorial 5. Plot monitor.rst
 
+   technical_notes/Quantify dataset specification.rst
 
 API Reference
-===================
+=============
 
 Contents:
 
