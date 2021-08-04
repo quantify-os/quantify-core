@@ -66,6 +66,9 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
     - Use jupytext to pair a .ipynb notebook with a percent script.
     - Version control the .source.py percent script version of the notebook.
     - Generate a `.rst` file with this script to make it part of the docs.
+
+    NB `black.format_str` can be added later to also format code with black.
+    See https://github.com/psf/black/issues/292.
     """
 
     def get_code_indent(code_cell_source):
@@ -84,12 +87,13 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
 
     def make_jupyter_sphinx_block(cell_source):
         indent = get_code_indent(cell_source)
-        out = f"\n\n\n{indent}.. jupyter-execute::\n\n"
+        out = ""
+        header = f"\n\n\n{indent}.. jupyter-execute::\n\n"
         indent = f"    {indent}"
         for line in cell_source:
             out += f"{indent}{line}" if line != "\n" else "\n"
 
-        return out
+        return header + out if out.strip() != "" else ""
 
     def make_rst_block(cell_source):
         return "\n\n\n" + "".join(cell_source)
