@@ -71,26 +71,35 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
     See https://github.com/psf/black/issues/292.
     """
 
-    def get_code_indent(code_cell_source):
+    def get_code_indent(code_cell_source: list):
         indent = ""
-        for line in code_cell_source:
-            if line == "\n":
-                continue
+        directive_options = []
+        if code_cell_source:
+            first_line = code_cell_source[0]
+            magic_comment = "# notebook-to-rst-conf:"
 
-            for char in line:
-                if char == " ":
-                    indent += char
-                else:
-                    break
-            break
-        return indent
+            if first_line.startswith(magic_comment):
+                conf = eval(first_line[len(magic_comment) :])
+                if "indent" in conf:
+                    indent = conf["indent"]
+
+                    if code_cell_source[1:] and code_cell_source[1] == "\n":
+                        code_cell_source = code_cell_source[2:]
+                    else:
+                        code_cell_source = code_cell_source[1:]
+
+                if "directive_options" in conf:
+                    directive_options = conf["directive_options"]
+                    directive_options = list(opt + "\n" for opt in directive_options)
+
+        return indent, directive_options + ["\n"] + code_cell_source
 
     def make_jupyter_sphinx_block(cell_source):
-        indent = get_code_indent(cell_source)
+        indent, lines = get_code_indent(cell_source)
         out = ""
-        header = f"\n\n\n{indent}.. jupyter-execute::\n\n"
+        header = f"\n\n\n{indent}.. jupyter-execute::\n"
         indent = f"    {indent}"
-        for line in cell_source:
+        for line in lines:
             out += f"{indent}{line}" if line != "\n" else "\n"
 
         return header + out if out.strip() != "" else ""
