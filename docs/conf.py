@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=wrong-import-position, unused-import, invalid-name
 #
 # Quantify documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  9 13:47:02 2017.
@@ -135,7 +136,7 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = [
-    "quantify.css",
+    "quantify_core.css",
 ]
 
 # Output file base name for HTML help builder.
@@ -204,12 +205,58 @@ suppress_warnings = ["autosectionlabel.*"]
 
 blockdiag_html_image_format = "SVG"
 
-# Cannot be set to `True` because plotly and qcodes break the docs build
-set_type_checking_flag = False  # `False` is the default
-
 # used by scanpydoc.elegant_typehints to correctly link to external docs
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
-    "quantify.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify.visualization.PlotMonitor_pyqt",
+    "quantify_core.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify_core.visualization.PlotMonitor_pyqt",
 }
+
+autodoc_default_options = {
+    "member-order": "groupwise",
+}
+
+# For debugging the CI just add `or True` on the line below
+if os.environ.get("GITLAB_CI", "false") == "true":
+    print(
+        "\n[INFO] Building docs with private-members...\n[INFO] See `conf.py` for details.\n"
+    )
+    # for local build and CI force documentation to build for private members
+    # this make sure the docstrings of private members are also correctly formatted, etc
+    autodoc_default_options["private-members"] = True
+
+# -- Options for auto documenting typehints ----------------------------
+
+# Please see https://gitlab.com/quantify-os/quantify/-/issues/10 regarding
+
+# below should be imported all "problematic" modules that might raise strange issues
+# when building the docs
+# e.g., to "partially initialized module", or "most likely due to a circular import"
+
+# This is a practical solution. We tried fixing certain things upstream, e.g.:
+# https://github.com/QCoDeS/Qcodes/pull/2909
+# but the issues popped up again, so this is the best and easier solution so far
+
+# qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
+# here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
+import lmfit  # related to quantify-core#218 and quantify-core#221
+import qcodes
+
+# When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
+# sphinx' kernel loads the modules corresponding to the typehints and is able to
+# auto document types. The modules listed above create issues when loaded with
+# `typing.TYPE_CHECKING = True` so we import them beforehand to avoid nasty issues.
+
+# It is a good practice to make use of the following construct to import modules that
+# are used for type hints ONLY! the construct is the following:
+
+# if typing.TYPE_CHECKING:
+#     import my_expensive_to_import_module as my_module
+
+# NB if you run into any circular import issue it is because you are importing module
+# member directly from a module, i.e.:
+
+# if typing.TYPE_CHECKING:
+#     from my_expensive_to_import_module import BlaClass # Potential circular import
+
+set_type_checking_flag = True  # this will run `typing.TYPE_CHECKING = True`

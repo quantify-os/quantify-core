@@ -18,3 +18,7 @@ Describe what behaviour you expected to happen, what output was desired, etc.
 
 Feel free to include screen grabs as well as the output from any commands listed previously.
 If there was a crash, please include the traceback here.
+
+---
+
+For reference, the issues workflow is described in the [contribution guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/develop/contributing.html#issues-workflow).

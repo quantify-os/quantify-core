@@ -3,7 +3,7 @@ import time
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
 
-from quantify.visualization.instrument_monitor import InstrumentMonitor
+from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 
 
 class TestInstrumentMonitor:
@@ -34,7 +34,7 @@ class TestQcSnapshotWidget:
     @classmethod
     def setup_class(cls):
         proc = pgmp.QtProcess(processRequests=False)  # pyqtgraph multiprocessing
-        qc_widget = "quantify.visualization.ins_mon_widget.qc_snapshot_widget"
+        qc_widget = "quantify_core.visualization.ins_mon_widget.qc_snapshot_widget"
         r_qc_widget = proc._import(qc_widget, timeout=60)
 
         for i in range(10):

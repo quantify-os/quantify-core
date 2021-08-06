@@ -8,10 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lmfit.parameter import Parameter
 import uncertainties
-from quantify.visualization.SI_utilities import SI_prefix_and_scale_factor
-from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
-from quantify.visualization.SI_utilities import SI_val_to_msg_str
-from quantify.visualization.SI_utilities import (
+from quantify_core.visualization.SI_utilities import SI_prefix_and_scale_factor
+from quantify_core.visualization.SI_utilities import set_xlabel, set_ylabel
+from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
+from quantify_core.visualization.SI_utilities import (
     SafeFormatter,
     format_value_string,
     value_precision,
@@ -107,7 +107,7 @@ def test_format_value_string():
     """
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 5.1235e+06$\pm$NaN "
+    assert formatted_string == r"tau: 5.1235e+06 "
 
     tau.stderr = 3.1456
     formatted_string = format_value_string("tau", tau)
@@ -123,7 +123,7 @@ def test_format_value_string():
 
     tau = Parameter("tau", value=0.0000123456)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 1.2346e-05$\pm$NaN "
+    assert formatted_string == r"tau: 1.2346e-05 "
 
     tau.stderr = 0.0000031456
     formatted_string = format_value_string("tau", tau)
@@ -131,7 +131,7 @@ def test_format_value_string():
 
     tau = Parameter("tau", value=5.123456)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 5.1235$\pm$NaN "
+    assert formatted_string == r"tau: 5.1235 "
 
     tau.stderr = 0.03
     formatted_string = format_value_string("tau", tau)
@@ -155,9 +155,12 @@ def test_format_value_string_unit_aware():
     stderr magnitude and display the stderr itself to two significant figures in
     standard index notation in the same units as the value.
     """
+    formatted_string = format_value_string("tau", 5.123456e-6, unit="s")
+    assert formatted_string == r"tau: 5.1235 μs"
+
     tau = Parameter("tau", value=5.123456e-6)
     formatted_string = format_value_string("tau", tau, unit="s")
-    assert formatted_string == r"tau: 5.1235$\pm$NaN μs"
+    assert formatted_string == r"tau: 5.1235 μs"
 
     tau.stderr = 0.03e-6
     formatted_string = format_value_string("tau", tau, unit="s")
@@ -165,11 +168,11 @@ def test_format_value_string_unit_aware():
 
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau, unit="Hz")
-    assert formatted_string == r"tau: 5.1235$\pm$NaN MHz"
+    assert formatted_string == r"tau: 5.1235 MHz"
 
     tau = Parameter("tau", value=5123456.123456)
     formatted_string = format_value_string("tau", tau, unit="SI_PREFIX_ONLY")
-    assert formatted_string == r"tau: 5.1235$\pm$NaN M"
+    assert formatted_string == r"tau: 5.1235 M"
 
     tau.stderr = 3.1234
     formatted_string = format_value_string("tau", tau, unit="Hz")
@@ -206,4 +209,4 @@ def test_format_value_ufloat():
 
     tau = uncertainties.ufloat(0.0, np.NaN)
     formatted_string = format_value_string("tau", tau)
-    assert formatted_string == r"tau: 0$\pm$NaN "
+    assert formatted_string == r"tau: 0 "

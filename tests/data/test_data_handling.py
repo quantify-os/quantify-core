@@ -6,16 +6,20 @@ from pathlib import Path
 import shutil
 import tempfile
 from datetime import datetime
+import json
 import dateutil
+import uncertainties
+
 
 import pytest
 import xarray as xr
 import numpy as np
 from qcodes import ManualParameter
-from quantify.data.types import TUID
-from quantify.measurement.control import MeasurementControl
-import quantify.data.handling as dh
-from quantify.analysis.base_analysis import Basic1DAnalysis
+from qcodes.utils.helpers import NumpyJSONEncoder
+from quantify_core.data.types import TUID
+from quantify_core.measurement.control import MeasurementControl
+import quantify_core.data.handling as dh
+from quantify_core.analysis.base_analysis import BasicAnalysis
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 
@@ -59,7 +63,7 @@ def test_initialize_dataset():
     assert set(dataset.dims.keys()) == {"dim_0"}
 
 
-def test_initialize_dataset_2D():
+def test_initialize_dataset_2d():
     xpar = ManualParameter("x", unit="m", label="X position")
     ypar = ManualParameter("y", unit="m", label="Y position")
     getpar = ManualParameter("z", unit="V", label="Signal amplitude")
@@ -432,31 +436,44 @@ def test_dynamic_dataset():
     dset["x1"].values[:] = x1_vals
     dset["y0"].values[:] = y0_vals
 
-    dset = dh.grow_dataset(dset)
-    assert len(dset["x0"]) == len(dset["x1"]) == len(dset["y0"]) == 16
-    assert np.isnan(dset["x0"][8:]).all()
-    assert np.isnan(dset["x1"][8:]).all()
-    assert np.isnan(dset["y0"][8:]).all()
+    dset_grown = dh.grow_dataset(dset)
+    assert len(dset_grown["x0"]) == len(dset_grown["x1"]) == len(dset_grown["y0"]) == 16
+    assert np.isnan(dset_grown["x0"][8:]).all()
+    assert np.isnan(dset_grown["x1"][8:]).all()
+    assert np.isnan(dset_grown["y0"][8:]).all()
+    assert dset_grown.attrs == dset.attrs
+    assert dset_grown.x0.attrs == dset.x0.attrs
+    assert dset_grown.x1.attrs == dset.x1.attrs
+    assert dset_grown.y0.attrs == dset.y0.attrs
 
     x0_vals_ext = np.random.random(3)
     x1_vals_ext = np.random.random(3)
     y0_vals_ext = np.random.random(3)
 
-    dset["x0"].values[8:11] = x0_vals_ext
-    dset["x1"].values[8:11] = x1_vals_ext
-    dset["y0"].values[8:11] = y0_vals_ext
+    dset_grown["x0"].values[8:11] = x0_vals_ext
+    dset_grown["x1"].values[8:11] = x1_vals_ext
+    dset_grown["y0"].values[8:11] = y0_vals_ext
 
-    dset = dh.trim_dataset(dset)
-    assert len(dset["x0"]) == len(dset["x1"]) == len(dset["y0"]) == 11
-    np.array_equal(dset["x0"], np.concatenate([x0_vals, x0_vals_ext]))
-    np.array_equal(dset["x1"], np.concatenate([x1_vals, x1_vals_ext]))
-    np.array_equal(dset["y0"], np.concatenate([y0_vals, y0_vals_ext]))
+    dset_trimmed = dh.trim_dataset(dset_grown)
+    assert (
+        len(dset_trimmed["x0"])
+        == len(dset_trimmed["x1"])
+        == len(dset_trimmed["y0"])
+        == 11
+    )
+    np.array_equal(dset_trimmed["x0"], np.concatenate([x0_vals, x0_vals_ext]))
+    np.array_equal(dset_trimmed["x1"], np.concatenate([x1_vals, x1_vals_ext]))
+    np.array_equal(dset_trimmed["y0"], np.concatenate([y0_vals, y0_vals_ext]))
 
-    assert not np.isnan(dset["x0"]).any()
-    assert not np.isnan(dset["x1"]).any()
-    assert not np.isnan(dset["y0"]).any()
+    assert not np.isnan(dset_trimmed["x0"]).any()
+    assert not np.isnan(dset_trimmed["x1"]).any()
+    assert not np.isnan(dset_trimmed["y0"]).any()
+    assert dset_trimmed.attrs == dset.attrs
+    assert dset_trimmed.x0.attrs == dset.x0.attrs
+    assert dset_trimmed.x1.attrs == dset.x1.attrs
+    assert dset_trimmed.y0.attrs == dset.y0.attrs
 
-    assert "tuid" in set(dset.attrs)
+    assert "tuid" in dset_trimmed.attrs
 
 
 def test_to_gridded_dataset(tmp_test_data_dir):
@@ -501,15 +518,73 @@ def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
     return dataset
 
 
+def test_qcodes_numpyjsonencoder():
+    quantities_of_interest = {
+        "python_tuple": (1, 2, 3, 4),
+        "python_list": [1, 2, 3, 4],
+        "numpy_array": np.array([1, 2, 3, 4]),
+        "numpy_array_complex": np.array([1, 2], dtype=complex),
+        "uncertainties_ufloat": uncertainties.ufloat(1.0, 2.0),
+        "complex": complex(1.0, 2.0),
+        "nan_value": float("nan"),
+        "inf_value": float("inf"),
+        "-inf_value": float("-inf"),
+    }
+
+    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
+    decoded = json.loads(encoded)
+
+    assert isinstance(decoded["python_tuple"], list)
+    assert isinstance(decoded["python_list"], list)
+    assert isinstance(decoded["numpy_array"], (list, np.ndarray))
+    assert decoded["uncertainties_ufloat"] == {
+        "__dtype__": "UFloat",
+        "nominal_value": 1.0,
+        "std_dev": 2.0,
+    }
+    assert decoded["complex"] == {"__dtype__": "complex", "re": 1.0, "im": 2.0}
+    assert decoded["numpy_array_complex"] == [
+        {"__dtype__": "complex", "re": 1.0, "im": 0.0},
+        {"__dtype__": "complex", "re": 2.0, "im": 0.0},
+    ]
+    assert np.isnan(decoded["nan_value"])
+    assert decoded["inf_value"] == float("inf")
+    assert decoded["-inf_value"] == float("-inf")
+
+
 def test_load_analysis_output_files(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
 
     # We need to run an analysis first, so the files to be loaded are generated
-    Basic1DAnalysis(tuid=TUID_1D_1PLOT).run()
+    BasicAnalysis(tuid=TUID_1D_1PLOT).run()
 
     assert isinstance(
-        dh.load_quantities_of_interest(TUID_1D_1PLOT, Basic1DAnalysis.__name__), dict
+        dh.load_quantities_of_interest(TUID_1D_1PLOT, BasicAnalysis.__name__), dict
     )
     assert isinstance(
-        dh.load_processed_dataset(TUID_1D_1PLOT, Basic1DAnalysis.__name__), xr.Dataset
+        dh.load_processed_dataset(TUID_1D_1PLOT, BasicAnalysis.__name__), xr.Dataset
     )
+
+
+def test_is_uniformly_spaced_array():
+
+    x0 = [1, 1.1, 1.2, 1.3, 1.4]
+    x0_ng = [1, 1.1, 1.2, 1.3, 1.401]
+
+    x1 = [1e-9, 1.1e-9, 1.2e-9, 1.3e-9, 1.4e-9]
+    x1_ng = [1e-9, 1.1e-9, 1.2e-9, 1.3e-9, 1.401e-9]
+
+    x2 = [1e9, 1.1e9, 1.2e9, 1.3e9, 1.4e9]
+    x2_ng = [1e9, 1.1e9, 1.2e9, 1.3e9, 1.401e9]
+
+    cases = [
+        (True, x0),
+        (True, x1),
+        (True, x2),
+        (False, x0_ng),
+        (False, x1_ng),
+        (False, x2_ng),
+    ]
+
+    for expected, points in cases:
+        assert dh._is_uniformly_spaced_array(points) == expected

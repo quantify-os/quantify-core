@@ -5,8 +5,8 @@
 # see also https://stackoverflow.com/questions/10253826/path-issue-with-pytest-importerror-no-module-named-yadayadayada
 
 import pytest
-from quantify.utilities._tests_helpers import get_test_data_dir
-from quantify.utilities._tests_helpers import (
+from quantify_core.utilities._tests_helpers import get_test_data_dir
+from quantify_core.utilities._tests_helpers import (
     rmdir_recursive,
     remove_target_then_copy_from,
 )
@@ -23,9 +23,9 @@ def tmp_test_data_dir(request, tmp_path_factory):
     temp_data_dir = tmp_path_factory.mktemp("temp_data")
     remove_target_then_copy_from(source=get_test_data_dir(), target=temp_data_dir)
 
-    def cleaup_tmp():
+    def cleanup_tmp():
         rmdir_recursive(root_path=temp_data_dir)
 
-    request.addfinalizer(cleaup_tmp)
+    request.addfinalizer(cleanup_tmp)
 
     return temp_data_dir

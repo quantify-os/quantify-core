@@ -1,5 +1,5 @@
 from datetime import datetime
-from quantify.data.types import TUID
+from quantify_core.data.types import TUID
 import pytest
 
 
@@ -37,6 +37,8 @@ def test_TUID_validation():
         "200409-123015-123-abcdef",  # 2 digit year
         "20200409123015-123-abcdef",  # missing dash
         "20200924-152319a414-131ece",  # wrong separator character
+        "20200924-152319-414!100979",  # wrong separator character
+        "20200924c152319-414-100979",  # wrong separator character
         "20200924-959399-414-131ece",  # impossible time
         "20200961-152319-414-131ece",  # impossible date
     ]

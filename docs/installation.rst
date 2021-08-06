@@ -220,9 +220,9 @@ Ready to contribute? Here's how to set up Quantify for local development.
 
         .. code-block::
 
-            $ py.test tests/measurement --cov quantify/measurement
+            $ py.test tests/measurement --cov quantify_core/measurement
 
-        will look for tests located in the tests/measurement directory and report test coverage of the quantify/measurement module.
+        will look for tests located in the tests/measurement directory and report test coverage of the quantify_core/measurement module.
 
     .. tip:: Speed up tests with parallel execution
 
@@ -243,7 +243,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
         $ # windows
         $ ./make.bat html
 
-    The docs will be located in `quantify/docs/_build`.
+    The docs will be located in `quantify_core/docs/_build`.
 
     .. tip::
 
