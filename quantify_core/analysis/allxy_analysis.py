@@ -11,7 +11,12 @@ from quantify_core.visualization import mpl_plotting as qpl
 
 class AllXYAnalysis(ba.BaseAnalysis):
     """
-    Normalizes the data from an AllXY experiment and plots against an ideal curve
+    Normalizes the data from an AllXY experiment and plots against an ideal curve.
+
+
+    See section 2.3.2 of :cite:t:`reed_entanglement_2013` for an explanation of
+    the AllXY experiment and it's applications in diagnosing errors in single-qubit
+    control pulses.
     """
 
     def process_data(self):
