@@ -11,6 +11,8 @@ Developers
 * Kelvin Loh <kelvin@orangeqs.com>
 * Victor Negîrneac <vnegirneac@qblox.com>
 * Damien Crielaard <dcrielaard@qblox.com>
+* Viacheslav Ostroukh <viacheslav@orangeqs.com>
+* Luis Miguens Fernandez <lmiguens@qblox.com>
 * Thomas Reynders <thomas@orangeqs.com>
 * Adam Lawrence <adam@orangeqs.com>
 * Diogo Valada <dvalada@qblox.com>
