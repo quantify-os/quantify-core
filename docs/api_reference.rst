@@ -1,6 +1,7 @@
 .. jupyter-kernel:: python3
     :id: quantify_core_all_docs
 
+=============
 quantify_core
 =============
 
@@ -158,3 +159,9 @@ SI Utilities
 
 .. automodule:: quantify_core.visualization.SI_utilities
     :members:
+
+============
+bibliography
+============
+
+.. bibliography::
