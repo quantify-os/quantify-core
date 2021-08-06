@@ -354,7 +354,7 @@ dataset_2d_example
 #         - **[Required]** The number of elements in``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``acq_set_{j}`` dimension.
 #         - E.g., the digitized time traces stored in ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)`` represent the same measurement with different levels of detail.
 #     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
-# - **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.`
+# - **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.
 # - **[Optional]** Lie along additional nested ``xarray`` dimensions.
 #
 
@@ -379,9 +379,15 @@ dataset_2d_example
 # Dataset attributes
 # ~~~~~~~~~~~~~~~~~~
 
+# %% [markdown]
+#
+
 # %% [raw]
 # Variables attributes
 # ~~~~~~~~~~~~~~~~~~~~
+
+# %% [markdown]
+#
 
 # %% [raw]
 # Calibration variables and dimensions
