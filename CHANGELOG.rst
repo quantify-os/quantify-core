@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Docs - Added bibliography with sphinxcontrib-bibtex extension (!207)
+
 0.5.0 (2021-08-06)
 ------------------
 
