@@ -207,11 +207,11 @@ plt.show()
 #     - Intuition for this ``xarray`` dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
 #     - Default behavior of plotting tools will be to average the dataset along this dimension.
 #     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
-#     - **[Optional]** ``repetition`` can be indexed by an optional ``xarray`` coordinate variable.
+#     - **[Optional]** The ``repetition`` dimension can be indexed by an optional ``xarray`` coordinate variable.
+#
 #         - **[Required]** The variable must be named ``repetition`` as well.
 #
 #     - **[Required]** no other outer ``xarray`` dimensions allowed.
-#         - Rationale: the plotting and analysis toolboxes need to reply on some assumptions about the dataset.
 #
 #
 
@@ -412,5 +412,4 @@ dataset_2d_example
 #     - T1 with calibration points and raw traces inlcuded also for the calibration points.
 #
 
-# %% [markdown]
-#
+# %%

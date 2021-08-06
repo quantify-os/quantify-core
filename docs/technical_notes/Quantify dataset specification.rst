@@ -8,7 +8,7 @@ Quantify dataset specification
 
 
 .. note::
-    
+
     Along this page we show exemplary datasets to highlight the details of this specification.
     However, keep in mind that we always show a valid dataset with all the required properties (except when exemplifying a bad dataset).
 
@@ -26,15 +26,19 @@ Quantify dataset specification
         from quantify_core.measurement import grid_setpoints
         from qcodes import ManualParameter
 
+
         def assign_dataset_attrs(ds: xr.Dataset) -> dict:
             tuid = dh.gen_tuid()
-            ds.attrs.update({
-                "grid_2d": True,  # necessary for live plotting
-                "grid_2d_uniformly_spaced": True,  # pyqt requires interpolation
-                "tuid": tuid,
-                "quantify_dataset_version": "v1.0",
-            })
+            ds.attrs.update(
+                {
+                    "grid_2d": True,  # necessary for live plotting
+                    "grid_2d_uniformly_spaced": True,  # pyqt requires interpolation
+                    "tuid": tuid,
+                    "quantify_dataset_version": "v1.0",
+                }
+            )
             return ds.attrs
+
 
         def dataset_round_trip(ds: xr.Dataset) -> xr.Dataset:
             assign_dataset_attrs(ds)
@@ -42,8 +46,10 @@ Quantify dataset specification
             dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, ds)
             return dh.load_dataset(tuid)
 
+
         def par_to_attrs(par):
             return {"units": par.unit, "long_name": par.label, "standard_name": par.name}
+
 
         from pathlib import Path
         from quantify_core.data.handling import get_datadir, set_datadir
@@ -74,7 +80,7 @@ The dataset has **Dimensions** and **Variables**. Variables "lie" along at least
             "position": (name_dim_a, np.linspace(-5, 5, n), {"units": "m"}),
             "velocity": (name_dim_b, np.linspace(0, 10, n), {"units": "m/s"}),
         },
-        attrs={"key": "my metadata"}
+        attrs={"key": "my metadata"},
     )
     dataset
 
@@ -88,9 +94,9 @@ A variable can be set as coordinate for its dimension(s):
     dataset = xr.Dataset(
         data_vars={
             "position": (name_dim_a, position, {"units": "m"}),
-            "velocity": (name_dim_a, 1 + position ** 2 , {"units": "m/s"})
+            "velocity": (name_dim_a, 1 + position ** 2, {"units": "m/s"}),
         },
-        attrs={"key": "my metadata"}
+        attrs={"key": "my metadata"},
     )
     dataset = dataset.set_coords(["position"])
     dataset
@@ -119,7 +125,7 @@ Automatic plotting:
 
 .. jupyter-execute::
 
-    dataset.velocity.plot();
+    dataset.velocity.plot()
 
 
 .. _sec-experiment-coordinates-and-variables:
@@ -155,17 +161,16 @@ In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and t
         x0s = np.linspace(0.45, 0.55, 30)
         x1s = np.linspace(0, 100e-9, 40)
         time_par = ManualParameter(name="time", label="Time", unit="s")
-        amp_par =  ManualParameter(name="amp", label="Flux amplitude", unit="V")
+        amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
         pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. un.")
         pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. un.")
 
-        x0s, x1s = grid_setpoints(
-            [x0s, x1s],
-            [amp_par, time_par]
-        ).T
+        x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
         x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
-        y0s = (1 - x0s_norm) * np.sin(2 * np.pi * x1s * 1/30e-9 * (x0s_norm + 0.5)) # ~chevron
-        y1s = - y0s + 0.1
+        y0s = (1 - x0s_norm) * np.sin(
+            2 * np.pi * x1s * 1 / 30e-9 * (x0s_norm + 0.5)
+        )  # ~chevron
+        y1s = -y0s + 0.1
 
         dataset = dataset_2d_example = xr.Dataset(
             data_vars={
@@ -175,7 +180,7 @@ In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and t
             coords={
                 "x0": ("acq_set_0", x0s, par_to_attrs(amp_par)),
                 "x1": ("acq_set_0", x1s, par_to_attrs(time_par)),
-            }
+            },
         )
 
         assert dataset == dataset_round_trip(dataset)  # confirm read/write
@@ -192,8 +197,10 @@ As seen above, in the Quantify dataset the experiment coordinates do not index t
 .. jupyter-execute::
 
     dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
-    dataset_gridded.y0.plot(x="x0"); plt.show();
-    dataset_gridded.y1.plot(x="x0"); plt.show();
+    dataset_gridded.y0.plot(x="x0")
+    plt.show()
+    dataset_gridded.y1.plot(x="x0")
+    plt.show()
 
 
 Detailed specification
@@ -207,40 +214,40 @@ Xarray dimensions
 The Quantify dataset has has the following required and optional dimensions:
 
 - **[Required]** ``repetition``
-    
+
     - The outermost dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`.
     - Intuition for this ``xarray`` dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
     - Default behavior of plotting tools will be to average the dataset along this dimension.
     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
-    - **[Optional]** ``repetition`` can be indexed by an optional ``xarray`` coordinate variable.
+    - **[Optional]** The ``repetition`` dimension can be indexed by an optional ``xarray`` coordinate variable.
+
         - **[Required]** The variable must be named ``repetition`` as well.
 
     - **[Required]** no other outer ``xarray`` dimensions allowed.
-        - Rationale: the plotting and analysis toolboxes need to reply on some assumptions about the dataset.
-        
+
 
 
 
 .. admonition:: Examples good datasets (repetition)
     :class: dropdown
-    
+
     To be added:
-    
+
     - More than one repetitions.
     - ``repetition`` dimensions indexed by a ``coordinate`` variables.
 
 
 .. admonition:: Examples bad datasets (repetition)
     :class: dropdown
-    
+
      To be added:
-    
+
     - No repetition dimension.
     - An outer dimension.
 
 
 - **[Required]** ``acq_set_0``
-    
+
     - The outermost dimension of the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`.
     - The first inner dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` (the outermost is the ``repetition`` dimension).
 
@@ -257,9 +264,9 @@ The Quantify dataset has has the following required and optional dimensions:
 
 .. admonition:: Examples bad datasets (acq_set_0)
     :class: dropdown
-    
+
     To be added:
-    
+
     - `x0` and `y0` with some other dimension then ``acq_set_0``.
 
 
@@ -276,14 +283,14 @@ The Quantify dataset has has the following required and optional dimensions:
         - ``assert len(dataset.time) == len(dataset.y3.isel(repetition=0, acq_set_0=0))`` where ``y3`` is a measured variable storing traces.
 
     - Note: When nesting data like this, it is required to have "hyper-cubic"-shaped data, meaning that e.g. ``dataset.y3.isel(repetition=0, acq_set_0=0) == [[2], [ 5, 6]]`` is not possible, but ``dataset.y3.isel(repetition=0, acq_set_0=0) == [[2, 3], [5, 6]]`` is. This is a direct consequence of numpy ``ndarray`` (with entries of type ``int``/``float``/``complex``).
-    
+
 
 
 .. admonition:: Examples good datasets (other nested dimensions)
     :class: dropdown
-    
+
     To be added:
-    
+
     - time series example
     - time series example with complex data
     - Fictitious examples, does not necessarily repretime series with a few distinct DACs, where the DACs names index an extra dimension.
@@ -292,16 +299,16 @@ The Quantify dataset has has the following required and optional dimensions:
 
 .. admonition:: Examples bad datasets (other nested dimensions)
     :class: dropdown
-    
+
     To be added:
-    
+
     - ``time`` coordinate is not indexing the ``time`` dimension.
 
 
 
 .. admonition:: To be refined (acq_set_{i})
     :class: dropdown, warning
-            
+
     For reference from earlier dsicussion, requires some good example to justify this:
 
     - **[Optional, Advanced]** ``acq_set_{i}``, where ``i`` > 0 is an integer.
@@ -341,7 +348,7 @@ Only the following `xarray` coordinates are allowed in the dataset:
 
 .. admonition:: Examples good datasets (coordinates)
     :class: dropdown
-    
+
     To be added...
 
 
@@ -366,9 +373,9 @@ All the ``xarray`` data variables in the dataset (that are not ``xarray`` coordi
 
 .. admonition:: Examples good datasets (variables)
     :class: dropdown
-    
+
     To be added...
-    
+
     - ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)``
 
 
@@ -410,11 +417,8 @@ Calibration points are stored as ``xarray`` data variables. We shall refer to th
 
 .. admonition:: Examples good datasets (variables)
     :class: dropdown
-    
+
     To be added...
-    
+
     - T1 with calibration points.
     - T1 with calibration points and raw traces inlcuded also for the calibration points.
-
-
-
