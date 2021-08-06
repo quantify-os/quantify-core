@@ -5,7 +5,8 @@
 # ==============================
 
 # %% [raw]
-# .. warning:: Developement notes
+# .. admonition:: Development notes
+#     :class: warning
 #
 #     We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
 
@@ -70,7 +71,7 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 # ~~~~~~~~~~~~~~~
 
 # %% [markdown]
-# This is a brief overview of some concepts and functionalities of :mod:`xarray` that are leveraged to define the Quantify dataset.
+# This is a brief overview of some concepts and functionalities of xarray that are leveraged to define the Quantify dataset.
 #
 # The dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
 
@@ -132,10 +133,10 @@ dataset.velocity.plot()
 # We define the following naming conventions in the Quantify dataset:
 #
 # - **Experiment coordinate(s)**
-#     - :mod:`xarray` **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
+#     - xarray **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
 #     - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
 # - **Experiment variable(s)**
-#     - :mod:`xarray` **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
+#     - xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
 #     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
 #
 
@@ -184,7 +185,7 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %% [markdown]
-# As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the :mod:`xarray` built-in utilities.
+# As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities.
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
@@ -207,14 +208,14 @@ plt.show()
 # - **[Required]** ``repetition``
 #
 #     - The outermost dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`.
-#     - Intuition for this :mod:`xarray` dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
+#     - Intuition for this xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
 #     - Default behavior of plotting tools will be to average the dataset along this dimension.
 #     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
-#     - **[Optional]** The ``repetition`` dimension can be indexed by an optional :mod:`xarray` coordinate variable.
+#     - **[Optional]** The ``repetition`` dimension can be indexed by an optional xarray coordinate variable.
 #
 #         - **[Required]** The variable must be named ``repetition`` as well.
 #
-#     - **[Required]** no other outer :mod:`xarray` dimensions allowed.
+#     - **[Required]** no other outer xarray dimensions allowed.
 #
 #
 
@@ -262,12 +263,12 @@ dataset_2d_example
 
 # %% [markdown]
 #
-# - **[Optional, Advanced]** other nested :mod:`xarray` dimensions under each ``acq_set_{i}``
+# - **[Optional, Advanced]** other nested xarray dimensions under each ``acq_set_{i}``
 #
 #     - Intuition: intended primarily for time series, also known as "time trace" or simply trace.
-#     - Other, potentially arbitrarily nested, :mod:`xarray` dimensions under each ``acq_set_{i}`` is allowed. I.e., **each entry** in a, e.g., ``y3`` :mod:`xarray` variable can be a 1D, or nD array where each "D" has a corresponding :mod:`xarray` dimension.
-#     - Such :mod:`xarray` dimensions can be named arbitrarily.
-#     - Each of such :mod:`xarray` dimension can be *indexed* by an :mod:`xarray` coordinate variable. E.g. for a time trace we would have in the dataset:
+#     - Other, potentially arbitrarily nested, xarray dimensions under each ``acq_set_{i}`` is allowed. I.e., **each entry** in a, e.g., ``y3`` xarray variable can be a 1D, or nD array where each "D" has a corresponding xarray dimension.
+#     - Such xarray dimensions can be named arbitrarily.
+#     - Each of such xarray dimension can be *indexed* by an xarray coordinate variable. E.g. for a time trace we would have in the dataset:
 #
 #         - ``assert "time" in dataset.coords``
 #         - ``assert "time" in dataset.dims``
@@ -306,7 +307,7 @@ dataset_2d_example
 #
 #     - Reserves the possibility to store data for experiments that we have not yet encountered ourselves. I a gut feeling that we need this, but might not have a good realistic example, some help here is welcome.
 #
-#         - (Example ?) Imagine measuring some qubits until all of them are in a desired state, returning the data of these measurements and then proceeding to doing the "real" experiment you are interested in. I think having these extra *independent* :mod:`xarray` dimensions
+#         - (Example ?) Imagine measuring some qubits until all of them are in a desired state, returning the data of these measurements and then proceeding to doing the "real" experiment you are interested in. I think having these extra *independent* xarray dimensions
 #     - **[Required]** all ``acq_set_{i}`` dimensions (including ``acq_set_0``) are mutually excluding. This means variables in the dataset cannot depend on more than one of these dimensions.
 #
 #         - **Bad** variable: ``y0(repetition, acq_set_0, acq_set_1)``, this should never happen in the dataset.
@@ -326,14 +327,14 @@ dataset_2d_example
 # - **[Optional]** Other ``f"x{i}"`` :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`, with ``i`` a positive integer.
 #
 #     - These are the coordinates that index the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. This indexing can be made explicit in a (separate) :class:`xarray.Dataset` instance returned by :func:`quantify_core.data.handling.to_gridded_dataset()` (when the data corresponds to a multi-dimensional grid).
-#     - **[Required]** Each ``x{i}`` must lie along one (and only one) ``acq_set_{j}`` :mod:`xarray` dimension.
-# - **[Optional]** Other :mod:`xarray` coordinates (that are not :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`) used to index the nested dimensions.
+#     - **[Required]** Each ``x{i}`` must lie along one (and only one) ``acq_set_{j}`` xarray dimension.
+# - **[Optional]** Other xarray coordinates (that are not :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`) used to index the nested dimensions.
 #
 #     - Allowed dimension names:
 #         - ``repetition``, or
 #         - ``acq_set_{i}``, or
 #         - ``<arbitrary_name>`` but with the same name as one of the **nested** dimensions (see :ref:`Xarray dimensions` section above).
-#     - **[Required]** These other :mod:`xarray` coordinates must "lie" along a single dimension (and have the same name).
+#     - **[Required]** These other xarray coordinates must "lie" along a single dimension (and have the same name).
 #
 
 # %% [raw]
@@ -347,9 +348,9 @@ dataset_2d_example
 # ~~~~~~~~~~~~~~~~~~~~~
 
 # %% [markdown]
-# The only :mod:`xarray` data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
+# The only xarray data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
 #
-# All the :mod:`xarray` data variables in the dataset (that are not :mod:`xarray` coordinates) comply with:
+# All the xarray data variables in the dataset (that are not xarray coordinates) comply with:
 #
 # - Naming:
 #     - ``y{i}`` where  is an integer; **OR**
@@ -359,7 +360,7 @@ dataset_2d_example
 #         - E.g., the digitized time traces stored in ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)`` represent the same measurement with different levels of detail.
 #     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
 # - **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.
-# - **[Optional]** Lie along additional nested :mod:`xarray` dimensions.
+# - **[Optional]** Lie along additional nested xarray dimensions.
 #
 
 # %% [raw]
@@ -387,7 +388,7 @@ dataset_2d_example
 # The dataset must have the following attributes:
 #
 # - ``grid`` (``bool``)
-#     - Specifies if the experiment coordinates are the "unrolled" points (also known as "unstacked") corresponding to a grid. If ``True`` than it is possible to use :func:`quantify_core.data.hadling.to_gridded_dataset()` to convert the dataset.
+#     - Specifies if the experiment coordinates are the "unrolled" points (also known as "unstacked") corresponding to a grid. If ``True`` than it is possible to use :func:`quantify_core.data.handling.to_gridded_dataset()` to convert the dataset.
 # - ``grid_uniformly_spaced`` (``bool``)
 #     - Can be ``True`` only if ``grid`` is also ``True``.
 #     - Specifies if all the experiment coordinates are homogeneously spaced. If, e.g., ``x0`` was generated with ``np.logspace(0, 15, 10)`` then this attribute must be ``False``.
@@ -400,7 +401,7 @@ dataset_2d_example
 dataset.attrs
 
 # %% [markdown]
-# Note that :mod:`xarray` automatically provides the attributes as python attributes:
+# Note that xarray automatically provides the attributes as python attributes:
 
 # %%
 dataset.quantify_dataset_version, dataset.tuid
@@ -419,7 +420,7 @@ dataset.quantify_dataset_version, dataset.tuid
 #     - A human readable name. Usually used as the label of a plot axis.
 # - ``units`` (``str``)
 #     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. un."``.
-#     - NB This attribute was not named ``unit`` to preserve compatibility with :mod:`xarray` plotting methods.
+#     - NB This attribute was not named ``unit`` to preserve compatibility with xarray plotting methods.
 #
 # Optionally the following attributes may be present as well:
 #
@@ -438,9 +439,9 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 # %% [markdown]
 # Calibration points can be tricky to deal with. In addition to the specification above, we describe here how and which kind of calibration points are supported within the Quantify dataset.
 #
-# Calibration points are stored as :mod:`xarray` data variables. We shall refer to them as *calibration variables*. They are similar to the experiment variables with the following differences:
+# Calibration points are stored as xarray data variables. We shall refer to them as *calibration variables*. They are similar to the experiment variables with the following differences:
 #
-# - They are :mod:`xarray` data variables named as ``y{j}_calib``.
+# - They are xarray data variables named as ``y{j}_calib``.
 # - They must lie along the ``acq_set_{i}_calib``, i.e. ``y{j}_calib(repetition, acq_set_{i}_calib, <other nested dimension(s)>)``.
 #     - Note that we would have ``y{j}(repetition, acq_set_{i}, <other nested dimension(s)>)``.
 # - ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitary>`` are present in the dataset.
