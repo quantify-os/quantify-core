@@ -88,8 +88,8 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
                     else:
                         code_cell_source = code_cell_source[1:]
 
-                if "directive_options" in conf:
-                    directive_options = conf["directive_options"]
+                if "jupyter_execute_options" in conf:
+                    directive_options = conf["jupyter_execute_options"]
                     directive_options = list(opt + "\n" for opt in directive_options)
 
         return indent, directive_options + ["\n"] + code_cell_source
