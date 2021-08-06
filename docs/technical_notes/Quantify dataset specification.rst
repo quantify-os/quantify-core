@@ -25,14 +25,15 @@ Quantify dataset specification
         from quantify_core.data import handling as dh
         from quantify_core.measurement import grid_setpoints
         from qcodes import ManualParameter
-
+        from rich import pretty
+        pretty.install()
 
         def assign_dataset_attrs(ds: xr.Dataset) -> dict:
             tuid = dh.gen_tuid()
             ds.attrs.update(
                 {
-                    "grid_2d": True,  # necessary for live plotting
-                    "grid_2d_uniformly_spaced": True,  # pyqt requires interpolation
+                    "grid": True,
+                    "grid_uniformly_spaced": True,  # pyqt requires interpolation
                     "tuid": tuid,
                     "quantify_dataset_version": "v1.0",
                 }
@@ -125,7 +126,7 @@ Automatic plotting:
 
 .. jupyter-execute::
 
-    dataset.velocity.plot()
+    dataset.velocity.plot();
 
 
 .. _sec-experiment-coordinates-and-variables:
@@ -334,7 +335,7 @@ Only the following `xarray` coordinates are allowed in the dataset:
     - For some experiments it might not be suitable to think of a parameter that is being varied. In such cases ``x0`` can be simply an array of integers, e.g. ``np.linspace(0, number_of_points)``.
 - **[Optional]** Other ``f"x{i}"`` :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`, with ``i`` a positive integer.
 
-    - These are the coordinates that index the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. This indexing can be made explicit in a (separate) :class:`xarray.Dataset` instance retuned by `quantify_core.data.handling.to_gridded_dataset()` (when the data corresponds to a multi-dimensional grid).
+    - These are the coordinates that index the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. This indexing can be made explicit in a (separate) :class:`xarray.Dataset` instance retuned by :func:`quantify_core.data.handling.to_gridded_dataset()` (when the data corresponds to a multi-dimensional grid).
     - **[Required]** Each ``x{i}`` must lie along one (and only one) ``acq_set_{j}`` ``xarray`` dimension.
 - **[Optional]** Other ``xarray`` coordinates (that are not :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`) used to index the nested dimensions.
 
@@ -359,6 +360,7 @@ Xarray data variables
 The only ``xarray`` data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
 
 All the ``xarray`` data variables in the dataset (that are not ``xarray`` coordinates) comply with:
+
 - Naming:
     - ``y{i}`` where  is an integer; **OR**
     - ``y{i}_<arbitrary>`` where ``i => 0`` is an integer such that matches an existing ``y{i}`` in the same dataset.
@@ -366,7 +368,7 @@ All the ``xarray`` data variables in the dataset (that are not ``xarray`` coordi
         - **[Required]** The number of elements in``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``acq_set_{j}`` dimension.
         - E.g., the digitized time traces stored in ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)`` represent the same measurement with different levels of detail.
     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
-- **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.`
+- **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.
 - **[Optional]** Lie along additional nested ``xarray`` dimensions.
 
 
@@ -392,14 +394,58 @@ Dataset attributes
 ~~~~~~~~~~~~~~~~~~
 
 
+The dataset must have the following attributes:
+
+- ``grid`` (``bool``)
+    - Specifies if the experiment coordinates are the "unrolled" points (also known as "unstacked") corresponding to a grid. If ``True`` than it is possible to use :func:`quantify_core.data.hadling.to_gridded_dataset()` to convert the dataset.
+- ``grid_uniformly_spaced`` (``bool``)
+    - Can be ``True`` only if ``grid`` is also ``True``.
+    - Specifies if all the experiment coordinates are homogeneuosly spaced. If, e.g., ``x0`` was generated with ``np.logspace(0, 15, 10)`` then this attribute must be ``False``. 
+- ``tuid`` (``str``)
+    - The unique identifier of the dataset. See :class:`quantify_core.data.types.TUID`.
+- ``quantify_dataset_version`` (``str``)
+    - The quantify dataset version.
 
 
+.. jupyter-execute::
 
-Variables attributes
-~~~~~~~~~~~~~~~~~~~~
+    dataset.attrs
 
 
+Note that ``xarray`` automatically provides the attributes as python attributes:
 
+
+.. jupyter-execute::
+
+    dataset.quantify_dataset_version, dataset.tuid
+
+
+Experiment coordinates and variables attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Both, the experiment coordinates and the experiment variables, are required to have the following attributes:
+
+- ``standard_name`` (``str``)
+    - Usually a short name. Often correponding to the name of a :class:`~qcodes.instrument.parameter.Parameter`.
+    - The name should be a valid python variable composed of lower-case alphanumeric characters and ``_`` (unserscore).
+- ``long_name`` (``str``)
+    - A human readable name. Usually used as the label of a plot axis.
+- ``units`` (``str``)
+    - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. un."``.
+    - NB This attribute was not named ``unit`` to presernce compatiblity with ``xarray`` plotting methods.
+    
+Optionally the following attributes may be present as well:
+
+- ``batched`` (``bool``)
+    - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-bached-and-batch_size>` section.
+- ``batch_size`` (``bool``)
+    - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-bached-and-batch_size>` section.
+
+
+.. jupyter-execute::
+
+    dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 
 
 Calibration variables and dimensions
@@ -428,3 +474,9 @@ Calibration points are stored as ``xarray`` data variables. We shall refer to th
 
     - T1 with calibration points.
     - T1 with calibration points and raw traces inlcuded also for the calibration points.
+
+
+
+.. jupyter-execute::
+
+    from qcodes import Parameter
