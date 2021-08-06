@@ -8,54 +8,55 @@ import xarray as xr
 import numpy as np
 from uncertainties.core import Variable
 
-import quantify.data.handling as dh
-from quantify.analysis import rabi_analysis as ra
+import quantify_core.data.handling as dh
+from quantify_core.analysis import rabi_analysis as ra
 
 
 @pytest.fixture(scope="session", autouse=True)
-def analysis_obj(tmp_test_data_dir):
+def analysis(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    a_obj = ra.RabiAnalysis(tuid="20210419-153127-883-fa4508").run()
-    return a_obj
+    analysis = ra.RabiAnalysis(tuid="20210419-153127-883-fa4508").run()
+    return analysis
 
 
-def test_figures_generated(analysis_obj):
+def test_figures_generated(analysis):
     """test that the right figures get created"""
-    assert set(analysis_obj.figs_mpl.keys()) == {
+    assert set(analysis.figs_mpl.keys()) == {
         "Rabi_oscillation",
     }
 
 
-def test_quantities_of_interest(analysis_obj):
+def test_quantities_of_interest(analysis):
     """Test that the quantities of interest have the correct values"""
-    assert set(analysis_obj.quantities_of_interest.keys()) == {
-        "Pi-pulse amp",
+    assert set(analysis.quantities_of_interest.keys()) == {
+        "Pi-pulse amplitude",
         "fit_msg",
-        "fit_res",
+        "fit_result",
         "fit_success",
     }
 
-    qois_values = {"Pi-pulse amp": 498.8e-3}
-    assert isinstance(analysis_obj.quantities_of_interest["Pi-pulse amp"], Variable)
+    assert isinstance(analysis.quantities_of_interest["Pi-pulse amplitude"], Variable)
     # Tests that the fitted values are correct (to within 5 standard deviations)
-    assert analysis_obj.quantities_of_interest["Pi-pulse amp"].nominal_value == approx(
-        qois_values["Pi-pulse amp"],
-        abs=5 * analysis_obj.quantities_of_interest["Pi-pulse amp"].std_dev,
+    assert analysis.quantities_of_interest[
+        "Pi-pulse amplitude"
+    ].nominal_value == approx(
+        498.8e-3,
+        abs=5 * analysis.quantities_of_interest["Pi-pulse amplitude"].std_dev,
     )
-    assert analysis_obj.quantities_of_interest["fit_success"] is True
+    assert analysis.quantities_of_interest["fit_success"] is True
 
 
 @pytest.fixture(scope="session", autouse=True)
-def analysis_obj_bad_fit(tmp_test_data_dir):
+def analysis_bad_fit(tmp_test_data_dir):
     """
     Used for (Rabi) Analysis class that gives the correct warning when a lmfit
     cannot find a good fit.
     """
     dh.set_datadir(tmp_test_data_dir)
-    x0 = np.linspace(-0.5, 0.5, 30)
-    y0 = np.cos(x0 * 4 * np.pi) * 0.1 + 0.05
-    x0r = xr.DataArray(
-        x0,
+    x_data = np.linspace(-0.5, 0.5, 30)
+    y_data = np.cos(x_data * 4 * np.pi) * 0.1 + 0.05
+    x_array = xr.DataArray(
+        x_data,
         name="x0",
         attrs={
             "batched": False,
@@ -64,8 +65,8 @@ def analysis_obj_bad_fit(tmp_test_data_dir):
             "units": "V",
         },
     )
-    y0r = xr.DataArray(
-        y0,
+    y_array = xr.DataArray(
+        y_data,
         name="y0",
         attrs={
             "batched": False,
@@ -74,47 +75,46 @@ def analysis_obj_bad_fit(tmp_test_data_dir):
             "units": "V",
         },
     )
-    dset = xr.Dataset(
-        {"x0": x0r, "y0": y0r},
+    dataset = xr.Dataset(
+        {"x0": x_array, "y0": y_array},
         attrs={
             "name": "Mock_Rabi_power_scan_bad_fit",
             "tuid": "20210424-191802-994-f16eb3",
-            "2D-grid": False,
         },
     )
-    dset = dset.set_coords(["x0"])
+    dataset = dataset.set_coords(["x0"])
 
     with warns(
         UserWarning,
         match="lmfit could not find a good fit."
         " Fitted parameters may not be accurate.",
     ):
-        a_obj = ra.RabiAnalysis(
-            dataset=dset, settings_overwrite={"mpl_fig_formats": []}
+        analysis = ra.RabiAnalysis(
+            dataset=dataset, settings_overwrite={"mpl_fig_formats": []}
         ).run()
 
-    return a_obj
+    return analysis
 
 
-def test_figures_generated_bad_fit(analysis_obj_bad_fit):
+def test_figures_generated_bad_fit(analysis_bad_fit):
     """test that the right figures get created despite failed fit"""
-    assert set(analysis_obj_bad_fit.figs_mpl.keys()) == {
+    assert set(analysis_bad_fit.figs_mpl.keys()) == {
         "Rabi_oscillation",
     }
 
 
-def test_quantities_of_interest_bad_fit(analysis_obj_bad_fit):
+def test_quantities_of_interest_bad_fit(analysis_bad_fit):
     """Test that the quantities of interest have the correct values"""
-    assert set(analysis_obj_bad_fit.quantities_of_interest.keys()) == {
-        "Pi-pulse amp",
+    assert set(analysis_bad_fit.quantities_of_interest.keys()) == {
+        "Pi-pulse amplitude",
         "fit_msg",
-        "fit_res",
+        "fit_result",
         "fit_success",
     }
 
-    assert analysis_obj_bad_fit.quantities_of_interest["fit_success"] is False
+    assert analysis_bad_fit.quantities_of_interest["fit_success"] is False
     assert (
-        analysis_obj_bad_fit.quantities_of_interest["fit_msg"]
-        == "Warning: lmfit could not find a good fit. Fitted parameters"
-        " may not be accurate."
+        analysis_bad_fit.quantities_of_interest["fit_msg"]
+        == "Warning: lmfit could not find a\ngood fit. Fitted parameters"
+        " may not\nbe accurate."
     )

@@ -1,8 +1,14 @@
 workflow:
+  # these rules define if a pipeline will be created for certain events
+  # note that each job needs its on rules that define when it will run
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never  # avoid duplicate pipelines for pushes for branches with a MR opened
+    - if: '$CI_OPEN_MERGE_REQUESTS || $CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: always
+
 
 .shared-windows-runners:
   tags:
@@ -14,28 +20,26 @@ workflow:
 # https://hub.docker.com/r/library/python/tags/
 image: python:3.7
 
-# Change pip's cache directory to be inside the project directory since we can
-# only cache local items.
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   QT_DEBUG_PLUGINS: 0  # change to `1` when facing issues with Qt
   QT_QPA_PLATFORM: offscreen
-
-# Pip's cache doesn't store the python packages
-# https://pip.pypa.io/en/stable/reference/pip_install/#caching
-#
-# If you want to also cache the installed packages, you have to install
-# them in a virtualenv and cache it as well.
-cache:
-  paths:
-    - .cache/pip
-    - venv/
+  DOCKER_BUILDKIT: 1
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay
 
 stages:
+  - Build unix images manual
+  - Build unix images nightly
+  - Build windows images manual
   - Static Analysis
-  - Test
-  - Docs build
+  - Test Unix
+  - Docs Unix
+  - Test/docs win manual
+  - Test/docs win nighly
   - Deploy
+
+services:
+  - docker:dind
 
 # ######################################################################################
 # Reusable code
@@ -50,50 +54,88 @@ stages:
       - frozen-requirements.txt
     reports:
       cobertura: coverage.xml
-    when: always
 
-.run-for-develop-only:
+# START rules
+
+# Controlling when a job runs and when not it is a bit messy
+# Every job should be either manual or extend (only) one of the following.
+
+.run-nightly-docker-images-build:
+  rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
+
+.run-for-develop-and-nighly-only:
   # make any job extend from this if it should run only on develop
   rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
+      when: never  # do not run if we are building docker images
     # Only run when merging to develop branch
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
     - if: '$CI_COMMIT_BRANCH == "develop"'  # Also run for direct commits on develop
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
+    - when: always
+
+.run-nighly-only:
+  # make any job extend from this if it should run only on develop and nightly runs
+  rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_NIGHTLY_RUN == "true"'
+
+.run-always-except-docker-images:
+  rules:
+    # variable set in GitLab -> CI/CD -> Schedules
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $QUANTIFY_BUILD_DOCKER_IMAGES == "true"'
+      when: never  # do not run if we are building docker images
+    - when: always
+
+# END rules
 
 .docs-unix-and-artifacts:
   needs: []  # allow running in parallel with previous stage
   script:
     - cd docs
     - make html
+  after_script:
+    # Append the error log such that it's more convenient to read
+    - echo "-------- Errors emitted during building of documentation --------"
+    - cat docs/build_errors.log
   artifacts:
     paths:
       - frozen-requirements.txt
+      - docs/_build/html
+      - docs/build_errors.log
 
 .docs-win-and-artifacts:
   needs: []  # allow running in parallel with previous stage
   script:
     - cd docs
     - .\make.bat html
+  after_script:
+    # Append the error log such that it's more convenient to read
+    - echo "-------- Errors emitted during building of documentation --------"
+    - cat docs\build_errors.log
   artifacts:
     paths:
       - frozen-requirements.txt
+      - docs\_build/html
+      - docs\build_errors.log
 
 # this uses YML anchors syntax to be able to reuse this snippets
 # anchor usage https://docs.gitlab.com/ee/ci/yaml/#anchors
 # Create an anchor called `pip_install_and_freeze`
-.pip-install-and-freeze: &pip_install_and_freeze
-  - pip install --upgrade --upgrade-strategy eager -e .
-  - pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+.pip-install-and-freeze-unix: &pip_install_and_freeze_unix
+  # do not force the upgrade to latest version of packages here, update docker images instead
+  - pip install -e . -r requirements_dev.txt
   # save the version of the packages installed for CI debugging
   - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
 
-.unix-before-script-no-install: &unix_before_script_no_install
-  - python -V  # Print out python version for debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
-  - apt update
-  - apt install -y xvfb  # Sets up a headless display
-  - sleep 3
+.pip-install-and-freeze-windows: &pip_install_and_freeze_windows
+  - pip install -e . -r requirements_dev.txt --upgrade --upgrade-strategy eager
+  # save the version of the packages installed for CI debugging
+  - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
 
 .upgrade-pip: &upgrade_pip
   - python -V
@@ -101,9 +143,10 @@ stages:
   - python -m pip install --upgrade pip
 
 .unix-before-script:
+  variables:
+    XDG_RUNTIME_DIR: /tmp/runtime-root  # solves an issue with PyQt5
   before_script:
-    - *unix_before_script_no_install
-    - *pip_install_and_freeze
+    - *pip_install_and_freeze_unix
 
 .win-before-script-3.7.9:
   # version 3.7.10 not available on chocolatey
@@ -111,14 +154,14 @@ stages:
     - choco install python --version=3.7.9 -y -f
     - $env:PATH+=";C:\Python37;C:\Python37\Scripts"
     - *upgrade_pip
-    - *pip_install_and_freeze
+    - *pip_install_and_freeze_windows
 
 .win-before-script-3.8.9:
   before_script:
     - choco install python --version=3.8.9 -y -f
     - $env:PATH+=";C:\Python38;C:\Python38\Scripts"
     - *upgrade_pip
-    - *pip_install_and_freeze
+    - *pip_install_and_freeze_windows
 
 .win-before-script-latest:
   before_script:
@@ -128,158 +171,207 @@ stages:
     # assume here the latest is 3.9 will fail when a 3.10 is available
     - $env:PATH+=";C:\Python39;C:\Python39\Scripts"
     - *upgrade_pip
-    - *pip_install_and_freeze
+    - *pip_install_and_freeze_windows
 
 .unix-run-pytest:
   script:
-    - xvfb-run pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - xvfb-run pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
     # send the coverage.xml file to codacy
     - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
 
 .win-run-pytest:
   script:
-    - pytest -n 2 -s --cov=quantify --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
+    - pytest -n 2 -s --cov=quantify_core --cov-report xml --cov-report html --cov-report term --cov-config=.coveragerc --color=yes
 
 # ######################################################################################
 # Test Unix
 # ######################################################################################
 
 test-unix-3.7:
-  stage: Test
-  image: "python:3.7"
+  stage: Test Unix
+  image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+    - .run-for-develop-and-nighly-only
 
-test-unix-3.8:
-  stage: Test
-  image: "python:3.8"
+test-unix-3.8: # no rules, always runs such that a minimal test is done on every push
+  stage: Test Unix
+  image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
+    - .run-always-except-docker-images
 
 test-unix-latest:
-  stage: Test
-  image: "python:latest"
+  stage: Test Unix
+  image: $CI_REGISTRY_IMAGE:python_latest
   extends:
     - .unix-before-script
     - .unix-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+    - .run-for-develop-and-nighly-only
   allow_failure: true
-
-alternative-install-unix:
-  needs: []  # allow running in parallel with previous stage
-  stage: Test
-  extends:
-    - .run-for-develop-only
-  script:
-    - *unix_before_script_no_install
-    - python setup.py bdist_wheel
-    # an alternative approach is to install and run:
-    - pip install dist/*
-    # run the command here
-  artifacts:
-    paths:
-      - dist/*.whl
 
 # ######################################################################################
 # Test Windows
 # ######################################################################################
 
-test-win-3.7.9:
-  stage: Test
+.test-win-3.7.9:
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
 
-test-win-3.8.9:
-  stage: Test
+test-win-3.7.9-manual:
+  stage: Test/docs win manual
+  extends:
+    - .test-win-3.7.9
+  when: manual
+
+test-win-3.7.9-nightly:
+  stage: Test/docs win nighly
+  extends:
+    - .test-win-3.7.9
+    - .run-nighly-only
+
+.test-win-3.8.9:
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
 
-test-win-latest:
-  stage: Test
+test-win-3.8.9-manual:
+  stage: Test/docs win manual
+  extends:
+    - .test-win-3.8.9
+  when: manual
+
+test-win-3.8.9-nightly:
+  stage: Test/docs win nighly
+  extends:
+    - .test-win-3.8.9
+    - .run-nighly-only
+
+.test-win-latest:
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
     - .win-run-pytest
     - .save-test-artifacts
-    - .run-for-develop-only
+  # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
+
+test-win-latest-manual:
+  stage: Test/docs win manual
+  extends:
+    - .test-win-latest
+  when: manual
+
+test-win-latest-nightly:
+  stage: Test/docs win nighly
+  extends:
+    - .test-win-latest
+    - .run-nighly-only
 
 # ######################################################################################
 # Docs build Unix
 # ######################################################################################
 
 docs-unix-make-html-3.7:
-  stage: Docs build
-  image: "python:3.7"
+  stage: Docs Unix
+  image: $CI_REGISTRY_IMAGE:python_3.7
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    - .run-for-develop-only
+    - .run-for-develop-and-nighly-only
 
 docs-unix-make-html-3.8:
-  stage: Docs build
-  image: "python:3.8"
+  stage: Docs Unix
+  image: $CI_REGISTRY_IMAGE:python_3.8
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    - .run-for-develop-only
+    - .run-for-develop-and-nighly-only
 
 docs-unix-make-html-latest:
-  stage: Docs build
-  image: "python:latest"
+  stage: Docs Unix
+  image: $CI_REGISTRY_IMAGE:python_latest
   extends:
     - .unix-before-script
     - .docs-unix-and-artifacts
-    - .run-for-develop-only
+    - .run-for-develop-and-nighly-only
+  # latest version always allowed to fail due to unforeseen changes
   allow_failure: true
 
 # ######################################################################################
-# Docs build Windows
+# Docs Unix Windows
 # ######################################################################################
 
-docs-win-make-html-3.7.9:
-  stage: Docs build
+.docs-win-make-html-3.7.9:
   extends:
     - .shared-windows-runners
     - .win-before-script-3.7.9
     - .docs-win-and-artifacts
-    - .run-for-develop-only
   # Allowed to fail since the build was successful with font warnings.
+  # See quantify-core#196
   allow_failure: true
 
-docs-win-make-html-3.8.9:
-  stage: Docs build
+docs-win-make-html-3.7.9-manual:
+  stage: Test/docs win manual
+  extends:
+    - .docs-win-make-html-3.7.9
+  when: manual
+
+docs-win-make-html-3.7.9-nightly:
+  stage: Test/docs win nighly
+  extends:
+    - .docs-win-make-html-3.7.9
+    - .run-nighly-only
+
+.docs-win-make-html-3.8.9:
   extends:
     - .shared-windows-runners
     - .win-before-script-3.8.9
     - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core issue #182)
+  # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
 
-docs-win-make-html-latest:
-  stage: Docs build
+docs-win-make-html-3.8.9-manual:
+  stage: Test/docs win manual
+  extends:
+    - .docs-win-make-html-3.8.9
+  when: manual
+
+docs-win-make-html-3.8.9-nightly:
+  stage: Test/docs win nighly
+  extends:
+    - .docs-win-make-html-3.8.9
+    - .run-nighly-only
+
+.docs-win-make-html-latest:
   extends:
     - .shared-windows-runners
     - .win-before-script-latest
     - .docs-win-and-artifacts
-    - .run-for-develop-only
-  # Allowed to fail due to asyncio problems (quantify-core issue #182)
+  # Allowed to fail due to asyncio problems (quantify-core#182)
   allow_failure: true
+
+docs-win-make-html-latest-manual:
+  stage: Test/docs win manual
+  extends:
+    - .docs-win-make-html-latest
+  when: manual
+
+docs-win-make-html-latest-nightly:
+  stage: Test/docs win nighly
+  extends:
+    - .docs-win-make-html-latest
+    - .run-nighly-only
 
 # ######################################################################################
 # Static Analysis
@@ -287,8 +379,107 @@ docs-win-make-html-latest:
 
 black:
   stage: Static Analysis
-  image: python:3.8
-  extends:
-    - .unix-before-script
+  image: $CI_REGISTRY_IMAGE:python_3.8
   script:
     - black --check --fast .
+  extends:
+    - .run-always-except-docker-images
+
+# ######################################################################################
+# Build Docker images
+# ######################################################################################
+
+.build-unix-3.7-image:
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.7
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python37 .
+    - docker push $IMAGE_TAG
+
+build-unix-3.7-image-manual:
+  stage: Build unix images manual
+  extends:
+    - .build-unix-3.7-image
+  when: manual
+
+build-unix-3.7-image-nightly:
+  stage: Build unix images nightly
+  extends:
+    - .build-unix-3.7-image
+    - .run-nightly-docker-images-build
+
+
+.build-unix-3.8-image:
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_3.8
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python38 .
+    - docker push $IMAGE_TAG
+
+build-unix-3.8-image-manual:
+  stage: Build unix images manual
+  extends:
+    - .build-unix-3.8-image
+  when: manual
+
+build-unix-3.8-image-nightly:
+  stage: Build unix images nightly
+  extends:
+    - .build-unix-3.8-image
+    - .run-nightly-docker-images-build
+
+
+.build-unix-latest-image:
+  image: docker:stable
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:python_latest
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR/docker/unix/Dockerfile_python_latest .
+    - docker push $IMAGE_TAG
+
+build-unix-latest-image-manual:
+  stage: Build unix images manual
+  extends:
+    - .build-unix-latest-image
+  when: manual
+
+build-unix-latest-image-nightly:
+  stage: Build unix images nightly
+  extends:
+    - .build-unix-latest-image
+    - .run-nightly-docker-images-build
+
+# Commented out because not being used yet, keeping here for future reference
+
+.build-win-3.7-image:
+  extends:
+    - .shared-windows-runners
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:win_python_3.7
+    DOCKER_HOST: ""
+    DOCKER_BUILDKIT: 0
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG -f $CI_PROJECT_DIR\docker\windows\Dockerfile_python37 .
+    - docker push $IMAGE_TAG
+
+# build-win-3.7-image-manual:
+#   stage: Build windows images manual
+#   extends:
+#     - .build-win-3.7-image
+#   when: manual
+
+# build-win-3.7-image-nightly:
+#   stage: Build windows images nightly
+#   extends:
+#     - .build-win-3.7-image
+#     - .run-nightly-docker-images-build

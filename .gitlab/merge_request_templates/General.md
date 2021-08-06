@@ -23,4 +23,9 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
     - test suite passes (gitlab-ci),
     - no degradation in code-coverage (codacy),
     - no (serious) new pylint code quality issues introduced (codacy),
-    - documentation builds successfully (CI and readthedocs).
+    - documentation builds successfully (CI and readthedocs),
+    - [ ] windows tests pass (manually triggered by maintainers before merging).
+
+---
+
+For reference, the issues workflow is described in the [contribution guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/develop/contributing.html#merge-requests-workflow).

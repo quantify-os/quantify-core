@@ -1,9 +1,9 @@
 import tempfile
-import quantify.data.handling as dh
+import quantify_core.data.handling as dh
 import xarray as xr
 import matplotlib.pyplot as plt
 import numpy as np
-from quantify.visualization.mpl_plotting import set_cyclic_colormap
+from quantify_core.visualization.mpl_plotting import set_cyclic_colormap
 
 dh.set_datadir(tempfile.TemporaryDirectory().name)
 

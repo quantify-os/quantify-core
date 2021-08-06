@@ -12,12 +12,12 @@ Tutorial 3. Building custom analyses - the data analysis framework
     :jupyter-download:script:`Tutorial 3. Building custom analyses - the data analysis framework`
 
 
-Quantify provides an analysis framework in the form of a :class:`~quantify.analysis.base_analysis.BaseAnalysis` class and several subclasses for simple cases (e.g., :class:`~quantify.analysis.base_analysis.Basic1DAnalysis`, :class:`~quantify.analysis.base_analysis.Basic2DAnalysis`, :class:`~quantify.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`). The framework provides a structured, yet flexible, flow of the analysis steps. We encourage all users to adopt the framework by sub-classing the :class:`~quantify.analysis.base_analysis.BaseAnalysis`.
+Quantify provides an analysis framework in the form of a :class:`~quantify_core.analysis.base_analysis.BaseAnalysis` class and several subclasses for simple cases (e.g., :class:`~quantify_core.analysis.base_analysis.BasicAnalysis`, :class:`~quantify_core.analysis.base_analysis.Basic2DAnalysis`, :class:`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`). The framework provides a structured, yet flexible, flow of the analysis steps. We encourage all users to adopt the framework by sub-classing the :class:`~quantify_core.analysis.base_analysis.BaseAnalysis`.
 
 To give insight into the concepts and ideas behind the analysis framework, we first write analysis scripts to *"manually"* analyze the data as if we had a new type of experiment in our hands.
 Next, we encapsulate these steps into reusable functions packing everything together into a simple python class.
 
-We conclude by showing how the same class is implemented much more easily by extending the :class:`~quantify.analysis.base_analysis.BaseAnalysis` and making use of the quantify framework.
+We conclude by showing how the same class is implemented much more easily by extending the :class:`~quantify_core.analysis.base_analysis.BaseAnalysis` and making use of the quantify framework.
 
 ---
 
@@ -29,10 +29,10 @@ We conclude by showing how the same class is implemented much more easily by ext
     import xarray as xr
     import matplotlib.pyplot as plt
     from collections import OrderedDict
-    from quantify.measurement import MeasurementControl
-    from quantify.measurement.control import Settable, Gettable
-    import quantify.visualization.pyqt_plotmon as pqm
-    from quantify.visualization.instrument_monitor import InstrumentMonitor
+    from quantify_core.measurement import MeasurementControl
+    from quantify_core.measurement.control import Settable, Gettable
+    import quantify_core.visualization.pyqt_plotmon as pqm
+    from quantify_core.visualization.instrument_monitor import InstrumentMonitor
     from qcodes import ManualParameter, Parameter, validators, Instrument
 
 .. include:: set_data_dir.rst.txt
@@ -67,12 +67,12 @@ Manual analysis steps
 1. Loading the data
 
     The :class:`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment.
-    We can alternatively load the dataset from disk based on it's :class:`~quantify.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify.data.handling.get_latest_tuid`.
+    We can alternatively load the dataset from disk based on it's :class:`~quantify_core.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using :meth:`~quantify_core.data.handling.get_latest_tuid`.
     See the :ref:`data_storage` documentation for more details on the folder structure and files contained in the data directory.
 
     .. jupyter-execute::
 
-        from quantify.data.handling import load_dataset, get_latest_tuid
+        from quantify_core.data.handling import load_dataset, get_latest_tuid
 
         tuid = get_latest_tuid(contains="Cosine experiment")
         dataset = load_dataset(tuid)
@@ -126,7 +126,7 @@ Manual analysis steps
     .. jupyter-execute::
 
         import json
-        from quantify.data.handling import locate_experiment_container
+        from quantify_core.data.handling import locate_experiment_container
         from pathlib import Path
 
         # the experiment folder is retrieved with a convenience function
@@ -149,7 +149,7 @@ Manual analysis steps
 
     .. jupyter-execute::
 
-        from quantify.visualization.SI_utilities import set_xlabel, set_ylabel
+        from quantify_core.visualization.SI_utilities import set_xlabel, set_ylabel
 
         # create matplotlib figure
         fig, ax = plt.subplots()
@@ -427,18 +427,18 @@ Extending the BaseAnalysis
 While the above stand-alone class provides the gist of an analysis, we can do even better by defining a structured framework that all analysis need to adhere to and factoring out the pieces of code that are common to most analyses.
 Beside that, the overall functionality can be improved.
 
-Here is where the :class:`~quantify.analysis.base_analysis.BaseAnalysis` enters the scene.
-It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented where we are making use of the analysis framework. For completeness, a fully documented :class:`~quantify.analysis.fitting_models.CosineModel` that can serve as a template is shown as well.
+Here is where the :class:`~quantify_core.analysis.base_analysis.BaseAnalysis` enters the scene.
+It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented where we are making use of the analysis framework. For completeness, a fully documented :class:`~quantify_core.analysis.fitting_models.CosineModel` that can serve as a template is shown as well.
 
 .. jupyter-execute::
     :hide-code:
 
-    from quantify.analysis.cosine_analysis import CosineAnalysis
+    from quantify_core.analysis.cosine_analysis import CosineAnalysis
 
-.. literalinclude:: ../../quantify/analysis/fitting_models.py
+.. literalinclude:: ../../quantify_core/analysis/fitting_models.py
     :pyobject: CosineModel
 
-.. literalinclude:: ../../quantify/analysis/cosine_analysis.py
+.. literalinclude:: ../../quantify_core/analysis/cosine_analysis.py
     :pyobject: CosineAnalysis
 
 
@@ -459,7 +459,7 @@ Inspecting the `experiment directory` yields:
 
 
 As you can conclude from the :class:`!CosineAnalysis` code, we did not implement quite a few methods in there.
-These are provided by the :class:`~quantify.analysis.base_analysis.BaseAnalysis`.
+These are provided by the :class:`~quantify_core.analysis.base_analysis.BaseAnalysis`.
 To gain some insight on what exactly is being executed we can enable the logging module and use the internal logger of the analysis instance:
 
 .. jupyter-execute::

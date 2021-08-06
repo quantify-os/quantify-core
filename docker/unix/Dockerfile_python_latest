@@ -1,0 +1,31 @@
+FROM python:latest
+
+LABEL maintainer="Quantify Consortium"
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Amsterdam
+
+# only necessary for unix that runs with headless display
+ENV MPLBACKEND=agg
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /pip_env
+
+COPY requirements.txt requirements.txt
+COPY requirements_dev.txt requirements_dev.txt
+
+# Print out python version for debugging
+RUN python -V
+RUN python -m pip --version
+RUN python -m pip install --upgrade pip
+RUN pip install virtualenv
+RUN virtualenv venv
+RUN source venv/bin/activate
+RUN apt update
+# Sets up a headless display
+RUN apt install -y xvfb
+
+RUN pip install --upgrade --upgrade-strategy eager -r requirements.txt -r requirements_dev.txt
+#save the version of the packages installed for CI debugging
+RUN pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
