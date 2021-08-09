@@ -463,10 +463,17 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 #
 
 # %% [markdown]
-# Scratch
-# -------
+# T1 dataset examples
+# -------------------
+
+# %% [raw]
+# .. admonition:: Mock data utilities
+#     :class: dropdown
 
 # %%
+# notebook-to-rst-conf: {"indent": " " * 4}
+
+
 def generate_mock_iq_data(
     n_shots, sigma=0.3, center0=(1, 1), center1=(1, -1), prob=0.5
 ):
@@ -476,7 +483,7 @@ def generate_mock_iq_data(
     i_data = np.zeros(n_shots)
     q_data = np.zeros(n_shots)
     for i in range(n_shots):
-        c = center0 if (np.random.rand() < prob) else center1
+        c = center0 if (np.random.rand() >= prob) else center1
         i_data[i] = np.random.normal(c[0], sigma)
         q_data[i] = np.random.normal(c[1], sigma)
     return i_data + 1j * q_data
@@ -486,36 +493,36 @@ def generate_exp_decay_probablity(time: np.ndarray, tau: float):
     return np.exp(-time / tau)
 
 
-# %%
+def generate_trace_time(sampling_rate: float = 1e9, trace_duratation: float = 1e-6):
+    trace_length = sampling_rate * trace_duratation
+    return np.arange(0, trace_length, 1) / sampling_rate
+
+
 def generate_trace_for_iq_point(
     iq_amp: complex,
+    tbase: np.ndarray = generate_trace_time(),
     intermediate_freq: float = 50e6,
-    sampling_rate: float = 1e9,
-    trace_duratation: float = 1e-6,
 ) -> tuple:
     """
     Generates mock traces that a physical instrument would digitize for the readout of
     a transmon qubit.
     """
 
-    trace_length = sampling_rate * trace_duratation
-    tbase = np.arange(0, trace_length, 1) / sampling_rate
-
-    return tbase, iq_amp * np.exp(2.0j * np.pi * intermediate_freq * tbase)
+    return iq_amp * np.exp(2.0j * np.pi * intermediate_freq * tbase)
 
 
-def plot_centroids(ax, center_ground, center_excited):
+def plot_centroids(ax, ground, excited):
     ax.plot(
-        [center_ground[0]],
-        [center_ground[1]],
+        [ground[0]],
+        [ground[1]],
         label="|0>",
         marker="o",
         color="C3",
         markersize=10,
     )
     ax.plot(
-        [center_excited[0]],
-        [center_excited[1]],
+        [excited[0]],
+        [excited[1]],
         label="|1>",
         marker="^",
         color="C4",
@@ -524,6 +531,8 @@ def plot_centroids(ax, center_ground, center_excited):
 
 
 # %%
+# notebook-to-rst-conf: {"indent": " " * 4}
+
 center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
 
@@ -532,13 +541,18 @@ shots = generate_mock_iq_data(
 )
 
 # %%
+# notebook-to-rst-conf: {"indent": " " * 4}
+
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
 plot_centroids(plt.gca(), center_ground, center_excited)
 
 # %%
-time, trace = generate_trace_for_iq_point(shots[0])
+# notebook-to-rst-conf: {"indent": " " * 4}
+
+time = generate_trace_time()
+trace = generate_trace_for_iq_point(shots[0])
 
 fig, ax = plt.subplots(1, 1, figsize=(30, 5))
 ax.plot(time, trace.imag, ".-")
@@ -549,9 +563,12 @@ ax.plot(time, trace.real, ".-")
 # ~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
+# parameters of our qubit model
 tau = 30e-6
 center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
+
+# mock of data acquisition configuration
 num_shots = 1024
 x0s = np.linspace(0, 150e-6, 30)
 time_par = ManualParameter(name="time", label="Time", unit="s")
@@ -559,7 +576,7 @@ q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
 
 probabilities = generate_exp_decay_probablity(time=x0s, tau=tau)
 plt.ylabel("|1> probability")
-plt.suptitle("Typical T1 experiment")
+plt.suptitle("Typical T1 experiment processed data")
 plt.plot(x0s, probabilities, ".-")
 
 # %%
@@ -598,7 +615,14 @@ dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
 dataset_gridded
 
 
+# %% [raw]
+# .. admonition:: Plotting utilities
+#     :class: dropdown
+
 # %%
+# notebook-to-rst-conf: {"indent": " " * 4}
+
+
 def plot_decay_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
@@ -716,44 +740,51 @@ plot_iq_no_repetition(dataset_gridded)
 # %% [markdown]
 # We can use the calibration points to normalize the data and obtain the typical T1 decay.
 
+# %% [raw]
+# .. admonition:: Data rotation and normalization utilities
+#     :class: dropdown
+
 # %%
-def rotate_data(complex_data, angle: float):
+# notebook-to-rst-conf: {"indent": " " * 4}
+
+
+def rotate_data(complex_data: np.ndarray, angle: float) -> np.ndarray:
     """
     Rotates data on the complex plane around `0 + 0j`.
 
     Parameters
     ----------
-    complex_data:
-        data to rotate
-    angle:
-        angle to rotate it by in degrees
+    complex_data
+        Data to rotate.
+    angle
+        Angle to rotate it by (in degrees).
 
     Returns
     -------
-    complex
-        rotated data
+    :
+        Rotated data.
     """
     angle_r = np.deg2rad(angle)
     rotation = np.cos(angle_r) + 1j * np.sin(angle_r)
     return rotation * complex_data
 
 
-def find_rotation_angle(z1, z2):
+def find_rotation_angle(z1: complex, z2: complex) -> float:
     """
     Finds the angle of the line between two complex numbers on the complex plane with
     respect to the real axis.
 
     Parameters
     ----------
-    z1:
+    z1
         First complex number.
-    z2:
+    z2
         Second complex number.
 
     Returns
     -------
-    float
-        The angle found.
+    :
+        The angle found (in degrees).
     """
     return np.rad2deg(np.angle(z1 - z2))
 
@@ -762,12 +793,9 @@ def find_rotation_angle(z1, z2):
 # The normalization to the calibration point could look like this:
 
 # %%
-y0_rotated = rotate_data(
-    dataset_gridded.y0, find_rotation_angle(*dataset_gridded.y0_calib.values)
-)
-y0_calib_rotated = rotate_data(
-    dataset_gridded.y0_calib, find_rotation_angle(*dataset_gridded.y0_calib.values)
-)
+angle = find_rotation_angle(*dataset_gridded.y0_calib.values)
+y0_rotated = rotate_data(dataset_gridded.y0, -angle)
+y0_calib_rotated = rotate_data(dataset_gridded.y0_calib, -angle)
 calib_0, calib_1 = (
     y0_calib_rotated.sel(x0_calib="|0>").values,
     y0_calib_rotated.sel(x0_calib="|1>").values,
@@ -795,13 +823,41 @@ y0s = np.array(
     )
 ).T
 
+y0s_calib = np.array(
+    tuple(
+        generate_mock_iq_data(
+            n_shots=num_shots,
+            sigma=0.15,
+            center0=center_ground,
+            center1=center_excited,
+            prob=prob,
+        )
+        for prob in [0, 1]
+    )
+).T
+
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
         "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+        "y0_calib": (
+            "acq_set_0_calib",
+            y0s_calib.mean(axis=0),
+            par_to_attrs(q0_iq_par),
+        ),
         "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
+        "y0_shots_calib": (
+            ("repetition", "acq_set_0_calib"),
+            y0s_calib,
+            par_to_attrs(q0_iq_par),
+        ),
     },
     coords={
         "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+        "x0_calib": (
+            "acq_set_0_calib",
+            ["|0>", "|1>"],
+            {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
+        ),
     },
 )
 
@@ -811,8 +867,13 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %%
-gridded_dataset = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
-gridded_dataset
+dataset_gridded = dh.to_gridded_dataset(
+    dataset, dimension="acq_set_0", coords_names=["x0"]
+)
+dataset_gridded = dh.to_gridded_dataset(
+    dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+)
+dataset_gridded
 
 # %% [markdown]
 # In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
@@ -822,26 +883,39 @@ gridded_dataset
 # plot_iq_no_repetition(gridded_dataset);
 
 # %% [markdown]
-# Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values:
+# Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
+#
+# Note that we are plotting the calibration points as well.
 
 # %%
 for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
     shots_example = (
-        gridded_dataset.y0_shots.real.sel(x0=t_example),
-        gridded_dataset.y0_shots.imag.sel(x0=t_example),
+        dataset_gridded.y0_shots.real.sel(x0=t_example),
+        dataset_gridded.y0_shots.imag.sel(x0=t_example),
     )
     plt.hexbin(*shots_example)
     plt.xlabel("I")
     plt.ylabel("Q")
-    plot_centroids(plt.gca(), center_ground, center_excited)
+    calib_0 = dataset_gridded.y0_calib.sel(x0_calib="|0>")
+    calib_1 = dataset_gridded.y0_calib.sel(x0_calib="|1>")
+    plot_centroids(
+        plt.gca(), (calib_0.real, calib_0.imag), (calib_1.real, calib_1.imag)
+    )
     plt.suptitle(f"Shots fot t = {t_example:.5f} s")
     plt.show()
 
 
 # %% [markdown]
-# We can colapse (average) along the `repetion` dimension:
+# We can colapse (average along) the `repetion` dimension:
+
+# %% [raw]
+# .. admonition:: Plotting utility
+#     :class: dropdown
 
 # %%
+# notebook-to-rst-conf: {"indent": " " * 4}
+
+
 def plot_iq_decay_repetition(gridded_dataset):
     gridded_dataset.y0_shots.real.mean(dim="repetition").plot(
         marker=".", label="I data"
@@ -881,5 +955,111 @@ plot_iq_decay_repetition(gridded_dataset)
 # %% [raw]
 # T1 experiment storing digitized signals for all shots
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# %%
+y0s = np.array(
+    tuple(
+        generate_mock_iq_data(
+            n_shots=num_shots,
+            sigma=0.15,
+            center0=center_ground,
+            center1=center_excited,
+            prob=prob,
+        )
+        for prob in probabilities
+    )
+).T
+
+_y0s_traces = np.array(tuple(map(generate_trace_for_iq_point, y0s.flatten())))
+y0s_traces = _y0s_traces.reshape(*y0s.shape, _y0s_traces.shape[-1])
+
+y0s_calib = np.array(
+    tuple(
+        generate_mock_iq_data(
+            n_shots=num_shots,
+            sigma=0.15,
+            center0=center_ground,
+            center1=center_excited,
+            prob=prob,
+        )
+        for prob in [0, 1]
+    )
+).T
+
+_y0s_traces_calib = np.array(
+    tuple(map(generate_trace_for_iq_point, y0s_calib.flatten()))
+)
+y0s_traces_calib = _y0s_traces_calib.reshape(
+    *y0s_calib.shape, _y0s_traces_calib.shape[-1]
+)
+
+dataset = dataset_2d_example = xr.Dataset(
+    data_vars={
+        "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+        "y0_calib": (
+            "acq_set_0_calib",
+            y0s_calib.mean(axis=0),
+            par_to_attrs(q0_iq_par),
+        ),
+        "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
+        "y0_shots_calib": (
+            ("repetition", "acq_set_0_calib"),
+            y0s_calib,
+            par_to_attrs(q0_iq_par),
+        ),
+        "y0_traces": (
+            ("repetition", "acq_set_0", "time"),
+            y0s_traces,
+            par_to_attrs(q0_iq_par),
+        ),
+        "y0_traces_calib": (
+            ("repetition", "acq_set_0_calib", "time"),
+            y0s_traces_calib,
+            par_to_attrs(q0_iq_par),
+        ),
+    },
+    coords={
+        "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+        "x0_calib": (
+            "acq_set_0_calib",
+            ["|0>", "|1>"],
+            {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
+        ),
+        "time": (
+            "time",
+            generate_trace_time(),
+            {"standard_name": "time_samples", "long_name": "Time", "unit": "V"},
+        ),
+    },
+)
+
+
+assert dataset == dataset_round_trip(dataset)  # confirm read/write
+
+dataset
+
+# %%
+dataset_gridded = dh.to_gridded_dataset(
+    dataset, dimension="acq_set_0", coords_names=["x0"]
+)
+dataset_gridded = dh.to_gridded_dataset(
+    dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+)
+dataset_gridded
+
+# %% [markdown]
+# All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 777 of the last point of the T1 experiment:
+
+# %%
+trace_example = dataset_gridded.y0_traces.sel(repetition=777, x0=dataset_gridded.x0[-1])
+trace_example.shape, trace_example.dtype
+
+# %% [markdown]
+# For clarity, we plot only part of this digitized signal:
+
+# %%
+trace_example_plt = trace_example[:200]
+trace_example_plt.real.plot(figsize=(15, 5), marker=".")
+trace_example_plt.imag.plot(marker=".")
 
 # %%
