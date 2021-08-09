@@ -16,7 +16,7 @@
 #     Along this page we show exemplary datasets to highlight the details of this specification.
 #     However, keep in mind that we always show a valid dataset with all the required properties (except when exemplifying a bad dataset).
 #
-# .. admonition:: imports and auxiliary utilities
+# .. admonition:: Imports and auxiliary utilities
 #     :class: dropdown
 
 # %%
@@ -81,8 +81,16 @@ name_dim_a = "position_x"
 name_dim_b = "velocity_x"
 dataset = xr.Dataset(
     data_vars={
-        "position": (name_dim_a, np.linspace(-5, 5, n), {"units": "m"}),
-        "velocity": (name_dim_b, np.linspace(0, 10, n), {"units": "m/s"}),
+        "position": (
+            name_dim_a,
+            np.linspace(-5, 5, n),
+            {"units": "m", "long_name": "Position"},
+        ),
+        "velocity": (
+            name_dim_b,
+            np.linspace(0, 10, n),
+            {"units": "m/s", "long_name": "Velocity"},
+        ),
     },
     attrs={"key": "my metadata"},
 )
@@ -95,8 +103,12 @@ dataset
 position = np.linspace(-5, 5, n)
 dataset = xr.Dataset(
     data_vars={
-        "position": (name_dim_a, position, {"units": "m"}),
-        "velocity": (name_dim_a, 1 + position ** 2, {"units": "m/s"}),
+        "position": (name_dim_a, position, {"units": "m", "long_name": "Position"}),
+        "velocity": (
+            name_dim_a,
+            1 + position ** 2,
+            {"units": "m/s", "long_name": "Velocity"},
+        ),
     },
     attrs={"key": "my metadata"},
 )
@@ -109,6 +121,7 @@ dataset
 # %%
 dataset = dataset.set_index({"position_x": "position"})
 dataset.position_x.attrs["units"] = "m"
+dataset.position_x.attrs["long_name"] = "Position x"
 dataset
 
 # %% [markdown]
@@ -879,8 +892,8 @@ dataset_gridded
 # In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
 
 # %%
-# plot_decay_no_repetition(gridded_dataset)
-# plot_iq_no_repetition(gridded_dataset);
+# plot_decay_no_repetition(dataset_gridded)
+# plot_iq_no_repetition(dataset_gridded);
 
 # %% [markdown]
 # Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
@@ -950,7 +963,7 @@ def plot_iq_decay_repetition(gridded_dataset):
 
 
 # %%
-plot_iq_decay_repetition(gridded_dataset)
+plot_iq_decay_repetition(dataset_gridded)
 
 # %% [raw]
 # T1 experiment storing digitized signals for all shots
@@ -1049,6 +1062,9 @@ dataset_gridded
 
 # %% [markdown]
 # All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 777 of the last point of the T1 experiment:
+
+# %%
+dataset_gridded.y0_traces.shape  # dimensions: (repetition, x0, time)
 
 # %%
 trace_example = dataset_gridded.y0_traces.sel(repetition=777, x0=dataset_gridded.x0[-1])
