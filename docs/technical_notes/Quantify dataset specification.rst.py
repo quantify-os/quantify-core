@@ -545,8 +545,8 @@ ax.plot(time, trace.imag, ".-")
 ax.plot(time, trace.real, ".-")
 
 # %% [raw]
-# T1 experiment averaged in hardware
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# T1 experiment averaged
+# ~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
 tau = 30e-6
@@ -633,8 +633,8 @@ plot_decay_no_repetition(dataset_gridded)
 plot_iq_no_repetition(dataset_gridded)
 
 # %% [raw]
-# T1 experiment averaged in hardware with calibration points
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# T1 experiment averaged with calibration points
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
 y0s = np.fromiter(
@@ -678,7 +678,7 @@ dataset = dataset_2d_example = xr.Dataset(
         "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
         "x0_calib": (
             "acq_set_0_calib",
-            ["0", "1"],
+            ["|0>", "|1>"],
             {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
         ),
     },
@@ -769,8 +769,8 @@ y0_calib_rotated = rotate_data(
     dataset_gridded.y0_calib, find_rotation_angle(*dataset_gridded.y0_calib.values)
 )
 calib_0, calib_1 = (
-    y0_calib_rotated.sel(x0_calib="0").values,
-    y0_calib_rotated.sel(x0_calib="1").values,
+    y0_calib_rotated.sel(x0_calib="|0>").values,
+    y0_calib_rotated.sel(x0_calib="|1>").values,
 )
 y0_norm = (y0_rotated - calib_0) / (calib_1 - calib_0)
 y0_norm.attrs["long_name"] = "|1> Population"
@@ -778,8 +778,8 @@ y0_norm.attrs["units"] = ""
 plot_decay_no_repetition(y0_norm.to_dataset())
 
 # %% [raw]
-# T1 experiment storing all shots (with calibration points)
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# T1 experiment storing all shots
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
 y0s = np.array(
@@ -815,14 +815,14 @@ gridded_dataset = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
 gridded_dataset
 
 # %% [markdown]
-# In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way:
+# In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
 
 # %%
-plot_decay_no_repetition(gridded_dataset)
-plot_iq_no_repetition(gridded_dataset)
+# plot_decay_no_repetition(gridded_dataset)
+# plot_iq_no_repetition(gridded_dataset);
 
 # %% [markdown]
-# We can inspect how the individual shots are distributed on the IQ plane for some particular `Time` value:
+# Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values:
 
 # %%
 for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
@@ -839,7 +839,7 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 
 
 # %% [markdown]
-# We can colapse (average) along the `repetion` dimensions:
+# We can colapse (average) along the `repetion` dimension:
 
 # %%
 def plot_iq_decay_repetition(gridded_dataset):
@@ -849,13 +849,13 @@ def plot_iq_decay_repetition(gridded_dataset):
     gridded_dataset.y0_shots.imag.mean(dim="repetition").plot(
         marker=".", label="Q data"
     )
-    plt.ylabel(f"{gridded_dataset.y0.standard_name} [{gridded_dataset.y0.units}]")
+    plt.ylabel(
+        f"{gridded_dataset.y0_shots.long_name} [{gridded_dataset.y0_shots.units}]"
+    )
     plt.suptitle(
         f"{gridded_dataset.y0_shots.name} shape = {gridded_dataset.y0_shots.shape}"
     )
     plt.legend()
-
-    # visualize data on the IQ plane
 
     fig, ax = plt.subplots(1, 1)
     ax.plot(
@@ -877,5 +877,9 @@ def plot_iq_decay_repetition(gridded_dataset):
 
 # %%
 plot_iq_decay_repetition(gridded_dataset)
+
+# %% [raw]
+# T1 experiment storing digitized signals for all shots
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
