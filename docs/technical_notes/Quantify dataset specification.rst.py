@@ -476,7 +476,7 @@ def generate_mock_iq_data(
     i_data = np.zeros(n_shots)
     q_data = np.zeros(n_shots)
     for i in range(n_shots):
-        c = center0 if (np.random.rand() > prob) else center1
+        c = center0 if (np.random.rand() < prob) else center1
         i_data[i] = np.random.normal(c[0], sigma)
         q_data[i] = np.random.normal(c[1], sigma)
     return i_data + 1j * q_data
@@ -560,7 +560,7 @@ q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
 probabilities = generate_exp_decay_probablity(time=x0s, tau=tau)
 plt.ylabel("|1> probability")
 plt.suptitle("Typical T1 experiment")
-plt.plot(x0s, probs, ".-")
+plt.plot(x0s, probabilities, ".-")
 
 # %%
 y0s = np.fromiter(
@@ -710,11 +710,76 @@ dataset_gridded.y0_calib.imag.plot(marker="o", ax=ax_calib)
 ax_calib.yaxis.set_label_position("right")
 ax_calib.yaxis.tick_right()
 
-# plot_iq_no_repetition(dataset_gridded);
+plot_iq_no_repetition(dataset_gridded)
+
+
+# %% [markdown]
+# We can use the calibration points to normalize the data and obtain the typical T1 decay.
+
+# %%
+def rotate_data(complex_data, angle: float):
+    """
+    Rotates data on the complex plane around `0 + 0j`.
+
+    Parameters
+    ----------
+    complex_data:
+        data to rotate
+    angle:
+        angle to rotate it by in degrees
+
+    Returns
+    -------
+    complex
+        rotated data
+    """
+    angle_r = np.deg2rad(angle)
+    rotation = np.cos(angle_r) + 1j * np.sin(angle_r)
+    return rotation * complex_data
+
+
+def find_rotation_angle(z1, z2):
+    """
+    Finds the angle of the line between two complex numbers on the complex plane with
+    respect to the real axis.
+
+    Parameters
+    ----------
+    z1:
+        First complex number.
+    z2:
+        Second complex number.
+
+    Returns
+    -------
+    float
+        The angle found.
+    """
+    return np.rad2deg(np.angle(z1 - z2))
+
+
+# %% [markdown]
+# The normalization to the calibration point could look like this:
+
+# %%
+y0_rotated = rotate_data(
+    dataset_gridded.y0, find_rotation_angle(*dataset_gridded.y0_calib.values)
+)
+y0_calib_rotated = rotate_data(
+    dataset_gridded.y0_calib, find_rotation_angle(*dataset_gridded.y0_calib.values)
+)
+calib_0, calib_1 = (
+    y0_calib_rotated.sel(x0_calib="0").values,
+    y0_calib_rotated.sel(x0_calib="1").values,
+)
+y0_norm = (y0_rotated - calib_0) / (calib_1 - calib_0)
+y0_norm.attrs["long_name"] = "|1> Population"
+y0_norm.attrs["units"] = ""
+plot_decay_no_repetition(y0_norm.to_dataset())
 
 # %% [raw]
-# T1 experiment storing all shots
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# T1 experiment storing all shots (with calibration points)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
 y0s = np.array(
@@ -753,7 +818,8 @@ gridded_dataset
 # In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way:
 
 # %%
-plot_iq_decay_no_repetition(gridded_dataset)
+plot_decay_no_repetition(gridded_dataset)
+plot_iq_no_repetition(gridded_dataset)
 
 # %% [markdown]
 # We can inspect how the individual shots are distributed on the IQ plane for some particular `Time` value:
@@ -784,7 +850,9 @@ def plot_iq_decay_repetition(gridded_dataset):
         marker=".", label="Q data"
     )
     plt.ylabel(f"{gridded_dataset.y0.standard_name} [{gridded_dataset.y0.units}]")
-    plt.suptitle("y0 shape = {}")
+    plt.suptitle(
+        f"{gridded_dataset.y0_shots.name} shape = {gridded_dataset.y0_shots.shape}"
+    )
     plt.legend()
 
     # visualize data on the IQ plane
@@ -809,3 +877,5 @@ def plot_iq_decay_repetition(gridded_dataset):
 
 # %%
 plot_iq_decay_repetition(gridded_dataset)
+
+# %%
