@@ -41,7 +41,7 @@ Quantify-core is the core module that contains all basic functionality to contro
 
 .. caution::
 
-    This is a pre-release **beta version**, major changes are expected. Use for testing & development purposes only.
+    This is a pre-release **beta version**, changes and improvements are expected.
 
 About
 --------
