@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
-# %% [markdown]
+# %% [raw]
 # Quantify dataset specification
 # ==============================
+
+# %% [raw]
+# .. admonition:: Development notes
+#     :class: warning
+#
+#     We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
 
 # %% [raw]
 # .. admonition:: Development notes
@@ -20,7 +26,7 @@
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4, "jupyter_execute_options": [":hide-output:"]}
+# notebook-to-rst-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
 import numpy as np
 import xarray as xr
@@ -62,7 +68,7 @@ from quantify_core.data.handling import get_datadir, set_datadir
 
 set_datadir(Path.home() / "quantify-data")  # change me!
 
-# %% [markdown]
+# %% [raw]
 # Introduction
 # ------------
 
@@ -70,7 +76,7 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 # Xarray overview
 # ~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # This is a brief overview of some concepts and functionalities of xarray that are leveraged to define the Quantify dataset.
 #
 # The dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
@@ -96,7 +102,7 @@ dataset = xr.Dataset(
 )
 dataset
 
-# %% [markdown]
+# %% [raw]
 # A variable can be set as coordinate for its dimension(s):
 
 # %%
@@ -115,7 +121,7 @@ dataset = xr.Dataset(
 dataset = dataset.set_coords(["position"])
 dataset
 
-# %% [markdown]
+# %% [raw]
 # Xarray coordinates can be set to **index** other variables. (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood.)
 
 # %%
@@ -124,17 +130,17 @@ dataset.position_x.attrs["units"] = "m"
 dataset.position_x.attrs["long_name"] = "Position x"
 dataset
 
-# %% [markdown]
-# An example of how this can be usefull:
+# %% [raw]
+# An example of how this can be useful:
 
 # %%
 dataset.velocity.sel(position_x=2.5)
 
-# %% [markdown]
+# %% [raw]
 # Automatic plotting:
 
 # %%
-dataset.velocity.plot()
+_ = dataset.velocity.plot()
 
 # %% [raw]
 # .. _sec-experiment-coordinates-and-variables:
@@ -142,7 +148,7 @@ dataset.velocity.plot()
 # Key dataset conventions
 # ~~~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # We define the following naming conventions in the Quantify dataset:
 #
 # - **Experiment coordinate(s)**
@@ -151,13 +157,12 @@ dataset.velocity.plot()
 # - **Experiment variable(s)**
 #     - xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
 #     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-#
 
 # %% [raw]
 # 2D Dataset example
 # ~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y0``. Both experiment coordinates lie along one dimension, ``acq_set_0``. Both experiment variables lie along two dimensions ``acq_set_0`` and ``repetitions``.
 
 # %% [raw]
@@ -165,7 +170,7 @@ dataset.velocity.plot()
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
@@ -197,7 +202,7 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 # %%
 dataset
 
-# %% [markdown]
+# %% [raw]
 # As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities.
 
 # %%
@@ -207,7 +212,7 @@ plt.show()
 dataset_gridded.y1.plot(x="x0")
 plt.show()
 
-# %% [markdown]
+# %% [raw]
 # Detailed specification
 # ----------------------
 
@@ -215,7 +220,7 @@ plt.show()
 # Xarray dimensions
 # ~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # The Quantify dataset has has the following required and optional dimensions:
 #
 # - **[Required]** ``repetition``
@@ -250,7 +255,7 @@ plt.show()
 #     - No repetition dimension.
 #     - An outer dimension.
 
-# %% [markdown]
+# %% [raw]
 # - **[Required]** ``acq_set_0``
 #
 #     - The outermost dimension of the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`.
@@ -262,7 +267,7 @@ plt.show()
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 dataset_2d_example
 
@@ -274,7 +279,7 @@ dataset_2d_example
 #
 #     - `x0` and `y0` with some other dimension then ``acq_set_0``.
 
-# %% [markdown]
+# %% [raw]
 #
 # - **[Optional, Advanced]** other nested xarray dimensions under each ``acq_set_{i}``
 #
@@ -331,7 +336,7 @@ dataset_2d_example
 # Xarray coordinates (variables)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # Only the following `xarray` coordinates are allowed in the dataset:
 #
 # - **[Required]** The ``x0`` :ref:`experiment coordinate <sec-experiment-coordinates-and-variables>`.
@@ -360,7 +365,7 @@ dataset_2d_example
 # Xarray data variables
 # ~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # The only xarray data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
 #
 # All the xarray data variables in the dataset (that are not xarray coordinates) comply with:
@@ -385,11 +390,11 @@ dataset_2d_example
 #     - ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)``
 #
 
-# %% [markdown]
+# %% [raw]
 # Dataset with two ``y{i}``:
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 dataset_2d_example
 
@@ -397,7 +402,7 @@ dataset_2d_example
 # Dataset attributes
 # ~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # The dataset must have the following attributes:
 #
 # - ``grid`` (``bool``)
@@ -413,7 +418,7 @@ dataset_2d_example
 # %%
 dataset.attrs
 
-# %% [markdown]
+# %% [raw]
 # Note that xarray automatically provides the attributes as python attributes:
 
 # %%
@@ -423,12 +428,12 @@ dataset.quantify_dataset_version, dataset.tuid
 # Experiment coordinates and variables attributes
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # Both, the experiment coordinates and the experiment variables, are required to have the following attributes:
 #
 # - ``standard_name`` (``str``)
 #     - Usually a short name. Often corresponding to the name of a :class:`~qcodes.instrument.parameter.Parameter`.
-#     - The name should be a valid python variable composed of lower-case alphanumeric characters and ``_`` (unserscore).
+#     - The name should be a valid python variable composed of lower-case alphanumeric characters and ``_`` (underscore).
 # - ``long_name`` (``str``)
 #     - A human readable name. Usually used as the label of a plot axis.
 # - ``units`` (``str``)
@@ -438,9 +443,9 @@ dataset.quantify_dataset_version, dataset.tuid
 # Optionally the following attributes may be present as well:
 #
 # - ``batched`` (``bool``)
-#     - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-bached-and-batch_size>` section.
+#     - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
 # - ``batch_size`` (``bool``)
-#     - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-bached-and-batch_size>` section.
+#     - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
 
 # %%
 dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
@@ -450,7 +455,7 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 # Calibration variables and dimensions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # Calibration points can be tricky to deal with. In addition to the specification above, we describe here how and which kind of calibration points are supported within the Quantify dataset.
 #
 # Calibration points are stored as xarray data variables. We shall refer to them as *calibration variables*. They are similar to the experiment variables with the following differences:
@@ -458,7 +463,7 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 # - They are xarray data variables named as ``y{j}_calib``.
 # - They must lie along the ``acq_set_{i}_calib``, i.e. ``y{j}_calib(repetition, acq_set_{i}_calib, <other nested dimension(s)>)``.
 #     - Note that we would have ``y{j}(repetition, acq_set_{i}, <other nested dimension(s)>)``.
-# - ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitary>`` are present in the dataset.
+# - ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitrary>`` are present in the dataset.
 #
 # .. note::
 #
@@ -475,7 +480,7 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 #     - T1 with calibration points and raw traces included also for the calibration points.
 #
 
-# %% [markdown]
+# %% [raw]
 # T1 dataset examples
 # -------------------
 
@@ -484,7 +489,7 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 
 def generate_mock_iq_data(
@@ -544,17 +549,17 @@ def plot_centroids(ax, ground, excited):
 
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
 
 shots = generate_mock_iq_data(
-    n_shots=1024, sigma=0.15, center0=center_ground, center1=center_excited, prob=0.4
+    n_shots=128, sigma=0.15, center0=center_ground, center1=center_excited, prob=0.4
 )
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
@@ -562,14 +567,14 @@ plt.ylabel("Q")
 plot_centroids(plt.gca(), center_ground, center_excited)
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 time = generate_trace_time()
 trace = generate_trace_for_iq_point(shots[0])
 
 fig, ax = plt.subplots(1, 1, figsize=(30, 5))
 ax.plot(time, trace.imag, ".-")
-ax.plot(time, trace.real, ".-")
+_ = ax.plot(time, trace.real, ".-")
 
 # %% [raw]
 # T1 experiment averaged
@@ -582,7 +587,7 @@ center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
 
 # mock of data acquisition configuration
-num_shots = 1024
+num_shots = 128
 x0s = np.linspace(0, 150e-6, 30)
 time_par = ManualParameter(name="time", label="Time", unit="s")
 q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
@@ -590,7 +595,7 @@ q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
 probabilities = generate_exp_decay_probablity(time=x0s, tau=tau)
 plt.ylabel("|1> probability")
 plt.suptitle("Typical T1 experiment processed data")
-plt.plot(x0s, probabilities, ".-")
+_ = plt.plot(x0s, probabilities, ".-")
 
 # %%
 y0s = np.fromiter(
@@ -633,7 +638,7 @@ dataset_gridded
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 
 def plot_decay_no_repetition(gridded_dataset, ax=None):
@@ -667,7 +672,7 @@ def plot_iq_no_repetition(gridded_dataset, ax=None):
 
 # %%
 plot_decay_no_repetition(dataset_gridded)
-plot_iq_no_repetition(dataset_gridded)
+_ = plot_iq_no_repetition(dataset_gridded)
 
 # %% [raw]
 # T1 experiment averaged with calibration points
@@ -747,10 +752,10 @@ dataset_gridded.y0_calib.imag.plot(marker="o", ax=ax_calib)
 ax_calib.yaxis.set_label_position("right")
 ax_calib.yaxis.tick_right()
 
-plot_iq_no_repetition(dataset_gridded)
+_ = plot_iq_no_repetition(dataset_gridded)
 
 
-# %% [markdown]
+# %% [raw]
 # We can use the calibration points to normalize the data and obtain the typical T1 decay.
 
 # %% [raw]
@@ -758,7 +763,7 @@ plot_iq_no_repetition(dataset_gridded)
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 
 def rotate_data(complex_data: np.ndarray, angle: float) -> np.ndarray:
@@ -802,7 +807,7 @@ def find_rotation_angle(z1: complex, z2: complex) -> float:
     return np.rad2deg(np.angle(z1 - z2))
 
 
-# %% [markdown]
+# %% [raw]
 # The normalization to the calibration point could look like this:
 
 # %%
@@ -816,7 +821,7 @@ calib_0, calib_1 = (
 y0_norm = (y0_rotated - calib_0) / (calib_1 - calib_0)
 y0_norm.attrs["long_name"] = "|1> Population"
 y0_norm.attrs["units"] = ""
-plot_decay_no_repetition(y0_norm.to_dataset())
+_ = plot_decay_no_repetition(y0_norm.to_dataset())
 
 # %% [raw]
 # T1 experiment storing all shots
@@ -888,14 +893,14 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded
 
-# %% [markdown]
+# %% [raw]
 # In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
 
 # %%
 # plot_decay_no_repetition(dataset_gridded)
 # plot_iq_no_repetition(dataset_gridded);
 
-# %% [markdown]
+# %% [raw]
 # Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
 #
 # Note that we are plotting the calibration points as well.
@@ -918,7 +923,7 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
     plt.show()
 
 
-# %% [markdown]
+# %% [raw]
 # We can colapse (average along) the `repetion` dimension:
 
 # %% [raw]
@@ -926,7 +931,7 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": " " * 4}
+# notebook-to-rst-conf: {"indent": "    "}
 
 
 def plot_iq_decay_repetition(gridded_dataset):
@@ -1060,22 +1065,22 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded
 
-# %% [markdown]
-# All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 777 of the last point of the T1 experiment:
+# %% [raw]
+# All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 123 of the last point of the T1 experiment:
 
 # %%
 dataset_gridded.y0_traces.shape  # dimensions: (repetition, x0, time)
 
 # %%
-trace_example = dataset_gridded.y0_traces.sel(repetition=777, x0=dataset_gridded.x0[-1])
+trace_example = dataset_gridded.y0_traces.sel(repetition=123, x0=dataset_gridded.x0[-1])
 trace_example.shape, trace_example.dtype
 
-# %% [markdown]
+# %% [raw]
 # For clarity, we plot only part of this digitized signal:
 
 # %%
 trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".")
-trace_example_plt.imag.plot(marker=".")
+_ = trace_example_plt.imag.plot(marker=".")
 
 # %%
