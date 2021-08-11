@@ -2,12 +2,6 @@ Quantify dataset specification
 ==============================
 
 
-.. admonition:: Development notes
-    :class: warning
-
-    We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
-
-
 .. admonition:: Imports and auxiliary utilities
     :class: dropdown
 
@@ -62,7 +56,7 @@ Xarray overview
 ~~~~~~~~~~~~~~~
 
 
-This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminlogy. The concepts and terminology specific to the Quantify dataset are intruduced only in the next subsections.
+This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminology. The concepts and terminology specific to the Quantify dataset are introduced only in the next subsections.
 
 This is not intended as an extensive introduction to xarray. Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
 
@@ -78,10 +72,10 @@ An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at
     name_dim_b = "velocity_x"
     dataset = xr.Dataset(
         data_vars={
-            "position": (
-                name_dim_a,
-                np.linspace(-5, 5, n),
-                {"units": "m", "long_name": "Position"},
+            "position": (  # variable name
+                name_dim_a,  # dimension(s)' name(s)
+                np.linspace(-5, 5, n), # variable values
+                {"units": "m", "long_name": "Position"}, # variable attributes
             ),
             "velocity": (
                 name_dim_b,
@@ -119,6 +113,8 @@ A variable can be "promoted" to a **Coordinate** for its dimension(s):
                 {"units": "m/s", "long_name": "Velocity"},
             ),
         },
+        # We could add coordinates like this as well:
+        # coords={"position": (name_dim_a, position, {"units": "m", "long_name": "Position"})},
         attrs={"key": "my metadata"},
     )
     dataset = dataset.set_coords(["position"]) # promote the position variable to a coordinate
@@ -196,27 +192,27 @@ One of the great features of xarray is automatic plotting (explore the xarray do
 
 .. _sec-experiment-coordinates-and-variables:
 
-Key dataset conventions
-~~~~~~~~~~~~~~~~~~~~~~~
+Quantify dataset conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We define the following naming conventions in the Quantify dataset:
+The Quantify dataset is an xarray dataset that follows certain conventions. We define the following terminology:
 
 - **Experiment coordinate(s)**
-    - xarray **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
+    - Xarray **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
     - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
 - **Experiment variable(s)**
-    - xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
+    - Xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
 
 .. note::
 
-    From this subsection onwards we show exemplary datasets to highlight the details of the Qauntify dataset specification.
+    From this subsection onward we show exemplary datasets to highlight the details of the Quantify dataset specification.
     However, keep in mind that we always show a valid Quantify dataset with all the required properties (except when exemplifying a bad dataset).
 
-2D Dataset example
-~~~~~~~~~~~~~~~~~~
+2D Quantify dataset example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y0``. Both experiment coordinates lie along one dimension, ``acq_set_0``. Both experiment variables lie along two dimensions ``acq_set_0`` and ``repetitions``.
+In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y1``. Both experiment coordinates lie along one dimension, ``dim_0``. Both experiment variables lie along two dimensions ``dim_0`` and ``repetitions``.
 
 
 .. admonition:: Generate data
@@ -237,16 +233,16 @@ In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and t
         y0s = (1 - x0s_norm) * np.sin(
             2 * np.pi * x1s * 1 / 30e-9 * (x0s_norm + 0.5)
         )  # ~chevron
-        y1s = -y0s + 0.1
+        y1s = -y0s # mock inverted population for q1
 
         dataset = dataset_2d_example = xr.Dataset(
             data_vars={
-                "y0": (("repetition", "acq_set_0"), [y0s], par_to_attrs(pop_q0_par)),
-                "y1": (("repetition", "acq_set_0"), [y1s], par_to_attrs(pop_q1_par)),
+                "y0": (("repetition", "dim_0"), [y0s + np.random.random(y0s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q0_par)),
+                "y1": (("repetition", "dim_0"), [y1s + np.random.random(y1s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q1_par)),
             },
             coords={
-                "x0": ("acq_set_0", x0s, par_to_attrs(amp_par)),
-                "x1": ("acq_set_0", x1s, par_to_attrs(time_par)),
+                "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
+                "x1": ("dim_0", x1s, par_to_attrs(time_par)),
             },
         )
 
@@ -258,16 +254,24 @@ In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and t
     dataset
 
 
-As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities.
+As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities:
 
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
-    dataset_gridded.y0.plot(x="x0")
-    plt.show()
-    dataset_gridded.y1.plot(x="x0")
-    plt.show()
+    dataset_gridded = dh.to_gridded_dataset(dataset_2d_example)
+    dataset_gridded.y0.plot.pcolormesh(x="x0", y="x1", col="repetition")
+    dataset_gridded.y1.plot.pcolormesh(x="x0", y="x1", col="repetition")
+    pass
+
+
+In xarray it is possible to average along a dimension which can be very convenient:
+
+
+    .. jupyter-execute::
+
+        dataset_gridded.y0.mean(dim="repetition").plot(x="x0")
+        pass
 
 
 Detailed specification
@@ -280,28 +284,50 @@ Xarray dimensions
 
 The Quantify dataset has has the following required and optional dimensions:
 
-- **[Required]** ``repetition``
+- **[Optional]** ``repetition``
 
-    - The outermost dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`.
+    - The only outermost dimension that the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` can have.
     - Intuition for this xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
     - Default behavior of plotting tools will be to average the dataset along this dimension.
     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
     - **[Optional]** The ``repetition`` dimension can be indexed by an optional xarray coordinate variable.
-
         - **[Required]** The variable must be named ``repetition`` as well.
-
-    - **[Required]** no other outer xarray dimensions allowed.
-
+    - **[Required]** No other outer xarray dimensions are allowed.
 
 
 
 .. admonition:: Examples good datasets (repetition)
     :class: dropdown
 
-    To be added:
+    As shown in the :ref:`Xarray overview` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetition`` dimension is indexed by the ``repetition`` xarray coordinate variable:
 
-    - More than one repetitions.
-    - ``repetition`` dimensions indexed by a ``coordinate`` variables.
+
+    .. jupyter-execute::
+
+        dataset = xr.Dataset(
+            data_vars={
+                "y0": (("repetition", "dim_0"), [y0s + np.random.random(y0s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q0_par)),
+                "y1": (("repetition", "dim_0"), [y1s + np.random.random(y1s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q1_par)),
+            },
+            coords={
+                "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
+                "x1": ("dim_0", x1s, par_to_attrs(time_par)),
+                # here we choose to index the repetition dimension with an array of strings
+                "repetition": ("repetition", ["noisy","very noisy", "very very noisy"])
+            },
+        )
+
+        dataset_gridded = dh.to_gridded_dataset(dataset)
+        dataset_gridded
+
+
+    It is now possible to retrieve (select) a specific entry along the repetition dimension:
+
+
+    .. jupyter-execute::
+
+        dataset_gridded.y0.sel(repetition="very noisy").plot(x="x0")
+        pass
 
 
 .. admonition:: Examples bad datasets (repetition)
@@ -309,18 +335,18 @@ The Quantify dataset has has the following required and optional dimensions:
 
      To be added:
 
-    - No repetition dimension.
-    - An outer dimension.
+    - Dataset with an outer dimension.
+    - Dataset with a coordinate variable named "repetition" that is not indexing the ``repetition`` dimension.
 
 
-- **[Required]** ``acq_set_0``
+- **[Required]** ``dim_0``
 
     - The outermost dimension of the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`.
     - The first inner dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` (the outermost is the ``repetition`` dimension).
 
 
 
-.. admonition:: Examples good datasets (acq_set_0)
+.. admonition:: Examples good datasets (dim_0)
     :class: dropdown
 
 
@@ -329,12 +355,12 @@ The Quantify dataset has has the following required and optional dimensions:
         dataset_2d_example
 
 
-.. admonition:: Examples bad datasets (acq_set_0)
+.. admonition:: Examples bad datasets (dim_0)
     :class: dropdown
 
     To be added:
 
-    - `x0` and `y0` with some other dimension then ``acq_set_0``.
+    - `x0` and `y0` with some other dimension then ``dim_0``.
 
 
 
@@ -347,9 +373,9 @@ The Quantify dataset has has the following required and optional dimensions:
 
         - ``assert "time" in dataset.coords``
         - ``assert "time" in dataset.dims``
-        - ``assert len(dataset.time) == len(dataset.y3.isel(repetition=0, acq_set_0=0))`` where ``y3`` is a measured variable storing traces.
+        - ``assert len(dataset.time) == len(dataset.y3.isel(repetition=0, dim_0=0))`` where ``y3`` is a measured variable storing traces.
 
-    - Note: When nesting data like this, it is required to have "hyper-cubic"-shaped data, meaning that e.g. ``dataset.y3.isel(repetition=0, acq_set_0=0) == [[2], [ 5, 6]]`` is not possible, but ``dataset.y3.isel(repetition=0, acq_set_0=0) == [[2, 3], [5, 6]]`` is. This is a direct consequence of numpy ``ndarray`` (with entries of type ``int``/``float``/``complex``).
+    - Note: When nesting data like this, it is required to have "hyper-cubic"-shaped data, meaning that e.g. ``dataset.y3.isel(repetition=0, dim_0=0) == [[2], [ 5, 6]]`` is not possible, but ``dataset.y3.isel(repetition=0, dim_0=0) == [[2, 3], [5, 6]]`` is. This is a direct consequence of numpy ``ndarray`` (with entries of type ``int``/``float``/``complex``).
 
 
 
@@ -383,10 +409,10 @@ The Quantify dataset has has the following required and optional dimensions:
     - Reserves the possibility to store data for experiments that we have not yet encountered ourselves. I a gut feeling that we need this, but might not have a good realistic example, some help here is welcome.
 
         - (Example ?) Imagine measuring some qubits until all of them are in a desired state, returning the data of these measurements and then proceeding to doing the "real" experiment you are interested in. I think having these extra *independent* xarray dimensions
-    - **[Required]** all ``acq_set_{i}`` dimensions (including ``acq_set_0``) are mutually excluding. This means variables in the dataset cannot depend on more than one of these dimensions.
+    - **[Required]** all ``acq_set_{i}`` dimensions (including ``dim_0``) are mutually excluding. This means variables in the dataset cannot depend on more than one of these dimensions.
 
-        - **Bad** variable: ``y0(repetition, acq_set_0, acq_set_1)``, this should never happen in the dataset.
-        - **Good** variable: ``y0(repetition, acq_set_0)`` or ``y1(repetition, acq_set_1)``.
+        - **Bad** variable: ``y0(repetition, dim_0, acq_set_1)``, this should never happen in the dataset.
+        - **Good** variable: ``y0(repetition, dim_0)`` or ``y1(repetition, acq_set_1)``.
 
 
 
@@ -432,7 +458,7 @@ All the xarray data variables in the dataset (that are not xarray coordinates) c
     - ``y{i}_<arbitrary>`` where ``i => 0`` is an integer such that matches an existing ``y{i}`` in the same dataset.
         - This is intended to denote a meaningful connection between ``y{i}`` and ``y{i}_<arbitrary>``.
         - **[Required]** The number of elements in``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``acq_set_{j}`` dimension.
-        - E.g., the digitized time traces stored in ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)`` represent the same measurement with different levels of detail.
+        - E.g., the digitized time traces stored in ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)`` represent the same measurement with different levels of detail.
     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
 - **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.
 - **[Optional]** Lie along additional nested xarray dimensions.
@@ -444,7 +470,7 @@ All the xarray data variables in the dataset (that are not xarray coordinates) c
 
     To be added...
 
-    - ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)``
+    - ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)``
 
 
 
@@ -475,7 +501,7 @@ The dataset must have the following attributes:
 
 .. jupyter-execute::
 
-    dataset.attrs
+    dataset_2d_example.attrs
 
 
 Note that xarray automatically provides the attributes as python attributes:
@@ -483,7 +509,7 @@ Note that xarray automatically provides the attributes as python attributes:
 
 .. jupyter-execute::
 
-    dataset.quantify_dataset_version, dataset.tuid
+    dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 
 
 Experiment coordinates and variables attributes
@@ -682,10 +708,10 @@ T1 experiment averaged
 
     dataset = dataset_2d_example = xr.Dataset(
         data_vars={
-            "y0": ("acq_set_0", y0s, par_to_attrs(q0_iq_par)),
+            "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
         },
         coords={
-            "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+            "x0": ("dim_0", x0s, par_to_attrs(time_par)),
         },
     )
 
@@ -697,7 +723,7 @@ T1 experiment averaged
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
+    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0")
     dataset_gridded
 
 
@@ -783,13 +809,13 @@ T1 experiment averaged with calibration points
 
     dataset = dataset_2d_example = xr.Dataset(
         data_vars={
-            "y0": ("acq_set_0", y0s, par_to_attrs(q0_iq_par)),
-            "y0_calib": ("acq_set_0_calib", y0s_calib, par_to_attrs(q0_iq_par)),
+            "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
+            "y0_calib": ("dim_0_calib", y0s_calib, par_to_attrs(q0_iq_par)),
         },
         coords={
-            "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+            "x0": ("dim_0", x0s, par_to_attrs(time_par)),
             "x0_calib": (
-                "acq_set_0_calib",
+                "dim_0_calib",
                 ["|0>", "|1>"],
                 {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
             ),
@@ -805,10 +831,10 @@ T1 experiment averaged with calibration points
 .. jupyter-execute::
 
     dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="acq_set_0", coords_names=["x0"]
+        dataset, dimension="dim_0", coords_names=["x0"]
     )
     dataset_gridded = dh.to_gridded_dataset(
-        dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+        dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
     )
     dataset_gridded
 
@@ -932,23 +958,23 @@ T1 experiment storing all shots
 
     dataset = dataset_2d_example = xr.Dataset(
         data_vars={
-            "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+            "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
             "y0_calib": (
-                "acq_set_0_calib",
+                "dim_0_calib",
                 y0s_calib.mean(axis=0),
                 par_to_attrs(q0_iq_par),
             ),
-            "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
+            "y0_shots": (("repetition", "dim_0"), y0s, par_to_attrs(q0_iq_par)),
             "y0_shots_calib": (
-                ("repetition", "acq_set_0_calib"),
+                ("repetition", "dim_0_calib"),
                 y0s_calib,
                 par_to_attrs(q0_iq_par),
             ),
         },
         coords={
-            "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+            "x0": ("dim_0", x0s, par_to_attrs(time_par)),
             "x0_calib": (
-                "acq_set_0_calib",
+                "dim_0_calib",
                 ["|0>", "|1>"],
                 {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
             ),
@@ -964,10 +990,10 @@ T1 experiment storing all shots
 .. jupyter-execute::
 
     dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="acq_set_0", coords_names=["x0"]
+        dataset, dimension="dim_0", coords_names=["x0"]
     )
     dataset_gridded = dh.to_gridded_dataset(
-        dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+        dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
     )
     dataset_gridded
 
@@ -1097,33 +1123,33 @@ T1 experiment storing digitized signals for all shots
 
     dataset = dataset_2d_example = xr.Dataset(
         data_vars={
-            "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+            "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
             "y0_calib": (
-                "acq_set_0_calib",
+                "dim_0_calib",
                 y0s_calib.mean(axis=0),
                 par_to_attrs(q0_iq_par),
             ),
-            "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
+            "y0_shots": (("repetition", "dim_0"), y0s, par_to_attrs(q0_iq_par)),
             "y0_shots_calib": (
-                ("repetition", "acq_set_0_calib"),
+                ("repetition", "dim_0_calib"),
                 y0s_calib,
                 par_to_attrs(q0_iq_par),
             ),
             "y0_traces": (
-                ("repetition", "acq_set_0", "time"),
+                ("repetition", "dim_0", "time"),
                 y0s_traces,
                 par_to_attrs(q0_iq_par),
             ),
             "y0_traces_calib": (
-                ("repetition", "acq_set_0_calib", "time"),
+                ("repetition", "dim_0_calib", "time"),
                 y0s_traces_calib,
                 par_to_attrs(q0_iq_par),
             ),
         },
         coords={
-            "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+            "x0": ("dim_0", x0s, par_to_attrs(time_par)),
             "x0_calib": (
-                "acq_set_0_calib",
+                "dim_0_calib",
                 ["|0>", "|1>"],
                 {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
             ),
@@ -1144,10 +1170,10 @@ T1 experiment storing digitized signals for all shots
 .. jupyter-execute::
 
     dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="acq_set_0", coords_names=["x0"]
+        dataset, dimension="dim_0", coords_names=["x0"]
     )
     dataset_gridded = dh.to_gridded_dataset(
-        dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+        dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
     )
     dataset_gridded
 
