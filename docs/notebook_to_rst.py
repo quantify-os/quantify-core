@@ -9,7 +9,9 @@ from quantify_core.utilities._docs_helpers import notebook_to_rst
 @click.argument("notebook-filepath", required=True, type=click.Path())
 def main(notebook_filepath: Path):
     notebook_filepath = Path(notebook_filepath)
-    rst_filepath = notebook_filepath.parent / notebook_filepath.stem
+    rst_filepath = (
+        notebook_filepath.parent / f"{Path(notebook_filepath.stem).stem}.py.rst"
+    )
     notebook_to_rst(notebook_filepath, rst_filepath)
 
 

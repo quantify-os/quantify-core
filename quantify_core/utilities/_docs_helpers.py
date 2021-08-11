@@ -3,7 +3,8 @@
 """Helpers for building docs"""
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, List, Tuple
+import warnings
 import json
 import shutil
 import tempfile
@@ -71,7 +72,7 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
     See https://github.com/psf/black/issues/292.
     """
 
-    def get_code_indent(code_cell_source: list):
+    def get_code_indent(code_cell_source: list) -> Tuple[str, List[str]]:
         indent = ""
         directive_options = []
         if code_cell_source:
@@ -79,7 +80,7 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
             magic_comment = "# notebook-to-rst-conf:"
 
             if first_line.startswith(magic_comment):
-                conf = eval(first_line[len(magic_comment) :])
+                conf = json.loads(first_line[len(magic_comment) :])
                 if "indent" in conf:
                     indent = conf["indent"]
 
@@ -104,17 +105,25 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
 
         return header + out if out.strip() != "" else ""
 
-    def make_rst_block(cell_source, prefix="\n\n\n"):
+    def make_rst_block(cell_source: List[str], prefix="\n\n\n") -> str:
         return prefix + "".join(cell_source)
 
-    def cell_to_rst_str(cell, is_first_cell: bool = False):
+    def cell_to_rst_str(cell: dict, is_first_cell: bool = False) -> str:
         cell_type = cell["cell_type"]
         cell_source = cell["source"]
 
         if cell_type == "code":
-            return make_jupyter_sphinx_block(cell_source)
+            rst = make_jupyter_sphinx_block(cell_source)
+        elif cell_type == "raw":
+            rst = make_rst_block(cell_source, prefix="" if is_first_cell else "\n\n\n")
+        else:
+            warnings.warn(
+                f"Cell of type {cell_type} are not supported! "
+                "Only code and raw cells will be processed."
+            )
+            rst = ""
 
-        return make_rst_block(cell_source, prefix="" if is_first_cell else "\n\n\n")
+        return rst
 
     with open(Path(notebook_filepath), "r") as file:
         json_dict = json.load(file)
