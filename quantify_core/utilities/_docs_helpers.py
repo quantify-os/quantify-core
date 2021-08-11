@@ -77,7 +77,7 @@ def notebook_to_rst(notebook_filepath: Path, output_filepath: Path) -> None:
         directive_options = []
         if code_cell_source:
             first_line = code_cell_source[0]
-            magic_comment = "# notebook-to-rst-conf:"
+            magic_comment = "# notebook-to-rst-json-conf:"
 
             if first_line.startswith(magic_comment):
                 conf = json.loads(first_line[len(magic_comment) :])
