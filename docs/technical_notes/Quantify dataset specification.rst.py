@@ -73,10 +73,10 @@ name_dim_a = "position_x"
 name_dim_b = "velocity_x"
 dataset = xr.Dataset(
     data_vars={
-        "position": (
-            name_dim_a,
-            np.linspace(-5, 5, n),
-            {"units": "m", "long_name": "Position"},
+        "position": (  # variable name
+            name_dim_a,  # dimension(s)' name(s)
+            np.linspace(-5, 5, n),  # variable values
+            {"units": "m", "long_name": "Position"},  # variable attributes
         ),
         "velocity": (
             name_dim_b,
@@ -212,12 +212,20 @@ x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
 y0s = (1 - x0s_norm) * np.sin(
     2 * np.pi * x1s * 1 / 30e-9 * (x0s_norm + 0.5)
 )  # ~chevron
-y1s = -y0s + 0.1
+y1s = -y0s  # mock inverted population for q1
 
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
-        "y0": (("repetition", "dim_0"), [y0s], par_to_attrs(pop_q0_par)),
-        "y1": (("repetition", "dim_0"), [y1s], par_to_attrs(pop_q1_par)),
+        "y0": (
+            ("repetition", "dim_0"),
+            [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
+            par_to_attrs(pop_q0_par),
+        ),
+        "y1": (
+            ("repetition", "dim_0"),
+            [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
+            par_to_attrs(pop_q1_par),
+        ),
     },
     coords={
         "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
@@ -231,14 +239,22 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %% [raw]
-# As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities.
+# As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities:
 
 # %%
-dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0")
-dataset_gridded.y0.plot(x="x0")
-plt.show()
-dataset_gridded.y1.plot(x="x0")
-plt.show()
+dataset_gridded = dh.to_gridded_dataset(dataset_2d_example)
+dataset_gridded.y0.plot.pcolormesh(x="x0", y="x1", col="repetition")
+dataset_gridded.y1.plot.pcolormesh(x="x0", y="x1", col="repetition")
+pass
+
+# %% [raw]
+# In xarray it is possible to average along a dimension which can be very convenient:
+
+# %%
+# notebook-to-rst-json-conf: {"indent": "    "}
+
+dataset_gridded.y0.mean(dim="repetition").plot(x="x0")
+pass
 
 # %% [raw]
 # Detailed specification
@@ -251,28 +267,58 @@ plt.show()
 # %% [raw]
 # The Quantify dataset has has the following required and optional dimensions:
 #
-# - **[Required]** ``repetition``
+# - **[Optional]** ``repetition``
 #
-#     - The outermost dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`.
+#     - The only outermost dimension that the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` can have.
 #     - Intuition for this xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
 #     - Default behavior of plotting tools will be to average the dataset along this dimension.
 #     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
 #     - **[Optional]** The ``repetition`` dimension can be indexed by an optional xarray coordinate variable.
-#
 #         - **[Required]** The variable must be named ``repetition`` as well.
-#
-#     - **[Required]** no other outer xarray dimensions allowed.
-#
+#     - **[Required]** No other outer xarray dimensions are allowed.
 #
 
 # %% [raw]
 # .. admonition:: Examples good datasets (repetition)
 #     :class: dropdown
 #
-#     To be added:
-#
-#     - More than one repetitions.
-#     - ``repetition`` dimensions indexed by a ``coordinate`` variables.
+#     As shown in the :ref:`Xarray overview` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetition`` dimension is indexed by the ``repetition`` xarray coordinate variable:
+
+# %%
+# notebook-to-rst-json-conf: {"indent": "    "}
+
+dataset = xr.Dataset(
+    data_vars={
+        "y0": (
+            ("repetition", "dim_0"),
+            [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
+            par_to_attrs(pop_q0_par),
+        ),
+        "y1": (
+            ("repetition", "dim_0"),
+            [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
+            par_to_attrs(pop_q1_par),
+        ),
+    },
+    coords={
+        "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
+        "x1": ("dim_0", x1s, par_to_attrs(time_par)),
+        # here we choose to index the repetition dimension with an array of strings
+        "repetition": ("repetition", ["noisy", "very noisy", "very very noisy"]),
+    },
+)
+
+dataset_gridded = dh.to_gridded_dataset(dataset)
+dataset_gridded
+
+# %% [raw]
+#     It is now possible to retrieve (select) a specific entry along the repetition dimension:
+
+# %%
+# notebook-to-rst-json-conf: {"indent": "    "}
+
+dataset_gridded.y0.sel(repetition="very noisy").plot(x="x0")
+pass
 
 # %% [raw]
 # .. admonition:: Examples bad datasets (repetition)
@@ -280,8 +326,8 @@ plt.show()
 #
 #      To be added:
 #
-#     - No repetition dimension.
-#     - An outer dimension.
+#     - Dataset with an outer dimension.
+#     - Dataset with a coordinate variable named "repetition" that is not indexing the ``repetition`` dimension.
 
 # %% [raw]
 # - **[Required]** ``dim_0``
@@ -444,13 +490,13 @@ dataset_2d_example
 #     - The quantify dataset version.
 
 # %%
-dataset.attrs
+dataset_2d_example.attrs
 
 # %% [raw]
 # Note that xarray automatically provides the attributes as python attributes:
 
 # %%
-dataset.quantify_dataset_version, dataset.tuid
+dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 
 # %% [raw]
 # Experiment coordinates and variables attributes
@@ -1000,6 +1046,7 @@ plot_iq_decay_repetition(dataset_gridded)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %%
+# NB this is not necessarily the most efficient way to generate this mock data
 y0s = np.array(
     tuple(
         generate_mock_iq_data(
