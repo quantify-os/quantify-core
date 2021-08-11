@@ -5,12 +5,6 @@
 # ==============================
 
 # %% [raw]
-# .. admonition:: Development notes
-#     :class: warning
-#
-#     We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
-
-# %% [raw]
 # .. admonition:: Imports and auxiliary utilities
 #     :class: dropdown
 
@@ -65,7 +59,7 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 # ~~~~~~~~~~~~~~~
 
 # %% [raw]
-# This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminlogy. The concepts and terminology specific to the Quantify dataset are intruduced only in the next subsections.
+# This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminology. The concepts and terminology specific to the Quantify dataset are introduced only in the next subsections.
 #
 # This is not intended as an extensive introduction to xarray. Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
 #
@@ -114,6 +108,8 @@ dataset = xr.Dataset(
             {"units": "m/s", "long_name": "Velocity"},
         ),
     },
+    # We could add coordinates like this as well:
+    # coords={"position": (name_dim_a, position, {"units": "m", "long_name": "Position"})},
     attrs={"key": "my metadata"},
 )
 dataset = dataset.set_coords(
@@ -175,27 +171,27 @@ _ = dataset.velocity.plot(marker="o")
 # %% [raw]
 # .. _sec-experiment-coordinates-and-variables:
 #
-# Key dataset conventions
-# ~~~~~~~~~~~~~~~~~~~~~~~
+# Quantify dataset conventions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# We define the following naming conventions in the Quantify dataset:
+# The Quantify dataset is an xarray dataset that follows certain conventions. We define the following terminology:
 #
 # - **Experiment coordinate(s)**
-#     - xarray **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
+#     - Xarray **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
 #     - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
 # - **Experiment variable(s)**
-#     - xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
+#     - Xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
 #     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
 #
 # .. note::
 #
-#     From this subsection onwards we show exemplary datasets to highlight the details of the Qauntify dataset specification.
+#     From this subsection onward we show exemplary datasets to highlight the details of the Quantify dataset specification.
 #     However, keep in mind that we always show a valid Quantify dataset with all the required properties (except when exemplifying a bad dataset).
 #
-# 2D Dataset example
-# ~~~~~~~~~~~~~~~~~~
+# 2D Quantify dataset example
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y0``. Both experiment coordinates lie along one dimension, ``acq_set_0``. Both experiment variables lie along two dimensions ``acq_set_0`` and ``repetitions``.
+# In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y1``. Both experiment coordinates lie along one dimension, ``dim_0``. Both experiment variables lie along two dimensions ``dim_0`` and ``repetitions``.
 
 # %% [raw]
 # .. admonition:: Generate data
@@ -220,12 +216,12 @@ y1s = -y0s + 0.1
 
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
-        "y0": (("repetition", "acq_set_0"), [y0s], par_to_attrs(pop_q0_par)),
-        "y1": (("repetition", "acq_set_0"), [y1s], par_to_attrs(pop_q1_par)),
+        "y0": (("repetition", "dim_0"), [y0s], par_to_attrs(pop_q0_par)),
+        "y1": (("repetition", "dim_0"), [y1s], par_to_attrs(pop_q1_par)),
     },
     coords={
-        "x0": ("acq_set_0", x0s, par_to_attrs(amp_par)),
-        "x1": ("acq_set_0", x1s, par_to_attrs(time_par)),
+        "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
+        "x1": ("dim_0", x1s, par_to_attrs(time_par)),
     },
 )
 
@@ -238,7 +234,7 @@ dataset
 # As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities.
 
 # %%
-dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
+dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0")
 dataset_gridded.y0.plot(x="x0")
 plt.show()
 dataset_gridded.y1.plot(x="x0")
@@ -288,14 +284,14 @@ plt.show()
 #     - An outer dimension.
 
 # %% [raw]
-# - **[Required]** ``acq_set_0``
+# - **[Required]** ``dim_0``
 #
 #     - The outermost dimension of the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`.
 #     - The first inner dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` (the outermost is the ``repetition`` dimension).
 #
 
 # %% [raw]
-# .. admonition:: Examples good datasets (acq_set_0)
+# .. admonition:: Examples good datasets (dim_0)
 #     :class: dropdown
 
 # %%
@@ -304,12 +300,12 @@ plt.show()
 dataset_2d_example
 
 # %% [raw]
-# .. admonition:: Examples bad datasets (acq_set_0)
+# .. admonition:: Examples bad datasets (dim_0)
 #     :class: dropdown
 #
 #     To be added:
 #
-#     - `x0` and `y0` with some other dimension then ``acq_set_0``.
+#     - `x0` and `y0` with some other dimension then ``dim_0``.
 
 # %% [raw]
 #
@@ -322,9 +318,9 @@ dataset_2d_example
 #
 #         - ``assert "time" in dataset.coords``
 #         - ``assert "time" in dataset.dims``
-#         - ``assert len(dataset.time) == len(dataset.y3.isel(repetition=0, acq_set_0=0))`` where ``y3`` is a measured variable storing traces.
+#         - ``assert len(dataset.time) == len(dataset.y3.isel(repetition=0, dim_0=0))`` where ``y3`` is a measured variable storing traces.
 #
-#     - Note: When nesting data like this, it is required to have "hyper-cubic"-shaped data, meaning that e.g. ``dataset.y3.isel(repetition=0, acq_set_0=0) == [[2], [ 5, 6]]`` is not possible, but ``dataset.y3.isel(repetition=0, acq_set_0=0) == [[2, 3], [5, 6]]`` is. This is a direct consequence of numpy ``ndarray`` (with entries of type ``int``/``float``/``complex``).
+#     - Note: When nesting data like this, it is required to have "hyper-cubic"-shaped data, meaning that e.g. ``dataset.y3.isel(repetition=0, dim_0=0) == [[2], [ 5, 6]]`` is not possible, but ``dataset.y3.isel(repetition=0, dim_0=0) == [[2, 3], [5, 6]]`` is. This is a direct consequence of numpy ``ndarray`` (with entries of type ``int``/``float``/``complex``).
 #
 
 # %% [raw]
@@ -358,10 +354,10 @@ dataset_2d_example
 #     - Reserves the possibility to store data for experiments that we have not yet encountered ourselves. I a gut feeling that we need this, but might not have a good realistic example, some help here is welcome.
 #
 #         - (Example ?) Imagine measuring some qubits until all of them are in a desired state, returning the data of these measurements and then proceeding to doing the "real" experiment you are interested in. I think having these extra *independent* xarray dimensions
-#     - **[Required]** all ``acq_set_{i}`` dimensions (including ``acq_set_0``) are mutually excluding. This means variables in the dataset cannot depend on more than one of these dimensions.
+#     - **[Required]** all ``acq_set_{i}`` dimensions (including ``dim_0``) are mutually excluding. This means variables in the dataset cannot depend on more than one of these dimensions.
 #
-#         - **Bad** variable: ``y0(repetition, acq_set_0, acq_set_1)``, this should never happen in the dataset.
-#         - **Good** variable: ``y0(repetition, acq_set_0)`` or ``y1(repetition, acq_set_1)``.
+#         - **Bad** variable: ``y0(repetition, dim_0, acq_set_1)``, this should never happen in the dataset.
+#         - **Good** variable: ``y0(repetition, dim_0)`` or ``y1(repetition, acq_set_1)``.
 #
 
 # %% [raw]
@@ -407,7 +403,7 @@ dataset_2d_example
 #     - ``y{i}_<arbitrary>`` where ``i => 0`` is an integer such that matches an existing ``y{i}`` in the same dataset.
 #         - This is intended to denote a meaningful connection between ``y{i}`` and ``y{i}_<arbitrary>``.
 #         - **[Required]** The number of elements in``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``acq_set_{j}`` dimension.
-#         - E.g., the digitized time traces stored in ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)`` represent the same measurement with different levels of detail.
+#         - E.g., the digitized time traces stored in ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)`` represent the same measurement with different levels of detail.
 #     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
 # - **[Required]** Lie along at least the ``repetition`` and ``acq_set_{i}`` dimensions.
 # - **[Optional]** Lie along additional nested xarray dimensions.
@@ -419,7 +415,7 @@ dataset_2d_example
 #
 #     To be added...
 #
-#     - ``y0_trace(repetition, acq_set_0, time)`` and the demodulated values ``y0(repetition, acq_set_0)``
+#     - ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)``
 #
 
 # %% [raw]
@@ -649,10 +645,10 @@ y0s = np.fromiter(
 
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
-        "y0": ("acq_set_0", y0s, par_to_attrs(q0_iq_par)),
+        "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
     },
     coords={
-        "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+        "x0": ("dim_0", x0s, par_to_attrs(time_par)),
     },
 )
 
@@ -662,7 +658,7 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %%
-dataset_gridded = dh.to_gridded_dataset(dataset, dimension="acq_set_0")
+dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0")
 dataset_gridded
 
 
@@ -746,13 +742,13 @@ y0s_calib = np.fromiter(
 
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
-        "y0": ("acq_set_0", y0s, par_to_attrs(q0_iq_par)),
-        "y0_calib": ("acq_set_0_calib", y0s_calib, par_to_attrs(q0_iq_par)),
+        "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
+        "y0_calib": ("dim_0_calib", y0s_calib, par_to_attrs(q0_iq_par)),
     },
     coords={
-        "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+        "x0": ("dim_0", x0s, par_to_attrs(time_par)),
         "x0_calib": (
-            "acq_set_0_calib",
+            "dim_0_calib",
             ["|0>", "|1>"],
             {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
         ),
@@ -765,11 +761,9 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %%
+dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["x0"])
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="acq_set_0", coords_names=["x0"]
-)
-dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+    dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
 )
 dataset_gridded
 
@@ -889,23 +883,23 @@ y0s_calib = np.array(
 
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
-        "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+        "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
         "y0_calib": (
-            "acq_set_0_calib",
+            "dim_0_calib",
             y0s_calib.mean(axis=0),
             par_to_attrs(q0_iq_par),
         ),
-        "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
+        "y0_shots": (("repetition", "dim_0"), y0s, par_to_attrs(q0_iq_par)),
         "y0_shots_calib": (
-            ("repetition", "acq_set_0_calib"),
+            ("repetition", "dim_0_calib"),
             y0s_calib,
             par_to_attrs(q0_iq_par),
         ),
     },
     coords={
-        "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+        "x0": ("dim_0", x0s, par_to_attrs(time_par)),
         "x0_calib": (
-            "acq_set_0_calib",
+            "dim_0_calib",
             ["|0>", "|1>"],
             {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
         ),
@@ -918,11 +912,9 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %%
+dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["x0"])
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="acq_set_0", coords_names=["x0"]
-)
-dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+    dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
 )
 dataset_gridded
 
@@ -1046,33 +1038,33 @@ y0s_traces_calib = _y0s_traces_calib.reshape(
 
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
-        "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+        "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
         "y0_calib": (
-            "acq_set_0_calib",
+            "dim_0_calib",
             y0s_calib.mean(axis=0),
             par_to_attrs(q0_iq_par),
         ),
-        "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
+        "y0_shots": (("repetition", "dim_0"), y0s, par_to_attrs(q0_iq_par)),
         "y0_shots_calib": (
-            ("repetition", "acq_set_0_calib"),
+            ("repetition", "dim_0_calib"),
             y0s_calib,
             par_to_attrs(q0_iq_par),
         ),
         "y0_traces": (
-            ("repetition", "acq_set_0", "time"),
+            ("repetition", "dim_0", "time"),
             y0s_traces,
             par_to_attrs(q0_iq_par),
         ),
         "y0_traces_calib": (
-            ("repetition", "acq_set_0_calib", "time"),
+            ("repetition", "dim_0_calib", "time"),
             y0s_traces_calib,
             par_to_attrs(q0_iq_par),
         ),
     },
     coords={
-        "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
+        "x0": ("dim_0", x0s, par_to_attrs(time_par)),
         "x0_calib": (
-            "acq_set_0_calib",
+            "dim_0_calib",
             ["|0>", "|1>"],
             {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
         ),
@@ -1090,11 +1082,9 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %%
+dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["x0"])
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="acq_set_0", coords_names=["x0"]
-)
-dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="acq_set_0_calib", coords_names=["x0_calib"]
+    dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
 )
 dataset_gridded
 
