@@ -8,6 +8,12 @@ Quantify dataset specification
     We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
 
 
+.. admonition:: Development notes
+    :class: warning
+
+    We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
+
+
 .. note::
 
     Along this page we show exemplary datasets to highlight the details of this specification.
@@ -81,8 +87,16 @@ The dataset has **Dimensions** and **Variables**. Variables "lie" along at least
     name_dim_b = "velocity_x"
     dataset = xr.Dataset(
         data_vars={
-            "position": (name_dim_a, np.linspace(-5, 5, n), {"units": "m", "long_name": "Position"}),
-            "velocity": (name_dim_b, np.linspace(0, 10, n), {"units": "m/s", "long_name": "Velocity"}),
+            "position": (
+                name_dim_a,
+                np.linspace(-5, 5, n),
+                {"units": "m", "long_name": "Position"},
+            ),
+            "velocity": (
+                name_dim_b,
+                np.linspace(0, 10, n),
+                {"units": "m/s", "long_name": "Velocity"},
+            ),
         },
         attrs={"key": "my metadata"},
     )
@@ -98,7 +112,11 @@ A variable can be set as coordinate for its dimension(s):
     dataset = xr.Dataset(
         data_vars={
             "position": (name_dim_a, position, {"units": "m", "long_name": "Position"}),
-            "velocity": (name_dim_a, 1 + position ** 2, {"units": "m/s", "long_name": "Velocity"}),
+            "velocity": (
+                name_dim_a,
+                1 + position ** 2,
+                {"units": "m/s", "long_name": "Velocity"},
+            ),
         },
         attrs={"key": "my metadata"},
     )
@@ -117,7 +135,7 @@ Xarray coordinates can be set to **index** other variables. (:func:`~quantify_co
     dataset
 
 
-An example of how this can be usefull:
+An example of how this can be useful:
 
 
 .. jupyter-execute::
@@ -130,7 +148,7 @@ Automatic plotting:
 
 .. jupyter-execute::
 
-    dataset.velocity.plot();
+    _ = dataset.velocity.plot()
 
 
 .. _sec-experiment-coordinates-and-variables:
@@ -147,7 +165,6 @@ We define the following naming conventions in the Quantify dataset:
 - **Experiment variable(s)**
     - xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-
 
 
 2D Dataset example
@@ -432,7 +449,7 @@ Both, the experiment coordinates and the experiment variables, are required to h
 
 - ``standard_name`` (``str``)
     - Usually a short name. Often corresponding to the name of a :class:`~qcodes.instrument.parameter.Parameter`.
-    - The name should be a valid python variable composed of lower-case alphanumeric characters and ``_`` (unserscore).
+    - The name should be a valid python variable composed of lower-case alphanumeric characters and ``_`` (underscore).
 - ``long_name`` (``str``)
     - A human readable name. Usually used as the label of a plot axis.
 - ``units`` (``str``)
@@ -442,9 +459,9 @@ Both, the experiment coordinates and the experiment variables, are required to h
 Optionally the following attributes may be present as well:
 
 - ``batched`` (``bool``)
-    - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-bached-and-batch_size>` section.
+    - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
 - ``batch_size`` (``bool``)
-    - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-bached-and-batch_size>` section.
+    - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
 
 
 .. jupyter-execute::
@@ -463,7 +480,7 @@ Calibration points are stored as xarray data variables. We shall refer to them a
 - They are xarray data variables named as ``y{j}_calib``.
 - They must lie along the ``acq_set_{i}_calib``, i.e. ``y{j}_calib(repetition, acq_set_{i}_calib, <other nested dimension(s)>)``.
     - Note that we would have ``y{j}(repetition, acq_set_{i}, <other nested dimension(s)>)``.
-- ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitary>`` are present in the dataset.
+- ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitrary>`` are present in the dataset.
 
 .. note::
 
@@ -491,6 +508,7 @@ T1 dataset examples
 
     .. jupyter-execute::
 
+
         def generate_mock_iq_data(
             n_shots, sigma=0.3, center0=(1, 1), center1=(1, -1), prob=0.5
         ):
@@ -509,12 +527,11 @@ T1 dataset examples
         def generate_exp_decay_probablity(time: np.ndarray, tau: float):
             return np.exp(-time / tau)
 
-        def generate_trace_time(
-            sampling_rate: float = 1e9,
-            trace_duratation: float = 1e-6
-        ):
+
+        def generate_trace_time(sampling_rate: float = 1e9, trace_duratation: float = 1e-6):
             trace_length = sampling_rate * trace_duratation
             return np.arange(0, trace_length, 1) / sampling_rate
+
 
         def generate_trace_for_iq_point(
             iq_amp: complex,
@@ -554,7 +571,7 @@ T1 dataset examples
         center_excited = (0.7, -0, 4)
 
         shots = generate_mock_iq_data(
-            n_shots=1024, sigma=0.15, center0=center_ground, center1=center_excited, prob=0.4
+            n_shots=128, sigma=0.15, center0=center_ground, center1=center_excited, prob=0.4
         )
 
 
@@ -572,8 +589,8 @@ T1 dataset examples
         trace = generate_trace_for_iq_point(shots[0])
 
         fig, ax = plt.subplots(1, 1, figsize=(30, 5))
-        ax.plot(time, trace.imag, ".-");
-        ax.plot(time, trace.real, ".-");
+        ax.plot(time, trace.imag, ".-")
+        _ = ax.plot(time, trace.real, ".-")
 
 
 T1 experiment averaged
@@ -588,7 +605,7 @@ T1 experiment averaged
     center_excited = (0.7, -0, 4)
 
     # mock of data acquisition configuration
-    num_shots = 1024
+    num_shots = 128
     x0s = np.linspace(0, 150e-6, 30)
     time_par = ManualParameter(name="time", label="Time", unit="s")
     q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
@@ -596,7 +613,7 @@ T1 experiment averaged
     probabilities = generate_exp_decay_probablity(time=x0s, tau=tau)
     plt.ylabel("|1> probability")
     plt.suptitle("Typical T1 experiment processed data")
-    plt.plot(x0s, probabilities, ".-");
+    _ = plt.plot(x0s, probabilities, ".-")
 
 
 .. jupyter-execute::
@@ -644,6 +661,7 @@ T1 experiment averaged
 
     .. jupyter-execute::
 
+
         def plot_decay_no_repetition(gridded_dataset, ax=None):
             if ax is None:
                 fig, ax = plt.subplots(1, 1)
@@ -676,7 +694,7 @@ T1 experiment averaged
 .. jupyter-execute::
 
     plot_decay_no_repetition(dataset_gridded)
-    plot_iq_no_repetition(dataset_gridded);
+    _ = plot_iq_no_repetition(dataset_gridded)
 
 
 T1 experiment averaged with calibration points
@@ -762,7 +780,7 @@ T1 experiment averaged with calibration points
     ax_calib.yaxis.set_label_position("right")
     ax_calib.yaxis.tick_right()
 
-    plot_iq_no_repetition(dataset_gridded);
+    _ = plot_iq_no_repetition(dataset_gridded)
 
 
 We can use the calibration points to normalize the data and obtain the typical T1 decay.
@@ -773,6 +791,7 @@ We can use the calibration points to normalize the data and obtain the typical T
 
 
     .. jupyter-execute::
+
 
         def rotate_data(complex_data: np.ndarray, angle: float) -> np.ndarray:
             """
@@ -815,21 +834,22 @@ We can use the calibration points to normalize the data and obtain the typical T
             return np.rad2deg(np.angle(z1 - z2))
 
 
-
-
 The normalization to the calibration point could look like this:
 
 
 .. jupyter-execute::
 
     angle = find_rotation_angle(*dataset_gridded.y0_calib.values)
-    y0_rotated = rotate_data(dataset_gridded.y0, - angle)
-    y0_calib_rotated = rotate_data(dataset_gridded.y0_calib, - angle)
-    calib_0, calib_1 = y0_calib_rotated.sel(x0_calib="|0>").values, y0_calib_rotated.sel(x0_calib="|1>").values
+    y0_rotated = rotate_data(dataset_gridded.y0, -angle)
+    y0_calib_rotated = rotate_data(dataset_gridded.y0_calib, -angle)
+    calib_0, calib_1 = (
+        y0_calib_rotated.sel(x0_calib="|0>").values,
+        y0_calib_rotated.sel(x0_calib="|1>").values,
+    )
     y0_norm = (y0_rotated - calib_0) / (calib_1 - calib_0)
     y0_norm.attrs["long_name"] = "|1> Population"
     y0_norm.attrs["units"] = ""
-    plot_decay_no_repetition(y0_norm.to_dataset());
+    _ = plot_decay_no_repetition(y0_norm.to_dataset())
 
 
 T1 experiment storing all shots
@@ -867,9 +887,17 @@ T1 experiment storing all shots
     dataset = dataset_2d_example = xr.Dataset(
         data_vars={
             "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
-            "y0_calib": ("acq_set_0_calib", y0s_calib.mean(axis=0), par_to_attrs(q0_iq_par)),
+            "y0_calib": (
+                "acq_set_0_calib",
+                y0s_calib.mean(axis=0),
+                par_to_attrs(q0_iq_par),
+            ),
             "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
-            "y0_shots_calib": (("repetition", "acq_set_0_calib"), y0s_calib, par_to_attrs(q0_iq_par)),
+            "y0_shots_calib": (
+                ("repetition", "acq_set_0_calib"),
+                y0s_calib,
+                par_to_attrs(q0_iq_par),
+            ),
         },
         coords={
             "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
@@ -924,7 +952,9 @@ Note that we are plotting the calibration points as well.
         plt.ylabel("Q")
         calib_0 = dataset_gridded.y0_calib.sel(x0_calib="|0>")
         calib_1 = dataset_gridded.y0_calib.sel(x0_calib="|1>")
-        plot_centroids(plt.gca(), (calib_0.real, calib_0.imag), (calib_1.real, calib_1.imag))
+        plot_centroids(
+            plt.gca(), (calib_0.real, calib_0.imag), (calib_1.real, calib_1.imag)
+        )
         plt.suptitle(f"Shots fot t = {t_example:.5f} s")
         plt.show()
 
@@ -938,6 +968,7 @@ We can colapse (average along) the `repetion` dimension:
 
     .. jupyter-execute::
 
+
         def plot_iq_decay_repetition(gridded_dataset):
             gridded_dataset.y0_shots.real.mean(dim="repetition").plot(
                 marker=".", label="I data"
@@ -945,8 +976,12 @@ We can colapse (average along) the `repetion` dimension:
             gridded_dataset.y0_shots.imag.mean(dim="repetition").plot(
                 marker=".", label="Q data"
             )
-            plt.ylabel(f"{gridded_dataset.y0_shots.long_name} [{gridded_dataset.y0_shots.units}]")
-            plt.suptitle(f"{gridded_dataset.y0_shots.name} shape = {gridded_dataset.y0_shots.shape}")
+            plt.ylabel(
+                f"{gridded_dataset.y0_shots.long_name} [{gridded_dataset.y0_shots.units}]"
+            )
+            plt.suptitle(
+                f"{gridded_dataset.y0_shots.name} shape = {gridded_dataset.y0_shots.shape}"
+            )
             plt.legend()
 
             fig, ax = plt.subplots(1, 1)
@@ -1007,17 +1042,37 @@ T1 experiment storing digitized signals for all shots
         )
     ).T
 
-    _y0s_traces_calib = np.array(tuple(map(generate_trace_for_iq_point, y0s_calib.flatten())))
-    y0s_traces_calib = _y0s_traces_calib.reshape(*y0s_calib.shape, _y0s_traces_calib.shape[-1])
+    _y0s_traces_calib = np.array(
+        tuple(map(generate_trace_for_iq_point, y0s_calib.flatten()))
+    )
+    y0s_traces_calib = _y0s_traces_calib.reshape(
+        *y0s_calib.shape, _y0s_traces_calib.shape[-1]
+    )
 
     dataset = dataset_2d_example = xr.Dataset(
         data_vars={
             "y0": ("acq_set_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
-            "y0_calib": ("acq_set_0_calib", y0s_calib.mean(axis=0), par_to_attrs(q0_iq_par)),
+            "y0_calib": (
+                "acq_set_0_calib",
+                y0s_calib.mean(axis=0),
+                par_to_attrs(q0_iq_par),
+            ),
             "y0_shots": (("repetition", "acq_set_0"), y0s, par_to_attrs(q0_iq_par)),
-            "y0_shots_calib": (("repetition", "acq_set_0_calib"), y0s_calib, par_to_attrs(q0_iq_par)),
-            "y0_traces": (("repetition", "acq_set_0", "time"), y0s_traces, par_to_attrs(q0_iq_par)),
-            "y0_traces_calib": (("repetition", "acq_set_0_calib", "time"), y0s_traces_calib, par_to_attrs(q0_iq_par)),
+            "y0_shots_calib": (
+                ("repetition", "acq_set_0_calib"),
+                y0s_calib,
+                par_to_attrs(q0_iq_par),
+            ),
+            "y0_traces": (
+                ("repetition", "acq_set_0", "time"),
+                y0s_traces,
+                par_to_attrs(q0_iq_par),
+            ),
+            "y0_traces_calib": (
+                ("repetition", "acq_set_0_calib", "time"),
+                y0s_traces_calib,
+                par_to_attrs(q0_iq_par),
+            ),
         },
         coords={
             "x0": ("acq_set_0", x0s, par_to_attrs(time_par)),
@@ -1026,7 +1081,11 @@ T1 experiment storing digitized signals for all shots
                 ["|0>", "|1>"],
                 {"standard_name": "q0_state", "long_name": "Q0 State", "unit": ""},
             ),
-            "time": ("time", generate_trace_time(), {"standard_name": "time_samples", "long_name": "Time", "unit": "V"})
+            "time": (
+                "time",
+                generate_trace_time(),
+                {"standard_name": "time_samples", "long_name": "Time", "unit": "V"},
+            ),
         },
     )
 
@@ -1047,17 +1106,17 @@ T1 experiment storing digitized signals for all shots
     dataset_gridded
 
 
-All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 777 of the last point of the T1 experiment:
+All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 123 of the last point of the T1 experiment:
 
 
 .. jupyter-execute::
 
-    dataset_gridded.y0_traces.shape # dimensions: (repetition, x0, time)
+    dataset_gridded.y0_traces.shape  # dimensions: (repetition, x0, time)
 
 
 .. jupyter-execute::
 
-    trace_example = dataset_gridded.y0_traces.sel(repetition=777, x0=dataset_gridded.x0[-1])
+    trace_example = dataset_gridded.y0_traces.sel(repetition=123, x0=dataset_gridded.x0[-1])
     trace_example.shape, trace_example.dtype
 
 
@@ -1067,5 +1126,5 @@ For clarity, we plot only part of this digitized signal:
 .. jupyter-execute::
 
     trace_example_plt = trace_example[:200]
-    trace_example_plt.real.plot(figsize=(15, 5), marker=".");
-    trace_example_plt.imag.plot(marker=".");
+    trace_example_plt.real.plot(figsize=(15, 5), marker=".")
+    _ = trace_example_plt.imag.plot(marker=".")
