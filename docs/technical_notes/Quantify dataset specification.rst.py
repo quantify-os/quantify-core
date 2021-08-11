@@ -11,22 +11,11 @@
 #     We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
 
 # %% [raw]
-# .. admonition:: Development notes
-#     :class: warning
-#
-#     We do not know yet if ``acq_set_{j}`` with ``j>0`` will be part of this specification (we lack some clear examples).
-
-# %% [raw]
-# .. note::
-#
-#     Along this page we show exemplary datasets to highlight the details of this specification.
-#     However, keep in mind that we always show a valid dataset with all the required properties (except when exemplifying a bad dataset).
-#
 # .. admonition:: Imports and auxiliary utilities
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+# notebook-to-rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
 import numpy as np
 import xarray as xr
@@ -35,6 +24,8 @@ from quantify_core.data import handling as dh
 from quantify_core.measurement import grid_setpoints
 from qcodes import ManualParameter
 from rich import pretty
+from pathlib import Path
+from quantify_core.data.handling import get_datadir, set_datadir
 
 pretty.install()
 
@@ -63,9 +54,6 @@ def par_to_attrs(par):
     return {"units": par.unit, "long_name": par.label, "standard_name": par.name}
 
 
-from pathlib import Path
-from quantify_core.data.handling import get_datadir, set_datadir
-
 set_datadir(Path.home() / "quantify-data")  # change me!
 
 # %% [raw]
@@ -77,9 +65,13 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 # ~~~~~~~~~~~~~~~
 
 # %% [raw]
-# This is a brief overview of some concepts and functionalities of xarray that are leveraged to define the Quantify dataset.
+# This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminlogy. The concepts and terminology specific to the Quantify dataset are intruduced only in the next subsections.
 #
-# The dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
+# This is not intended as an extensive introduction to xarray. Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
+#
+# There are different ways to create a new xarray dataset. Below we exemplify a few of them to showcase specific functionalities.
+#
+# An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
 
 # %%
 n = 5
@@ -102,8 +94,14 @@ dataset = xr.Dataset(
 )
 dataset
 
+# %%
+dataset.dims
+
+# %%
+dataset.variables
+
 # %% [raw]
-# A variable can be set as coordinate for its dimension(s):
+# A variable can be "promoted" to a **Coordinate** for its dimension(s):
 
 # %%
 position = np.linspace(-5, 5, n)
@@ -118,11 +116,22 @@ dataset = xr.Dataset(
     },
     attrs={"key": "my metadata"},
 )
-dataset = dataset.set_coords(["position"])
+dataset = dataset.set_coords(
+    ["position"]
+)  # promote the position variable to a coordinate
 dataset
 
+# %%
+dataset.coords["position"]
+
 # %% [raw]
-# Xarray coordinates can be set to **index** other variables. (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood.)
+# Note that xarray coordinates are available as variables as well:
+
+# %%
+dataset.variables["position"]
+
+# %% [raw]
+# That on its own might not be very useful yet, however, xarray coordinates can be set to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood), as shown below (note the bold font!):
 
 # %%
 dataset = dataset.set_index({"position_x": "position"})
@@ -131,24 +140,44 @@ dataset.position_x.attrs["long_name"] = "Position x"
 dataset
 
 # %% [raw]
-# An example of how this can be useful:
+# At this point the reader might get confused. In an attempt to clarify, we now have a dimension, a coordinate and a variable with the same name `"position_x"`.
 
 # %%
-dataset.velocity.sel(position_x=2.5)
+dataset.dims
+
+# %%
+dataset.coords
+
+# %%
+dataset.variables["position_x"]
 
 # %% [raw]
-# Automatic plotting:
+# Here the intention is to make the reader aware of this. Please consult the :doc:`xarray documentation <xarray:index>` for more details.
+#
+# An example of how this can be useful is to retrieve data from an xarray variable using one of its coordinates to select the desired entries:
 
 # %%
-_ = dataset.velocity.plot()
+retrieved_value = dataset.velocity.sel(position_x=2.5)
+retrieved_value
+
+# %% [raw]
+# Note that without this feature we would have to "manually" keep track of numpy integer indexes to retrieve the desired data:
+
+# %%
+dataset.velocity.values[3], retrieved_value.values == dataset.velocity.values[3]
+
+# %% [raw]
+# One of the great features of xarray is automatic plotting (explore the xarray documentation for more advanced capabilities!):
+
+# %%
+_ = dataset.velocity.plot(marker="o")
 
 # %% [raw]
 # .. _sec-experiment-coordinates-and-variables:
 #
 # Key dataset conventions
 # ~~~~~~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
+#
 # We define the following naming conventions in the Quantify dataset:
 #
 # - **Experiment coordinate(s)**
@@ -157,12 +186,15 @@ _ = dataset.velocity.plot()
 # - **Experiment variable(s)**
 #     - xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
 #     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-
-# %% [raw]
+#
+# .. note::
+#
+#     From this subsection onwards we show exemplary datasets to highlight the details of the Qauntify dataset specification.
+#     However, keep in mind that we always show a valid Quantify dataset with all the required properties (except when exemplifying a bad dataset).
+#
 # 2D Dataset example
 # ~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
+#
 # In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y0``. Both experiment coordinates lie along one dimension, ``acq_set_0``. Both experiment variables lie along two dimensions ``acq_set_0`` and ``repetitions``.
 
 # %% [raw]
@@ -170,7 +202,7 @@ _ = dataset.velocity.plot()
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
@@ -267,7 +299,7 @@ plt.show()
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 dataset_2d_example
 
@@ -394,7 +426,7 @@ dataset_2d_example
 # Dataset with two ``y{i}``:
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 dataset_2d_example
 
@@ -489,7 +521,7 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 
 def generate_mock_iq_data(
@@ -549,17 +581,17 @@ def plot_centroids(ax, ground, excited):
 
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
 
 shots = generate_mock_iq_data(
-    n_shots=128, sigma=0.15, center0=center_ground, center1=center_excited, prob=0.4
+    n_shots=256, sigma=0.1, center0=center_ground, center1=center_excited, prob=0.4
 )
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
@@ -567,7 +599,7 @@ plt.ylabel("Q")
 plot_centroids(plt.gca(), center_ground, center_excited)
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 time = generate_trace_time()
 trace = generate_trace_for_iq_point(shots[0])
@@ -585,9 +617,10 @@ _ = ax.plot(time, trace.real, ".-")
 tau = 30e-6
 center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
+sigma = 0.1
 
 # mock of data acquisition configuration
-num_shots = 128
+num_shots = 256
 x0s = np.linspace(0, 150e-6, 30)
 time_par = ManualParameter(name="time", label="Time", unit="s")
 q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
@@ -603,7 +636,7 @@ y0s = np.fromiter(
         np.average(
             generate_mock_iq_data(
                 n_shots=num_shots,
-                sigma=0.15,
+                sigma=sigma,
                 center0=center_ground,
                 center1=center_excited,
                 prob=prob,
@@ -638,7 +671,7 @@ dataset_gridded
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 
 def plot_decay_no_repetition(gridded_dataset, ax=None):
@@ -684,7 +717,7 @@ y0s = np.fromiter(
         np.average(
             generate_mock_iq_data(
                 n_shots=num_shots,
-                sigma=0.15,
+                sigma=sigma,
                 center0=center_ground,
                 center1=center_excited,
                 prob=prob,
@@ -700,7 +733,7 @@ y0s_calib = np.fromiter(
         np.average(
             generate_mock_iq_data(
                 n_shots=num_shots,
-                sigma=0.15,
+                sigma=sigma,
                 center0=center_ground,
                 center1=center_excited,
                 prob=prob,
@@ -763,7 +796,7 @@ _ = plot_iq_no_repetition(dataset_gridded)
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 
 def rotate_data(complex_data: np.ndarray, angle: float) -> np.ndarray:
@@ -832,7 +865,7 @@ y0s = np.array(
     tuple(
         generate_mock_iq_data(
             n_shots=num_shots,
-            sigma=0.15,
+            sigma=sigma,
             center0=center_ground,
             center1=center_excited,
             prob=prob,
@@ -845,7 +878,7 @@ y0s_calib = np.array(
     tuple(
         generate_mock_iq_data(
             n_shots=num_shots,
-            sigma=0.15,
+            sigma=sigma,
             center0=center_ground,
             center1=center_excited,
             prob=prob,
@@ -931,7 +964,7 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-conf: {"indent": "    "}
+# notebook-to-rst-json-conf: {"indent": "    "}
 
 
 def plot_iq_decay_repetition(gridded_dataset):
@@ -979,7 +1012,7 @@ y0s = np.array(
     tuple(
         generate_mock_iq_data(
             n_shots=num_shots,
-            sigma=0.15,
+            sigma=sigma,
             center0=center_ground,
             center1=center_excited,
             prob=prob,
@@ -995,7 +1028,7 @@ y0s_calib = np.array(
     tuple(
         generate_mock_iq_data(
             n_shots=num_shots,
-            sigma=0.15,
+            sigma=sigma,
             center0=center_ground,
             center1=center_excited,
             prob=prob,
@@ -1082,5 +1115,9 @@ trace_example.shape, trace_example.dtype
 trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".")
 _ = trace_example_plt.imag.plot(marker=".")
+
+# %%
+
+# %%
 
 # %%
