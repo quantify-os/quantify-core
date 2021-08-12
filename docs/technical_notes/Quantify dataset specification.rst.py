@@ -693,7 +693,7 @@ y0s = np.fromiter(
     dtype=complex,
 )
 
-dataset = dataset_2d_example = xr.Dataset(
+dataset = xr.Dataset(
     data_vars={
         "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
     },
@@ -790,7 +790,7 @@ y0s_calib = np.fromiter(
     dtype=complex,
 )
 
-dataset = dataset_2d_example = xr.Dataset(
+dataset = xr.Dataset(
     data_vars={
         "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
         "y0_calib": ("dim_0_calib", y0s_calib, par_to_attrs(q0_iq_par)),
@@ -931,7 +931,7 @@ y0s_calib = np.array(
     )
 ).T
 
-dataset = dataset_2d_example = xr.Dataset(
+dataset = xr.Dataset(
     data_vars={
         "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
         "y0_calib": (
@@ -1087,7 +1087,7 @@ y0s_traces_calib = _y0s_traces_calib.reshape(
     *y0s_calib.shape, _y0s_traces_calib.shape[-1]
 )
 
-dataset = dataset_2d_example = xr.Dataset(
+dataset = xr.Dataset(
     data_vars={
         "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
         "y0_calib": (
@@ -1173,6 +1173,6 @@ from IPython.display import Code
 Code(inspect.getsource(dh.write_dataset), language="python")
 
 # %% [raw]
-# Note that we use the ``h5netcdf`` engine however we write an invalid netcdf format in order to accomodate for arrays of ``complex`` type.
+# Note that we use the h5netcdf engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex type.
 
 # %%
