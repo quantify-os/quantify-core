@@ -731,7 +731,7 @@ T1 experiment averaged
         dtype=complex,
     )
 
-    dataset = dataset_2d_example = xr.Dataset(
+    dataset = xr.Dataset(
         data_vars={
             "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
         },
@@ -832,7 +832,7 @@ T1 experiment averaged with calibration points
         dtype=complex,
     )
 
-    dataset = dataset_2d_example = xr.Dataset(
+    dataset = xr.Dataset(
         data_vars={
             "y0": ("dim_0", y0s, par_to_attrs(q0_iq_par)),
             "y0_calib": ("dim_0_calib", y0s_calib, par_to_attrs(q0_iq_par)),
@@ -979,7 +979,7 @@ T1 experiment storing all shots
         )
     ).T
 
-    dataset = dataset_2d_example = xr.Dataset(
+    dataset = xr.Dataset(
         data_vars={
             "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
             "y0_calib": (
@@ -1143,7 +1143,7 @@ T1 experiment storing digitized signals for all shots
         *y0s_calib.shape, _y0s_traces_calib.shape[-1]
     )
 
-    dataset = dataset_2d_example = xr.Dataset(
+    dataset = xr.Dataset(
         data_vars={
             "y0": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
             "y0_calib": (
@@ -1236,7 +1236,8 @@ Internally we write to disk using:
 
     import inspect
     from IPython.display import Code
+
     Code(inspect.getsource(dh.write_dataset), language="python")
 
 
-Note that we use the ``h5netcdf`` engine however we write an invalid netcdf format in order to accomodate for arrays of ``complex`` type.
+Note that we use the h5netcdf engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex type.
