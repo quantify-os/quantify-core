@@ -624,7 +624,7 @@ T1 dataset examples
             return np.exp(-time / tau)
 
 
-        def generate_trace_time(sampling_rate: float = 1e9, trace_duratation: float = 1e-6):
+        def generate_trace_time(sampling_rate: float = 1e9, trace_duratation: float = 0.3e-6):
             trace_length = sampling_rate * trace_duratation
             return np.arange(0, trace_length, 1) / sampling_rate
 
