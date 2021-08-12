@@ -31,3 +31,7 @@ rich[jupyter]
 
 scikit-learn
 scikit-optimize
+
+# tmp
+
+quantify-scheduler
