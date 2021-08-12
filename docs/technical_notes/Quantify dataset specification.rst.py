@@ -171,8 +171,8 @@ _ = dataset.velocity.plot(marker="o")
 # %% [raw]
 # .. _sec-experiment-coordinates-and-variables:
 #
-# Quantify dataset conventions
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Quantify dataset: conventions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # The Quantify dataset is an xarray dataset that follows certain conventions. We define the following terminology:
 #
@@ -188,8 +188,8 @@ _ = dataset.velocity.plot(marker="o")
 #     From this subsection onward we show exemplary datasets to highlight the details of the Quantify dataset specification.
 #     However, keep in mind that we always show a valid Quantify dataset with all the required properties (except when exemplifying a bad dataset).
 #
-# 2D Quantify dataset example
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Quantify dataset: 2D example
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y1``. Both experiment coordinates lie along one dimension, ``dim_0``. Both experiment variables lie along two dimensions ``dim_0`` and ``repetitions``.
 
@@ -204,8 +204,8 @@ x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
 time_par = ManualParameter(name="time", label="Time", unit="s")
 amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. un.")
-pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. un.")
+pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. unit")
+pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. unit")
 
 x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
 x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
@@ -257,8 +257,8 @@ dataset_gridded.y0.mean(dim="repetition").plot(x="x0")
 pass
 
 # %% [raw]
-# Detailed specification
-# ----------------------
+# Quantify dataset: detailed specification
+# ----------------------------------------
 
 # %% [raw]
 # Xarray dimensions
@@ -272,9 +272,11 @@ pass
 #     - The only outermost dimension that the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` can have.
 #     - Intuition for this xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
 #     - Default behavior of plotting tools will be to average the dataset along this dimension.
-#     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
+#     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension when more than one repetition of the experiement was performed.
 #     - **[Optional]** The ``repetition`` dimension can be indexed by an optional xarray coordinate variable.
+#
 #         - **[Required]** The variable must be named ``repetition`` as well.
+#
 #     - **[Required]** No other outer xarray dimensions are allowed.
 #
 
@@ -407,8 +409,8 @@ dataset_2d_example
 #
 
 # %% [raw]
-# Xarray coordinates (variables)
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Xarray coordinates
+# ~~~~~~~~~~~~~~~~~~
 
 # %% [raw]
 # Only the following `xarray` coordinates are allowed in the dataset:
@@ -436,8 +438,8 @@ dataset_2d_example
 #     To be added...
 
 # %% [raw]
-# Xarray data variables
-# ~~~~~~~~~~~~~~~~~~~~~
+# Xarray variables
+# ~~~~~~~~~~~~~~~~
 
 # %% [raw]
 # The only xarray data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
@@ -511,7 +513,7 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 # - ``long_name`` (``str``)
 #     - A human readable name. Usually used as the label of a plot axis.
 # - ``units`` (``str``)
-#     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. un."``.
+#     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. unit"``.
 #     - NB This attribute was not named ``unit`` to preserve compatibility with xarray plotting methods.
 #
 # Optionally the following attributes may be present as well:
@@ -1152,9 +1154,5 @@ trace_example.shape, trace_example.dtype
 trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".")
 _ = trace_example_plt.imag.plot(marker=".")
-
-# %%
-
-# %%
 
 # %%
