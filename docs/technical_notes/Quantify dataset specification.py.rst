@@ -391,7 +391,7 @@ The Quantify dataset has has the following required and optional dimensions:
     - Other, potentially arbitrarily nested, xarray dimensions under each ``dim_{i}`` is allowed. I.e., **each entry** in a, e.g., ``y3`` xarray variable can be a 1D, or nD array where each "D" has a corresponding xarray dimension.
     - Such xarray dimensions can be named arbitrarily.
     - Each of such xarray dimension can be *indexed* by an xarray coordinate variable.
-    - Note: Despite allowing nested demensions, the data type, of each inner most element of the underlying `numpy` arrays of the dataset, cannot have be `dtype=object`. For most uses-cases, this means that all the innermost entries of a coordinate/variable will be of type ``int``, ``float``, ``complex`` or ``str`` (with a fixed maximum lenght). Other `dtype`s supported by numpy (except `object`) moght work but have not been test extensively and we do not recommend using them to avoid issues with the dataset writing/loading.
+    - Note: Despite allowing nested demensions, the data type, of each inner most element of the underlying ``numpy`` arrays of the dataset, cannot have be ``dtype=object``. For most uses-cases, this means that all the innermost entries of a coordinate/variable will be of type ``int``, ``float``, ``complex`` or ``str`` (with a fixed maximum lenght). Other ``dtype``\s supported by numpy (except ``object``) moght work but have not been test extensively and we do not recommend using them to avoid issues with the dataset writing/loading.
 
 
 
@@ -400,9 +400,7 @@ The Quantify dataset has has the following required and optional dimensions:
 
     To be added:
 
-    - time series example
-    - time series example with complex data
-    - (fictitious examples) time series with a few distinct DACs, where the DACs names index an extra dimension.
+    - (fictitious example) time series with a few distinct DACs, where the DACs names index an extra dimension.
 
 
 
@@ -1194,3 +1192,23 @@ For clarity, we plot only part of this digitized signal:
     trace_example_plt = trace_example[:200]
     trace_example_plt.real.plot(figsize=(15, 5), marker=".")
     _ = trace_example_plt.imag.plot(marker=".")
+
+
+Quantify dataset storage format
+===============================
+
+The Quantify dataset is written to disk and loaded back making use of xarray-supported facilities.
+Internally we write to disk using:
+
+
+.. jupyter-execute::
+    :hide-code:
+
+    # notebook-to-rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+
+    import inspect
+    from IPython.display import Code
+    Code(inspect.getsource(dh.write_dataset), language="python")
+
+
+Note that we use the ``h5netcdf`` engine however we write an invalid netcdf format in order to accomodate for arrays of ``complex`` type.
