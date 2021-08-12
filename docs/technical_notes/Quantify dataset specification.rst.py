@@ -1258,3 +1258,167 @@ _ = trace_example_plt.imag.plot(marker=".")
 # Note that we use the h5netcdf engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex type.
 
 # %%
+
+# %%
+
+# %%
+
+# %% [raw]
+# A "weird"/"unstructured" experiment and dataset example
+# =======================================================
+
+# %% [raw]
+# Schdule reference: `one of the latest papers from DiCarlo Lab <https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
+#
+# NB not exactly the same schedule, but what matter are the measurements.
+
+# %%
+from quantify_scheduler.visualization.circuit_diagram import circuit_diagram_matplotlib
+from quantify_scheduler import Schedule
+from quantify_scheduler.gate_library import Reset, Measure, CZ, Rxy, X90, X, Y, Y90, X90
+
+d1, d2, d3, d4 = [f"D{i}" for i in range(1, 5)]
+a1, a2, a3 = [f"A{i}" for i in range(1, 4)]
+
+all_qubits = d1, d2, d3, d4, a1, a2, a3
+
+sched = Schedule(f"S7 dance")
+
+sched.add(Reset(*all_qubits))
+
+num_cycles = 4
+
+for cycle in range(num_cycles):
+    sched.add(Y90(d1))
+    for q in [d2, d3, d4]:
+        sched.add(Y90(q), ref_pt="start", rel_time=0)
+    sched.add(Y90(a2), ref_pt="start", rel_time=0)
+
+    for q in [d2, d1, d4, d3]:
+        sched.add(CZ(qC=q, qT=a2))
+
+    sched.add(Y90(d1))
+    for q in [d2, d3, d4]:
+        sched.add(Y90(q), ref_pt="start", rel_time=0)
+    sched.add(Y90(a2), ref_pt="start", rel_time=0)
+
+    sched.add(Y90(a1), ref_pt="end", rel_time=0)
+    sched.add(Y90(a3), ref_pt="start", rel_time=0)
+
+    sched.add(CZ(qC=d1, qT=a1))
+    sched.add(CZ(qC=d2, qT=a3))
+    sched.add(CZ(qC=d3, qT=a1))
+    sched.add(CZ(qC=d4, qT=a3))
+
+    sched.add(Y90(a1), ref_pt="end", rel_time=0)
+    sched.add(Y90(a3), ref_pt="start", rel_time=0)
+
+    sched.add(Measure(a2, acq_index=cycle))
+    for q in (a1, a3):
+        sched.add(Measure(q, acq_index=cycle), ref_pt="start", rel_time=0)
+
+    for q in [d1, d2, d3, d4]:
+        sched.add(X(q), ref_pt="start", rel_time=0)
+
+# final measurements
+
+sched.add(Measure(*all_qubits[:4], acq_index=0), ref_pt="end", rel_time=0)
+
+f, ax = circuit_diagram_matplotlib(sched)
+# f.set_figheight(10)
+f.set_figwidth(30)
+
+# %% [raw]
+# How do we store all shots for this measurement? (we want it because, e.g., we know we have issue with leakage to the second excited state)
+
+# %%
+num_shots = 128
+center_ground = (-0.2, 0.65)
+center_excited = (0.7, -0, 4)
+sigma = 0.1
+
+cycles = range(num_cycles)
+
+radom_data = np.array(
+    tuple(
+        generate_mock_iq_data(
+            n_shots=num_shots,
+            sigma=sigma,
+            center0=center_ground,
+            center1=center_excited,
+            prob=prob,
+        )
+        for prob in [np.random.random() for _ in cycles]
+    )
+).T
+
+radom_data_final = np.array(
+    tuple(
+        generate_mock_iq_data(
+            n_shots=num_shots,
+            sigma=sigma,
+            center0=center_ground,
+            center1=center_excited,
+            prob=prob,
+        )
+        for prob in [np.random.random()]
+    )
+).T
+
+# NB same random data is used for all qubits only for the simplicity of the mock!
+
+data_vars = {}
+
+for q in (a1, a2, a3):
+    data_vars[f"{q}_shots"] = (
+        ("repetition_dim_0", "dim_0"),
+        radom_data,
+        dict(units="V", long_name=f"IQ amplitude {q}"),
+    )
+
+for q in (d1, d2, d3, d4):
+    data_vars[f"{q}_shots"] = (
+        ("repetition_dim_0", "dim_1"),
+        radom_data_final,
+        dict(units="V", long_name=f"IQ amplitude {q}"),
+    )
+
+dataset = xr.Dataset(
+    data_vars=data_vars,
+    coords={
+        "cycle": (
+            "dim_0",
+            cycles,
+            dict(units="", long_name="Surface code cycle number"),
+        ),
+        "final_msmt": ("dim_1", [0], dict(units="", long_name="Final measurement")),
+    },
+    attrs=dict(
+        experiment_coords=["cycle"],
+        experiment_data_vars=[a1],
+        calibration_data_vars_map=[],
+        calibration_coords_map=[],
+    ),
+)
+
+
+assert dataset == dataset_round_trip(dataset)  # confirm read/write
+
+dataset
+
+# %%
+dataset.A1_shots.shape
+
+# %%
+dataset.D1_shots.shape
+
+# %%
+dataset_gridded = dh.to_gridded_dataset(
+    dataset, dimension="dim_0", coords_names=["cycle"]
+)
+dataset_gridded = dh.to_gridded_dataset(
+    dataset_gridded, dimension="dim_1", coords_names=["final_msmt"]
+)
+dataset_gridded
+
+# %%
