@@ -45,6 +45,7 @@ Quantify dataset specification
         def par_to_attrs(par):
             return {"units": par.unit, "long_name": par.label, "standard_name": par.name}
 
+
         set_datadir(Path.home() / "quantify-data")  # change me!
 
 
@@ -74,8 +75,8 @@ An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at
         data_vars={
             "position": (  # variable name
                 name_dim_a,  # dimension(s)' name(s)
-                np.linspace(-5, 5, n), # variable values
-                {"units": "m", "long_name": "Position"}, # variable attributes
+                np.linspace(-5, 5, n),  # variable values
+                {"units": "m", "long_name": "Position"},  # variable attributes
             ),
             "velocity": (
                 name_dim_b,
@@ -117,7 +118,9 @@ A variable can be "promoted" to a **Coordinate** for its dimension(s):
         # coords={"position": (name_dim_a, position, {"units": "m", "long_name": "Position"})},
         attrs={"key": "my metadata"},
     )
-    dataset = dataset.set_coords(["position"]) # promote the position variable to a coordinate
+    dataset = dataset.set_coords(
+        ["position"]
+    )  # promote the position variable to a coordinate
     dataset
 
 
@@ -192,8 +195,8 @@ One of the great features of xarray is automatic plotting (explore the xarray do
 
 .. _sec-experiment-coordinates-and-variables:
 
-Quantify dataset conventions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quantify dataset: conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Quantify dataset is an xarray dataset that follows certain conventions. We define the following terminology:
 
@@ -209,8 +212,8 @@ The Quantify dataset is an xarray dataset that follows certain conventions. We d
     From this subsection onward we show exemplary datasets to highlight the details of the Quantify dataset specification.
     However, keep in mind that we always show a valid Quantify dataset with all the required properties (except when exemplifying a bad dataset).
 
-2D Quantify dataset example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quantify dataset: 2D example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y1``. Both experiment coordinates lie along one dimension, ``dim_0``. Both experiment variables lie along two dimensions ``dim_0`` and ``repetitions``.
 
@@ -225,20 +228,28 @@ In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and t
         x1s = np.linspace(0, 100e-9, 40)
         time_par = ManualParameter(name="time", label="Time", unit="s")
         amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-        pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. un.")
-        pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. un.")
+        pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. unit")
+        pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. unit")
 
         x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
         x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
         y0s = (1 - x0s_norm) * np.sin(
             2 * np.pi * x1s * 1 / 30e-9 * (x0s_norm + 0.5)
         )  # ~chevron
-        y1s = -y0s # mock inverted population for q1
+        y1s = -y0s  # mock inverted population for q1
 
         dataset = dataset_2d_example = xr.Dataset(
             data_vars={
-                "y0": (("repetition", "dim_0"), [y0s + np.random.random(y0s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q0_par)),
-                "y1": (("repetition", "dim_0"), [y1s + np.random.random(y1s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q1_par)),
+                "y0": (
+                    ("repetition", "dim_0"),
+                    [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
+                    par_to_attrs(pop_q0_par),
+                ),
+                "y1": (
+                    ("repetition", "dim_0"),
+                    [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
+                    par_to_attrs(pop_q1_par),
+                ),
             },
             coords={
                 "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
@@ -274,8 +285,8 @@ In xarray it is possible to average along a dimension which can be very convenie
         pass
 
 
-Detailed specification
-----------------------
+Quantify dataset: detailed specification
+----------------------------------------
 
 
 Xarray dimensions
@@ -289,9 +300,11 @@ The Quantify dataset has has the following required and optional dimensions:
     - The only outermost dimension that the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` can have.
     - Intuition for this xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
     - Default behavior of plotting tools will be to average the dataset along this dimension.
-    - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension (even when only one repetition of the experiment was executed).
+    - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension when more than one repetition of the experiement was performed.
     - **[Optional]** The ``repetition`` dimension can be indexed by an optional xarray coordinate variable.
+
         - **[Required]** The variable must be named ``repetition`` as well.
+
     - **[Required]** No other outer xarray dimensions are allowed.
 
 
@@ -306,14 +319,22 @@ The Quantify dataset has has the following required and optional dimensions:
 
         dataset = xr.Dataset(
             data_vars={
-                "y0": (("repetition", "dim_0"), [y0s + np.random.random(y0s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q0_par)),
-                "y1": (("repetition", "dim_0"), [y1s + np.random.random(y1s.shape)/k for k in (100, 10, 5)], par_to_attrs(pop_q1_par)),
+                "y0": (
+                    ("repetition", "dim_0"),
+                    [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
+                    par_to_attrs(pop_q0_par),
+                ),
+                "y1": (
+                    ("repetition", "dim_0"),
+                    [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
+                    par_to_attrs(pop_q1_par),
+                ),
             },
             coords={
                 "x0": ("dim_0", x0s, par_to_attrs(amp_par)),
                 "x1": ("dim_0", x1s, par_to_attrs(time_par)),
                 # here we choose to index the repetition dimension with an array of strings
-                "repetition": ("repetition", ["noisy","very noisy", "very very noisy"])
+                "repetition": ("repetition", ["noisy", "very noisy", "very very noisy"]),
             },
         )
 
@@ -416,8 +437,8 @@ The Quantify dataset has has the following required and optional dimensions:
 
 
 
-Xarray coordinates (variables)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Xarray coordinates
+~~~~~~~~~~~~~~~~~~
 
 
 Only the following `xarray` coordinates are allowed in the dataset:
@@ -445,8 +466,8 @@ Only the following `xarray` coordinates are allowed in the dataset:
     To be added...
 
 
-Xarray data variables
-~~~~~~~~~~~~~~~~~~~~~
+Xarray variables
+~~~~~~~~~~~~~~~~
 
 
 The only xarray data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
@@ -524,7 +545,7 @@ Both, the experiment coordinates and the experiment variables, are required to h
 - ``long_name`` (``str``)
     - A human readable name. Usually used as the label of a plot axis.
 - ``units`` (``str``)
-    - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. un."``.
+    - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. unit"``.
     - NB This attribute was not named ``unit`` to preserve compatibility with xarray plotting methods.
 
 Optionally the following attributes may be present as well:
@@ -830,9 +851,7 @@ T1 experiment averaged with calibration points
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="dim_0", coords_names=["x0"]
-    )
+    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["x0"])
     dataset_gridded = dh.to_gridded_dataset(
         dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
     )
@@ -989,9 +1008,7 @@ T1 experiment storing all shots
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="dim_0", coords_names=["x0"]
-    )
+    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["x0"])
     dataset_gridded = dh.to_gridded_dataset(
         dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
     )
@@ -1085,6 +1102,7 @@ T1 experiment storing digitized signals for all shots
 
 .. jupyter-execute::
 
+    # NB this is not necessarily the most efficient way to generate this mock data
     y0s = np.array(
         tuple(
             generate_mock_iq_data(
@@ -1169,9 +1187,7 @@ T1 experiment storing digitized signals for all shots
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="dim_0", coords_names=["x0"]
-    )
+    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["x0"])
     dataset_gridded = dh.to_gridded_dataset(
         dataset_gridded, dimension="dim_0_calib", coords_names=["x0_calib"]
     )
