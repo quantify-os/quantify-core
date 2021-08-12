@@ -390,13 +390,8 @@ The Quantify dataset has has the following required and optional dimensions:
     - Intuition: intended primarily for time series, also known as "time trace" or simply trace.
     - Other, potentially arbitrarily nested, xarray dimensions under each ``dim_{i}`` is allowed. I.e., **each entry** in a, e.g., ``y3`` xarray variable can be a 1D, or nD array where each "D" has a corresponding xarray dimension.
     - Such xarray dimensions can be named arbitrarily.
-    - Each of such xarray dimension can be *indexed* by an xarray coordinate variable. E.g. for a time trace we would have in the dataset:
-
-        - ``assert "time" in dataset.coords``
-        - ``assert "time" in dataset.dims``
-        - ``assert len(dataset.time) == len(dataset.y3.isel(repetition=0, dim_0=0))`` where ``y3`` is a measured variable storing traces.
-
-    - Note: When nesting data like this, it is required to have "hyper-cubic"-shaped data, meaning that e.g. ``dataset.y3.isel(repetition=0, dim_0=0) == [[2], [ 5, 6]]`` is not possible, but ``dataset.y3.isel(repetition=0, dim_0=0) == [[2, 3], [5, 6]]`` is. This is a direct consequence of numpy ``ndarray`` (with entries of type ``int``/``float``/``complex``).
+    - Each of such xarray dimension can be *indexed* by an xarray coordinate variable.
+    - Note: Despite allowing nested demensions, the data type, of each inner most element of the underlying `numpy` arrays of the dataset, cannot have be `dtype=object`. For most uses-cases, this means that all the innermost entries of a coordinate/variable will be of type ``int``, ``float``, ``complex`` or ``str`` (with a fixed maximum lenght). Other `dtype`s supported by numpy (except `object`) moght work but have not been test extensively and we do not recommend using them to avoid issues with the dataset writing/loading.
 
 
 
@@ -417,23 +412,6 @@ The Quantify dataset has has the following required and optional dimensions:
     To be added:
 
     - ``time`` coordinate is not indexing the ``time`` dimension.
-
-
-
-.. admonition:: To be refined (dim_{i})
-    :class: dropdown, warning
-
-    For reference from earlier discussion, requires some good example to justify this:
-
-    - **[Optional, Advanced]** ``dim_{i}``, where ``i`` > 0 is an integer.
-
-    - Reserves the possibility to store data for experiments that we have not yet encountered ourselves. I a gut feeling that we need this, but might not have a good realistic example, some help here is welcome.
-
-        - (Example ?) Imagine measuring some qubits until all of them are in a desired state, returning the data of these measurements and then proceeding to doing the "real" experiment you are interested in. I think having these extra *independent* xarray dimensions
-    - **[Required]** all ``dim_{i}`` dimensions (including ``dim_0``) are mutually excluding. This means variables in the dataset cannot depend on more than one of these dimensions.
-
-        - **Bad** variable: ``y0(repetition, dim_0, dim_1)``, this should never happen in the dataset.
-        - **Good** variable: ``y0(repetition, dim_0)`` or ``y1(repetition, dim_1)``.
 
 
 
