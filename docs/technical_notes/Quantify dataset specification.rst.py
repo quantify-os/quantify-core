@@ -204,8 +204,8 @@ x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
 time_par = ManualParameter(name="time", label="Time", unit="s")
 amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. un.")
-pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. un.")
+pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. unit")
+pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. unit")
 
 x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
 x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
@@ -390,18 +390,24 @@ dataset_2d_example
 # Only the following `xarray` coordinates are allowed in the dataset:
 #
 # - **[Required]** The ``x0`` :ref:`experiment coordinate <sec-experiment-coordinates-and-variables>`.
+#
 #     - Usually equivalent to a settable, usually a parameter that an experimentalist "sweeps" in order to observe the effect on some other property of the system being studied.
 #     - For some experiments it might not be suitable to think of a parameter that is being varied. In such cases ``x0`` can be simply an array of integers, e.g. ``np.linspace(0, number_of_points)``.
+#
 # - **[Optional]** Other ``f"x{i}"`` :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`, with ``i`` a positive integer.
 #
 #     - These are the coordinates that index the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. This indexing can be made explicit in a (separate) :class:`xarray.Dataset` instance returned by :func:`quantify_core.data.handling.to_gridded_dataset()` (when the data corresponds to a multi-dimensional grid).
+#
 #     - **[Required]** Each ``x{i}`` must lie along one (and only one) ``dim_{j}`` xarray dimension.
+#
 # - **[Optional]** Other xarray coordinates (that are not :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`) used to index the nested dimensions.
 #
 #     - Allowed dimension names:
+#
 #         - ``repetition``, or
 #         - ``dim_{i}``, or
 #         - ``<arbitrary_name>`` but with the same name as one of the **nested** dimensions (see :ref:`Xarray dimensions` section above).
+#
 #     - **[Required]** These other xarray coordinates must "lie" along a single dimension (and have the same name).
 #
 
@@ -421,13 +427,17 @@ dataset_2d_example
 # All the xarray data variables in the dataset (that are not xarray coordinates) comply with:
 #
 # - Naming:
-#     - ``y{i}`` where  is an integer; **OR**
+#
+#     - ``y{i}`` where ``i => 0`` is an integer; **OR**
 #     - ``y{i}_<arbitrary>`` where ``i => 0`` is an integer such that matches an existing ``y{i}`` in the same dataset.
+#
 #         - This is intended to denote a meaningful connection between ``y{i}`` and ``y{i}_<arbitrary>``.
-#         - **[Required]** The number of elements in``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``dim_{j}`` dimension.
+#         - **[Required]** The number of elements in ``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``dim_{j}`` dimension.
 #         - E.g., the digitized time traces stored in ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)`` represent the same measurement with different levels of detail.
+#
 #     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
-# - **[Required]** Lie along at least the ``repetition`` and ``dim_{i}`` dimensions.
+#
+# - **[Required]** Lie along a ``dim_{i}`` dimension.
 # - **[Optional]** Lie along additional nested xarray dimensions.
 #
 
@@ -441,7 +451,7 @@ dataset_2d_example
 #
 
 # %% [raw]
-# Dataset with two ``y{i}``:
+#     Dataset with two ``y{i}``:
 
 # %%
 # notebook-to-rst-json-conf: {"indent": "    "}
@@ -456,13 +466,20 @@ dataset_2d_example
 # The dataset must have the following attributes:
 #
 # - ``grid`` (``bool``)
+#
 #     - Specifies if the experiment coordinates are the "unrolled" points (also known as "unstacked") corresponding to a grid. If ``True`` than it is possible to use :func:`quantify_core.data.handling.to_gridded_dataset()` to convert the dataset.
+#
 # - ``grid_uniformly_spaced`` (``bool``)
+#
 #     - Can be ``True`` only if ``grid`` is also ``True``.
 #     - Specifies if all the experiment coordinates are homogeneously spaced. If, e.g., ``x0`` was generated with ``np.logspace(0, 15, 10)`` then this attribute must be ``False``.
+#
 # - ``tuid`` (``str``)
+#
 #     - The unique identifier of the dataset. See :class:`quantify_core.data.types.TUID`.
+#
 # - ``quantify_dataset_version`` (``str``)
+#
 #     - The quantify dataset version.
 
 # %%
@@ -482,20 +499,29 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 # Both, the experiment coordinates and the experiment variables, are required to have the following attributes:
 #
 # - ``standard_name`` (``str``)
+#
 #     - Usually a short name. Often corresponding to the name of a :class:`~qcodes.instrument.parameter.Parameter`.
 #     - The name should be a valid python variable composed of lower-case alphanumeric characters and ``_`` (underscore).
+#
 # - ``long_name`` (``str``)
+#
 #     - A human readable name. Usually used as the label of a plot axis.
+#
 # - ``units`` (``str``)
-#     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. un."``.
+#
+#     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. unit"``.
 #     - NB This attribute was not named ``unit`` to preserve compatibility with xarray plotting methods.
 #
 # Optionally the following attributes may be present as well:
 #
 # - ``batched`` (``bool``)
+#
 #     - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
+#
 # - ``batch_size`` (``bool``)
+#
 #     - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
+#
 
 # %%
 dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
@@ -512,7 +538,9 @@ dataset_2d_example.x0.attrs, dataset_2d_example.x0.standard_name
 #
 # - They are xarray data variables named as ``y{j}_calib``.
 # - They must lie along the ``dim_{i}_calib``, i.e. ``y{j}_calib(repetition, dim_{i}_calib, <other nested dimension(s)>)``.
+#
 #     - Note that we would have ``y{j}(repetition, dim_{i}, <other nested dimension(s)>)``.
+#
 # - ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitrary>`` are present in the dataset.
 #
 # .. note::
