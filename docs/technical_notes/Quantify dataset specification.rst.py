@@ -1421,4 +1421,108 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded
 
+# %% [raw]
+# "Nested MeasurementControl" example
+# ===================================
+
+# %%
+flux_bias_values = np.linspace(-0.04, 0.04, 12)
+
+resonator_frequencies = np.linspace(7e9, 8.5e9, len(flux_bias_values))
+qubit_frequencies = np.linspace(4.5e9, 4.6e9, len(flux_bias_values))
+t1_values = np.linspace(20e-6, 50e-6, len(flux_bias_values))
+
+resonator_freq_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
+qubit_freq_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
+t1_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
+
+# %%
+dataset = xr.Dataset(
+    data_vars={
+        "resonator_freq": (
+            "dim_0",
+            res_frequencies,
+            dict(long_name="Resonator frequency", units="Hz"),
+        ),
+        "qubit_freq": (
+            "dim_0",
+            qubit_frequencies,
+            dict(long_name="Qubit frequency", units="Hz"),
+        ),
+        "t1": ("dim_0", t1_values, dict(long_name="T1", units="s")),
+    },
+    coords={
+        "flux_bias": (
+            "dim_0",
+            flux_bias_values,
+            dict(long_name="Flux bias", units="A"),
+        ),
+        "resonator_freq_tuids": (
+            "dim_0",
+            resonator_freq_tuids,
+            dict(long_name="Dataset TUID", units=""),
+        ),
+        "qubit_freq_tuids": (
+            "dim_0",
+            qubit_freq_tuids,
+            dict(long_name="Dataset TUID", units=""),
+        ),
+        "t1_tuids": ("dim_0", t1_tuids, dict(long_name="Dataset TUID", units="")),
+    },
+    attrs=dict(
+        experiment_coords=[
+            ("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")
+        ],
+        experiment_data_vars=[
+            "resonator_freq",
+            "qubit_freq",
+            "t1",
+        ],
+        calibration_data_vars_map=[],
+    ),
+)
+
+assert dataset == dataset_round_trip(dataset)  # confirm read/write
+
+dataset
+
+# %%
+dataset_multi_indexed = dataset.set_index({"dim_0": dataset.experiment_coords[0]})
+
+dataset_multi_indexed
+
+# %% [markdown]
+# The multi-index is very handy:
+
+# %%
+dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[2])
+
+# %%
+dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[2])
+
+# %% [markdown]
+# But has big problem, can't be written to NetCDF (so far):
+
+# %%
+# notebook-to-rst-json-conf: {"jupyter_execute_options": [":raises:"]}
+
+assert dataset_multi_indexed == dataset_round_trip(
+    dataset_multi_indexed
+)  # confirm read/write
+
+# %% [markdown]
+# We could make our load/write utilities take care of setting and resseting the index under the hood. Though there are some nunces there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index.
+
+# %%
+all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
+
+# %% [raw]
+# But the `dtype` has been changed to `object` (from fixed-length string) and I do not know why, maybe bug, maybe good reasons to do it so.
+
+# %%
+dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
+
+# %%
+dataset.t1_tuids.dtype == dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
+
 # %%

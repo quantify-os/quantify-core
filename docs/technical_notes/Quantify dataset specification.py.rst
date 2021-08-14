@@ -97,11 +97,11 @@ Introduction
             amp_par.name: ("dim_0", x0s, par_to_attrs(amp_par)),
             time_par.name: ("dim_0", x1s, par_to_attrs(time_par)),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=[amp_par.name, time_par.name],
             experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
-            calibration_data_vars_map=[]
-        )
+            calibration_data_vars_map=[],
+        ),
     )
 
     assert dataset == dataset_round_trip(dataset)  # confirm read/write
@@ -114,7 +114,11 @@ Introduction
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset_2d_example, dimension="dim_0", coords_names=dataset_2d_example.experiment_coords)
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset_2d_example,
+        dimension="dim_0",
+        coords_names=dataset_2d_example.experiment_coords,
+    )
     dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetition_dim_0")
     dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
     pass
@@ -155,13 +159,16 @@ Xarray dimensions
             amp_par.name: ("dim_0", x0s, par_to_attrs(amp_par)),
             time_par.name: ("dim_0", x1s, par_to_attrs(time_par)),
             # here we choose to index the repetition dimension with an array of strings
-            "repetition_dim_0": ("repetition_dim_0", ["noisy", "very noisy", "very very noisy"]),
+            "repetition_dim_0": (
+                "repetition_dim_0",
+                ["noisy", "very noisy", "very very noisy"],
+            ),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=[amp_par.name, time_par.name],
             experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
-            calibration_data_vars_map=[]
-        )
+            calibration_data_vars_map=[],
+        ),
     )
 
     dataset
@@ -171,7 +178,9 @@ Xarray dimensions
 
     ## notebook-to-rst-json-conf: {"indent": "    "}
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=dataset.experiment_coords)
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    )
     dataset_gridded
 
 
@@ -365,11 +374,11 @@ T1 experiment averaged
         coords={
             time_par.name: ("dim_0", x0s, par_to_attrs(time_par)),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=[time_par.name],
             experiment_data_vars=[q0_iq_par.name],
-            calibration_data_vars_map=[]
-        )
+            calibration_data_vars_map=[],
+        ),
     )
 
 
@@ -380,7 +389,9 @@ T1 experiment averaged
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=dataset.experiment_coords)
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    )
     dataset_gridded
 
 
@@ -478,12 +489,12 @@ T1 experiment averaged with calibration points
                 {"long_name": "Q0 State", "unit": ""},
             ),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=[time_par.name],
             experiment_data_vars=[q0_iq_par.name],
-            calibration_data_vars_map=[(q0_iq_par.name,  f"{q0_iq_par.name}_cal")],
-            calibration_coords_map=[(time_par.name,  "cal")]
-        )
+            calibration_data_vars_map=[(q0_iq_par.name, f"{q0_iq_par.name}_cal")],
+            calibration_coords_map=[(time_par.name, "cal")],
+        ),
     )
 
 
@@ -494,7 +505,9 @@ T1 experiment averaged with calibration points
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=dataset.experiment_coords)
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    )
     dataset_gridded = dh.to_gridded_dataset(
         dataset_gridded, dimension="dim_0_cal", coords_names=["cal"]
     )
@@ -628,7 +641,11 @@ T1 experiment storing all shots
                 y0s_calib.mean(axis=0),
                 par_to_attrs(q0_iq_par),
             ),
-            f"{q0_iq_par.name}_shots": (("repetition_dim_0", "dim_0"), y0s, par_to_attrs(q0_iq_par)),
+            f"{q0_iq_par.name}_shots": (
+                ("repetition_dim_0", "dim_0"),
+                y0s,
+                par_to_attrs(q0_iq_par),
+            ),
             f"{q0_iq_par.name}_shots_cal": (
                 ("repetition_dim_0", "dim_0_cal"),
                 y0s_calib,
@@ -643,17 +660,17 @@ T1 experiment storing all shots
                 {"long_name": "Q0 State", "unit": ""},
             ),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=[time_par.name],
-            experiment_data_vars=[q0_iq_par.name,  f"{q0_iq_par.name}_shots"],
+            experiment_data_vars=[q0_iq_par.name, f"{q0_iq_par.name}_shots"],
             calibration_data_vars_map=[
-                (q0_iq_par.name,  f"{q0_iq_par.name}_cal"),
-                (f"{q0_iq_par.name}_shots",  f"{q0_iq_par.name}_shots_cal"),
+                (q0_iq_par.name, f"{q0_iq_par.name}_cal"),
+                (f"{q0_iq_par.name}_shots", f"{q0_iq_par.name}_shots_cal"),
             ],
             calibration_coords_map=[
-                (time_par.name,  "cal"),
-            ]
-        )
+                (time_par.name, "cal"),
+            ],
+        ),
     )
 
 
@@ -664,7 +681,9 @@ T1 experiment storing all shots
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=dataset.experiment_coords)
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    )
     dataset_gridded = dh.to_gridded_dataset(
         dataset_gridded, dimension="dim_0_cal", coords_names=["cal"]
     )
@@ -677,7 +696,7 @@ In this dataset we have both the averaged values and all the shots. The averaged
 .. jupyter-execute::
 
     plot_decay_no_repetition(dataset_gridded)
-    plot_iq_no_repetition(dataset_gridded);
+    plot_iq_no_repetition(dataset_gridded)
 
 
 Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
@@ -713,28 +732,16 @@ Note that we are plotting the calibration points as well.
 
         def plot_iq_decay_repetition(gridded_dataset):
             y0_shots = gridded_dataset.q0_iq_shots
-            y0_shots.real.mean(dim="repetition_dim_0").plot(
-                marker=".", label="I data"
-            )
-            y0_shots.imag.mean(dim="repetition_dim_0").plot(
-                marker=".", label="Q data"
-            )
-            plt.ylabel(
-                f"{y0_shots.long_name} [{y0_shots.units}]"
-            )
-            plt.suptitle(
-                f"{y0_shots.name} shape = {y0_shots.shape}"
-            )
+            y0_shots.real.mean(dim="repetition_dim_0").plot(marker=".", label="I data")
+            y0_shots.imag.mean(dim="repetition_dim_0").plot(marker=".", label="Q data")
+            plt.ylabel(f"{y0_shots.long_name} [{y0_shots.units}]")
+            plt.suptitle(f"{y0_shots.name} shape = {y0_shots.shape}")
             plt.legend()
 
             fig, ax = plt.subplots(1, 1)
             ax.plot(
-                y0_shots.real.mean(
-                    dim="repetition_dim_0"
-                ),  # "collapses" outer dimension
-                y0_shots.imag.mean(
-                    dim="repetition_dim_0"
-                ),  # "collapses" outer dimension
+                y0_shots.real.mean(dim="repetition_dim_0"),  # "collapses" outer dimension
+                y0_shots.imag.mean(dim="repetition_dim_0"),  # "collapses" outer dimension
                 ".-",
                 label="Data on IQ plane",
                 color="C2",
@@ -801,7 +808,11 @@ T1 experiment storing digitized signals for all shots
                 y0s_calib.mean(axis=0),
                 par_to_attrs(q0_iq_par),
             ),
-            f"{q0_iq_par.name}_shots": (("repetition_dim_0", "dim_0"), y0s, par_to_attrs(q0_iq_par)),
+            f"{q0_iq_par.name}_shots": (
+                ("repetition_dim_0", "dim_0"),
+                y0s,
+                par_to_attrs(q0_iq_par),
+            ),
             f"{q0_iq_par.name}_shots_cal": (
                 ("repetition_dim_0", "dim_0_cal"),
                 y0s_calib,
@@ -831,18 +842,22 @@ T1 experiment storing digitized signals for all shots
                 {"long_name": "Time", "unit": "V"},
             ),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=[time_par.name],
-            experiment_data_vars=[q0_iq_par.name,  f"{q0_iq_par.name}_shots", f"{q0_iq_par.name}_traces"],
+            experiment_data_vars=[
+                q0_iq_par.name,
+                f"{q0_iq_par.name}_shots",
+                f"{q0_iq_par.name}_traces",
+            ],
             calibration_data_vars_map=[
-                (q0_iq_par.name,  f"{q0_iq_par.name}_cal"),
-                (f"{q0_iq_par.name}_shots",  f"{q0_iq_par.name}_shots_cal"),
-                (f"{q0_iq_par.name}_traces",  f"{q0_iq_par.name}_traces_cal"),
+                (q0_iq_par.name, f"{q0_iq_par.name}_cal"),
+                (f"{q0_iq_par.name}_shots", f"{q0_iq_par.name}_shots_cal"),
+                (f"{q0_iq_par.name}_traces", f"{q0_iq_par.name}_traces_cal"),
             ],
             calibration_coords_map=[
-                (time_par.name,  "cal"),
-            ]
-        )
+                (time_par.name, "cal"),
+            ],
+        ),
     )
 
 
@@ -853,7 +868,9 @@ T1 experiment storing digitized signals for all shots
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=dataset.experiment_coords)
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    )
     dataset_gridded = dh.to_gridded_dataset(
         dataset_gridded, dimension="dim_0_cal", coords_names=["cal"]
     )
@@ -870,7 +887,9 @@ T1 experiment storing digitized signals for all shots
 
 .. jupyter-execute::
 
-    trace_example = dataset_gridded.q0_iq_traces.sel(repetition_dim_0=123, time=dataset_gridded.time[-1])
+    trace_example = dataset_gridded.q0_iq_traces.sel(
+        repetition_dim_0=123, time=dataset_gridded.time[-1]
+    )
     trace_example.shape, trace_example.dtype
 
 
@@ -894,7 +913,7 @@ NB not exactly the same schedule, but what matter are the measurements.
 
     from quantify_scheduler.visualization.circuit_diagram import circuit_diagram_matplotlib
     from quantify_scheduler import Schedule
-    from quantify_scheduler.gate_library import Reset, Measure, CZ, Rxy, X90, X, Y, Y90,  X90
+    from quantify_scheduler.gate_library import Reset, Measure, CZ, Rxy, X90, X, Y, Y90, X90
 
     d1, d2, d3, d4 = [f"D{i}" for i in range(1, 5)]
     a1, a2, a3 = [f"A{i}" for i in range(1, 4)]
@@ -915,15 +934,15 @@ NB not exactly the same schedule, but what matter are the measurements.
 
         for q in [d2, d1, d4, d3]:
             sched.add(CZ(qC=q, qT=a2))
-        
+
         sched.add(Y90(d1))
         for q in [d2, d3, d4]:
             sched.add(Y90(q), ref_pt="start", rel_time=0)
         sched.add(Y90(a2), ref_pt="start", rel_time=0)
-        
+
         sched.add(Y90(a1), ref_pt="end", rel_time=0)
         sched.add(Y90(a3), ref_pt="start", rel_time=0)
-        
+
         sched.add(CZ(qC=d1, qT=a1))
         sched.add(CZ(qC=d2, qT=a3))
         sched.add(CZ(qC=d3, qT=a1))
@@ -931,16 +950,16 @@ NB not exactly the same schedule, but what matter are the measurements.
 
         sched.add(Y90(a1), ref_pt="end", rel_time=0)
         sched.add(Y90(a3), ref_pt="start", rel_time=0)
-        
+
         sched.add(Measure(a2, acq_index=cycle))
         for q in (a1, a3):
             sched.add(Measure(q, acq_index=cycle), ref_pt="start", rel_time=0)
 
         for q in [d1, d2, d3, d4]:
             sched.add(X(q), ref_pt="start", rel_time=0)
-            
+
     # final measurements
-            
+
     sched.add(Measure(*all_qubits[:4], acq_index=0), ref_pt="end", rel_time=0)
 
     f, ax = circuit_diagram_matplotlib(sched)
@@ -991,23 +1010,35 @@ How do we store all shots for this measurement? (we want it because, e.g., we kn
     data_vars = {}
 
     for q in (a1, a2, a3):
-        data_vars[f"{q}_shots"] = (("repetition_dim_0", "dim_0"), radom_data, dict(units="V", long_name=f"IQ amplitude {q}"))
+        data_vars[f"{q}_shots"] = (
+            ("repetition_dim_0", "dim_0"),
+            radom_data,
+            dict(units="V", long_name=f"IQ amplitude {q}"),
+        )
 
     for q in (d1, d2, d3, d4):
-        data_vars[f"{q}_shots"] = (("repetition_dim_0", "dim_1"), radom_data_final, dict(units="V", long_name=f"IQ amplitude {q}"))
+        data_vars[f"{q}_shots"] = (
+            ("repetition_dim_0", "dim_1"),
+            radom_data_final,
+            dict(units="V", long_name=f"IQ amplitude {q}"),
+        )
 
     dataset = xr.Dataset(
         data_vars=data_vars,
         coords={
-            "cycle": ("dim_0", cycles, dict(units="", long_name="Surface code cycle number")),
+            "cycle": (
+                "dim_0",
+                cycles,
+                dict(units="", long_name="Surface code cycle number"),
+            ),
             "final_msmt": ("dim_1", [0], dict(units="", long_name="Final measurement")),
         },
-        attrs=dict(        
+        attrs=dict(
             experiment_coords=["cycle"],
             experiment_data_vars=[a1],
             calibration_data_vars_map=[],
-            calibration_coords_map=[]
-        )
+            calibration_coords_map=[],
+        ),
     )
 
 
@@ -1028,6 +1059,102 @@ How do we store all shots for this measurement? (we want it because, e.g., we kn
 
 .. jupyter-execute::
 
-    dataset_gridded = dh.to_gridded_dataset(dataset, dimension="dim_0", coords_names=["cycle"])
-    dataset_gridded = dh.to_gridded_dataset(dataset_gridded, dimension="dim_1", coords_names=["final_msmt"])
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset, dimension="dim_0", coords_names=["cycle"]
+    )
+    dataset_gridded = dh.to_gridded_dataset(
+        dataset_gridded, dimension="dim_1", coords_names=["final_msmt"]
+    )
     dataset_gridded
+
+
+"Nested MeasurementControl" example
+===================================
+
+
+.. jupyter-execute::
+
+    flux_bias_values = np.linspace(-0.04, 0.04, 12)
+
+    resonator_frequencies = np.linspace(7e9, 8.5e9, len(flux_bias_values))
+    qubit_frequencies = np.linspace(4.5e9, 4.6e9, len(flux_bias_values))
+    t1_values = np.linspace(20e-6, 50e-6, len(flux_bias_values))
+
+    resonator_freq_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
+    qubit_freq_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
+    t1_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
+
+
+.. jupyter-execute::
+
+    dataset = xr.Dataset(
+        data_vars={
+            "resonator_freq": ("dim_0", res_frequencies, dict(long_name="Resonator frequency", units="Hz")),
+            "qubit_freq": ("dim_0", qubit_frequencies, dict(long_name="Qubit frequency", units="Hz")),
+            "t1": ("dim_0", t1_values, dict(long_name="T1", units="s")),
+        },
+        coords={
+            "flux_bias": ("dim_0", flux_bias_values, dict(long_name="Flux bias", units="A")),
+            "resonator_freq_tuids": ("dim_0", resonator_freq_tuids, dict(long_name="Dataset TUID", units="")),
+            "qubit_freq_tuids": ("dim_0", qubit_freq_tuids, dict(long_name="Dataset TUID", units="")),
+            "t1_tuids": ("dim_0", t1_tuids, dict(long_name="Dataset TUID", units="")),
+        },
+        attrs=dict(
+            experiment_coords=[("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")],
+            experiment_data_vars=[
+                "resonator_freq", 
+                "qubit_freq", 
+                "t1",
+        ],
+            calibration_data_vars_map=[]
+        )
+    )
+
+    assert dataset == dataset_round_trip(dataset)  # confirm read/write
+
+    dataset
+
+
+.. jupyter-execute::
+
+    dataset_multi_indexed = dataset.set_index({
+        "dim_0": dataset.experiment_coords[0]
+    })
+
+    dataset_multi_indexed
+
+
+.. jupyter-execute::
+
+    dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[2])
+
+
+.. jupyter-execute::
+
+    dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[2])
+
+
+.. jupyter-execute::
+    :raises:
+
+    # notebook-to-rst-json-conf: {"jupyter_execute_options": [":raises:"]}
+
+    assert dataset_multi_indexed == dataset_round_trip(dataset_multi_indexed)  # confirm read/write
+
+
+.. jupyter-execute::
+
+    all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
+
+
+But the `dtype` has been changed to `object` (from fixed-length string) and I do not know why, maybe bug, maybe good reasons to do it so.
+
+
+.. jupyter-execute::
+
+    dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
+
+
+.. jupyter-execute::
+
+    dataset.t1_tuids.dtype == dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
