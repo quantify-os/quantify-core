@@ -1441,7 +1441,7 @@ dataset = xr.Dataset(
     data_vars={
         "resonator_freq": (
             "dim_0",
-            res_frequencies,
+            resonator_frequencies,
             dict(long_name="Resonator frequency", units="Hz"),
         ),
         "qubit_freq": (

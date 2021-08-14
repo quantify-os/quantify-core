@@ -1089,25 +1089,47 @@ How do we store all shots for this measurement? (we want it because, e.g., we kn
 
     dataset = xr.Dataset(
         data_vars={
-            "resonator_freq": ("dim_0", res_frequencies, dict(long_name="Resonator frequency", units="Hz")),
-            "qubit_freq": ("dim_0", qubit_frequencies, dict(long_name="Qubit frequency", units="Hz")),
+            "resonator_freq": (
+                "dim_0",
+                resonator_frequencies,
+                dict(long_name="Resonator frequency", units="Hz"),
+            ),
+            "qubit_freq": (
+                "dim_0",
+                qubit_frequencies,
+                dict(long_name="Qubit frequency", units="Hz"),
+            ),
             "t1": ("dim_0", t1_values, dict(long_name="T1", units="s")),
         },
         coords={
-            "flux_bias": ("dim_0", flux_bias_values, dict(long_name="Flux bias", units="A")),
-            "resonator_freq_tuids": ("dim_0", resonator_freq_tuids, dict(long_name="Dataset TUID", units="")),
-            "qubit_freq_tuids": ("dim_0", qubit_freq_tuids, dict(long_name="Dataset TUID", units="")),
+            "flux_bias": (
+                "dim_0",
+                flux_bias_values,
+                dict(long_name="Flux bias", units="A"),
+            ),
+            "resonator_freq_tuids": (
+                "dim_0",
+                resonator_freq_tuids,
+                dict(long_name="Dataset TUID", units=""),
+            ),
+            "qubit_freq_tuids": (
+                "dim_0",
+                qubit_freq_tuids,
+                dict(long_name="Dataset TUID", units=""),
+            ),
             "t1_tuids": ("dim_0", t1_tuids, dict(long_name="Dataset TUID", units="")),
         },
         attrs=dict(
-            experiment_coords=[("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")],
+            experiment_coords=[
+                ("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")
+            ],
             experiment_data_vars=[
-                "resonator_freq", 
-                "qubit_freq", 
+                "resonator_freq",
+                "qubit_freq",
                 "t1",
-        ],
-            calibration_data_vars_map=[]
-        )
+            ],
+            calibration_data_vars_map=[],
+        ),
     )
 
     assert dataset == dataset_round_trip(dataset)  # confirm read/write
@@ -1117,9 +1139,7 @@ How do we store all shots for this measurement? (we want it because, e.g., we kn
 
 .. jupyter-execute::
 
-    dataset_multi_indexed = dataset.set_index({
-        "dim_0": dataset.experiment_coords[0]
-    })
+    dataset_multi_indexed = dataset.set_index({"dim_0": dataset.experiment_coords[0]})
 
     dataset_multi_indexed
 
@@ -1139,7 +1159,9 @@ How do we store all shots for this measurement? (we want it because, e.g., we kn
 
     # notebook-to-rst-json-conf: {"jupyter_execute_options": [":raises:"]}
 
-    assert dataset_multi_indexed == dataset_round_trip(dataset_multi_indexed)  # confirm read/write
+    assert dataset_multi_indexed == dataset_round_trip(
+        dataset_multi_indexed
+    )  # confirm read/write
 
 
 .. jupyter-execute::
