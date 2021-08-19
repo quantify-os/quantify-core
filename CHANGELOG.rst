@@ -6,6 +6,8 @@ Unreleased
 ----------
 
 * Docs - Added bibliography with sphinxcontrib-bibtex extension (!207)
+* Bugfix - Rabi analysis for negative signal amplitudes can now converge
+
 
 0.5.0 (2021-08-06)
 ------------------
