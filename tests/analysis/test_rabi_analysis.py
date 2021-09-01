@@ -133,7 +133,8 @@ def analysis_bad_fit(tmp_test_data_dir):
     )
     dataset = dataset.set_coords(["x0"])
 
-    # this check is suppressed as it is not a reliable indicator for a bad fit.
+    # this check is suppressed as it is not a reliable indicator for a bad fit. #245
+
     # with warns(
     #     UserWarning,
     #     match="lmfit could not find a good fit."
@@ -161,20 +162,3 @@ def test_quantities_of_interest_bad_fit(analysis_bad_fit):
         "fit_result",
         "fit_success",
     }
-
-
-@pytest.mark.xfail(reason="known parser issue")
-def test_quantities_of_interest_bad_fit_warning_raised(analysis_bad_fit):
-    """Test that the quantities of interest exist for a bad fit"""
-    assert set(analysis_bad_fit.quantities_of_interest.keys()) == {
-        "Pi-pulse amplitude",
-        "fit_msg",
-        "fit_result",
-        "fit_success",
-    }
-    assert analysis_bad_fit.quantities_of_interest["fit_success"] is False
-    assert (
-        analysis_bad_fit.quantities_of_interest["fit_msg"]
-        == "Warning: lmfit could not find a\ngood fit. Fitted parameters"
-        " may not\nbe accurate."
-    )
