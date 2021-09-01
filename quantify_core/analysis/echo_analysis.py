@@ -18,11 +18,6 @@ class EchoAnalysis(ba.BaseAnalysis):
         """
         Populates the :code:`.dataset_processed`.
         """
-        # y0 = amplitude, no check for the amplitude unit as the name/label is
-        # often different.
-        # y1 = phase in deg, this unit should always be correct
-        # Assert removed, see #227. Awaiting proper solution
-        # assert self.dataset.y1.units == "deg"
 
         self.dataset_processed["Magnitude"] = self.dataset.y0
         self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
