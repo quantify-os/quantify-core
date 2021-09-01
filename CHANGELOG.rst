@@ -5,8 +5,11 @@ Changelog
 Unreleased
 ----------
 
-* Docs - Added bibliography with sphinxcontrib-bibtex extension (!207)
-* Bugfix - Rabi analysis for negative signal amplitudes can now converge
+* Analysis - Removed requirement for data on which to perform timedomain analysis to be acquired in radial coordinates (#227, !213).
+* Analysis - Removed positive amplitude constraint from Rabi analysis (!213).
+* Bugfix - Rabi analysis for negative signal amplitudes can now converge.
+* Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
+
 
 
 0.5.0 (2021-08-06)
