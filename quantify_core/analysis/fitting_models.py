@@ -379,8 +379,8 @@ class ResonatorModel(lmfit.model.Model):
         )  # Come up with a guess for phase velocity
 
         self.set_param_hint("fr", value=fr_guess, min=fmin, max=fmax)
-        self.set_param_hint("Ql", value=Q_guess, min=Q_min, max=Q_max)
-        self.set_param_hint("Qe", value=Q_guess, min=0)
+        self.set_param_hint("Ql", value=Q_guess * 1.01, min=Q_min, max=Q_max)
+        self.set_param_hint("Qe", value=Q_guess * 0.99, min=0)
         self.set_param_hint("A", value=np.mean(abs(data)), min=0)
 
         # The parameters below need a proper guess.
