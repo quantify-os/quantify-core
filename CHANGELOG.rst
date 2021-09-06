@@ -1,9 +1,19 @@
-===========
+=========
 Changelog
-===========
+=========
 
 Unreleased
 ----------
+
+* Analysis - Removed requirement for data on which to perform timedomain analysis to be acquired in radial coordinates (#227, !213).
+* Analysis - Removed positive amplitude constraint from Rabi analysis (!213).
+* Bugfix - Rabi analysis for negative signal amplitudes can now converge.
+* Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
+
+
+
+0.5.0 (2021-08-06)
+------------------
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
@@ -12,13 +22,20 @@ Breaking changes
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Ramsey analysis (!166)
-* Echo analysis (!176)
-* AllXY analysis (!177)
-* Interpolating 2D analysis, Optimization analysis (!180)
-* Allow for unit-aware printing of floats and other values with no error (!167, #193)
-* Quantities of interest saving to JSON now supports more types, including ufloat (!164, #152)
-* Added new utility class quantify_core.utilities.inspect_utils
+* Change namespace. (!195)
+* Support xarray >0.18.0. (!198, #223)
+* Unpinned pyqt5 version in setup to fix bug on macOS big sur. (!203)
+* Added an example stopwatch gettable. (!187)
+* Added new utility class quantify_core.utilities.inspect_utils. (!190, !192)
+* Delete print(list) statement from locate_experiment_container. (!194)
+* Allow for unit-aware printing of floats and other values with no error. (!167, #193)
+* Plotmon: support non-linear (e.g., logarithmic space) for x and y coordinates. (!201)
+* Consistency of naming conventions in analysis code. (!188)
+* Ramsey analysis. (!166)
+* Echo analysis. (!176)
+* AllXY analysis. (!177)
+* Interpolated 2D analysis and ND optimization analysis. (!180)
+* Quantities of interest saving to JSON now supports more types, including uncertainties.ufloats. (!164, #152)
 
 0.4.0 (2021-05-10)
 ------------------

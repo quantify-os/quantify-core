@@ -10,29 +10,11 @@ Welcome to Quantify's documentation!
 
    installation
    usage
+   tutorials/index
    contributing
    authors
    changelog
 
-
-Tutorials
-==============
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Tutorials
-
-   tutorials/Tutorial 1. Controlling a basic experiment using MeasurementControl.rst
-   tutorials/Tutorial 2. Advanced capabilities of the MeasurementControl.rst
-   tutorials/Tutorial 3. Building custom analyses - the data analysis framework.rst
-   tutorials/Tutorial 4. Adaptive Measurements.rst
-   tutorials/Tutorial 5. Plot monitor.rst
-
-
-API Reference
-===================
-
-Contents:
 
 .. toctree::
    :maxdepth: 2

@@ -149,19 +149,21 @@ def test_persistence(plotmon_instance):
 def test_set_geometry(plotmon_instance):
     # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
     xywh = (400, 400, 300, 400)
-    xywh_init_main = plotmon_instance.remote_plotmon._get_QtPlot_geometry(
+    xywh_init_main = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
         which="main_QtPlot"
     )
-    xywh_init_sec = plotmon_instance.remote_plotmon._get_QtPlot_geometry(
+    xywh_init_sec = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
         which="secondary_QtPlot"
     )
 
     plotmon_instance.setGeometry_main(*xywh)
-    xywh_new = plotmon_instance.remote_plotmon._get_QtPlot_geometry(which="main_QtPlot")
+    xywh_new = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
+        which="main_QtPlot"
+    )
     assert xywh_new != xywh_init_main
 
     plotmon_instance.setGeometry_secondary(*xywh)
-    xywh_new = plotmon_instance.remote_plotmon._get_QtPlot_geometry(
+    xywh_new = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
         which="secondary_QtPlot"
     )
     assert xywh_new != xywh_init_sec

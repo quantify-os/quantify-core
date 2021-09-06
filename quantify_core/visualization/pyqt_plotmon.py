@@ -239,7 +239,7 @@ class PlotMonitor_pyqt(Instrument):
         """
         # wait to finish the queue
         self.remote_plotmon._exec_queue()
-        self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="main_QtPlot")
+        self.remote_plotmon._set_qt_plot_geometry(x, y, w, h, which="main_QtPlot")
 
     def setGeometry_secondary(self, x: int, y: int, w: int, h: int):
         """Set the geometry of the secondary plotmon
@@ -257,7 +257,7 @@ class PlotMonitor_pyqt(Instrument):
         """
         # wait to finish the queue
         self.remote_plotmon._exec_queue()
-        self.remote_plotmon._set_QtPlot_geometry(x, y, w, h, which="secondary_QtPlot")
+        self.remote_plotmon._set_qt_plot_geometry(x, y, w, h, which="secondary_QtPlot")
 
 
 class QtPlotObjForJupyter:

@@ -57,6 +57,7 @@ extensions = [
     "sphinxcontrib.blockdiag",
     "sphinx_togglebutton",
     "scanpydoc.elegant_typehints",
+    "sphinxcontrib.bibtex",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -77,6 +78,9 @@ intersphinx_mapping = {
         None,
     ),
 }
+
+bibtex_bibfiles = ["refs.bib"]
+bibtex_reference_style = "author_year"
 
 
 # The suffix(es) of source filenames.
