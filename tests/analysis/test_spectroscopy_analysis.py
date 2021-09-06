@@ -36,7 +36,13 @@ def analyses(tmp_test_data_dir):
         "Resonator_id", t_start="20210305", t_stop="20210306"
     )
 
-    analysis = [sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in tuid_list]
+    with pytest.warns(None) as warning_list:
+        analysis = [
+            sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in tuid_list
+        ]
+
+    # Check that there are no warnings raised
+    assert len(warning_list) == 0
 
     return analysis
 
