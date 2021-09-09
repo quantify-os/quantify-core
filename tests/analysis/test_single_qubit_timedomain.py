@@ -105,17 +105,42 @@ def test_quantities_of_interest_cal_pts(t1_analysis_with_cal_points):
 
 
 def test_echo_analysis_no_cal(tmp_test_data_dir):
-    """
-    Test that the fit returns the correct values
-    """
     set_datadir(tmp_test_data_dir)
 
-    analysis_obj = EchoAnalysis(tuid="20210420-001339-580-97bdef").run()
-    set(analysis_obj.figs_mpl.keys()) == {
+    analysis_obj = EchoAnalysis(tuid="20210420-001339-580-97bdef").run(
+        calibration_points=False
+    )
+    assert set(analysis_obj.figs_mpl.keys()) == {
         "Echo_decay",
     }
 
     exp_t2_echo = 10.00e-6
+    assert set(analysis_obj.quantities_of_interest.keys()) == {
+        "t2_echo",
+        "fit_msg",
+        "fit_result",
+        "fit_success",
+    }
+
+    assert isinstance(analysis_obj.quantities_of_interest["t2_echo"], Variable)
+    # Tests that the fitted values are correct (to within 5 standard deviations)
+    meas_echo = analysis_obj.quantities_of_interest["t2_echo"].nominal_value
+
+    # accurate to < 1 %
+    assert meas_echo == approx(exp_t2_echo, rel=0.01)
+
+
+def test_echo_analysis_with_cal(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+
+    analysis_obj = EchoAnalysis(tuid="20210827-175021-521-251f28").run(
+        calibration_points=True
+    )
+    assert set(analysis_obj.figs_mpl.keys()) == {
+        "Echo_decay",
+    }
+
+    exp_t2_echo = 13.61e-6
     assert set(analysis_obj.quantities_of_interest.keys()) == {
         "t2_echo",
         "fit_msg",
