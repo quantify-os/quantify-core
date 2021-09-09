@@ -3,15 +3,15 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
+import numpy as np
 from pytest import approx
 from uncertainties.core import Variable
 from quantify_core.data.handling import set_datadir
 
-
-import numpy as np
 from quantify_core.analysis.single_qubit_timedomain import (
     rotate_to_calibrated_axis,
     T1Analysis,
+    EchoAnalysis,
 )
 
 
@@ -102,3 +102,30 @@ def test_quantities_of_interest_cal_pts(t1_analysis_with_cal_points):
 
     # accurate to < 1 %
     assert meas_t1 == approx(exp_t1, rel=0.01)
+
+
+def test_echo_analysis_no_cal(tmp_test_data_dir):
+    """
+    Test that the fit returns the correct values
+    """
+    set_datadir(tmp_test_data_dir)
+
+    analysis_obj = EchoAnalysis(tuid="20210420-001339-580-97bdef").run()
+    set(analysis_obj.figs_mpl.keys()) == {
+        "Echo_decay",
+    }
+
+    exp_t2_echo = 10.00e-6
+    assert set(analysis_obj.quantities_of_interest.keys()) == {
+        "t2_echo",
+        "fit_msg",
+        "fit_result",
+        "fit_success",
+    }
+
+    assert isinstance(analysis_obj.quantities_of_interest["t2_echo"], Variable)
+    # Tests that the fitted values are correct (to within 5 standard deviations)
+    meas_echo = analysis_obj.quantities_of_interest["t2_echo"].nominal_value
+
+    # accurate to < 1 %
+    assert meas_echo == approx(exp_t2_echo, rel=0.01)
