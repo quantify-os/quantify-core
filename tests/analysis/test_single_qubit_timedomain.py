@@ -5,13 +5,14 @@
 import pytest
 import numpy as np
 from pytest import approx
-from uncertainties.core import Variable
+from uncertainties.core import Variable, AffineScalarFunc
 from quantify_core.data.handling import set_datadir
 
 from quantify_core.analysis.single_qubit_timedomain import (
     rotate_to_calibrated_axis,
     T1Analysis,
     EchoAnalysis,
+    RamseyAnalysis,
 )
 
 
@@ -70,23 +71,16 @@ def test_quantities_of_interest(t1_analysis_no_cal_points):
     )
 
 
-@pytest.fixture(scope="module", autouse=True)
-def t1_analysis_with_cal_points(tmp_test_data_dir):
+def test_t1_analysis_with_cal_points(tmp_test_data_dir):
     """
     Used to run the analysis a single time and run unit tests against the created
     analysis object.
     """
     tuid = "20210827-174946-357-70a986"
     set_datadir(tmp_test_data_dir)
-    return T1Analysis(tuid=tuid).run(calibration_points=True)
+    analysis_obj = T1Analysis(tuid=tuid).run(calibration_points=True)
 
-
-def test_quantities_of_interest_cal_pts(t1_analysis_with_cal_points):
-    """
-    Test that the fit returns the correct values
-    """
-
-    assert set(t1_analysis_with_cal_points.quantities_of_interest.keys()) == {
+    assert set(analysis_obj.quantities_of_interest.keys()) == {
         "T1",
         "fit_msg",
         "fit_result",
@@ -94,11 +88,9 @@ def test_quantities_of_interest_cal_pts(t1_analysis_with_cal_points):
     }
 
     exp_t1 = 7.716e-6
-    assert isinstance(
-        t1_analysis_with_cal_points.quantities_of_interest["T1"], Variable
-    )
+    assert isinstance(analysis_obj.quantities_of_interest["T1"], Variable)
     # Tests that the fitted values are correct (to within 5 standard deviations)
-    meas_t1 = t1_analysis_with_cal_points.quantities_of_interest["T1"].nominal_value
+    meas_t1 = analysis_obj.quantities_of_interest["T1"].nominal_value
 
     # accurate to < 1 %
     assert meas_t1 == approx(exp_t1, rel=0.01)
@@ -154,3 +146,130 @@ def test_echo_analysis_with_cal(tmp_test_data_dir):
 
     # accurate to < 1 %
     assert meas_echo == approx(exp_t2_echo, rel=0.01)
+
+
+def test_ramsey_no_cal_generated(tmp_test_data_dir):
+    """test that the right figures get created"""
+    set_datadir(tmp_test_data_dir)
+    analysis = RamseyAnalysis(tuid="20210422-104958-297-7d6034").run(
+        artificial_detuning=250e3
+    )
+    assert set(analysis.figs_mpl.keys()) == {
+        "Ramsey_decay",
+    }
+
+    assert set(analysis.quantities_of_interest.keys()) == {
+        "T2*",
+        "fitted_detuning",
+        "detuning",
+        "fit_msg",
+        "fit_result",
+        "fit_success",
+    }
+
+    values = {
+        "T2*": 9.029460824594437e-06,
+        "fitted_detuning": 260217.48366305148,
+        "detuning": 10.217e3,
+    }
+
+    assert isinstance(analysis.quantities_of_interest["T2*"], Variable)
+    assert isinstance(analysis.quantities_of_interest["fitted_detuning"], Variable)
+    assert isinstance(analysis.quantities_of_interest["detuning"], AffineScalarFunc)
+
+    # Tests that the fitted values are correct (to within 5 standard deviations)
+    assert analysis.quantities_of_interest["T2*"].nominal_value == pytest.approx(
+        values["T2*"],
+        abs=5 * analysis.quantities_of_interest["T2*"].std_dev,
+    )
+    assert analysis.quantities_of_interest[
+        "fitted_detuning"
+    ].nominal_value == pytest.approx(
+        values["fitted_detuning"],
+        abs=5 * analysis.quantities_of_interest["fitted_detuning"].std_dev,
+    )
+    assert analysis.quantities_of_interest["detuning"].nominal_value == pytest.approx(
+        values["detuning"],
+        abs=5 * analysis.quantities_of_interest["detuning"].std_dev,
+    )
+    assert analysis.quantities_of_interest["fit_success"] is True
+
+
+# Also test for the case where the user inputs a qubit frequency
+@pytest.fixture(scope="session", autouse=True)
+def ramsey_analysis_qubit_freq(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    analysis = RamseyAnalysis(tuid="20210422-104958-297-7d6034").run(
+        artificial_detuning=250e3, qubit_frequency=4.7149e9
+    )
+    return analysis
+
+
+def test_figures_generated_qubit_freq_qubit_freq(ramsey_analysis_qubit_freq):
+    """test that the right figures get created"""
+    assert set(ramsey_analysis_qubit_freq.figs_mpl.keys()) == {
+        "Ramsey_decay",
+    }
+
+
+def test_quantities_of_interest_qubit_freq(ramsey_analysis_qubit_freq):
+    """Test that the quantities of interest have the correct values"""
+    assert set(ramsey_analysis_qubit_freq.quantities_of_interest.keys()) == {
+        "T2*",
+        "fitted_detuning",
+        "detuning",
+        "qubit_frequency",
+        "fit_msg",
+        "fit_result",
+        "fit_success",
+    }
+
+    values = {
+        "T2*": 9.029460824594437e-06,
+        "fitted_detuning": 260217.48366305148,
+        "detuning": 10.217e3,
+        "qubit_frequency": 4.7149e9,
+    }
+
+    assert isinstance(
+        ramsey_analysis_qubit_freq.quantities_of_interest["T2*"], Variable
+    )
+    assert isinstance(
+        ramsey_analysis_qubit_freq.quantities_of_interest["fitted_detuning"], Variable
+    )
+    assert isinstance(
+        ramsey_analysis_qubit_freq.quantities_of_interest["detuning"], AffineScalarFunc
+    )
+    assert isinstance(
+        ramsey_analysis_qubit_freq.quantities_of_interest["qubit_frequency"],
+        AffineScalarFunc,
+    )
+
+    # Tests that the fitted values are correct (to within 5 standard deviations)
+    assert ramsey_analysis_qubit_freq.quantities_of_interest[
+        "T2*"
+    ].nominal_value == pytest.approx(
+        values["T2*"],
+        abs=5 * ramsey_analysis_qubit_freq.quantities_of_interest["T2*"].std_dev,
+    )
+    assert ramsey_analysis_qubit_freq.quantities_of_interest[
+        "fitted_detuning"
+    ].nominal_value == pytest.approx(
+        values["fitted_detuning"],
+        abs=5
+        * ramsey_analysis_qubit_freq.quantities_of_interest["fitted_detuning"].std_dev,
+    )
+    assert ramsey_analysis_qubit_freq.quantities_of_interest[
+        "detuning"
+    ].nominal_value == pytest.approx(
+        values["detuning"],
+        abs=5 * ramsey_analysis_qubit_freq.quantities_of_interest["detuning"].std_dev,
+    )
+    assert ramsey_analysis_qubit_freq.quantities_of_interest[
+        "qubit_frequency"
+    ].nominal_value == pytest.approx(
+        values["qubit_frequency"],
+        abs=5
+        * ramsey_analysis_qubit_freq.quantities_of_interest["qubit_frequency"].std_dev,
+    )
+    assert ramsey_analysis_qubit_freq.quantities_of_interest["fit_success"] is True
