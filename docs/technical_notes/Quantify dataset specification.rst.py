@@ -30,31 +30,88 @@ from typing import List, Tuple
 pretty.install()
 
 
-def assign_dataset_attrs(ds: xr.Dataset) -> dict:
+def mk_dataset_attrs(**kwargs) -> dict:
     tuid = dh.gen_tuid()
-    ds.attrs.update(
-        dict(
-            grid=True,
-            grid_uniformly_spaced=True,  # pyqt requires interpolation
-            tuid=tuid,
-            quantify_dataset_version="v1.0",
-            # experiment_coords=[],
-            # experiment_data_vars=[],
-            # calibration_data_vars_map=[] # List[Tuple[str, str]]
-        )
+    attrs = dict(
+        tuid=tuid,
+        experiment_name="",
+        experiment_state="",  # running/interrupted (safely)/interrupted (forced)/done
+        experiment_start="",  # unambiguous timestamp format to be defined
+        experiment_end="",  # optional, unambiguous timestamp format to be defined
+        experiment_coords=[],
+        experiment_data_vars=[],
+        # entries: (experiment var. name, calibration var. name)
+        calibration_data_vars_map=[],  # List[Tuple[str, str]]
+        # entries: (experiment coord. name, calibration coord. name)
+        calibration_coords_map=[],  # List[Tuple[str, str]]
+        quantify_dataset_version="2.0.0",
+        # entries: (package or repo name, version tag or commit hash)
+        software_versions=[
+            ("quantify_core", "921f1d4b6ebdbc7221f5fd55b17019283c6ee95e"),
+            ("quantify_scheduler", "0.4.0"),
+            ("qblox_instruments", "0.4.0"),
+        ],  # List[Tuple[str, str]]
     )
-    return ds.attrs
+    attrs.update(kwargs)
+
+    return attrs
+
+
+def mk_exp_coord_attrs_default(**kwargs) -> dict:
+    attrs = dict(
+        units="",
+        long_name="",
+        # netCDF does not support `None`
+        # as a workaround for attribute whose type is not str we can use a custom str
+        batched="__undefined_bool__",  # bool
+        batch_size="__undefined_int__",  # int
+        uniformly_spaced="__undefined_bool__",  # bool
+        is_dataset_ref=False,  # to flag if it is an array of tuids of other dataset
+    )
+    attrs.update(kwargs)
+
+    return attrs
+
+
+def mk_exp_coord_attrs(**kwargs) -> dict:
+    attrs = mk_exp_coord_attrs_default(batched=False, uniformly_spaced=True)
+    attrs.update(kwargs)
+    return attrs
+
+
+def mk_exp_var_attrs_default(**kwargs) -> dict:
+    attrs = dict(
+        units="",
+        long_name="",
+        batched="__undefined_bool__",  # bool
+        batch_size="__undefined_int__",  # int
+        # this attribute only makes sense to have for each exp. variable
+        # in case we later make use of more dimensions this will be specially relevant
+        grid="__undefined__",  # bool
+        # included here because some vars can be exp. coords but a MultiIndex
+        # is not supported yet
+        uniformly_spaced="__undefined_bool__",  # bool
+        is_dataset_ref=False,  # to flag if it is an array of tuids of other dataset
+    )
+    attrs.update(kwargs)
+
+    return attrs
+
+
+def mk_exp_var_attrs(**kwargs) -> dict:
+    attrs = mk_exp_var_attrs_default(grid=True, uniformly_spaced=True, batched=False)
+    attrs.update(kwargs)
+    return attrs
 
 
 def dataset_round_trip(ds: xr.Dataset) -> xr.Dataset:
-    assign_dataset_attrs(ds)
-    tuid = ds.attrs["tuid"]
+    tuid = ds.tuid
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, ds)
     return dh.load_dataset(tuid)
 
 
-def par_to_attrs(par):
-    return {"units": par.unit, "long_name": par.label}
+def par_to_attrs(par) -> dict:
+    return dict(units=par.unit, long_name=par.label)
 
 
 set_datadir(Path.home() / "quantify-data")  # change me!
@@ -231,22 +288,21 @@ dataset = dataset_2d_example = xr.Dataset(
         pop_q0_par.name: (
             ("repetition_dim_0", "dim_0"),
             [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            par_to_attrs(pop_q0_par),
+            mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
         ),
         pop_q1_par.name: (
             ("repetition_dim_0", "dim_0"),
             [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            par_to_attrs(pop_q1_par),
+            mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
         ),
     },
     coords={
-        amp_par.name: ("dim_0", x0s, par_to_attrs(amp_par)),
-        time_par.name: ("dim_0", x1s, par_to_attrs(time_par)),
+        amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
+        time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=[amp_par.name, time_par.name],
         experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
-        calibration_data_vars_map=[],
     ),
 )
 
@@ -313,27 +369,26 @@ dataset = xr.Dataset(
         pop_q0_par.name: (
             ("repetition_dim_0", "dim_0"),
             [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            par_to_attrs(pop_q0_par),
+            mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
         ),
         pop_q1_par.name: (
             ("repetition_dim_0", "dim_0"),
             [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            par_to_attrs(pop_q1_par),
+            mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
         ),
     },
     coords={
-        amp_par.name: ("dim_0", x0s, par_to_attrs(amp_par)),
-        time_par.name: ("dim_0", x1s, par_to_attrs(time_par)),
+        amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
+        time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
         # here we choose to index the repetition dimension with an array of strings
         "repetition_dim_0": (
             "repetition_dim_0",
             ["noisy", "very noisy", "very very noisy"],
         ),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=[amp_par.name, time_par.name],
         experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
-        calibration_data_vars_map=[],
     ),
 )
 
@@ -726,15 +781,14 @@ y0s = np.fromiter(
 
 dataset = xr.Dataset(
     data_vars={
-        q0_iq_par.name: ("dim_0", y0s, par_to_attrs(q0_iq_par)),
+        q0_iq_par.name: ("dim_0", y0s, mk_exp_var_attrs(**par_to_attrs(q0_iq_par))),
     },
     coords={
-        time_par.name: ("dim_0", x0s, par_to_attrs(time_par)),
+        time_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
         experiment_data_vars=[q0_iq_par.name],
-        calibration_data_vars_map=[],
     ),
 )
 
@@ -831,18 +885,22 @@ y0s_calib = np.fromiter(
 
 dataset = xr.Dataset(
     data_vars={
-        q0_iq_par.name: ("dim_0", y0s, par_to_attrs(q0_iq_par)),
-        f"{q0_iq_par.name}_cal": ("dim_0_cal", y0s_calib, par_to_attrs(q0_iq_par)),
-    },
-    coords={
-        time_par.name: ("dim_0", x0s, par_to_attrs(time_par)),
-        f"cal": (
+        q0_iq_par.name: ("dim_0", y0s, mk_exp_var_attrs(**par_to_attrs(q0_iq_par))),
+        f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
-            ["|0>", "|1>"],
-            {"long_name": "Q0 State", "unit": ""},
+            y0s_calib,
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
     },
-    attrs=dict(
+    coords={
+        time_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
+        "cal": (
+            "dim_0_cal",
+            ["|0>", "|1>"],
+            mk_exp_coord_attrs(long_name="Q0 State", unit=""),
+        ),
+    },
+    attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
         experiment_data_vars=[q0_iq_par.name],
         calibration_data_vars_map=[(q0_iq_par.name, f"{q0_iq_par.name}_cal")],
@@ -982,32 +1040,36 @@ y0s_calib = np.array(
 
 dataset = xr.Dataset(
     data_vars={
-        q0_iq_par.name: ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+        q0_iq_par.name: (
+            "dim_0",
+            y0s.mean(axis=0),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+        ),
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib.mean(axis=0),
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
         f"{q0_iq_par.name}_shots": (
             ("repetition_dim_0", "dim_0"),
             y0s,
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
         f"{q0_iq_par.name}_shots_cal": (
             ("repetition_dim_0", "dim_0_cal"),
             y0s_calib,
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
     },
     coords={
-        time_par.name: ("dim_0", x0s, par_to_attrs(time_par)),
+        time_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            {"long_name": "Q0 State", "unit": ""},
+            mk_exp_coord_attrs(long_name="Q0 State", unit=""),
         ),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
         experiment_data_vars=[q0_iq_par.name, f"{q0_iq_par.name}_shots"],
         calibration_data_vars_map=[
@@ -1040,6 +1102,7 @@ dataset_gridded
 # %%
 plot_decay_no_repetition(dataset_gridded)
 plot_iq_no_repetition(dataset_gridded)
+pass
 
 # %% [raw]
 # Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
@@ -1144,47 +1207,59 @@ y0s_traces_calib = _y0s_traces_calib.reshape(
 
 dataset = xr.Dataset(
     data_vars={
-        f"{q0_iq_par.name}": ("dim_0", y0s.mean(axis=0), par_to_attrs(q0_iq_par)),
+        f"{q0_iq_par.name}": (
+            "dim_0",
+            y0s.mean(axis=0),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+        ),
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib.mean(axis=0),
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
         f"{q0_iq_par.name}_shots": (
             ("repetition_dim_0", "dim_0"),
             y0s,
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
         f"{q0_iq_par.name}_shots_cal": (
             ("repetition_dim_0", "dim_0_cal"),
             y0s_calib,
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
         ),
         f"{q0_iq_par.name}_traces": (
             ("repetition_dim_0", "dim_0", "dim_1"),
             y0s_traces,
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(
+                batched=True,
+                batch_size=len(y0s_traces[0][0]),
+                **par_to_attrs(q0_iq_par),
+            ),
         ),
         f"{q0_iq_par.name}_traces_cal": (
             ("repetition_dim_0", "dim_0_cal", "dim_1"),
             y0s_traces_calib,
-            par_to_attrs(q0_iq_par),
+            mk_exp_var_attrs(
+                batched=True,
+                batch_size=len(y0s_traces_calib[0][0]),
+                **par_to_attrs(q0_iq_par),
+            ),
         ),
     },
     coords={
-        time_par.name: ("dim_0", x0s, par_to_attrs(time_par)),
+        time_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            {"long_name": "Q0 State", "unit": ""},
+            mk_exp_coord_attrs(long_name="Q0 State", unit=""),
         ),
         "trace_time": (
             "dim_1",
             generate_trace_time(),
-            {"long_name": "Time", "unit": "V"},
+            mk_exp_coord_attrs(long_name="Time", unit="V"),
         ),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
         experiment_data_vars=[
             q0_iq_par.name,
@@ -1256,12 +1331,6 @@ _ = trace_example_plt.imag.plot(marker=".")
 
 # %% [markdown]
 # Note that we use the h5netcdf engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex type.
-
-# %%
-
-# %%
-
-# %%
 
 # %% [raw]
 # A "weird"/"unstructured" experiment and dataset example
@@ -1373,14 +1442,14 @@ for q in (a1, a2, a3):
     data_vars[f"{q}_shots"] = (
         ("repetition_dim_0", "dim_0"),
         radom_data,
-        dict(units="V", long_name=f"IQ amplitude {q}"),
+        mk_exp_var_attrs(units="V", long_name=f"IQ amplitude {q}"),
     )
 
 for q in (d1, d2, d3, d4):
     data_vars[f"{q}_shots"] = (
         ("repetition_dim_0", "dim_1"),
         radom_data_final,
-        dict(units="V", long_name=f"IQ amplitude {q}"),
+        mk_exp_var_attrs(units="V", long_name=f"IQ amplitude {q}"),
     )
 
 dataset = xr.Dataset(
@@ -1389,15 +1458,17 @@ dataset = xr.Dataset(
         "cycle": (
             "dim_0",
             cycles,
-            dict(units="", long_name="Surface code cycle number"),
+            mk_exp_coord_attrs(units="", long_name="Surface code cycle number"),
         ),
-        "final_msmt": ("dim_1", [0], dict(units="", long_name="Final measurement")),
+        "final_msmt": (
+            "dim_1",
+            [0],
+            mk_exp_coord_attrs(units="", long_name="Final measurement"),
+        ),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=["cycle"],
         experiment_data_vars=[a1],
-        calibration_data_vars_map=[],
-        calibration_coords_map=[],
     ),
 )
 
@@ -1442,34 +1513,38 @@ dataset = xr.Dataset(
         "resonator_freq": (
             "dim_0",
             resonator_frequencies,
-            dict(long_name="Resonator frequency", units="Hz"),
+            mk_exp_var_attrs(long_name="Resonator frequency", units="Hz"),
         ),
         "qubit_freq": (
             "dim_0",
             qubit_frequencies,
-            dict(long_name="Qubit frequency", units="Hz"),
+            mk_exp_var_attrs(long_name="Qubit frequency", units="Hz"),
         ),
-        "t1": ("dim_0", t1_values, dict(long_name="T1", units="s")),
+        "t1": ("dim_0", t1_values, mk_exp_var_attrs(long_name="T1", units="s")),
     },
     coords={
         "flux_bias": (
             "dim_0",
             flux_bias_values,
-            dict(long_name="Flux bias", units="A"),
+            mk_exp_coord_attrs(long_name="Flux bias", units="A"),
         ),
         "resonator_freq_tuids": (
             "dim_0",
             resonator_freq_tuids,
-            dict(long_name="Dataset TUID", units=""),
+            mk_exp_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
         ),
         "qubit_freq_tuids": (
             "dim_0",
             qubit_freq_tuids,
-            dict(long_name="Dataset TUID", units=""),
+            mk_exp_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
         ),
-        "t1_tuids": ("dim_0", t1_tuids, dict(long_name="Dataset TUID", units="")),
+        "t1_tuids": (
+            "dim_0",
+            t1_tuids,
+            mk_exp_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+        ),
     },
-    attrs=dict(
+    attrs=mk_dataset_attrs(
         experiment_coords=[
             ("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")
         ],
@@ -1478,7 +1553,6 @@ dataset = xr.Dataset(
             "qubit_freq",
             "t1",
         ],
-        calibration_data_vars_map=[],
     ),
 )
 
@@ -1511,7 +1585,7 @@ assert dataset_multi_indexed == dataset_round_trip(
 )  # confirm read/write
 
 # %% [markdown]
-# We could make our load/write utilities take care of setting and resseting the index under the hood. Though there are some nunces there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index.
+# We could make our load/write utilities take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index.
 
 # %%
 all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
