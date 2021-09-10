@@ -1137,7 +1137,7 @@ class TestGridSetpoints:
     def mk_settables(self, batched_mask):
         settables = []
         for i, m in enumerate(batched_mask):
-            par = ManualParameter(f"x{i}", f"X{i}", "s")
+            par = ManualParameter(name=f"x{i}", label=f"X{i}", unit="s")
             par.batched = m
             settables.append(par)
         return settables
@@ -1146,11 +1146,7 @@ class TestGridSetpoints:
 
         # Most simple case
         batched_mask = [True, False]
-        settables = []
-        for i, m in enumerate(batched_mask):
-            par = ManualParameter(f"x{i}", f"X{i}", "s")
-            par.batched = m
-            settables.append(par)
+        settables = self.mk_settables(batched_mask)
 
         it_i = iter(self.iterative)
         it_b = iter(self.batched)
