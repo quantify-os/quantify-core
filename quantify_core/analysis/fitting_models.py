@@ -379,8 +379,8 @@ class ResonatorModel(lmfit.model.Model):
         )  # Come up with a guess for phase velocity
 
         self.set_param_hint("fr", value=fr_guess, min=fmin, max=fmax)
-        self.set_param_hint("Ql", value=Q_guess, min=Q_min, max=Q_max)
-        self.set_param_hint("Qe", value=Q_guess, min=0)
+        self.set_param_hint("Ql", value=Q_guess * 1.01, min=Q_min, max=Q_max)
+        self.set_param_hint("Qe", value=Q_guess * 0.99, min=0)
         self.set_param_hint("A", value=np.mean(abs(data)), min=0)
 
         # The parameters below need a proper guess.
@@ -458,8 +458,6 @@ class RabiModel(lmfit.model.Model):
 
         # Enforce oscillation frequency is positive
         self.set_param_hint("frequency", min=0)
-        # Enforce amplitude is positive
-        self.set_param_hint("amplitude", min=0)
 
         # Fix the phase at pi so that the ouput is at a minimum when x=0
         self.set_param_hint("phase", expr="3.141592653589793", vary=False)
@@ -479,7 +477,7 @@ class RabiModel(lmfit.model.Model):
         (freq_guess, _) = fft_freq_phase_guess(data, drive_amp)
 
         self.set_param_hint("frequency", value=freq_guess, min=0)
-        self.set_param_hint("amplitude", value=amp_guess, min=0)
+        self.set_param_hint("amplitude", value=amp_guess)
         self.set_param_hint("offset", value=offs_guess)
 
         params = self.make_params()
