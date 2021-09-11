@@ -330,42 +330,38 @@ def allxy_analysis_obj(tmp_test_data_dir):
     return allxy_analysis_obj
 
 
-def test_figures_generated(allxy_analysis_obj):
+def test_allxy_figures_generated(allxy_analysis_obj):
     """test that the right figures get created"""
     assert set(allxy_analysis_obj.figs_mpl.keys()) == {
         "AllXY",
     }
 
 
-def test_quantities_of_interest(allxy_analysis_obj):
+def test_allxy_quantities_of_interest(allxy_analysis_obj):
     """Test that the quantities of interest have the correct values"""
     assert set(allxy_analysis_obj.quantities_of_interest.keys()) == {
         "deviation",
     }
 
-    values = {
-        "deviation": 0.027,
-    }
+    exp_deviation = 0.0107
 
     assert isinstance(allxy_analysis_obj.quantities_of_interest["deviation"], float)
 
     # Tests that the fitted values are correct
     assert allxy_analysis_obj.quantities_of_interest["deviation"] == pytest.approx(
-        values["deviation"],
-        rel=0.05,
+        exp_deviation,
+        rel=0.01,
     )
 
 
-def test_dataset_processed(allxy_analysis_obj):
-    """some allxy_analysis_obj results for the figure are stored in the processed dataset"""
-    assert len(allxy_analysis_obj.dataset_processed.experiment_numbers)
+def test_allxy_dataset_processed(allxy_analysis_obj):
     assert len(allxy_analysis_obj.dataset_processed.ideal_data)
-    assert len(allxy_analysis_obj.dataset_processed.normalized_data)
+    assert len(allxy_analysis_obj.dataset_processed.pop_exc)
 
 
 # Test that the analysis returns an error when the number of datapoints
 # is not a multiple of 21
-def test_analysis_invalid_data(tmp_test_data_dir):
+def test_allxy_analysis_invalid_data(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
     with pytest.raises(
         ValueError,

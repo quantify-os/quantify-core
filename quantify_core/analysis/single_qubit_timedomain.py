@@ -98,21 +98,22 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         self.dataset_processed.S21.attrs["name"] = "S21"
         self.dataset_processed.S21.attrs["units"] = self.dataset.y0.units
         self.dataset_processed.S21.attrs["long_name"] = "Transmission $S_{21}$"
-
         if self.calibration_points:
-            ref_val_0 = self.dataset_processed.S21[-2]
-            ref_val_1 = self.dataset_processed.S21[-1]
-            pop_exc = rotate_to_calibrated_axis(
-                data=self.dataset_processed.S21,
-                ref_val_0=ref_val_0,
-                ref_val_1=ref_val_1,
-            )
-            self.dataset_processed["pop_exc"] = pop_exc
-            self.dataset_processed.pop_exc.attrs["name"] = "pop_exc"
-            self.dataset_processed.pop_exc.attrs["units"] = ""
-            self.dataset_processed.pop_exc.attrs[
-                "long_name"
-            ] = r"$|1\rangle$ population"
+            self._rotate_to_calibrated_axis()
+
+    def _rotate_to_calibrated_axis(self, ref_idx_0: int = -2, ref_idx_1: int = -1):
+        ref_val_0 = self.dataset_processed.S21[ref_idx_0]
+        ref_val_1 = self.dataset_processed.S21[ref_idx_1]
+        pop_exc = rotate_to_calibrated_axis(
+            data=self.dataset_processed.S21,
+            ref_val_0=ref_val_0,
+            ref_val_1=ref_val_1,
+        )
+        self.dataset_processed["pop_exc"] = pop_exc
+        self.dataset_processed.pop_exc.attrs["name"] = "pop_exc"
+        self.dataset_processed.pop_exc.attrs["units"] = ""
+        self.dataset_processed.pop_exc.attrs["long_name"] = r"$|1\rangle$ population"
+
         self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
 
@@ -570,7 +571,7 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
         set_suptitle_from_dataset(fig, self.dataset)
 
 
-class AllXYAnalysis(ba.BaseAnalysis):
+class AllXYAnalysis(SingleQubitTimedomainAnalysis):
     """
     Normalizes the data from an AllXY experiment and plots against an ideal curve.
 
@@ -580,21 +581,35 @@ class AllXYAnalysis(ba.BaseAnalysis):
     control pulses.
     """
 
+    def run(self):
+        # The standard analysis of the AllXY analysis always uses datapoints measured
+        # within this experiment as calibration points.
+        return super().run(calibration_points=True)
+
+    def _rotate_to_calibrated_axis(self):
+
+        if len(self.dataset.x0) == 21:
+            ref_idx_1 = 17
+        elif len(self.dataset.x0) == 21 * 2:
+            ref_idx_1 = 17 + 21
+        # use the values measured for II and XI as reference values.
+        super()._rotate_to_calibrated_axis(ref_idx_0=0, ref_idx_1=ref_idx_1)
+
     def process_data(self):
-        points = self.dataset["x0"]
-        raw_data = self.dataset["y0"]
-        number_points = len(raw_data)
 
         # Raise an exception if we do not have the correct number of points for a
         # complete ALLXY experiment
+        number_points = len(self.dataset.x0)
         if number_points % 21 != 0:
             raise ValueError(
                 "Invalid dataset. The number of calibration points in an "
                 "AllXY experiment must be a multiple of 21"
             )
 
-        repeats = int(round(number_points / 21))
+        super().process_data()
 
+        # add the ideal data as a reference curve
+        repeats = int(round(number_points / 21))
         ### Creating the ideal data ###
         ideal_data = xr.DataArray(
             data=np.concatenate(
@@ -607,33 +622,10 @@ class AllXYAnalysis(ba.BaseAnalysis):
             name="ideal_data",
             dims="dim_0",
         )
-
-        experiment_numbers = xr.DataArray(
-            data=np.arange(0, 21, 1),
-            name="experiment_numbers",
-            dims="dim_1",  # has less points than "dim_0", so we use different dims
-        )
-
-        ### calibration points for normalization ###
-        # II is set as 0 cal point
-        zero = np.sum(raw_data[points == 0]) / len(raw_data[points == 0])
-        # average of XI and YI is set as the 1 cal point
-        one = np.sum(raw_data[np.logical_or(points == 17, points == 18)]) / len(
-            raw_data[np.logical_or(points == 17, points == 18)]
-        )
-
-        normalized_data = xr.DataArray(
-            data=(raw_data - zero) / (one - zero),
-            name="normalized_data",
-            dims="dim_0",
-        )
-
-        self.dataset_processed = xr.merge(
-            [self.dataset_processed, experiment_numbers, ideal_data, normalized_data]
-        )
+        self.dataset_processed["ideal_data"] = ideal_data
 
         ### Analyzing Data ###
-        deviation = np.mean(abs(normalized_data - ideal_data)).item()
+        deviation = np.mean(self.dataset_processed.pop_exc - ideal_data).item()
         self.quantities_of_interest["deviation"] = deviation
 
     def create_figures(self):
@@ -667,17 +659,28 @@ class AllXYAnalysis(ba.BaseAnalysis):
             "yy",
         ]
 
-        ax.plot(self.dataset.x0, self.dataset_processed.normalized_data, "o-")
         ax.plot(
-            self.dataset.x0,
-            self.dataset_processed.ideal_data,
-            label="Ideal data",
+            self.dataset_processed.x0,
+            self.dataset_processed.pop_exc,
+            marker="o",
+            ls="-",
+            label="Measured",
         )
+
         deviation = self.quantities_of_interest["deviation"]
-        ax.text(1, 1, f"Deviation: {deviation:#.2g}", fontsize=11)
-        ax.xaxis.set_ticks(self.dataset_processed.experiment_numbers)
+        ax.plot(
+            self.dataset_processed.x0,
+            self.dataset_processed.ideal_data,
+            label=f"Target, \n Mean deviation {deviation:#.3g}",
+        )
+
+        ax.xaxis.set_ticks(np.arange(21))
         ax.set_xticklabels(labels, rotation=60)
-        ax.set(ylabel="Normalized readout signal")
+        set_ylabel(
+            ax,
+            self.dataset_processed.pop_exc.long_name,
+            self.dataset_processed.pop_exc.units,
+        )
         ax.legend(loc=4)
 
-        set_suptitle_from_dataset(fig, self.dataset, "Normalized")
+        set_suptitle_from_dataset(fig, self.dataset)
