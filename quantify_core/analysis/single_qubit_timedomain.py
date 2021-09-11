@@ -1,8 +1,8 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
+from typing import Union
 import numpy as np
 import xarray as xr
-from typing import Union
 
 import matplotlib.pyplot as plt
 from quantify_core.analysis import base_analysis as ba
@@ -432,8 +432,17 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
             time = self.dataset_processed.x0.values
 
         # time = self.dataset_processed.x0.values
-        guess = model.guess(data, time=time)
-        fit_result = model.fit(data, params=guess, t=time)
+        guess_pars = model.guess(data, t=time)
+
+        if self.calibration_points:
+            # if the data is on corrected axes certain parameters can be fixed
+            model.set_param_hint("offset", value=0.5, vary=False)
+            model.set_param_hint("amplitude", value=0.5, vary=False)
+            model.set_param_hint("phase", value=0, vary=False)
+            # this call provides updated guess_pars, model.guess is still needed.
+            guess_pars = model.make_params()
+
+        fit_result = model.fit(data, params=guess_pars, t=time)
 
         self.fit_results.update({"Ramsey_decay": fit_result})
 

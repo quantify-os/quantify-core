@@ -283,17 +283,17 @@ def test_ramsey_analysis_with_cal(tmp_test_data_dir):
         "Ramsey_decay",
     }
 
-    exp_t2_ramsey = 9.89e-06
+    exp_t2_ramsey = 10.43e-06
     assert set(
         {"T2*", "detuning", "fit_msg", "fit_result", "fit_success", "fitted_detuning"}
     ) == set(analysis_obj.quantities_of_interest.keys())
 
     assert isinstance(analysis_obj.quantities_of_interest["T2*"], Variable)
     # Tests that the fitted values are correct (to within 5 standard deviations)
-    meas_echo = analysis_obj.quantities_of_interest["T2*"].nominal_value
+    meas_t2_ramsey = analysis_obj.quantities_of_interest["T2*"].nominal_value
 
     # accurate to < 1 %
-    assert meas_echo == approx(exp_t2_ramsey, rel=0.01)
+    assert meas_t2_ramsey == approx(exp_t2_ramsey, rel=0.01)
     meas_detuning = analysis_obj.quantities_of_interest["detuning"].nominal_value
     assert meas_detuning == approx(166557, rel=0.01)
 
@@ -306,8 +306,8 @@ def test_ramsey_analysis_with_cal_qubit_freq_reporting(tmp_test_data_dir):
     a_obj = RamseyAnalysis(tuid=tuid)
     a_obj.run(artificial_detuning=150e3, qubit_frequency=qubit_frequency)
 
-    exp_t2_ramsey = 7.1214e-6
-    exp_detuning = -390.94
+    exp_t2_ramsey = 7.239e-6
+    exp_detuning = -244.65
     exp_fitted_detuning = 149609
     exp_qubit_frequency = 6.140002406e9
 
