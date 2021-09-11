@@ -13,6 +13,7 @@ from quantify_core.analysis.single_qubit_timedomain import (
     T1Analysis,
     EchoAnalysis,
     RamseyAnalysis,
+    AllXYAnalysis,
 )
 
 
@@ -320,3 +321,57 @@ def test_ramsey_analysis_with_cal_qubit_freq_reporting(tmp_test_data_dir):
     assert detuning == approx(exp_detuning, rel=0.01)
     assert fitted_detuning == approx(exp_fitted_detuning, rel=0.01)
     assert qubit_frequency == approx(exp_qubit_frequency, rel=0.01)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def allxy_analysis_obj(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    allxy_analysis_obj = AllXYAnalysis(tuid="20210419-173649-456-23c5f3").run()
+    return allxy_analysis_obj
+
+
+def test_figures_generated(allxy_analysis_obj):
+    """test that the right figures get created"""
+    assert set(allxy_analysis_obj.figs_mpl.keys()) == {
+        "AllXY",
+    }
+
+
+def test_quantities_of_interest(allxy_analysis_obj):
+    """Test that the quantities of interest have the correct values"""
+    assert set(allxy_analysis_obj.quantities_of_interest.keys()) == {
+        "deviation",
+    }
+
+    values = {
+        "deviation": 0.027,
+    }
+
+    assert isinstance(allxy_analysis_obj.quantities_of_interest["deviation"], float)
+
+    # Tests that the fitted values are correct
+    assert allxy_analysis_obj.quantities_of_interest["deviation"] == pytest.approx(
+        values["deviation"],
+        rel=0.05,
+    )
+
+
+def test_dataset_processed(allxy_analysis_obj):
+    """some allxy_analysis_obj results for the figure are stored in the processed dataset"""
+    assert len(allxy_analysis_obj.dataset_processed.experiment_numbers)
+    assert len(allxy_analysis_obj.dataset_processed.ideal_data)
+    assert len(allxy_analysis_obj.dataset_processed.normalized_data)
+
+
+# Test that the analysis returns an error when the number of datapoints
+# is not a multiple of 21
+def test_analysis_invalid_data(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Invalid dataset. The number of calibration points in an "
+            "AllXY experiment must be a multiple of 21"
+        ),
+    ):
+        AllXYAnalysis(tuid="20210422-104958-297-7d6034").run()
