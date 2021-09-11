@@ -801,7 +801,7 @@ def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
     generated.
 
     For usage see, for example, source code of
-    :meth:`~quantify_core.analysis.t1_analysis.T1Analysis.create_figures`.
+    :meth:`~quantify_core.analysis.single_qubit_timedomain.T1Analysis.create_figures`.
 
     Parameters
     ----------
