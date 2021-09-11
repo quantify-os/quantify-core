@@ -1,10 +1,20 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 import numpy as np
+import xarray as xr
+from typing import Union
+
 import matplotlib.pyplot as plt
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import fitting_models as fm
-from quantify_core.visualization import mpl_plotting as qpl
+from quantify_core.visualization.mpl_plotting import (
+    set_xlabel,
+    set_ylabel,
+    set_suptitle_from_dataset,
+    plot_textbox,
+    plot_fit,
+)
+from quantify_core.data.types import TUID
 from quantify_core.visualization.SI_utilities import format_value_string
 
 
@@ -36,32 +46,99 @@ class T1Analysis(ba.BaseAnalysis):
     which fits an exponential decay and extracts the T1 time.
     """
 
+    def __init__(
+        self,
+        dataset: xr.Dataset = None,
+        tuid: Union[TUID, str] = None,
+        label: str = "",
+        settings_overwrite: dict = None,
+    ):
+        self.calibration_points: bool = True
+        """indicates if the data analyzed includes calibration points."""
+
+        super().__init__(
+            dataset=dataset,
+            tuid=tuid,
+            label=label,
+            settings_overwrite=settings_overwrite,
+        )
+
+    def run(self, calibration_points: bool = True):
+        """
+        Parameters
+        ----------
+        calibration_points:
+
+        Returns
+        -------
+        :class:`~quantify_core.analysis.single_qubit_timedomain.T1Analysis`:
+            The instance of this analysis.
+
+        """  # NB the return type need to be specified manually to avoid circular import
+        self.calibration_points = calibration_points
+        return super().run()
+
     def process_data(self):
         """
-        Populates the :code:`.dataset_processed`.
-        """
-        self.dataset_processed["Magnitude"] = self.dataset.y0
-        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
-        self.dataset_processed.Magnitude.attrs["units"] = self.dataset.y0.units
-        self.dataset_processed.Magnitude.attrs["long_name"] = "Magnitude"
+        Processes the data so that the analysis can make assumptions on the format.
 
-        self.dataset_processed["x0"] = self.dataset.x0
-        self.dataset_processed = self.dataset_processed.set_coords("x0")
-        # replace the default dim_0 with x0
+        Populates self.dataset_processed.S21 with the complex (I,Q) valued transmission,
+        and if calibration points are present for the 0 and 1 state, populates
+        self.dataset_processed.pop_exc with the excited state population.
+        """
+        if self.dataset.y1.units == "deg":
+            self.dataset_processed["S21"] = self.dataset.y0 * np.exp(
+                1j * np.deg2rad(self.dataset.y1)
+            )
+        else:
+            self.dataset_processed["S21"] = self.dataset.y0 + 1j * self.dataset.y1
+
+        self.dataset_processed.S21.attrs["name"] = "S21"
+        self.dataset_processed.S21.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.S21.attrs["long_name"] = "Transmission $S_{21}$"
+
+        if self.calibration_points:
+            ref_val_0 = self.dataset_processed.S21[-2]
+            ref_val_1 = self.dataset_processed.S21[-1]
+            pop_exc = rotate_to_calibrated_axis(
+                data=self.dataset_processed.S21,
+                ref_val_0=ref_val_0,
+                ref_val_1=ref_val_1,
+            )
+            self.dataset_processed["pop_exc"] = pop_exc
+            self.dataset_processed.pop_exc.attrs["name"] = "pop_exc"
+            self.dataset_processed.pop_exc.attrs["units"] = ""
+            self.dataset_processed.pop_exc.attrs[
+                "long_name"
+            ] = r"$|1\rangle$ population"
         self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
     def run_fitting(self):
         """
-        Fits a :class:`~quantify_core.analysis.fitting_models.ExpDecayModel` to the data.
+        Fit the data to :class:`~quantify_core.analysis.fitting_models.ExpDecayModel`.
         """
 
         model = fm.ExpDecayModel()
 
-        magnitude = self.dataset_processed["Magnitude"].values
-        delay = self.dataset_processed.x0.values
-        guess = model.guess(magnitude, delay=delay)
+        if self.calibration_points:
+            # the last two data points are omitted from the fit as these are cal points
+            data = self.dataset_processed.pop_exc.values[:-2]
+            delay = self.dataset_processed.x0.values[:-2]
+        else:
+            # if no calibration points are present, fit the magnitude of the signal
+            data = np.abs(self.dataset_processed.S21.values)
+            delay = self.dataset_processed.x0.values
 
-        fit_result = model.fit(magnitude, params=guess, t=delay)
+        guess_pars = model.guess(data, delay=delay)
+
+        if self.calibration_points:
+            # if the data is on corrected axes certain parameters can be fixed
+            model.set_param_hint("offset", value=0, vary=False)
+            model.set_param_hint("amplitude", value=1, vary=False)
+            # this call provides updated guess_pars, model.guess is still needed.
+            guess_pars = model.make_params()
+
+        fit_result = model.fit(data, params=guess_pars, t=delay)
 
         self.fit_results.update({"exp_decay_func": fit_result})
 
@@ -77,17 +154,20 @@ class T1Analysis(ba.BaseAnalysis):
         # Otherwise, display the parameters as normal.
         if fit_warning is None:
             self.quantities_of_interest["fit_success"] = True
-            unit = self.dataset_processed.Magnitude.units
             text_msg = "Summary\n"
-            text_msg += format_value_string(
-                r"$T1$", fit_result.params["tau"], end_char="\n", unit="s"
-            )
-            text_msg += format_value_string(
-                "amplitude", fit_result.params["amplitude"], end_char="\n", unit=unit
-            )
-            text_msg += format_value_string(
-                "offset", fit_result.params["offset"], unit=unit
-            )
+            text_msg += format_value_string(r"$T1$", fit_result.params["tau"], unit="s")
+
+            if not self.calibration_points:
+                unit = self.dataset_processed.S21.units
+                text_msg += format_value_string(
+                    "\namplitude",
+                    fit_result.params["amplitude"],
+                    end_char="\n",
+                    unit=unit,
+                )
+                text_msg += format_value_string(
+                    "offset", fit_result.params["offset"], unit=unit
+                )
         else:
             text_msg = ba.wrap_text(fit_warning)
             self.quantities_of_interest["fit_success"] = False
@@ -108,19 +188,40 @@ class T1Analysis(ba.BaseAnalysis):
         self.axs_mpl[fig_id] = ax
 
         # Add a textbox with the fit_message
-        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])
+        plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
-        self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
-
-        qpl.plot_fit(
+        if self.calibration_points:
+            ax.plot(
+                self.dataset_processed.x0,
+                self.dataset_processed.pop_exc,
+                marker=".",
+                ls="",
+            )
+            set_ylabel(
+                ax,
+                self.dataset_processed.pop_exc.long_name,
+                self.dataset_processed.pop_exc.units,
+            )
+        else:
+            ax.plot(
+                self.dataset_processed.x0,
+                abs(self.dataset_processed.S21),
+                marker=".",
+                ls="",
+            )
+            set_ylabel(
+                ax,
+                r"Magnitude |$S_{21}|$",
+                self.dataset_processed.S21.units,
+            )
+        plot_fit(
             ax=ax,
             fit_res=self.fit_results["exp_decay_func"],
             plot_init=False,
         )
 
-        qpl.set_ylabel(ax, "Magnitude", self.dataset_processed.Magnitude.units)
-        qpl.set_xlabel(
+        set_xlabel(
             ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
         )
 
-        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
+        set_suptitle_from_dataset(fig, self.dataset, "S21")
