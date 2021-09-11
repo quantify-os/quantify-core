@@ -554,4 +554,8 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
             range_casting="real",
         )
 
+        set_xlabel(
+            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+        )
+
         set_suptitle_from_dataset(fig, self.dataset)

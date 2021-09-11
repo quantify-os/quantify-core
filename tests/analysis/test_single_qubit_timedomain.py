@@ -296,3 +296,27 @@ def test_ramsey_analysis_with_cal(tmp_test_data_dir):
     assert meas_echo == approx(exp_t2_ramsey, rel=0.01)
     meas_detuning = analysis_obj.quantities_of_interest["detuning"].nominal_value
     assert meas_detuning == approx(166557, rel=0.01)
+
+
+def test_ramsey_analysis_with_cal_qubit_freq_reporting(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    tuid = "20210901-132357-561-5c3ef7"
+    qubit_frequency = 6140002015.621445
+
+    a_obj = RamseyAnalysis(tuid=tuid)
+    a_obj.run(artificial_detuning=150e3, qubit_frequency=qubit_frequency)
+
+    exp_t2_ramsey = 7.1214e-6
+    exp_detuning = -390.94
+    exp_fitted_detuning = 149609
+    exp_qubit_frequency = 6.140002406e9
+
+    t2_ramsey = a_obj.quantities_of_interest["T2*"].nominal_value
+    detuning = a_obj.quantities_of_interest["detuning"].nominal_value
+    fitted_detuning = a_obj.quantities_of_interest["fitted_detuning"].nominal_value
+    qubit_frequency = a_obj.quantities_of_interest["qubit_frequency"].nominal_value
+
+    assert t2_ramsey == approx(exp_t2_ramsey, rel=0.01)
+    assert detuning == approx(exp_detuning, rel=0.01)
+    assert fitted_detuning == approx(exp_fitted_detuning, rel=0.01)
+    assert qubit_frequency == approx(exp_qubit_frequency, rel=0.01)
