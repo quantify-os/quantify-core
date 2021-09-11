@@ -67,6 +67,9 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         Parameters
         ----------
         calibration_points:
+            indicates if the data analyzed includes calibration points. If set to True,
+            will interpret the last two data points in the dataset as :math:`|0\\rangle`
+            and :math:`|1\\rangle` respectively.
 
         Returns
         -------
@@ -230,7 +233,7 @@ class T1Analysis(SingleQubitTimedomainAnalysis):
             ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
         )
 
-        set_suptitle_from_dataset(fig, self.dataset, "S21")
+        set_suptitle_from_dataset(fig, self.dataset)
 
 
 class EchoAnalysis(SingleQubitTimedomainAnalysis):
@@ -351,18 +354,44 @@ class EchoAnalysis(SingleQubitTimedomainAnalysis):
             ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
         )
 
-        set_suptitle_from_dataset(fig, self.dataset, "S21")
+        set_suptitle_from_dataset(fig, self.dataset)
 
 
-class RamseyAnalysis(ba.BaseAnalysis):
+class RamseyAnalysis(SingleQubitTimedomainAnalysis):
     """
     Fits a decaying cosine curve to Ramsey data (possibly with artificial detuning)
     and finds the true detuning, qubit frequency and T2* time.
     """
 
+    def __init__(
+        self,
+        dataset: xr.Dataset = None,
+        tuid: Union[TUID, str] = None,
+        label: str = "",
+        settings_overwrite: dict = None,
+    ):
+        self.artificial_detuning: float = 0
+        """The detuning in Hz that will be emulated by adding an extra phase in
+        software."""
+        self.qubit_frequency: Union[float, None] = None
+        """The initial recorded value of the qubit frequency (before accurate fitting
+        is done) in Hz."""
+
+        super().__init__(
+            dataset=dataset,
+            tuid=tuid,
+            label=label,
+            settings_overwrite=settings_overwrite,
+        )
+
     # Override the run method so that we can add the new optional arguments
     # pylint: disable=attribute-defined-outside-init, arguments-differ
-    def run(self, artificial_detuning: float = 0, qubit_frequency: float = None):
+    def run(
+        self,
+        artificial_detuning: float = 0,
+        qubit_frequency: float = None,
+        calibration_points: bool = True,
+    ):
         """
         Parameters
         ----------
@@ -370,48 +399,41 @@ class RamseyAnalysis(ba.BaseAnalysis):
             The detuning in Hz that will be emulated by adding an extra phase in
             software.
         qubit_frequency:
-            The initial recorded value of the qubit frequency in software (before
+            The initial recorded value of the qubit frequency (before
             accurate fitting is done) in Hz.
+        calibration_points:
+            indicates if the data analyzed includes calibration points. If set to True,
+            will interpret the last two data points in the dataset as :math:`|0\\rangle`
+            and :math:`|1\\rangle` respectively.
 
         Returns
         -------
-        :class:`~quantify_core.analysis.ramsey_analysis.RamseyAnalysis`:
+        :class:`~quantify_core.analysis.single_qubit_timedomain.RamseyAnalysis`:
             The instance of this analysis.
 
         """  # NB the return type need to be specified manually to avoid circular import
         self.artificial_detuning = artificial_detuning
         self.qubit_frequency = qubit_frequency
-        return super().run()
-
-    def process_data(self):
-        """
-        Populates the :code:`.dataset_processed`.
-        """
-
-        magnitude = self.dataset.y0
-        # TODO solve NaNs properly when #176 has a solution, pylint: disable=fixme
-        valid_measurement = np.logical_not(np.isnan(magnitude))
-        self.dataset_processed["Magnitude"] = magnitude[valid_measurement]
-        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
-        self.dataset_processed.Magnitude.attrs["units"] = self.dataset.y0.units
-        self.dataset_processed.Magnitude.attrs["long_name"] = r"Magnitude, $|S_{21}|$"
-
-        self.dataset_processed["x0"] = self.dataset.x0[valid_measurement]
-        self.dataset_processed = self.dataset_processed.set_coords("x0")
-        # replace the default dim_0 with x0
-        self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
+        return super().run(calibration_points=calibration_points)
 
     def run_fitting(self):
         """
-        Fits a :class:`~quantify_core.analysis.fitting_models.DecayOscillationModel` to the
-        data.
+        Fits a :class:`~quantify_core.analysis.fitting_models.DecayOscillationModel`
+        to the data.
         """
         model = fm.DecayOscillationModel()
+        if self.calibration_points:
+            # the last two data points are omitted from the fit as these are cal points
+            data = self.dataset_processed.pop_exc.values[:-2]
+            time = self.dataset_processed.x0.values[:-2]
+        else:
+            # if no calibration points are present, fit the magnitude of the signal
+            data = np.abs(self.dataset_processed.S21.values)
+            time = self.dataset_processed.x0.values
 
-        magnitude = self.dataset_processed["Magnitude"].values
-        time = self.dataset_processed.x0.values
-        guess = model.guess(magnitude, time=time)
-        fit_result = model.fit(magnitude, params=guess, t=time)
+        # time = self.dataset_processed.x0.values
+        guess = model.guess(data, time=time)
+        fit_result = model.fit(data, params=guess, t=time)
 
         self.fit_results.update({"Ramsey_decay": fit_result})
 
@@ -500,7 +522,30 @@ class RamseyAnalysis(ba.BaseAnalysis):
         # Add a textbox with the fit_message
         plot_textbox(ax, self.quantities_of_interest["fit_msg"])
 
-        self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
+        if self.calibration_points:
+            ax.plot(
+                self.dataset_processed.x0,
+                self.dataset_processed.pop_exc,
+                marker=".",
+                ls="",
+            )
+            set_ylabel(
+                ax,
+                self.dataset_processed.pop_exc.long_name,
+                self.dataset_processed.pop_exc.units,
+            )
+        else:
+            ax.plot(
+                self.dataset_processed.x0,
+                abs(self.dataset_processed.S21),
+                marker=".",
+                ls="",
+            )
+            set_ylabel(
+                ax,
+                r"Magnitude |$S_{21}|$",
+                self.dataset_processed.S21.units,
+            )
 
         plot_fit(
             ax=ax,
@@ -509,11 +554,4 @@ class RamseyAnalysis(ba.BaseAnalysis):
             range_casting="real",
         )
 
-        set_ylabel(ax, r"Output voltage", self.dataset_processed.Magnitude.units)
-        set_xlabel(
-            ax,
-            self.dataset_processed.x0.long_name,
-            self.dataset_processed.x0.units,
-        )
-
-        set_suptitle_from_dataset(fig, self.dataset, "S21")
+        set_suptitle_from_dataset(fig, self.dataset)
