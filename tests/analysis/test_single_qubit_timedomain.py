@@ -41,7 +41,7 @@ def t1_analysis_no_cal_points(tmp_test_data_dir):
     return T1Analysis(tuid=tuid).run(calibration_points=False)
 
 
-def test_figures_generated(t1_analysis_no_cal_points):
+def test_t1_figures_generated(t1_analysis_no_cal_points):
     """
     Test that the right figures get created.
     """
@@ -50,7 +50,7 @@ def test_figures_generated(t1_analysis_no_cal_points):
     }
 
 
-def test_quantities_of_interest(t1_analysis_no_cal_points):
+def test_t1_quantities_of_interest(t1_analysis_no_cal_points):
     """
     Test that the fit returns the correct values
     """

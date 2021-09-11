@@ -62,6 +62,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
             settings_overwrite=settings_overwrite,
         )
 
+    # pylint: disable=arguments-differ, line-too-long
     def run(self, calibration_points: bool = True):
         """
         Parameters
@@ -581,11 +582,13 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
     control pulses.
     """
 
+    # pylint: disable=arguments-differ
     def run(self):
         # The standard analysis of the AllXY analysis always uses datapoints measured
         # within this experiment as calibration points.
         return super().run(calibration_points=True)
 
+    # pylint: disable=arguments-differ
     def _rotate_to_calibrated_axis(self):
 
         if len(self.dataset.x0) == 21:
