@@ -23,8 +23,8 @@ def test_rotate_to_calibrated_axis():
     ref_val_1 = 0.89 + 0.324 * 1j
     data = np.array([ref_val_0, ref_val_1])
 
-    corrected_data = rotate_to_calibrated_axis(
-        data, ref_val_0=ref_val_0, ref_val_1=ref_val_1
+    corrected_data = np.real(
+        rotate_to_calibrated_axis(data, ref_val_0=ref_val_0, ref_val_1=ref_val_1)
     )
 
     np.testing.assert_array_equal(corrected_data, np.array([0.0, 1.0]))

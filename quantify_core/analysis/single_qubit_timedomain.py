@@ -18,7 +18,9 @@ from quantify_core.data.types import TUID
 from quantify_core.visualization.SI_utilities import format_value_string
 
 
-def rotate_to_calibrated_axis(data: np.ndarray, ref_val_0: complex, ref_val_1: complex):
+def rotate_to_calibrated_axis(
+    data: np.ndarray, ref_val_0: complex, ref_val_1: complex
+) -> np.ndarray:
     """
     Rotates, normalizes and offsets complex valued data based on calibration points.
 
@@ -30,12 +32,17 @@ def rotate_to_calibrated_axis(data: np.ndarray, ref_val_0: complex, ref_val_1: c
         The reference value corresponding to the 0 state.
     ref_val_1
         The reference value corresponding to the 1 state.
+
+    Returns
+    -------
+    :
+        Calibrated array of complex data points.
     """
     rotation_anle = np.angle(ref_val_1 - ref_val_0)
     norm = np.abs(ref_val_1 - ref_val_0)
     offset = ref_val_0 * np.exp(-1j * rotation_anle) / norm
 
-    corrected_data = np.real(data * np.exp(-1j * rotation_anle) / norm - offset)
+    corrected_data = data * np.exp(-1j * rotation_anle) / norm - offset
 
     return corrected_data
 
@@ -53,7 +60,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         settings_overwrite: dict = None,
     ):
         self.calibration_points: bool = True
-        """indicates if the data analyzed includes calibration points."""
+        """Indicates if the data analyzed includes calibration points."""
 
         super().__init__(
             dataset=dataset,
@@ -64,13 +71,13 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
 
     # pylint: disable=arguments-differ, line-too-long
     def run(self, calibration_points: bool = True):
-        """
+        r"""
         Parameters
         ----------
         calibration_points:
-            indicates if the data analyzed includes calibration points. If set to True,
-            will interpret the last two data points in the dataset as :math:`|0\\rangle`
-            and :math:`|1\\rangle` respectively.
+            Indicates if the data analyzed includes calibration points. If set to
+            :code:`True`, will interpret the last two data points in the dataset as
+            :math:`|0\rangle` and :math:`|1\rangle` respectively.
 
         Returns
         -------
@@ -78,6 +85,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
             The instance of this analysis.
 
         """  # NB the return type need to be specified manually to avoid circular import
+        assert isinstance(calibration_points, bool)
         self.calibration_points = calibration_points
         return super().run()
 
@@ -105,10 +113,12 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
     def _rotate_to_calibrated_axis(self, ref_idx_0: int = -2, ref_idx_1: int = -1):
         ref_val_0 = self.dataset_processed.S21[ref_idx_0]
         ref_val_1 = self.dataset_processed.S21[ref_idx_1]
-        pop_exc = rotate_to_calibrated_axis(
-            data=self.dataset_processed.S21,
-            ref_val_0=ref_val_0,
-            ref_val_1=ref_val_1,
+        pop_exc = np.real(
+            rotate_to_calibrated_axis(
+                data=self.dataset_processed.S21,
+                ref_val_0=ref_val_0,
+                ref_val_1=ref_val_1,
+            )
         )
         self.dataset_processed["pop_exc"] = pop_exc
         self.dataset_processed.pop_exc.attrs["name"] = "pop_exc"
@@ -117,8 +127,70 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
 
         self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
 
+    def _choose_data_for_fit(self):
+        if self.calibration_points:
+            # the last two data points are omitted from the fit as these are cal points
+            y_data = self.dataset_processed.pop_exc.values[:-2]
+            x_data = self.dataset_processed.x0.values[:-2]
+        else:
+            # if no calibration points are present, fit the magnitude of the signal
+            y_data = np.abs(self.dataset_processed.S21.values)
+            x_data = self.dataset_processed.x0.values
 
-class T1Analysis(SingleQubitTimedomainAnalysis):
+        return x_data, y_data
+
+
+# pylint: disable=too-few-public-methods
+class _DecayFigMixin:
+    """A mixin for common logic."""
+
+    def _create_decay_figure(self, fig_id: str):
+        """
+        Creates a figure ready for plotting a fit.
+        """
+
+        fig, ax = plt.subplots()
+        self.figs_mpl[fig_id] = fig
+        self.axs_mpl[fig_id] = ax
+
+        # Add a textbox with the fit_message
+        plot_textbox(ax, self.quantities_of_interest["fit_msg"])
+
+        if self.calibration_points:
+            ax.plot(
+                self.dataset_processed.x0,
+                self.dataset_processed.pop_exc,
+                marker=".",
+                ls="",
+            )
+            set_ylabel(
+                ax,
+                self.dataset_processed.pop_exc.long_name,
+                self.dataset_processed.pop_exc.units,
+            )
+        else:
+            ax.plot(
+                self.dataset_processed.x0,
+                abs(self.dataset_processed.S21),
+                marker=".",
+                ls="",
+            )
+            set_ylabel(
+                ax,
+                r"Magnitude |$S_{21}|$",
+                self.dataset_processed.S21.units,
+            )
+
+        set_xlabel(
+            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+        )
+
+        set_suptitle_from_dataset(fig, self.dataset)
+
+        return ax
+
+
+class T1Analysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     """
     Analysis class for a qubit T1 experiment,
     which fits an exponential decay and extracts the T1 time.
@@ -130,16 +202,7 @@ class T1Analysis(SingleQubitTimedomainAnalysis):
         """
 
         model = fm.ExpDecayModel()
-
-        if self.calibration_points:
-            # the last two data points are omitted from the fit as these are cal points
-            data = self.dataset_processed.pop_exc.values[:-2]
-            delay = self.dataset_processed.x0.values[:-2]
-        else:
-            # if no calibration points are present, fit the magnitude of the signal
-            data = np.abs(self.dataset_processed.S21.values)
-            delay = self.dataset_processed.x0.values
-
+        delay, data = self._choose_data_for_fit()
         guess_pars = model.guess(data, delay=delay)
 
         if self.calibration_points:
@@ -193,52 +256,15 @@ class T1Analysis(SingleQubitTimedomainAnalysis):
         Create a figure showing the exponential decay and fit.
         """
 
-        fig_id = "T1_decay"
-        fig, ax = plt.subplots()
-        self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = ax
-
-        # Add a textbox with the fit_message
-        plot_textbox(ax, self.quantities_of_interest["fit_msg"])
-
-        if self.calibration_points:
-            ax.plot(
-                self.dataset_processed.x0,
-                self.dataset_processed.pop_exc,
-                marker=".",
-                ls="",
-            )
-            set_ylabel(
-                ax,
-                self.dataset_processed.pop_exc.long_name,
-                self.dataset_processed.pop_exc.units,
-            )
-        else:
-            ax.plot(
-                self.dataset_processed.x0,
-                abs(self.dataset_processed.S21),
-                marker=".",
-                ls="",
-            )
-            set_ylabel(
-                ax,
-                r"Magnitude |$S_{21}|$",
-                self.dataset_processed.S21.units,
-            )
+        ax = self._create_decay_figure(fig_id="T1_decay")
         plot_fit(
             ax=ax,
             fit_res=self.fit_results["exp_decay_func"],
             plot_init=False,
         )
 
-        set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
-        )
 
-        set_suptitle_from_dataset(fig, self.dataset)
-
-
-class EchoAnalysis(SingleQubitTimedomainAnalysis):
+class EchoAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     """
     Analysis class for a qubit spin-echo experiment,
     which fits an exponential decay and extracts the T2_echo time.
@@ -250,16 +276,7 @@ class EchoAnalysis(SingleQubitTimedomainAnalysis):
         """
 
         model = fm.ExpDecayModel()
-
-        if self.calibration_points:
-            # the last two data points are omitted from the fit as these are cal points
-            data = self.dataset_processed.pop_exc.values[:-2]
-            delay = self.dataset_processed.x0.values[:-2]
-        else:
-            # if no calibration points are present, fit the magnitude of the signal
-            data = np.abs(self.dataset_processed.S21.values)
-            delay = self.dataset_processed.x0.values
-
+        delay, data = self._choose_data_for_fit()
         guess_pars = model.guess(data, delay=delay)
 
         if self.calibration_points:
@@ -314,52 +331,15 @@ class EchoAnalysis(SingleQubitTimedomainAnalysis):
         Create a figure showing the exponential decay and fit.
         """
 
-        fig_id = "Echo_decay"
-        fig, ax = plt.subplots()
-        self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = ax
-
-        # Add a textbox with the fit_message
-        plot_textbox(ax, self.quantities_of_interest["fit_msg"])
-
-        if self.calibration_points:
-            ax.plot(
-                self.dataset_processed.x0,
-                self.dataset_processed.pop_exc,
-                marker=".",
-                ls="",
-            )
-            set_ylabel(
-                ax,
-                self.dataset_processed.pop_exc.long_name,
-                self.dataset_processed.pop_exc.units,
-            )
-        else:
-            ax.plot(
-                self.dataset_processed.x0,
-                abs(self.dataset_processed.S21),
-                marker=".",
-                ls="",
-            )
-            set_ylabel(
-                ax,
-                r"Magnitude |$S_{21}|$",
-                self.dataset_processed.S21.units,
-            )
+        ax = self._create_decay_figure(fig_id="Echo_decay")
         plot_fit(
             ax=ax,
             fit_res=self.fit_results["exp_decay_func"],
             plot_init=False,
         )
 
-        set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
-        )
 
-        set_suptitle_from_dataset(fig, self.dataset)
-
-
-class RamseyAnalysis(SingleQubitTimedomainAnalysis):
+class RamseyAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     """
     Fits a decaying cosine curve to Ramsey data (possibly with artificial detuning)
     and finds the true detuning, qubit frequency and T2* time.
@@ -394,7 +374,7 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
         qubit_frequency: float = None,
         calibration_points: bool = True,
     ):
-        """
+        r"""
         Parameters
         ----------
         artificial_detuning:
@@ -404,9 +384,9 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
             The initial recorded value of the qubit frequency (before
             accurate fitting is done) in Hz.
         calibration_points:
-            indicates if the data analyzed includes calibration points. If set to True,
-            will interpret the last two data points in the dataset as :math:`|0\\rangle`
-            and :math:`|1\\rangle` respectively.
+            Indicates if the data analyzed includes calibration points. If set to True,
+            will interpret the last two data points in the dataset as :math:`|0\rangle`
+            and :math:`|1\rangle` respectively.
 
         Returns
         -------
@@ -424,16 +404,7 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
         to the data.
         """
         model = fm.DecayOscillationModel()
-        if self.calibration_points:
-            # the last two data points are omitted from the fit as these are cal points
-            data = self.dataset_processed.pop_exc.values[:-2]
-            time = self.dataset_processed.x0.values[:-2]
-        else:
-            # if no calibration points are present, fit the magnitude of the signal
-            data = np.abs(self.dataset_processed.S21.values)
-            time = self.dataset_processed.x0.values
-
-        # time = self.dataset_processed.x0.values
+        time, data = self._choose_data_for_fit()
         guess_pars = model.guess(data, t=time)
 
         if self.calibration_points:
@@ -523,41 +494,9 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
         self.quantities_of_interest["fit_msg"] = text_msg
 
     def create_figures(self):
-        """Plot Ramsey decay figure"""
+        """Plot Ramsey decay figure."""
 
-        fig_id = "Ramsey_decay"
-        fig, ax = plt.subplots()
-        self.figs_mpl[fig_id] = fig
-        self.axs_mpl[fig_id] = ax
-
-        # Add a textbox with the fit_message
-        plot_textbox(ax, self.quantities_of_interest["fit_msg"])
-
-        if self.calibration_points:
-            ax.plot(
-                self.dataset_processed.x0,
-                self.dataset_processed.pop_exc,
-                marker=".",
-                ls="",
-            )
-            set_ylabel(
-                ax,
-                self.dataset_processed.pop_exc.long_name,
-                self.dataset_processed.pop_exc.units,
-            )
-        else:
-            ax.plot(
-                self.dataset_processed.x0,
-                abs(self.dataset_processed.S21),
-                marker=".",
-                ls="",
-            )
-            set_ylabel(
-                ax,
-                r"Magnitude |$S_{21}|$",
-                self.dataset_processed.S21.units,
-            )
-
+        ax = self._create_decay_figure(fig_id="Ramsey_decay")
         plot_fit(
             ax=ax,
             fit_res=self.fit_results["Ramsey_decay"],
@@ -565,17 +504,10 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis):
             range_casting="real",
         )
 
-        set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
-        )
-
-        set_suptitle_from_dataset(fig, self.dataset)
-
 
 class AllXYAnalysis(SingleQubitTimedomainAnalysis):
     """
     Normalizes the data from an AllXY experiment and plots against an ideal curve.
-
 
     See section 2.3.2 of :cite:t:`reed_entanglement_2013` for an explanation of
     the AllXY experiment and it's applications in diagnosing errors in single-qubit
@@ -606,7 +538,7 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         if number_points % 21 != 0:
             raise ValueError(
                 "Invalid dataset. The number of calibration points in an "
-                "AllXY experiment must be a multiple of 21"
+                "AllXY experiment must be a multiple of 21."
             )
 
         super().process_data()
@@ -674,7 +606,7 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         ax.plot(
             self.dataset_processed.x0,
             self.dataset_processed.ideal_data,
-            label=f"Target, \n Mean deviation {deviation:#.3g}",
+            label=f"Target, \nMean deviation {deviation:#.3g}",
         )
 
         ax.xaxis.set_ticks(np.arange(21))
