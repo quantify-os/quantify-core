@@ -57,6 +57,7 @@ extensions = [
     "sphinx_togglebutton",
     "scanpydoc.elegant_typehints",
     "sphinxcontrib.bibtex",
+    "quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -5,7 +5,7 @@ Welcome to Quantify's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
    :glob:
 
    installation
@@ -21,6 +21,13 @@ Welcome to Quantify's documentation!
    :caption: API reference
 
    api_reference
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Sphinx extensions
+
+   sphinx_extensions
 
 
 Indices and tables
