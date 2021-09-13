@@ -38,10 +38,10 @@ spectroscopy_analysis
     :members:
     :show-inheritance:
 
-t1_analysis
------------
+single_qubit_timedomain
+-----------------------
 
-.. automodule:: quantify_core.analysis.t1_analysis
+.. automodule:: quantify_core.analysis.single_qubit_timedomain
     :members:
     :show-inheritance:
 
@@ -49,13 +49,6 @@ rabi_analysis
 -------------
 
 .. automodule:: quantify_core.analysis.rabi_analysis
-    :members:
-    :show-inheritance:
-
-ramsey_analysis
----------------
-
-.. automodule:: quantify_core.analysis.ramsey_analysis
     :members:
     :show-inheritance:
 
@@ -73,19 +66,6 @@ optimization_analysis
     :members:
     :show-inheritance:
 
-allxy_analysis
---------------
-
-.. automodule:: quantify_core.analysis.allxy_analysis
-    :members:
-    :show-inheritance:
-
-echo_analysis
--------------
-
-.. automodule:: quantify_core.analysis.echo_analysis
-    :members:
-    :show-inheritance:
 
 fitting_models
 --------------

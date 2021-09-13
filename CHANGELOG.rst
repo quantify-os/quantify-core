@@ -5,6 +5,10 @@ Changelog
 Unreleased
 ----------
 
+* Analysis - Added support for calibration points to rotate and scale data to a calibrated axis for single-qubit timedomain experiments (T1, Echo, Ramsey and AllXY) (#227,  !219)
+* Analysis - Added extra constraints to fits for T1, Echo and Ramsey when using a calibrated axis (T1, Echo, Ramsey) (#236,  !219)
+* Bugfix - Solved a bug where a fit would fail for a Ramsey experiment with negative values (#246, !219)
+
 * Analysis - Removed requirement for data on which to perform timedomain analysis to be acquired in radial coordinates (#227, !213).
 * Analysis - Removed positive amplitude constraint from Rabi analysis (!213).
 * Bugfix - Rabi analysis for negative signal amplitudes can now converge.
