@@ -27,7 +27,7 @@
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+# rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
 import numpy as np
 import xarray as xr
@@ -280,7 +280,7 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 #     :class: dropdown
 
 # %%
-## notebook-to-rst-json-conf: {"indent": "    "}
+## rst-json-conf: {"indent": "    "}
 
 x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
@@ -375,7 +375,7 @@ pass
 #     As shown in the :ref:`Xarray overview` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetition`` dimension is indexed by the ``repetition`` xarray coordinate variable:
 
 # %%
-## notebook-to-rst-json-conf: {"indent": "    "}
+## rst-json-conf: {"indent": "    "}
 
 dataset = xr.Dataset(
     data_vars={
@@ -408,7 +408,7 @@ dataset = xr.Dataset(
 dataset
 
 # %%
-## notebook-to-rst-json-conf: {"indent": "    "}
+## rst-json-conf: {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset, dimension="dim_0", coords_names=dataset.experiment_coords
@@ -419,7 +419,7 @@ dataset_gridded
 #     It is now possible to retrieve (select) a specific entry along the repetition dimension:
 
 # %%
-## notebook-to-rst-json-conf: {"indent": "    "}
+## rst-json-conf: {"indent": "    "}
 
 dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
 pass
@@ -445,7 +445,7 @@ pass
 #     :class: dropdown
 
 # %% [markdown]
-# # notebook-to-rst-json-conf: {"indent": "    "}
+# # rst-json-conf: {"indent": "    "}
 #
 # dataset_2d_example
 
@@ -558,7 +558,7 @@ pass
 #     Dataset with two ``y{i}``:
 
 # %% [markdown]
-# # notebook-to-rst-json-conf: {"indent": "    "}
+# # rst-json-conf: {"indent": "    "}
 #
 # dataset_2d_example
 
@@ -666,7 +666,7 @@ dataset_2d_example.amp.attrs, dataset_2d_example.time.long_name
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 
 def generate_mock_iq_data(
@@ -726,7 +726,7 @@ def plot_centroids(ax, ground, excited):
 
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 center_ground = (-0.2, 0.65)
 center_excited = (0.7, -0, 4)
@@ -736,7 +736,7 @@ shots = generate_mock_iq_data(
 )
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
@@ -744,7 +744,7 @@ plt.ylabel("Q")
 plot_centroids(plt.gca(), center_ground, center_excited)
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 time = generate_trace_time()
 trace = generate_trace_for_iq_point(shots[0])
@@ -822,7 +822,7 @@ dataset_gridded
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 
 def plot_decay_no_repetition(gridded_dataset, ax=None):
@@ -958,7 +958,7 @@ _ = plot_iq_no_repetition(dataset_gridded)
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 
 def rotate_data(complex_data: np.ndarray, angle: float) -> np.ndarray:
@@ -1148,7 +1148,7 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 #     :class: dropdown
 
 # %%
-# notebook-to-rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 
 def plot_iq_decay_repetition(gridded_dataset):
@@ -1335,7 +1335,7 @@ _ = trace_example_plt.imag.plot(marker=".")
 # Internally we write to disk using:
 
 # %% [markdown]
-# # notebook-to-rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+# # rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
 #
 # import inspect
 # from IPython.display import Code
@@ -1591,7 +1591,7 @@ dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[2])
 # But has big problem, can't be written to NetCDF (so far):
 
 # %%
-# notebook-to-rst-json-conf: {"jupyter_execute_options": [":raises:"]}
+# rst-json-conf: {"jupyter_execute_options": [":raises:"]}
 
 assert dataset_multi_indexed == dataset_round_trip(
     dataset_multi_indexed
