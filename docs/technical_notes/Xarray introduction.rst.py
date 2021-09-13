@@ -39,11 +39,14 @@ pretty.install()
 # ~~~~~~~~~~~~~~~
 
 # %% [raw]
-# This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminology.
+# This subsection is a very brief overview of some concepts and functionalities of xarray.
+# Here we use only pure xarray concepts and terminology.
 #
-# This is not intended as an extensive introduction to xarray. Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
+# This is not intended as an extensive introduction to xarray.
+# Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
 #
-# There are different ways to create a new xarray dataset. Below we exemplify a few of them to showcase specific functionalities.
+# There are different ways to create a new xarray dataset.
+# Below we exemplify a few of them to showcase specific functionalities.
 #
 # An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
 
@@ -54,9 +57,9 @@ name_dim_b = "velocity_x"
 dataset = xr.Dataset(
     data_vars={
         "position": (  # variable name
-            name_dim_a,  # dimension(s)' name(s)
-            np.linspace(-5, 5, n),  # variable values
-            {"units": "m", "long_name": "Position"},  # variable attributes
+            name_dim_a,  # dimension's name
+            np.linspace(-5, 5, n),  # values of this data variable
+            {"units": "m", "long_name": "Position"},  # attributes of this data variable
         ),
         "velocity": (
             name_dim_b,
@@ -64,7 +67,7 @@ dataset = xr.Dataset(
             {"units": "m/s", "long_name": "Velocity"},
         ),
     },
-    attrs={"key": "my metadata"},
+    attrs={"key": "my metadata"},  # dataset attributes
 )
 dataset
 
@@ -75,12 +78,13 @@ dataset.dims
 dataset.variables
 
 # %% [raw]
-# A variable can be "promoted" to a **Coordinate** for its dimension(s):
+# A variable can be "promoted" to (or defined as) a **Coordinate** for its dimension(s):
 
 # %%
 position = np.linspace(-5, 5, n)
 dataset = xr.Dataset(
     data_vars={
+        # the "units" and "long_name" have meaning for automatic plotting
         "position": (name_dim_a, position, {"units": "m", "long_name": "Position"}),
         "velocity": (
             name_dim_a,
@@ -92,22 +96,24 @@ dataset = xr.Dataset(
     # coords={"position": (name_dim_a, position, {"units": "m", "long_name": "Position"})},
     attrs={"key": "my metadata"},
 )
-dataset = dataset.set_coords(
-    ["position"]
-)  # promote the position variable to a coordinate
+
+# Promote the position variable to a coordinate:
+# In general, most of the functions that modify the structure of the xarray dataset will
+# return a new object
+dataset = dataset.set_coords(["position"])
 dataset
 
 # %%
 dataset.coords["position"]
 
 # %% [raw]
-# Note that xarray coordinates are available as variables as well:
+# Note that the xarray coordinates are available as variables as well:
 
 # %%
 dataset.variables["position"]
 
 # %% [raw]
-# That on its own might not be very useful yet, however, xarray coordinates can be set to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood), as shown below (note the bold font!):
+# Which, on its own, might not be very useful yet, however, xarray coordinates can be set to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood), as shown below (note the bold font in the output!):
 
 # %%
 dataset = dataset.set_index({"position_x": "position"})
@@ -116,31 +122,32 @@ dataset.position_x.attrs["long_name"] = "Position x"
 dataset
 
 # %% [raw]
-# At this point the reader might get confused. In an attempt to clarify, we now have a dimension, a coordinate and a variable with the same name `"position_x"`.
+# At this point the reader might get very confused. In an attempt to clarify, we now have a dimension, a coordinate and a variable with the same name `"position_x"`.
 
 # %%
-dataset.dims
+"position_x" in dataset.dims, "position_x" in dataset.coords, "position_x" in dataset.variables
 
 # %%
-dataset.coords
+dataset.dims["position_x"]
+
+# %%
+dataset.coords["position_x"]
 
 # %%
 dataset.variables["position_x"]
 
 # %% [raw]
-# Here the intention is to make the reader aware of this. Please consult the :doc:`xarray documentation <xarray:index>` for more details.
+# Here the intention is to make the reader aware of this peculiar behavior.
+# Please consult the :doc:`xarray documentation <xarray:index>` for more details.
 #
 # An example of how this can be useful is to retrieve data from an xarray variable using one of its coordinates to select the desired entries:
-
-# %% [raw]
-# It is now possible to retrieve (select) a specific entry along the repetition dimension:
 
 # %%
 retrieved_value = dataset.velocity.sel(position_x=2.5)
 retrieved_value
 
 # %% [raw]
-# Note that without this feature we would have to "manually" keep track of numpy integer indexes to retrieve the desired data:
+# Note that without this feature we would have to keep track of numpy integer indexes to retrieve the desired data:
 
 # %%
 dataset.velocity.values[3], retrieved_value.values == dataset.velocity.values[3]
@@ -151,4 +158,5 @@ dataset.velocity.values[3], retrieved_value.values == dataset.velocity.values[3]
 # %%
 _ = dataset.velocity.plot(marker="o")
 
-# %%
+# %% [raw]
+# Note the automatic labels and units.
