@@ -64,7 +64,10 @@ The above example will produce in the :code:`.rst` file the following:
     If you wan to suppress the output of a final line in a notebook cell you could
     usually use a :code:`;`. However, if you use a python auto formatter like black in
     the repository, it will get removed.
-    To achieve the same effect add :code:`pass` on the last line of a cell, instead.
+    To achieve the same effect assign the output of the last line of a cell to the
+    :code:`_` variable. E.g., :code:`_ = plt.plot(...)`. You can read more about this
+    python feature
+    `here <https://www.datacamp.com/community/tutorials/role-underscore-python>`_.
 
 .. admonition:: Possible enhancements
 
