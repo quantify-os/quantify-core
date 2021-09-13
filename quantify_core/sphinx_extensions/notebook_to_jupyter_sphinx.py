@@ -78,7 +78,7 @@ The above example will produce in the :code:`.rst` file the following:
     Unfortunately it seems that it is not possible to make Jupyter Lab highlight the
     rst code in the (raw) cells of a notebook, which would be useful for this extension.
 
-    There some workarounds for Jupyter Notebook involving cell magics but it is not
+    There are some workarounds for Jupyter Notebook involving cell magics but it is not
     quite worth the effort.
 
 
