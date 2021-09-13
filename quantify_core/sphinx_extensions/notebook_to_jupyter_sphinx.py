@@ -1,3 +1,5 @@
+# Repository: https://gitlab.com/quantify-os/quantify-core
+# Licensed according to the LICENCE file on the master branch
 """
 A sphinx extension that converts python Jupyter notebook scripts (:code:`.rst.py`) in
 the percent format to :code:`.rst` files (to be executed by sphinx).
