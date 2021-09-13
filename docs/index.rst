@@ -11,8 +11,8 @@ Welcome to Quantify's documentation!
    installation
    usage
    tutorials/index
-   technical_notes/index
    contributing
+   technical_notes/index
    authors
    changelog
 
