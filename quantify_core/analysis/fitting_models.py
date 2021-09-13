@@ -246,8 +246,7 @@ def exp_damp_osc_func(
     frequency: float,
     phase: float,
     amplitude: float,
-    oscillation_offset: float,
-    exponential_offset: float,
+    offset: float,
 ):
     r"""
     A sinusoidal oscillation with an exponentially decaying envelope function:
@@ -279,10 +278,9 @@ def exp_damp_osc_func(
         Output of decaying cosine function as a float
     """  # pylint: disable=line-too-long
 
-    oscillation = amplitude * (
-        np.cos(2 * np.pi * frequency * t + phase) + oscillation_offset
-    )
-    osc_decay = oscillation * np.exp(-((t / tau) ** n_factor)) + exponential_offset
+    oscillation = amplitude * (np.cos(2 * np.pi * frequency * t + phase))
+    exp_decay = np.exp(-((t / tau) ** n_factor))
+    osc_decay = oscillation * exp_decay + offset
     return osc_decay
 
 
@@ -511,24 +509,25 @@ class DecayOscillationModel(lmfit.model.Model):
 
         # Fix the n_factor at 1
         self.set_param_hint("n_factor", expr="1", vary=False)
-        # Fix the oscillation offset at 0
-        self.set_param_hint("oscillation_offset", expr="0", vary=False)
 
     # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-        time = kws.get("time", None)
-        if time is None:
+        t = kws.get("t", None)
+        if t is None:
+            raise ValueError(
+                'Time variable "t" must be specified in order to guess parameters'
+            )
             return None
 
         amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
         exp_offs_guess = np.mean(data)
-        tau_guess = 2 / 3 * np.max(time)
+        tau_guess = 2 / 3 * np.max(t)
 
-        (freq_guess, phase_guess) = fft_freq_phase_guess(data, time)
+        (freq_guess, phase_guess) = fft_freq_phase_guess(data, t)
 
         self.set_param_hint("frequency", value=freq_guess, min=0)
         self.set_param_hint("amplitude", value=amp_guess, min=0)
-        self.set_param_hint("exponential_offset", value=exp_offs_guess)
+        self.set_param_hint("offset", value=exp_offs_guess)
         self.set_param_hint("phase", value=phase_guess)
         self.set_param_hint("tau", value=tau_guess, min=0)
 
