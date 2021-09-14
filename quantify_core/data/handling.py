@@ -771,9 +771,11 @@ def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
             "parameters": {},
         }
     )
-    for ins_ref in Instrument.instances():
-        ins_name = ins_ref.name
-        snap["instruments"][ins_name] = ins_ref.snapshot(update=update)
+    for ins_name, ins_ref in Instrument._all_instruments.items():
+        ref = ins_ref()
+        # Check for dead weakrefs
+        if ref is not None:
+            snap["instruments"][ins_name] = ref.snapshot(update=update)
 
     if clean:
         exclude_keys = {
