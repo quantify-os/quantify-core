@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.12.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -38,81 +38,38 @@ from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import get_datadir, set_datadir
+import quantify_core.data.dataset as dd
+
 from typing import List, Tuple
+
+from importlib import reload
+
+reload(dd)
 
 pretty.install()
 
 
 def mk_dataset_attrs(**kwargs) -> dict:
     tuid = dh.gen_tuid()
-    attrs = dict(
-        tuid=tuid,
-        experiment_name="",
-        experiment_state="",  # running/interrupted (safely)/interrupted (forced)/done
-        experiment_start="",  # unambiguous timestamp format to be defined
-        experiment_end="",  # optional, unambiguous timestamp format to be defined
-        experiment_coords=[],
-        experiment_data_vars=[],
-        # entries: (experiment var. name, calibration var. name)
-        calibration_data_vars_map=[],  # List[Tuple[str, str]]
-        # entries: (experiment coord. name, calibration coord. name)
-        calibration_coords_map=[],  # List[Tuple[str, str]]
-        quantify_dataset_version="2.0.0",
-        # entries: (package or repo name, version tag or commit hash)
-        software_versions=[
-            ("quantify_core", "921f1d4b6ebdbc7221f5fd55b17019283c6ee95e"),
-            ("quantify_scheduler", "0.4.0"),
-            ("qblox_instruments", "0.4.0"),
-        ],  # List[Tuple[str, str]]
-    )
-    attrs.update(kwargs)
-
-    return attrs
-
-
-def mk_exp_coord_attrs_default(**kwargs) -> dict:
-    attrs = dict(
-        units="",
-        long_name="",
-        # netCDF does not support `None`
-        # as a workaround for attribute whose type is not str we can use a custom str
-        batched="__undefined_bool__",  # bool
-        batch_size="__undefined_int__",  # int
-        uniformly_spaced="__undefined_bool__",  # bool
-        is_dataset_ref=False,  # to flag if it is an array of tuids of other dataset
-    )
+    software_versions = [
+        ("quantify_core", "921f1d4b6ebdbc7221f5fd55b17019283c6ee95e"),
+        ("quantify_scheduler", "0.4.0"),
+        ("qblox_instruments", "0.4.0"),
+    ]
+    attrs = dd.mk_default_dataset_attrs(tuid=tuid, software_versions=software_versions)
     attrs.update(kwargs)
 
     return attrs
 
 
 def mk_exp_coord_attrs(**kwargs) -> dict:
-    attrs = mk_exp_coord_attrs_default(batched=False, uniformly_spaced=True)
+    attrs = dd.mk_default_exp_coord_attrs(batched=False, uniformly_spaced=True)
     attrs.update(kwargs)
-    return attrs
-
-
-def mk_exp_var_attrs_default(**kwargs) -> dict:
-    attrs = dict(
-        units="",
-        long_name="",
-        batched="__undefined_bool__",  # bool
-        batch_size="__undefined_int__",  # int
-        # this attribute only makes sense to have for each exp. variable
-        # in case we later make use of more dimensions this will be specially relevant
-        grid="__undefined__",  # bool
-        # included here because some vars can be exp. coords but a MultiIndex
-        # is not supported yet
-        uniformly_spaced="__undefined_bool__",  # bool
-        is_dataset_ref=False,  # to flag if it is an array of tuids of other dataset
-    )
-    attrs.update(kwargs)
-
     return attrs
 
 
 def mk_exp_var_attrs(**kwargs) -> dict:
-    attrs = mk_exp_var_attrs_default(grid=True, uniformly_spaced=True, batched=False)
+    attrs = dd.mk_default_exp_var_attrs(grid=True, uniformly_spaced=True, batched=False)
     attrs.update(kwargs)
     return attrs
 
@@ -130,127 +87,6 @@ def par_to_attrs(par) -> dict:
 set_datadir(Path.home() / "quantify-data")  # change me!
 
 # %% [raw]
-# Introduction
-# ------------
-
-# %% [markdown]
-# Xarray overview
-# ~~~~~~~~~~~~~~~
-
-# %% [markdown]
-# This subsection is a very brief overview of some concepts and functionalities of xarray. Here we use only pure xarray concepts and terminology. The concepts and terminology specific to the Quantify dataset are introduced only in the next subsections.
-#
-# This is not intended as an extensive introduction to xarray. Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
-#
-# There are different ways to create a new xarray dataset. Below we exemplify a few of them to showcase specific functionalities.
-#
-# An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
-
-# %% [markdown]
-# n = 5
-# name_dim_a = "position_x"
-# name_dim_b = "velocity_x"
-# dataset = xr.Dataset(
-#     data_vars={
-#         "position": (  # variable name
-#             name_dim_a,  # dimension(s)' name(s)
-#             np.linspace(-5, 5, n),  # variable values
-#             {"units": "m", "long_name": "Position"},  # variable attributes
-#         ),
-#         "velocity": (
-#             name_dim_b,
-#             np.linspace(0, 10, n),
-#             {"units": "m/s", "long_name": "Velocity"},
-#         ),
-#     },
-#     attrs={"key": "my metadata"},
-# )
-# dataset
-
-# %% [markdown]
-# dataset.dims
-
-# %% [markdown]
-# dataset.variables
-
-# %% [markdown]
-# A variable can be "promoted" to a **Coordinate** for its dimension(s):
-
-# %% [markdown]
-# position = np.linspace(-5, 5, n)
-# dataset = xr.Dataset(
-#     data_vars={
-#         "position": (name_dim_a, position, {"units": "m", "long_name": "Position"}),
-#         "velocity": (
-#             name_dim_a,
-#             1 + position ** 2,
-#             {"units": "m/s", "long_name": "Velocity"},
-#         ),
-#     },
-#     # We could add coordinates like this as well:
-#     # coords={"position": (name_dim_a, position, {"units": "m", "long_name": "Position"})},
-#     attrs={"key": "my metadata"},
-# )
-# dataset = dataset.set_coords(
-#     ["position"]
-# )  # promote the position variable to a coordinate
-# dataset
-
-# %% [markdown]
-# dataset.coords["position"]
-
-# %% [markdown]
-# Note that xarray coordinates are available as variables as well:
-
-# %% [markdown]
-# dataset.variables["position"]
-
-# %% [markdown]
-# That on its own might not be very useful yet, however, xarray coordinates can be set to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood), as shown below (note the bold font!):
-
-# %% [markdown]
-# dataset = dataset.set_index({"position_x": "position"})
-# dataset.position_x.attrs["units"] = "m"
-# dataset.position_x.attrs["long_name"] = "Position x"
-# dataset
-
-# %% [markdown]
-# At this point the reader might get confused. In an attempt to clarify, we now have a dimension, a coordinate and a variable with the same name `"position_x"`.
-
-# %% [markdown]
-# dataset.dims
-
-# %% [markdown]
-# dataset.coords
-
-# %% [markdown]
-# dataset.variables["position_x"]
-
-# %% [markdown]
-# Here the intention is to make the reader aware of this. Please consult the :doc:`xarray documentation <xarray:index>` for more details.
-#
-# An example of how this can be useful is to retrieve data from an xarray variable using one of its coordinates to select the desired entries:
-
-# %% [markdown]
-# It is now possible to retrieve (select) a specific entry along the repetition dimension:
-
-# %% [markdown]
-# retrieved_value = dataset.velocity.sel(position_x=2.5)
-# retrieved_value
-
-# %% [markdown]
-# Note that without this feature we would have to "manually" keep track of numpy integer indexes to retrieve the desired data:
-
-# %% [markdown]
-# dataset.velocity.values[3], retrieved_value.values == dataset.velocity.values[3]
-
-# %% [markdown]
-# One of the great features of xarray is automatic plotting (explore the xarray documentation for more advanced capabilities!):
-
-# %% [markdown]
-# _ = dataset.velocity.plot(marker="o")
-
-# %% [markdown]
 # .. _sec-experiment-coordinates-and-variables:
 #
 # Quantify dataset: conventions
@@ -275,7 +111,7 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 #
 # In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y1``. Both experiment coordinates lie along one dimension, ``dim_0``. Both experiment variables lie along two dimensions ``dim_0`` and ``repetitions``.
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Generate data
 #     :class: dropdown
 
@@ -320,11 +156,9 @@ dataset = dataset_2d_example = xr.Dataset(
 )
 
 assert dataset == dataset_round_trip(dataset)  # confirm read/write
-
-# %%
 dataset
 
-# %% [markdown]
+# %% [raw]
 # As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities:
 
 # %%
@@ -334,15 +168,13 @@ dataset_gridded = dh.to_gridded_dataset(
     coords_names=dataset_2d_example.experiment_coords,
 )
 dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetition_dim_0")
-dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
-pass
+_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
 
 # %% [markdown]
 # In xarray it is possible to average along a dimension which can be very convenient:
 
 # %%
-dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
-pass
+_ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
 
 # %% [raw]
 # Quantify dataset: detailed specification
@@ -352,7 +184,7 @@ pass
 # Xarray dimensions
 # ~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # The Quantify dataset has has the following required and optional dimensions:
 #
 # - **[Optional]** ``repetition``
@@ -368,7 +200,7 @@ pass
 #     - **[Required]** No other outer xarray dimensions are allowed.
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples good datasets (repetition)
 #     :class: dropdown
 #
