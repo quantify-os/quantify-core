@@ -3,8 +3,8 @@
 """Utilities used for creating examples for docs/tutorials/tests."""
 from __future__ import annotations
 
-import xarray as xr
 from pathlib import Path
+import xarray as xr
 import quantify_core.data.handling as dh
 import quantify_core.data.dataset as dd
 
