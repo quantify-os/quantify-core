@@ -39,6 +39,13 @@ from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import get_datadir, set_datadir
 import quantify_core.data.dataset as dd
+from quantify_core.utilities.examples_support import (
+    mk_dataset_attrs,
+    mk_exp_coord_attrs,
+    mk_exp_var_attrs,
+    dataset_round_trip,
+    par_to_attrs,
+)
 
 from typing import List, Tuple
 
@@ -47,42 +54,6 @@ from importlib import reload
 reload(dd)
 
 pretty.install()
-
-
-def mk_dataset_attrs(**kwargs) -> dict:
-    tuid = dh.gen_tuid()
-    software_versions = [
-        ("quantify_core", "921f1d4b6ebdbc7221f5fd55b17019283c6ee95e"),
-        ("quantify_scheduler", "0.4.0"),
-        ("qblox_instruments", "0.4.0"),
-    ]
-    attrs = dd.mk_default_dataset_attrs(tuid=tuid, software_versions=software_versions)
-    attrs.update(kwargs)
-
-    return attrs
-
-
-def mk_exp_coord_attrs(**kwargs) -> dict:
-    attrs = dd.mk_default_exp_coord_attrs(batched=False, uniformly_spaced=True)
-    attrs.update(kwargs)
-    return attrs
-
-
-def mk_exp_var_attrs(**kwargs) -> dict:
-    attrs = dd.mk_default_exp_var_attrs(grid=True, uniformly_spaced=True, batched=False)
-    attrs.update(kwargs)
-    return attrs
-
-
-def dataset_round_trip(ds: xr.Dataset) -> xr.Dataset:
-    tuid = ds.tuid
-    dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, ds)
-    return dh.load_dataset(tuid)
-
-
-def par_to_attrs(par) -> dict:
-    return dict(units=par.unit, long_name=par.label)
-
 
 set_datadir(Path.home() / "quantify-data")  # change me!
 
@@ -247,7 +218,7 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded
 
-# %% [markdown]
+# %% [raw]
 #     It is now possible to retrieve (select) a specific entry along the repetition dimension:
 
 # %%
@@ -256,7 +227,7 @@ dataset_gridded
 dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
 pass
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples bad datasets (repetition)
 #     :class: dropdown
 #
@@ -265,23 +236,23 @@ pass
 #     - Dataset with an outer dimension.
 #     - Dataset with a coordinate variable named "repetition" that is not indexing the ``repetition`` dimension.
 
-# %% [markdown]
+# %% [raw]
 # - **[Required]** ``dim_0``
 #
 #     - The outermost dimension of the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`.
 #     - The first inner dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` (the outermost is the ``repetition`` dimension).
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples good datasets (dim_0)
 #     :class: dropdown
 
-# %% [markdown]
-# # rst-json-conf: {"indent": "    "}
-#
-# dataset_2d_example
+# %%
+# rst-json-conf: {"indent": "    "}
 
-# %% [markdown]
+dataset_2d_example
+
+# %% [raw]
 # .. admonition:: Examples bad datasets (dim_0)
 #     :class: dropdown
 #
@@ -289,7 +260,7 @@ pass
 #
 #     - `x0` and `y0` with some other dimension then ``dim_0``.
 
-# %% [markdown]
+# %% [raw]
 #
 # - **[Optional, Advanced]** other nested xarray dimensions under each ``dim_{i}``
 #
@@ -300,7 +271,7 @@ pass
 #     - Note: Despite allowing nested demensions, the data type, of each inner most element of the underlying ``numpy`` arrays of the dataset, cannot have be ``dtype=object``. For most uses-cases, this means that all the innermost entries of a coordinate/variable will be of type ``int``, ``float``, ``complex`` or ``str`` (with a fixed maximum lenght). Other ``dtype``\s supported by numpy (except ``object``) moght work but have not been test extensively and we do not recommend using them to avoid issues with the dataset writing/loading.
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples good datasets (other nested dimensions)
 #     :class: dropdown
 #
@@ -309,7 +280,7 @@ pass
 #     - (fictitious example) time series with a few distinct DACs, where the DACs names index an extra dimension.
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples bad datasets (other nested dimensions)
 #     :class: dropdown
 #
@@ -322,7 +293,7 @@ pass
 # Xarray coordinates
 # ~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # Only the following `xarray` coordinates are allowed in the dataset:
 #
 # - **[Required]** The ``x0`` :ref:`experiment coordinate <sec-experiment-coordinates-and-variables>`.
@@ -347,7 +318,7 @@ pass
 #     - **[Required]** These other xarray coordinates must "lie" along a single dimension (and have the same name).
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples good datasets (coordinates)
 #     :class: dropdown
 #
@@ -357,7 +328,7 @@ pass
 # Xarray variables
 # ~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # The only xarray data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
 #
 # All the xarray data variables in the dataset (that are not xarray coordinates) comply with:
@@ -377,7 +348,7 @@ pass
 # - **[Optional]** Lie along additional nested xarray dimensions.
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples good datasets (variables)
 #     :class: dropdown
 #
@@ -386,19 +357,19 @@ pass
 #     - ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)``
 #
 
-# %% [markdown]
+# %% [raw]
 #     Dataset with two ``y{i}``:
 
-# %% [markdown]
-# # rst-json-conf: {"indent": "    "}
-#
-# dataset_2d_example
+# %%
+# rst-json-conf: {"indent": "    "}
+
+dataset_2d_example
 
 # %% [raw]
 # Dataset attributes
 # ~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # The dataset must have the following attributes:
 #
 # - ``grid`` (``bool``)
@@ -431,7 +402,7 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 # Experiment coordinates and variables attributes
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # Both, the experiment coordinates and the experiment variables, are required to have the following attributes:
 #
 # - ``long_name`` (``str``)
@@ -462,7 +433,7 @@ dataset_2d_example.amp.attrs, dataset_2d_example.time.long_name
 # Calibration variables and dimensions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# %% [markdown]
+# %% [raw]
 # Calibration points can be tricky to deal with. In addition to the specification above, we describe here how and which kind of calibration points are supported within the Quantify dataset.
 #
 # Calibration points are stored as xarray data variables. We shall refer to them as *calibration variables*. They are similar to the experiment variables with the following differences:
@@ -479,7 +450,7 @@ dataset_2d_example.amp.attrs, dataset_2d_example.time.long_name
 #     The number of elements in ``y{j}`` and ``y{j}_calib`` are independent. Usually there are only a few calibration points.
 #
 
-# %% [markdown]
+# %% [raw]
 # .. admonition:: Examples good datasets (variables)
 #     :class: dropdown
 #
@@ -972,8 +943,8 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
     plt.show()
 
 
-# %% [markdown]
-# We can colapse (average along) the `repetion` dimension:
+# %% [raw]
+# We can colapse (average along) the ``repetion_dim_0``` dimension:
 
 # %% [raw]
 # .. admonition:: Plotting utility
@@ -1139,11 +1110,11 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded
 
-# %% [markdown]
-# All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the first shot number 123 of the last point of the T1 experiment:
-
 # %%
-dataset_gridded.q0_iq_traces.shape  # dimensions: (repetition, x0, time)
+dataset_gridded.q0_iq_traces.shape, dataset_gridded.q0_iq_traces.dims
+
+# %% [raw]
+# All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the shot number 123 of the last point of the T1 experiment:
 
 # %%
 trace_example = dataset_gridded.q0_iq_traces.sel(
@@ -1151,7 +1122,7 @@ trace_example = dataset_gridded.q0_iq_traces.sel(
 )
 trace_example.shape, trace_example.dtype
 
-# %% [markdown]
+# %% [raw]
 # For clarity, we plot only part of this digitized signal:
 
 # %%
@@ -1159,22 +1130,22 @@ trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".")
 _ = trace_example_plt.imag.plot(marker=".")
 
-# %% [markdown]
+# %% [raw]
 # Quantify dataset storage format
 # ===============================
 #
 # The Quantify dataset is written to disk and loaded back making use of xarray-supported facilities.
 # Internally we write to disk using:
 
-# %% [markdown]
-# # rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
-#
-# import inspect
-# from IPython.display import Code
-#
-# Code(inspect.getsource(dh.write_dataset), language="python")
+# %%
+# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
 
-# %% [markdown]
+import inspect
+from IPython.display import Code
+
+Code(inspect.getsource(dh.write_dataset), language="python")
+
+# %% [raw]
 # Note that we use the h5netcdf engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex type.
 
 # %% [raw]
@@ -1429,14 +1400,14 @@ assert dataset_multi_indexed == dataset_round_trip(
     dataset_multi_indexed
 )  # confirm read/write
 
-# %% [markdown]
+# %% [raw]
 # We could make our load/write utilities take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index.
 
 # %%
 all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
 
 # %% [raw]
-# But the `dtype` has been changed to `object` (from fixed-length string) and I do not know why, maybe bug, maybe good reasons to do it so.
+# But the ``dtype`` has been changed to ``object`` (from fixed-length string) and I do not know why, maybe bug, maybe good reasons to do it so.
 
 # %%
 dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
