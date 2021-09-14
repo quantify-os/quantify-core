@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.12.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -14,8 +14,10 @@
 # ---
 
 # %% [raw]
-# Xarray introduction
-# ===================
+# .. _xarray-intro:
+#
+# Xarray - brief introduction
+# ===========================
 
 # %% [raw]
 # .. admonition:: Imports and auxiliary utilities
@@ -29,14 +31,6 @@ import xarray as xr
 from rich import pretty
 
 pretty.install()
-
-# %% [raw]
-# Introduction
-# ------------
-
-# %% [raw]
-# Xarray overview
-# ~~~~~~~~~~~~~~~
 
 # %% [raw]
 # This subsection is a very brief overview of some concepts and functionalities of xarray.
@@ -59,6 +53,7 @@ dataset = xr.Dataset(
         "position": (  # variable name
             name_dim_a,  # dimension's name
             np.linspace(-5, 5, n),  # values of this data variable
+            # the "units" and "long_name" are a convention with meaning for automatic plotting
             {"units": "m", "long_name": "Position"},  # attributes of this data variable
         ),
         "velocity": (
@@ -84,7 +79,6 @@ dataset.variables
 position = np.linspace(-5, 5, n)
 dataset = xr.Dataset(
     data_vars={
-        # the "units" and "long_name" have meaning for automatic plotting
         "position": (name_dim_a, position, {"units": "m", "long_name": "Position"}),
         "velocity": (
             name_dim_a,

@@ -1,63 +1,77 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Utilities for dataset (python object) handling."""
-
+# pylint: disable=too-many-instance-attributes
 from __future__ import annotations
-from typing import List, Tuple
+from typing import Set, List, Tuple, Union, Optional
+from dataclasses import dataclass, field
+from dataclasses_json import DataClassJsonMixin
 
 # TODO: convert to Dataclasses/Traitlets with method # pylint: disable=fixme
 
 
-def mk_default_exp_coord_attrs(**kwargs) -> dict:
+@dataclass
+class QExpCoordAttrs(DataClassJsonMixin):
+    """A dataclass representing the attribute of experimental coordinates."""
+
+    serialize_to_json: List[str] = field(
+        default_factory=lambda: ["batched", "batch_size", "uniformly_spaced"]
+    )
+    """A list of keys corresponding to the names of other attributes that require to be
+    json-serialized in order to be able to write them to disk using the ``h5netcdf``
+    engine."""
 
     units: str = ""
+    """The units of the values."""
     long_name: str = ""
-    # netCDF does not support `None`
-    # as a workaround for attribute whose type is not str we use a custom str
-    batched: bool = "__undefined_bool__"
-    batch_size: int = "__undefined_int__"
-    uniformly_spaced: bool = "__undefined_bool__"
-    is_dataset_ref = False  # to flag if it is an array of tuids of other dataset
+    """A long name for this coordinate."""
+    batched: Union[bool, None] = None
+    """True if this coordinates corresponds to a batched settable."""
+    batch_size: Union[int, None] = None
+    """The (maximum) size of a batch supported by the corresponding settable."""
+    uniformly_spaced: Union[bool, None] = None
+    """Indicates if the values are uniformly spaced."""
+    is_dataset_ref: bool = False
+    """flag if it is an array of tuids of other dataset."""
 
-    attrs = dict(
-        units=units,
-        long_name=long_name,
-        batched=batched,
-        batch_size=batch_size,
-        uniformly_spaced=uniformly_spaced,
-        is_dataset_ref=is_dataset_ref,
+
+@dataclass
+class QExpVarAttrs(DataClassJsonMixin):
+    """A dataclass representing the attribute of experimental coordinates."""
+
+    serialize_to_json: List[str] = field(
+        # this ones
+        default_factory=lambda: ["batched", "batch_size", "uniformly_spaced", "grid"]
     )
-    attrs.update(kwargs)
+    """A list of keys corresponding to the names of other attributes that require to be
+    json-serialized in order to be able to write them to disk using the ``h5netcdf``
+    engine.
 
-    return attrs
-
-
-def mk_default_exp_var_attrs(**kwargs) -> dict:
+    Note that the default one should be preserved."""
 
     units: str = ""
+    """The units of the values."""
     long_name: str = ""
-    batched: bool = "__undefined_bool__"
-    batch_size: int = "__undefined_int__"
-    # this attribute only makes sense to have for each exp. variable
-    # in case we later make use of more dimensions this will be specially relevant
-    grid: bool = "__undefined__"
-    # included here because some vars can be exp. coords but a MultiIndex
-    # is not supported yet
-    uniformly_spaced: bool = "__undefined_bool__"
-    is_dataset_ref: bool = False  # to flag if it is an array of tuids of other dataset
+    """A long name for this coordinate."""
+    batched: Union[bool, None] = None
+    """True if this coordinates corresponds to a batched settable."""
+    batch_size: Union[int, None] = None
+    """The (maximum) size of a batch supported by the corresponding settable."""
+    uniformly_spaced: Union[bool, None] = None
+    """Indicates if the values are uniformly spaced.
+    This does not apply to 'true' experiment variables but, because a MultiIndex is not
+    supported yet by xarray, some coordinate variables have to be stored as experiment
+    variables instead.
+    """
 
-    attrs = dict(
-        units=units,
-        long_name=long_name,
-        batched=batched,
-        batch_size=batch_size,
-        grid=grid,
-        uniformly_spaced=uniformly_spaced,
-        is_dataset_ref=is_dataset_ref,
-    )
-    attrs.update(kwargs)
-
-    return attrs
+    # This attribute only makes sense to have for each exp. variable instead of
+    # attaching it to the full dataset.
+    # In case we later make use of more dimensions this will be specially relevant.
+    grid: Union[bool, None] = None
+    """Indicates if the variables data are located on a grid, which does not need to be
+    uniformly spaced along all dimensions."""
+    is_dataset_ref: bool = False
+    """flag if it is an array of tuids of other dataset."""
 
 
 def mk_default_dataset_attrs(**kwargs) -> dict:
