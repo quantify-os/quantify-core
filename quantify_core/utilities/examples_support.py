@@ -16,20 +16,20 @@ def mk_dataset_attrs(**kwargs) -> dict:
         ("quantify_scheduler", "0.4.0"),
         ("qblox_instruments", "0.4.0"),
     ]
-    attrs = dd.mk_default_dataset_attrs(tuid=tuid, software_versions=software_versions)
+    attrs = dd.QDatasetAttrs(tuid=tuid, software_versions=software_versions).to_dict()
     attrs.update(kwargs)
 
     return attrs
 
 
 def mk_exp_coord_attrs(**kwargs) -> dict:
-    attrs = dd.mk_default_exp_coord_attrs(batched=False, uniformly_spaced=True)
+    attrs = dd.QExpCoordAttrs(batched=False, uniformly_spaced=True).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
 def mk_exp_var_attrs(**kwargs) -> dict:
-    attrs = dd.mk_default_exp_var_attrs(grid=True, uniformly_spaced=True, batched=False)
+    attrs = dd.QExpVarAttrs(grid=True, uniformly_spaced=True, batched=False).to_dict()
     attrs.update(kwargs)
     return attrs
 

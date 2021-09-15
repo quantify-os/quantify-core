@@ -13,6 +13,11 @@
 #     name: python3
 # ---
 
+# %%
+# %load_ext autoreload
+# %autoreload 1
+# %aimport quantify_core.data.dataset
+
 # %% [raw]
 # .. _dataset-spec:
 #
@@ -51,21 +56,6 @@ from importlib import reload
 pretty.install()
 
 set_datadir(Path.home() / "quantify-data")  # change me!
-
-# %%
-# %load_ext autoreload
-# %autoreload 1
-# %aimport quantify_core.data.dataset
-
-# %%
-attrs = dd.QExpCoordAttrs()
-attrs
-
-# %%
-attrs.to_dict()
-
-# %%
-dd.QExpCoordAttrs.from_dict(attrs.to_dict())
 
 # %% [raw]
 # This document describes the Qauntify dataset specification.
@@ -163,7 +153,7 @@ dataset = dataset_2d_example = xr.Dataset(
     ),
 )
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+# assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %% [raw]
@@ -325,28 +315,21 @@ _ = dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
 # %% [raw]
 # Dataset attributes
 # ~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# The dataset must have the following attributes:
 #
-# - ``grid`` (``bool``)
+# Tha mandatory attributes of the Quantify dataset are defined be the following dataclass.
+# It can be used to generate a default dictionary that is attached to a dataset.
 #
-#     - Specifies if the experiment coordinates are the "unrolled" points (also known as "unstacked") corresponding to a grid. If ``True`` than it is possible to use :func:`quantify_core.data.handling.to_gridded_dataset()` to convert the dataset.
+# .. autoclass:: quantify_core.data.dataset.QDatasetAttrs
+#     :members:
+#     :noindex:
+#     :show-inheritance:
 #
-# - ``grid_uniformly_spaced`` (``bool``)
-#
-#     - Can be ``True`` only if ``grid`` is also ``True``.
-#     - Specifies if all the experiment coordinates are homogeneously spaced. If, e.g., ``x0`` was generated with ``np.logspace(0, 15, 10)`` then this attribute must be ``False``.
-#
-# - ``tuid`` (``str``)
-#
-#     - The unique identifier of the dataset. See :class:`quantify_core.data.types.TUID`.
-#
-# - ``quantify_dataset_version`` (``str``)
-#
-#     - The quantify dataset version.
 
 # %%
+from quantify_core.data.dataset import QDatasetAttrs
+
+# tip: to_json and from_dict, from_json  are also available
+dataset_2d_example.attrs = QDatasetAttrs().to_dict()
 dataset_2d_example.attrs
 
 # %% [raw]
@@ -355,7 +338,7 @@ dataset_2d_example.attrs
 #     Note that xarray automatically provides the attributes as python attributes:
 
 # %%
-# # rst-json-conf: {"indent": "    "}
+# rst-json-conf: {"indent": "    "}
 
 dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 
@@ -364,31 +347,23 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %% [raw]
-# Both, the experiment coordinates and the experiment variables, are required to have the following attributes:
-#
-# - ``long_name`` (``str``)
-#
-#     - A human readable name. Usually used as the label of a plot axis.
-#
-# - ``units`` (``str``)
-#
-#     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. unit"``.
-#     - NB This attribute was not named ``unit`` to preserve compatibility with xarray plotting methods.
-#
-# Optionally the following attributes may be present as well:
-#
-# - ``batched`` (``bool``)
-#
-#     - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
-#
-# - ``batch_size`` (``bool``)
-#
-#     - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
-#
+# .. autoclass:: quantify_core.data.dataset.QExpCoordAttrs
+#     :members:
+#     :noindex:
+#     :show-inheritance:
 
 # %%
-dataset_2d_example.amp.attrs, dataset_2d_example.time.long_name
+dataset_2d_example.amp.attrs
 
+
+# %% [raw]
+# .. autoclass:: quantify_core.data.dataset.QExpVarAttrs
+#     :members:
+#     :noindex:
+#     :show-inheritance:
+
+# %%
+dataset_2d_example.pop_q0.attrs
 
 # %% [raw]
 # Storage format

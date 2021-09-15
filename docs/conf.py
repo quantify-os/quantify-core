@@ -243,6 +243,7 @@ if os.environ.get("GITLAB_CI", "false") == "true":
 # here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
 import lmfit  # related to quantify-core#218 and quantify-core#221
 import qcodes
+import marshmallow
 
 # When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
 # sphinx' kernel loads the modules corresponding to the typehints and is able to
