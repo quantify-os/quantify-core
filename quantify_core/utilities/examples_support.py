@@ -6,7 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 import xarray as xr
 import quantify_core.data.handling as dh
-import quantify_core.data.dataset as dd
+import quantify_core.data.dataset_attrs as dd
 
 
 def mk_dataset_attrs(**kwargs) -> dict:

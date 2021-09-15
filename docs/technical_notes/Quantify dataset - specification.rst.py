@@ -16,7 +16,7 @@
 # %%
 # %load_ext autoreload
 # %autoreload 1
-# %aimport quantify_core.data.dataset
+# %aimport quantify_core.data.dataset_attrs
 
 # %% [raw]
 # .. _dataset-spec:
@@ -40,7 +40,7 @@ from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import get_datadir, set_datadir
-import quantify_core.data.dataset as dd
+import quantify_core.data.dataset_attrs as dd
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
@@ -319,14 +319,14 @@ _ = dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
 # Tha mandatory attributes of the Quantify dataset are defined be the following dataclass.
 # It can be used to generate a default dictionary that is attached to a dataset.
 #
-# .. autoclass:: quantify_core.data.dataset.QDatasetAttrs
+# .. autoclass:: quantify_core.data.dataset_attrs.QDatasetAttrs
 #     :members:
 #     :noindex:
 #     :show-inheritance:
 #
 
 # %%
-from quantify_core.data.dataset import QDatasetAttrs
+from quantify_core.data.dataset_attrs import QDatasetAttrs
 
 # tip: to_json and from_dict, from_json  are also available
 dataset_2d_example.attrs = QDatasetAttrs().to_dict()
@@ -347,7 +347,7 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # %% [raw]
-# .. autoclass:: quantify_core.data.dataset.QExpCoordAttrs
+# .. autoclass:: quantify_core.data.dataset_attrs.QExpCoordAttrs
 #     :members:
 #     :noindex:
 #     :show-inheritance:
@@ -357,7 +357,7 @@ dataset_2d_example.amp.attrs
 
 
 # %% [raw]
-# .. autoclass:: quantify_core.data.dataset.QExpVarAttrs
+# .. autoclass:: quantify_core.data.dataset_attrs.QExpVarAttrs
 #     :members:
 #     :noindex:
 #     :show-inheritance:
