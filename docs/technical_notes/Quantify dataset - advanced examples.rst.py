@@ -13,6 +13,103 @@
 #     name: python3
 # ---
 
+# %%
+# %load_ext autoreload
+# %autoreload 1
+# %aimport quantify_core.data.dataset_attrs
+# %aimport quantify_core.data.dataset_adapters
+# %aimport quantify_core.utilities.examples_support
+
+# %% [raw]
+# .. admonition:: Imports and auxiliary utilities
+#     :class: dropdown
+
+# %%
+# rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+
+import numpy as np
+import xarray as xr
+import matplotlib.pyplot as plt
+from quantify_core.data import handling as dh
+from quantify_core.measurement import grid_setpoints
+from qcodes import ManualParameter
+from rich import pretty
+from pathlib import Path
+from quantify_core.data.handling import get_datadir, set_datadir
+import quantify_core.data.dataset_attrs as dd
+from quantify_core.utilities.examples_support import (
+    mk_dataset_attrs,
+    mk_exp_coord_attrs,
+    mk_exp_var_attrs,
+    dataset_round_trip,
+    par_to_attrs,
+)
+
+from typing import List, Tuple
+
+pretty.install()
+
+set_datadir(Path.home() / "quantify-data")  # change me!
+
+# rst-json-conf: {"indent": "    "}
+
+
+def generate_mock_iq_data(
+    n_shots, sigma=0.3, center0=(1, 1), center1=(1, -1), prob=0.5
+):
+    """
+    Generates two clusters of I,Q points with a Gaussian distribution.
+    """
+    i_data = np.zeros(n_shots)
+    q_data = np.zeros(n_shots)
+    for i in range(n_shots):
+        c = center0 if (np.random.rand() >= prob) else center1
+        i_data[i] = np.random.normal(c[0], sigma)
+        q_data[i] = np.random.normal(c[1], sigma)
+    return i_data + 1j * q_data
+
+
+def generate_exp_decay_probablity(time: np.ndarray, tau: float):
+    return np.exp(-time / tau)
+
+
+def generate_trace_time(sampling_rate: float = 1e9, trace_duratation: float = 0.3e-6):
+    trace_length = sampling_rate * trace_duratation
+    return np.arange(0, trace_length, 1) / sampling_rate
+
+
+def generate_trace_for_iq_point(
+    iq_amp: complex,
+    tbase: np.ndarray = generate_trace_time(),
+    intermediate_freq: float = 50e6,
+) -> tuple:
+    """
+    Generates mock traces that a physical instrument would digitize for the readout of
+    a transmon qubit.
+    """
+
+    return iq_amp * np.exp(2.0j * np.pi * intermediate_freq * tbase)
+
+
+def plot_centroids(ax, ground, excited):
+    ax.plot(
+        [ground[0]],
+        [ground[1]],
+        label="|0>",
+        marker="o",
+        color="C3",
+        markersize=10,
+    )
+    ax.plot(
+        [excited[0]],
+        [excited[1]],
+        label="|1>",
+        marker="^",
+        color="C4",
+        markersize=10,
+    )
+
+
 # %% [raw]
 # A "weird"/"unstructured" experiment and dataset example
 # =======================================================

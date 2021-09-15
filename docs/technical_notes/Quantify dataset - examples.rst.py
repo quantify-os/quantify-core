@@ -13,14 +13,16 @@
 #     name: python3
 # ---
 
-# %% [raw]
-# Quantify dataset specification
-# ==============================
+# %%
+# %load_ext autoreload
+# %autoreload 1
+# %aimport quantify_core.data.dataset_attrs
+# %aimport quantify_core.data.dataset_adapters
+# %aimport quantify_core.utilities.examples_support
 
 # %% [raw]
-# .. warning::
-#
-#     I have "removed" all the text from the docs build so that you can focus on seeing how the same datasets would look like in a new format proposal.
+# Quantify dataset - examples
+# ===========================
 
 # %% [raw]
 # .. admonition:: Imports and auxiliary utilities
@@ -38,7 +40,7 @@ from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import get_datadir, set_datadir
-import quantify_core.data.dataset as dd
+import quantify_core.data.dataset_attrs as dd
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
@@ -49,42 +51,9 @@ from quantify_core.utilities.examples_support import (
 
 from typing import List, Tuple
 
-from importlib import reload
-
-reload(dd)
-
 pretty.install()
 
 set_datadir(Path.home() / "quantify-data")  # change me!
-
-# %% [raw]
-# .. _sec-experiment-coordinates-and-variables:
-#
-# Quantify dataset: conventions
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# The Quantify dataset is an xarray dataset that follows certain conventions. We define the following terminology:
-#
-# - **Experiment coordinate(s)**
-#     - Xarray **Coordinates** following the naming convention ``f"x{i}"`` with ``i >= 0`` an integer.
-#     - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
-# - **Experiment variable(s)**
-#     - Xarray **Variables** following the naming convention ``f"y{i}"`` with ``i >= 0`` an integer.
-#     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-#
-# .. note::
-#
-#     From this subsection onward we show exemplary datasets to highlight the details of the Quantify dataset specification.
-#     However, keep in mind that we always show a valid Quantify dataset with all the required properties (except when exemplifying a bad dataset).
-#
-# Quantify dataset: 2D example
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-# In the dataset below we have two experiment coordinates ``x0`` and ``x1``; and two experiment variables ``y0`` and ``y1``. Both experiment coordinates lie along one dimension, ``dim_0``. Both experiment variables lie along two dimensions ``dim_0`` and ``repetitions``.
-
-# %% [raw]
-# .. admonition:: Generate data
-#     :class: dropdown
 
 # %%
 ## rst-json-conf: {"indent": "    "}
@@ -129,9 +98,6 @@ dataset = dataset_2d_example = xr.Dataset(
 assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
-# %% [raw]
-# As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use cases fit within this paradigm. However, when possible the dataset can be converted to take advantage of the xarray built-in utilities:
-
 # %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset_2d_example,
@@ -141,41 +107,8 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetition_dim_0")
 _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
 
-# %% [markdown]
-# In xarray it is possible to average along a dimension which can be very convenient:
-
 # %%
 _ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
-
-# %% [raw]
-# Quantify dataset: detailed specification
-# ----------------------------------------
-
-# %% [raw]
-# Xarray dimensions
-# ~~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# The Quantify dataset has has the following required and optional dimensions:
-#
-# - **[Optional]** ``repetition``
-#
-#     - The only outermost dimension that the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` can have.
-#     - Intuition for this xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
-#     - Default behavior of plotting tools will be to average the dataset along this dimension.
-#     - The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` must lie along this dimension when more than one repetition of the experiement was performed.
-#     - **[Optional]** The ``repetition`` dimension can be indexed by an optional xarray coordinate variable.
-#
-#         - **[Required]** The variable must be named ``repetition`` as well.
-#
-#     - **[Required]** No other outer xarray dimensions are allowed.
-#
-
-# %% [raw]
-# .. admonition:: Examples good datasets (repetition)
-#     :class: dropdown
-#
-#     As shown in the :ref:`Xarray overview` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetition`` dimension is indexed by the ``repetition`` xarray coordinate variable:
 
 # %%
 ## rst-json-conf: {"indent": "    "}
@@ -218,247 +151,11 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded
 
-# %% [raw]
-#     It is now possible to retrieve (select) a specific entry along the repetition dimension:
-
 # %%
 ## rst-json-conf: {"indent": "    "}
 
 dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
 pass
-
-# %% [raw]
-# .. admonition:: Examples bad datasets (repetition)
-#     :class: dropdown
-#
-#      To be added:
-#
-#     - Dataset with an outer dimension.
-#     - Dataset with a coordinate variable named "repetition" that is not indexing the ``repetition`` dimension.
-
-# %% [raw]
-# - **[Required]** ``dim_0``
-#
-#     - The outermost dimension of the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`.
-#     - The first inner dimension of the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` (the outermost is the ``repetition`` dimension).
-#
-
-# %% [raw]
-# .. admonition:: Examples good datasets (dim_0)
-#     :class: dropdown
-
-# %%
-# rst-json-conf: {"indent": "    "}
-
-dataset_2d_example
-
-# %% [raw]
-# .. admonition:: Examples bad datasets (dim_0)
-#     :class: dropdown
-#
-#     To be added:
-#
-#     - `x0` and `y0` with some other dimension then ``dim_0``.
-
-# %% [raw]
-#
-# - **[Optional, Advanced]** other nested xarray dimensions under each ``dim_{i}``
-#
-#     - Intuition: intended primarily for time series, also known as "time trace" or simply trace.
-#     - Other, potentially arbitrarily nested, xarray dimensions under each ``dim_{i}`` is allowed. I.e., **each entry** in a, e.g., ``y3`` xarray variable can be a 1D, or nD array where each "D" has a corresponding xarray dimension.
-#     - Such xarray dimensions can be named arbitrarily.
-#     - Each of such xarray dimension can be *indexed* by an xarray coordinate variable.
-#     - Note: Despite allowing nested demensions, the data type, of each inner most element of the underlying ``numpy`` arrays of the dataset, cannot have be ``dtype=object``. For most uses-cases, this means that all the innermost entries of a coordinate/variable will be of type ``int``, ``float``, ``complex`` or ``str`` (with a fixed maximum lenght). Other ``dtype``\s supported by numpy (except ``object``) moght work but have not been test extensively and we do not recommend using them to avoid issues with the dataset writing/loading.
-#
-
-# %% [raw]
-# .. admonition:: Examples good datasets (other nested dimensions)
-#     :class: dropdown
-#
-#     To be added:
-#
-#     - (fictitious example) time series with a few distinct DACs, where the DACs names index an extra dimension.
-#
-
-# %% [raw]
-# .. admonition:: Examples bad datasets (other nested dimensions)
-#     :class: dropdown
-#
-#     To be added:
-#
-#     - ``time`` coordinate is not indexing the ``time`` dimension.
-#
-
-# %% [raw]
-# Xarray coordinates
-# ~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# Only the following `xarray` coordinates are allowed in the dataset:
-#
-# - **[Required]** The ``x0`` :ref:`experiment coordinate <sec-experiment-coordinates-and-variables>`.
-#
-#     - Usually equivalent to a settable, usually a parameter that an experimentalist "sweeps" in order to observe the effect on some other property of the system being studied.
-#     - For some experiments it might not be suitable to think of a parameter that is being varied. In such cases ``x0`` can be simply an array of integers, e.g. ``np.linspace(0, number_of_points)``.
-#
-# - **[Optional]** Other ``f"x{i}"`` :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`, with ``i`` a positive integer.
-#
-#     - These are the coordinates that index the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. This indexing can be made explicit in a (separate) :class:`xarray.Dataset` instance returned by :func:`quantify_core.data.handling.to_gridded_dataset()` (when the data corresponds to a multi-dimensional grid).
-#
-#     - **[Required]** Each ``x{i}`` must lie along one (and only one) ``dim_{j}`` xarray dimension.
-#
-# - **[Optional]** Other xarray coordinates (that are not :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>`) used to index the nested dimensions.
-#
-#     - Allowed dimension names:
-#
-#         - ``repetition``, or
-#         - ``dim_{i}``, or
-#         - ``<arbitrary_name>`` but with the same name as one of the **nested** dimensions (see :ref:`Xarray dimensions` section above).
-#
-#     - **[Required]** These other xarray coordinates must "lie" along a single dimension (and have the same name).
-#
-
-# %% [raw]
-# .. admonition:: Examples good datasets (coordinates)
-#     :class: dropdown
-#
-#     To be added...
-
-# %% [raw]
-# Xarray variables
-# ~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# The only xarray data variables allowed in the dataset are the :ref:`experiment variables <sec-experiment-coordinates-and-variables>`. Each entry in one of these experiment variables is a data-point in the broad sense, i.e. it can be ``int``/``float``/``complex`` **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
-#
-# All the xarray data variables in the dataset (that are not xarray coordinates) comply with:
-#
-# - Naming:
-#
-#     - ``y{i}`` where ``i => 0`` is an integer; **OR**
-#     - ``y{i}_<arbitrary>`` where ``i => 0`` is an integer such that matches an existing ``y{i}`` in the same dataset.
-#
-#         - This is intended to denote a meaningful connection between ``y{i}`` and ``y{i}_<arbitrary>``.
-#         - **[Required]** The number of elements in ``y{i}`` and ``y{i}_<arbitrary>`` must be the same along the ``dim_{j}`` dimension.
-#         - E.g., the digitized time traces stored in ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)`` represent the same measurement with different levels of detail.
-#
-#     - Rationale: facilitates inspecting and processing the dataset in an intuitive way.
-#
-# - **[Required]** Lie along a ``dim_{i}`` dimension.
-# - **[Optional]** Lie along additional nested xarray dimensions.
-#
-
-# %% [raw]
-# .. admonition:: Examples good datasets (variables)
-#     :class: dropdown
-#
-#     To be added...
-#
-#     - ``y0_trace(repetition, dim_0, time)`` and the demodulated values ``y0(repetition, dim_0)``
-#
-
-# %% [raw]
-#     Dataset with two ``y{i}``:
-
-# %%
-# rst-json-conf: {"indent": "    "}
-
-dataset_2d_example
-
-# %% [raw]
-# Dataset attributes
-# ~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# The dataset must have the following attributes:
-#
-# - ``grid`` (``bool``)
-#
-#     - Specifies if the experiment coordinates are the "unrolled" points (also known as "unstacked") corresponding to a grid. If ``True`` than it is possible to use :func:`quantify_core.data.handling.to_gridded_dataset()` to convert the dataset.
-#
-# - ``grid_uniformly_spaced`` (``bool``)
-#
-#     - Can be ``True`` only if ``grid`` is also ``True``.
-#     - Specifies if all the experiment coordinates are homogeneously spaced. If, e.g., ``x0`` was generated with ``np.logspace(0, 15, 10)`` then this attribute must be ``False``.
-#
-# - ``tuid`` (``str``)
-#
-#     - The unique identifier of the dataset. See :class:`quantify_core.data.types.TUID`.
-#
-# - ``quantify_dataset_version`` (``str``)
-#
-#     - The quantify dataset version.
-
-# %%
-dataset_2d_example.attrs
-
-# %% [raw]
-# Note that xarray automatically provides the attributes as python attributes:
-
-# %%
-dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
-
-# %% [raw]
-# Experiment coordinates and variables attributes
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# Both, the experiment coordinates and the experiment variables, are required to have the following attributes:
-#
-# - ``long_name`` (``str``)
-#
-#     - A human readable name. Usually used as the label of a plot axis.
-#
-# - ``units`` (``str``)
-#
-#     - The unit(s) of this experiment coordinate. If has no units, use an empty string: ``""``. If the units are arbitrary use ``"arb. unit"``.
-#     - NB This attribute was not named ``unit`` to preserve compatibility with xarray plotting methods.
-#
-# Optionally the following attributes may be present as well:
-#
-# - ``batched`` (``bool``)
-#
-#     - Specifies if the data acquisition supported the batched mode. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
-#
-# - ``batch_size`` (``bool``)
-#
-#     - When ``batched=True``, ``batch_size`` specifies the (maximum) size of a batch for this particular experiment coordinate/variables. See also :ref:`.batched and .batch_size <sec-batched-and-batch_size>` section.
-#
-
-# %%
-dataset_2d_example.amp.attrs, dataset_2d_example.time.long_name
-
-
-# %% [raw]
-# Calibration variables and dimensions
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# %% [raw]
-# Calibration points can be tricky to deal with. In addition to the specification above, we describe here how and which kind of calibration points are supported within the Quantify dataset.
-#
-# Calibration points are stored as xarray data variables. We shall refer to them as *calibration variables*. They are similar to the experiment variables with the following differences:
-#
-# - They are xarray data variables named as ``y{j}_calib``.
-# - They must lie along the ``dim_{i}_calib``, i.e. ``y{j}_calib(repetition, dim_{i}_calib, <other nested dimension(s)>)``.
-#
-#     - Note that we would have ``y{j}(repetition, dim_{i}, <other nested dimension(s)>)``.
-#
-# - ``y{i}_<arbitrary>_calib`` must be also present if both ``y{i}_calib`` and ``y{i}_<arbitrary>`` are present in the dataset.
-#
-# .. note::
-#
-#     The number of elements in ``y{j}`` and ``y{j}_calib`` are independent. Usually there are only a few calibration points.
-#
-
-# %% [raw]
-# .. admonition:: Examples good datasets (variables)
-#     :class: dropdown
-#
-#     To be added...
-#
-#     - T1 with calibration points.
-#     - T1 with calibration points and raw traces included also for the calibration points.
-#
 
 # %% [raw]
 # T1 dataset examples
@@ -1129,21 +826,3 @@ trace_example.shape, trace_example.dtype
 trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".")
 _ = trace_example_plt.imag.plot(marker=".")
-
-# %% [raw]
-# Quantify dataset storage format
-# ===============================
-#
-# The Quantify dataset is written to disk and loaded back making use of xarray-supported facilities.
-# Internally we write to disk using:
-
-# %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
-
-import inspect
-from IPython.display import Code
-
-Code(inspect.getsource(dh.write_dataset), language="python")
-
-# %% [raw]
-# Note that we use the h5netcdf engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex type.
