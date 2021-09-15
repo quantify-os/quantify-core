@@ -8,8 +8,6 @@ from dataclasses import dataclass, field
 from typing_extensions import Literal
 from dataclasses_json import DataClassJsonMixin
 
-# TODO: convert to Dataclasses/Traitlets with method # pylint: disable=fixme
-
 
 @dataclass
 class QExpCoordAttrs(DataClassJsonMixin):

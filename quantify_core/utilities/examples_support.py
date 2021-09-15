@@ -7,6 +7,7 @@ from pathlib import Path
 import xarray as xr
 import quantify_core.data.handling as dh
 import quantify_core.data.dataset_attrs as dd
+import quantify_core.data.dataset_adapters as da
 
 
 def mk_dataset_attrs(**kwargs) -> dict:
@@ -36,8 +37,9 @@ def mk_exp_var_attrs(**kwargs) -> dict:
 
 def dataset_round_trip(ds: xr.Dataset) -> xr.Dataset:
     tuid = ds.tuid
+    ds = da.AdapterH5NETCDF.adapt(ds)
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, ds)
-    return dh.load_dataset(tuid)
+    return da.AdapterH5NETCDF.recover(dh.load_dataset(tuid))
 
 
 def par_to_attrs(par) -> dict:

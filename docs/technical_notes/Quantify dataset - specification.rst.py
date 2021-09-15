@@ -17,6 +17,8 @@
 # %load_ext autoreload
 # %autoreload 1
 # %aimport quantify_core.data.dataset_attrs
+# %aimport quantify_core.data.dataset_adapters
+# %aimport quantify_core.utilities.examples_support
 
 # %% [raw]
 # .. _dataset-spec:
@@ -41,6 +43,7 @@ from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import get_datadir, set_datadir
 import quantify_core.data.dataset_attrs as dd
+import quantify_core.data.dataset_adapters as da
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
@@ -153,7 +156,7 @@ dataset = dataset_2d_example = xr.Dataset(
     ),
 )
 
-# assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %% [raw]
@@ -272,6 +275,8 @@ dataset = xr.Dataset(
     ),
 )
 
+assert dataset == dataset_round_trip(dataset)  # confirm read/write
+
 dataset
 
 # %%
@@ -382,5 +387,16 @@ Code(inspect.getsource(dh.write_dataset), language="python")
 
 # %% [raw]
 # Note that we use the ``h5netcdf``` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers type.
+#
+# .. adminition:: TODO
+#     :class: warning
+#
+#     Furthermore, in order to support a variety of attribute types and shapes, in a seemless workflow, some additional tooling is required to be integrated. See sourcecodes below.
+
+# %%
+Code(inspect.getsource(dataset_round_trip), language="python")
+
+# %%
+Code(inspect.getsource(da.AdapterH5NETCDF), language="python")
 
 # %%
