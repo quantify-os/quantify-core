@@ -453,7 +453,7 @@ def test_quantities_of_interest_negative_amp(tmp_test_data_dir):
         "Pi-pulse amplitude"
     ].nominal_value == approx(
         250e-3,
-        abs=5e-3,
+        abs=10e-3,
     )
 
 
