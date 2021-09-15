@@ -161,6 +161,26 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # counter for KeyboardInterrupts to allow forced interrupt
         self._thread_data.events_num = 0
 
+    def __repr__full__(self):
+        gettable_names = [p.name for p in self._gettable_pars]
+        settable_names = [p.name for p in self._settable_pars]
+
+        s = super().__repr__() + "\n"
+        s += f"  settables: {settable_names}\n"
+        s += f"  gettables: {gettable_names}\n"
+        if self._setpoints is None:
+            s += f"  setpoints input: {[s.shape for s in self._setpoints_input]}\n"
+        else:
+            s += f"  setpoints shape: {self._setpoints.shape}\n"
+        return s
+
+    def __repr__(self):
+        return self.__repr__full__()
+
+    def show(self):
+        """ Print short representation of the object to stdout """
+        print(self.__repr__full__())
+
     ############################################
     # Methods used to control the measurements #
     ############################################
