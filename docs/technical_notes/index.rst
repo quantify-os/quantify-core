@@ -8,3 +8,5 @@ Technical notes
 
    Xarray introduction.rst
    Quantify dataset - specification.rst
+   Quantify dataset - examples.rst
+   Quantify dataset - advanced examples.rst

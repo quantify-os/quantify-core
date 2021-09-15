@@ -388,7 +388,7 @@ Code(inspect.getsource(dh.write_dataset), language="python")
 # %% [raw]
 # Note that we use the ``h5netcdf``` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers type.
 #
-# .. adminition:: TODO
+# .. admonition:: TODO
 #     :class: warning
 #
 #     Furthermore, in order to support a variety of attribute types and shapes, in a seemless workflow, some additional tooling is required to be integrated. See sourcecodes below.
