@@ -21,6 +21,11 @@
 # %aimport quantify_core.utilities.examples_support
 
 # %% [raw]
+# .. admonition:: TODO
+#
+#     Write supporting text.
+
+# %% [raw]
 # Quantify dataset - examples
 # ===========================
 

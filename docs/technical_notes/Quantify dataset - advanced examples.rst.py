@@ -21,6 +21,15 @@
 # %aimport quantify_core.utilities.examples_support
 
 # %% [raw]
+# .. admonition:: TODO
+#
+#     Write supporting text.
+
+# %% [raw]
+# Quantify dataset - advanced examples
+# ====================================
+
+# %% [raw]
 # .. admonition:: Imports and auxiliary utilities
 #     :class: dropdown
 
@@ -111,8 +120,8 @@ def plot_centroids(ax, ground, excited):
 
 
 # %% [raw]
-# A "weird"/"unstructured" experiment and dataset example
-# =======================================================
+# An "unstructured" experiment and dataset example
+# ------------------------------------------------
 
 # %% [raw]
 # Schdule reference: `one of the latest papers from DiCarlo Lab <https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
@@ -272,7 +281,7 @@ dataset_gridded
 
 # %% [raw]
 # "Nested MeasurementControl" example
-# ===================================
+# -----------------------------------
 
 # %%
 flux_bias_values = np.linspace(-0.04, 0.04, 12)
