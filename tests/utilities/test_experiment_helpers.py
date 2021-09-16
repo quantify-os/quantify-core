@@ -74,7 +74,7 @@ def test_load_settings_onto_instrument(tmp_test_data_dir):
     assert instr.get("settable_param") == 5
     assert instr.get("gettable_param") == 20
     assert instr.get("none_param") is None
-    assert instr.get("none_param_warning") is 1
+    assert instr.get("none_param_warning") == 1
     assert not instr.get("boolean_param")
 
     instr.close()
