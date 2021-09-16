@@ -18,7 +18,7 @@ The rationale is to keep things as simple as possible and as easy to debug as po
 
 1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix (:code:`.rst.py`). The extra :code:`.rst` suffix is necessary in order to collect the files that are to be converted.
 
-    - You cab also start with a normal notebook :code:`.rst.ipynb` paired with with `.rst.py` percent-formatted script. This is achieved, e.g., with the :`jupytext extension <https://jupytext.readthedocs.io/>`_ for Jupyter Lab.
+    - You can also start with a normal notebook :code:`.rst.ipynb` paired with with `.rst.py` percent-formatted script. This is achieved, e.g., with the `jupytext extension <https://jupytext.readthedocs.io/>`_ for Jupyter Lab.
     - Why `percent format`? To keep the scripts compatible with Jupyter and most IDEs.
 
 2. Version control only the :code:`.rst.py` file. Do not commit the :code:`.rst` nor the :code:`.ipynb` files.
@@ -50,7 +50,7 @@ You might argue that you could just indent the code in the cell instead, which w
 
 The :code:`"jupyter_execute_options"` entry is a list of directive options that will be placed on the line below the :code:`.. jupyter-execute::`.
 
-The above example will produce in the :code:`.rst` file the following:
+The above example will produce the following in the :code:`.rst` file :
 
 .. code-block:: rst
 
