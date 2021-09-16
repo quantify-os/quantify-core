@@ -15,6 +15,7 @@ Unreleased
 * Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
 * Bugfix - Fixed divide by 0 warning in resonator spectroscopy analysis (!216).
 * Bugfix - Fixed snapshot failing for qcodes instruments with dead weakrefs (!221).
+* Bugfix - load_settings_onto_instrument does not try to set parameters to None if they are already None (!225)
 
 0.5.0 (2021-08-06)
 ------------------
