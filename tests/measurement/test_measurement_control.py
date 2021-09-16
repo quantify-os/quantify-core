@@ -203,6 +203,47 @@ class TestMeasurementControl:
     def test_MeasurementControl_name(self):
         assert self.MC.name == "MC"
 
+    def test_repr(self):
+        number_points = 5
+        xvals = np.linspace(0, 2, number_points)
+        yvals = np.linspace(0, 1, number_points * 2)
+
+        self.MC.settables(t)
+        self.MC.setpoints(xvals)
+        self.MC.gettables(sig)
+        repr1 = self.MC.__repr__()
+        _ = self.MC.run()
+        repr2 = self.MC.__repr__()
+        expected = (
+            "<MeasurementControl: MC>\n"
+            "    settables: ['t']\n"
+            "    gettables: ['sig']\n"
+            f"    setpoints shape: ({len(xvals)}, 1)\n"
+        )
+        assert repr1 == repr2 == expected
+
+        self.MC.setpoints_grid([xvals, yvals])
+        repr1 = self.MC.__repr__()
+        expected = (
+            "<MeasurementControl: MC>\n"
+            "    settables: ['t']\n"
+            "    gettables: ['sig']\n"
+            f"    setpoints_grid input shapes: [({len(xvals)},), ({len(yvals)},)]\n"
+        )
+        assert repr1 == expected
+
+        self.MC.settables([t, amp])
+        _ = self.MC.run()
+        repr2 = self.MC.__repr__()
+        expected = (
+            "<MeasurementControl: MC>\n"
+            "    settables: ['t', 'amp']\n"
+            "    gettables: ['sig']\n"
+            f"    setpoints_grid input shapes: [({len(xvals)},), ({len(yvals)},)]\n"
+            f"    setpoints shape: ({len(xvals) * len(yvals)}, 2)\n"
+        )
+        assert repr2 == expected
+
     def test_setpoints(self):
         x = np.linspace(0, 10, 11)
         self.MC.setpoints(x)
@@ -222,7 +263,11 @@ class TestMeasurementControl:
         self.MC.settables(t)
         self.MC.setpoints(xvals)
         self.MC.gettables(sig)
+        print("\n\n")
+        self.MC.show()
         dset = self.MC.run()
+        print("\n\n")
+        self.MC.show()
 
         assert TUID.is_valid(dset.attrs["tuid"])
 

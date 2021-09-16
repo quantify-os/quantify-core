@@ -5,6 +5,7 @@ Changelog
 Unreleased
 ----------
 
+* Analysis - Automatically rotate Rabi data to the axis with the best SNR (#249, !223)
 * Analysis - Added support for calibration points to rotate and scale data to a calibrated axis for single-qubit timedomain experiments (T1, Echo, Ramsey and AllXY) (#227,  !219)
 * Analysis - Added extra constraints to fits for T1, Echo and Ramsey when using a calibrated axis (T1, Echo, Ramsey) (#236,  !219)
 * Bugfix - Solved a bug where a fit would fail for a Ramsey experiment with negative values (#246, !219)
@@ -16,6 +17,7 @@ Unreleased
 * Bugfix - Fixed divide by 0 warning in resonator spectroscopy analysis (!216).
 * Bugfix - Fixed snapshot failing for qcodes instruments with dead weakrefs (!221).
 * Bugfix - load_settings_onto_instrument does not try to set parameters to None if they are already None (!225)
+* MeasurementControl - Added representation with summary of settables, gettables and setpoints (!222).
 
 0.5.0 (2021-08-06)
 ------------------

@@ -161,6 +161,37 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # counter for KeyboardInterrupts to allow forced interrupt
         self._thread_data.events_num = 0
 
+    def __repr__full__(self):
+        gettable_names = [p.name for p in self._gettable_pars]
+        settable_names = [p.name for p in self._settable_pars]
+
+        str_out = super().__repr__() + "\n"
+        str_out += f"    settables: {settable_names}\n"
+        str_out += f"    gettables: {gettable_names}\n"
+
+        if self._setpoints_input is not None:
+            input_shapes = [str_out.shape for str_out in self._setpoints_input]
+            str_out += f"    setpoints_grid input shapes: {input_shapes}\n"
+
+        if self._setpoints is not None:
+            str_out += f"    setpoints shape: {self._setpoints.shape}\n"
+
+        return str_out
+
+    def __repr__(self):
+        """
+        Returns a string containing a summary of this object regarding settables,
+        gettables and setpoints.
+
+        Intended, for example, to give a more useful representation in interactive
+        shells.
+        """
+        return self.__repr__full__()
+
+    def show(self):
+        """Print short representation of the object to stdout."""
+        print(self.__repr__full__())
+
     ############################################
     # Methods used to control the measurements #
     ############################################
@@ -688,6 +719,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
+        # `.setpoints()` and `.setpoints_grid()` cannot be used at the same time
+        self._setpoints_input = None
 
     def setpoints_grid(self, setpoints: Iterable[np.ndarray]):
         """
