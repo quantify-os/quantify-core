@@ -8,7 +8,7 @@ from quantify_core.data.types import TUID
 from quantify_core.data.handling import load_snapshot, get_latest_tuid
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
-
+# pylint: disable=too-many-nested-blocks
 def load_settings_onto_instrument(
     instrument: Instrument, tuid: TUID = None, datadir: str = None
 ):
@@ -44,13 +44,14 @@ def load_settings_onto_instrument(
         )
     for parname, par in instruments[instrument.name]["parameters"].items():
         if (
-            parname in instrument.__dict__["parameters"]
+            parname in instrument.parameters
         ):  # Check that the parameter exists in this instrument
-            if "set" in dir(instrument.__dict__["parameters"][parname]):
+            if "set" in dir(instrument.parameters[parname]):
                 val = par["value"]
                 if val is None:
                     if instrument.parameters[parname]() is None:
-                        # Don't try to set a parameter to None if its value is already None
+                        # Don't try to set a parameter to None if its value is
+                        # already None
                         pass
                     else:
                         # Make sure the parameter is actually a settable
@@ -58,8 +59,8 @@ def load_settings_onto_instrument(
                             instrument.set(parname, par["value"])
                         except (RuntimeError, KeyError, ValueError, TypeError) as exp:
                             warnings.warn(
-                                f"Parameter {parname} of instrument {instrument.name} could "
-                                f"not be set to {val} due to error:\n{exp}"
+                                f"Parameter {parname} of instrument {instrument.name} "
+                                f"could not be set to {val} due to error:\n{exp}"
                             )
                 else:
                     # Make sure the parameter is actually a settable
@@ -67,8 +68,8 @@ def load_settings_onto_instrument(
                         instrument.set(parname, par["value"])
                     except (RuntimeError, KeyError, ValueError, TypeError) as exp:
                         warnings.warn(
-                            f"Parameter {parname} of instrument {instrument.name} could "
-                            f"not be set to {val} due to error:\n{exp}"
+                            f"Parameter {parname} of instrument {instrument.name} "
+                            f"could not be set to {val} due to error:\n{exp}"
                         )
         else:
             warnings.warn(
