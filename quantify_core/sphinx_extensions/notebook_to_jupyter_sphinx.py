@@ -32,7 +32,11 @@ The rationale is to keep things as simple as possible and as easy to debug as po
             "quantify_core.utilities.sphinx_extensions.notebook_to_jupyter_sphinx",
         ]
 
-4. Every time the docs are built by sphinx the :code:`.rst` file corresponding to the :code:`.rst.py` file will be generated automatically.
+4. Add the `.rst.py` file(s) in the same location where you would like the `.rst` output file(s) to be generated.
+
+5. Add the file(s) to a table of contents as you would usually do for normal `.rst` file(s). Mind that you do not need to specify the file extension, however, if you do, it must be :code:`.rst` (and not :code:`.rst.py`!).
+
+6. Every time the docs are built by sphinx, the :code:`.rst` file(s) corresponding to all the :code:`.rst.py` file(s) will be generated under the same directory with the same name. This step will be execute right after sphinx loads its settings from the :code:`conf.py` file.
 
 **Code cells configuration magic comment:**
 
