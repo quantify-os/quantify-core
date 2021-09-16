@@ -512,14 +512,14 @@ def rabi_analysis_obj_bad_fit(tmp_test_data_dir):
 
 
 def test_figures_generated_bad_fit(rabi_analysis_obj_bad_fit):
-    """test that the right figures get created despite failed fit"""
+    """Test that the right figures get created despite failed fit."""
     assert set(rabi_analysis_obj_bad_fit.figs_mpl.keys()) == {
         "Rabi_oscillation",
     }
 
 
 def test_quantities_of_interest_bad_fit(rabi_analysis_obj_bad_fit):
-    """Test that the quantities of interest exist for a bad fit"""
+    """Test that the quantities of interest exist for a bad fit."""
     assert set(rabi_analysis_obj_bad_fit.quantities_of_interest.keys()) == {
         "Pi-pulse amplitude",
         "fit_msg",
