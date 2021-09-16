@@ -46,17 +46,30 @@ def load_settings_onto_instrument(
         if (
             parname in instrument.__dict__["parameters"]
         ):  # Check that the parameter exists in this instrument
-            if "set" in dir(
-                instrument.__dict__["parameters"][parname]
-            ):  # Make sure the parameter is actually a settable
-                try:
-                    val = par["value"]
-                    instrument.set(parname, par["value"])
-                except (RuntimeError, KeyError, ValueError, TypeError) as exp:
-                    warnings.warn(
-                        f"Parameter {parname} of instrument {instrument.name} could "
-                        f"not be set to {val} due to error:\n{exp}"
-                    )
+            if "set" in dir(instrument.__dict__["parameters"][parname]):
+                val = par["value"]
+                if val is None:
+                    if instrument.parameters[parname]() is None:
+                        # Don't try to set a parameter to None if its value is already None
+                        pass
+                    else:
+                        # Make sure the parameter is actually a settable
+                        try:
+                            instrument.set(parname, par["value"])
+                        except (RuntimeError, KeyError, ValueError, TypeError) as exp:
+                            warnings.warn(
+                                f"Parameter {parname} of instrument {instrument.name} could "
+                                f"not be set to {val} due to error:\n{exp}"
+                            )
+                else:
+                    # Make sure the parameter is actually a settable
+                    try:
+                        instrument.set(parname, par["value"])
+                    except (RuntimeError, KeyError, ValueError, TypeError) as exp:
+                        warnings.warn(
+                            f"Parameter {parname} of instrument {instrument.name} could "
+                            f"not be set to {val} due to error:\n{exp}"
+                        )
         else:
             warnings.warn(
                 f"{instrument.name} does not possess a parameter {parname}. Could not "
