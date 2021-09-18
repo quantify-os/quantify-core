@@ -60,8 +60,8 @@ def test_load_settings_onto_instrument(tmp_test_data_dir):
 
     with pytest.warns(
         UserWarning,
-        match="DummyInstrument does not possess a parameter obsolete_param. Could not "
-        "set parameter.",
+        match="Could not set parameter obsolete_param in DummyInstrument. "
+        "DummyInstrument does not possess a parameter named obsolete_param.",
     ):
         load_settings_onto_instrument(instr, tuid)
 

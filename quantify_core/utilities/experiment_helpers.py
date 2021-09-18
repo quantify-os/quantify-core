@@ -2,13 +2,13 @@
 # Licensed according to the LICENCE file on the master branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Union
+from typing import Union, Any
 from qcodes import Instrument
 from quantify_core.data.types import TUID
 from quantify_core.data.handling import load_snapshot, get_latest_tuid
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
-# pylint: disable=too-many-nested-blocks
+
 def load_settings_onto_instrument(
     instrument: Instrument, tuid: TUID = None, datadir: str = None
 ):
@@ -42,39 +42,37 @@ def load_settings_onto_instrument(
                 instrument.name, datadir, tuid
             )
         )
+
+    def _try_to_set_par(instrument: Instrument, parname: str, value: Any):
+        """Tries to set a parameter and emits a warning if not successful."""
+
+        # Make sure the parameter is actually a settable
+        try:
+            instrument.set(parname, value)
+        except (RuntimeError, KeyError, ValueError, TypeError) as exc:
+            warnings.warn(
+                f"Parameter {parname} of instrument {instrument.name} "
+                f"could not be set to {value} due to error:\n{exc}"
+            )
+
     for parname, par in instruments[instrument.name]["parameters"].items():
-        if (
-            parname in instrument.parameters
-        ):  # Check that the parameter exists in this instrument
+        # Check that the parameter exists in this instrument
+        if parname in instrument.parameters:
             if "set" in dir(instrument.parameters[parname]):
-                val = par["value"]
-                if val is None:
+                value = par["value"]
+                if value is None:
                     if instrument.parameters[parname]() is None:
                         # Don't try to set a parameter to None if its value is
                         # already None
                         pass
                     else:
-                        # Make sure the parameter is actually a settable
-                        try:
-                            instrument.set(parname, par["value"])
-                        except (RuntimeError, KeyError, ValueError, TypeError) as exp:
-                            warnings.warn(
-                                f"Parameter {parname} of instrument {instrument.name} "
-                                f"could not be set to {val} due to error:\n{exp}"
-                            )
+                        _try_to_set_par(instrument, parname, value)
                 else:
-                    # Make sure the parameter is actually a settable
-                    try:
-                        instrument.set(parname, par["value"])
-                    except (RuntimeError, KeyError, ValueError, TypeError) as exp:
-                        warnings.warn(
-                            f"Parameter {parname} of instrument {instrument.name} "
-                            f"could not be set to {val} due to error:\n{exp}"
-                        )
+                    _try_to_set_par(instrument, parname, value)
         else:
             warnings.warn(
-                f"{instrument.name} does not possess a parameter {parname}. Could not "
-                "set parameter."
+                f"Could not set parameter {parname} in {instrument.name}. "
+                f"{instrument.name} does not possess a parameter named {parname}."
             )
 
 
