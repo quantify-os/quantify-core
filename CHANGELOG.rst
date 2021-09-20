@@ -17,6 +17,7 @@ Unreleased
 * Bugfix - load_settings_onto_instrument does not try to set parameters to None if they are already None (#232, !225)
 * Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
 * MeasurementControl - Added representation with summary of settables, gettables and setpoints (!222).
+* InstrumentMonitor - Extended Instrument Monitor to handle submodules and channels (#213, !226).
 
 0.5.0 (2021-08-06)
 ------------------
