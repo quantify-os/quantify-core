@@ -783,7 +783,6 @@ def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
             "post_delay",
             "vals",
             "instrument",
-            "submodules",
             "functions",
             "__class__",
             "raw_value",

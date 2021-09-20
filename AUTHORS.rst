@@ -3,7 +3,7 @@ Credits
 =======
 
 Developers
-----------------
+----------
 
 * Adriaan Rol <adriaan@orangeqs.com>
 * Callum Attryde <cattryde@qblox.com>
@@ -22,3 +22,4 @@ Contributors
 
 * Pieter Eendebak <pieter.eendebak@tno.nl>
 * Sander de Snoo <S.L.deSnoo@tudelft.nl>
+* Harold Meerwaldt <h.b.meerwaldt@tudelft.nl>

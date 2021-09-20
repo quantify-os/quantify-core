@@ -1,2 +1,5 @@
 # Migrate code style to Black
 12d524f3addb12d049f24b2c385847a14f37c6c6
+
+# Fix line endings to unix-style
+0bf2687cc47deffc07bf8e91acbc10793e2d61ec
