@@ -18,7 +18,7 @@ The rationale is to keep things as simple as possible and as easy to debug as po
 
 1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix (:code:`.rst.py`). The extra :code:`.rst` suffix is necessary in order to collect the files that are to be converted.
 
-    - You cab also start with a normal notebook :code:`.rst.ipynb` paired with with `.rst.py` percent-formatted script. This is achieved, e.g., with the :`jupytext extension <https://jupytext.readthedocs.io/>`_ for Jupyter Lab.
+    - You can also start with a normal notebook :code:`.rst.ipynb` paired with with `.rst.py` percent-formatted script. This is achieved, e.g., with the `jupytext extension <https://jupytext.readthedocs.io/>`_ for Jupyter Lab.
     - Why `percent format`? To keep the scripts compatible with Jupyter and most IDEs.
 
 2. Version control only the :code:`.rst.py` file. Do not commit the :code:`.rst` nor the :code:`.ipynb` files.
@@ -32,11 +32,19 @@ The rationale is to keep things as simple as possible and as easy to debug as po
             "quantify_core.utilities.sphinx_extensions.notebook_to_jupyter_sphinx",
         ]
 
-4. Every time the docs are built by sphinx the :code:`.rst` file corresponding to the :code:`.rst.py` file will be generated automatically.
+4. Add the `.rst.py` file(s) in the same location where you would like the `.rst` output file(s) to be generated.
+
+5. Add the file(s) to a table of contents as you would usually do for normal `.rst` file(s). Mind that you do not need to specify the file extension, however, if you do, it must be :code:`.rst` (and not :code:`.rst.py`!).
+
+6. Every time the docs are built by sphinx, the :code:`.rst` file(s) corresponding to all the :code:`.rst.py` file(s) will be generated under the same directory with the same name. This step will be executed right after sphinx loads its settings from the :code:`conf.py` file.
+
+.. note::
+
+    This extension will not process all :code:`.rst.py` files but will only write to disk the files that result in different contents compared to the contents of the existing :code:`.rst` file. Since sphinx is efficient and does not process files that have not changed, this speeds up the development time.
 
 **Code cells configuration magic comment:**
 
-Sometimes it is necessary to pass some configuration options to this extension in order for it to produce the indented output from code cells. To achieve this a magic comment is used, currently supporting to configuration keys. The configuration is a dictionary that will be parsed as json.
+Sometimes it is necessary to pass some configuration options to this extension in order for it to produce the indented output from code cells. To achieve this a magic comment is used, currently supporting two configuration keys. The configuration is a dictionary that will be parsed as json.
 
 .. code-block:: python
 
@@ -50,7 +58,7 @@ You might argue that you could just indent the code in the cell instead, which w
 
 The :code:`"jupyter_execute_options"` entry is a list of directive options that will be placed on the line below the :code:`.. jupyter-execute::`.
 
-The above example will produce in the :code:`.rst` file the following:
+The above example will produce the following in the :code:`.rst` file :
 
 .. code-block:: rst
 
@@ -64,7 +72,10 @@ The above example will produce in the :code:`.rst` file the following:
     If you wan to suppress the output of a final line in a notebook cell you could
     usually use a :code:`;`. However, if you use a python auto formatter like black in
     the repository, it will get removed.
-    To achieve the same effect add :code:`pass` on the last line of a cell, instead.
+    To achieve the same effect assign the output of the last line of a cell to the
+    :code:`_` variable. E.g., :code:`_ = plt.plot(...)`. You can read more about this
+    python feature
+    `here <https://www.datacamp.com/community/tutorials/role-underscore-python>`_.
 
 .. admonition:: Possible enhancements
 
@@ -78,7 +89,7 @@ The above example will produce in the :code:`.rst` file the following:
     Unfortunately it seems that it is not possible to make Jupyter Lab highlight the
     rst code in the (raw) cells of a notebook, which would be useful for this extension.
 
-    There some workarounds for Jupyter Notebook involving cell magics but it is not
+    There are some workarounds for Jupyter Notebook involving cell magics but it is not
     quite worth the effort.
 
 
@@ -88,7 +99,6 @@ The above example will produce in the :code:`.rst` file the following:
 from __future__ import annotations
 
 from typing import List, Tuple
-import time
 import json
 from pathlib import Path
 import jupytext
@@ -233,10 +243,9 @@ def notebook_to_rst(notebook: dict, rst_indent: str = "    ") -> str:
     rst_indent
         See :func:`~.make_jupyter_sphinx_block`.
     """
-    now = time.asctime()
     rst_str = (
         ".. DO NOT EDIT, CHANGES WILL BE LOST!\n"
-        f".. Automatically generated on {now}.\n\n"
+        ".. Automatically generated by a sphinx extension.\n\n"
     )
     for i, cell in enumerate(notebook["cells"]):
         logger.debug(f"Processing cell #{i}.")
@@ -262,6 +271,23 @@ def notebooks_to_rst(app, config) -> None:
     config
         The sphinx config provided by sphinx when calling this function.
     """
+    encoding = "utf-8"
+
+    def _write_required(filepath: Path, text: str) -> bool:
+        """
+        Writes the contents to the file only if these contents will results in a
+        different file.
+        """
+        write = True
+        filepath = Path(filepath)
+        if filepath.is_file():
+            old_contents = filepath.read_text(encoding=encoding)
+            if old_contents == text:
+                # Avoid making sphinx consider that the file has changed
+                write = False
+
+        return write
+
     srcdir = Path(app.srcdir)
     for file in srcdir.rglob("*.rst.py"):
         logger.debug("Converting file...", location=file)
@@ -270,7 +296,9 @@ def notebooks_to_rst(app, config) -> None:
             rst_filepath = file.parent / f"{Path(file.stem).stem}.rst"
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
             rst_str = notebook_to_rst(notebook, rst_indent)
-            Path(rst_filepath).write_text(rst_str, encoding="utf-8")
+            if _write_required(rst_filepath, rst_str):
+                print("\n\n\nWrite required\n\n\n")
+                Path(rst_filepath).write_text(rst_str, encoding=encoding)
         except Exception as e:
             raise ExtensionError(  # pylint: disable=raise-missing-from
                 f"Unexpected error occurred while converting \n{file}.\n\n", orig_exc=e
