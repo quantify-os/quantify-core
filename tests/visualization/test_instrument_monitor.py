@@ -39,7 +39,7 @@ class TestQcSnapshotWidget:
 
         for i in range(10):
             try:
-                cls.widget = r_qc_widget.QcSnaphotWidget()
+                cls.widget = r_qc_widget.QcSnapshotWidget()
             except (ClosedError, ConnectionResetError) as e:
                 # the remote process might crash
                 if i >= 9:
@@ -54,20 +54,28 @@ class TestQcSnapshotWidget:
         cls.widget.close()
 
     def test_buildTreeSnapshot(self):
+        param = {
+            "ts": "latest",
+            "label": "",
+            "unit": "",
+            "name": "string_representation",
+            "value": 1,
+        }
         test_snapshot = {
             "test_snapshot": {
                 "name": "test_snapshot",
-                "parameters": {
-                    "snapshot": {
-                        "ts": "latest",
-                        "label": "",
-                        "unit": "",
-                        "name": "string_representation",
-                        "value": 1,
-                    }
-                },
+                "parameters": {"snapshot": param},
+                "submodules": {"sub1": {"parameters": {"param1": param}}},
+                "channels": {"ch1": {"parameters": {"param1": param}}},
+                "others": {"other1": {"parameters": {"param1": param}}},
             }
         }
         self.widget.buildTreeSnapshot(test_snapshot)
         nodes_str = self.widget.getNodes()
-        assert "test_snapshot" in nodes_str and "QTreeWidgetItem" in nodes_str
+        assert (
+            "test_snapshot" in nodes_str
+            and "QTreeWidgetItem" in nodes_str
+            and "test_snapshot.sub1.param1" in nodes_str
+            and "test_snapshot.ch1.param1" in nodes_str
+            and "test_snapshot.other1.param1" not in nodes_str
+        )

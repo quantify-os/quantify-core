@@ -475,7 +475,7 @@ class RabiModel(lmfit.model.Model):
         (freq_guess, _) = fft_freq_phase_guess(data, drive_amp)
 
         self.set_param_hint("frequency", value=freq_guess, min=0)
-        self.set_param_hint("amplitude", value=amp_guess)
+        self.set_param_hint("amplitude", value=amp_guess, min=0)
         self.set_param_hint("offset", value=offs_guess)
 
         params = self.make_params()

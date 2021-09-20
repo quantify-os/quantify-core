@@ -1,5 +1,6 @@
 import numpy as np
 from qcodes.instrument import Instrument, ManualParameter
+from qcodes.utils import validators
 import pytest
 from quantify_core.utilities.experiment_helpers import (
     create_plotmon_from_historical,
@@ -32,15 +33,35 @@ def test_load_settings_onto_instrument(tmp_test_data_dir):
     instr.add_parameter(
         "boolean_param", initial_value=True, parameter_class=ManualParameter
     )
-    # A parameter which our function will try to set to None
-    instr.add_parameter("none_param", initial_value=1, parameter_class=ManualParameter)
+    # A parameter which is already set to None
+    instr.add_parameter(
+        "none_param",
+        initial_value=None,
+        parameter_class=ManualParameter,
+        vals=validators.Numbers(),
+    )
+    # A parameter which our function will try to set to None, giving a warning
+    instr.add_parameter(
+        "none_param_warning",
+        initial_value=1,
+        parameter_class=ManualParameter,
+        vals=validators.Numbers(),
+    )
+
     # The snapshot also contains an 'obsolete_param', that is not included here.
     # This represents a parameter which is no longer in the qcodes driver.
 
     with pytest.warns(
         UserWarning,
-        match="DummyInstrument does not possess a parameter obsolete_param. Could not "
-        "set parameter.",
+        match="Parameter none_param_warning of instrument DummyInstrument could not be "
+        "set to None due to error",
+    ):
+        load_settings_onto_instrument(instr, tuid)
+
+    with pytest.warns(
+        UserWarning,
+        match="Could not set parameter obsolete_param in DummyInstrument. "
+        "DummyInstrument does not possess a parameter named obsolete_param.",
     ):
         load_settings_onto_instrument(instr, tuid)
 
@@ -53,6 +74,7 @@ def test_load_settings_onto_instrument(tmp_test_data_dir):
     assert instr.get("settable_param") == 5
     assert instr.get("gettable_param") == 20
     assert instr.get("none_param") is None
+    assert instr.get("none_param_warning") == 1
     assert not instr.get("boolean_param")
 
     instr.close()

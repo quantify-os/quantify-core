@@ -45,12 +45,6 @@ single_qubit_timedomain
     :members:
     :show-inheritance:
 
-rabi_analysis
--------------
-
-.. automodule:: quantify_core.analysis.rabi_analysis
-    :members:
-    :show-inheritance:
 
 interpolation_analysis
 ----------------------

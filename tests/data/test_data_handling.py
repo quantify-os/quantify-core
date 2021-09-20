@@ -9,12 +9,13 @@ from datetime import datetime
 import json
 import dateutil
 import uncertainties
+import gc
 
 
 import pytest
 import xarray as xr
 import numpy as np
-from qcodes import ManualParameter
+from qcodes import ManualParameter, Instrument
 from qcodes.utils.helpers import NumpyJSONEncoder
 from quantify_core.data.types import TUID
 from quantify_core.measurement.control import MeasurementControl
@@ -414,11 +415,26 @@ def test_snapshot():
     test_MC = MeasurementControl(name="MC")
 
     test_MC.update_interval(0.77)
+
     snap = dh.snapshot()
+
     assert snap["instruments"].keys() == {"MC"}
     assert snap["instruments"]["MC"]["parameters"]["update_interval"]["value"] == 0.77
 
     test_MC.close()
+
+
+def test_snapshot_dead_instruments():
+    """Ensure that the snapshot does not attempt to access dead instruments."""
+    instrument_a = Instrument("a")
+    instrument_b = Instrument("b")
+    instrument_a = 123
+    gc.collect()
+
+    snap = dh.snapshot()
+
+    assert "a" not in dh.snapshot()["instruments"]
+    assert dh.snapshot()["instruments"].keys() == {"b"}
 
 
 def test_dynamic_dataset():

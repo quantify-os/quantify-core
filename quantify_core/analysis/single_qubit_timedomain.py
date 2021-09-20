@@ -97,7 +97,10 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         and if calibration points are present for the 0 and 1 state, populates
         self.dataset_processed.pop_exc with the excited state population.
         """
-        if self.dataset.y1.units == "deg":
+        if not hasattr(self.dataset, "y1"):
+            self.dataset_processed["S21"] = self.dataset.y0
+
+        elif self.dataset.y1.units == "deg":
             self.dataset_processed["S21"] = self.dataset.y0 * np.exp(
                 1j * np.deg2rad(self.dataset.y1)
             )
@@ -617,5 +620,153 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
             self.dataset_processed.pop_exc.units,
         )
         ax.legend(loc=4)
+
+        set_suptitle_from_dataset(fig, self.dataset)
+
+
+class RabiAnalysis(SingleQubitTimedomainAnalysis):
+    """
+    Fits a cosine curve to Rabi oscillation data and finds the qubit drive
+    amplitude required to implement a pi-pulse.
+
+    The analysis will automatically rotate the data so that the data lies along the
+    axis with the best SNR.
+    """
+
+    # pylint: disable=arguments-differ
+    def _rotate_to_calibrated_axis(self):
+        """
+        If calibration points are True, automatically determine the point farthest
+        from the 0 point to use as a reference to rotate the data.
+
+        This will ensure the data lies along the axis with the best SNR.
+        """
+
+        # index closest to rabi-pulse amplitude = 0
+        min_idx = abs(self.dataset_processed.x0.values).argmin()
+        # transmission measured for Rabi-pulse amplitude closest to 0
+        min_val = self.dataset_processed.S21[min_idx]
+
+        # find index with max absolute difference (distance in IQ space) to the S21_0
+        max_idx = abs(self.dataset_processed.S21 - min_val).argmax()
+        max_val = self.dataset_processed.S21[max_idx]
+
+        rotation_angle = np.angle(max_val - min_val)
+        rot_data = self.dataset_processed.S21 * np.exp(-1j * rotation_angle)
+
+        self.dataset_processed["S21_rot"] = rot_data
+        self.dataset_processed.S21_rot.attrs["name"] = "S21_rot"
+        self.dataset_processed.S21_rot.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.S21_rot.attrs[
+            "long_name"
+        ] = "Rotated transmission $S_{21}^R$"
+
+    def _choose_data_for_fit(self):
+        if self.calibration_points:
+            y_data = self.dataset_processed.S21_rot.real.values
+            x_data = self.dataset_processed.x0.values
+        else:
+            # if the data is not rotated,fit the magnitude of the signal
+            y_data = np.abs(self.dataset_processed.S21.values)
+            x_data = self.dataset_processed.x0.values
+
+        return x_data, y_data
+
+    def run_fitting(self):
+        """
+        Fits a :class:`~quantify_core.analysis.fitting_models.RabiModel` to the data.
+        """
+        model = fm.RabiModel()
+        drive_amplitude, data = self._choose_data_for_fit()
+
+        guess = model.guess(data, drive_amp=drive_amplitude)
+        fit_result = model.fit(data, params=guess, x=drive_amplitude)
+
+        self.fit_results.update({"Rabi_oscillation": fit_result})
+
+    def analyze_fit_results(self):
+        """
+        Checks fit success and populates :code:`.quantities_of_interest`.
+        """
+        fit_result = self.fit_results["Rabi_oscillation"]
+        fit_warning = ba.wrap_text(ba.check_lmfit(fit_result))
+
+        # If there is a problem with the fit, display an error message in the text box.
+        # Otherwise, display the parameters as normal.
+        if fit_warning is None:
+            self.quantities_of_interest["fit_success"] = True
+
+            text_msg = "Summary\n"
+            text_msg += format_value_string(
+                "Pi-pulse amplitude",
+                fit_result.params["amp180"],
+                unit="V",
+                end_char="\n",
+            )
+            text_msg += format_value_string(
+                "Oscillation amplitude",
+                fit_result.params["amplitude"],
+                unit="V",
+                end_char="\n",
+            )
+            text_msg += format_value_string(
+                "Offset", fit_result.params["offset"], unit="V", end_char="\n"
+            )
+        else:
+            text_msg = ba.wrap_text(fit_warning)
+            self.quantities_of_interest["fit_success"] = False
+
+        self.quantities_of_interest["Pi-pulse amplitude"] = ba.lmfit_par_to_ufloat(
+            fit_result.params["amp180"]
+        )
+        self.quantities_of_interest["fit_msg"] = text_msg
+
+    def create_figures(self):
+        """Creates Rabi oscillation figure"""
+
+        fig_id = "Rabi_oscillation"
+        fig, ax = plt.subplots()
+        self.figs_mpl[fig_id] = fig
+        self.axs_mpl[fig_id] = ax
+
+        # Add a textbox with the fit_message
+        plot_textbox(ax, self.quantities_of_interest["fit_msg"])
+
+        if self.calibration_points:
+            ax.plot(
+                self.dataset_processed.x0,
+                self.dataset_processed.S21_rot.real,
+                marker=".",
+                linestyle="",
+            )
+
+            set_ylabel(
+                ax,
+                self.dataset_processed.S21_rot.long_name,
+                self.dataset_processed.S21_rot.units,
+            )
+        else:
+            ax.plot(
+                self.dataset_processed.x0,
+                self.dataset_processed.S21.real,
+                marker=".",
+                linestyle="",
+            )
+            set_ylabel(
+                ax,
+                self.dataset_processed.S21.long_name,
+                self.dataset_processed.S21.units,
+            )
+
+        plot_fit(
+            ax=ax,
+            fit_res=self.fit_results["Rabi_oscillation"],
+            plot_init=not self.quantities_of_interest["fit_success"],
+            range_casting="real",
+        )
+
+        set_xlabel(
+            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+        )
 
         set_suptitle_from_dataset(fig, self.dataset)
