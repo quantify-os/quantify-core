@@ -96,7 +96,7 @@ dataset = dataset_2d_example = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[amp_par.name, time_par.name],
-        experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
+        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
     ),
 )
 
@@ -142,7 +142,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[amp_par.name, time_par.name],
-        experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
+        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
     ),
 )
 
@@ -306,7 +306,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
-        experiment_data_vars=[q0_iq_par.name],
+        experiment_vars=[q0_iq_par.name],
     ),
 )
 
@@ -333,7 +333,7 @@ dataset_gridded
 def plot_decay_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
-    y0 = gridded_dataset[gridded_dataset.experiment_data_vars[0]]
+    y0 = gridded_dataset[gridded_dataset.experiment_vars[0]]
     y0.real.plot(ax=ax, marker=".", label="I data")
     y0.imag.plot(ax=ax, marker=".", label="Q data")
     ax.set_title(f"{y0.long_name} shape = {y0.shape}")
@@ -344,7 +344,7 @@ def plot_decay_no_repetition(gridded_dataset, ax=None):
 def plot_iq_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
-    y0 = gridded_dataset[gridded_dataset.experiment_data_vars[0]]
+    y0 = gridded_dataset[gridded_dataset.experiment_vars[0]]
     ax.plot(
         y0.real,
         y0.imag,
@@ -420,7 +420,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
-        experiment_data_vars=[q0_iq_par.name],
+        experiment_vars=[q0_iq_par.name],
         calibration_data_vars_map=[(q0_iq_par.name, f"{q0_iq_par.name}_cal")],
         calibration_coords_map=[(time_par.name, "cal")],
     ),
@@ -589,7 +589,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
-        experiment_data_vars=[q0_iq_par.name, f"{q0_iq_par.name}_shots"],
+        experiment_vars=[q0_iq_par.name, f"{q0_iq_par.name}_shots"],
         calibration_data_vars_map=[
             (q0_iq_par.name, f"{q0_iq_par.name}_cal"),
             (f"{q0_iq_par.name}_shots", f"{q0_iq_par.name}_shots_cal"),
@@ -779,7 +779,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[time_par.name],
-        experiment_data_vars=[
+        experiment_vars=[
             q0_iq_par.name,
             f"{q0_iq_par.name}_shots",
             f"{q0_iq_par.name}_traces",

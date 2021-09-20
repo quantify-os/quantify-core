@@ -255,7 +255,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=["cycle"],
-        experiment_data_vars=[a1],
+        experiment_vars=[a1],
     ),
 )
 
@@ -335,7 +335,7 @@ dataset = xr.Dataset(
         experiment_coords=[
             ("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")
         ],
-        experiment_data_vars=[
+        experiment_vars=[
             "resonator_freq",
             "qubit_freq",
             "t1",

@@ -30,6 +30,9 @@ class QExpCoordAttrs(DataClassJsonMixin):
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset."""
+    is_calibration_coord: bool = False
+    """If ``True``, this experiment coordinates is intended to be a coordinate for
+    an experiment variable that corresponds to calibration data."""
 
     json_attrs: List[str] = field(
         # ``None`` and ``Dict``
@@ -81,6 +84,11 @@ class QExpVarAttrs(DataClassJsonMixin):
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset."""
+    is_calibration_var: bool = False
+    """If ``True``, the data of this experiment variable is intended to be used to
+    calibrate the data of another experiment variable. E.g., this experiment variable
+    could contain the amplitude of a signal for when a qubit is in the excited and
+    ground states."""
 
     json_attrs: List[str] = field(
         # ``None`` and ``Dict``
@@ -124,7 +132,7 @@ class QDatasetAttrs(DataClassJsonMixin):
     """A list specifying the experiment coordinates.
     See :ref:`sec-experiment-coordinates-and-variables` for terminology.
     """
-    experiment_data_vars: List[str] = field(default_factory=list)
+    experiment_vars: List[str] = field(default_factory=list)
     """A list specifying the experiment variables.
     See :ref:`sec-experiment-coordinates-and-variables` for terminology.
     """
@@ -135,9 +143,7 @@ class QDatasetAttrs(DataClassJsonMixin):
     to another calibration coordinate.
     See :ref:`sec-experiment-coordinates-and-variables` for terminology.
     """
-    calibration_data_vars_map: Dict[str, Union[str, List[str]]] = field(
-        default_factory=dict
-    )
+    calibration_vars_map: Dict[str, Union[str, List[str]]] = field(default_factory=dict)
     """A mapping that maps a calibration variable or a list of calibration
     variables to another calibration variable.
     See :ref:`sec-experiment-coordinates-and-variables` for terminology.
@@ -155,7 +161,7 @@ class QDatasetAttrs(DataClassJsonMixin):
             "experiment_state",
             "experiment_start",
             "experiment_end",
-            "calibration_data_vars_map",
+            "calibration_vars_map",
             "calibration_coords_map",
             "software_versions",
         ]

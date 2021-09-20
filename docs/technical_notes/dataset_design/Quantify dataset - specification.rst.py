@@ -76,29 +76,15 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 #
 # - **Experiment coordinate(s)**
 #
-#     - Xarray **Coordinates** whose names are specified in a list inside the dataset attributes under the key ``"experiment_coords"``.
+#     - Xarray **Coordinates** whose names are specified in a list inside the dataset attributes under the key :attr:`~quantify_core.data.dataset_attrs.QExpCoordAttrs.experiment_coords`.
 #     - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
+#     - Often correspond to quantities set through :class:`~quantify_core.measurement.types.Settable`\s.
 #
 # - **Experiment variable(s)**
 #
-#     - Xarray **Variables** whose names are specified in a list inside the dataset attributes under the key ``"experiment_data_vars"``.
+#     - Xarray **Variables** whose names are specified in a list inside the dataset attributes under the key :attr:`~quantify_core.data.dataset_attrs.QExpCoordAttrs.experiment_vars`.
 #     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-#
-# Slightly more elaborate experiment datasets will require to define:
-#
-# - **Calibration coordinate(s)**
-#
-#     - Xarray **Coordinates** whose names are specified as the second element of a tuple in the list (of two-element) tuples inside the dataset attributes under the key ``"calibration_coords_map"``.
-#
-#     - E.g. ``[("x0", "x0_cal"), ("x1", "x1_calibration"), ("time", "qubit_states")]``, where both entries in the tuples are experiment coordinates.
-#     - The calibration coordinates are the coordinates intended to index the calibration variables.
-# - **Calibration variable(s)**
-#
-#     - Xarray **Variables** whose names are specified as the second element of a tuple in the list (of two-element) tuples inside the dataset attributes under the key ``"calibration_data_vars_map"``.
-#
-#     - E.g. ``[("y0", "y0_cal"), ("amp", "amp_calibration"), ("freq", "freq_final")]``, where both entries in the tuples are experiment variables.
-#     - The calibration variables contain information used to calibrate the experiment variables' data. E.g., the amplitude of a signal for when a qubit is in the excited state or ground state.
-#
+#     - Often correspond to quantities returned by :class:`~quantify_core.measurement.types.Gettable`\s.
 #
 # .. note::
 #
@@ -109,12 +95,8 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 # It should give you a more concrete feeling of the details that are exposed afterwards.
 
 # %% [raw]
-# .. admonition:: Quantify dataset: 2D example
+# .. admonition:: Generate dataset
 #     :class: dropdown
-#
-#     In the dataset below we have two experiment coordinates ``amp`` and ``time``; and two experiment variables ``pop_q0`` and ``pop_q1``.
-#     Both experiment coordinates "lie" along one xarray dimension, ``dim_0``.
-#     Both experiment variables lie along two xarray dimensions ``dim_0`` and ``repetitions_dim_0``.
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -133,16 +115,19 @@ y0s = (1 - x0s_norm) * np.sin(
 )  # ~chevron
 y1s = -y0s  # mock inverted population for q1
 
+y0s = y0s / 2 + 0.5  # shift to 0-1 range
+y1s = y1s / 2 + 0.5
+
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
             ("repetition_dim_0", "dim_0"),
-            [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
+            [y0s + y0s * np.random.uniform(-1, 1, y0s.shape) / k for k in (100, 10, 5)],
             mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
         ),
         pop_q1_par.name: (
             ("repetition_dim_0", "dim_0"),
-            [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
+            [y1s + y1s * np.random.uniform(-1, 1, y1s.shape) / k for k in (100, 10, 5)],
             mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
         ),
     },
@@ -152,16 +137,31 @@ dataset = dataset_2d_example = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[amp_par.name, time_par.name],
-        experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
+        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
     ),
 )
 
 assert dataset == dataset_round_trip(dataset)  # confirm read/write
+
+# %% [raw]
+# .. admonition:: Quantify dataset: 2D example
+#     :class: dropdown, toggle-shown
+#
+#     In the dataset below we have two experiment coordinates ``amp`` and ``time``; and two experiment variables ``pop_q0`` and ``pop_q1``.
+#     Both experiment coordinates "lie" along one xarray dimension, ``dim_0``.
+#     Both experiment variables lie along two xarray dimensions ``dim_0`` and ``repetitions_dim_0``.
+
+# %%
+# rst-json-conf: {"indent": "    "}
+
 dataset
 
 # %% [raw]
 #     As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use-cases fit within this paradigm.
 #     However, when possible, the Quantify dataset can be reshaped to take advantage of the xarray built-in utilities. Note, however, that this reshaping will produce an invalid Quantify dataset.
+
+# %%
+dataset.pop_q0.min(), dataset.pop_q0.max()
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -271,7 +271,7 @@ dataset = xr.Dataset(
     },
     attrs=mk_dataset_attrs(
         experiment_coords=[amp_par.name, time_par.name],
-        experiment_data_vars=[pop_q0_par.name, pop_q1_par.name],
+        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
     ),
 )
 
