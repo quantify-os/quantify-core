@@ -7,7 +7,7 @@ In this part of the documentation you will find the dataset specification, start
    :maxdepth: 1
    :caption: Dataset design
 
-   Xarray introduction.rst
-   Quantify dataset - specification.rst
-   Quantify dataset - examples.rst
-   Quantify dataset - advanced examples.rst
+   Xarray introduction
+   Quantify dataset - specification
+   Quantify dataset - examples
+   Quantify dataset - advanced examples
