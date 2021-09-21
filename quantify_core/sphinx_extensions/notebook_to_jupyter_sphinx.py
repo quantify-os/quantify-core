@@ -92,6 +92,31 @@ The above example will produce the following in the :code:`.rst` file :
     There are some workarounds for Jupyter Notebook involving cell magics but it is not
     quite worth the effort.
 
+    **Using python 'docstring' format for raw cells**
+
+    Jupytext allows to contents of raw cells in the `.py` files inside blocks that
+    look like follows:
+
+    .. code:: python
+
+        # %% [raw]
+        '''
+        Raw cell contents
+        goes here
+        '''
+
+    However by default they are saved as
+
+    .. code:: python
+
+        # %% [raw]
+        # Raw cell contents
+        # goes here
+
+    It seem that it is not possible to use the ``'''`` format when saving only the
+    `.py` file. See
+    `this issue on GitHub <https://github.com/mwouts/jupytext/issues/855>`_ for a status
+    on this problem.
 
 
 """  # pylint: disable=line-too-long
