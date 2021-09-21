@@ -14,6 +14,14 @@ The rationale is to keep things as simple as possible and as easy to debug as po
 - Cells in markdown format are ignored.
 - The generated :code:`.rst` output files are written to disk for easy inspection. Note that any problems with the rst text will be flagged by sphinx as coming from the output file of this extension. But you are able to insect it to identify the issue (and correct it in the notebook itself!).
 
+Known alternative
+-----------------
+
+An alternative to this extensions is to use `nbsphinx in combination with jupytext <https://nbsphinx.readthedocs.io/en/latest/custom-formats.html#Example:-Jupytext>`_\. It has neat features, e.g. correctly pointing to the ``.py`` source file. However, `nbsphinx` has some limitations and potentially complicated-to-install dependencies (like pandoc). Such limitations include:
+
+- It is not possible to insert notebook cells inside ``rst`` directives for example inside a drop-down ``.. note::`` directive.
+- Specifying that a raw cell is to be interpreted as ``rst`` is `tricky <https://nbsphinx.readthedocs.io/en/latest/raw-cells.html>`_ and does not seem to be supported in Jupyter Lab.
+
 Usage
 -----
 
@@ -46,12 +54,26 @@ Usage
     existing :code:`.rst` file. Since sphinx is efficient and does not process files
     that have not changed, this speeds up the development time.
 
-**Code cells configuration magic comment:**
+    If you are updating the code that is used in the notebooks you might want to force
+    the rebuild of the ``.rst`` files by adding (temporarily) to the ``conf.py``:
+
+    .. code-block::
+
+        # ...
+        notebook_to_jupyter_sphinx_always_rebuild = True
+        # ...
+
+Code cells configuration magic comment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes it is necessary to pass some configuration options to this extension in order
 for it to produce the indented output from code cells. To achieve this a magic comment
 is used, currently supporting two configuration keys. The configuration is a dictionary
 that will be parsed as json.
+
+.. note::
+
+    An experienced reader might suggest using the metadata of cells for this task, which is a more "clean" way of storing this information. Nonetheless, it would be more difficult for non-experienced users to understand it and edit the "hidden" metadata of a cell in a notebook environment.
 
 .. code-block:: python
 
@@ -89,20 +111,16 @@ The above example will produce the following in the :code:`.rst` file :
     python feature
     `here <https://www.datacamp.com/community/tutorials/role-underscore-python>`_.
 
-.. admonition:: Possible enhancements
+Possible enhancements
+---------------------
 
-    The extension could be enhanced to include the raw rst cells in the notebooks that
-    `jupyter_sphinx` allows to download.
+The extension could be enhanced to include the raw rst cells in the notebooks that `jupyter_sphinx` allows to download.
 
-.. admonition:: Known limitations
-    :class: warning
+Known limitations
+-----------------
 
-    **Code highlighting in Jupyter Lab**
-
-    Unfortunately it seems that it is not possible to make Jupyter Lab highlight the
-    rst code in the (raw) cells of a notebook, which would be useful for this extension.
-
-    There are some workarounds for Jupyter Notebook involving cell magics but it is not
+Code highlighting in Jupyter Lab
+    Unfortunately it seems that it is not possible to make Jupyter Lab highlight the rst code in the (raw) cells of a notebook, which would be useful for this extension. There are some workarounds for Jupyter Notebook involving cell magics but it is not
     quite worth the effort.
 
 Notebook template
@@ -364,8 +382,9 @@ def notebooks_to_rst(app, config) -> None:
             notebook = jupytext.read(file, fmt="py:percent")
             rst_filepath = file.parent / f"{Path(file.stem).stem}.rst"
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
+            always_rebuild = config["notebook_to_jupyter_sphinx_always_rebuild"]
             rst_str = notebook_to_rst(notebook, rst_indent)
-            if _write_required(rst_filepath, rst_str):
+            if always_rebuild or _write_required(rst_filepath, rst_str):
                 Path(rst_filepath).write_text(rst_str, encoding=encoding)
         except Exception as e:
             raise ExtensionError(  # pylint: disable=raise-missing-from
@@ -385,4 +404,13 @@ def setup(app):
         default="    ",
         rebuild="html",
         types=[str],
+    )
+    # Will force the extensions to always write the rst output even if the file would be
+    # the same, this should trigger sphinx in processing the file again, which can be
+    # useful if the source code used in the notebook has changed
+    app.add_config_value(
+        name="notebook_to_jupyter_sphinx_always_rebuild",
+        default=False,
+        rebuild="html",
+        types=[bool],
     )
