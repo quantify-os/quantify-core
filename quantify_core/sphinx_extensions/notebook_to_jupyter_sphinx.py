@@ -297,7 +297,6 @@ def notebooks_to_rst(app, config) -> None:
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
             rst_str = notebook_to_rst(notebook, rst_indent)
             if _write_required(rst_filepath, rst_str):
-                print("\n\n\nWrite required\n\n\n")
                 Path(rst_filepath).write_text(rst_str, encoding=encoding)
         except Exception as e:
             raise ExtensionError(  # pylint: disable=raise-missing-from
