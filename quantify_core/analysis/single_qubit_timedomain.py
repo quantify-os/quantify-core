@@ -145,7 +145,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
 
 # pylint: disable=too-few-public-methods
 class _DecayFigMixin:
-    """A mixin for common logic."""
+    """A mixin for common analysis logic."""
 
     def _create_decay_figure(self, fig_id: str):
         """

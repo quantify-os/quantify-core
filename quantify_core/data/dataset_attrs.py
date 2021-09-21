@@ -1,6 +1,9 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Utilities for dataset (python object) handling."""
+"""
+Utilities for handling the attributes of :class:`xarray.Dataset` and
+:class:`xarray.DataArray` (python objects) handling.
+"""
 # pylint: disable=too-many-instance-attributes
 from __future__ import annotations
 
@@ -135,7 +138,7 @@ class QExpVarAttrs(DataClassJsonMixin):
     E.g. if we would measure a signal ``amplitude`` as a function of ``time``. The
     experiment variable is ``amplitude`` and we would have
     ``experiment_coords=["time"]``. For a 2D dataset we could have
-    ``experiment_coords=["time", "frequency"].
+    ``experiment_coords=["time", "frequency"]``.
     """
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
@@ -251,10 +254,10 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
     coordinate/variable, or the one after a dimension listed in
     ``~QDatasetAttrs.repetition_dims``.
 
-    These dimensions are detected based on :attrs:`~.QExpVarAttrs.is_experiment_coord`
-    and :attrs:`~.QExpCoordAttrs.is_experiment_var` attributes (together with
-    :attrs:`~.QExpVarAttrs.is_calibration_var`
-    and :attrs:`~.QExpCoordAttrs.is_calibration_coord`).
+    These dimensions are detected based on :attr:`~.QExpCoordAttrs.is_experiment_coord`
+    and :attr:`~.QExpVarAttrs.is_experiment_var` attributes (together with
+    :attr:`~.QExpVarAttrs.is_calibration_var`
+    and :attr:`~.QExpCoordAttrs.is_calibration_coord`).
 
     .. warning::
 
@@ -287,8 +290,8 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
 def get_main_calibration_dims(dataset: xr.Dataset) -> List[str]:
     """Returns the 'main' calibration dimensions.
 
-    For details see :func:`~.get_main_dims`, :attrs:`~.QExpVarAttrs.is_calibration_var`
-    and :attrs:`~.QExpCoordAttrs.is_calibration_coord`.
+    For details see :func:`~.get_main_dims`, :attr:`~.QExpVarAttrs.is_calibration_var`
+    and :attr:`~.QExpCoordAttrs.is_calibration_coord`.
 
     Parameters
     ----------
@@ -334,9 +337,9 @@ def get_experiment_vars(dataset: xr.Dataset) -> List[str]:
     Finds the experiment variables in the dataset (except calibration variables).
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attrs:`~.QExpCoordAttrs.is_experiment_var` set to ``True`` [and the
-    :attrs:`~.QExpCoordAttrs.is_calibration_var` set to ``False``] (inside the
-    :attrs:`xarray.DataArray.attrs` dictionary).
+    :attr:`~.QExpVarAttrs.is_experiment_var` set to ``True`` [and the
+    :attr:`~.QExpVarAttrs.is_calibration_var` set to ``False``] (inside the
+    :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
     ----------
@@ -359,9 +362,9 @@ def get_experiment_calibration_vars(dataset: xr.Dataset) -> List[str]:
     Finds the experiment calibration variables in the dataset.
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attrs:`~.QExpCoordAttrs.is_experiment_var` and
-    :attrs:`~.QExpCoordAttrs.is_calibration_var` set to ``True`` (inside the
-    :attrs:`xarray.DataArray.attrs` dictionary).
+    :attr:`~.QExpVarAttrs.is_experiment_var` and
+    :attr:`~.QExpVarAttrs.is_calibration_var` set to ``True`` (inside the
+    :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
     ----------
@@ -384,9 +387,9 @@ def get_experiment_coords(dataset: xr.Dataset) -> List[str]:
     Finds the experiment coordinates in the dataset (except calibration coordinates).
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attrs:`~.QExpCoordAttrs.is_experiment_coord` set to ``True`` [and the
-    :attrs:`~.QExpCoordAttrs.is_calibration_coord` set to ``False``] (inside the
-    :attrs:`xarray.DataArray.attrs` dictionary).
+    :attr:`~.QExpCoordAttrs.is_experiment_coord` set to ``True`` [and the
+    :attr:`~.QExpCoordAttrs.is_calibration_coord` set to ``False``] (inside the
+    :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
     ----------
@@ -409,9 +412,9 @@ def get_experiment_calibration_coords(dataset: xr.Dataset) -> List[str]:
     Finds the experiment calibration coordinates in the dataset.
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attrs:`~.QExpCoordAttrs.is_experiment_coord` and
-    :attrs:`~.QExpCoordAttrs.is_calibration_coord` set to ``True`` (inside the
-    :attrs:`xarray.DataArray.attrs` dictionary).
+    :attr:`~.QExpCoordAttrs.is_experiment_coord` and
+    :attr:`~.QExpCoordAttrs.is_calibration_coord` set to ``True`` (inside the
+    :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
     ----------

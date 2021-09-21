@@ -25,6 +25,14 @@
 #
 # Quantify dataset specification
 # ==============================
+#
+# .. seealso::
+#
+#     The complete source code of this tutorial can be found in
+#
+#     :jupyter-download:notebook:`Quantify dataset - specification`
+#
+#     :jupyter-download:script:`Quantify dataset - specification`
 
 # %% [raw]
 # .. admonition:: Imports and auxiliary utilities
@@ -61,10 +69,10 @@ pretty.install()
 set_datadir(Path.home() / "quantify-data")  # change me!
 
 # %% [raw]
-# This document describes the Qauntify dataset specification.
+# This document describes the Quantify dataset specification.
 # Here we focus on the concepts and terminology specific to the Quantify dataset.
 # It is based on the Xarray dataset, hence, we assume basic familiarity with the :class:`xarray.Dataset`.
-# If you are not familiar with it, we highly recomend to first have a look at the :ref:`xarray-intro` for a brief overview.
+# If you are not familiar with it, we highly recommend to first have a look at the :ref:`xarray-intro` for a brief overview.
 
 # %% [raw]
 # .. _sec-experiment-coordinates-and-variables:
@@ -78,18 +86,18 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 #
 #     - Xarray **Coordinates** whose names are specified in a list inside the dataset attributes under the key :attr:`~quantify_core.data.dataset_attrs.QExpCoordAttrs.experiment_coords`.
 #     - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
-#     - Often correspond to quantities set through :class:`~quantify_core.measurement.types.Settable`\s.
+#     - Often correspond to quantities set through :class:`~quantify_core.measurement.Settable`\s.
 #
 # - **Experiment variable(s)**
 #
 #     - Xarray **Variables** whose names are specified in a list inside the dataset attributes under the key :attr:`~quantify_core.data.dataset_attrs.QExpCoordAttrs.experiment_vars`.
 #     - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-#     - Often correspond to quantities returned by :class:`~quantify_core.measurement.types.Gettable`\s.
+#     - Often correspond to quantities returned by :class:`~quantify_core.measurement.Gettable`\s.
 #
 # .. note::
 #
 #     In this document we show exemplary datasets to highlight the details of the Quantify dataset specification.
-#     However, for completness, we always show a valid Quantify dataset with all the required properties.
+#     However, for completeness, we always show a valid Quantify dataset with all the required properties.
 #
 # In order to follow the rest of this specification more easily have a look at the example below.
 # It should give you a more concrete feeling of the details that are exposed afterwards.
@@ -407,4 +415,4 @@ Code(inspect.getsource(dh.write_dataset), language="python")
 Code(inspect.getsource(dataset_round_trip), language="python")
 
 # %%
-Code(inspect.getsource(da.AdapterH5NETCDF), language="python")
+Code(inspect.getsource(da.AdapterH5NetCDF), language="python")

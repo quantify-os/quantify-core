@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
+#     formats: py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -18,6 +18,14 @@
 #
 # Xarray - brief introduction
 # ===========================
+#
+# .. seealso::
+#
+#     The complete source code of this tutorial can be found in
+#
+#     :jupyter-download:notebook:`Xarray introduction`
+#
+#     :jupyter-download:script:`Xarray introduction`
 #
 # The Quantify dataset is based on :doc:`Xarray <xarray:index>`. This subsection is a very brief overview of some concepts and functionalities of xarray.
 # Here we use only pure xarray concepts and terminology.

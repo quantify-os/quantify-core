@@ -34,7 +34,7 @@ class DatasetAdapter:
         """Inverts the action of the ``.adapt()`` method."""
 
 
-class AdapterH5NETCDF(DatasetAdapter):
+class AdapterH5NetCDF(DatasetAdapter):
     """
     Quantify dataset adapter for the ``h5netcdf`` engine.
 
@@ -109,7 +109,7 @@ class AdapterH5NETCDF(DatasetAdapter):
             The input dictionary.
         inplace
             If ``True`` the value are replaced in place, otherwise a deepcopy of
-            ``attrs``is performed first.
+            ``attrs`` is performed first.
         """
         json_attrs = attrs.get("json_attrs", None)
         # json_attrs might be a numpy array

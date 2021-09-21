@@ -28,6 +28,14 @@
 # %% [raw]
 # Quantify dataset - examples
 # ===========================
+#
+# .. seealso::
+#
+#     The complete source code of this tutorial can be found in
+#
+#     :jupyter-download:notebook:`Quantify dataset - examples`
+#
+#     :jupyter-download:script:`Quantify dataset - examples`
 
 # %% [raw]
 # .. admonition:: Imports and auxiliary utilities

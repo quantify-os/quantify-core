@@ -84,6 +84,18 @@ handling
 .. automodule:: quantify_core.data.handling
     :members:
 
+dataset_adapters
+----------------
+
+.. automodule:: quantify_core.data.dataset_adapters
+    :members:
+
+dataset_attrs
+-------------
+
+.. automodule:: quantify_core.data.dataset_attrs
+    :members:
+
 
 measurement
 ===========

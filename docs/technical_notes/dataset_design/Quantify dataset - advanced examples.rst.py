@@ -28,6 +28,14 @@
 # %% [raw]
 # Quantify dataset - advanced examples
 # ====================================
+#
+# .. seealso::
+#
+#     The complete source code of this tutorial can be found in
+#
+#     :jupyter-download:notebook:`Quantify dataset - advanced examples`
+#
+#     :jupyter-download:script:`Quantify dataset - advanced examples`
 
 # %% [raw]
 # .. admonition:: Imports and auxiliary utilities
@@ -59,8 +67,6 @@ from typing import List, Tuple
 pretty.install()
 
 set_datadir(Path.home() / "quantify-data")  # change me!
-
-# rst-json-conf: {"indent": "    "}
 
 
 def generate_mock_iq_data(
