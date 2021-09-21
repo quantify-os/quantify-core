@@ -121,24 +121,27 @@ y1s = y1s / 2 + 0.5
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y0s + y0s * np.random.uniform(-1, 1, y0s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q0_par),
+                experiment_coords=[amp_par.name, time_par.name]
+            ),
         ),
         pop_q1_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y1s + y1s * np.random.uniform(-1, 1, y1s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q1_par),
+                experiment_coords=[amp_par.name, time_par.name]
+            ),
         ),
     },
     coords={
         amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
         time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
     },
-    attrs=mk_dataset_attrs(
-        experiment_coords=[amp_par.name, time_par.name],
-        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
-    ),
+    attrs=mk_dataset_attrs(main_dims=["dim_0"], repetitions_dims=["repetitions"]),
 )
 
 assert dataset == dataset_round_trip(dataset)  # confirm read/write
@@ -161,18 +164,15 @@ dataset
 #     However, when possible, the Quantify dataset can be reshaped to take advantage of the xarray built-in utilities. Note, however, that this reshaping will produce an invalid Quantify dataset.
 
 # %%
-dataset.pop_q0.min(), dataset.pop_q0.max()
-
-# %%
 # rst-json-conf: {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset_2d_example,
-    dimension="dim_0",
-    coords_names=dataset_2d_example.experiment_coords,
+    dimension=dd.get_main_dims(dataset_2d_example)[0],
+    coords_names=dd.get_experiment_coords(dataset_2d_example),
 )
-dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetition_dim_0")
-_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
+dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[0])
+_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
 
 # %% [raw]
 #     In xarray, among other features, it is possible to average along a dimension which can be very convenient:
@@ -180,7 +180,7 @@ _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
 # %%
 # rst-json-conf: {"indent": "    "}
 
-_ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
+_ = dataset_gridded.pop_q0.mean(dim=dataset_gridded.pop_q0.dims[0]).plot(x="amp")
 
 # %% [raw]
 # Detailed specification
@@ -242,7 +242,7 @@ _ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
 # .. admonition:: Examples datasets with repetition
 #     :class: dropdown
 #
-#     As shown in the :ref:`xarray-intro` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetition_dim_0`` dimension is indexed by the ``repetition_dim_0`` xarray coordinate variable:
+#     As shown in the :ref:`xarray-intro` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetitions`` dimension is indexed by the ``repetitions`` xarray coordinate variable:
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -250,29 +250,32 @@ _ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
 dataset = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q0_par),
+                experiment_coords=[amp_par.name, time_par.name]
+            ),
         ),
         pop_q1_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q1_par),
+                experiment_coords=[amp_par.name, time_par.name]
+            ),
         ),
     },
     coords={
         amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
         time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
         # here we choose to index the repetition dimension with an array of strings
-        "repetition_dim_0": (
-            "repetition_dim_0",
+        "repetitions": (
+            "repetitions",
             ["noisy", "very noisy", "very very noisy"],
         ),
     },
-    attrs=mk_dataset_attrs(
-        experiment_coords=[amp_par.name, time_par.name],
-        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
-    ),
+    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
 )
 
 assert dataset == dataset_round_trip(dataset)  # confirm read/write
@@ -283,17 +286,19 @@ dataset
 # rst-json-conf: {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    dataset,
+    dimension=dd.get_main_dims(dataset)[0],
+    coords_names=dd.get_experiment_coords(dataset),
 )
 dataset_gridded
 
 # %% [raw]
-#     It is now possible to retrieve (select) a specific entry along the ``repetition_dim_0`` dimension:
+#     It is now possible to retrieve (select) a specific entry along the ``repetitions`` dimension:
 
 # %%
 # rst-json-conf: {"indent": "    "}
 
-_ = dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
+_ = dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
 
 # %% [raw]
 # Experiment coordinates
@@ -325,6 +330,11 @@ _ = dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
 # It can be used to generate a default dictionary that is attached to a dataset.
 #
 # .. autoclass:: quantify_core.data.dataset_attrs.QDatasetAttrs
+#     :members:
+#     :noindex:
+#     :show-inheritance:
+#
+# .. autoclass:: quantify_core.data.dataset_attrs.QDatasetIntraRelationship
 #     :members:
 #     :noindex:
 #     :show-inheritance:
@@ -398,5 +408,3 @@ Code(inspect.getsource(dataset_round_trip), language="python")
 
 # %%
 Code(inspect.getsource(da.AdapterH5NETCDF), language="python")
-
-# %%

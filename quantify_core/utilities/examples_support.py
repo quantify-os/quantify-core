@@ -12,11 +12,11 @@ import quantify_core.data.dataset_adapters as da
 
 def mk_dataset_attrs(**kwargs) -> dict:
     tuid = dh.gen_tuid()
-    software_versions = [
-        ("quantify_core", "921f1d4b6ebdbc7221f5fd55b17019283c6ee95e"),
-        ("quantify_scheduler", "0.4.0"),
-        ("qblox_instruments", "0.4.0"),
-    ]
+    software_versions = {
+        "quantify_core": "921f1d4b6ebdbc7221f5fd55b17019283c6ee95e",
+        "my_custom_repo": "<commit hash>",
+        "my_intruments_drivers": "<version number>",
+    }
     attrs = dd.QDatasetAttrs(tuid=tuid, software_versions=software_versions).to_dict()
     attrs.update(kwargs)
 

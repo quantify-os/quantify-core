@@ -227,36 +227,37 @@ data_vars = {}
 
 for q in (a1, a2, a3):
     data_vars[f"{q}_shots"] = (
-        ("repetition_dim_0", "dim_0"),
+        ("repetitions", "dim_cycles"),
         radom_data,
-        mk_exp_var_attrs(units="V", long_name=f"IQ amplitude {q}"),
+        mk_exp_var_attrs(
+            units="V", long_name=f"IQ amplitude {q}", experiment_coords=["cycles"]
+        ),
     )
 
 for q in (d1, d2, d3, d4):
     data_vars[f"{q}_shots"] = (
-        ("repetition_dim_0", "dim_1"),
+        ("repetitions", "dim_final"),
         radom_data_final,
-        mk_exp_var_attrs(units="V", long_name=f"IQ amplitude {q}"),
+        mk_exp_var_attrs(
+            units="V", long_name=f"IQ amplitude {q}", experiment_coords=["final_msmt"]
+        ),
     )
 
 dataset = xr.Dataset(
     data_vars=data_vars,
     coords={
         "cycle": (
-            "dim_0",
+            "dim_cycles",
             cycles,
             mk_exp_coord_attrs(units="", long_name="Surface code cycle number"),
         ),
         "final_msmt": (
-            "dim_1",
+            "dim_final",
             [0],
             mk_exp_coord_attrs(units="", long_name="Final measurement"),
         ),
     },
-    attrs=mk_dataset_attrs(
-        experiment_coords=["cycle"],
-        experiment_vars=[a1],
-    ),
+    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
 )
 
 
@@ -272,10 +273,10 @@ dataset.D1_shots.shape
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=["cycle"]
+    dataset, dimension="dim_cycle", coords_names=["cycle"]
 )
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="dim_1", coords_names=["final_msmt"]
+    dataset_gridded, dimension="dim_final", coords_names=["final_msmt"]
 )
 dataset_gridded
 
@@ -300,14 +301,26 @@ dataset = xr.Dataset(
         "resonator_freq": (
             "dim_0",
             resonator_frequencies,
-            mk_exp_var_attrs(long_name="Resonator frequency", units="Hz"),
+            mk_exp_var_attrs(
+                long_name="Resonator frequency",
+                units="Hz",
+                experiment_coords=["flux_bias"],
+            ),
         ),
         "qubit_freq": (
             "dim_0",
             qubit_frequencies,
-            mk_exp_var_attrs(long_name="Qubit frequency", units="Hz"),
+            mk_exp_var_attrs(
+                long_name="Qubit frequency", units="Hz", experiment_coords=["flux_bias"]
+            ),
         ),
-        "t1": ("dim_0", t1_values, mk_exp_var_attrs(long_name="T1", units="s")),
+        "t1": (
+            "dim_0",
+            t1_values,
+            mk_exp_var_attrs(
+                long_name="T1", units="s", experiment_coords=["flux_bias"]
+            ),
+        ),
     },
     coords={
         "flux_bias": (
@@ -348,12 +361,19 @@ assert dataset == dataset_round_trip(dataset)  # confirm read/write
 dataset
 
 # %%
-dataset_multi_indexed = dataset.set_index({"dim_0": dataset.experiment_coords[0]})
+coords_for_multi_index = dd.get_experiment_coords(dataset)
+coords_for_multi_index
+
+# %% [raw]
+# In this case the four experiment coordinates are not orthogonal coordinates, but instead just different label for the same datapoints, also known as a "multi-index". It is possible to work with an explicit MultiIndex within a (python) xarray object:
+
+# %%
+dataset_multi_indexed = dataset.set_index({"dim_0": coords_for_multi_index})
 
 dataset_multi_indexed
 
-# %% [markdown]
-# The multi-index is very handy:
+# %% [raw]
+# The MultiIndex is very handy for selecting data in different ways, e.g.:
 
 # %%
 dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[2])
@@ -361,29 +381,38 @@ dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[2
 # %%
 dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[2])
 
-# %% [markdown]
-# But has big problem, can't be written to NetCDF (so far):
-
-# %%
-# rst-json-conf: {"jupyter_execute_options": [":raises:"]}
-
-assert dataset_multi_indexed == dataset_round_trip(
-    dataset_multi_indexed
-)  # confirm read/write
+# %% [raw]
+# Known limiations
+# ^^^^^^^^^^^^^^^^
 
 # %% [raw]
-# We could make our load/write utilities take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index.
+# But at the moment has the problem of being incompatible with the NetCDF format used to write to disk:
+
+# %%
+try:
+    assert dataset_multi_indexed == dataset_round_trip(
+        dataset_multi_indexed
+    )  # confirm read/write
+except NotImplementedError as exp:
+    print(exp)
+
+# %% [raw]
+# We could make our load/write utilities to take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index. At the moment the MultiIndex is not supported yet when writing a Quantify dataset to disk. Below are a few examples of potential complications.
+
+# %% [raw]
+# Fortunetly, the MultiIndex can be reset back:
+
+# %%
+dataset_multi_indexed.reset_index(dims_or_levels="dim_0")
 
 # %%
 all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
 
 # %% [raw]
-# But the ``dtype`` has been changed to ``object`` (from fixed-length string) and I do not know why, maybe bug, maybe good reasons to do it so.
+# But, for example, the ``dtype`` has been changed to ``object`` (from fixed-length string):
 
 # %%
 dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
 
 # %%
 dataset.t1_tuids.dtype == dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype
-
-# %%

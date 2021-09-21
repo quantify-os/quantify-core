@@ -80,24 +80,27 @@ y1s = -y0s  # mock inverted population for q1
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q0_par),
+                experiment_coords=[amp_par.name, time_par.name],
+            ),
         ),
         pop_q1_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q1_par),
+                experiment_coords=[amp_par.name, time_par.name],
+            ),
         ),
     },
     coords={
         amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
         time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
     },
-    attrs=mk_dataset_attrs(
-        experiment_coords=[amp_par.name, time_par.name],
-        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
-    ),
+    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
 )
 
 assert dataset == dataset_round_trip(dataset)  # confirm read/write
@@ -106,14 +109,14 @@ dataset
 # %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset_2d_example,
-    dimension="dim_0",
-    coords_names=dataset_2d_example.experiment_coords,
+    dimension=dd.get_main_dims(dataset_2d_example)[0],
+    coords_names=dd.get_experiment_coords(dataset_2d_example),
 )
-dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetition_dim_0")
-_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetition_dim_0")
+dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[0])
+_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
 
 # %%
-_ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
+_ = dataset_gridded.pop_q0.mean(dim=dataset_gridded.pop_q0.dims[0]).plot(x="amp")
 
 # %%
 ## rst-json-conf: {"indent": "    "}
@@ -121,29 +124,32 @@ _ = dataset_gridded.pop_q0.mean(dim="repetition_dim_0").plot(x="amp")
 dataset = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q0_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q0_par),
+                experiment_coords=[amp_par.name, time_par.name],
+            ),
         ),
         pop_q1_par.name: (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(**par_to_attrs(pop_q1_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(pop_q1_par),
+                experiment_coords=[amp_par.name, time_par.name],
+            ),
         ),
     },
     coords={
         amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
         time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
         # here we choose to index the repetition dimension with an array of strings
-        "repetition_dim_0": (
-            "repetition_dim_0",
+        "repetitions": (
+            "repetitions",
             ["noisy", "very noisy", "very very noisy"],
         ),
     },
-    attrs=mk_dataset_attrs(
-        experiment_coords=[amp_par.name, time_par.name],
-        experiment_vars=[pop_q0_par.name, pop_q1_par.name],
-    ),
+    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
 )
 
 dataset
@@ -152,14 +158,14 @@ dataset
 ## rst-json-conf: {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    dataset, dimension="dim_0", coords_names=dd.get_experiment_coords(dataset)
 )
 dataset_gridded
 
 # %%
 ## rst-json-conf: {"indent": "    "}
 
-dataset_gridded.pop_q0.sel(repetition_dim_0="very noisy").plot(x="amp")
+dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
 pass
 
 # %% [raw]
@@ -299,15 +305,18 @@ y0s = np.fromiter(
 
 dataset = xr.Dataset(
     data_vars={
-        q0_iq_par.name: ("dim_0", y0s, mk_exp_var_attrs(**par_to_attrs(q0_iq_par))),
+        q0_iq_par.name: (
+            "dim_0",
+            y0s,
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par), experiment_coords=[time_par.name]
+            ),
+        ),
     },
     coords={
         time_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
     },
-    attrs=mk_dataset_attrs(
-        experiment_coords=[time_par.name],
-        experiment_vars=[q0_iq_par.name],
-    ),
+    attrs=mk_dataset_attrs(),
 )
 
 
@@ -317,7 +326,9 @@ dataset
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    dataset,
+    dimension=dataset.q0_iq.dims[0],
+    coords_names=dd.get_experiment_coords(dataset),
 )
 dataset_gridded
 
@@ -333,7 +344,7 @@ dataset_gridded
 def plot_decay_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
-    y0 = gridded_dataset[gridded_dataset.experiment_vars[0]]
+    y0 = gridded_dataset[dd.get_experiment_vars(gridded_dataset)[0]]
     y0.real.plot(ax=ax, marker=".", label="I data")
     y0.imag.plot(ax=ax, marker=".", label="Q data")
     ax.set_title(f"{y0.long_name} shape = {y0.shape}")
@@ -344,7 +355,7 @@ def plot_decay_no_repetition(gridded_dataset, ax=None):
 def plot_iq_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
-    y0 = gridded_dataset[gridded_dataset.experiment_vars[0]]
+    y0 = gridded_dataset[dd.get_experiment_vars(gridded_dataset)[0]]
     ax.plot(
         y0.real,
         y0.imag,
@@ -403,11 +414,21 @@ y0s_calib = np.fromiter(
 
 dataset = xr.Dataset(
     data_vars={
-        q0_iq_par.name: ("dim_0", y0s, mk_exp_var_attrs(**par_to_attrs(q0_iq_par))),
+        q0_iq_par.name: (
+            "dim_0",
+            y0s,
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par), experiment_coords=[time_par.name]
+            ),
+        ),
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib,
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par),
+                is_calibration_var=True,
+                experiment_coords=["cal"],
+            ),
         ),
     },
     coords={
@@ -415,14 +436,19 @@ dataset = xr.Dataset(
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            mk_exp_coord_attrs(long_name="Q0 State", unit=""),
+            mk_exp_coord_attrs(
+                long_name="Q0 State", unit="", is_calibration_coord=True
+            ),
         ),
     },
     attrs=mk_dataset_attrs(
-        experiment_coords=[time_par.name],
-        experiment_vars=[q0_iq_par.name],
-        calibration_data_vars_map=[(q0_iq_par.name, f"{q0_iq_par.name}_cal")],
-        calibration_coords_map=[(time_par.name, "cal")],
+        relationships=[
+            dd.QDatasetIntraRelationship(
+                item_name=q0_iq_par.name,
+                relation_type="calibration",
+                related_names=[f"{q0_iq_par.name}_cal"],
+            ).to_dict()
+        ]
     ),
 )
 
@@ -433,10 +459,14 @@ dataset
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    dataset,
+    dimension=dd.get_main_dims(dataset)[0],
+    coords_names=dd.get_experiment_coords(dataset),
 )
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="dim_0_cal", coords_names=["cal"]
+    dataset_gridded,
+    dimension=dd.get_main_calibration_dims(dataset_gridded)[0],
+    coords_names=dd.get_experiment_calibration_coords(dataset_gridded),
 )
 dataset_gridded
 
@@ -519,8 +549,11 @@ calib_0, calib_1 = (
     y0_calib_rotated.sel(cal="|1>").values,
 )
 y0_norm = (y0_rotated - calib_0) / (calib_1 - calib_0)
+
+y0_norm.attrs.update(dataset_gridded.q0_iq.attrs)  # retain the attributes
 y0_norm.attrs["long_name"] = "|1> Population"
 y0_norm.attrs["units"] = ""
+
 dataset_tmp = y0_norm.to_dataset()
 dataset_tmp.attrs.update(dataset_gridded.attrs)
 _ = plot_decay_no_repetition(dataset_tmp)
@@ -561,22 +594,34 @@ dataset = xr.Dataset(
         q0_iq_par.name: (
             "dim_0",
             y0s.mean(axis=0),
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par), experiment_coords=[time_par.name]
+            ),
         ),
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib.mean(axis=0),
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par),
+                is_calibration_var=True,
+                experiment_coords=["cal"],
+            ),
         ),
         f"{q0_iq_par.name}_shots": (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             y0s,
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par), experiment_coords=[time_par.name]
+            ),
         ),
         f"{q0_iq_par.name}_shots_cal": (
-            ("repetition_dim_0", "dim_0_cal"),
+            ("repetitions", "dim_0_cal"),
             y0s_calib,
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par),
+                is_calibration_var=True,
+                experiment_coords=["cal"],
+            ),
         ),
     },
     coords={
@@ -584,18 +629,24 @@ dataset = xr.Dataset(
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            mk_exp_coord_attrs(long_name="Q0 State", unit=""),
+            mk_exp_coord_attrs(
+                long_name="Q0 State", unit="", is_calibration_coord=True
+            ),
         ),
     },
     attrs=mk_dataset_attrs(
-        experiment_coords=[time_par.name],
-        experiment_vars=[q0_iq_par.name, f"{q0_iq_par.name}_shots"],
-        calibration_data_vars_map=[
-            (q0_iq_par.name, f"{q0_iq_par.name}_cal"),
-            (f"{q0_iq_par.name}_shots", f"{q0_iq_par.name}_shots_cal"),
-        ],
-        calibration_coords_map=[
-            (time_par.name, "cal"),
+        repetitions_dims=["repetitions"],
+        relationships=[
+            dd.QDatasetIntraRelationship(
+                item_name=q0_iq_par.name,
+                related_names=[f"{q0_iq_par.name}_cal"],
+                relation_type="calibration",
+            ).to_dict(),
+            dd.QDatasetIntraRelationship(
+                item_name=f"{q0_iq_par.name}_shots",
+                related_names=[f"{q0_iq_par.name}_shots_cal"],
+                relation_type="calibration",
+            ).to_dict(),
         ],
     ),
 )
@@ -607,10 +658,14 @@ dataset
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    dataset,
+    dimension=dd.get_main_dims(dataset)[0],
+    coords_names=dd.get_experiment_coords(dataset),
 )
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="dim_0_cal", coords_names=["cal"]
+    dataset_gridded,
+    dimension=dd.get_main_calibration_dims(dataset_gridded)[0],
+    coords_names=dd.get_experiment_calibration_coords(dataset_gridded),
 )
 dataset_gridded
 
@@ -618,9 +673,8 @@ dataset_gridded
 # In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
 
 # %%
-plot_decay_no_repetition(dataset_gridded)
-plot_iq_no_repetition(dataset_gridded)
-pass
+_ = plot_decay_no_repetition(dataset_gridded)
+_ = plot_iq_no_repetition(dataset_gridded)
 
 # %% [raw]
 # Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
@@ -658,16 +712,16 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 
 def plot_iq_decay_repetition(gridded_dataset):
     y0_shots = gridded_dataset.q0_iq_shots
-    y0_shots.real.mean(dim="repetition_dim_0").plot(marker=".", label="I data")
-    y0_shots.imag.mean(dim="repetition_dim_0").plot(marker=".", label="Q data")
+    y0_shots.real.mean(dim="repetitions").plot(marker=".", label="I data")
+    y0_shots.imag.mean(dim="repetitions").plot(marker=".", label="Q data")
     plt.ylabel(f"{y0_shots.long_name} [{y0_shots.units}]")
     plt.suptitle(f"{y0_shots.name} shape = {y0_shots.shape}")
     plt.legend()
 
     fig, ax = plt.subplots(1, 1)
     ax.plot(
-        y0_shots.real.mean(dim="repetition_dim_0"),  # "collapses" outer dimension
-        y0_shots.imag.mean(dim="repetition_dim_0"),  # "collapses" outer dimension
+        y0_shots.real.mean(dim="repetitions"),  # "collapses" outer dimension
+        y0_shots.imag.mean(dim="repetitions"),  # "collapses" outer dimension
         ".-",
         label="Data on IQ plane",
         color="C2",
@@ -728,39 +782,54 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}": (
             "dim_0",
             y0s.mean(axis=0),
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par), experiment_coords=[time_par.name]
+            ),
         ),
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib.mean(axis=0),
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par),
+                is_calibration_var=True,
+                experiment_coords=["cal"],
+            ),
         ),
         f"{q0_iq_par.name}_shots": (
-            ("repetition_dim_0", "dim_0"),
+            ("repetitions", "dim_0"),
             y0s,
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par), experiment_coords=[time_par.name]
+            ),
         ),
         f"{q0_iq_par.name}_shots_cal": (
-            ("repetition_dim_0", "dim_0_cal"),
+            ("repetitions", "dim_0_cal"),
             y0s_calib,
-            mk_exp_var_attrs(**par_to_attrs(q0_iq_par)),
+            mk_exp_var_attrs(
+                **par_to_attrs(q0_iq_par),
+                is_calibration_var=True,
+                experiment_coords=["cal"],
+            ),
         ),
         f"{q0_iq_par.name}_traces": (
-            ("repetition_dim_0", "dim_0", "dim_1"),
+            ("repetitions", "dim_0", "dim_trace"),
             y0s_traces,
             mk_exp_var_attrs(
                 batched=True,
                 batch_size=len(y0s_traces[0][0]),
                 **par_to_attrs(q0_iq_par),
+                experiment_coords=[time_par.name, "trace_time"],
             ),
         ),
         f"{q0_iq_par.name}_traces_cal": (
-            ("repetition_dim_0", "dim_0_cal", "dim_1"),
+            ("repetitions", "dim_0_cal", "dim_trace"),
             y0s_traces_calib,
             mk_exp_var_attrs(
                 batched=True,
                 batch_size=len(y0s_traces_calib[0][0]),
                 **par_to_attrs(q0_iq_par),
+                is_calibration_var=True,
+                experiment_coords=["cal", "trace_time"],
             ),
         ),
     },
@@ -769,28 +838,34 @@ dataset = xr.Dataset(
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            mk_exp_coord_attrs(long_name="Q0 State", unit=""),
+            mk_exp_coord_attrs(
+                long_name="Q0 State", unit="", is_calibration_coord=True
+            ),
         ),
         "trace_time": (
-            "dim_1",
+            "dim_trace",
             generate_trace_time(),
             mk_exp_coord_attrs(long_name="Time", unit="V"),
         ),
     },
     attrs=mk_dataset_attrs(
-        experiment_coords=[time_par.name],
-        experiment_vars=[
-            q0_iq_par.name,
-            f"{q0_iq_par.name}_shots",
-            f"{q0_iq_par.name}_traces",
-        ],
-        calibration_data_vars_map=[
-            (q0_iq_par.name, f"{q0_iq_par.name}_cal"),
-            (f"{q0_iq_par.name}_shots", f"{q0_iq_par.name}_shots_cal"),
-            (f"{q0_iq_par.name}_traces", f"{q0_iq_par.name}_traces_cal"),
-        ],
-        calibration_coords_map=[
-            (time_par.name, "cal"),
+        repetitions_dims=["repetitions"],
+        relationships=[
+            dd.QDatasetIntraRelationship(
+                item_name=q0_iq_par.name,
+                related_names=[f"{q0_iq_par.name}_cal"],
+                relation_type="calibration",
+            ).to_dict(),
+            dd.QDatasetIntraRelationship(
+                item_name=f"{q0_iq_par.name}_shots",
+                related_names=[f"{q0_iq_par.name}_shots_cal"],
+                relation_type="calibration",
+            ).to_dict(),
+            dd.QDatasetIntraRelationship(
+                item_name=f"{q0_iq_par.name}_traces",
+                related_names=[f"{q0_iq_par.name}_traces_cal"],
+                relation_type="calibration",
+            ).to_dict(),
         ],
     ),
 )
@@ -802,13 +877,19 @@ dataset
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dataset.experiment_coords
+    dataset,
+    dimension=dd.get_main_dims(dataset)[0],
+    # returns ['time', 'trace_time'] which is not what we need here
+    # coords_names=dd.get_experiment_coords(dataset)
+    coords_names=["time"],
 )
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="dim_0_cal", coords_names=["cal"]
+    dataset_gridded,
+    dimension=dd.get_main_calibration_dims(dataset_gridded)[0],
+    coords_names=dd.get_experiment_calibration_coords(dataset_gridded),
 )
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_gridded, dimension="dim_1", coords_names=["trace_time"]
+    dataset_gridded, dimension="dim_trace", coords_names=["trace_time"]
 )
 dataset_gridded
 
@@ -820,7 +901,7 @@ dataset_gridded.q0_iq_traces.shape, dataset_gridded.q0_iq_traces.dims
 
 # %%
 trace_example = dataset_gridded.q0_iq_traces.sel(
-    repetition_dim_0=123, time=dataset_gridded.time[-1]
+    repetitions=123, time=dataset_gridded.time[-1]
 )
 trace_example.shape, trace_example.dtype
 
