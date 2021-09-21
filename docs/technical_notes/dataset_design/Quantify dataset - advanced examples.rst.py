@@ -1,7 +1,8 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
+#     cell_markers: '"""'
+#     formats: py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -21,25 +22,31 @@
 # %aimport quantify_core.utilities.examples_support
 
 # %% [raw]
-# .. admonition:: TODO
-#
-#     Write supporting text.
+"""
+.. admonition:: TODO
+
+    Write supporting text.
+"""
 
 # %% [raw]
-# Quantify dataset - advanced examples
-# ====================================
-#
-# .. seealso::
-#
-#     The complete source code of this tutorial can be found in
-#
-#     :jupyter-download:notebook:`Quantify dataset - advanced examples`
-#
-#     :jupyter-download:script:`Quantify dataset - advanced examples`
+"""
+Quantify dataset - advanced examples
+====================================
+
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Quantify dataset - advanced examples`
+
+    :jupyter-download:script:`Quantify dataset - advanced examples`
+"""
 
 # %% [raw]
-# .. admonition:: Imports and auxiliary utilities
-#     :class: dropdown
+"""
+.. admonition:: Imports and auxiliary utilities
+    :class: dropdown
+"""
 
 # %%
 # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
@@ -126,13 +133,17 @@ def plot_centroids(ax, ground, excited):
 
 
 # %% [raw]
-# An "unstructured" experiment and dataset example
-# ------------------------------------------------
+"""
+An "unstructured" experiment and dataset example
+------------------------------------------------
+"""
 
 # %% [raw]
-# Schdule reference: `one of the latest papers from DiCarlo Lab <https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
-#
-# NB not exactly the same schedule, but what matter are the measurements.
+"""
+Schdule reference: `one of the latest papers from DiCarlo Lab <https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
+
+NB not exactly the same schedule, but what matter are the measurements.
+"""
 
 # %%
 from quantify_scheduler.visualization.circuit_diagram import circuit_diagram_matplotlib
@@ -191,7 +202,9 @@ f, ax = circuit_diagram_matplotlib(sched)
 f.set_figwidth(30)
 
 # %% [raw]
-# How do we store all shots for this measurement? (we want it because, e.g., we know we have issue with leakage to the second excited state)
+"""
+How do we store all shots for this measurement? (we want it because, e.g., we know we have issue with leakage to the second excited state)
+"""
 
 # %%
 num_shots = 128
@@ -287,8 +300,10 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded
 
 # %% [raw]
-# "Nested MeasurementControl" example
-# -----------------------------------
+"""
+"Nested MeasurementControl" example
+-----------------------------------
+"""
 
 # %%
 flux_bias_values = np.linspace(-0.04, 0.04, 12)
@@ -371,7 +386,9 @@ coords_for_multi_index = dd.get_experiment_coords(dataset)
 coords_for_multi_index
 
 # %% [raw]
-# In this case the four experiment coordinates are not orthogonal coordinates, but instead just different label for the same datapoints, also known as a "multi-index". It is possible to work with an explicit MultiIndex within a (python) xarray object:
+"""
+In this case the four experiment coordinates are not orthogonal coordinates, but instead just different label for the same datapoints, also known as a "multi-index". It is possible to work with an explicit MultiIndex within a (python) xarray object:
+"""
 
 # %%
 dataset_multi_indexed = dataset.set_index({"dim_0": coords_for_multi_index})
@@ -379,7 +396,9 @@ dataset_multi_indexed = dataset.set_index({"dim_0": coords_for_multi_index})
 dataset_multi_indexed
 
 # %% [raw]
-# The MultiIndex is very handy for selecting data in different ways, e.g.:
+"""
+The MultiIndex is very handy for selecting data in different ways, e.g.:
+"""
 
 # %%
 dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[2])
@@ -388,11 +407,15 @@ dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[2
 dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[2])
 
 # %% [raw]
-# Known limiations
-# ^^^^^^^^^^^^^^^^
+"""
+Known limitations
+^^^^^^^^^^^^^^^^^
+"""
 
 # %% [raw]
-# But at the moment has the problem of being incompatible with the NetCDF format used to write to disk:
+"""
+But at the moment has the problem of being incompatible with the NetCDF format used to write to disk:
+"""
 
 # %%
 try:
@@ -403,10 +426,14 @@ except NotImplementedError as exp:
     print(exp)
 
 # %% [raw]
-# We could make our load/write utilities to take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index. At the moment the MultiIndex is not supported yet when writing a Quantify dataset to disk. Below are a few examples of potential complications.
+"""
+We could make our load/write utilities to take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index. At the moment the MultiIndex is not supported yet when writing a Quantify dataset to disk. Below are a few examples of potential complications.
+"""
 
 # %% [raw]
-# Fortunetly, the MultiIndex can be reset back:
+"""
+Fortunetly, the MultiIndex can be reset back:
+"""
 
 # %%
 dataset_multi_indexed.reset_index(dims_or_levels="dim_0")
@@ -415,7 +442,9 @@ dataset_multi_indexed.reset_index(dims_or_levels="dim_0")
 all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
 
 # %% [raw]
-# But, for example, the ``dtype`` has been changed to ``object`` (from fixed-length string):
+"""
+But, for example, the ``dtype`` has been changed to ``object`` (from fixed-length string):
+"""
 
 # %%
 dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("dim_0").t1_tuids.dtype

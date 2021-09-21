@@ -1,7 +1,8 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
+#     cell_markers: '"""'
+#     formats: py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -21,25 +22,31 @@
 # %aimport quantify_core.utilities.examples_support
 
 # %% [raw]
-# .. admonition:: TODO
-#
-#     Write supporting text.
+"""
+.. admonition:: TODO
+
+    Write supporting text.
+"""
 
 # %% [raw]
-# Quantify dataset - examples
-# ===========================
-#
-# .. seealso::
-#
-#     The complete source code of this tutorial can be found in
-#
-#     :jupyter-download:notebook:`Quantify dataset - examples`
-#
-#     :jupyter-download:script:`Quantify dataset - examples`
+"""
+Quantify dataset - examples
+===========================
+
+.. seealso::
+
+    The complete source code of this tutorial can be found in
+
+    :jupyter-download:notebook:`Quantify dataset - examples`
+
+    :jupyter-download:script:`Quantify dataset - examples`
+"""
 
 # %% [raw]
-# .. admonition:: Imports and auxiliary utilities
-#     :class: dropdown
+"""
+.. admonition:: Imports and auxiliary utilities
+    :class: dropdown
+"""
 
 # %%
 # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
@@ -126,7 +133,9 @@ dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[
 _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
 
 # %% [raw]
-# In xarray, among other features, it is possible to average along a dimension which can be very convenient:
+"""
+In xarray, among other features, it is possible to average along a dimension which can be very convenient:
+"""
 
 # %%
 _ = dataset_gridded.pop_q0.mean(dim=dataset_gridded.pop_q0.dims[0]).plot(x="amp")
@@ -182,12 +191,16 @@ dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
 pass
 
 # %% [raw]
-# T1 dataset examples
-# -------------------
+"""
+T1 dataset examples
+-------------------
+"""
 
 # %% [raw]
-# .. admonition:: Mock data utilities
-#     :class: dropdown
+"""
+.. admonition:: Mock data utilities
+    :class: dropdown
+"""
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -278,8 +291,10 @@ ax.plot(time, trace.imag, ".-")
 _ = ax.plot(time, trace.real, ".-")
 
 # %% [raw]
-# T1 experiment averaged
-# ~~~~~~~~~~~~~~~~~~~~~~
+"""
+T1 experiment averaged
+~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 # %%
 # parameters of our qubit model
@@ -347,8 +362,10 @@ dataset_gridded
 
 
 # %% [raw]
-# .. admonition:: Plotting utilities
-#     :class: dropdown
+"""
+.. admonition:: Plotting utilities
+    :class: dropdown
+"""
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -389,8 +406,10 @@ plot_decay_no_repetition(dataset_gridded)
 _ = plot_iq_no_repetition(dataset_gridded)
 
 # %% [raw]
-# T1 experiment averaged with calibration points
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+T1 experiment averaged with calibration points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 # %%
 y0s = np.fromiter(
@@ -496,11 +515,15 @@ _ = plot_iq_no_repetition(dataset_gridded)
 
 
 # %% [raw]
-# We can use the calibration points to normalize the data and obtain the typical T1 decay.
+"""
+We can use the calibration points to normalize the data and obtain the typical T1 decay.
+"""
 
 # %% [raw]
-# .. admonition:: Data rotation and normalization utilities
-#     :class: dropdown
+"""
+.. admonition:: Data rotation and normalization utilities
+    :class: dropdown
+"""
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -548,7 +571,9 @@ def find_rotation_angle(z1: complex, z2: complex) -> float:
 
 
 # %% [raw]
-# The normalization to the calibration point could look like this:
+"""
+The normalization to the calibration point could look like this:
+"""
 
 # %%
 angle = find_rotation_angle(*dataset_gridded.q0_iq_cal.values)
@@ -569,8 +594,10 @@ dataset_tmp.attrs.update(dataset_gridded.attrs)
 _ = plot_decay_no_repetition(dataset_tmp)
 
 # %% [raw]
-# T1 experiment storing all shots
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+T1 experiment storing all shots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 # %%
 y0s = np.array(
@@ -682,16 +709,20 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded
 
 # %% [raw]
-# In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
+"""
+In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
+"""
 
 # %%
 _ = plot_decay_no_repetition(dataset_gridded)
 _ = plot_iq_no_repetition(dataset_gridded)
 
 # %% [raw]
-# Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
-#
-# Note that we are plotting the calibration points as well.
+"""
+Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
+
+Note that we are plotting the calibration points as well.
+"""
 
 # %%
 for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
@@ -712,11 +743,15 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 
 
 # %% [raw]
-# We can colapse (average along) the ``repetion_dim_0``` dimension:
+"""
+We can colapse (average along) the ``repetion_dim_0``` dimension:
+"""
 
 # %% [raw]
-# .. admonition:: Plotting utility
-#     :class: dropdown
+"""
+.. admonition:: Plotting utility
+    :class: dropdown
+"""
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -748,8 +783,10 @@ def plot_iq_decay_repetition(gridded_dataset):
 plot_iq_decay_repetition(dataset_gridded)
 
 # %% [raw]
-# T1 experiment storing digitized signals for all shots
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
+T1 experiment storing digitized signals for all shots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 
 # %%
 # NB this is not necessarily the most efficient way to generate this mock data
@@ -904,7 +941,9 @@ dataset_gridded
 dataset_gridded.q0_iq_traces.shape, dataset_gridded.q0_iq_traces.dims
 
 # %% [raw]
-# All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the shot number 123 of the last point of the T1 experiment:
+"""
+All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the shot number 123 of the last point of the T1 experiment:
+"""
 
 # %%
 trace_example = dataset_gridded.q0_iq_traces.sel(
@@ -913,7 +952,9 @@ trace_example = dataset_gridded.q0_iq_traces.sel(
 trace_example.shape, trace_example.dtype
 
 # %% [raw]
-# For clarity, we plot only part of this digitized signal:
+"""
+For clarity, we plot only part of this digitized signal:
+"""
 
 # %%
 trace_example_plt = trace_example[:200]
