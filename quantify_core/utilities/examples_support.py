@@ -3,6 +3,7 @@
 """Utilities used for creating examples for docs/tutorials/tests."""
 from __future__ import annotations
 
+from typing import List
 from pathlib import Path
 import xarray as xr
 import quantify_core.data.handling as dh
@@ -45,25 +46,27 @@ def mk_cal_coord_attrs(**kwargs) -> dict:
     return attrs
 
 
-def mk_exp_var_attrs(**kwargs) -> dict:
+def mk_exp_var_attrs(experiment_coords: List[str], **kwargs) -> dict:
     attrs = dd.QVarAttrs(
         grid=True,
         uniformly_spaced=True,
         batched=False,
         is_experiment_var=True,
         is_calibration_var=False,
+        experiment_coords=experiment_coords,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
-def mk_cal_var_attrs(**kwargs) -> dict:
+def mk_cal_var_attrs(experiment_coords: List[str], **kwargs) -> dict:
     attrs = dd.QVarAttrs(
         grid=True,
         uniformly_spaced=True,
         batched=False,
         is_experiment_var=False,
         is_calibration_var=True,
+        experiment_coords=experiment_coords,
     ).to_dict()
     attrs.update(kwargs)
     return attrs

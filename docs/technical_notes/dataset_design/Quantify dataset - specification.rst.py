@@ -55,7 +55,9 @@ import quantify_core.data.dataset_adapters as da
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
+    mk_cal_coord_attrs,
     mk_exp_var_attrs,
+    mk_cal_var_attrs,
     round_trip_dataset,
     par_to_attrs,
 )
@@ -90,16 +92,16 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 # - Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_experiment_coord` set to ``True``.
 # - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
 # - Often correspond to quantities set through :class:`~quantify_core.measurement.Settable`\s.
-# - See also :attr:`~quantify_core.data.dataset_attrs.get_experiment_coords`.
+# - See also :func:`~quantify_core.data.dataset_attrs.get_experiment_coords`.
 #
 # .. _sec-calibration-coordinates:
 #
 # Calibration coordinate(s)
 # ^^^^^^^^^^^^^^^^^^^^^^^^^
 #
-# - Similar to `experiment coordinates <sec-experiment-coordinates>`_, but intended to serve as the cooridnates of `calibration variables <sec-calibration-variables>`.
+# - Similar to `experiment coordinates <sec-experiment-coordinates>`_\, but intended to serve as the cooridnates of `calibration variables <sec-calibration-variables>`_\.
 # - Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_calibration_coord` set to ``True``.
-# - See also :attr:`~quantify_core.data.dataset_attrs.get_calibration_coords`.
+# - See also :func:`~quantify_core.data.dataset_attrs.get_calibration_coords`.
 #
 # .. _sec-experiment-variables:
 #
@@ -113,17 +115,17 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 #
 # - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
 # - Often correspond to quantities returned by :class:`~quantify_core.measurement.Gettable`\s.
-# - See also :attr:`~quantify_core.data.dataset_attrs.get_experiment_vars`.
+# - See also :func:`~quantify_core.data.dataset_attrs.get_experiment_vars`.
 #
 # .. _sec-calibration-variables:
 #
 # Calibration variables(s)
 # ^^^^^^^^^^^^^^^^^^^^^^^^
 #
-# - Similar to `experiment variables <sec-experiment-variables>`_, but intended to serve as calibration data for `experiment variables <sec-experiment-variables>`.
+# - Similar to `experiment variables <sec-experiment-variables>`_, but intended to serve as calibration data for other experiment variables.
 # - Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_calibration_var` set to ``True``.
-# - The "assgnment" of calibration variables to experiment variables should be done using :attrs:`QDatasetAttrs.relationships`.
-# - See also :attr:`~quantify_core.data.dataset_attrs.get_calibration_vars`.
+# - The "assgnment" of calibration variables to experiment variables should be done using :attr:`QDatasetAttrs.relationships`.
+# - See also :func:`~quantify_core.data.dataset_attrs.get_calibration_vars`.
 #
 #
 # .. note::

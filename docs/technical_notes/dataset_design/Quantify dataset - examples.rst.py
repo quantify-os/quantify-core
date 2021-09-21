@@ -57,7 +57,9 @@ import quantify_core.data.dataset_attrs as dd
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
+    mk_cal_coord_attrs,
     mk_exp_var_attrs,
+    mk_cal_var_attrs,
     round_trip_dataset,
     par_to_attrs,
 )
@@ -435,9 +437,8 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib,
-            mk_exp_var_attrs(
+            mk_cal_var_attrs(
                 **par_to_attrs(q0_iq_par),
-                is_calibration_var=True,
                 experiment_coords=["cal"],
             ),
         ),
@@ -447,9 +448,7 @@ dataset = xr.Dataset(
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            mk_exp_coord_attrs(
-                long_name="Q0 State", unit="", is_calibration_coord=True
-            ),
+            mk_cal_coord_attrs(long_name="Q0 State", unit=""),
         ),
     },
     attrs=mk_dataset_attrs(
@@ -612,9 +611,8 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib.mean(axis=0),
-            mk_exp_var_attrs(
+            mk_cal_var_attrs(
                 **par_to_attrs(q0_iq_par),
-                is_calibration_var=True,
                 experiment_coords=["cal"],
             ),
         ),
@@ -628,9 +626,8 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}_shots_cal": (
             ("repetitions", "dim_0_cal"),
             y0s_calib,
-            mk_exp_var_attrs(
+            mk_cal_var_attrs(
                 **par_to_attrs(q0_iq_par),
-                is_calibration_var=True,
                 experiment_coords=["cal"],
             ),
         ),
@@ -640,8 +637,9 @@ dataset = xr.Dataset(
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            mk_exp_coord_attrs(
-                long_name="Q0 State", unit="", is_calibration_coord=True
+            mk_cal_coord_attrs(
+                long_name="Q0 State",
+                unit="",
             ),
         ),
     },
@@ -665,6 +663,9 @@ dataset = xr.Dataset(
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
+dataset
+
+# %%
 dataset
 
 # %%
@@ -800,9 +801,8 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}_cal": (
             "dim_0_cal",
             y0s_calib.mean(axis=0),
-            mk_exp_var_attrs(
+            mk_cal_var_attrs(
                 **par_to_attrs(q0_iq_par),
-                is_calibration_var=True,
                 experiment_coords=["cal"],
             ),
         ),
@@ -816,9 +816,8 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}_shots_cal": (
             ("repetitions", "dim_0_cal"),
             y0s_calib,
-            mk_exp_var_attrs(
+            mk_cal_var_attrs(
                 **par_to_attrs(q0_iq_par),
-                is_calibration_var=True,
                 experiment_coords=["cal"],
             ),
         ),
@@ -835,11 +834,10 @@ dataset = xr.Dataset(
         f"{q0_iq_par.name}_traces_cal": (
             ("repetitions", "dim_0_cal", "dim_trace"),
             y0s_traces_calib,
-            mk_exp_var_attrs(
+            mk_cal_var_attrs(
                 batched=True,
                 batch_size=len(y0s_traces_calib[0][0]),
                 **par_to_attrs(q0_iq_par),
-                is_calibration_var=True,
                 experiment_coords=["cal", "trace_time"],
             ),
         ),
@@ -849,9 +847,7 @@ dataset = xr.Dataset(
         "cal": (
             "dim_0_cal",
             ["|0>", "|1>"],
-            mk_exp_coord_attrs(
-                long_name="Q0 State", unit="", is_calibration_coord=True
-            ),
+            mk_cal_coord_attrs(long_name="Q0 State", unit=""),
         ),
         "trace_time": (
             "dim_trace",
@@ -889,7 +885,7 @@ dataset
 # %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
-    dimension=dd.get_main_dims(dataset)[0],
+    dimension="dim_0",
     # returns ['time', 'trace_time'] which is not what we need here
     # coords_names=dd.get_experiment_coords(dataset)
     coords_names=["time"],

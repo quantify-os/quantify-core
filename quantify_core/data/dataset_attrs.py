@@ -59,10 +59,10 @@ class QCoordAttrs(DataClassJsonMixin):
     """The units of the values."""
     long_name: str = ""
     """A long name for this coordinate."""
-    is_experiment_coord: bool = True
-    """A convenient attribute, set to ``True``, to flag xarray coordinates that
-    correspond to experiment coordinates."""
-    is_calibration_coord: bool = False
+    is_experiment_coord: bool = None
+    """When set to ``True``, flags xarray coordinates to correspond to experiment
+    coordinates."""
+    is_calibration_coord: bool = None
     """If ``True``, this experiment coordinates is intended to be a coordinate for
     an experiment variable that corresponds to calibration data."""
     batched: Union[bool, None] = None
@@ -99,10 +99,10 @@ class QVarAttrs(DataClassJsonMixin):
     """The units of the values."""
     long_name: str = ""
     """A long name for this coordinate."""
-    is_experiment_var: bool = True
-    """A convenient attribute, set to ``True``, to flag xarray data variables that
-    correspond to experiment variables."""
-    is_calibration_var: bool = False
+    is_experiment_var: bool = None
+    """When set to ``True``, flags this xarray data variables to correspond to an
+    experiment variables."""
+    is_calibration_var: bool = None
     """If ``True``, the data of this experiment variable is intended to be used to
     calibrate the data of another experiment variable. E.g., this experiment variable
     could contain the amplitude of a signal for when a qubit is in the excited and
@@ -222,28 +222,23 @@ class QDatasetAttrs(DataClassJsonMixin):
     Note that the default values in this list should be included as well."""
 
 
-def _get_dims(dataset: xr.Dataset) -> Tuple[List[str], List[str]]:
-    """Return main dimensions separated in non-calibration and calibration ones."""
-    main_dims = set()
-    calib_dims = set()
+def _get_dims(
+    dataset: xr.Dataset, dim_type: Literal["experiment", "calibration"]
+) -> Tuple[List[str], List[str]]:
+    """Return main or main calibration dimensions."""
+    dims = set()
     for var_or_coords in (dataset.coords.values(), dataset.data_vars.values()):
         for var in var_or_coords:
-            if var.attrs.get("is_experiment_var", False):
+            if var.attrs.get(
+                f"is_{dim_type}_var", var.attrs.get(f"is_{dim_type}_coord", False)
+            ):
                 # Check if the outermost dimension is a repetitions dimension
                 if var.dims[0] in dataset.attrs.get("repetitions_dims", []):
-                    to_add = var.dims[1]
+                    dims.add(var.dims[1])
                 else:
-                    to_add = var.dims[0]
+                    dims.add(var.dims[0])
 
-                is_cal = var.attrs.get(
-                    "is_calibration_var", var.attrs.get("is_calibration_coord", False)
-                )
-                if is_cal:
-                    calib_dims.add(to_add)
-                else:
-                    main_dims.add(to_add)
-
-    return list(main_dims), list(calib_dims)
+    return list(dims)
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -279,9 +274,7 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
         The names of the 'main' experiment dimensions in the dataset.
     """
 
-    main_dims, _ = _get_dims(dataset)
-
-    return main_dims
+    return _get_dims(dataset, dim_type="experiment")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -303,9 +296,7 @@ def get_main_calibration_dims(dataset: xr.Dataset) -> List[str]:
         dataset.
     """
 
-    _, calib_dims = _get_dims(dataset)
-
-    return calib_dims
+    return _get_dims(dataset, dim_type="calibration")
 
 
 def _get_all_variables(
