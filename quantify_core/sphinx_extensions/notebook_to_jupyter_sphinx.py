@@ -14,7 +14,8 @@ The rationale is to keep things as simple as possible and as easy to debug as po
 - Cells in markdown format are ignored.
 - The generated :code:`.rst` output files are written to disk for easy inspection. Note that any problems with the rst text will be flagged by sphinx as coming from the output file of this extension. But you are able to insect it to identify the issue (and correct it in the notebook itself!).
 
-**Intended workflow:**
+Usage
+-----
 
 1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix (:code:`.rst.py`). The extra :code:`.rst` suffix is necessary in order to collect the files that are to be converted.
 
@@ -40,11 +41,17 @@ The rationale is to keep things as simple as possible and as easy to debug as po
 
 .. note::
 
-    This extension will not process all :code:`.rst.py` files but will only write to disk the files that result in different contents compared to the contents of the existing :code:`.rst` file. Since sphinx is efficient and does not process files that have not changed, this speeds up the development time.
+    This extension will not process all :code:`.rst.py` files but will only write to
+    disk the files that result in different contents compared to the contents of the
+    existing :code:`.rst` file. Since sphinx is efficient and does not process files
+    that have not changed, this speeds up the development time.
 
 **Code cells configuration magic comment:**
 
-Sometimes it is necessary to pass some configuration options to this extension in order for it to produce the indented output from code cells. To achieve this a magic comment is used, currently supporting two configuration keys. The configuration is a dictionary that will be parsed as json.
+Sometimes it is necessary to pass some configuration options to this extension in order
+for it to produce the indented output from code cells. To achieve this a magic comment
+is used, currently supporting two configuration keys. The configuration is a dictionary
+that will be parsed as json.
 
 .. code-block:: python
 
@@ -52,11 +59,16 @@ Sometimes it is necessary to pass some configuration options to this extension i
 
     # ... the rest of the python code in the cell...
 
-The :code:`"indent"` entry specifies the indentation of the :code:`.. jupyter-execute::` block produced.
-You will need this when you intended the block to be included, e.g., inside a :code:`.. note::`.
-You might argue that you could just indent the code in the cell instead, which works in, e.g., Jupyter Lab, however the :code:`.rst.py` file will become an invalid python file, confuse auto formatters and linters, etc..
+The :code:`"indent"` entry specifies the indentation of the
+:code:`.. jupyter-execute::` block produced.
+You will need this when you intended the block to be included, e.g., inside a
+:code:`.. note::`.
+You might argue that you could just indent the code in the cell instead, which works in,
+e.g., Jupyter Lab, however the :code:`.rst.py` file will become an invalid python file,
+confuse auto formatters and linters, etc..
 
-The :code:`"jupyter_execute_options"` entry is a list of directive options that will be placed on the line below the :code:`.. jupyter-execute::`.
+The :code:`"jupyter_execute_options"` entry is a list of directive options that will be
+placed on the line below the :code:`.. jupyter-execute::`.
 
 The above example will produce the following in the :code:`.rst` file :
 
@@ -93,32 +105,63 @@ The above example will produce the following in the :code:`.rst` file :
     There are some workarounds for Jupyter Notebook involving cell magics but it is not
     quite worth the effort.
 
-    **Using python 'docstring' format for raw cells**
+Notebook template
+-----------------
 
-    Jupytext allows to store the contents of raw cells in the ``.py`` files inside
-    blocks that look like this:
+To make use of this extensions you can start from this ``template.rst.py``.
 
-    .. code:: python
+.. code-block:: python
 
-        # %% [raw]
-        '''
-        Raw cell contents
-        goes here
-        '''
+    # ---
+    # jupyter:
+    #   jupytext:
+    #     cell_markers: '\"\"\"'
+    #     formats: py:percent
+    #     text_representation:
+    #       extension: .py
+    #       format_name: percent
+    #   kernelspec:
+    #     display_name: Python 3 (ipykernel)
+    #     language: python
+    #     name: python3
+    # ---
 
-    However by default they are saved as
+    # %% [raw]
+    \"\"\"
+    The contents of this raw cell will be copy-pasted into the ``.rst`` file.
+    \"\"\"
 
-    .. code:: python
+    # %%
+    # This is a code cell, will be translated into a `.. jupyter-execute::` block.
+    assert 1+1 == 2
 
-        # %% [raw]
-        # Raw cell contents
-        # goes here
+Place it in the desired location, rename it and navigate to its location using file
+browser in Jupyter Lab. Then right-click the file and under the `Open With` select
+`Notebook`. Note that you need a relatively recent version of Jupyter Lab for this
+to already be part of the Jupyter Lab interface by default (if not consult the
+`jupytext documentation <https://jupytext.readthedocs.io>`_).
 
-    It seem that it is not possible to use the ``'''`` format when saving only the
-    ``.py`` files. See
-    `this issue on GitHub <https://github.com/mwouts/jupytext/issues/855>`_ for a status
-    on this problem.
+The ``cell_markers`` in the header of the template tells `jupytext` to store the
+contents of raw notebook cells in the ``.rst.py`` files inside blocks that look like
+this:
 
+.. code-block:: python
+
+    # %% [raw]
+    \"\"\"
+    Raw cell contents
+    goes here
+    \"\"\"
+
+Instead of the default:
+
+.. code-block:: python
+
+    # %% [raw]
+    # Raw cell contents
+    # goes here
+
+You can remove that line if you wish to use the default representation.
 
 """  # pylint: disable=line-too-long
 
