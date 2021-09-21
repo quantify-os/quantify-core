@@ -134,7 +134,8 @@ _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.d
 
 # %% [raw]
 """
-In xarray, among other features, it is possible to average along a dimension which can be very convenient:
+In xarray, among other features, it is possible to average along a dimension which can
+be very convenient:
 """
 
 # %%
@@ -710,7 +711,8 @@ dataset_gridded
 
 # %% [raw]
 """
-In this dataset we have both the averaged values and all the shots. The averaged values can be plotted in the same way as before.
+In this dataset we have both the averaged values and all the shots. The averaged values
+can be plotted in the same way as before.
 """
 
 # %%
@@ -719,7 +721,8 @@ _ = plot_iq_no_repetition(dataset_gridded)
 
 # %% [raw]
 """
-Here we focus on inspecting how the individual shots are distributed on the IQ plane for some particular `Time` values.
+Here we focus on inspecting how the individual shots are distributed on the IQ plane
+for some particular `Time` values.
 
 Note that we are plotting the calibration points as well.
 """
@@ -942,7 +945,9 @@ dataset_gridded.q0_iq_traces.shape, dataset_gridded.q0_iq_traces.dims
 
 # %% [raw]
 """
-All the previous data is also present, but in this dataset we can inspect the IQ signal for each individual shot. Let's inspect the signal of the shot number 123 of the last point of the T1 experiment:
+All the previous data is also present, but in this dataset we can inspect the IQ signal
+for each individual shot. Let's inspect the signal of the shot number 123 of the last
+point of the T1 experiment:
 """
 
 # %%

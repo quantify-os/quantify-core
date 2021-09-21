@@ -140,7 +140,8 @@ An "unstructured" experiment and dataset example
 
 # %% [raw]
 """
-Schdule reference: `one of the latest papers from DiCarlo Lab <https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
+Schdule reference: `one of the latest papers from DiCarlo Lab
+<https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
 
 NB not exactly the same schedule, but what matter are the measurements.
 """
@@ -203,7 +204,8 @@ f.set_figwidth(30)
 
 # %% [raw]
 """
-How do we store all shots for this measurement? (we want it because, e.g., we know we have issue with leakage to the second excited state)
+How do we store all shots for this measurement? (we want it because, e.g., we know we
+have issue with leakage to the second excited state)
 """
 
 # %%
@@ -387,7 +389,9 @@ coords_for_multi_index
 
 # %% [raw]
 """
-In this case the four experiment coordinates are not orthogonal coordinates, but instead just different label for the same datapoints, also known as a "multi-index". It is possible to work with an explicit MultiIndex within a (python) xarray object:
+In this case the four experiment coordinates are not orthogonal coordinates, but instead
+just different label for the same data points, also known as a "multi-index". It is
+possible to work with an explicit MultiIndex within a (python) xarray object:
 """
 
 # %%
@@ -414,7 +418,8 @@ Known limitations
 
 # %% [raw]
 """
-But at the moment has the problem of being incompatible with the NetCDF format used to write to disk:
+But at the moment has the problem of being incompatible with the NetCDF format used to
+write to disk:
 """
 
 # %%
@@ -427,7 +432,11 @@ except NotImplementedError as exp:
 
 # %% [raw]
 """
-We could make our load/write utilities to take care of setting and resetting the index under the hood. Though there are some nuances there as well. If we would do that then some extra metadata needs to be stored in order to store/restore the multi-index. At the moment the MultiIndex is not supported yet when writing a Quantify dataset to disk. Below are a few examples of potential complications.
+We could make our load/write utilities to take care of setting and resetting the index
+under the hood. Though there are some nuances there as well. If we would do that then
+some extra metadata needs to be stored in order to store/restore the multi-index.
+At the moment the MultiIndex is not supported yet when writing a Quantify dataset to
+disk. Below are a few examples of potential complications.
 """
 
 # %% [raw]
@@ -443,7 +452,8 @@ all(dataset_multi_indexed.reset_index("dim_0").t1_tuids == dataset.t1_tuids)
 
 # %% [raw]
 """
-But, for example, the ``dtype`` has been changed to ``object`` (from fixed-length string):
+But, for example, the ``dtype`` has been changed to ``object``
+(from fixed-length string):
 """
 
 # %%

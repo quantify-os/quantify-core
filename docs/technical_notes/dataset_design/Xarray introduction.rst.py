@@ -29,11 +29,13 @@ Xarray - brief introduction
 
     :jupyter-download:script:`Xarray introduction`
 
-The Quantify dataset is based on :doc:`Xarray <xarray:index>`. This subsection is a very brief overview of some concepts and functionalities of xarray.
+The Quantify dataset is based on :doc:`Xarray <xarray:index>`.
+This subsection is a very brief overview of some concepts and functionalities of xarray.
 Here we use only pure xarray concepts and terminology.
 
 This is not intended as an extensive introduction to xarray.
-Please consult the :doc:`xarray documentation <xarray:index>` if you never used it before (it has very neat features!).
+Please consult the :doc:`xarray documentation <xarray:index>` if you never used it
+before (it has very neat features!).
 """
 
 # %% [raw]
@@ -56,7 +58,8 @@ pretty.install()
 There are different ways to create a new xarray dataset.
 Below we exemplify a few of them to showcase specific functionalities.
 
-An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at least one dimension:
+An xarray dataset has **Dimensions** and **Variables**. Variables "lie" along at least
+one dimension:
 """
 
 # %%
@@ -68,7 +71,7 @@ dataset = xr.Dataset(
         "position": (  # variable name
             name_dim_a,  # dimension's name
             np.linspace(-5, 5, n),  # values of this data variable
-            # the "units" and "long_name" are a convention with meaning for automatic plotting
+            # the "units" and "long_name" are a convention for automatic plotting
             {"units": "m", "long_name": "Position"},  # attributes of this data variable
         ),
         "velocity": (
@@ -104,7 +107,9 @@ dataset = xr.Dataset(
         ),
     },
     # We could add coordinates like this as well:
-    # coords={"position": (name_dim_a, position, {"units": "m", "long_name": "Position"})},
+    # coords={
+    #    "position": (name_dim_a, position, {"units": "m", "long_name": "Position"})
+    # },
     attrs={"key": "my metadata"},
 )
 
@@ -127,7 +132,9 @@ dataset.variables["position"]
 
 # %% [raw]
 """
-Which, on its own, might not be very useful yet, however, xarray coordinates can be set to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset` does this under the hood), as shown below (note the bold font in the output!):
+Which, on its own, might not be very useful yet, however, xarray coordinates can be set
+to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset`
+does this under the hood), as shown below (note the bold font in the output!):
 """
 
 # %%
@@ -138,11 +145,16 @@ dataset
 
 # %% [raw]
 """
-At this point the reader might get very confused. In an attempt to clarify, we now have a dimension, a coordinate and a variable with the same name `"position_x"`.
+At this point the reader might get very confused. In an attempt to clarify, we now have
+a dimension, a coordinate and a variable with the same name `"position_x"`.
 """
 
 # %%
-"position_x" in dataset.dims, "position_x" in dataset.coords, "position_x" in dataset.variables
+(
+    "position_x" in dataset.dims,
+    "position_x" in dataset.coords,
+    "position_x" in dataset.variables,
+)
 
 # %%
 dataset.dims["position_x"]
@@ -158,7 +170,8 @@ dataset.variables["position_x"]
 Here the intention is to make the reader aware of this peculiar behavior.
 Please consult the :doc:`xarray documentation <xarray:index>` for more details.
 
-An example of how this can be useful is to retrieve data from an xarray variable using one of its coordinates to select the desired entries:
+An example of how this can be useful is to retrieve data from an xarray variable using
+one of its coordinates to select the desired entries:
 """
 
 # %%
@@ -167,7 +180,8 @@ retrieved_value
 
 # %% [raw]
 """
-Note that without this feature we would have to keep track of numpy integer indexes to retrieve the desired data:
+Note that without this feature we would have to keep track of numpy integer indexes to
+retrieve the desired data:
 """
 
 # %%
@@ -175,7 +189,8 @@ dataset.velocity.values[3], retrieved_value.values == dataset.velocity.values[3]
 
 # %% [raw]
 """
-One of the great features of xarray is automatic plotting (explore the xarray documentation for more advanced capabilities!):
+One of the great features of xarray is automatic plotting (explore the xarray
+documentation for more advanced capabilities!):
 """
 
 # %%

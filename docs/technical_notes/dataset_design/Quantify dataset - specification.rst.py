@@ -107,7 +107,7 @@ Experiment coordinate(s)
 Calibration coordinate(s)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Similar to `experiment coordinates <sec-experiment-coordinates>`_\, but intended to serve as the cooridnates of `calibration variables <sec-calibration-variables>`_\.
+- Similar to `experiment coordinates <sec-experiment-coordinates>`_\, but intended to serve as the coordinates of `calibration variables <sec-calibration-variables>`_\.
 - Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_calibration_coord` set to ``True``.
 - See also :func:`~quantify_core.data.dataset_attrs.get_calibration_coords`.
 
@@ -342,7 +342,7 @@ dataset
 
 # %% [raw]
 """
-    And as before, we can reshape the dataset to take advantage of the xarray builtin uitilities.
+    And as before, we can reshape the dataset to take advantage of the xarray builtin utilities.
 """
 
 # %%
@@ -400,13 +400,16 @@ All the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` i
 Dataset attributes
 ~~~~~~~~~~~~~~~~~~
 
-Tha mandatory attributes of the Quantify dataset are defined be the following dataclass.
+The mandatory attributes of the Quantify dataset are defined by the following dataclass.
 It can be used to generate a default dictionary that is attached to a dataset.
 
 .. autoclass:: quantify_core.data.dataset_attrs.QDatasetAttrs
     :members:
     :noindex:
     :show-inheritance:
+
+Additionally in order to express relationships between coordinates and/or variables the
+the following template is provided:
 
 .. autoclass:: quantify_core.data.dataset_attrs.QDatasetIntraRelationship
     :members:
@@ -486,7 +489,7 @@ Note that we use the ``h5netcdf``` engine that is more permissive than the defau
 .. admonition:: TODO
     :class: warning
 
-    Furthermore, in order to support a variety of attribute types and shapes, in a seemless workflow, some additional tooling is required to be integrated. See sourcecodes below.
+    Furthermore, in order to support a variety of attribute types and shapes, in a seamless workflow, some additional tooling is required to be integrated. See source codes below.
 """
 
 # %%
