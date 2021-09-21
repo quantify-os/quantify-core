@@ -58,7 +58,7 @@ from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
     mk_exp_var_attrs,
-    dataset_round_trip,
+    round_trip_dataset,
     par_to_attrs,
 )
 
@@ -111,7 +111,7 @@ dataset = dataset_2d_example = xr.Dataset(
     attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
 )
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 dataset
 
 # %%
@@ -122,6 +122,9 @@ dataset_gridded = dh.to_gridded_dataset(
 )
 dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[0])
 _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
+
+# %% [raw]
+# In xarray, among other features, it is possible to average along a dimension which can be very convenient:
 
 # %%
 _ = dataset_gridded.pop_q0.mean(dim=dataset_gridded.pop_q0.dims[0]).plot(x="amp")
@@ -328,7 +331,7 @@ dataset = xr.Dataset(
 )
 
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
@@ -461,7 +464,7 @@ dataset = xr.Dataset(
 )
 
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
@@ -474,7 +477,7 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded,
     dimension=dd.get_main_calibration_dims(dataset_gridded)[0],
-    coords_names=dd.get_experiment_calibration_coords(dataset_gridded),
+    coords_names=dd.get_calibration_coords(dataset_gridded),
 )
 dataset_gridded
 
@@ -660,7 +663,7 @@ dataset = xr.Dataset(
 )
 
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
@@ -673,7 +676,7 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded,
     dimension=dd.get_main_calibration_dims(dataset_gridded)[0],
-    coords_names=dd.get_experiment_calibration_coords(dataset_gridded),
+    coords_names=dd.get_calibration_coords(dataset_gridded),
 )
 dataset_gridded
 
@@ -879,7 +882,7 @@ dataset = xr.Dataset(
 )
 
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
@@ -894,7 +897,7 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded,
     dimension=dd.get_main_calibration_dims(dataset_gridded)[0],
-    coords_names=dd.get_experiment_calibration_coords(dataset_gridded),
+    coords_names=dd.get_calibration_coords(dataset_gridded),
 )
 dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded, dimension="dim_trace", coords_names=["trace_time"]

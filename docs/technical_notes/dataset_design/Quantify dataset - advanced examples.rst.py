@@ -58,7 +58,7 @@ from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_exp_coord_attrs,
     mk_exp_var_attrs,
-    dataset_round_trip,
+    round_trip_dataset,
     par_to_attrs,
 )
 
@@ -267,7 +267,7 @@ dataset = xr.Dataset(
 )
 
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
@@ -362,7 +362,7 @@ dataset = xr.Dataset(
     ),
 )
 
-assert dataset == dataset_round_trip(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
@@ -396,7 +396,7 @@ dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[2])
 
 # %%
 try:
-    assert dataset_multi_indexed == dataset_round_trip(
+    assert dataset_multi_indexed == round_trip_dataset(
         dataset_multi_indexed
     )  # confirm read/write
 except NotImplementedError as exp:

@@ -47,10 +47,10 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
 
 
 @dataclass
-class QExpCoordAttrs(DataClassJsonMixin):
+class QCoordAttrs(DataClassJsonMixin):
     """
     A dataclass representing the :attr:`~xarray.DataArray.attrs` attribute of
-    experiment coordinates.
+    experiment and calibration coordinates.
 
     All attributes are mandatory to be present but can be ``None``.
     """
@@ -87,10 +87,10 @@ class QExpCoordAttrs(DataClassJsonMixin):
 
 
 @dataclass
-class QExpVarAttrs(DataClassJsonMixin):
+class QVarAttrs(DataClassJsonMixin):
     """
     A dataclass representing the :attr:`~xarray.DataArray.attrs` attribute of
-    experimental variables.
+    experiment and calibration variables.
 
     All attributes are mandatory to be present but can be ``None``.
     """
@@ -254,16 +254,14 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
     coordinate/variable, or the one after a dimension listed in
     ``~QDatasetAttrs.repetition_dims``.
 
-    These dimensions are detected based on :attr:`~.QExpCoordAttrs.is_experiment_coord`
-    and :attr:`~.QExpVarAttrs.is_experiment_var` attributes (together with
-    :attr:`~.QExpVarAttrs.is_calibration_var`
-    and :attr:`~.QExpCoordAttrs.is_calibration_coord`).
+    These dimensions are detected based on :attr:`~.QCoordAttrs.is_experiment_coord`
+    and :attr:`~.QVarAttrs.is_experiment_var` attributes.
 
     .. warning::
 
         The dimensions listed in this list should be considered "incompatible" in the
-        sense that the experiment coordinate/variables must lie on one and only one such
-        dimension.
+        sense that the experiment coordinate/variables must lie on one and only one of
+        such dimension.
 
     .. note::
 
@@ -290,8 +288,8 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
 def get_main_calibration_dims(dataset: xr.Dataset) -> List[str]:
     """Returns the 'main' calibration dimensions.
 
-    For details see :func:`~.get_main_dims`, :attr:`~.QExpVarAttrs.is_calibration_var`
-    and :attr:`~.QExpCoordAttrs.is_calibration_coord`.
+    For details see :func:`~.get_main_dims`, :attr:`~.QVarAttrs.is_calibration_var`
+    and :attr:`~.QCoordAttrs.is_calibration_coord`.
 
     Parameters
     ----------
@@ -311,24 +309,20 @@ def get_main_calibration_dims(dataset: xr.Dataset) -> List[str]:
 
 
 def _get_all_variables(
-    dataset: xr.Dataset, var_type: str = Literal["coord", "var"]
+    dataset: xr.Dataset,
+    var_type: str = Literal["coord", "var"],
+    attr_type: str = Literal["experiment", "calibration"],
 ) -> Tuple[List[str], List[str]]:
-    """Internal logic shared by :func:`~.get_experiment_vars` and
-    :func:`~.get_experiment_coords`.
-    """
+    """Shared internal logic used to retrieve variables/coordinates names."""
 
     variables = dataset.data_vars if var_type == "var" else dataset.coords
 
     var_names = []
-    var_names_cal = []
     for var_name, var in variables.items():
-        if var.attrs.get(f"is_experiment_{var_type}", False):
-            if var.attrs.get(f"is_calibration_{var_type}", False):
-                var_names_cal.append(var_name)
-            else:
-                var_names.append(var_name)
+        if var.attrs.get(f"is_{attr_type}_{var_type}", False):
+            var_names.append(var_name)
 
-    return var_names, var_names_cal
+    return var_names
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -337,8 +331,7 @@ def get_experiment_vars(dataset: xr.Dataset) -> List[str]:
     Finds the experiment variables in the dataset (except calibration variables).
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attr:`~.QExpVarAttrs.is_experiment_var` set to ``True`` [and the
-    :attr:`~.QExpVarAttrs.is_calibration_var` set to ``False``] (inside the
+    :attr:`~.QVarAttrs.is_experiment_var` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -351,19 +344,16 @@ def get_experiment_vars(dataset: xr.Dataset) -> List[str]:
     :
         The names of the experiment variables.
     """
-    var_names, _ = _get_all_variables(dataset, var_type="var")
-
-    return var_names
+    return _get_all_variables(dataset, var_type="var", attr_type="experiment")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_experiment_calibration_vars(dataset: xr.Dataset) -> List[str]:
+def get_calibration_vars(dataset: xr.Dataset) -> List[str]:
     """
     Finds the experiment calibration variables in the dataset.
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attr:`~.QExpVarAttrs.is_experiment_var` and
-    :attr:`~.QExpVarAttrs.is_calibration_var` set to ``True`` (inside the
+    :attr:`~.QVarAttrs.is_calibration_var` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -376,9 +366,7 @@ def get_experiment_calibration_vars(dataset: xr.Dataset) -> List[str]:
     :
         The names of the experiment calibration variables.
     """
-    _, var_names_cal = _get_all_variables(dataset, var_type="var")
-
-    return var_names_cal
+    return _get_all_variables(dataset, var_type="var", attr_type="calibration")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -387,8 +375,7 @@ def get_experiment_coords(dataset: xr.Dataset) -> List[str]:
     Finds the experiment coordinates in the dataset (except calibration coordinates).
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attr:`~.QExpCoordAttrs.is_experiment_coord` set to ``True`` [and the
-    :attr:`~.QExpCoordAttrs.is_calibration_coord` set to ``False``] (inside the
+    :attr:`~.QCoordAttrs.is_experiment_coord` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -401,19 +388,16 @@ def get_experiment_coords(dataset: xr.Dataset) -> List[str]:
     :
         The names of the experiment coordinates.
     """
-    var_names, _ = _get_all_variables(dataset, var_type="coord")
-
-    return var_names
+    return _get_all_variables(dataset, var_type="coord", attr_type="experiment")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_experiment_calibration_coords(dataset: xr.Dataset) -> List[str]:
+def get_calibration_coords(dataset: xr.Dataset) -> List[str]:
     """
     Finds the experiment calibration coordinates in the dataset.
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attr:`~.QExpCoordAttrs.is_experiment_coord` and
-    :attr:`~.QExpCoordAttrs.is_calibration_coord` set to ``True`` (inside the
+    :attr:`~.QCoordAttrs.is_calibration_coord` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -426,6 +410,4 @@ def get_experiment_calibration_coords(dataset: xr.Dataset) -> List[str]:
     :
         The names of the experiment calibration coordinates.
     """
-    _, var_names_cal = _get_all_variables(dataset, var_type="coord")
-
-    return var_names_cal
+    return _get_all_variables(dataset, var_type="coord", attr_type="calibration")

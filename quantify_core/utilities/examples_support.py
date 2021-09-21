@@ -24,18 +24,52 @@ def mk_dataset_attrs(**kwargs) -> dict:
 
 
 def mk_exp_coord_attrs(**kwargs) -> dict:
-    attrs = dd.QExpCoordAttrs(batched=False, uniformly_spaced=True).to_dict()
+    attrs = dd.QCoordAttrs(
+        batched=False,
+        uniformly_spaced=True,
+        is_experiment_coord=True,
+        is_calibration_coord=False,
+    ).to_dict()
+    attrs.update(kwargs)
+    return attrs
+
+
+def mk_cal_coord_attrs(**kwargs) -> dict:
+    attrs = dd.QCoordAttrs(
+        batched=False,
+        uniformly_spaced=True,
+        is_experiment_coord=False,
+        is_calibration_coord=True,
+    ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
 def mk_exp_var_attrs(**kwargs) -> dict:
-    attrs = dd.QExpVarAttrs(grid=True, uniformly_spaced=True, batched=False).to_dict()
+    attrs = dd.QVarAttrs(
+        grid=True,
+        uniformly_spaced=True,
+        batched=False,
+        is_experiment_var=True,
+        is_calibration_var=False,
+    ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
-def dataset_round_trip(ds: xr.Dataset) -> xr.Dataset:
+def mk_cal_var_attrs(**kwargs) -> dict:
+    attrs = dd.QVarAttrs(
+        grid=True,
+        uniformly_spaced=True,
+        batched=False,
+        is_experiment_var=False,
+        is_calibration_var=True,
+    ).to_dict()
+    attrs.update(kwargs)
+    return attrs
+
+
+def round_trip_dataset(ds: xr.Dataset) -> xr.Dataset:
     tuid = ds.tuid
     ds = da.AdapterH5NetCDF.adapt(ds)
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, ds)
