@@ -83,6 +83,7 @@ The above example will produce the following in the :code:`.rst` file :
     `jupyter_sphinx` allows to download.
 
 .. admonition:: Known limitations
+    :class: warning
 
     **Code highlighting in Jupyter Lab**
 
@@ -94,8 +95,8 @@ The above example will produce the following in the :code:`.rst` file :
 
     **Using python 'docstring' format for raw cells**
 
-    Jupytext allows to contents of raw cells in the `.py` files inside blocks that
-    look like follows:
+    Jupytext allows to store the contents of raw cells in the ``.py`` files inside
+    blocks that look like this:
 
     .. code:: python
 
@@ -114,7 +115,7 @@ The above example will produce the following in the :code:`.rst` file :
         # goes here
 
     It seem that it is not possible to use the ``'''`` format when saving only the
-    `.py` file. See
+    ``.py`` files. See
     `this issue on GitHub <https://github.com/mwouts/jupytext/issues/855>`_ for a status
     on this problem.
 
