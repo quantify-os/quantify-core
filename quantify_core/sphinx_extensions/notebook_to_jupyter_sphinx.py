@@ -40,7 +40,7 @@ Usage
 
         extensions = [
             # ...,
-            "quantify_core.utilities.sphinx_extensions.notebook_to_jupyter_sphinx",
+            "quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx",
         ]
 
 4. Add the `.rst.py` file(s) in the same location where you would like the `.rst` output file(s) to be generated.
