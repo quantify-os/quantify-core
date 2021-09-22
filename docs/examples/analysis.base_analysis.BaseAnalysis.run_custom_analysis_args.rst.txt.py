@@ -34,7 +34,7 @@
 
 from quantify_core.analysis.base_analysis import BaseAnalysis
 
-
+# pylint: too-few-public-methods
 class MyAnalysis(BaseAnalysis):
     """A docstring for the custom analysis."""
 
