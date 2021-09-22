@@ -1,3 +1,8 @@
+# pylint: disable=line-too-long
+# pylint: disable=wrong-import-order
+# pylint: disable=wrong-import-position
+# pylint: disable=pointless-string-statement
+
 # ---
 # jupyter:
 #   jupytext:
