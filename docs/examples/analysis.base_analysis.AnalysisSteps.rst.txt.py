@@ -36,17 +36,16 @@ Instrument.close_all()
 # %%
 # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-code:", ":hide-output:"]}
 
-import quantify_core.data.handling as dh
+
+import numpy as np
+from pathlib import Path
+from quantify_core.data.handling import set_datadir
+from quantify_core.measurement import MeasurementControl
+from qcodes import ManualParameter, Parameter, validators
 from quantify_core.analysis import base_analysis as ba
 
 formats = list(ba.settings["mpl_fig_formats"])
 ba.settings["mpl_fig_formats"] = []
-
-import numpy as np
-from pathlib import Path
-from quantify_core.data.handling import set_datadir, get_datadir, to_gridded_dataset
-from quantify_core.measurement import MeasurementControl
-from qcodes import ManualParameter, Parameter, validators, Instrument
 
 set_datadir(Path.home() / "quantify-data")
 
@@ -67,9 +66,9 @@ dataset = meas_ctrl.run("2D-mock")
 # %%
 # rst-json-conf: {"indent": "    "}
 
-from quantify_core.analysis import base_analysis as ba
+from quantify_core.analysis.base_analysis import BasicAnalysis
 
-a_obj = ba.BasicAnalysis(tuid=dataset.tuid).run_until(interrupt_before="run_fitting")
+a_obj = BasicAnalysis(tuid=dataset.tuid).run_until(interrupt_before="run_fitting")
 
 # We can also continue from a specific step
 a_obj.run_from(step="run_fitting")

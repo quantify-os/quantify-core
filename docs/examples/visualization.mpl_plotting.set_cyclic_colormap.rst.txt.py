@@ -1,3 +1,8 @@
+# pylint: disable=line-too-long
+# pylint: disable=wrong-import-order
+# pylint: disable=wrong-import-position
+# pylint: disable=pointless-string-statement
+
 # ---
 # jupyter:
 #   jupytext:
@@ -21,9 +26,9 @@
 # %%
 # rst-json-conf: {"indent": "    "}
 
+import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-import numpy as np
 from quantify_core.visualization.mpl_plotting import set_cyclic_colormap
 
 zvals = xr.DataArray(np.random.rand(6, 10) * 360)

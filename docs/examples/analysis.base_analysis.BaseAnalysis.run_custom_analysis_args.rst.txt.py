@@ -2,6 +2,7 @@
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
+# pylint: disable=attribute-defined-outside-init
 
 # ---
 # jupyter:
@@ -37,6 +38,7 @@ from quantify_core.analysis.base_analysis import BaseAnalysis
 class MyAnalysis(BaseAnalysis):
     """A docstring for the custom analysis."""
 
+    # pylint: disable=arguments-differ
     def run(self, optional_argument_one: float = 3.5e9):
         """
         A docstring with relevant notes about the analysis execution.
