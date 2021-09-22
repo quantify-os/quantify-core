@@ -278,20 +278,14 @@ The main experiment dimensions comply with the following:
     - E.g., **each entry** a ``y3`` experiment variable corresponds to a one-microsecond-long digitized signal which later is processed to extract its frequencies.
 
 
-Main experiment dimension(s) [Required]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Main calibration dimension(s) [Optional]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Equivalent to the main dimensions but used by the calibration coordinates and variables.
+The calibration dimensions comply with the following:
 
-- **[Optional]** ``dim_{i}_cal`` with ``i >= 0`` an integer
-
-    - **Notes**
-
-        - Intended for calibration coordinates and variables that correspond to calibration data.
-        - The intention is to behave very similarly to ``dim_0`` but allow for array of different length compared to those that lie along ``dim_0``.
-
-    - **[Required]** Can only exist in the dataset if there is a corresponding ``dim_{i}``.
-    - **[Required]** Only calibration coordinates and variables are allowed to lie along a ``dim_{i}_cal`` dimension.
-    - **[Required]** Calibration coordinates and variables must lie along one and only one ``dim_{i}_cal`` dimension.
+- The outermost dimension of any calibration coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
+- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`quantify_core.data.dataset_attrs.get_main_calibration_dims` which simply applies the rule above while inspecting all the calibration coordinates and variables present in the dataset.
 """
 
 # %% [raw]
@@ -364,36 +358,6 @@ dataset_gridded
 # rst-json-conf: {"indent": "    "}
 
 _ = dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
-
-# %% [raw]
-"""
-Experiment coordinates
-~~~~~~~~~~~~~~~~~~~~~~
-"""
-
-# %% [raw]
-"""
-All the :ref:`experiment coordinates <sec-experiment-coordinates-and-variables>` in the dataset comply with:
-
-- **[Required]** Lie on at least one ``dim_{i}`` dimension.
-
-    - Usually equivalent to a settable, usually a parameter that an experimentalist "sweeps" in order to observe the effect on some other property of the system being studied.
-    - For some experiments it might not be suitable to think of a parameter that is being varied. In such cases, a coordinate, say ``point_idx``, can be simply an array of integers, e.g. ``np.linspace(0, number_of_points)``.
-"""
-
-# %% [raw]
-"""
-Experiment variables
-~~~~~~~~~~~~~~~~~~~~
-"""
-
-# %% [raw]
-"""
-All the :ref:`experiment variables <sec-experiment-coordinates-and-variables>` in the dataset comply with:
-
-- **[Required]** Lie along at least one ``dim_{i}`` dimension.
-- **[Required]** Each entry is a data-point in the broad sense, i.e. it can be numeric (``int``/``float``/``complex``), fixed-lenght-string **OR** a nested ``numpy.ndarray`` (of one of these ``dtypes``).
-"""
 
 # %% [raw]
 """
