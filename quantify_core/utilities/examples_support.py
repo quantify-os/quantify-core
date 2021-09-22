@@ -199,8 +199,8 @@ def par_to_attrs(parameter: Union[Parameter, Any]) -> Dict[str, Any]:
     :class:`~quantify_core.data.dataset_attrs.QVarAttrs` and
     :class:`~quantify_core.data.dataset_attrs.QCoordAttrs`.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     parameter
         An object with a `.unit` and `.label` attributes.
 
