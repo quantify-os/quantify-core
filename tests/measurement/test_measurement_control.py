@@ -244,13 +244,6 @@ class TestMeasurementControl:
         )
         assert repr2 == expected
 
-    def test_repr_new_and_closed(self):
-
-        self.MC.close()
-        assert self.MC.__repr__()
-        self.MC = MeasurementControl("MC")
-        assert self.MC.__repr__()
-
     def test_setpoints(self):
         x = np.linspace(0, 10, 11)
         self.MC.setpoints(x)
@@ -1163,6 +1156,15 @@ class TestMeasurementControl:
         dset = self.MC._dataset
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
+
+
+def test_repr_new_and_closed():
+
+    MC = MeasurementControl("MC")
+    assert MC.__repr__()
+    MC.close()
+    assert MC.__repr__()
+    MC.close()
 
 
 class TestGridSetpoints:
