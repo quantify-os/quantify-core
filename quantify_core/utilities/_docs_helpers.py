@@ -3,9 +3,7 @@
 """Helpers for building docs"""
 from __future__ import annotations
 
-from typing import Union, List, Tuple
-import warnings
-import json
+from typing import Union
 import shutil
 import tempfile
 from pathlib import Path
