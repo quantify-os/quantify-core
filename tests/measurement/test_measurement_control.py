@@ -244,6 +244,13 @@ class TestMeasurementControl:
         )
         assert repr2 == expected
 
+    def test_repr_new_and_closed(self):
+
+        self.MC.close()
+        assert self.MC.__repr__()
+        self.MC = MeasurementControl("MC")
+        assert self.MC.__repr__()
+
     def test_setpoints(self):
         x = np.linspace(0, 10, 11)
         self.MC.setpoints(x)
@@ -263,11 +270,7 @@ class TestMeasurementControl:
         self.MC.settables(t)
         self.MC.setpoints(xvals)
         self.MC.gettables(sig)
-        print("\n\n")
-        self.MC.show()
         dset = self.MC.run()
-        print("\n\n")
-        self.MC.show()
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -965,7 +968,6 @@ class TestMeasurementControl:
         }
         self.MC.gettables(resonance)
         dset = self.MC.run_adaptive("adaptive sample", af_pars)
-        print("jej")
 
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)
