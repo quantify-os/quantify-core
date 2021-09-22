@@ -396,8 +396,9 @@ def notebooks_to_rst(app, config) -> None:
     srcdir = Path(app.srcdir)
     rst_py_files = srcdir.rglob("*.rst.py")
     # Sometimes it is useful to generate rst contents in one dir but we want it to be
-    # evaluated in another dir and for that the output file requires for example .txt
-    # ex
+    # evaluated in another dir and for that the output file requires for example `.txt`
+    # extension. A simple way to achieve this is to support input files
+    # with extensions `.rst.*.py`, e.g., `.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
     for file in itertools.chain(rst_py_files, rst_other_py_files):
         logger.debug("Converting file...", location=file)
