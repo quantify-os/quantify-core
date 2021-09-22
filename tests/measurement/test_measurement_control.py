@@ -962,7 +962,7 @@ class TestMeasurementControl:
             "bounds": (6e9, 7e9),
         }
         self.meas_ctrl.gettables(resonance)
-        dset = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
+        _ = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
 
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)
@@ -973,7 +973,7 @@ class TestMeasurementControl:
             "bounds": ((-50, 50), (-20, 30)),
         }
         self.meas_ctrl.gettables(self.dummy_parabola.parabola)
-        dset = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
+        _ = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
         # todo pycqed has no verification step here, what should we do?
 
     @pytest.mark.skipif(
@@ -991,7 +991,7 @@ class TestMeasurementControl:
             "acq_optimizer": "lbfgs",
         }
         self.meas_ctrl.gettables(self.dummy_parabola.parabola)
-        dset = self.meas_ctrl.run_adaptive("skopt", af_pars)
+        _ = self.meas_ctrl.run_adaptive("skopt", af_pars)
         # todo pycqed has no verification step here, what should we do?
 
     def test_progress_callback(self):
