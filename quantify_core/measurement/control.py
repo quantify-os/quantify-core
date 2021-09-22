@@ -162,19 +162,25 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._thread_data.events_num = 0
 
     def __repr__full__(self):
-        gettable_names = [p.name for p in self._gettable_pars]
-        settable_names = [p.name for p in self._settable_pars]
-
         str_out = super().__repr__() + "\n"
-        str_out += f"    settables: {settable_names}\n"
-        str_out += f"    gettables: {gettable_names}\n"
 
-        if self._setpoints_input is not None:
-            input_shapes = [str_out.shape for str_out in self._setpoints_input]
+        # hasattr is necessary in case the instrument was closed
+        if hasattr(self, "_settable_pars"):
+            settable_names = [p.name for p in self._settable_pars]
+            str_out += f"    settables: {settable_names}\n"
+
+        if hasattr(self, "_gettable_pars"):
+            gettable_names = [p.name for p in self._gettable_pars]
+            str_out += f"    gettables: {gettable_names}\n"
+
+        if hasattr(self, "_setpoints_input") and self._setpoints_input is not None:
+            input_shapes = [
+                np.asarray(points).shape for points in self._setpoints_input
+            ]
             str_out += f"    setpoints_grid input shapes: {input_shapes}\n"
 
-        if self._setpoints is not None:
-            str_out += f"    setpoints shape: {self._setpoints.shape}\n"
+        if hasattr(self, "_setpoints") and self._setpoints is not None:
+            str_out += f"    setpoints shape: {np.asarray(self._setpoints).shape}\n"
 
         return str_out
 
