@@ -1,6 +1,13 @@
 .. jupyter-kernel:: python3
     :id: quantify_core_all_docs
 
+.. jupyter-execute::
+    :hide-code:
+
+    # Prettify the outputs in the entire API reference
+    from rich import pretty
+    pretty.install()
+
 =============
 quantify_core
 =============

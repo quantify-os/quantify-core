@@ -56,21 +56,7 @@ class QCoordAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. jupyter-execute::
-            :hide-code:
-
-            from rich import pretty
-            pretty.install()
-
-        .. jupyter-execute::
-
-            from quantify_core.utilities import examples_support
-
-            examples_support.mk_exp_coord_attrs()
-
-        .. jupyter-execute::
-
-            examples_support.mk_cal_coord_attrs()
+        .. include:: /examples/data.dataset_attrs.QCoordAttrs.rst.txt
     """
 
     units: str = ""
@@ -121,21 +107,7 @@ class QVarAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. jupyter-execute::
-            :hide-code:
-
-            from rich import pretty
-            pretty.install()
-
-        .. jupyter-execute::
-
-            from quantify_core.utilities import examples_support
-
-            examples_support.mk_exp_var_attrs(experiment_coords=["time"])
-
-        .. jupyter-execute::
-
-            examples_support.mk_cal_var_attrs(experiment_coords=["cal"])
+        .. include:: /examples/data.dataset_attrs.QVarAttrs.rst.txt
     """
 
     units: str = ""
@@ -227,23 +199,7 @@ class QDatasetAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. jupyter-execute::
-            :hide-code:
-
-            import pendulum
-            from rich import pretty
-            pretty.install()
-
-        .. jupyter-execute::
-
-            from quantify_core.utilities import examples_support
-
-            examples_support.mk_dataset_attrs(
-                experiment_name="Bias scan",
-                experiment_start=pendulum.now().to_iso8601_string(),
-                experiment_end=pendulum.now().add(minutes=2).to_iso8601_string(),
-                experiment_state="done"
-            )
+        .. include:: ./examples/data.dataset_attrs.QDatasetAttrs.rst.txt
     """
 
     tuid: Union[str, None] = None

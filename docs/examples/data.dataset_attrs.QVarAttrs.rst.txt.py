@@ -13,13 +13,9 @@
 # ---
 
 # %%
-
 from quantify_core.utilities import examples_support
-import pendulum
 
-examples_support.mk_dataset_attrs(
-    experiment_name="Bias scan",
-    experiment_start=pendulum.now().to_iso8601_string(),
-    experiment_end=pendulum.now().add(minutes=2).to_iso8601_string(),
-    experiment_state="done",
-)
+examples_support.mk_exp_var_attrs(experiment_coords=["time"])
+
+# %%
+examples_support.mk_cal_var_attrs(experiment_coords=["cal"])
