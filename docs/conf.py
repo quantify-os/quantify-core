@@ -145,6 +145,12 @@ html_css_files = [
 # Output file base name for HTML help builder.
 htmlhelp_basename = "quantifydoc"
 
+html_context = {
+    "display_gitlab": True,
+    "gitlab_user": "quantify-os",
+    "gitlab_repo": "quantify-core",
+    "gitlab_version": "develop/docs/",
+}
 
 # -- Options for LaTeX output ------------------------------------------
 
