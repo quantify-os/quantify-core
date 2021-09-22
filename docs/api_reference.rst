@@ -120,6 +120,11 @@ experiment_helpers
 .. automodule:: quantify_core.utilities.experiment_helpers
     :members:
 
+examples_support
+----------------
+
+.. automodule:: quantify_core.utilities.examples_support
+    :members:
 
 visualization
 =============
