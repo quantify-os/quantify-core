@@ -40,7 +40,7 @@ import xarray as xr
 from pathlib import Path
 import matplotlib.pyplot as plt
 from qcodes import ManualParameter, Parameter
-from quantify_core.measurement import MeasurementControl, grid_setpoints
+from quantify_core.measurement import MeasurementControl
 import quantify_core.data.handling as dh
 
 dh.set_datadir(Path.home() / "quantify-data")

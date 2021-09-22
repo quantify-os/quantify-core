@@ -1,3 +1,8 @@
+# pylint: disable=line-too-long
+# pylint: disable=wrong-import-order
+# pylint: disable=wrong-import-position
+# pylint: disable=pointless-string-statement
+
 # ---
 # jupyter:
 #   jupytext:
@@ -23,11 +28,11 @@
 # %%
 # rst-json-conf: {"indent": "    "}
 
-from quantify_core.visualization.color_utilities import set_hlsa
-import matplotlib.pyplot as plt
+import numpy as np
 import colorsys
 import matplotlib.colors as mplc
-import numpy as np
+import matplotlib.pyplot as plt
+from quantify_core.visualization.color_utilities import set_hlsa
 
 color_cycle = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
 all_colors = []
