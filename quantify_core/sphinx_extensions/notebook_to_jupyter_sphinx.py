@@ -121,6 +121,7 @@ The extension could be enhanced in a few ways:
 - Include the raw rst cells in the notebooks that `jupyter_sphinx` allows to download.
 - Make the "View page source"/"Edit on GitHub/GitLab" point to the ``.rst.py`` script instead of the ``.rst``.
 - A Jupyter Lab or browser extension for ``rst`` code highlighting (see limitation below).
+- Support for using markdown cells directly with conversion to .rst using a tool like MYST. 
 
 Known limitations
 -----------------
