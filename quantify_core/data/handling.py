@@ -580,7 +580,7 @@ def to_gridded_dataset(
         The new dataset.
 
 
-    .. include:: ./docstring_examples/quantify_core.data.handling.to_gridded_dataset.rst.txt
+    .. include:: ./examples/data.handling.to_gridded_dataset.rst.txt
     """
 
     if coords_names is None:

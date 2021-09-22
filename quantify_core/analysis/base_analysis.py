@@ -82,14 +82,14 @@ class AnalysisSteps(Enum):
         from quantify_core.analysis import base_analysis as ba
         print(ba.analysis_steps_to_str(ba.AnalysisSteps))
 
-    .. include:: ./docstring_examples/quantify_core.analysis.base_analysis.AnalysisSteps.rst.txt
+    .. include:: ./examples/analysis.base_analysis.AnalysisSteps.rst.txt
 
     .. tip::
 
         A custom analysis flow (e.g. inserting new steps) can be created by implementing
         an object similar to this one and overriding the
         :obj:`~BaseAnalysis.analysis_steps`.
-    """  # pylint: disable=line-too-long
+    """
 
     # Variables must start with a letter but we want them to have sorted names
     # for auto-complete to indicate the execution order
@@ -240,7 +240,7 @@ class BaseAnalysis(ABC):
 
         This function is typically called right after instantiating an analysis class.
 
-        .. include:: ./docstring_examples/quantify_core.analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
+        .. include:: ./examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
 
         Returns
         -------

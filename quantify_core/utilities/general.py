@@ -160,12 +160,6 @@ def without(dict_in, keys):
     return new_d
 
 
-class KeyboardFinish(KeyboardInterrupt):
-    """
-    Indicates the user has signaled to safely abort/finish the experiment.
-    """
-
-
 def call_if_has_method(obj, method: str) -> None:
     """
     Calls the `method` of the `obj` if it has it

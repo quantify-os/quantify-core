@@ -1,8 +1,8 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """
-A sphinx extension that converts python Jupyter notebook scripts (:code:`.rst.py`) in
-the percent format to :code:`.rst` files (to be executed by sphinx).
+A sphinx extension that converts python Jupyter notebook scripts ``.rst.py`` (or ``.rst.*.py)`` in
+the percent format to ``.rst`` (``.rst.*``) files to be executed by sphinx.
 
 The extension purpose is to minimize the required overhead for writing and modifying
 executable tutorials.
@@ -27,10 +27,20 @@ An alternative to this extensions is to use `nbsphinx in combination with jupyte
 Usage
 -----
 
-1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix (:code:`.rst.py`). The extra :code:`.rst` suffix is necessary in order to collect the files that are to be converted.
+1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
 
-    - You can also start with a normal notebook :code:`.rst.ipynb` paired with with `.rst.py` percent-formatted script. This is achieved, e.g., with the `jupytext extension <https://jupytext.readthedocs.io/>`_ for Jupyter Lab.
-    - Why `percent format`? To keep the scripts compatible with Jupyter and most IDEs.
+    .. tip::
+
+        You can start from the ``.rst.py`` percent-formatted `Notebook template`_ and sync it with an ``.ipynb`` notebook if you wish.
+
+        This is achieved, e.g., with the `jupytext extension <https://jupytext.readthedocs.io/>`_ for Jupyter Lab (pre-installed on recent versions). Open the `Jupyter Lab's Command Palette <https://jupyterlab.readthedocs.io/en/stable/user/commands.html>`_ and start typing "Pair". The Jupytext commands should show up.
+
+    .. tip::
+
+        The ``.rsr.*.py`` extensions, e.g. ``.rst.txt.py``, will preserve its extension(s). This is supported in order to be able to produce rst files that are ignored by sphinx and can be ``.. include::``\d in other parts of the project. For example, you might want to keep long code example in a separate directory instead of including everything directly inside a docstring of a class. This makes it also easier to modify examples without having to build the docs in order to test that the examples work.
+
+        The rest of the documentation below applies equally for ``.rsr.py`` and ``.rsr.*.py``, even though the latter is not mentioned explicitly for simplicity.
+
 
 2. Version control only the :code:`.rst.py` file. Do not commit the :code:`.rst` nor the :code:`.ipynb` files.
 
@@ -49,21 +59,21 @@ Usage
 
 6. Every time the docs are built by sphinx, the :code:`.rst` file(s) corresponding to all the :code:`.rst.py` file(s) will be generated under the same directory with the same name. This step will be executed right after sphinx loads its settings from the :code:`conf.py` file.
 
-.. note::
+    .. note::
 
-    This extension will not process all :code:`.rst.py` files but will only write to
-    disk the files that result in different contents compared to the contents of the
-    existing :code:`.rst` file. Since sphinx is efficient and does not process files
-    that have not changed, this speeds up the development time.
+        This extension will not process all :code:`.rst.py` files but will only write to
+        disk the files that result in different contents compared to the contents of the
+        existing :code:`.rst` file. Since sphinx is efficient and does not process files
+        that have not changed, this speeds up the development time.
 
-    If you are updating the code that is used in the notebooks you might want to force
-    the rebuild of the ``.rst`` files by adding (temporarily) to the ``conf.py``:
+        If you are updating the code that is used in the notebooks you might want to force
+        the rebuild of the ``.rst`` files by adding (temporarily) to the ``conf.py``:
 
-    .. code-block::
+        .. code-block::
 
-        # ...
-        notebook_to_jupyter_sphinx_always_rebuild = True
-        # ...
+            # ...
+            notebook_to_jupyter_sphinx_always_rebuild = True
+            # ...
 
 Code cells configuration magic comment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,14 +131,14 @@ The extension could be enhanced in a few ways:
 - Include the raw rst cells in the notebooks that `jupyter_sphinx` allows to download.
 - Make the "View page source"/"Edit on GitHub/GitLab" point to the ``.rst.py`` script instead of the ``.rst``.
 - A Jupyter Lab or browser extension for ``rst`` code highlighting (see limitation below).
-- Support for using markdown cells directly with conversion to .rst using a tool like MYST. 
+- Support for using markdown cells directly with conversion to .rst using a tool like MYST.
 
 Known limitations
 -----------------
 
 Code highlighting in Jupyter Lab
-    Unfortunately it seems that it is not possible to make Jupyter Lab highlight the rst code in the (raw) cells of a notebook, which would be useful for this extension. There are some workarounds for Jupyter Notebook involving cell magics but it is not
-    quite worth the effort.
+    Unfortunately it seems that it is not possible to make Jupyter Lab highlight the rst code in the (raw) cells of a notebook, which would be useful for this extension.
+    There are some workarounds for Jupyter Notebook involving cell magics but it is not quite worth the effort.
 
 Notebook template
 -----------------
@@ -192,6 +202,7 @@ You can remove that line if you wish to use the default representation.
 
 from __future__ import annotations
 
+import itertools
 from typing import List, Tuple
 import json
 from pathlib import Path
@@ -383,11 +394,16 @@ def notebooks_to_rst(app, config) -> None:
         return write
 
     srcdir = Path(app.srcdir)
-    for file in srcdir.rglob("*.rst.py"):
+    rst_py_files = srcdir.rglob("*.rst.py")
+    # Sometimes it is useful to generate rst contents in one dir but we want it to be
+    # evaluated in another dir and for that the output file requires for example .txt
+    # ex
+    rst_other_py_files = srcdir.rglob("*.rst.*.py")
+    for file in itertools.chain(rst_py_files, rst_other_py_files):
         logger.debug("Converting file...", location=file)
         try:
             notebook = jupytext.read(file, fmt="py:percent")
-            rst_filepath = file.parent / f"{Path(file.stem).stem}.rst"
+            rst_filepath = file.parent / Path(file.stem)
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
             always_rebuild = config["notebook_to_jupyter_sphinx_always_rebuild"]
             rst_str = notebook_to_rst(notebook, rst_indent)
