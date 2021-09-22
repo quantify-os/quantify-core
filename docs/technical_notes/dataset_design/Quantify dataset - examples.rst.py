@@ -752,7 +752,7 @@ for t_example in [x0s[len(x0s) // 5], x0s[-5]]:
 
 # %% [raw]
 """
-We can colapse (average along) the ``repetion_dim_0``` dimension:
+We can collapse (average along) the ``repetitions`` dimension:
 """
 
 # %% [raw]

@@ -36,10 +36,10 @@ def mk_dataset_attrs(
 
 
 def mk_exp_coord_attrs(
-    batched=False,
-    uniformly_spaced=True,
-    is_experiment_coord=True,
-    is_calibration_coord=False,
+    batched: bool = False,
+    uniformly_spaced: bool = True,
+    is_experiment_coord: bool = True,
+    is_calibration_coord: bool = False,
     **kwargs
 ) -> Dict[str, Any]:
     """
@@ -69,10 +69,10 @@ def mk_exp_coord_attrs(
 
 
 def mk_cal_coord_attrs(
-    batched=False,
-    uniformly_spaced=True,
-    is_experiment_coord=False,
-    is_calibration_coord=True,
+    batched: bool = False,
+    uniformly_spaced: bool = True,
+    is_experiment_coord: bool = False,
+    is_calibration_coord: bool = True,
     **kwargs
 ) -> Dict[str, Any]:
     """
@@ -103,11 +103,11 @@ def mk_cal_coord_attrs(
 
 def mk_exp_var_attrs(
     experiment_coords: List[str],
-    grid=True,
-    uniformly_spaced=True,
-    batched=False,
-    is_experiment_var=True,
-    is_calibration_var=False,
+    grid: bool = True,
+    uniformly_spaced: bool = True,
+    batched: bool = False,
+    is_experiment_var: bool = True,
+    is_calibration_var: bool = False,
     **kwargs
 ) -> Dict[str, Any]:
     """
@@ -144,11 +144,11 @@ def mk_exp_var_attrs(
 
 def mk_cal_var_attrs(
     experiment_coords: List[str],
-    grid=True,
-    uniformly_spaced=True,
-    batched=False,
-    is_experiment_var=False,
-    is_calibration_var=True,
+    grid: bool = True,
+    uniformly_spaced: bool = True,
+    batched: bool = False,
+    is_experiment_var: bool = False,
+    is_calibration_var: bool = True,
     **kwargs
 ) -> Dict[str, Any]:
     """

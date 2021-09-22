@@ -145,7 +145,7 @@ An "unstructured" experiment and dataset example
 
 # %% [raw]
 """
-Schdule reference: `one of the latest papers from DiCarlo Lab
+Schedule reference: `one of the latest papers from DiCarlo Lab
 <https://arxiv.org/abs/2102.13071>`_, Fig. 4b.
 
 NB not exactly the same schedule, but what matter are the measurements.
@@ -446,7 +446,7 @@ disk. Below are a few examples of potential complications.
 
 # %% [raw]
 """
-Fortunetly, the MultiIndex can be reset back:
+Fortunately, the MultiIndex can be reset back:
 """
 
 # %%
