@@ -53,6 +53,24 @@ class QCoordAttrs(DataClassJsonMixin):
     experiment and calibration coordinates.
 
     All attributes are mandatory to be present but can be ``None``.
+
+    .. admonition:: Examples
+
+        .. jupyter-execute::
+            :hide-code:
+
+            from rich import pretty
+            pretty.install()
+
+        .. jupyter-execute::
+
+            from quantify_core.utilities import examples_support
+
+            examples_support.mk_exp_coord_attrs()
+
+        .. jupyter-execute::
+
+            examples_support.mk_cal_coord_attrs()
     """
 
     units: str = ""
@@ -83,7 +101,14 @@ class QCoordAttrs(DataClassJsonMixin):
     be json-serialized in order to be able to write them to disk using the ``h5netcdf``
     engine.
 
-    Note that the default values in this list should be included as well."""
+    Note that the default values in this list should be included as well.
+
+    **Default:**
+
+    .. code-block:: python
+
+        ["batched", "batch_size", "uniformly_spaced"]
+    """
 
 
 @dataclass
@@ -93,6 +118,24 @@ class QVarAttrs(DataClassJsonMixin):
     experiment and calibration variables.
 
     All attributes are mandatory to be present but can be ``None``.
+
+    .. admonition:: Examples
+
+        .. jupyter-execute::
+            :hide-code:
+
+            from rich import pretty
+            pretty.install()
+
+        .. jupyter-execute::
+
+            from quantify_core.utilities import examples_support
+
+            examples_support.mk_exp_var_attrs(experiment_coords=["time"])
+
+        .. jupyter-execute::
+
+            examples_support.mk_cal_var_attrs(experiment_coords=["cal"])
     """
 
     units: str = ""
@@ -158,7 +201,20 @@ class QVarAttrs(DataClassJsonMixin):
     be json-serialized in order to be able to write them to disk using the ``h5netcdf``
     engine.
 
-    Note that the default values in this list should be included as well."""
+    Note that the default values in this list should be included as well.
+
+    **Default:**
+
+    .. code-block:: python
+
+        [
+            "batched",
+            "batch_size",
+            "uniformly_spaced",
+            "grid",
+            "experiment_coords"
+        ]
+    """
 
 
 @dataclass
@@ -168,6 +224,26 @@ class QDatasetAttrs(DataClassJsonMixin):
     Quantify dataset.
 
     All attributes are mandatory to be present but can be ``None``.
+
+    .. admonition:: Examples
+
+        .. jupyter-execute::
+            :hide-code:
+
+            import pendulum
+            from rich import pretty
+            pretty.install()
+
+        .. jupyter-execute::
+
+            from quantify_core.utilities import examples_support
+
+            examples_support.mk_dataset_attrs(
+                experiment_name="Bias scan",
+                experiment_start=pendulum.now().to_iso8601_string(),
+                experiment_end=pendulum.now().add(minutes=2).to_iso8601_string(),
+                experiment_state="done"
+            )
     """
 
     tuid: Union[str, None] = None
@@ -182,11 +258,15 @@ class QDatasetAttrs(DataClassJsonMixin):
     """Denotes the last known state of the experiment. Can be used later to filter
     'bad' datasets."""
     experiment_start: Union[str, None] = None
-    """Human-readable timestamp, including timezone, format to be defined.
+    """Human-readable timestamp (ISO8601) as returned by
+    :code:`pendulum.now().to_iso8601_string()`
+    (`docs <https://pendulum.eustace.io/docs/>`_).
     Specifies when the experiment/data acquisition started.
     """
     experiment_end: Union[str, None] = None
-    """Human-readable timestamp, including timezone, format to be defined.
+    """Human-readable timestamp (ISO8601) as returned by
+    :code:`pendulum.now().to_iso8601_string()`
+    (`docs <https://pendulum.eustace.io/docs/>`_).
     Specifies when the experiment/data acquisition ended.
     """
     quantify_dataset_version: str = "2.0.0"
@@ -194,7 +274,8 @@ class QDatasetAttrs(DataClassJsonMixin):
     compatibility."""
     software_versions: Dict[str, str] = field(default_factory=dict)
     """A mapping of other relevant software packages that are relevant to log for this
-    dataset. Another example is the git tag or hash of a commit of a lab repository."""
+    dataset. Another example is the git tag or hash of a commit of a lab repository.
+    """
     relationships: List[QDatasetIntraRelationship] = field(default_factory=list)
     """A list of relationships within the dataset specified as list of dictionaries
     that comply with the :class:`~.QDatasetIntraRelationship`."""
@@ -219,7 +300,21 @@ class QDatasetAttrs(DataClassJsonMixin):
     be json-serialized in order to be able to write them to disk using the ``h5netcdf``
     engine.
 
-    Note that the default values in this list should be included as well."""
+    Note that the default values in this list should be included as well.
+
+    **Default:**
+
+    .. code-block:: python
+
+        [
+            "tuid",
+            "experiment_state",
+            "experiment_start",
+            "experiment_end",
+            "software_versions",
+            "relationships"
+        ]
+    """
 
 
 def _get_dims(

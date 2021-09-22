@@ -74,9 +74,8 @@ def mk_cal_var_attrs(experiment_coords: List[str], **kwargs) -> dict:
 
 def round_trip_dataset(ds: xr.Dataset) -> xr.Dataset:
     tuid = ds.tuid
-    ds = da.AdapterH5NetCDF.adapt(ds)
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, ds)
-    return da.AdapterH5NetCDF.recover(dh.load_dataset(tuid))
+    return dh.load_dataset(tuid)
 
 
 def par_to_attrs(par) -> dict:

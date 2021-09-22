@@ -18,6 +18,7 @@ import xarray as xr
 from qcodes import Instrument
 from quantify_core.data.types import TUID
 from quantify_core.utilities.general import delete_keys_from_dict
+import quantify_core.data.dataset_adapters as da
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -57,7 +58,8 @@ def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
 def get_datadir() -> str:
     """
     Returns the current data directory.
-    The data directory can be changed using :func:`~quantify_core.data.handling.set_datadir`.
+    The data directory can be changed using
+    :func:`~quantify_core.data.handling.set_datadir`.
 
     Returns
     -------
@@ -102,8 +104,8 @@ def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
     Parameters
     ----------
     tuid
-        A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify only
-        the first part of a tuid.
+        A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify
+        only the first part of a tuid.
     datadir
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
@@ -159,8 +161,8 @@ def load_dataset(
     Parameters
     ----------
     tuid
-        A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify only
-        the first part of a tuid.
+        A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify
+        only the first part of a tuid.
     datadir
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
@@ -180,6 +182,10 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     """
     Loads a :class:`~xarray.Dataset` with a specific engine preference.
 
+    Before returning the dataset
+    :meth:`AdapterH5NetCDF.recover() <quantify_core.data.dataset_adapters.AdapterH5NetCDF.recover>`
+    is applied.
+
     This function tries to load the dataset until success with the following engine
     preference:
 
@@ -196,7 +202,7 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     -------
     :
         The loaded dataset.
-    """
+    """  # pylint: disable=line-too-long
     exceptions = []
     engines = ["h5netcdf", "netcdf4", None]
     for engine in engines:
@@ -205,7 +211,7 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
         except Exception as exception:
             exceptions.append(exception)
         else:
-            return dataset
+            return da.AdapterH5NetCDF.recover(dataset)
 
     # Do not let exceptions pass silently
     for exception, engine in zip(exceptions, engines[: engines.index(engine)]):
@@ -315,6 +321,10 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     """
     Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
 
+    Before writing the
+    :meth:`AdapterH5NetCDF.adapt() <quantify_core.data.dataset_adapters.AdapterH5NetCDF.adapt>`
+    is applied.
+
     To accommodate for complex-type numbers and arrays ``invalid_netcdf=True`` is used.
 
     Parameters
@@ -323,8 +333,9 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
         Path to the file including filename and extension
     dataset
         The :class:`~xarray.Dataset` to be written to file.
-    """
+    """  # pylint: disable=line-too-long
     _xarray_numpy_bool_patch(dataset)  # See issue #161 in quantify-core
+    dataset = da.AdapterH5NetCDF.adapt(dataset)
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 
@@ -335,8 +346,8 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
     Parameters
     ----------
     tuid
-        A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify only
-        the first part of a tuid.
+        A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify
+        only the first part of a tuid.
     datadir
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
@@ -460,7 +471,7 @@ def initialize_dataset(
     dataset = xr.merge(darrs)
     dataset = dataset.set_coords(coords)
     # xarray>=0.18.0 tries to combine attrs which we do not want at all
-    dataset.attrs = dict()
+    dataset.attrs = {}
     dataset.attrs["tuid"] = gen_tuid()
     return dataset
 
@@ -493,7 +504,7 @@ def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
     coords = tuple(dataset.coords.keys())
     dataset = dataset.drop_dims(["dim_0"])
     merged_data_arrays = xr.merge(darrs)
-    merged_data_arrays.attrs = dict()  # xarray>=0.18.0 tries to merge attrs
+    merged_data_arrays.attrs = {}  # xarray>=0.18.0 tries to merge attrs
     dataset = dataset.merge(merged_data_arrays)
     dataset = dataset.set_coords(coords)
     return dataset
@@ -528,7 +539,7 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
                 )
             dataset = dataset.drop_dims(["dim_0"])
             merged_data_arrays = xr.merge(darrs)
-            merged_data_arrays.attrs = dict()  # xarray>=0.18.0 tries to merge attrs
+            merged_data_arrays.attrs = {}  # xarray>=0.18.0 tries to merge attrs
             dataset = dataset.merge(merged_data_arrays)
             dataset = dataset.set_coords(coords)
             break
@@ -625,8 +636,8 @@ def get_latest_tuid(contains: str = "") -> TUID:
     .. tip::
 
         This function is similar to :func:`~get_tuids_containing` but is preferred if
-        one is only interested in the most recent :class:`~quantify_core.data.types.TUID`
-        for performance reasons.
+        one is only interested in the most recent
+        :class:`~quantify_core.data.types.TUID` for performance reasons.
 
     Parameters
     ----------
@@ -658,8 +669,9 @@ def get_tuids_containing(
 
     .. tip::
 
-        If one is only interested in the most recent :class:`~quantify_core.data.types.TUID`,
-        :func:`~get_latest_tuid` is preferred for performance reasons.
+        If one is only interested in the most recent
+        :class:`~quantify_core.data.types.TUID`, :func:`~get_latest_tuid` is preferred
+        for performance reasons.
 
     Parameters
     ----------

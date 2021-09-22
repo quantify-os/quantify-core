@@ -87,10 +87,10 @@ If you are not familiar with it, we highly recommend to first have a look at our
 """
 .. _sec-experiment-coordinates-and-variables:
 
-Terminology
------------
+Coordinates and Variables
+-------------------------
 
-The Quantify dataset is an xarray dataset that follows certain conventions. We define the following terminology:
+The Quantify dataset is an xarray dataset that follows certain conventions. We define "subtypes" of xarray coordinates and variables:
 
 .. _sec-experiment-coordinates:
 
@@ -132,7 +132,7 @@ Calibration variables(s)
 
 - Similar to `experiment variables <sec-experiment-variables>`_, but intended to serve as calibration data for other experiment variables.
 - Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_calibration_var` set to ``True``.
-- The "assgnment" of calibration variables to experiment variables should be done using :attr:`QDatasetAttrs.relationships`.
+- The "assignment" of calibration variables to experiment variables should be done using :attr:`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
 - See also :func:`~quantify_core.data.dataset_attrs.get_calibration_vars`.
 
 
@@ -233,19 +233,13 @@ _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.d
 
 # %% [raw]
 """
-Detailed specification
-----------------------
+Dimensions
+----------
 """
 
 # %% [raw]
 """
-Xarray dimensions
-~~~~~~~~~~~~~~~~~
-"""
-
-# %% [raw]
-"""
-The experiment variables and coordinates present in a Quantify dataset have the following required and optional dimensions:
+The experiment variables and coordinates present in a Quantify dataset have the following required and optional xarray dimensions:
 
 .. _sec-repetitions-dimensions:
 
@@ -254,7 +248,7 @@ Repetitions dimension(s) [Optional]
 
 Repetition dimensions comply with the following:
 
-- Any dimensions present in the dataset that are listed in the :attr:`quantify_core.data.dataset_attrs.QDatasetAttrs.repetitions_dims` dataset attribute.
+- Any dimensions present in the dataset that are listed in the :attr:`QDatasetAttrs.repetitions_dims <quantify_core.data.dataset_attrs.QDatasetAttrs.repetitions_dims>` dataset attribute.
 - Intuition for these xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
 - Default behavior of plotting tools will be to average the experiment variables along these dimensions.
 - Can be the outermost dimension of :ref:`experiment (and calibration) variables <sec-experiment-coordinates-and-variables>`.
@@ -266,7 +260,7 @@ Main experiment dimension(s) [Required]
 The main experiment dimensions comply with the following:
 
 - The outermost dimension of any experiment coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
-- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`quantify_core.data.dataset_attrs.get_main_dims` which simply applies the rule above while inspecting all the experiment coordinates and variables present in the dataset.
+- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_main_dims` which simply applies the rule above while inspecting all the experiment coordinates and variables present in the dataset.
 - The dataset must have at least one main dimension.
 
 .. admonition:: Note on nesting main dimensions
@@ -285,7 +279,7 @@ Equivalent to the main dimensions but used by the calibration coordinates and va
 The calibration dimensions comply with the following:
 
 - The outermost dimension of any calibration coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
-- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`quantify_core.data.dataset_attrs.get_main_calibration_dims` which simply applies the rule above while inspecting all the calibration coordinates and variables present in the dataset.
+- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_main_calibration_dims` which simply applies the rule above while inspecting all the calibration coordinates and variables present in the dataset.
 """
 
 # %% [raw]
@@ -362,10 +356,10 @@ _ = dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
 # %% [raw]
 """
 Dataset attributes
-~~~~~~~~~~~~~~~~~~
+------------------
 
 The mandatory attributes of the Quantify dataset are defined by the following dataclass.
-It can be used to generate a default dictionary that is attached to a dataset.
+It can be used to generate a default dictionary that is attached to a dataset under the :attr:`xarray.Dataset.attrs` attribute.
 
 .. autoclass:: quantify_core.data.dataset_attrs.QDatasetAttrs
     :members:
@@ -403,7 +397,9 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 # %% [raw]
 """
 Experiment coordinates and variables attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------------
+
+Similar to the dataset attributes (:attr:`xarray.Dataset.attrs`), the experiment coordinates and variables have each their own mandatory attributes attached to them as dictionary under the :attr:`xarray.DataArray.attrs` attribute.
 """
 
 # %% [raw]
@@ -435,7 +431,7 @@ Storage format
 --------------
 
 The Quantify dataset is written to disk and loaded back making use of xarray-supported facilities.
-Internally we write to disk using:
+Internally we write/load to/from disk using:
 """
 
 # %%
@@ -446,18 +442,19 @@ from IPython.display import Code
 
 Code(inspect.getsource(dh.write_dataset), language="python")
 
+# %%
+# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+
+Code(inspect.getsource(dh.load_dataset), language="python")
+
 # %% [raw]
 """
-Note that we use the ``h5netcdf``` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers type.
+Note that we use the ``h5netcdf`` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers type.
 
-.. admonition:: TODO
-    :class: warning
+.. note::
 
-    Furthermore, in order to support a variety of attribute types and shapes, in a seamless workflow, some additional tooling is required to be integrated. See source codes below.
+    Furthermore, in order to support a variety of attribute types (e.g. the `None` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below.
 """
-
-# %%
-Code(inspect.getsource(round_trip_dataset), language="python")
 
 # %%
 Code(inspect.getsource(da.AdapterH5NetCDF), language="python")
