@@ -18,6 +18,7 @@ Unreleased
 * Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
 * MeasurementControl - Added representation with summary of settables, gettables and setpoints (!222).
 * InstrumentMonitor - Extended Instrument Monitor to handle submodules and channels (#213, !226).
+* Docs - Added notebook_to_jupyter_sphinx sphinx extension converter for tutorials writing (!220).
 
 0.5.0 (2021-08-06)
 ------------------
