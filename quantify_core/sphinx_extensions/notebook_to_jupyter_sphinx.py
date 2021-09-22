@@ -113,8 +113,8 @@ The above example will produce the following in the :code:`.rst` file :
     python feature
     `here <https://www.datacamp.com/community/tutorials/role-underscore-python>`_.
 
-Possible enhancements
----------------------
+Potential enhancements
+----------------------
 
 The extension could be enhanced in a few ways:
 
