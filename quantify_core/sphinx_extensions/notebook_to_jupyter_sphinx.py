@@ -22,6 +22,8 @@ An alternative to this extensions is to use `nbsphinx in combination with jupyte
 - It is not possible to insert notebook cells inside ``rst`` directives for example inside a drop-down ``.. note::`` directive.
 - Specifying that a raw cell is to be interpreted as ``rst`` is `tricky <https://nbsphinx.readthedocs.io/en/latest/raw-cells.html>`_ and does not seem to be supported in Jupyter Lab.
 
+.. _sec-sphinx-extension-usage:
+
 Usage
 -----
 

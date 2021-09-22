@@ -40,7 +40,7 @@ If you are familiar with software development (package manager, git, terminal, P
         $ # this might take a few minutes
         $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
 
-#. You are good to go! Head over to the :ref:`User guide <usage>` to get started.
+#. You are good to go! Head over to the :ref:`User guide <user-guide>` to get started.
 
 Detailed instructions
 ^^^^^^^^^^^^^^^^^^^^^
