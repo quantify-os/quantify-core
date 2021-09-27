@@ -11,6 +11,7 @@ import copy
 import json
 import numpy as np
 import xxhash
+import warnings
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
@@ -118,6 +119,15 @@ def make_hash(obj: Any):
         new_o[key] = make_hash(val)
 
     return hash(tuple(frozenset(sorted(new_o.items()))))
+
+
+def import_func_from_string(function_string: str) -> Any:
+    """A deprecated alias for :func:`~.import_python_object_from_string`."""
+    warnings.warn(
+        "This functions is deprecated. Use `import_python_object_from_string` instead.",
+        category=DeprecationWarning,
+    )
+    return import_python_object_from_string(function_string)
 
 
 def import_python_object_from_string(function_string: str) -> Any:
