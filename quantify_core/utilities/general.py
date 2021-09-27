@@ -9,9 +9,9 @@ from collections.abc import MutableMapping
 import importlib
 import copy
 import json
+import warnings
 import numpy as np
 import xxhash
-import warnings
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
