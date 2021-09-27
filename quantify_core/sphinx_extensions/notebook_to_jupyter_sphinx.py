@@ -150,7 +150,7 @@ To make use of this extensions you can start from this ``template.rst.py``.
     # ---
     # jupyter:
     #   jupytext:
-    #     cell_markers: '\"\"\"'
+    #     cell_markers: \\\"\\\"\\\"
     #     formats: py:percent
     #     text_representation:
     #       extension: .py

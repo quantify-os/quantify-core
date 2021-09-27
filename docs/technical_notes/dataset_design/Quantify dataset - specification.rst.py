@@ -1,8 +1,3 @@
-# pylint: disable=line-too-long
-# pylint: disable=wrong-import-order
-# pylint: disable=wrong-import-position
-# pylint: disable=pointless-string-statement
-
 # ---
 # jupyter:
 #   jupytext:
@@ -18,6 +13,13 @@
 #     language: python
 #     name: python3
 # ---
+
+# %%
+# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+# pylint: disable=line-too-long
+# pylint: disable=wrong-import-order
+# pylint: disable=wrong-import-position
+# pylint: disable=pointless-string-statement
 
 # %%
 # %load_ext autoreload
