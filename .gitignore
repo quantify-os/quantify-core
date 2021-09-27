@@ -54,6 +54,9 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 docs/build_errors.log
+# Docs auto-generated files with the notebook_to_jupyter_sphinx sphinx extension
+docs/examples/*.rst.txt
+
 
 # PyBuilder
 target/
