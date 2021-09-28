@@ -141,9 +141,8 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
 
         Returns
         -------
-        :class:`~quantify_core.analysis.single_qubit_timedomain.SingleQubitTimedomainAnalysis`:
+        :class:`~.SingleQubitTimedomainAnalysis`:
             The instance of this analysis.
-
         """  # NB the return type need to be specified manually to avoid circular import
         assert calibration_points == "auto" or isinstance(calibration_points, bool)
         self.calibration_points = calibration_points
@@ -457,9 +456,8 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
 
         Returns
         -------
-        :class:`~quantify_core.analysis.single_qubit_timedomain.RamseyAnalysis`:
+        :class:`~.RamseyAnalysis`:
             The instance of this analysis.
-
         """  # NB the return type need to be specified manually to avoid circular import
         self.artificial_detuning = artificial_detuning
         self.qubit_frequency = qubit_frequency
@@ -583,6 +581,14 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
 
     # pylint: disable=arguments-differ
     def run(self):
+        """
+        Executes the analysis using specific datapoints as calibration points.
+
+        Returns
+        -------
+        :class:`~.AllXYAnalysis`:
+            The instance of this analysis.
+        """  # NB the return type need to be specified manually to avoid circular import
         # The standard analysis of the AllXY analysis always uses datapoints measured
         # within this experiment as calibration points.
         return super().run(calibration_points=True)
@@ -703,7 +709,12 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         ----------
         calibration_points
             Specifies if the data should be rotated to the axis with best SNR.
-        """
+
+        Returns
+        -------
+        :class:`~.RabiAnalysis`:
+            The instance of this analysis.
+        """  # NB the return type need to be specified manually to avoid circular import
         # Override the `calibration_points="auto"`
         assert isinstance(calibration_points, bool)
         return super().run(calibration_points=calibration_points)
