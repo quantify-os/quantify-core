@@ -1,6 +1,9 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
+from __future__ import annotations
+
 from typing import Union
+from typing_extensions import Literal
 import numpy as np
 import xarray as xr
 
@@ -47,6 +50,61 @@ def rotate_to_calibrated_axis(
     return corrected_data
 
 
+# pylint: disable=too-many-locals
+def has_calibration_points(s21: xr.DataArray) -> bool:
+    """
+    Attempts to determine if the provided complex s21 data has calibration points.
+
+    In this ideal scenario, if the last 2
+    datapoints do correspond to the calibration points, then these points will be
+    located on the extremities of a "segment" on the IQ plane. The angle with
+    respect to the average of the datapoints and the distance between the
+    calibration points are used to infer the presence of calibration points.
+
+    The detection is made robust by averaging 3 datapoints for each extremity of
+    the "segment" described by the data on the IQ-plane.
+
+    Parameters
+    ----------
+    s21
+        Array of complex datapoints corresponding to the experiment on the IQ plane.
+    """
+
+    def _arg_min_n(array: Union[np.ndarray, xr.DataArray], num: int):
+        return np.argpartition(array, num)[:num]
+
+    def _arg_max_n(array: Union[np.ndarray, xr.DataArray], num: int):
+        return np.argpartition(array, -num)[-num:]
+
+    magnitude = np.abs(s21[:-2].values)  # last two points would be the calibration
+    # Use the 3 points with maximum magnitude for resilience against noise and
+    # outliers
+    arg_max = list(_arg_max_n(magnitude, 3))
+    # Move one side of the "segment" described by the data on the IQ-plane to the
+    # center of the IQ plane. This is necessary for the arg_max and arg_min of the
+    # magnitude to correspond to the "segment" extremities.
+    s21_array: np.ndarray = s21.values - s21.values[arg_max].mean()
+    maybe_cal_pnts: np.ndarray = s21_array[-2:]
+    s21_array: np.ndarray = s21_array[:-2]
+
+    magnitude: float = np.abs(s21_array)
+    arg_max: int = list(_arg_max_n(magnitude, 3))
+    arg_min: int = list(_arg_min_n(magnitude, 3))
+    center: complex = s21_array[arg_min + arg_max].mean()  # center of the "segment"
+
+    angles: float = np.angle(maybe_cal_pnts - center, deg=True)
+    angles_diff: float = angles.max() - angles.min()
+
+    avg_max: complex = s21_array[arg_max].mean()
+    avg_min: complex = s21_array[arg_min].mean()
+    segment_len: float = np.abs(avg_max - avg_min)
+    far_enough = np.abs(maybe_cal_pnts[0] - maybe_cal_pnts[1]) > 0.5 * segment_len
+
+    has_calibraiton_points = angles_diff > 90 and far_enough
+
+    return has_calibraiton_points
+
+
 class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
     """
     Base Analysis class for single-qubit timedomain experiments.
@@ -59,7 +117,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         label: str = "",
         settings_overwrite: dict = None,
     ):
-        self.calibration_points: bool = True
+        self.calibration_points: bool = "auto"
         """Indicates if the data analyzed includes calibration points."""
 
         super().__init__(
@@ -70,11 +128,11 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         )
 
     # pylint: disable=arguments-differ, line-too-long
-    def run(self, calibration_points: bool = True):
+    def run(self, calibration_points: Union[bool, Literal["auto"]] = "auto"):
         r"""
         Parameters
         ----------
-        calibration_points:
+        calibration_points
             Indicates if the data analyzed includes calibration points. If set to
             :code:`True`, will interpret the last two data points in the dataset as
             :math:`|0\rangle` and :math:`|1\rangle` respectively.
@@ -85,7 +143,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
             The instance of this analysis.
 
         """  # NB the return type need to be specified manually to avoid circular import
-        assert isinstance(calibration_points, bool)
+        assert calibration_points == "auto" or isinstance(calibration_points, bool)
         self.calibration_points = calibration_points
         return super().run()
 
@@ -110,6 +168,10 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         self.dataset_processed.S21.attrs["name"] = "S21"
         self.dataset_processed.S21.attrs["units"] = self.dataset.y0.units
         self.dataset_processed.S21.attrs["long_name"] = "Transmission $S_{21}$"
+
+        if self.calibration_points == "auto":
+            self.calibration_points = has_calibration_points(self.dataset_processed.S21)
+
         if self.calibration_points:
             self._rotate_to_calibrated_axis()
 
@@ -662,6 +724,7 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         ] = "Rotated transmission $S_{21}^R$"
 
     def _choose_data_for_fit(self):
+        print("self.calibration_points", self.calibration_points)
         if self.calibration_points:
             y_data = self.dataset_processed.S21_rot.real.values
             x_data = self.dataset_processed.x0.values
