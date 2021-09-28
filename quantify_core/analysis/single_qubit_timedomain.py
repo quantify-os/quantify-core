@@ -697,6 +697,17 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
     axis with the best SNR.
     """
 
+    def run(self, calibration_points: bool = True):
+        """
+        Parameters
+        ----------
+        calibration_points
+            Specifies if the data should be rotated to the axis with best SNR.
+        """
+        # Override the `calibration_points="auto"`
+        assert isinstance(calibration_points, bool)
+        return super().run(calibration_points=calibration_points)
+
     # pylint: disable=arguments-differ
     def _rotate_to_calibrated_axis(self):
         """
@@ -726,7 +737,6 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         ] = "Rotated transmission $S_{21}^R$"
 
     def _choose_data_for_fit(self):
-        print("self.calibration_points", self.calibration_points)
         if self.calibration_points:
             y_data = self.dataset_processed.S21_rot.real.values
             x_data = self.dataset_processed.x0.values
