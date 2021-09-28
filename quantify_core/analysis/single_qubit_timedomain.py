@@ -135,7 +135,9 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         calibration_points
             Indicates if the data analyzed includes calibration points. If set to
             :code:`True`, will interpret the last two data points in the dataset as
-            :math:`|0\rangle` and :math:`|1\rangle` respectively.
+            :math:`|0\rangle` and :math:`|1\rangle` respectively. If ``"auto"``, will
+            use :func:`.has_calibraiton_points` to determine if the data contains
+            calibration points.
 
         Returns
         -------
