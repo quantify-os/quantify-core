@@ -708,7 +708,8 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         Parameters
         ----------
         calibration_points
-            Specifies if the data should be rotated to the axis with best SNR.
+            Specifies if the data should be rotated so that it lies along the axis with
+            the best SNR.
 
         Returns
         -------
