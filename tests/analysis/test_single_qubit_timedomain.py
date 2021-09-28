@@ -51,7 +51,12 @@ def test_has_calibration_points(tmp_test_data_dir):
             interrupt_before="run_fitting",  # avoid writing to disk
             calibration_points="auto",
         )
-        assert has_calibration_points(a_obj.dataset_processed.S21) == has_cal
+        # test many rotations on IQ plane
+        for angle in np.arange(0, 2 * np.pi, 2 * np.pi / 17):
+            assert (
+                has_calibration_points(a_obj.dataset_processed.S21 * np.exp(1j * angle))
+                == has_cal
+            )
 
 
 @pytest.fixture(scope="module", autouse=True)
