@@ -219,6 +219,7 @@ suppress_warnings = ["autosectionlabel.*"]
 qualname_overrides = {
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
+    "xarray.core.dataarray.DataArray": "xarray.DataArray",
     "quantify_core.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify_core.visualization.PlotMonitor_pyqt",
 }
 
