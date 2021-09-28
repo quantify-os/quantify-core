@@ -100,9 +100,9 @@ def has_calibration_points(s21: xr.DataArray) -> bool:
     segment_len: float = np.abs(avg_max - avg_min)
     far_enough = np.abs(maybe_cal_pnts[0] - maybe_cal_pnts[1]) > 0.5 * segment_len
 
-    has_calibraiton_points = angles_diff > 90 and far_enough
+    has_calibration_points = angles_diff > 90 and far_enough
 
-    return has_calibraiton_points
+    return has_calibration_points
 
 
 class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
@@ -136,7 +136,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
             Indicates if the data analyzed includes calibration points. If set to
             :code:`True`, will interpret the last two data points in the dataset as
             :math:`|0\rangle` and :math:`|1\rangle` respectively. If ``"auto"``, will
-            use :func:`.has_calibraiton_points` to determine if the data contains
+            use :func:`~.has_calibration_points` to determine if the data contains
             calibration points.
 
         Returns
