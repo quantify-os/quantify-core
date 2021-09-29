@@ -32,7 +32,7 @@ def test_rotate_to_calibrated_axis():
     np.testing.assert_array_equal(corrected_data, np.array([0.0, 1.0]))
 
 
-def test_has_calibration_points_points_outside_centers(angles):
+def test_has_calibration_points_outside_cal(angles):
     probabilities = np.array([0] * 20 + list(np.linspace(0, 1, 30)) + [1] * 20)
     center_0 = 0.6 + 1.2j
     center_1 = -0.2 + 0.5j
@@ -55,6 +55,18 @@ def test_has_calibration_points_points_outside_centers(angles):
             assert has_calibration_points(points * np.exp(1j * angle)) == has_cal
 
 
+def test_has_calibration_points_points_only_single_cluster(angles):
+    center_0 = 0.6 + 1.2j
+    center_1 = -0.2 + 0.5j
+    data = mk_iq_shots(30, sigmas=[0.05], centers=[center_0], probabilities=[1])
+
+    for points, has_cal in zip(
+        [data, np.concatenate((data, [center_1]))], [False, True]
+    ):
+        for angle in angles:
+            assert has_calibration_points(points * np.exp(1j * angle)) == has_cal
+
+
 def test_has_calibration_points_datasets(tmp_test_data_dir, angles):
     set_datadir(tmp_test_data_dir)
     tuids = [
@@ -70,11 +82,19 @@ def test_has_calibration_points_datasets(tmp_test_data_dir, angles):
     for tuid, has_cal in zip(tuids, [False, True, False, True, True, True, False]):
         a_obj = SingleQubitTimedomainAnalysis(tuid=tuid).run_until(
             interrupt_before="run_fitting",  # avoid writing to disk
-            calibration_points="auto",
+            calibration_points=False,
         )
         # test many rotations on IQ plane
+        data = a_obj.dataset_processed.S21.values
         for angle in angles:
-            assert (
-                has_calibration_points(a_obj.dataset_processed.S21 * np.exp(1j * angle))
-                == has_cal
+            assert has_calibration_points(data * np.exp(1j * angle)) == has_cal
+
+        # test more cal points per qubit state
+        assert (
+            has_calibration_points(
+                np.concatenate((data, data[-2:])),
+                indices_state_0=(-4, -2),
+                indices_state_1=(-3, -1),
             )
+            == has_cal
+        )

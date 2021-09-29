@@ -92,7 +92,9 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         self.dataset_processed.S21.attrs["long_name"] = "Transmission $S_{21}$"
 
         if self.calibration_points == "auto":
-            self.calibration_points = has_calibration_points(self.dataset_processed.S21)
+            self.calibration_points = has_calibration_points(
+                self.dataset_processed.S21.values
+            )
 
         if self.calibration_points:
             self._rotate_to_calibrated_axis()
