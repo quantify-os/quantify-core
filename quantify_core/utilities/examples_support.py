@@ -10,9 +10,9 @@ import numpy as np
 
 def mk_iq_shots(
     n_shots: int,
-    sigmas: np.typing.ArrayLike,
-    centers: np.typing.ArrayLike,
-    probabilities: np.typing.ArrayLike,
+    sigmas: Union[tuple, list, np.ndarray],
+    centers: Union[tuple, list, np.ndarray],
+    probabilities: Union[tuple, list, np.ndarray],
     seed: Union[int, None] = 112233,
 ):
     """
