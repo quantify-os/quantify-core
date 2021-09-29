@@ -20,28 +20,27 @@ import matplotlib.pyplot as plt
 from quantify_core.utilities.examples_support import mk_iq_shots
 from quantify_core.analysis.calibration import has_calibration_points
 
-fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(
-    2, 2, figsize=(10, 10 / 1.6), sharex=True, sharey=True
-)
-
-center_0, center_1, center_2 = 0.6 + 1.2j, -0.2 + 0.5j, 0 + 1.5j
-
 
 def _with_cal(data_):
     return np.concatenate((data_, (center_0, center_1)))
 
 
-def _print(ax, data_):
-    ax.set_title(
+def _print(ax_, data_):
+    ax_.set_title(
         f"W/out cal.: {has_calibration_points(data_)}\n"
         f"With cal.: {has_calibration_points(_with_cal(data_))}"
     )
 
 
-num_shots = 50
+fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(
+    2, 2, figsize=(10, 10 / 1.6), sharex=True, sharey=True
+)
+
+center_0, center_1, center_2 = 0.6 + 1.2j, -0.2 + 0.5j, 0 + 1.5j
+NUM_SHOTS = 50
 
 data = mk_iq_shots(
-    num_shots,
+    NUM_SHOTS,
     sigmas=[0.1] * 2,
     centers=(center_0, center_1),
     probabilities=[0.3, 1 - 0.3],
@@ -51,7 +50,7 @@ ax0.plot(data.real, data.imag, "o", label="Shots")
 _print(ax0, data)
 
 data = mk_iq_shots(
-    num_shots,
+    NUM_SHOTS,
     sigmas=[0.1] * 3,
     centers=(center_0, center_1, center_2),
     probabilities=[0.35, 0.35, 1 - 0.35 - 0.35],
@@ -60,7 +59,7 @@ ax1.plot(data.real, data.imag, "o", label="Shots")
 _print(ax1, data)
 
 data = mk_iq_shots(
-    num_shots,
+    NUM_SHOTS,
     sigmas=[0.1],
     centers=(center_0,),
     probabilities=[1],
@@ -71,7 +70,7 @@ _print(ax2, data)
 data = np.fromiter(
     (
         mk_iq_shots(
-            num_shots * 2,
+            NUM_SHOTS * 2,
             sigmas=[0.5] * 2,
             centers=(center_0, center_1),
             probabilities=[prob, 1 - prob],
@@ -89,5 +88,3 @@ for i, ax in enumerate(fig.axes):
     if i == 1:
         ax.plot(center_2.real, center_2.imag, "*", label="|2>", markersize=10)
     ax.legend()
-
-# %%
