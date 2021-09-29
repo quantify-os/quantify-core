@@ -69,6 +69,14 @@ fitting_models
     :show-inheritance:
 
 
+calibration
+-----------
+
+.. automodule:: quantify_core.analysis.calibration
+    :members:
+    :show-inheritance:
+
+
 data
 ====
 

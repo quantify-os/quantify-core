@@ -58,7 +58,7 @@ def has_calibration_points(
     the "segment" described by the data on the IQ-plane.
 
     .. admonition:: Examples
-        :dropdown:
+        :class: dropdown
 
         In these examples this function is able to correctly predict the presence of
         the calibrations in both cases.
