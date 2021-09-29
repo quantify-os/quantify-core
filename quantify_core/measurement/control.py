@@ -13,6 +13,7 @@ import itertools
 from itertools import chain
 import signal
 import threading
+from typing import Optional
 
 import xarray as xr
 import numpy as np
@@ -85,6 +86,16 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         super().__init__(name=name)
 
         # Parameters are attributes included in logging and which the user can change.
+
+        self.add_parameter(
+            "lazy_set",
+            docstring="If set to True, only set any settable if the setpoint differs "
+            "from the previous setpoint. Note that this parameter is overridden by the "
+            "lazy_set argument passed to the .run and .run_adaptive methods.",
+            parameter_class=ManualParameter,
+            vals=vals.Bool(),
+            initial_value=False,
+        )
 
         self.add_parameter(
             "verbose",
@@ -249,7 +260,9 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         with open(join(self._exp_folder, "snapshot.json"), "w") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-    def run(self, name: str = "", soft_avg: int = 1) -> xr.Dataset:
+    def run(
+        self, name: str = "", soft_avg: int = 1, lazy_set: Optional[bool] = None
+    ) -> xr.Dataset:
         """
         Starts a data acquisition loop.
 
@@ -262,7 +275,15 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             E.g. if `soft_avg=3` the full dataset will be measured 3 times and the
             measured values will be averaged element-wise, the averaged dataset is then
             returned.
+        lazy_set
+            If ``True`` and a setpoint equals the previous setpoint, the ``.set`` method
+            of the settable will not be called for that iteration.
+            If this argument is ``None``, the ``.lazy_set()`` ManualParameter is used
+            instead (which by default is ``False``).
+
+            .. warning:: This feature is not available yet when running in batched mode.
         """
+        lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
         self._soft_avg_validator(soft_avg)  # validate first
         self._soft_avg = soft_avg
         self._reset()
@@ -278,7 +299,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             else:
                 if self.verbose():
                     print("Starting iterative measurement...")
-                self._run_iterative()
+                self._run_iterative(lazy_set)
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
@@ -290,7 +311,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return self._dataset
 
-    def run_adaptive(self, name, params) -> xr.Dataset:
+    def run_adaptive(self, name, params, lazy_set: Optional[bool] = None) -> xr.Dataset:
         """
         Starts a data acquisition loop using an adaptive function.
 
@@ -306,7 +327,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         params
             Key value parameters describe the adaptive function to use, and any further
             parameters for that function.
+        lazy_set
+            If ``True`` and a setpoint equals the previous setpoint, the ``.set`` method
+            of the settable will not be called for that iteration.
+            If this argument is ``None``, the ``.lazy_set()`` ManualParameter is used
+            instead (which by default is ``False``).
         """
+        lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
 
         def measure(vec) -> float:
             """
@@ -323,7 +350,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._iterative_set_and_get(vec, self._nr_acquired_values)
+            self._iterative_set_and_get(vec, self._nr_acquired_values, lazy_set)
             # only y0 is returned so as to match the function signature for a valid
             # measurement function.
             ret = self._dataset["y0"].values[self._nr_acquired_values]
@@ -376,11 +403,11 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return self._dataset
 
-    def _run_iterative(self):
+    def _run_iterative(self, lazy_set: bool = False):
         while self._get_fracdone() < 1.0:
             self._prepare_gettables()
             for row in self._setpoints:
-                self._iterative_set_and_get(row, self._curr_setpoint_idx())
+                self._iterative_set_and_get(row, self._curr_setpoint_idx(), lazy_set)
                 self._nr_acquired_values += 1
                 self._update()
                 self._check_interrupt()
@@ -455,10 +482,15 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
+    def _iterative_set_and_get(
+        self, setpoints: np.ndarray, idx: int, lazy_set: bool = False
+    ):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes
         new data in dataset.
+
+        If lazy_set==True and any setpoint equals the corresponding previous setpoint,
+        that setpoint is not set in its corresponding settable.
 
         .. note ::
 
@@ -471,7 +503,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             self._dataset[f"x{setpar_idx}"].values[idx] = spt
-            spar.set(spt)
+            prev_spt = self._dataset[f"x{setpar_idx}"].values[idx - 1] if idx else None
+            # if lazy_set==True and the setpoint equals the previous setpoint, do not
+            # set the setpoint.
+            if not (lazy_set and spt == prev_spt):
+                spar.set(spt)
+
         # get all data points
         y_offset = 0
         for gpar in self._gettable_pars:
