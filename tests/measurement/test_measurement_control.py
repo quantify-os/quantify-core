@@ -8,6 +8,8 @@ import time
 import random
 import tempfile
 from collections.abc import Iterable
+from unittest.mock import Mock
+
 import xarray as xr
 import numpy as np
 import pytest
@@ -435,6 +437,82 @@ class TestMeasurementControl:
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
+        assert set(dset.variables.keys()) == {"x0", "x1", "y0"}
+
+        assert all(e in dset["x0"].values for e in times)
+        assert all(e in dset["x1"].values for e in amps)
+
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
+        assert dset["x1"].attrs == {
+            "name": "amp",
+            "long_name": "Amplitude",
+            "units": "V",
+            "batched": False,
+        }
+        assert dset["y0"].attrs == {
+            "name": "sig",
+            "long_name": "Signal level",
+            "units": "V",
+            "batched": False,
+        }
+
+    @pytest.mark.parametrize(
+        "lazy_set_parameter,lazy_set_argument,lazy_set_turned_on",
+        [
+            (True, True, True),
+            (True, False, False),
+            (False, True, True),
+            (False, False, False),
+            (True, None, True),
+            (False, None, False),
+        ],
+    )
+    def test_iterative_2D_grid_with_lazy_set(
+        self, lazy_set_parameter, lazy_set_argument, lazy_set_turned_on
+    ):
+        t.set = Mock(wraps=t.set)
+        amp.set = Mock(wraps=amp.set)
+
+        times = np.linspace(0, 5, 20)
+        amps = np.linspace(-1, 1, 5)
+
+        self.meas_ctrl.settables([t, amp])
+        self.meas_ctrl.setpoints_grid([times, amps])
+
+        exp_sp = grid_setpoints([times, amps])
+
+        self.meas_ctrl.gettables(sig)
+        # the lazy_set_argument should override the lazy_set_parameter
+        self.meas_ctrl.lazy_set(lazy_set_parameter)
+        dset = self.meas_ctrl.run(lazy_set=lazy_set_argument)
+
+        # if lazy_set is turned on, verify that the slow axis (amp) was only called each
+        # row (=5 times), but the fast
+        # axis (times) each time (=100 times). Otherwise, both should be set each time.
+        assert t.set.call_count == 100
+        if lazy_set_turned_on:
+            assert amp.set.call_count == 5
+        else:
+            assert amp.set.call_count == 20 * 5
+
+        assert np.array_equal(self.meas_ctrl._setpoints, exp_sp)
+
+        assert TUID.is_valid(dset.attrs["tuid"])
+
+        expected_vals = CosFunc(
+            t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0
+        )
+
+        assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
+        assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
+        assert np.array_equal(dset["y0"].values, expected_vals)
+
+        # Test properties of the dataset
         assert set(dset.variables.keys()) == {"x0", "x1", "y0"}
 
         assert all(e in dset["x0"].values for e in times)
@@ -978,6 +1056,58 @@ class TestMeasurementControl:
         self.meas_ctrl.gettables(self.dummy_parabola.parabola)
         _ = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
         # todo pycqed has no verification step here, what should we do?
+
+    @pytest.mark.parametrize(
+        "lazy_set_parameter,lazy_set_argument,lazy_set_turned_on",
+        [
+            (True, True, True),
+            (True, False, False),
+            (False, True, True),
+            (False, False, False),
+            (True, None, True),
+            (False, None, False),
+        ],
+    )
+    def test_adaptive_sampling_with_lazy_set(
+        self, lazy_set_parameter, lazy_set_argument, lazy_set_turned_on
+    ):
+        self.dummy_parabola.x.set = Mock(wraps=self.dummy_parabola.x.set)
+        self.dummy_parabola.y.set = Mock(wraps=self.dummy_parabola.y.set)
+
+        self.dummy_parabola.noise(0)
+        self.meas_ctrl.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+
+        num_x = 5
+        num_y = 20
+
+        def _adaptive_function(meas_func, **kwargs):
+            """A dimple adaptive function that executes a 2D sweep and conforms with
+            the accepted interface for an adaptive function."""
+            points = grid_setpoints(
+                [np.linspace(-50, 50, num_x), np.linspace(-20, 30, num_y)]
+            )
+
+            for setpoint in points:
+                _ = meas_func(setpoint)
+
+            # The meas_ctrl takes care of intercepting the measured values so no return
+            # is specified here
+
+        af_pars = {"adaptive_function": _adaptive_function}
+        self.meas_ctrl.gettables(self.dummy_parabola.parabola)
+        self.meas_ctrl.lazy_set(lazy_set_parameter)
+        _ = self.meas_ctrl.run_adaptive(
+            "adaptive sample", af_pars, lazy_set=lazy_set_argument
+        )
+
+        # if lazy_set is turned on, verify that the adaptive algorithm did not set the
+        # parameters each time
+        if lazy_set_turned_on:
+            assert self.dummy_parabola.x.set.call_count == num_x * num_y
+            assert self.dummy_parabola.y.set.call_count == num_y
+        else:
+            assert self.dummy_parabola.x.set.call_count == num_x * num_y
+            assert self.dummy_parabola.y.set.call_count == num_x * num_y
 
     @pytest.mark.skipif(
         not WITH_SKOPTLEARNER, reason="scikit-optimize is not installed"
