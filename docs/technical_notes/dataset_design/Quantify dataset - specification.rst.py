@@ -107,7 +107,7 @@ Experiment coordinate(s)
 - Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_experiment_coord` set to ``True``.
 - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
 - Often correspond to quantities set through :class:`~quantify_core.measurement.Settable`\s.
-- See also :func:`~quantify_core.data.dataset_attrs.get_experiment_coords`.
+- See also the method :func:`~quantify_core.data.dataset_attrs.get_experiment_coords`.
 
 .. _sec-calibration-coordinates:
 
@@ -124,7 +124,7 @@ Experiment variable(s)
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_experiment_var` set to ``True``.
-- Must have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.experiment_coords` indicating the names of its 'physical' coordinates. This ensures that the experiment coordinates of an experiment variables can be determined with no ambiguity.
+- Must have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.experiment_coords` indicating the names of its 'physical' coordinates. This ensures that the experiment coordinates of experiment variables can be determined without ambiguity.
 
     - Example: If a signal ``y1`` was measured as a function of ``time`` and ``amplitude`` experiment coordinates, then we will have ``y1.attrs["experiment_coords"] = ["time", "amplitude"]``.
 

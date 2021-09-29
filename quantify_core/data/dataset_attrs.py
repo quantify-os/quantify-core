@@ -226,7 +226,7 @@ class QDatasetAttrs(DataClassJsonMixin):
     Specifies when the experiment/data acquisition ended.
     """
     quantify_dataset_version: str = "2.0.0"
-    """A string identifying the version of this Quantify dataset for future backwards
+    """A string identifying the version of this Quantify dataset for backwards
     compatibility."""
     software_versions: Dict[str, str] = field(default_factory=dict)
     """A mapping of other relevant software packages that are relevant to log for this
