@@ -50,9 +50,13 @@ def has_calibration_points(
 
     In this ideal scenario, if the datapoints indicated by the indices correspond to the
     calibration points, then these points will be located on the extremities of a
-    "segment" on the IQ plane. The angle with respect to the average of the datapoints
-    and the distance between the calibration points are used to infer the presence of
-    calibration points.
+    "segment" on the IQ plane.
+
+    Three pieces of information are used to infer the presence of calibration points:
+
+    - The angle of the calibration points with respect to the average of the datapoints,
+    - The distance between the calibration points, and
+    - The average distance to the line defined be the calibration points.
 
     The detection is made robust by averaging 3 datapoints for each extremity of
     the "segment" described by the data on the IQ-plane.
