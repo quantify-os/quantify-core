@@ -145,8 +145,7 @@ Secondary variables(s)
     However, for completeness, we always show a valid Quantify dataset with all the required properties.
 
 In order to follow the rest of this specification more easily have a look at the example below.
-It should give you a more concrete feeling of the details that are exposed afterwards. See also :ref:`sec-quantify-dataset-examples` for more exemplary dataset.
-
+It should give you a more concrete feeling of the details that are exposed afterwards. See :ref:`sec-quantify-dataset-examples` for exemplary dataset.
 """
 
 # %% [raw]
