@@ -211,7 +211,10 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
         except Exception as exception:
             exceptions.append(exception)
         else:
-            return da.AdapterH5NetCDF.recover(dataset)
+            # Only quantify_dataset_version=>2.0.0 requires the adapter
+            if "quantify_dataset_version" in dataset.attrs:
+                dataset = da.AdapterH5NetCDF.recover(dataset)
+            return dataset
 
     # Do not let exceptions pass silently
     for exception, engine in zip(exceptions, engines[: engines.index(engine)]):
@@ -335,7 +338,9 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
         The :class:`~xarray.Dataset` to be written to file.
     """  # pylint: disable=line-too-long
     _xarray_numpy_bool_patch(dataset)  # See issue #161 in quantify-core
-    dataset = da.AdapterH5NetCDF.adapt(dataset)
+    # Only quantify_dataset_version=>2.0.0 requires the adapter
+    if "quantify_dataset_version" in dataset.attrs:
+        dataset = da.AdapterH5NetCDF.adapt(dataset)
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 
