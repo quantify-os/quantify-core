@@ -13,10 +13,21 @@ import xarray as xr
 
 class DatasetAdapterBase:
     """
-    Generic interface for dataset adapters.
+    A generic interface for a dataset adapter.
 
-    Subclasses implementing this interface are intended to bridge to some specific
-    object, function, interface, backend, etc.. We can refer to it as the "Target".
+    .. note::
+
+        It might be difficult to grasp the generic purpose of this class.
+        See :class:`~.AdapterH5NetCDF` for a specialized use case.
+
+    A dataset adapter is intended to "adapt"/"convert" a dataset to a format compatible
+    with some other piece of software such as a function, interface, read/write
+    back end, etc.. The main use case is to define the interface of the
+    :class:`~.AdapterH5NetCDF` that converts the Quantify dataset for loading and
+    writing to/from disk.
+
+    Subclasses implementing this interface are intended to be a two-way bridge to some
+    other object/interface/backend to which we refer to as the "Target" of the adapter.
 
     The function ``.adapt()`` should return a dataset to be consumed by the Target.
 
@@ -26,7 +37,7 @@ class DatasetAdapterBase:
     @classmethod
     @abstractmethod
     def adapt(cls, dataset: xr.Dataset) -> xr.Dataset:
-        """Converts the ``dataset`` to a format consumed by the target."""
+        """Converts the ``dataset`` to a format consumed by the Target."""
 
     @classmethod
     @abstractmethod
@@ -36,13 +47,13 @@ class DatasetAdapterBase:
 
 class DatasetAdapterIdentity:
     """
-    A dataset adapter that does not modify the input dataset in any way.
+    A dataset adapter that does not modify the datasets in any way.
 
     Intended to be used just as an object that respects the adapter interface defined
     by :class:`~.DatasetAdapterBase`.
 
     A particular use case is the backwards compatibility for loading and writing
-    older versions of the dataset.
+    older versions of the Quantify dataset.
     """
 
     @classmethod
@@ -71,14 +82,14 @@ class AdapterH5NetCDF(DatasetAdapterBase):
     Quantify dataset adapter for the ``h5netcdf`` engine.
 
     It has the functionality of adapting the Quantify dataset to a format compatible
-    with the ``h5netcdf`` xarray backend engine that is used to write the dataset to
-    disk.
+    with the ``h5netcdf`` xarray backend engine that is used to write and load the
+    dataset to/from disk.
 
     .. warning::
 
-        The ``h5netcdf`` engine has issue with two-way trip of the types of the
-        attributes values. Namely list- and tuple- like objects are loaded as
-        numpy arrays of ``dtype=object``.
+        The ``h5netcdf`` engine has minor issues when performing a two-way trip of the
+        dataset. The ``type`` of some attributes are not preserved. E.g., list- and
+        tuple-like objects are loaded as numpy arrays of ``dtype=object``.
     """
 
     @classmethod
@@ -109,7 +120,7 @@ class AdapterH5NetCDF(DatasetAdapterBase):
         """
         Reverts the action of ``.adapt()``.
 
-        To prevent the JSON deserialization for specific items, their names should be
+        To prevent the JSON de-serialization for specific items, their names should be
         listed under the attribute named ``json_serialize_exclude``
         (for each ``attrs`` dictionary).
 

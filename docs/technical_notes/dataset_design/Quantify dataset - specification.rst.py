@@ -118,9 +118,10 @@ Main variable(s)
 ^^^^^^^^^^^^^^^^
 
 - Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to ``True``.
-- Must have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.main_coords` indicating the names of its 'physical' coordinates. This ensures that the main coordinates of main variables can be determined without ambiguity.
+- Must have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.coords` indicating the names of its coordinates (usually corresponding to 'physical' coordinates). This ensures that the main coordinates of main variables can be determined without ambiguity.
 
-    - Example: If a signal ``y1`` was measured as a function of ``time`` and ``amplitude`` main coordinates, then we will have ``y1.attrs["main_coords"] = ["time", "amplitude"]``.
+    - Example 1: If a signal ``y1`` was measured as a function of ``time`` and ``amplitude`` main coordinates, then we will have ``y1.attrs["main_coords"] = ["time", "amplitude"]``.
+    - Example 2: In some cases, the idea of a coordinate does not apply, however a main coordinate in the dataset is required. A simple "index" coordinate should be used, e.g., an array of integers.
 
 - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
 - Often correspond to quantities returned by :class:`~quantify_core.measurement.Gettable`\s.
@@ -161,8 +162,8 @@ x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
 time_par = ManualParameter(name="time", label="Time", unit="s")
 amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. unit")
-pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. unit")
+pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="")
+pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="")
 
 x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
 x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
@@ -350,13 +351,14 @@ dataset_gridded
 # rst-json-conf: {"indent": "    "}
 
 _ = dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
+_ = dataset_gridded.pop_q0.sel(repetitions="very very noisy").plot(x="amp")
 
 # %% [raw]
 """
 Dataset attributes
 ------------------
 
-The mandatory attributes of the Quantify dataset are defined by the following dataclass.
+The required attributes of the Quantify dataset are defined by the following dataclass.
 It can be used to generate a default dictionary that is attached to a dataset under the :attr:`xarray.Dataset.attrs` attribute.
 
 .. autoclass:: quantify_core.data.dataset_attrs.QDatasetAttrs
@@ -397,7 +399,7 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 Main coordinates and variables attributes
 -----------------------------------------
 
-Similar to the dataset attributes (:attr:`xarray.Dataset.attrs`), the main coordinates and variables have each their own mandatory attributes attached to them as dictionary under the :attr:`xarray.DataArray.attrs` attribute.
+Similar to the dataset attributes (:attr:`xarray.Dataset.attrs`), the main coordinates and variables have each their own required attributes attached to them as dictionary under the :attr:`xarray.DataArray.attrs` attribute.
 """
 
 # %% [raw]
@@ -447,7 +449,7 @@ Code(inspect.getsource(dh.load_dataset), language="python")
 
 # %% [raw]
 """
-Note that we use the ``h5netcdf`` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers type.
+Note that we use the ``h5netcdf`` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers.
 
 .. note::
 

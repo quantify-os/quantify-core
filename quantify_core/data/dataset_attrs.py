@@ -18,10 +18,16 @@ from dataclasses_json import DataClassJsonMixin
 @dataclass
 class QDatasetIntraRelationship(DataClassJsonMixin):
     """
-    A dataset representing a dictionary that specifies a relationship between dataset
-    variables. A prominent example are calibration points contained within one variable
+    A dataclass representing a dictionary that specifies a relationship between dataset
+    variables.
+
+    A prominent example are calibration points contained within one variable
     or several variables that are necessary to interpret correctly the data of another
     variable.
+
+    .. admonition:: Examples
+
+        .. include:: ./examples/data.dataset_attrs.QDatasetIntraRelationship.rst.txt
     """
 
     item_name: str = None
@@ -153,7 +159,7 @@ class QDatasetAttrs(DataClassJsonMixin):
 
     All attributes are mandatory to be present but can be ``None``.
 
-    .. admonition:: Examples
+    .. admonition:: Example
 
         .. include:: ./examples/data.dataset_attrs.QDatasetAttrs.rst.txt
     """
@@ -188,7 +194,11 @@ class QDatasetAttrs(DataClassJsonMixin):
     software_versions: Dict[str, str] = field(default_factory=dict)
     """A mapping of other relevant software packages that are relevant to log for this
     dataset. Another example is the git tag or hash of a commit of a lab repository.
-    """
+
+    .. admonition:: Example
+
+        .. include:: ./examples/data.dataset_attrs.QDatasetAttrs.software_versions.rst.txt
+    """  # pylint: disable=line-too-long
     relationships: List[QDatasetIntraRelationship] = field(default_factory=list)
     """A list of relationships within the dataset specified as list of dictionaries
     that comply with the :class:`~.QDatasetIntraRelationship`."""

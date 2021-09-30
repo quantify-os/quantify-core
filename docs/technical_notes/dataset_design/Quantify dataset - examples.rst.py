@@ -94,8 +94,8 @@ x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
 time_par = ManualParameter(name="time", label="Time", unit="s")
 amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="arb. unit")
-pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="arb. unit")
+pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="")
+pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="")
 
 x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
 x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())

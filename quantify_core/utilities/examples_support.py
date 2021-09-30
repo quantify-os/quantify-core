@@ -98,7 +98,7 @@ def mk_secondary_coord_attrs(
 
 
 def mk_main_var_attrs(
-    main_coords: List[str],
+    coords: List[str],
     grid: bool = True,
     uniformly_spaced: bool = True,
     is_main_var: bool = True,
@@ -112,8 +112,8 @@ def mk_main_var_attrs(
 
     Parameters
     ----------
-    main_coords
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.main_coords`.
+    coords
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.coords`.
     grid
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.grid`.
     uniformly_spaced
@@ -130,14 +130,14 @@ def mk_main_var_attrs(
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
         is_secondary_var=is_secondary_var,
-        main_coords=main_coords,
+        coords=coords,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
 def mk_secondary_var_attrs(
-    main_coords: List[str],
+    coords: List[str],
     grid: bool = True,
     uniformly_spaced: bool = True,
     is_main_var: bool = False,
@@ -151,8 +151,8 @@ def mk_secondary_var_attrs(
 
     Parameters
     ----------
-    main_coords
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.main_coords`.
+    coords
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.coords`.
     grid
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.grid`.
     uniformly_spaced
@@ -169,7 +169,7 @@ def mk_secondary_var_attrs(
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
         is_secondary_var=is_secondary_var,
-        main_coords=main_coords,
+        coords=coords,
     ).to_dict()
 
     attrs.update(kwargs)

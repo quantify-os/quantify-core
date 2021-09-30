@@ -141,7 +141,7 @@ dataset.variables["position"]
 """
 Which, on its own, might not be very useful yet, however, xarray coordinates can be set
 to **index** other variables (:func:`~quantify_core.data.handling.to_gridded_dataset`
-does this under the hood), as shown below (note the bold font in the output!):
+does this for the Quantify dataset), as shown below (note the bold font in the output!):
 """
 
 # %%
