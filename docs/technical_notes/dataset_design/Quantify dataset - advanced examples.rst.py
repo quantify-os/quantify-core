@@ -70,8 +70,8 @@ from quantify_core.data.handling import get_datadir, set_datadir
 import quantify_core.data.dataset_attrs as dd
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
-    mk_exp_coord_attrs,
-    mk_exp_var_attrs,
+    mk_main_coord_attrs,
+    mk_main_var_attrs,
     round_trip_dataset,
     par_to_attrs,
 )
@@ -257,17 +257,15 @@ for q in (a1, a2, a3):
     data_vars[f"{q}_shots"] = (
         ("repetitions", "dim_cycles"),
         radom_data,
-        mk_exp_var_attrs(
-            units="V", long_name=f"IQ amplitude {q}", experiment_coords=["cycles"]
-        ),
+        mk_main_var_attrs(units="V", long_name=f"IQ amplitude {q}", coords=["cycles"]),
     )
 
 for q in (d1, d2, d3, d4):
     data_vars[f"{q}_shots"] = (
         ("repetitions", "dim_final"),
         radom_data_final,
-        mk_exp_var_attrs(
-            units="V", long_name=f"IQ amplitude {q}", experiment_coords=["final_msmt"]
+        mk_main_var_attrs(
+            units="V", long_name=f"IQ amplitude {q}", coords=["final_msmt"]
         ),
     )
 
@@ -277,12 +275,12 @@ dataset = xr.Dataset(
         "cycle": (
             "dim_cycles",
             cycles,
-            mk_exp_coord_attrs(units="", long_name="Surface code cycle number"),
+            mk_main_coord_attrs(units="", long_name="Surface code cycle number"),
         ),
         "final_msmt": (
             "dim_final",
             [0],
-            mk_exp_coord_attrs(units="", long_name="Final measurement"),
+            mk_main_coord_attrs(units="", long_name="Final measurement"),
         ),
     },
     attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
@@ -331,53 +329,55 @@ dataset = xr.Dataset(
         "resonator_freq": (
             "dim_0",
             resonator_frequencies,
-            mk_exp_var_attrs(
+            mk_main_var_attrs(
                 long_name="Resonator frequency",
                 units="Hz",
-                experiment_coords=["flux_bias"],
+                coords=["flux_bias"],
             ),
         ),
         "qubit_freq": (
             "dim_0",
             qubit_frequencies,
-            mk_exp_var_attrs(
-                long_name="Qubit frequency", units="Hz", experiment_coords=["flux_bias"]
+            mk_main_var_attrs(
+                long_name="Qubit frequency", units="Hz", coords=["flux_bias"]
             ),
         ),
         "t1": (
             "dim_0",
             t1_values,
-            mk_exp_var_attrs(
-                long_name="T1", units="s", experiment_coords=["flux_bias"]
-            ),
+            mk_main_var_attrs(long_name="T1", units="s", coords=["flux_bias"]),
         ),
     },
     coords={
         "flux_bias": (
             "dim_0",
             flux_bias_values,
-            mk_exp_coord_attrs(long_name="Flux bias", units="A"),
+            mk_main_coord_attrs(long_name="Flux bias", units="A"),
         ),
         "resonator_freq_tuids": (
             "dim_0",
             resonator_freq_tuids,
-            mk_exp_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+            mk_main_coord_attrs(
+                long_name="Dataset TUID", units="", is_dataset_ref=True
+            ),
         ),
         "qubit_freq_tuids": (
             "dim_0",
             qubit_freq_tuids,
-            mk_exp_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+            mk_main_coord_attrs(
+                long_name="Dataset TUID", units="", is_dataset_ref=True
+            ),
         ),
         "t1_tuids": (
             "dim_0",
             t1_tuids,
-            mk_exp_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+            mk_main_coord_attrs(
+                long_name="Dataset TUID", units="", is_dataset_ref=True
+            ),
         ),
     },
     attrs=mk_dataset_attrs(
-        experiment_coords=[
-            ("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")
-        ],
+        coords=[("flux_bias", "resonator_freq_tuids", "qubit_freq_tuids", "t1_tuids")],
         experiment_vars=[
             "resonator_freq",
             "qubit_freq",
@@ -391,12 +391,12 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 dataset
 
 # %%
-coords_for_multi_index = dd.get_experiment_coords(dataset)
+coords_for_multi_index = dd.get_main_coords(dataset)
 coords_for_multi_index
 
 # %% [raw]
 """
-In this case the four experiment coordinates are not orthogonal coordinates, but instead
+In this case the four main coordinates are not orthogonal coordinates, but instead
 just different label for the same data points, also known as a "multi-index". It is
 possible to work with an explicit MultiIndex within a (python) xarray object:
 """

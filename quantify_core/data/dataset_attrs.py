@@ -34,8 +34,8 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
 
     Reserved relation types:
 
-    ``"calibration"`` - Specifies a list of experiment variables used as calibration
-    data for the experiment variables whose name is specified by the ``item_name``.
+    ``"calibration"`` - Specifies a list of main variables used as calibration
+    data for the main variables whose name is specified by the ``item_name``.
     """
     related_names: List[str] = field(default_factory=list)
     """A list of names related to the ``item_name``."""
@@ -50,50 +50,34 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
 class QCoordAttrs(DataClassJsonMixin):
     """
     A dataclass representing the :attr:`~xarray.DataArray.attrs` attribute of
-    experiment and calibration coordinates.
+    main and secondary coordinates.
 
     All attributes are mandatory to be present but can be ``None``.
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QCoordAttrs.rst.txt
+        .. include:: ./examples/data.dataset_attrs.QCoordAttrs.rst.txt
     """
 
     units: str = ""
     """The units of the values."""
     long_name: str = ""
     """A long name for this coordinate."""
-    is_experiment_coord: bool = None
-    """When set to ``True``, flags xarray coordinates to correspond to experiment
+    is_main_coord: bool = None
+    """When set to ``True``, flags xarray coordinates to correspond to main
     coordinates."""
-    is_calibration_coord: bool = None
-    """If ``True``, this experiment coordinates is intended to be a coordinate for
-    an experiment variable that corresponds to calibration data."""
-    batched: Union[bool, None] = None
-    """True if this coordinates corresponds to a batched settable."""
-    batch_size: Union[int, None] = None
-    """The (maximum) size of a batch supported by the corresponding settable."""
+    is_secondary_coord: bool = None
+    """If ``True``, this main coordinates is intended to be a coordinate for
+    an main variable that corresponds to secondary data."""
     uniformly_spaced: Union[bool, None] = None
     """Indicates if the values are uniformly spaced."""
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset."""
 
-    json_attrs: List[str] = field(
-        # ``None`` and ``Dict``
-        default_factory=lambda: ["batched", "batch_size", "uniformly_spaced"]
-    )
-    """A list of strings corresponding to the names of other attributes that require to
-    be json-serialized in order to be able to write them to disk using the ``h5netcdf``
-    engine.
-
-    Note that the default values in this list should be included as well.
-
-    **Default:**
-
-    .. code-block:: python
-
-        ["batched", "batch_size", "uniformly_spaced"]
+    json_serialize_exclude: List[str] = field(default_factory=list)
+    """A list of strings corresponding to the names of other attributes that should not
+    be json-serialized when writing the dataset to disk. Empty by default.
     """
 
 
@@ -101,91 +85,63 @@ class QCoordAttrs(DataClassJsonMixin):
 class QVarAttrs(DataClassJsonMixin):
     """
     A dataclass representing the :attr:`~xarray.DataArray.attrs` attribute of
-    experiment and calibration variables.
+    main and secondary variables.
 
     All attributes are mandatory to be present but can be ``None``.
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QVarAttrs.rst.txt
+        .. include:: ./examples/data.dataset_attrs.QVarAttrs.rst.txt
     """
 
     units: str = ""
     """The units of the values."""
     long_name: str = ""
     """A long name for this coordinate."""
-    is_experiment_var: bool = None
+    is_main_var: bool = None
     """When set to ``True``, flags this xarray data variables to correspond to an
-    experiment variables."""
-    is_calibration_var: bool = None
-    """If ``True``, the data of this experiment variable is intended to be used to
-    calibrate the data of another experiment variable. E.g., this experiment variable
+    main variables."""
+    is_secondary_var: bool = None
+    """If ``True``, the data of this main variable is intended to be used to
+    as reference data for another main variable. E.g., this main variable
     could contain the amplitude of a signal for when a qubit is in the excited and
     ground states."""
-    batched: Union[bool, None] = None
-    """True if this coordinates corresponds to a batched settable."""
-    batch_size: Union[int, None] = None
-    """The (maximum) size of a batch supported by the corresponding settable."""
     uniformly_spaced: Union[bool, None] = None
     """Indicates if the values are uniformly spaced.
-    This does not apply to 'true' experiment variables but, because a MultiIndex is not
-    supported yet by xarray, some coordinate variables have to be stored as experiment
-    variables instead.
+    This does not apply to 'true' main variables but, because a MultiIndex is not
+    supported yet by xarray when writing to disk, some coordinate variables have to be
+    stored as main variables instead.
     """
 
-    # This attribute only makes sense to have for each exp. variable instead of
+    # This attribute only makes sense to have for each main variable instead of
     # attaching it to the full dataset.
     # In case we later make use of more dimensions this will be specially relevant.
     grid: Union[bool, None] = None
     """Indicates if the variables data are located on a grid, which does not need to be
     uniformly spaced along all dimensions. In other words, specifies if the
-    corresponding experiment coordinates are the 'unrolled' points (also known as
+    corresponding main coordinates are the 'unrolled' points (also known as
     'unstacked') corresponding to a grid.
 
     If ``True`` than it is possible to use
     :func:`quantify_core.data.handling.to_gridded_dataset()` to convert the variables to
     a 'stacked' version.
     """
-    experiment_coords: List[str] = None
-    """The experiment coordinates that index this experiment variable. This is
+    coords: List[str] = None
+    """The coordinates that index this variable. This is
     information is necessary to avoid ambiguities in the dataset.
 
     E.g. if we would measure a signal ``amplitude`` as a function of ``time``. The
-    experiment variable is ``amplitude`` and we would have
-    ``experiment_coords=["time"]``. For a 2D dataset we could have
-    ``experiment_coords=["time", "frequency"]``.
+    main variable is ``amplitude`` and we would have
+    ``coords=["time"]``. For a 2D dataset we could have
+    ``coords=["time", "frequency"]``.
     """
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset."""
 
-    json_attrs: List[str] = field(
-        # ``None`` and ``Dict``
-        default_factory=lambda: [
-            "batched",
-            "batch_size",
-            "uniformly_spaced",
-            "grid",
-            "experiment_coords",
-        ]
-    )
-    """A list of strings corresponding to the names of other attributes that require to
-    be json-serialized in order to be able to write them to disk using the ``h5netcdf``
-    engine.
-
-    Note that the default values in this list should be included as well.
-
-    **Default:**
-
-    .. code-block:: python
-
-        [
-            "batched",
-            "batch_size",
-            "uniformly_spaced",
-            "grid",
-            "experiment_coords"
-        ]
+    json_serialize_exclude: List[str] = field(default_factory=list)
+    """A list of strings corresponding to the names of other attributes that should not
+    be json-serialized when writing the dataset to disk. Empty by default.
     """
 
 
@@ -205,21 +161,22 @@ class QDatasetAttrs(DataClassJsonMixin):
     tuid: Union[str, None] = None
     """The time-based unique identifier of the dataset.
     See :class:`quantify_core.data.types.TUID`."""
-    experiment_name: str = ""
-    """Experiment name, same as the the experiment name included in the name of the
-    experiment container."""
-    experiment_state: Union[
-        Literal["running", "interrupted (safety)", "interrupted (forced)", "done"], None
+    dataset_name: str = ""
+    """The dataset name, usually same as the the experiment name included in the name of
+    the experiment container."""
+    dataset_state: Literal[
+        None, "running", "interrupted (safety)", "interrupted (forced)", "done"
     ] = None
-    """Denotes the last known state of the experiment. Can be used later to filter
-    'bad' datasets."""
-    experiment_start: Union[str, None] = None
+    """Denotes the last known state of the experiment/data acquisition that served to
+    'build' this dataset. Can be used later to filter 'bad' datasets.
+    """
+    timestamp_start: Union[str, None] = None
     """Human-readable timestamp (ISO8601) as returned by
     :code:`pendulum.now().to_iso8601_string()`
     (`docs <https://pendulum.eustace.io/docs/>`_).
     Specifies when the experiment/data acquisition started.
     """
-    experiment_end: Union[str, None] = None
+    timestamp_end: Union[str, None] = None
     """Human-readable timestamp (ISO8601) as returned by
     :code:`pendulum.now().to_iso8601_string()`
     (`docs <https://pendulum.eustace.io/docs/>`_).
@@ -237,46 +194,21 @@ class QDatasetAttrs(DataClassJsonMixin):
     that comply with the :class:`~.QDatasetIntraRelationship`."""
     repetitions_dims: List[str] = field(default_factory=list)
     """A list of xarray dimension names which correspond to outermost dimensions along
-    which experiment coordinates and variables lie on. This attribute is intended to
+    which main coordinates and variables lie on. This attribute is intended to
     allow easy programmatic detection of such dimension. This can be used, for example,
     to average along these dimensions before an automatic live plotting.
     """
 
-    json_attrs: List[str] = field(
-        default_factory=lambda: [  # ``None`` and ``Dict``
-            "tuid",
-            "experiment_state",
-            "experiment_start",
-            "experiment_end",
-            "software_versions",
-            "relationships",
-        ]
-    )
-    """A list of strings corresponding to the names of other attributes that require to
-    be json-serialized in order to be able to write them to disk using the ``h5netcdf``
-    engine.
-
-    Note that the default values in this list should be included as well.
-
-    **Default:**
-
-    .. code-block:: python
-
-        [
-            "tuid",
-            "experiment_state",
-            "experiment_start",
-            "experiment_end",
-            "software_versions",
-            "relationships"
-        ]
+    json_serialize_exclude: List[str] = field(default_factory=list)
+    """A list of strings corresponding to the names of other attributes that should not
+    be json-serialized when writing the dataset to disk. Empty by default.
     """
 
 
 def _get_dims(
-    dataset: xr.Dataset, dim_type: Literal["experiment", "calibration"]
+    dataset: xr.Dataset, dim_type: Literal["main", "secondary"]
 ) -> Tuple[List[str], List[str]]:
-    """Return main or main calibration dimensions."""
+    """Return main or main secondary dimensions."""
     dims = set()
     for var_or_coords in (dataset.coords.values(), dataset.data_vars.values()):
         for var in var_or_coords:
@@ -296,22 +228,22 @@ def _get_dims(
 def get_main_dims(dataset: xr.Dataset) -> List[str]:
     """Determines the 'main' dimensions in the dataset.
 
-    Each of the dimensions returned is the outermost dimension for an experiment
+    Each of the dimensions returned is the outermost dimension for an main
     coordinate/variable, or the one after a dimension listed in
     ``~QDatasetAttrs.repetition_dims``.
 
-    These dimensions are detected based on :attr:`~.QCoordAttrs.is_experiment_coord`
-    and :attr:`~.QVarAttrs.is_experiment_var` attributes.
+    These dimensions are detected based on :attr:`~.QCoordAttrs.is_main_coord`
+    and :attr:`~.QVarAttrs.is_main_var` attributes.
 
     .. warning::
 
         The dimensions listed in this list should be considered "incompatible" in the
-        sense that the experiment coordinate/variables must lie on one and only one of
+        sense that the main coordinate/variables must lie on one and only one of
         such dimension.
 
     .. note::
 
-        The dimensions, on which the calibration coordinates/variables lie, are not
+        The dimensions, on which the secondary coordinates/variables lie, are not
         included in this list.
 
     Parameters
@@ -322,18 +254,18 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
     Returns
     -------
     :
-        The names of the 'main' experiment dimensions in the dataset.
+        The names of the main dimensions in the dataset.
     """
 
-    return _get_dims(dataset, dim_type="experiment")
+    return _get_dims(dataset, dim_type="main")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_main_calibration_dims(dataset: xr.Dataset) -> List[str]:
-    """Returns the 'main' calibration dimensions.
+def get_secondary_dims(dataset: xr.Dataset) -> List[str]:
+    """Returns the 'main' secondary dimensions.
 
-    For details see :func:`~.get_main_dims`, :attr:`~.QVarAttrs.is_calibration_var`
-    and :attr:`~.QCoordAttrs.is_calibration_coord`.
+    For details see :func:`~.get_main_dims`, :attr:`~.QVarAttrs.is_secondary_var`
+    and :attr:`~.QCoordAttrs.is_secondary_coord`.
 
     Parameters
     ----------
@@ -343,17 +275,17 @@ def get_main_calibration_dims(dataset: xr.Dataset) -> List[str]:
     Returns
     -------
     :
-        The names of the 'main' dimensions of calibration coordinates/variables in the
+        The names of the 'main' dimensions of secondary coordinates/variables in the
         dataset.
     """
 
-    return _get_dims(dataset, dim_type="calibration")
+    return _get_dims(dataset, dim_type="secondary")
 
 
 def _get_all_variables(
     dataset: xr.Dataset,
     var_type: str = Literal["coord", "var"],
-    attr_type: str = Literal["experiment", "calibration"],
+    attr_type: str = Literal["main", "secondary"],
 ) -> Tuple[List[str], List[str]]:
     """Shared internal logic used to retrieve variables/coordinates names."""
 
@@ -368,12 +300,12 @@ def _get_all_variables(
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_experiment_vars(dataset: xr.Dataset) -> List[str]:
+def get_main_vars(dataset: xr.Dataset) -> List[str]:
     """
-    Finds the experiment variables in the dataset (except calibration variables).
+    Finds the main variables in the dataset (except secondary variables).
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attr:`~.QVarAttrs.is_experiment_var` set to ``True`` (inside the
+    :attr:`~.QVarAttrs.is_main_var` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -384,18 +316,18 @@ def get_experiment_vars(dataset: xr.Dataset) -> List[str]:
     Returns
     -------
     :
-        The names of the experiment variables.
+        The names of the main variables.
     """
-    return _get_all_variables(dataset, var_type="var", attr_type="experiment")
+    return _get_all_variables(dataset, var_type="var", attr_type="main")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_calibration_vars(dataset: xr.Dataset) -> List[str]:
+def get_secondary_vars(dataset: xr.Dataset) -> List[str]:
     """
-    Finds the experiment calibration variables in the dataset.
+    Finds the secondary variables in the dataset.
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attr:`~.QVarAttrs.is_calibration_var` set to ``True`` (inside the
+    :attr:`~.QVarAttrs.is_secondary_var` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -406,18 +338,18 @@ def get_calibration_vars(dataset: xr.Dataset) -> List[str]:
     Returns
     -------
     :
-        The names of the experiment calibration variables.
+        The names of the secondary variables.
     """
-    return _get_all_variables(dataset, var_type="var", attr_type="calibration")
+    return _get_all_variables(dataset, var_type="var", attr_type="secondary")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_experiment_coords(dataset: xr.Dataset) -> List[str]:
+def get_main_coords(dataset: xr.Dataset) -> List[str]:
     """
-    Finds the experiment coordinates in the dataset (except calibration coordinates).
+    Finds the main coordinates in the dataset (except secondary coordinates).
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attr:`~.QCoordAttrs.is_experiment_coord` set to ``True`` (inside the
+    :attr:`~.QCoordAttrs.is_main_coord` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -428,18 +360,18 @@ def get_experiment_coords(dataset: xr.Dataset) -> List[str]:
     Returns
     -------
     :
-        The names of the experiment coordinates.
+        The names of the main coordinates.
     """
-    return _get_all_variables(dataset, var_type="coord", attr_type="experiment")
+    return _get_all_variables(dataset, var_type="coord", attr_type="main")
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
-def get_calibration_coords(dataset: xr.Dataset) -> List[str]:
+def get_secondary_coords(dataset: xr.Dataset) -> List[str]:
     """
-    Finds the experiment calibration coordinates in the dataset.
+    Finds the secondary coordinates in the dataset.
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attr:`~.QCoordAttrs.is_calibration_coord` set to ``True`` (inside the
+    :attr:`~.QCoordAttrs.is_secondary_coord` set to ``True`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -450,6 +382,6 @@ def get_calibration_coords(dataset: xr.Dataset) -> List[str]:
     Returns
     -------
     :
-        The names of the experiment calibration coordinates.
+        The names of the secondary coordinates.
     """
-    return _get_all_variables(dataset, var_type="coord", attr_type="calibration")
+    return _get_all_variables(dataset, var_type="coord", attr_type="secondary")

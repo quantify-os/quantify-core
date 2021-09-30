@@ -55,28 +55,21 @@ Quantify dataset specification
 
 import numpy as np
 import xarray as xr
-import matplotlib.pyplot as plt
 from quantify_core.data import handling as dh
 from quantify_core.measurement import grid_setpoints
 from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
-from quantify_core.data.handling import get_datadir, set_datadir
+from quantify_core.data.handling import set_datadir
 import quantify_core.data.dataset_attrs as dd
 import quantify_core.data.dataset_adapters as da
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
-    mk_exp_coord_attrs,
-    mk_cal_coord_attrs,
-    mk_exp_var_attrs,
-    mk_cal_var_attrs,
+    mk_main_coord_attrs,
+    mk_main_var_attrs,
     round_trip_dataset,
     par_to_attrs,
 )
-
-from typing import List, Tuple
-
-from importlib import reload
 
 pretty.install()
 
@@ -92,55 +85,57 @@ If you are not familiar with it, we highly recommend to first have a look at our
 
 # %% [raw]
 """
-.. _sec-experiment-coordinates-and-variables:
+.. _sec-main-coordinates-and-variables:
 
 Coordinates and Variables
 -------------------------
 
 The Quantify dataset is an xarray dataset that follows certain conventions. We define "subtypes" of xarray coordinates and variables:
 
-.. _sec-experiment-coordinates:
+.. _sec-main-coordinates:
 
-Experiment coordinate(s)
-^^^^^^^^^^^^^^^^^^^^^^^^
+Main coordinate(s)
+^^^^^^^^^^^^^^^^^^
 
-- Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_experiment_coord` set to ``True``.
+- Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord` set to ``True``.
 - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
 - Often correspond to quantities set through :class:`~quantify_core.measurement.Settable`\s.
-- See also the method :func:`~quantify_core.data.dataset_attrs.get_experiment_coords`.
+- See also the method :func:`~quantify_core.data.dataset_attrs.get_main_coords`.
 
-.. _sec-calibration-coordinates:
+.. _sec-secondary-coordinates:
 
-Calibration coordinate(s)
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Secondary coordinate(s)
+^^^^^^^^^^^^^^^^^^^^^^^
 
-- Similar to `experiment coordinates <sec-experiment-coordinates>`_\, but intended to serve as the coordinates of `calibration variables <sec-calibration-variables>`_\.
-- Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_calibration_coord` set to ``True``.
-- See also :func:`~quantify_core.data.dataset_attrs.get_calibration_coords`.
+- An ubiquitous example are the coordinates that are used by "calibration" points.
+- Similar to `main coordinates <sec-main-coordinates>`_\, but intended to serve as the coordinates of `secondary variables <sec-secondary-variables>`_\.
+- Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_secondary_coord` set to ``True``.
+- See also :func:`~quantify_core.data.dataset_attrs.get_secondary_coords`.
 
-.. _sec-experiment-variables:
+.. _sec-main-variables:
 
-Experiment variable(s)
-^^^^^^^^^^^^^^^^^^^^^^
+Main variable(s)
+^^^^^^^^^^^^^^^^
 
-- Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_experiment_var` set to ``True``.
-- Must have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.experiment_coords` indicating the names of its 'physical' coordinates. This ensures that the experiment coordinates of experiment variables can be determined without ambiguity.
+- Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to ``True``.
+- Must have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.main_coords` indicating the names of its 'physical' coordinates. This ensures that the main coordinates of main variables can be determined without ambiguity.
 
-    - Example: If a signal ``y1`` was measured as a function of ``time`` and ``amplitude`` experiment coordinates, then we will have ``y1.attrs["experiment_coords"] = ["time", "amplitude"]``.
+    - Example: If a signal ``y1`` was measured as a function of ``time`` and ``amplitude`` main coordinates, then we will have ``y1.attrs["main_coords"] = ["time", "amplitude"]``.
 
 - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
 - Often correspond to quantities returned by :class:`~quantify_core.measurement.Gettable`\s.
-- See also :func:`~quantify_core.data.dataset_attrs.get_experiment_vars`.
+- See also :func:`~quantify_core.data.dataset_attrs.get_main_vars`.
 
-.. _sec-calibration-variables:
+.. _sec-secondary-variables:
 
-Calibration variables(s)
-^^^^^^^^^^^^^^^^^^^^^^^^
+Secondary variables(s)
+^^^^^^^^^^^^^^^^^^^^^^
 
-- Similar to `experiment variables <sec-experiment-variables>`_, but intended to serve as calibration data for other experiment variables.
-- Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_calibration_var` set to ``True``.
-- The "assignment" of calibration variables to experiment variables should be done using :attr:`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
-- See also :func:`~quantify_core.data.dataset_attrs.get_calibration_vars`.
+- Again, the ubiquitous example are "calibration" datapoints.
+- Similar to `main variables <sec-main-variables>`_, but intended to serve as reference data for other main variables (e.g., calibration data).
+- Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_secondary_var` set to ``True``.
+- The "assignment" of secondary variables to main variables should be done using :attr:`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
+- See also :func:`~quantify_core.data.dataset_attrs.get_secondary_vars`.
 
 
 .. note::
@@ -149,7 +144,8 @@ Calibration variables(s)
     However, for completeness, we always show a valid Quantify dataset with all the required properties.
 
 In order to follow the rest of this specification more easily have a look at the example below.
-It should give you a more concrete feeling of the details that are exposed afterwards.
+It should give you a more concrete feeling of the details that are exposed afterwards. See also :ref:`sec-quantify-dataset-examples` for more exemplary dataset.
+
 """
 
 # %% [raw]
@@ -183,23 +179,21 @@ dataset = dataset_2d_example = xr.Dataset(
         pop_q0_par.name: (
             ("repetitions", "dim_0"),
             [y0s + y0s * np.random.uniform(-1, 1, y0s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(
-                **par_to_attrs(pop_q0_par),
-                experiment_coords=[amp_par.name, time_par.name]
+            mk_main_var_attrs(
+                **par_to_attrs(pop_q0_par), coords=[amp_par.name, time_par.name]
             ),
         ),
         pop_q1_par.name: (
             ("repetitions", "dim_0"),
             [y1s + y1s * np.random.uniform(-1, 1, y1s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(
-                **par_to_attrs(pop_q1_par),
-                experiment_coords=[amp_par.name, time_par.name]
+            mk_main_var_attrs(
+                **par_to_attrs(pop_q1_par), coords=[amp_par.name, time_par.name]
             ),
         ),
     },
     coords={
-        amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
-        time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
+        amp_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(amp_par))),
+        time_par.name: ("dim_0", x1s, mk_main_coord_attrs(**par_to_attrs(time_par))),
     },
     attrs=mk_dataset_attrs(main_dims=["dim_0"], repetitions_dims=["repetitions"]),
 )
@@ -211,9 +205,9 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 .. admonition:: Quantify dataset: 2D example
     :class: dropdown, toggle-shown
 
-    In the dataset below we have two experiment coordinates ``amp`` and ``time``; and two experiment variables ``pop_q0`` and ``pop_q1``.
-    Both experiment coordinates "lie" along a single xarray dimension, ``dim_0``.
-    Both experiment variables lie along two xarray dimensions ``dim_0`` and ``repetitions``.
+    In the dataset below we have two main coordinates ``amp`` and ``time``; and two main variables ``pop_q0`` and ``pop_q1``.
+    Both main coordinates "lie" along a single xarray dimension, ``dim_0``.
+    Both main variables lie along two xarray dimensions ``dim_0`` and ``repetitions``.
 """
 
 # %%
@@ -223,7 +217,7 @@ dataset
 
 # %% [raw]
 """
-    As seen above, in the Quantify dataset the experiment coordinates do not index the experiment variables because not all use-cases fit within this paradigm.
+    As seen above, in the Quantify dataset the main coordinates do not index the main variables because not all use-cases fit within this paradigm.
     However, when possible, the Quantify dataset can be reshaped to take advantage of the xarray built-in utilities. Note, however, that this reshaping will produce an xarray dataset that does not comply with the Quantify dataset specification.
 """
 
@@ -233,7 +227,7 @@ dataset
 dataset_gridded = dh.to_gridded_dataset(
     dataset_2d_example,
     dimension=dd.get_main_dims(dataset_2d_example)[0],
-    coords_names=dd.get_experiment_coords(dataset_2d_example),
+    coords_names=dd.get_main_coords(dataset_2d_example),
 )
 dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[0])
 _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
@@ -246,7 +240,7 @@ Dimensions
 
 # %% [raw]
 """
-The experiment variables and coordinates present in a Quantify dataset have the following required and optional xarray dimensions:
+The main variables and coordinates present in a Quantify dataset have the following required and optional xarray dimensions:
 
 .. _sec-repetitions-dimensions:
 
@@ -257,36 +251,35 @@ Repetition dimensions comply with the following:
 
 - Any dimensions present in the dataset that are listed in the :attr:`QDatasetAttrs.repetitions_dims <quantify_core.data.dataset_attrs.QDatasetAttrs.repetitions_dims>` dataset attribute.
 - Intuition for these xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
-- Default behavior of plotting tools will be to average the experiment variables along these dimensions.
-- Can be the outermost dimension of :ref:`experiment (and calibration) variables <sec-experiment-coordinates-and-variables>`.
-- The :ref:`experiment variables <sec-experiment-coordinates-and-variables>` can lie along one (and only one) repetition dimension.
+- Default behavior of (live) plotting and analysis tools can be to average the main variables along the repetitions dimension(s).
+- Can be the outermost dimension of :ref:`experiment (and calibration) variables <sec-main-coordinates-and-variables>`.
+- The :ref:`main variables <sec-main-coordinates-and-variables>` can lie along one (and only one) repetition dimension.
 
-Main experiment dimension(s) [Required]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Main dimension(s) [Required]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The main experiment dimensions comply with the following:
+The main dimensions comply with the following:
 
-- The outermost dimension of any experiment coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
-- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_main_dims` which simply applies the rule above while inspecting all the experiment coordinates and variables present in the dataset.
+- The outermost dimension of any main coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
+- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_main_dims` which simply applies the rule above while inspecting all the main coordinates and variables present in the dataset.
 - The dataset must have at least one main dimension.
 
 .. admonition:: Note on nesting main dimensions
 
-    Nesting main experiment dimensions is allowed in principle and such examples are
+    Nesting main dimensions is allowed in principle and such examples are
     provided but it should be considered an experimental feature.
 
-    - Intuition: intended primarily for time series, also known as "time trace" or simply trace.
-    - E.g., **each entry** a ``y3`` experiment variable corresponds to a one-microsecond-long digitized signal which later is processed to extract its frequencies.
+    - Intuition: intended primarily for time series, also known as "time trace" or simply trace. See :ref:`sec-quantify-dataset-examples` for an example.
 
 
-Main calibration dimension(s) [Optional]
+Secondary dimension(s) [Optional]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Equivalent to the main dimensions but used by the calibration coordinates and variables.
-The calibration dimensions comply with the following:
+Equivalent to the main dimensions but used by the secondary coordinates and variables.
+The secondary dimensions comply with the following:
 
-- The outermost dimension of any calibration coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
-- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_main_calibration_dims` which simply applies the rule above while inspecting all the calibration coordinates and variables present in the dataset.
+- The outermost dimension of any secondary coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
+- Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_secondary_dims` which simply applies the rule above while inspecting all the secondary coordinates and variables present in the dataset.
 """
 
 # %% [raw]
@@ -294,7 +287,7 @@ The calibration dimensions comply with the following:
 .. admonition:: Examples datasets with repetition
     :class: dropdown
 
-    As shown in the :ref:`xarray-intro` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetitions`` dimension is indexed by the ``repetitions`` xarray coordinate variable:
+    As shown in the :ref:`xarray-intro` an xarray dimension can be indexed by a ``coordinate`` variable. In this example the ``repetitions`` dimension is indexed by the ``repetitions`` xarray coordinate. Note that in an xarray dataset, a dimension and a data variables or a coordinate can share the same name. This might be confusing at first. It takes just a bit of dataset manipulation practice to gain the intuition for how it works.
 """
 
 # %%
@@ -305,23 +298,21 @@ dataset = xr.Dataset(
         pop_q0_par.name: (
             ("repetitions", "dim_0"),
             [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(
-                **par_to_attrs(pop_q0_par),
-                experiment_coords=[amp_par.name, time_par.name]
+            mk_main_var_attrs(
+                **par_to_attrs(pop_q0_par), coords=[amp_par.name, time_par.name]
             ),
         ),
         pop_q1_par.name: (
             ("repetitions", "dim_0"),
             [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            mk_exp_var_attrs(
-                **par_to_attrs(pop_q1_par),
-                experiment_coords=[amp_par.name, time_par.name]
+            mk_main_var_attrs(
+                **par_to_attrs(pop_q1_par), coords=[amp_par.name, time_par.name]
             ),
         ),
     },
     coords={
-        amp_par.name: ("dim_0", x0s, mk_exp_coord_attrs(**par_to_attrs(amp_par))),
-        time_par.name: ("dim_0", x1s, mk_exp_coord_attrs(**par_to_attrs(time_par))),
+        amp_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(amp_par))),
+        time_par.name: ("dim_0", x1s, mk_main_coord_attrs(**par_to_attrs(time_par))),
         # here we choose to index the repetition dimension with an array of strings
         "repetitions": (
             "repetitions",
@@ -346,7 +337,7 @@ dataset
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension=dd.get_main_dims(dataset)[0],
-    coords_names=dd.get_experiment_coords(dataset),
+    coords_names=dd.get_main_coords(dataset),
 )
 dataset_gridded
 
@@ -393,7 +384,7 @@ dataset_2d_example.attrs
 """
 .. tip::
 
-    Note that xarray automatically provides the attributes as python attributes:
+    Note that xarray automatically provides the entries of the dataset attributes as python attributes. And similarly for the xarray coordinates and data variables.
 """
 
 # %%
@@ -403,10 +394,10 @@ dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
 
 # %% [raw]
 """
-Experiment coordinates and variables attributes
------------------------------------------------
+Main coordinates and variables attributes
+-----------------------------------------
 
-Similar to the dataset attributes (:attr:`xarray.Dataset.attrs`), the experiment coordinates and variables have each their own mandatory attributes attached to them as dictionary under the :attr:`xarray.DataArray.attrs` attribute.
+Similar to the dataset attributes (:attr:`xarray.Dataset.attrs`), the main coordinates and variables have each their own mandatory attributes attached to them as dictionary under the :attr:`xarray.DataArray.attrs` attribute.
 """
 
 # %% [raw]
@@ -438,7 +429,7 @@ Storage format
 --------------
 
 The Quantify dataset is written to disk and loaded back making use of xarray-supported facilities.
-Internally we write/load to/from disk using:
+Internally we write and load to/from disk using:
 """
 
 # %%
@@ -460,7 +451,7 @@ Note that we use the ``h5netcdf`` engine that is more permissive than the defaul
 
 .. note::
 
-    Furthermore, in order to support a variety of attribute types (e.g. the `None` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below.
+    Furthermore, in order to support a variety of attribute types (e.g. the `None` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below that implements the two-way conversion adapter used by the functions shown above.
 """
 
 # %%

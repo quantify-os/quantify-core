@@ -11,7 +11,7 @@ from abc import abstractmethod
 import xarray as xr
 
 
-class DatasetAdapter:
+class DatasetAdapterBase:
     """
     Generic interface for dataset adapters.
 
@@ -34,7 +34,39 @@ class DatasetAdapter:
         """Inverts the action of the ``.adapt()`` method."""
 
 
-class AdapterH5NetCDF(DatasetAdapter):
+class DatasetAdapterIdentity:
+    """
+    A dataset adapter that does not modify the input dataset in any way.
+
+    Intended to be used just as an object that respects the adapter interface defined
+    by :class:`~.DatasetAdapterBase`.
+
+    A particular use case is the backwards compatibility for loading and writing
+    older versions of the dataset.
+    """
+
+    @classmethod
+    def adapt(cls, dataset: xr.Dataset) -> xr.Dataset:
+        """
+        Returns
+        -------
+        :
+            Same dataset with no modifications.
+        """
+        return dataset
+
+    @classmethod
+    def recover(cls, dataset: xr.Dataset) -> xr.Dataset:
+        """
+        Returns
+        -------
+        :
+            Same dataset with no modifications.
+        """
+        return dataset
+
+
+class AdapterH5NetCDF(DatasetAdapterBase):
     """
     Quantify dataset adapter for the ``h5netcdf`` engine.
 
@@ -52,10 +84,11 @@ class AdapterH5NetCDF(DatasetAdapter):
     @classmethod
     def adapt(cls, dataset: xr.Dataset) -> xr.Dataset:
         """
-        Serializes to JSON designated dataset and variables attributes.
+        Serializes to JSON the dataset and variables attributes.
 
-        The designated attributes for which this is performed must be listed inside an
-        attribute named ``json_attrs`` (for each ``attrs`` dictionary).
+        To prevent the JSON serialization for specific items, their names should be
+        listed under the attribute named ``json_serialize_exclude`` (for each ``attrs``
+        dictionary).
 
         Parameters
         ----------
@@ -65,8 +98,8 @@ class AdapterH5NetCDF(DatasetAdapter):
         Returns
         -------
         :
-            Dataset in which the designated attributes have been replaced with their
-            JSON string version.
+            Dataset in which the attributes have been replaced with their JSON strings
+            version.
         """
 
         return cls._transform(dataset, vals_converter=json.dumps)
@@ -76,8 +109,9 @@ class AdapterH5NetCDF(DatasetAdapter):
         """
         Reverts the action of ``.adapt()``.
 
-        The designated attributes for which this is performed must be listed inside an
-        attribute named ``json_attrs`` (for each ``attrs`` dictionary).
+        To prevent the JSON deserialization for specific items, their names should be
+        listed under the attribute named ``json_serialize_exclude``
+        (for each ``attrs`` dictionary).
 
         Parameters
         ----------
@@ -87,8 +121,8 @@ class AdapterH5NetCDF(DatasetAdapter):
         Returns
         -------
         :
-            Dataset in which the designated attributes have been replaced with their
-            python objects version.
+            Dataset in which the attributes have been replaced with their python objects
+            version.
         """
 
         return cls._transform(dataset, vals_converter=json.loads)
@@ -100,24 +134,23 @@ class AdapterH5NetCDF(DatasetAdapter):
         vals_converter: Callable[Any, Any] = json.dumps,
     ) -> dict:
         """
-        Converts to/from JSON string the values of the keys that are listed in the
-        ``json_attrs`` list.
+        Converts to/from JSON string the values of the keys which are not listed in the
+        ``json_serialize_exclude`` list.
 
         Parameters
         ----------
         attrs
             The input dictionary.
         inplace
-            If ``True`` the value are replaced in place, otherwise a deepcopy of
+            If ``True`` the values are replaced in place, otherwise a deepcopy of
             ``attrs`` is performed first.
         """
-        json_attrs = attrs.get("json_attrs", None)
-        # json_attrs might be a numpy array
-        if json_attrs is not None and len(json_attrs):
-            attrs = attrs if inplace else deepcopy(attrs)
-            for attr_name in json_attrs:
-                attrs[attr_name] = vals_converter(attrs[attr_name])
+        json_serialize_exclude = attrs.get("json_serialize_exclude", [])
 
+        attrs = attrs if inplace else deepcopy(attrs)
+        for attr_name, attr_val in attrs.items():
+            if attr_name not in json_serialize_exclude:
+                attrs[attr_name] = vals_converter(attr_val)
         return attrs
 
     @classmethod

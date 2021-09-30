@@ -35,149 +35,141 @@ def mk_dataset_attrs(
     return attrs
 
 
-def mk_exp_coord_attrs(
-    batched: bool = False,
+def mk_main_coord_attrs(
     uniformly_spaced: bool = True,
-    is_experiment_coord: bool = True,
-    is_calibration_coord: bool = False,
+    is_main_coord: bool = True,
+    is_secondary_coord: bool = False,
     **kwargs
 ) -> Dict[str, Any]:
     """
-    A factory of attributes for calibration coordinates.
+    A factory of attributes for secondary coordinates.
 
     See :class:`~quantify_core.data.dataset_attrs.QCoordAttrs` for details.
 
     Parameters
     ----------
-    batched
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.batched`.
     uniformly_spaced
         See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.uniformly_spaced`.
-    is_experiment_coord
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_experiment_coord`.
-    is_calibration_coord
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_calibration_coord`.
+    is_main_coord
+        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord`.
+    is_secondary_coord
+        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_secondary_coord`.
+    **kwargs
+        Any other items used to update the output dictionary.
     """
     attrs = dd.QCoordAttrs(
-        batched=batched,
         uniformly_spaced=uniformly_spaced,
-        is_experiment_coord=is_experiment_coord,
-        is_calibration_coord=is_calibration_coord,
+        is_main_coord=is_main_coord,
+        is_secondary_coord=is_secondary_coord,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
-def mk_cal_coord_attrs(
-    batched: bool = False,
+def mk_secondary_coord_attrs(
     uniformly_spaced: bool = True,
-    is_experiment_coord: bool = False,
-    is_calibration_coord: bool = True,
+    is_main_coord: bool = False,
+    is_secondary_coord: bool = True,
     **kwargs
 ) -> Dict[str, Any]:
     """
-    A factory of attributes for calibration coordinates.
+    A factory of attributes for secondary coordinates.
 
     See :class:`~quantify_core.data.dataset_attrs.QCoordAttrs` for details.
 
     Parameters
     ----------
-    batched
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.batched`.
     uniformly_spaced
         See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.uniformly_spaced`.
-    is_experiment_coord
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_experiment_coord`.
-    is_calibration_coord
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_calibration_coord`.
+    is_main_coord
+        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord`.
+    is_secondary_coord
+        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_secondary_coord`.
+    **kwargs
+        Any other items used to update the output dictionary.
     """
     attrs = dd.QCoordAttrs(
-        batched=batched,
         uniformly_spaced=uniformly_spaced,
-        is_experiment_coord=is_experiment_coord,
-        is_calibration_coord=is_calibration_coord,
+        is_main_coord=is_main_coord,
+        is_secondary_coord=is_secondary_coord,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
-def mk_exp_var_attrs(
-    experiment_coords: List[str],
+def mk_main_var_attrs(
+    main_coords: List[str],
     grid: bool = True,
     uniformly_spaced: bool = True,
-    batched: bool = False,
-    is_experiment_var: bool = True,
-    is_calibration_var: bool = False,
+    is_main_var: bool = True,
+    is_secondary_var: bool = False,
     **kwargs
 ) -> Dict[str, Any]:
     """
-    A factory of attributes for experiment variables.
+    A factory of attributes for main variables.
 
     See :class:`~quantify_core.data.dataset_attrs.QVarAttrs` for details.
 
     Parameters
     ----------
-    experiment_coords
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.experiment_coords`.
+    main_coords
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.main_coords`.
     grid
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.grid`.
     uniformly_spaced
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.uniformly_spaced`.
-    batched
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.batched`.
-    is_experiment_var
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_experiment_var`.
-    is_calibration_var
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_calibration_var`.
+    is_main_var
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_main_var`.
+    is_secondary_var
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_secondary_var`.
+    **kwargs
+        Any other items used to update the output dictionary.
     """
     attrs = dd.QVarAttrs(
         grid=grid,
         uniformly_spaced=uniformly_spaced,
-        batched=batched,
-        is_experiment_var=is_experiment_var,
-        is_calibration_var=is_calibration_var,
-        experiment_coords=experiment_coords,
+        is_main_var=is_main_var,
+        is_secondary_var=is_secondary_var,
+        main_coords=main_coords,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
-def mk_cal_var_attrs(
-    experiment_coords: List[str],
+def mk_secondary_var_attrs(
+    main_coords: List[str],
     grid: bool = True,
     uniformly_spaced: bool = True,
-    batched: bool = False,
-    is_experiment_var: bool = False,
-    is_calibration_var: bool = True,
+    is_main_var: bool = False,
+    is_secondary_var: bool = True,
     **kwargs
 ) -> Dict[str, Any]:
     """
-    A factory of attributes for calibration variables.
+    A factory of attributes for secondary variables.
 
     See :class:`~quantify_core.data.dataset_attrs.QVarAttrs` for details.
 
     Parameters
     ----------
-    experiment_coords
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.experiment_coords`.
+    main_coords
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.main_coords`.
     grid
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.grid`.
     uniformly_spaced
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.uniformly_spaced`.
-    batched
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.batched`.
-    is_experiment_var
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_experiment_var`.
-    is_calibration_var
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_calibration_var`.
+    is_main_var
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_main_var`.
+    is_secondary_var
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_secondary_var`.
+    **kwargs
+        Any other items used to update the output dictionary.
     """
     attrs = dd.QVarAttrs(
         grid=grid,
         uniformly_spaced=uniformly_spaced,
-        batched=batched,
-        is_experiment_var=is_experiment_var,
-        is_calibration_var=is_calibration_var,
-        experiment_coords=experiment_coords,
+        is_main_var=is_main_var,
+        is_secondary_var=is_secondary_var,
+        main_coords=main_coords,
     ).to_dict()
 
     attrs.update(kwargs)

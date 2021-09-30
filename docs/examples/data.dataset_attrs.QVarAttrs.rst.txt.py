@@ -23,7 +23,7 @@
 # %%
 from quantify_core.utilities import examples_support
 
-examples_support.mk_exp_var_attrs(experiment_coords=["time"])
+examples_support.mk_main_var_attrs(coords=["time"])
 
 # %%
-examples_support.mk_cal_var_attrs(experiment_coords=["cal"])
+examples_support.mk_secondary_var_attrs(coords=["cal"])

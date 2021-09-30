@@ -26,8 +26,8 @@ from quantify_core.utilities import examples_support
 import pendulum
 
 examples_support.mk_dataset_attrs(
-    experiment_name="Bias scan",
-    experiment_start=pendulum.now().to_iso8601_string(),
-    experiment_end=pendulum.now().add(minutes=2).to_iso8601_string(),
-    experiment_state="done",
+    dataset_name="Bias scan",
+    timestamp_start=pendulum.now().to_iso8601_string(),
+    timestamp_end=pendulum.now().add(minutes=2).to_iso8601_string(),
+    dataset_state="done",
 )

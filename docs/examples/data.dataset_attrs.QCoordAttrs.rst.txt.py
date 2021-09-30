@@ -23,7 +23,7 @@
 # %%
 from quantify_core.utilities import examples_support
 
-examples_support.mk_exp_coord_attrs()
+examples_support.mk_main_coord_attrs()
 
 # %%
-examples_support.mk_cal_coord_attrs()
+examples_support.mk_secondary_coord_attrs()
