@@ -1,21 +1,26 @@
-# pylint: disable=line-too-long
-# pylint: disable=wrong-import-order
-# pylint: disable=wrong-import-position
-# pylint: disable=pointless-string-statement
-
 # ---
 # jupyter:
 #   jupytext:
-#     cell_markers: '\"\"\"'
+#     cell_markers: \"\"\"
 #     formats: py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.12.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
+
+# %%
+# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+# pylint: disable=line-too-long
+# pylint: disable=wrong-import-order
+# pylint: disable=wrong-import-position
+# pylint: disable=pointless-string-statement
+
 
 # %%
 # rst-json-conf: {"jupyter_execute_options": [":hide-code:", ":hide-output:"]}
