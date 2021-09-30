@@ -2,3 +2,5 @@
 
 # A type hint from typing_extensions that sphinx and its extensions do not handle well
 py:class Literal[None, running, interrupted (safety), interrupted (forced), done]
+py:class typing_extensions.Literal[None, running, interrupted (safety), interrupted (forced), done]
+py:class dataclasses_json.api.DataClassJsonMixin
