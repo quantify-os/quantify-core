@@ -82,7 +82,7 @@ class AnalysisSteps(Enum):
         from quantify_core.analysis import base_analysis as ba
         print(ba.analysis_steps_to_str(ba.AnalysisSteps))
 
-    .. include:: ./examples/analysis.base_analysis.AnalysisSteps.rst.txt
+    .. include:: /examples/analysis.base_analysis.AnalysisSteps.rst.txt
 
     .. tip::
 
@@ -240,7 +240,7 @@ class BaseAnalysis(ABC):
 
         This function is typically called right after instantiating an analysis class.
 
-        .. include:: ./examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
+        .. include:: /examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
 
         Returns
         -------
