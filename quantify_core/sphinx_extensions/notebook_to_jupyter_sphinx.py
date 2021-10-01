@@ -401,6 +401,10 @@ def notebooks_to_rst(app, config) -> None:
     # with extensions `.rst.*.py`, e.g., `.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
     for file in itertools.chain(rst_py_files, rst_other_py_files):
+        if ".ipynb_checkpoints" in file.parts:
+            # Ignore checkpoints created by Jupyter Notebook/Lab
+            continue
+
         logger.debug("Converting file...", location=file)
         try:
             notebook = jupytext.read(file, fmt="py:percent")
