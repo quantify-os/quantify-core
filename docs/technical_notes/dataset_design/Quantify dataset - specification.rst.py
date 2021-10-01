@@ -20,6 +20,8 @@
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
+# pylint: disable=pointless-statement
+# pylint: disable=invalid-name
 
 # %%
 # %load_ext autoreload
@@ -52,23 +54,16 @@ Quantify dataset specification
 
 import inspect
 from IPython.display import Code
-import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 from quantify_core.data import handling as dh
-from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import set_datadir
 from quantify_core.utilities import dataset_examples
 import quantify_core.data.dataset_attrs as dd
 import quantify_core.data.dataset_adapters as da
-from quantify_core.utilities.examples_support import (
-    mk_dataset_attrs,
-    mk_main_coord_attrs,
-    mk_main_var_attrs,
-    round_trip_dataset,
-)
+from quantify_core.utilities.examples_support import round_trip_dataset
 
 pretty.install()
 
@@ -84,7 +79,7 @@ If you are not familiar with it, we highly recommend to first have a look at our
 
 # %% [raw]
 r"""
-.. _sec-main-coordinates-and-variables:
+.. _sec-coordinates-and-variables:
 
 Coordinates and Variables
 -------------------------
@@ -151,7 +146,7 @@ It should give you a more concrete feeling of the details that are exposed after
 """
 .. admonition:: Generate dataset
     :class: dropdown
-    
+
     We use the :func:`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset` to generate our dataset.
 """
 
@@ -221,8 +216,8 @@ Repetition dimensions comply with the following:
 - Any dimensions present in the dataset that are listed in the :attr:`QDatasetAttrs.repetitions_dims <quantify_core.data.dataset_attrs.QDatasetAttrs.repetitions_dims>` dataset attribute.
 - Intuition for these xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
 - Default behavior of (live) plotting and analysis tools can be to average the main variables along the repetitions dimension(s).
-- Can be the outermost dimension of :ref:`experiment (and calibration) variables <sec-main-coordinates-and-variables>`.
-- The :ref:`main variables <sec-main-coordinates-and-variables>` can lie along one (and only one) repetition dimension.
+- Can be the outermost dimension of the main (and secondary) variables.
+- The main variables can lie along one (and only one) repetition dimension.
 
 Main dimension(s) [Required]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

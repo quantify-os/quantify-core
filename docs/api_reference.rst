@@ -120,6 +120,12 @@ experiment_helpers
 .. automodule:: quantify_core.utilities.experiment_helpers
     :members:
 
+dataset_examples
+----------------
+
+.. automodule:: quantify_core.utilities.dataset_examples
+    :members:
+
 examples_support
 ----------------
 

@@ -21,7 +21,8 @@
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
-
+# pylint: disable=pointless-statement
+# pylint: disable=invalid-name
 
 # %%
 # %load_ext autoreload
