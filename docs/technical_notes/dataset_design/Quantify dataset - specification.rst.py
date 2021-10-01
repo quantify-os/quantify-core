@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.12.0
+#       jupytext_version: 1.13.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -23,10 +23,7 @@
 
 # %%
 # %load_ext autoreload
-# %autoreload 1
-# %aimport quantify_core.data.dataset_attrs
-# %aimport quantify_core.data.dataset_adapters
-# %aimport quantify_core.utilities.examples_support
+# %autoreload 2
 
 # %% [raw]
 """
@@ -53,14 +50,17 @@ Quantify dataset specification
 # %%
 # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
+import inspect
+from IPython.display import Code
 import numpy as np
 import xarray as xr
+import matplotlib.pyplot as plt
 from quantify_core.data import handling as dh
-from quantify_core.measurement import grid_setpoints
 from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import set_datadir
+from quantify_core.utilities import dataset_examples
 import quantify_core.data.dataset_attrs as dd
 import quantify_core.data.dataset_adapters as da
 from quantify_core.utilities.examples_support import (
@@ -68,7 +68,6 @@ from quantify_core.utilities.examples_support import (
     mk_main_coord_attrs,
     mk_main_var_attrs,
     round_trip_dataset,
-    par_to_attrs,
 )
 
 pretty.install()
@@ -84,7 +83,7 @@ If you are not familiar with it, we highly recommend to first have a look at our
 """
 
 # %% [raw]
-"""
+r"""
 .. _sec-main-coordinates-and-variables:
 
 Coordinates and Variables
@@ -152,51 +151,21 @@ It should give you a more concrete feeling of the details that are exposed after
 """
 .. admonition:: Generate dataset
     :class: dropdown
+    
+    We use the :func:`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset` to generate our dataset.
 """
 
 # %%
 # rst-json-conf: {"indent": "    "}
 
-x0s = np.linspace(0.45, 0.55, 30)
-x1s = np.linspace(0, 100e-9, 40)
-time_par = ManualParameter(name="time", label="Time", unit="s")
-amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="")
-pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="")
-
-x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
-x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
-y0s = (1 - x0s_norm) * np.sin(
-    2 * np.pi * x1s * 1 / 30e-9 * (x0s_norm + 0.5)
-)  # ~chevron
-y1s = -y0s  # mock inverted population for q1
-
-y0s = y0s / 2 + 0.5  # shift to 0-1 range
-y1s = y1s / 2 + 0.5
-
-dataset = dataset_2d_example = xr.Dataset(
-    data_vars={
-        pop_q0_par.name: (
-            ("repetitions", "dim_0"),
-            [y0s + y0s * np.random.uniform(-1, 1, y0s.shape) / k for k in (100, 10, 5)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q0_par), coords=[amp_par.name, time_par.name]
-            ),
-        ),
-        pop_q1_par.name: (
-            ("repetitions", "dim_0"),
-            [y1s + y1s * np.random.uniform(-1, 1, y1s.shape) / k for k in (100, 10, 5)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q1_par), coords=[amp_par.name, time_par.name]
-            ),
-        ),
-    },
-    coords={
-        amp_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(amp_par))),
-        time_par.name: ("dim_0", x1s, mk_main_coord_attrs(**par_to_attrs(time_par))),
-    },
-    attrs=mk_dataset_attrs(main_dims=["dim_0"], repetitions_dims=["repetitions"]),
+Code(
+    inspect.getsource(dataset_examples.mk_two_qubit_chevron_dataset), language="python"
 )
+
+# %%
+# rst-json-conf: {"indent": "    "}
+
+dataset = dataset_examples.mk_two_qubit_chevron_dataset()
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
@@ -206,8 +175,8 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
     :class: dropdown, toggle-shown
 
     In the dataset below we have two main coordinates ``amp`` and ``time``; and two main variables ``pop_q0`` and ``pop_q1``.
-    Both main coordinates "lie" along a single xarray dimension, ``dim_0``.
-    Both main variables lie along two xarray dimensions ``dim_0`` and ``repetitions``.
+    Both main coordinates "lie" along a single xarray dimension, ``main_dim``.
+    Both main variables lie along two xarray dimensions ``main_dim`` and ``repetitions``.
 """
 
 # %%
@@ -225,12 +194,12 @@ dataset
 # rst-json-conf: {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_2d_example,
-    dimension=dd.get_main_dims(dataset_2d_example)[0],
-    coords_names=dd.get_main_coords(dataset_2d_example),
+    dataset,
+    dimension="main_dim",
+    coords_names=dd.get_main_coords(dataset),
 )
-dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[0])
-_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
+dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetitions")
+_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetitions")
 
 # %% [raw]
 """
@@ -293,38 +262,25 @@ The secondary dimensions comply with the following:
 # %%
 # rst-json-conf: {"indent": "    "}
 
-dataset = xr.Dataset(
-    data_vars={
-        pop_q0_par.name: (
-            ("repetitions", "dim_0"),
-            [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q0_par), coords=[amp_par.name, time_par.name]
-            ),
-        ),
-        pop_q1_par.name: (
-            ("repetitions", "dim_0"),
-            [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q1_par), coords=[amp_par.name, time_par.name]
-            ),
-        ),
-    },
-    coords={
-        amp_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(amp_par))),
-        time_par.name: ("dim_0", x1s, mk_main_coord_attrs(**par_to_attrs(time_par))),
-        # here we choose to index the repetition dimension with an array of strings
-        "repetitions": (
-            "repetitions",
-            ["noisy", "very noisy", "very very noisy"],
-        ),
-    },
-    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
+coord_name = "repetitions"
+coord_dims = ("repetitions",)
+coord_values = ["A", "B", "C", "D", "E"]
+dataset_indexed_rep = xr.Dataset(
+    coords={coord_name: (coord_dims, coord_values)},
+    attrs=dict(repetitions_dims=["repetitions"]),
 )
 
-assert dataset == round_trip_dataset(dataset)  # confirm read/write
+dataset_indexed_rep
 
-dataset
+# %%
+# rst-json-conf: {"indent": "    "}
+
+# merge with the previous dataset
+dataset_rep = dataset.merge(dataset_indexed_rep, combine_attrs="drop_conflicts")
+
+assert dataset_rep == round_trip_dataset(dataset_rep)  # confirm read/write
+
+dataset_rep
 
 # %% [raw]
 """
@@ -335,8 +291,8 @@ dataset
 # rst-json-conf: {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
-    dataset,
-    dimension=dd.get_main_dims(dataset)[0],
+    dataset_rep,
+    dimension="main_dim",
     coords_names=dd.get_main_coords(dataset),
 )
 dataset_gridded
@@ -348,9 +304,9 @@ dataset_gridded
 
 # %%
 # rst-json-conf: {"indent": "    "}
-
-_ = dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
-_ = dataset_gridded.pop_q0.sel(repetitions="very very noisy").plot(x="amp")
+_ = dataset_gridded.pop_q0.sel(repetitions="A").plot(x="amp")
+plt.show()
+_ = dataset_gridded.pop_q0.sel(repetitions="D").plot(x="amp")
 
 # %% [raw]
 """
@@ -378,8 +334,8 @@ the following template is provided:
 from quantify_core.data.dataset_attrs import QDatasetAttrs
 
 # tip: to_json and from_dict, from_json  are also available
-dataset_2d_example.attrs = QDatasetAttrs().to_dict()
-dataset_2d_example.attrs
+dataset.attrs = QDatasetAttrs().to_dict()
+dataset.attrs
 
 # %% [raw]
 """
@@ -391,7 +347,7 @@ dataset_2d_example.attrs
 # %%
 # rst-json-conf: {"indent": "    "}
 
-dataset_2d_example.quantify_dataset_version, dataset_2d_example.tuid
+dataset.quantify_dataset_version, dataset.tuid
 
 # %% [raw]
 """
@@ -410,7 +366,7 @@ Similar to the dataset attributes (:attr:`xarray.Dataset.attrs`), the main coord
 """
 
 # %%
-dataset_2d_example.amp.attrs
+dataset.amp.attrs
 
 
 # %% [raw]
@@ -422,7 +378,7 @@ dataset_2d_example.amp.attrs
 """
 
 # %%
-dataset_2d_example.pop_q0.attrs
+dataset.pop_q0.attrs
 
 # %% [raw]
 """
@@ -435,9 +391,6 @@ Internally we write and load to/from disk using:
 
 # %%
 # rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
-
-import inspect
-from IPython.display import Code
 
 Code(inspect.getsource(dh.write_dataset), language="python")
 
@@ -457,3 +410,5 @@ Note that we use the ``h5netcdf`` engine that is more permissive than the defaul
 
 # %%
 Code(inspect.getsource(da.AdapterH5NetCDF), language="python")
+
+# %%

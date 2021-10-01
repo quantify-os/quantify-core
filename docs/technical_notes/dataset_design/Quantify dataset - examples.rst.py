@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -88,8 +89,6 @@ pretty.install()
 set_datadir(Path.home() / "quantify-data")  # change me!
 
 # %%
-## rst-json-conf: {"indent": "    "}
-
 x0s = np.linspace(0.45, 0.55, 30)
 x1s = np.linspace(0, 100e-9, 40)
 time_par = ManualParameter(name="time", label="Time", unit="s")
@@ -104,11 +103,13 @@ y0s = (1 - x0s_norm) * np.sin(
 )  # ~chevron
 y1s = -y0s  # mock inverted population for q1
 
+rep = 5
+
 dataset = dataset_2d_example = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
             ("repetitions", "dim_0"),
-            [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
+            [y0s + np.random.random(y0s.shape) / 2 for _ in range(rep)],
             mk_main_var_attrs(
                 **par_to_attrs(pop_q0_par),
                 coords=[amp_par.name, time_par.name],
@@ -116,7 +117,7 @@ dataset = dataset_2d_example = xr.Dataset(
         ),
         pop_q1_par.name: (
             ("repetitions", "dim_0"),
-            [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
+            [y1s + np.random.random(y1s.shape) / 2 for _ in range(rep)],
             mk_main_var_attrs(
                 **par_to_attrs(pop_q1_par),
                 coords=[amp_par.name, time_par.name],
@@ -149,11 +150,9 @@ be very convenient:
 """
 
 # %%
-_ = dataset_gridded.pop_q0.mean(dim=dataset_gridded.pop_q0.dims[0]).plot(x="amp")
+_ = dataset_gridded.pop_q0.mean(dim="repetitions").plot(x="amp")
 
 # %%
-## rst-json-conf: {"indent": "    "}
-
 dataset = xr.Dataset(
     data_vars={
         pop_q0_par.name: (
@@ -188,16 +187,12 @@ dataset = xr.Dataset(
 dataset
 
 # %%
-## rst-json-conf: {"indent": "    "}
-
 dataset_gridded = dh.to_gridded_dataset(
     dataset, dimension="dim_0", coords_names=dd.get_main_coords(dataset)
 )
 dataset_gridded
 
 # %%
-## rst-json-conf: {"indent": "    "}
-
 dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
 pass
 
@@ -323,7 +318,8 @@ q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
 probabilities = generate_exp_decay_probablity(time=x0s, tau=tau)
 plt.ylabel("|1> probability")
 plt.suptitle("Typical T1 experiment processed data")
-_ = plt.plot(x0s, probabilities, ".-")
+_ = plt.plot(x0s * 1e6, probabilities, ".-")
+_ = plt.xlabel("Time [µs]")
 
 # %%
 y0s = np.fromiter(
@@ -343,16 +339,16 @@ y0s = np.fromiter(
 )
 
 dataset = xr.Dataset(
-    data_vars={
-        q0_iq_par.name: (
+    data_vars=dict(
+        q0_iq=(
             "dim_0",
             y0s,
             mk_main_var_attrs(**par_to_attrs(q0_iq_par), coords=[time_par.name]),
         ),
-    },
-    coords={
-        time_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(time_par))),
-    },
+    ),
+    coords=dict(
+        time=("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(time_par))),
+    ),
     attrs=mk_dataset_attrs(),
 )
 
@@ -364,7 +360,7 @@ dataset
 # %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
-    dimension=dataset.q0_iq.dims[0],
+    dimension=dataset.q0_iq.dim_0.name,
     coords_names=dd.get_main_coords(dataset),
 )
 dataset_gridded
@@ -375,6 +371,7 @@ dataset_gridded
 .. admonition:: Plotting utilities
     :class: dropdown
 """
+
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -531,6 +528,7 @@ We can use the calibration points to normalize the data and obtain the typical T
 .. admonition:: Data rotation and normalization utilities
     :class: dropdown
 """
+
 
 # %%
 # rst-json-conf: {"indent": "    "}
@@ -758,6 +756,7 @@ We can collapse (average along) the ``repetitions`` dimension:
     :class: dropdown
 """
 
+
 # %%
 # rst-json-conf: {"indent": "    "}
 
@@ -959,3 +958,5 @@ For clarity, we plot only part of this digitized signal:
 trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".")
 _ = trace_example_plt.imag.plot(marker=".")
+
+# %%
