@@ -7,14 +7,181 @@ from __future__ import annotations
 from typing import List, Union, Any, Dict, Callable
 from pathlib import Path
 import xarray as xr
+import numpy as np
 from quantify_core.data.types import TUID
-from qcodes import Parameter
 import quantify_core.data.handling as dh
 import quantify_core.data.dataset_attrs as dd
 
+# ######################################################################################
+# IQ-related data manipulation and plotting
+# ######################################################################################
+
+
+def mk_iq_shots(
+    n_shots: int,
+    sigmas: Union[tuple, list, np.ndarray],
+    centers: Union[tuple, list, np.ndarray],
+    probabilities: Union[tuple, list, np.ndarray],
+    seed: Union[int, None] = 112233,
+):
+    """
+    Generates clusters of (I + 1j*Q) points with a Gaussian distribution with the
+    specified sigmas and centers according to the probabilities of each cluster
+
+    .. admonition:: Examples
+        :class: dropdown
+
+        .. include:: ./examples/utilities.examples_support.mk_iq_shots.rst.txt
+
+    Parameters
+    ----------
+    n_shots
+        The number of shot to generate.
+    sigma
+        The sigma of the Gaussian distribution used for both real and imaginary parts.
+    centers
+        The center of each cluster on the imaginary plane.
+    probabilities
+        The probabilities of each cluster being randomly selected for each shot.
+    seed
+        Random number generator passed to ``numpy.random.default_rng``.
+    """
+    assert len(sigmas) == len(centers) == len(probabilities)
+
+    rng = np.random.default_rng(seed=seed)
+
+    cluster_indices = tuple(range(len(centers)))
+    choices = rng.choice(a=cluster_indices, size=n_shots, p=probabilities)
+
+    shots = []
+    for idx in cluster_indices:
+        num_shots_this_cluster = np.sum(choices == idx)
+        i_data = rng.normal(
+            loc=centers[idx].real,
+            scale=sigmas[idx],
+            size=num_shots_this_cluster,
+        )
+        q_data = rng.normal(
+            loc=centers[idx].imag,
+            scale=sigmas[idx],
+            size=num_shots_this_cluster,
+        )
+        shots.append(i_data + 1j * q_data)
+    return np.concatenate(shots)
+
+
+def mk_trace_time(sampling_rate: float = 1e9, duration: float = 0.3e-6) -> np.ndarray:
+    """
+    Generates a :obj:`~numpy.arange` in which the entries correspond to time instants
+    up to ``duration`` seconds sampled according to ``sampling_rate`` in Hz.
+
+    See :func:`~.mk_trace_for_iq_shot` for an usage example.
+
+    Parameters
+    ----------
+    sampling_rate
+        The sampling rate in Hz.
+    duration
+        Total duration in seconds.
+
+    Returns
+    -------
+    :
+        An array with the time instants.
+    """
+    trace_length = sampling_rate * duration
+    return np.arange(0, trace_length, 1) / sampling_rate
+
+
+def mk_trace_for_iq_shot(
+    iq_point: complex,
+    time_values: np.ndarray = mk_trace_time(),
+    intermediate_freq: float = 50e6,
+) -> np.ndarray:
+    """
+    Generates mock "traces" that a physical instrument would digitize for the readout of
+    a transmon qubit when using a down-converting IQ mixer.
+
+    .. admonition:: Examples
+        :class: dropdown
+
+        .. include:: ./examples/utilities.examples_support.mk_trace_for_iq_shot.rst.txt
+
+    Parameters
+    ----------
+    iq_point
+        A complex number representing a point on the IQ-plane.
+    time_values
+        The time instants at which the mock intermediate-frequency signal is sampled.
+    intermediate_freq
+        The intermediate frequency used in the down-conversion scheme.
+
+    Returns
+    -------
+    :
+        An array of complex numbers.
+    """
+
+    return iq_point * np.exp(2.0j * np.pi * intermediate_freq * time_values)
+
+
+def plot_centroids(
+    ax,
+    ground: complex,
+    excited: complex,
+    markersize: int = 10,
+    legend: bool = True,
+    **kwargs
+):
+    """Plots the centers of the ground and excited states on a 2D plot representing
+    the IQ-plane.
+
+    Parameters
+    ----------
+    ax
+        A matplotlib axis to plot on.
+    ground
+        A complex number representing the ground state on the IQ-plane.
+    excited
+        A complex number representing the excited state on the IQ-plane.
+    markersize
+        The size of the markers used to plot
+    legend
+        Calls ``ax.legend`` if ``True``.
+    **kwargs
+        Keyword arguments passed to the ``ax.plot``.
+    """
+    ax.plot(
+        [ground.real],
+        [ground.imag],
+        label="|0>",
+        marker="o",
+        color="C3",
+        linestyle="",
+        markersize=markersize,
+        **kwargs
+    )
+    ax.plot(
+        [excited.real],
+        [excited.imag],
+        label="|1>",
+        marker="^",
+        color="C4",
+        linestyle="",
+        markersize=markersize,
+        **kwargs
+    )
+    if legend:
+        ax.legend()
+
+
+# ######################################################################################
+# Dataset-related
+# ######################################################################################
+
 
 def mk_dataset_attrs(
-    tuid: Union[TUID, Callable[[], Any]] = dh.gen_tuid, **kwargs
+    tuid: Union[TUID, Callable[[], TUID]] = dh.gen_tuid, **kwargs
 ) -> Dict[str, Any]:
     """
     A factory of attributes for Quantify dataset.
@@ -183,22 +350,3 @@ def round_trip_dataset(dataset: xr.Dataset) -> xr.Dataset:
     assert tuid != ""
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, dataset)
     return dh.load_dataset(tuid)
-
-
-def par_to_attrs(parameter: Union[Parameter, Any]) -> Dict[str, Any]:
-    """
-    Extracts unit and label from a parameter and returns a dictionary compatible with
-    :class:`~quantify_core.data.dataset_attrs.QVarAttrs` and
-    :class:`~quantify_core.data.dataset_attrs.QCoordAttrs`.
-
-    Parameters
-    ----------
-    parameter
-        An object with a `.unit` and `.label` attributes.
-
-    Returns
-    -------
-    :
-        The dictionary ``{"units": parameter.unit, "long_name": parameter.label}``.
-    """
-    return dict(units=parameter.unit, long_name=parameter.label)

@@ -59,7 +59,6 @@ import matplotlib.pyplot as plt
 from quantify_core.data import handling as dh
 from rich import pretty
 from pathlib import Path
-from quantify_core.data.handling import set_datadir
 from quantify_core.utilities import dataset_examples
 import quantify_core.data.dataset_attrs as dd
 import quantify_core.data.dataset_adapters as da
@@ -67,7 +66,7 @@ from quantify_core.utilities.examples_support import round_trip_dataset
 
 pretty.install()
 
-set_datadir(Path.home() / "quantify-data")  # change me!
+dh.set_datadir(Path.home() / "quantify-data")  # change me!
 
 # %% [raw]
 """
@@ -405,5 +404,3 @@ Note that we use the ``h5netcdf`` engine that is more permissive than the defaul
 
 # %%
 Code(inspect.getsource(da.AdapterH5NetCDF), language="python")
-
-# %%

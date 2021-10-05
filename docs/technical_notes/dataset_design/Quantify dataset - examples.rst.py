@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.12.0
+#       jupytext_version: 1.13.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -33,13 +33,6 @@
 
 # %% [raw]
 """
-.. admonition:: TODO
-
-    Write supporting text.
-"""
-
-# %% [raw]
-"""
 .. _sec-quantify-dataset-examples:
 
 Quantify dataset - examples
@@ -52,17 +45,16 @@ Quantify dataset - examples
     :jupyter-download:notebook:`Quantify dataset - examples`
 
     :jupyter-download:script:`Quantify dataset - examples`
-"""
 
-# %% [raw]
-"""
 .. admonition:: Imports and auxiliary utilities
     :class: dropdown
 """
 
-# %%
+# %% tags=[]
 # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
+import inspect
+from IPython.display import Code, display
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -71,285 +63,253 @@ from quantify_core.measurement import grid_setpoints
 from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
-from quantify_core.data.handling import get_datadir, set_datadir
 import quantify_core.data.dataset_attrs as dd
+from quantify_core.utilities import dataset_examples
+from quantify_core.analysis.fitting_models import exp_decay_func
 from quantify_core.utilities.examples_support import (
+    mk_iq_shots,
+    mk_trace_time,
+    mk_trace_for_iq_shot,
+    plot_centroids,
     mk_dataset_attrs,
     mk_main_coord_attrs,
     mk_secondary_coord_attrs,
     mk_main_var_attrs,
     mk_secondary_var_attrs,
     round_trip_dataset,
-    par_to_attrs,
 )
-
-from typing import List, Tuple
 
 pretty.install()
 
-set_datadir(Path.home() / "quantify-data")  # change me!
+dh.set_datadir(Path.home() / "quantify-data")  # change me!
 
-# %%
-x0s = np.linspace(0.45, 0.55, 30)
-x1s = np.linspace(0, 100e-9, 40)
-time_par = ManualParameter(name="time", label="Time", unit="s")
-amp_par = ManualParameter(name="amp", label="Flux amplitude", unit="V")
-pop_q0_par = ManualParameter(name="pop_q0", label="Population Q0", unit="")
-pop_q1_par = ManualParameter(name="pop_q1", label="Population Q1", unit="")
+# %% [raw]
+"""
+In this page we explore a series of datasets that comply with the :ref:`Quantify dataset specification <dataset-spec>`.
 
-x0s, x1s = grid_setpoints([x0s, x1s], [amp_par, time_par]).T
-x0s_norm = np.abs((x0s - x0s.mean()) / (x0s - x0s.mean()).max())
-y0s = (1 - x0s_norm) * np.sin(
-    2 * np.pi * x1s * 1 / 30e-9 * (x0s_norm + 0.5)
-)  # ~chevron
-y1s = -y0s  # mock inverted population for q1
+2D dataset example
+------------------
 
-rep = 5
+We use the :func:`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset`
+to generate our examplery dataset. Its source code is conveniently displayed in the
+drop down below.
+"""
 
-dataset = dataset_2d_example = xr.Dataset(
-    data_vars={
-        pop_q0_par.name: (
-            ("repetitions", "dim_0"),
-            [y0s + np.random.random(y0s.shape) / 2 for _ in range(rep)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q0_par),
-                coords=[amp_par.name, time_par.name],
-            ),
-        ),
-        pop_q1_par.name: (
-            ("repetitions", "dim_0"),
-            [y1s + np.random.random(y1s.shape) / 2 for _ in range(rep)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q1_par),
-                coords=[amp_par.name, time_par.name],
-            ),
-        ),
-    },
-    coords={
-        amp_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(amp_par))),
-        time_par.name: ("dim_0", x1s, mk_main_coord_attrs(**par_to_attrs(time_par))),
-    },
-    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
+# %% [raw]
+"""
+.. admonition:: Generate a 2D dataset
+    :class: dropdown
+"""
+
+# %% tags=[] jupyter={"outputs_hidden": true}
+# rst-json-conf: {"indent": "    "}
+
+Code(
+    inspect.getsource(dataset_examples.mk_two_qubit_chevron_dataset), language="python"
 )
+
+# %% tags=[]
+dataset = dataset_examples.mk_two_qubit_chevron_dataset()
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 dataset
 
+# %% [raw]
+"""
+The data within this dataset can be easily visualized using xarray facilities,
+however we first need to convert the Quantify dataset to a "gridded" version with as
+shown below.
+
+Since our dataset contains multiple repetitions of the same experiment, it is convenient
+to visualize them on different plots.
+"""
+
 # %%
 dataset_gridded = dh.to_gridded_dataset(
-    dataset_2d_example,
-    dimension=dd.get_main_dims(dataset_2d_example)[0],
-    coords_names=dd.get_main_coords(dataset_2d_example),
+    dataset,
+    dimension="main_dim",
+    coords_names=dd.get_main_coords(dataset),
 )
-dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q0.dims[0])
-_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col=dataset_gridded.pop_q1.dims[0])
+dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetitions")
+_ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetitions")
 
 # %% [raw]
 """
 In xarray, among other features, it is possible to average along a dimension which can
-be very convenient:
+be very convenient to average out some of the noise:
 """
 
 # %%
 _ = dataset_gridded.pop_q0.mean(dim="repetitions").plot(x="amp")
 
+# %% [raw]
+"""
+A repetitions dimension can be indexed by a coordinate such that we can have some
+specific label for each of our repetitions. To showcase this, we will modify the previous
+dataset by merging it with a dataset containing the relevant extra information.
+"""
+
 # %%
-dataset = xr.Dataset(
-    data_vars={
-        pop_q0_par.name: (
-            ("repetitions", "dim_0"),
-            [y0s + np.random.random(y0s.shape) / k for k in (100, 10, 5)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q0_par),
-                coords=[amp_par.name, time_par.name],
-            ),
-        ),
-        pop_q1_par.name: (
-            ("repetitions", "dim_0"),
-            [y1s + np.random.random(y1s.shape) / k for k in (100, 10, 5)],
-            mk_main_var_attrs(
-                **par_to_attrs(pop_q1_par),
-                coords=[amp_par.name, time_par.name],
-            ),
-        ),
-    },
-    coords={
-        amp_par.name: ("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(amp_par))),
-        time_par.name: ("dim_0", x1s, mk_main_coord_attrs(**par_to_attrs(time_par))),
-        # here we choose to index the repetition dimension with an array of strings
-        "repetitions": (
-            "repetitions",
-            ["noisy", "very noisy", "very very noisy"],
-        ),
-    },
-    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
+coord_name = "repetitions"
+coord_dims = ("repetitions",)
+coord_values = ["A", "B", "C", "D", "E"]
+dataset_indexed_rep = xr.Dataset(
+    coords={coord_name: (coord_dims, coord_values)},
+    attrs=dict(repetitions_dims=["repetitions"]),
 )
 
-dataset
+dataset_indexed_rep
 
 # %%
-dataset_gridded = dh.to_gridded_dataset(
-    dataset, dimension="dim_0", coords_names=dd.get_main_coords(dataset)
-)
-dataset_gridded
+# merge with the previous dataset
+dataset_rep = dataset_gridded.merge(dataset_indexed_rep, combine_attrs="drop_conflicts")
+
+assert dataset_rep == round_trip_dataset(dataset_rep)  # confirm read/write
+
+dataset_rep
+
+# %% [raw]
+"""
+Now we can select a specific repetition by its coordinate, in this case a string label.
+"""
 
 # %%
-dataset_gridded.pop_q0.sel(repetitions="very noisy").plot(x="amp")
-pass
+_ = dataset_rep.pop_q0.sel(repetitions="E").plot(x="amp")
 
 # %% [raw]
 """
 T1 dataset examples
 -------------------
+
+The T1 experiment is one of the most common quantum computing experiments.
+Here we explore how the datasets for such an experiment, for a transmon qubit, can be
+stored using the Qunatify dataset with increasing levels of data detail.
+
+We start with the most simple format that contains only processed (averaged) measurements
+and finish with a dataset containing the full raw data of a T1 experiment.
 """
 
 # %% [raw]
 """
 .. admonition:: Mock data utilities
     :class: dropdown
+
+    We use a few auxiliary functions to generate, manipulate and plot the data of the
+    examples that follow:
+
+    - :func:`quantify_core.utilities.examples_support.mk_iq_shots`
+    - :func:`quantify_core.utilities.examples_support.mk_trace_time`
+    - :func:`quantify_core.utilities.examples_support.mk_trace_for_iq_shot`
+    - :func:`quantify_core.utilities.examples_support.plot_centroids`
+    - :func:`quantify_core.analysis.fitting_models.exp_decay_func`
+    
+    Below you can find the source-code of the most important ones and a few usage 
+    examples in order to gain some intuition for the mock data.
 """
 
-# %%
+# %% jupyter={"outputs_hidden": true} tags=[]
 # rst-json-conf: {"indent": "    "}
 
-
-def generate_mock_iq_data(
-    n_shots, sigma=0.3, center0=(1, 1), center1=(1, -1), prob=0.5
-):
-    """
-    Generates two clusters of I,Q points with a Gaussian distribution.
-    """
-    i_data = np.zeros(n_shots)
-    q_data = np.zeros(n_shots)
-    for i in range(n_shots):
-        c = center0 if (np.random.rand() >= prob) else center1
-        i_data[i] = np.random.normal(c[0], sigma)
-        q_data[i] = np.random.normal(c[1], sigma)
-    return i_data + 1j * q_data
-
-
-def generate_exp_decay_probablity(time: np.ndarray, tau: float):
-    return np.exp(-time / tau)
-
-
-def generate_trace_time(sampling_rate: float = 1e9, trace_duratation: float = 0.3e-6):
-    trace_length = sampling_rate * trace_duratation
-    return np.arange(0, trace_length, 1) / sampling_rate
-
-
-def generate_trace_for_iq_point(
-    iq_amp: complex,
-    tbase: np.ndarray = generate_trace_time(),
-    intermediate_freq: float = 50e6,
-) -> tuple:
-    """
-    Generates mock traces that a physical instrument would digitize for the readout of
-    a transmon qubit.
-    """
-
-    return iq_amp * np.exp(2.0j * np.pi * intermediate_freq * tbase)
-
-
-def plot_centroids(ax, ground, excited):
-    ax.plot(
-        [ground[0]],
-        [ground[1]],
-        label="|0>",
-        marker="o",
-        color="C3",
-        markersize=10,
-    )
-    ax.plot(
-        [excited[0]],
-        [excited[1]],
-        label="|1>",
-        marker="^",
-        color="C4",
-        markersize=10,
-    )
-
+for func in (mk_iq_shots, mk_trace_time, mk_trace_for_iq_shot):
+    code = Code(inspect.getsource(func), language="python")
+    display(code)
 
 # %%
 # rst-json-conf: {"indent": "    "}
 
-center_ground = (-0.2, 0.65)
-center_excited = (0.7, -0, 4)
+centroid_ground = -0.2 + 0.65j
+centroid_excited = 0.7 - 0.4j
 
-shots = generate_mock_iq_data(
-    n_shots=256, sigma=0.1, center0=center_ground, center1=center_excited, prob=0.4
+shots = mk_iq_shots(
+    n_shots=256,
+    sigmas=[0.1] * 2,
+    centers=[centroid_ground, centroid_excited],
+    probabilities=[0.4, 1 - 0.4],
 )
-
-# %%
-# rst-json-conf: {"indent": "    "}
 
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
-plot_centroids(plt.gca(), center_ground, center_excited)
+plot_centroids(plt.gca(), centroid_ground, centroid_excited)
 
 # %%
 # rst-json-conf: {"indent": "    "}
 
-time = generate_trace_time()
-trace = generate_trace_for_iq_point(shots[0])
+time = mk_trace_time()
+trace = mk_trace_for_iq_shot(shots[0])
 
-fig, ax = plt.subplots(1, 1, figsize=(30, 5))
-ax.plot(time, trace.imag, ".-")
-_ = ax.plot(time, trace.real, ".-")
+fig, ax = plt.subplots(1, 1, figsize=(12, 12 / 1.61 / 2))
+_ = ax.plot(time * 1e6, trace.imag, ".-", label="I-quadrature")
+_ = ax.plot(time * 1e6, trace.real, ".-", label="Q-quadrature")
+_ = ax.set_xlabel("Time [µs]")
+_ = ax.set_ylabel("Amplitude [V]")
+_ = ax.legend()
 
 # %% [raw]
 """
-T1 experiment averaged
-~~~~~~~~~~~~~~~~~~~~~~
+First we define a few parameters of our mock qubit and mock data aquisition.
 """
 
 # %%
 # parameters of our qubit model
 tau = 30e-6
-center_ground = (-0.2, 0.65)
-center_excited = (0.7, -0, 4)
-sigma = 0.1
+ground = -0.2 + 0.65j  # ground state on the IQ-plane
+excited = 0.7 + -0.4j  # excited state on the IQ-plane
+sigma = 0.1  # centroids sigma, NB in general not the same for both state
 
 # mock of data acquisition configuration
+# NB usually at least 1000+ shots are taken, here we use less for faster code execution
 num_shots = 256
-x0s = np.linspace(0, 150e-6, 30)
-time_par = ManualParameter(name="time", label="Time", unit="s")
-q0_iq_par = ManualParameter(name="q0_iq", label="Q0 IQ amplitude", unit="V")
+# time delays between exciting the qubit and measuring its state
+t1_times = np.linspace(0, 120e-6, 30)
 
-probabilities = generate_exp_decay_probablity(time=x0s, tau=tau)
+# NB this are the ideal probabilities from repeating the measurement many times for a
+# qubit with a lifetime given by tau
+probabilities = exp_decay_func(t=t1_times, tau=tau, offset=0, n_factor=1, amplitude=1)
+
+# Ideal experiment result
 plt.ylabel("|1> probability")
-plt.suptitle("Typical T1 experiment processed data")
-_ = plt.plot(x0s * 1e6, probabilities, ".-")
+plt.suptitle("Typical processed data of a T1 experiment")
+_ = plt.plot(t1_times * 1e6, probabilities, ".-")
 _ = plt.xlabel("Time [µs]")
 
+# %% [raw]
+"""
+T1 experiment averaged
+~~~~~~~~~~~~~~~~~~~~~~
+
+In this first example we generate the pseudo-random and average it, similar to what
+some instrument are capable to do directly in the hardware.
+"""
+
 # %%
-y0s = np.fromiter(
+q0_iq_av = np.fromiter(
     (
         np.average(
-            generate_mock_iq_data(
+            mk_iq_shots(
                 n_shots=num_shots,
-                sigma=sigma,
-                center0=center_ground,
-                center1=center_excited,
-                prob=prob,
+                sigmas=[sigma] * 2,
+                centers=[ground, excited],
+                probabilities=[prob, 1 - prob],
             )
         )
         for prob in probabilities
     ),
     dtype=complex,
 )
+q0_iq_av
+
+# %%
+dims = ("main_dim",)
+q0_attrs = mk_main_var_attrs(units="V", long_name="Q0 IQ amplitude", coords=["t1_time"])
+t1_time_attrs = mk_main_coord_attrs(units="s", long_name="T1 Time")
+
+data_vars = dict(q0_iq_av=(dims, q0_iq_av, q0_attrs))
+coords = dict(t1_time=(dims, t1_times, t1_time_attrs))
 
 dataset = xr.Dataset(
-    data_vars=dict(
-        q0_iq=(
-            "dim_0",
-            y0s,
-            mk_main_var_attrs(**par_to_attrs(q0_iq_par), coords=[time_par.name]),
-        ),
-    ),
-    coords=dict(
-        time=("dim_0", x0s, mk_main_coord_attrs(**par_to_attrs(time_par))),
-    ),
+    data_vars=data_vars,
+    coords=coords,
     attrs=mk_dataset_attrs(),
 )
 
@@ -361,7 +321,7 @@ dataset
 # %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
-    dimension=dataset.q0_iq.dim_0.name,
+    dimension="main_dim",
     coords_names=dd.get_main_coords(dataset),
 )
 dataset_gridded
@@ -382,9 +342,17 @@ def plot_decay_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
     y0 = gridded_dataset[dd.get_main_vars(gridded_dataset)[0]]
-    y0.real.plot(ax=ax, marker=".", label="I data")
-    y0.imag.plot(ax=ax, marker=".", label="Q data")
-    ax.set_title(f"{y0.long_name} shape = {y0.shape}")
+    y0.real.plot(ax=ax, marker="", label="I data")
+    y0.imag.plot(ax=ax, marker="", label="Q data")
+    for vals in (y0.real, y0.imag):
+        ax.scatter(
+            gridded_dataset[dd.get_main_coords(gridded_dataset)[0]].values,
+            vals,
+            marker="o",
+            c=np.arange(0, len(y0)),
+            cmap="viridis",
+        )
+    ax.set_title(f"{y0.long_name} [{y0.name}]; shape = {y0.shape}")
     ax.legend()
     return ax.get_figure(), ax
 
@@ -393,16 +361,16 @@ def plot_iq_no_repetition(gridded_dataset, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
     y0 = gridded_dataset[dd.get_main_vars(gridded_dataset)[0]]
-    ax.plot(
+    ax.scatter(
         y0.real,
         y0.imag,
-        ".-",
-        label="Data on IQ plane",
-        color="C2",
+        marker="o",
+        label=f"Data on IQ plane [{y0.name}]",
+        c=np.arange(0, len(y0)),
+        cmap="viridis",
     )
     ax.set_xlabel("I")
     ax.set_ylabel("Q")
-    plot_centroids(ax, center_ground, center_excited)
     ax.legend()
 
     return ax.get_figure(), ax
@@ -410,7 +378,8 @@ def plot_iq_no_repetition(gridded_dataset, ax=None):
 
 # %%
 plot_decay_no_repetition(dataset_gridded)
-_ = plot_iq_no_repetition(dataset_gridded)
+fig, ax = plot_iq_no_repetition(dataset_gridded)
+plot_centroids(ax, ground, excited)
 
 # %% [raw]
 """
