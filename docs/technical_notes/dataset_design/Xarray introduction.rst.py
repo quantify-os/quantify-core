@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.12.0
+#       jupytext_version: 1.13.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -73,23 +73,26 @@ one dimension:
 
 # %%
 n = 5
-name_dim_a = "position_x"
-name_dim_b = "velocity_x"
+
+values_pos = np.linspace(-5, 5, n)
+dimensions_pos = ("position_x",)
+# the "units" and "long_name" are a convention for automatic plotting
+attrs_pos = dict(units="m", long_name="Position")  # attributes of this data variable
+
+values_vel = np.linspace(0, 10, n)
+dimensions_vel = ("velocity_x",)
+attrs_vel = dict(units="m/s", long_name="Velocity")
+
+data_vars = dict(
+    position=(dimensions_pos, values_pos, attrs_pos),
+    velocity=(dimensions_vel, values_vel, attrs_vel),
+)
+
+dataset_attrs = dict(my_attribute_name="some meta information")
+
 dataset = xr.Dataset(
-    data_vars={
-        "position": (  # variable name
-            name_dim_a,  # dimension's name
-            np.linspace(-5, 5, n),  # values of this data variable
-            # the "units" and "long_name" are a convention for automatic plotting
-            {"units": "m", "long_name": "Position"},  # attributes of this data variable
-        ),
-        "velocity": (
-            name_dim_b,
-            np.linspace(0, 10, n),
-            {"units": "m/s", "long_name": "Velocity"},
-        ),
-    },
-    attrs={"key": "my metadata"},  # dataset attributes
+    data_vars=data_vars,
+    attrs=dataset_attrs,  # dataset attributes
 )
 dataset
 
@@ -105,26 +108,22 @@ A variable can be "promoted" to (or defined as) a **Coordinate** for its dimensi
 """
 
 # %%
-position = np.linspace(-5, 5, n)
+values_vel = 1 + values_pos ** 2
+data_vars = dict(
+    position=(dimensions_pos, values_pos, attrs_pos),
+    # now the velocity array "lies" along the same dimension as the position array
+    velocity=(dimensions_pos, values_vel, attrs_vel),
+)
 dataset = xr.Dataset(
-    data_vars={
-        "position": (name_dim_a, position, {"units": "m", "long_name": "Position"}),
-        "velocity": (
-            name_dim_a,
-            1 + position ** 2,
-            {"units": "m/s", "long_name": "Velocity"},
-        ),
-    },
-    # We could add coordinates like this as well:
-    # coords={
-    #    "position": (name_dim_a, position, {"units": "m", "long_name": "Position"})
-    # },
-    attrs={"key": "my metadata"},
+    data_vars=data_vars,
+    # NB We could set "position" as a coordinate directly when creating the dataset:
+    # coords=dict(position=(dimensions_pos, values_pos, attrs_pos)),
+    attrs=dataset_attrs,
 )
 
-# Promote the position variable to a coordinate:
+# Promote the "position" variable to a coordinate:
 # In general, most of the functions that modify the structure of the xarray dataset will
-# return a new object
+# return a new object, hence the assignment
 dataset = dataset.set_coords(["position"])
 dataset
 
@@ -182,6 +181,9 @@ Please consult the :doc:`xarray documentation <xarray:index>` for more details.
 An example of how this can be useful is to retrieve data from an xarray variable using
 one of its coordinates to select the desired entries:
 """
+
+# %%
+dataset.velocity
 
 # %%
 retrieved_value = dataset.velocity.sel(position_x=2.5)
