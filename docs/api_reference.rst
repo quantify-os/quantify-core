@@ -69,6 +69,14 @@ fitting_models
     :show-inheritance:
 
 
+calibration
+-----------
+
+.. automodule:: quantify_core.analysis.calibration
+    :members:
+    :show-inheritance:
+
+
 data
 ====
 
@@ -101,6 +109,11 @@ experiment_helpers
 .. automodule:: quantify_core.utilities.experiment_helpers
     :members:
 
+examples_support
+----------------
+
+.. automodule:: quantify_core.utilities.examples_support
+    :members:
 
 visualization
 =============
