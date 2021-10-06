@@ -10,26 +10,12 @@ from uncertainties.core import Variable, AffineScalarFunc
 from quantify_core.data.handling import set_datadir
 
 from quantify_core.analysis.single_qubit_timedomain import (
-    rotate_to_calibrated_axis,
     T1Analysis,
     EchoAnalysis,
     RamseyAnalysis,
     AllXYAnalysis,
     RabiAnalysis,
 )
-
-
-def test_rotate_to_calibrated_axis():
-
-    ref_val_0 = 0.24 + 324 * 1j
-    ref_val_1 = 0.89 + 0.324 * 1j
-    data = np.array([ref_val_0, ref_val_1])
-
-    corrected_data = np.real(
-        rotate_to_calibrated_axis(data, ref_val_0=ref_val_0, ref_val_1=ref_val_1)
-    )
-
-    np.testing.assert_array_equal(corrected_data, np.array([0.0, 1.0]))
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -40,7 +26,7 @@ def t1_analysis_no_cal_points(tmp_test_data_dir):
     """
     tuid = "20210322-205253-758-6689"
     set_datadir(tmp_test_data_dir)
-    return T1Analysis(tuid=tuid).run(calibration_points=False)
+    return T1Analysis(tuid=tuid).run(calibration_points="auto")
 
 
 def test_t1_figures_generated(t1_analysis_no_cal_points):
@@ -81,7 +67,7 @@ def test_t1_analysis_with_cal_points(tmp_test_data_dir):
     """
     tuid = "20210827-174946-357-70a986"
     set_datadir(tmp_test_data_dir)
-    analysis_obj = T1Analysis(tuid=tuid).run(calibration_points=True)
+    analysis_obj = T1Analysis(tuid=tuid).run(calibration_points="auto")
 
     assert set(analysis_obj.quantities_of_interest.keys()) == {
         "T1",
@@ -103,7 +89,7 @@ def test_echo_analysis_no_cal(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
 
     analysis_obj = EchoAnalysis(tuid="20210420-001339-580-97bdef").run(
-        calibration_points=False
+        calibration_points="auto"
     )
     assert set(analysis_obj.figs_mpl.keys()) == {
         "Echo_decay",
@@ -129,7 +115,7 @@ def test_echo_analysis_with_cal(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
 
     analysis_obj = EchoAnalysis(tuid="20210827-175021-521-251f28").run(
-        calibration_points=True
+        calibration_points="auto"
     )
     assert set(analysis_obj.figs_mpl.keys()) == {
         "Echo_decay",
@@ -203,7 +189,7 @@ def test_ramsey_no_cal_generated(tmp_test_data_dir):
 def ramsey_analysis_qubit_freq(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
     analysis = RamseyAnalysis(tuid="20210422-104958-297-7d6034").run(
-        artificial_detuning=250e3, qubit_frequency=4.7149e9, calibration_points=False
+        artificial_detuning=250e3, qubit_frequency=4.7149e9, calibration_points="auto"
     )
     return analysis
 
@@ -280,7 +266,7 @@ def test_ramsey_analysis_with_cal(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
 
     analysis_obj = RamseyAnalysis(tuid="20210827-175004-087-ab1aab").run(
-        calibration_points=True
+        calibration_points="auto"
     )
     assert set(analysis_obj.figs_mpl.keys()) == {
         "Ramsey_decay",

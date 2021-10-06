@@ -46,7 +46,11 @@ def mk_iq_shots(
     seed
         Random number generator passed to ``numpy.random.default_rng``.
     """
-    assert len(sigmas) == len(centers) == len(probabilities)
+    if not (len(sigmas) == len(centers) == len(probabilities)):
+        raise ValueError(
+            "Incorrect input. sigmas={sigmas}, centers={centers} and "
+            f"probabilities={probabilities} must have the same length."
+        )
 
     rng = np.random.default_rng(seed=seed)
 
@@ -131,7 +135,7 @@ def plot_centroids(
     excited: complex,
     markersize: int = 10,
     legend: bool = True,
-    **kwargs
+    **kwargs,
 ):
     """Plots the centers of the ground and excited states on a 2D plot representing
     the IQ-plane.
@@ -159,7 +163,7 @@ def plot_centroids(
         color="C3",
         linestyle="",
         markersize=markersize,
-        **kwargs
+        **kwargs,
     )
     ax.plot(
         [excited.real],
@@ -169,7 +173,7 @@ def plot_centroids(
         color="C4",
         linestyle="",
         markersize=markersize,
-        **kwargs
+        **kwargs,
     )
     if legend:
         ax.legend()
@@ -206,7 +210,7 @@ def mk_main_coord_attrs(
     uniformly_spaced: bool = True,
     is_main_coord: bool = True,
     is_secondary_coord: bool = False,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     A factory of attributes for secondary coordinates.
@@ -237,7 +241,7 @@ def mk_secondary_coord_attrs(
     uniformly_spaced: bool = True,
     is_main_coord: bool = False,
     is_secondary_coord: bool = True,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     A factory of attributes for secondary coordinates.
@@ -270,7 +274,7 @@ def mk_main_var_attrs(
     uniformly_spaced: bool = True,
     is_main_var: bool = True,
     is_secondary_var: bool = False,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     A factory of attributes for main variables.
@@ -309,7 +313,7 @@ def mk_secondary_var_attrs(
     uniformly_spaced: bool = True,
     is_main_var: bool = False,
     is_secondary_var: bool = True,
-    **kwargs
+    **kwargs,
 ) -> Dict[str, Any]:
     """
     A factory of attributes for secondary variables.

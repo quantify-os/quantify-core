@@ -20,6 +20,7 @@ Unreleased
 * InstrumentMonitor - Extended Instrument Monitor to handle submodules and channels (#213, !226).
 * Docs - Added notebook_to_jupyter_sphinx sphinx extension converter for tutorials writing (!220).
 * MeasurementControl - Added lazy_set functionality to avoid setting settables to same value (#261, !233).
+* Analysis - Detect calibration points automatically for single qubit time-domain experiments (!234)
 
 0.5.0 (2021-08-06)
 ------------------

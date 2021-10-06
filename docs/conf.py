@@ -217,8 +217,10 @@ suppress_warnings = ["autosectionlabel.*"]
 
 # used by scanpydoc.elegant_typehints to correctly link to external docs
 qualname_overrides = {
+    # "the real python path": "the path in the docs of the package"
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
+    "xarray.core.dataarray.DataArray": "xarray.DataArray",
     "quantify_core.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify_core.visualization.PlotMonitor_pyqt",
 }
 

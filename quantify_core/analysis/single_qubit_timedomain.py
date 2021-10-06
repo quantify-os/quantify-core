@@ -1,6 +1,10 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
+"""Module containing analyses for common single qubit timedomain experiments."""
+from __future__ import annotations
+
 from typing import Union
+from typing_extensions import Literal
 import numpy as np
 import xarray as xr
 
@@ -16,35 +20,10 @@ from quantify_core.visualization.mpl_plotting import (
 )
 from quantify_core.data.types import TUID
 from quantify_core.visualization.SI_utilities import format_value_string
-
-
-def rotate_to_calibrated_axis(
-    data: np.ndarray, ref_val_0: complex, ref_val_1: complex
-) -> np.ndarray:
-    """
-    Rotates, normalizes and offsets complex valued data based on calibration points.
-
-    Parameters
-    ----------
-    data
-        An array of complex valued data points.
-    ref_val_0
-        The reference value corresponding to the 0 state.
-    ref_val_1
-        The reference value corresponding to the 1 state.
-
-    Returns
-    -------
-    :
-        Calibrated array of complex data points.
-    """
-    rotation_anle = np.angle(ref_val_1 - ref_val_0)
-    norm = np.abs(ref_val_1 - ref_val_0)
-    offset = ref_val_0 * np.exp(-1j * rotation_anle) / norm
-
-    corrected_data = data * np.exp(-1j * rotation_anle) / norm - offset
-
-    return corrected_data
+from quantify_core.analysis.calibration import (
+    rotate_to_calibrated_axis,
+    has_calibration_points,
+)
 
 
 class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
@@ -59,7 +38,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         label: str = "",
         settings_overwrite: dict = None,
     ):
-        self.calibration_points: bool = True
+        self.calibration_points: bool = "auto"
         """Indicates if the data analyzed includes calibration points."""
 
         super().__init__(
@@ -70,22 +49,28 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         )
 
     # pylint: disable=arguments-differ, line-too-long
-    def run(self, calibration_points: bool = True):
+    def run(self, calibration_points: Union[bool, Literal["auto"]] = "auto"):
         r"""
         Parameters
         ----------
-        calibration_points:
+        calibration_points
             Indicates if the data analyzed includes calibration points. If set to
             :code:`True`, will interpret the last two data points in the dataset as
-            :math:`|0\rangle` and :math:`|1\rangle` respectively.
+            :math:`|0\rangle` and :math:`|1\rangle` respectively. If ``"auto"``, will
+            use :func:`~.has_calibration_points` to determine if the data contains
+            calibration points.
 
         Returns
         -------
-        :class:`~quantify_core.analysis.single_qubit_timedomain.SingleQubitTimedomainAnalysis`:
+        :class:`~.SingleQubitTimedomainAnalysis`:
             The instance of this analysis.
-
         """  # NB the return type need to be specified manually to avoid circular import
-        assert isinstance(calibration_points, bool)
+        if not (calibration_points == "auto" or isinstance(calibration_points, bool)):
+            raise ValueError(
+                f"Incorrect input. calibration_points={calibration_points} "
+                "must be on of False, True or 'auto'."
+            )
+
         self.calibration_points = calibration_points
         return super().run()
 
@@ -110,6 +95,12 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         self.dataset_processed.S21.attrs["name"] = "S21"
         self.dataset_processed.S21.attrs["units"] = self.dataset.y0.units
         self.dataset_processed.S21.attrs["long_name"] = "Transmission $S_{21}$"
+
+        if self.calibration_points == "auto":
+            self.calibration_points = has_calibration_points(
+                self.dataset_processed.S21.values
+            )
+
         if self.calibration_points:
             self._rotate_to_calibrated_axis()
 
@@ -393,9 +384,8 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
 
         Returns
         -------
-        :class:`~quantify_core.analysis.single_qubit_timedomain.RamseyAnalysis`:
+        :class:`~.RamseyAnalysis`:
             The instance of this analysis.
-
         """  # NB the return type need to be specified manually to avoid circular import
         self.artificial_detuning = artificial_detuning
         self.qubit_frequency = qubit_frequency
@@ -519,6 +509,14 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
 
     # pylint: disable=arguments-differ
     def run(self):
+        """
+        Executes the analysis using specific datapoints as calibration points.
+
+        Returns
+        -------
+        :class:`~.AllXYAnalysis`:
+            The instance of this analysis.
+        """  # NB the return type need to be specified manually to avoid circular import
         # The standard analysis of the AllXY analysis always uses datapoints measured
         # within this experiment as calibration points.
         return super().run(calibration_points=True)
@@ -632,6 +630,27 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
     The analysis will automatically rotate the data so that the data lies along the
     axis with the best SNR.
     """
+
+    def run(self, calibration_points: bool = True):
+        """
+        Parameters
+        ----------
+        calibration_points
+            Specifies if the data should be rotated so that it lies along the axis with
+            the best SNR.
+
+        Returns
+        -------
+        :class:`~.RabiAnalysis`:
+            The instance of this analysis.
+        """  # NB the return type need to be specified manually to avoid circular import
+        # Override the `calibration_points="auto"`
+        if not isinstance(calibration_points, bool):
+            raise TypeError(
+                "Incorrect input. "
+                f"calibration_points={calibration_points} must be a bool."
+            )
+        return super().run(calibration_points=calibration_points)
 
     # pylint: disable=arguments-differ
     def _rotate_to_calibrated_axis(self):
