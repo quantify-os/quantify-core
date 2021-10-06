@@ -37,7 +37,11 @@ def mk_iq_shots(
     seed
         Random number generator passed to ``numpy.random.default_rng``.
     """
-    assert len(sigmas) == len(centers) == len(probabilities)
+    if not (len(sigmas) == len(centers) == len(probabilities)):
+        raise ValueError(
+            "Incorrect input. sigmas={sigmas}, centers={centers} and "
+            f"probabilities={probabilities} must have the same length."
+        )
 
     rng = np.random.default_rng(seed=seed)
 

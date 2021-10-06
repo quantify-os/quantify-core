@@ -92,39 +92,38 @@ def has_calibration_points(
     def _arg_max_n(array: np.ndarray, num: int):
         return np.argpartition(array, -num)[-num:]
 
-    not_cal = np.ones(s21.shape, dtype=bool)
+    not_cal: np.ndarray = np.ones(s21.shape, dtype=bool)
     not_cal[indices_state_0] = False
     not_cal[indices_state_1] = False
 
     # do not include the potential calibration points since that can significantly
     # affect if the most of the data is far away from one of the calibration points
-    magnitude_no_cal = np.abs(s21[not_cal])
+    magnitude_no_cal: np.ndarray = np.abs(s21[not_cal])
     # Use the 3 points with maximum magnitude for resilience against noise and
     # outliers
-    arg_max_no_cal = list(_arg_max_n(magnitude_no_cal, 3))
+    arg_max_no_cal: list = list(_arg_max_n(magnitude_no_cal, 3))
     # Move one side of the "segment" described by the data on the IQ-plane to the
     # center of the IQ plane. This is necessary for the arg_max and arg_min of the
     # magnitude to correspond to the "segment" extremities.
     s21_shifted: np.ndarray = s21 - s21[arg_max_no_cal].mean()
     maybe_cal_pnts_0: np.ndarray = s21_shifted[indices_state_0].mean()
     maybe_cal_pnts_1: np.ndarray = s21_shifted[indices_state_1].mean()
-    # s21_shifted = s21_shifted[not_cal]
 
     magnitude: float = np.abs(s21_shifted)
-    arg_max: int = list(_arg_max_n(magnitude, 3))
-    arg_min: int = list(_arg_min_n(magnitude, 3))
+    arg_max: list = list(_arg_max_n(magnitude, 3))
+    arg_min: list = list(_arg_min_n(magnitude, 3))
     center: complex = s21_shifted[arg_min + arg_max].mean()  # center of the "segment"
 
-    maybe_cal_pnts = np.array((maybe_cal_pnts_0, maybe_cal_pnts_1))
-    angles: float = np.angle(maybe_cal_pnts - center, deg=True)
+    maybe_cal_pnts: np.ndarray = np.array((maybe_cal_pnts_0, maybe_cal_pnts_1))
+    angles: np.ndarray = np.angle(maybe_cal_pnts - center, deg=True)
     angles_diff: float = angles.max() - angles.min()
 
     avg_max: complex = s21_shifted[arg_max].mean()
     avg_min: complex = s21_shifted[arg_min].mean()
     segment_len: float = np.abs(avg_max - avg_min)
-    cal_dist = np.abs(maybe_cal_pnts_0 - maybe_cal_pnts_1)
+    cal_dist: float = np.abs(maybe_cal_pnts_0 - maybe_cal_pnts_1)
 
-    far_enough = cal_dist > 0.5 * segment_len
+    far_enough: bool = cal_dist > 0.5 * segment_len
 
     def _cross_prod_on_plane(num_a: complex, num_b: complex):
         return num_a.real * num_b.imag - num_b.real * num_a.imag
@@ -136,10 +135,12 @@ def has_calibration_points(
 
     # to exclude some false positives confirm that most of the data is withing a circle
     # with radius equal to half the distance between the calibration points
-    dist_to_line = _dist_to_line(maybe_cal_pnts_0, maybe_cal_pnts_1, s21_shifted)
-    data_close_enough_to_line = dist_to_line.mean() < cal_dist / 4
+    dist_to_line: np.ndarray = _dist_to_line(
+        maybe_cal_pnts_0, maybe_cal_pnts_1, s21_shifted
+    )
+    data_close_enough_to_line: bool = dist_to_line.mean() < cal_dist / 4
 
-    good_angle = angles_diff > 90
-    has_cal_pnts = far_enough and good_angle and data_close_enough_to_line
+    good_angle: bool = angles_diff > 90
+    has_cal_pnts: bool = far_enough and good_angle and data_close_enough_to_line
 
     return has_cal_pnts

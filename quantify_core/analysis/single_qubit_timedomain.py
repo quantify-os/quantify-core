@@ -65,7 +65,12 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
         :class:`~.SingleQubitTimedomainAnalysis`:
             The instance of this analysis.
         """  # NB the return type need to be specified manually to avoid circular import
-        assert calibration_points == "auto" or isinstance(calibration_points, bool)
+        if not (calibration_points == "auto" or isinstance(calibration_points, bool)):
+            raise ValueError(
+                f"Incorrect input. calibration_points={calibration_points} "
+                "must be on of False, True or 'auto'."
+            )
+
         self.calibration_points = calibration_points
         return super().run()
 
@@ -640,7 +645,11 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
             The instance of this analysis.
         """  # NB the return type need to be specified manually to avoid circular import
         # Override the `calibration_points="auto"`
-        assert isinstance(calibration_points, bool)
+        if not isinstance(calibration_points, bool):
+            raise TypeError(
+                "Incorrect input. "
+                f"calibration_points={calibration_points} must be a bool."
+            )
         return super().run(calibration_points=calibration_points)
 
     # pylint: disable=arguments-differ

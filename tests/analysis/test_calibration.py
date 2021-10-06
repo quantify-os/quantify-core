@@ -67,34 +67,36 @@ def test_has_calibration_points_points_only_single_cluster(angles):
             assert has_calibration_points(points * np.exp(1j * angle)) == has_cal
 
 
-def test_has_calibration_points_datasets(tmp_test_data_dir, angles):
+@pytest.mark.parametrize(
+    "tuid, has_cal",
+    (
+        ("20210322-205253-758-6689ca-T1 at 4.715GHz", False),
+        ("20210827-174946-357-70a986-T1 experiment q0", True),
+        ("20210422-104958-297-7d6034-Ramsey oscillation at 4.715GHz", False),
+        ("20210827-175004-087-ab1aab-Ramsey oscillation q0 at 4.9969 GHz", True),
+        ("20210901-132357-561-5c3ef7-Ramsey oscillation q0 at 6.1400 GHz", True),
+        ("20210827-175021-521-251f28-Echo experiment q0", True),
+        ("20210420-001339-580-97bdef-Echo at 4.715GHz", False),
+    ),
+)
+def test_has_calibration_points_datasets(tmp_test_data_dir, angles, tuid, has_cal):
     set_datadir(tmp_test_data_dir)
-    tuids = [
-        "20210322-205253-758-6689ca-T1 at 4.715GHz",
-        "20210827-174946-357-70a986-T1 experiment q0",
-        "20210422-104958-297-7d6034-Ramsey oscillation at 4.715GHz",
-        "20210827-175004-087-ab1aab-Ramsey oscillation q0 at 4.9969 GHz",
-        "20210901-132357-561-5c3ef7-Ramsey oscillation q0 at 6.1400 GHz",
-        "20210827-175021-521-251f28-Echo experiment q0",
-        "20210420-001339-580-97bdef-Echo at 4.715GHz",
-    ]
 
-    for tuid, has_cal in zip(tuids, [False, True, False, True, True, True, False]):
-        a_obj = SingleQubitTimedomainAnalysis(tuid=tuid).run_until(
-            interrupt_before="run_fitting",  # avoid writing to disk
-            calibration_points=False,
-        )
-        # test many rotations on IQ plane
-        data = a_obj.dataset_processed.S21.values
-        for angle in angles:
-            assert has_calibration_points(data * np.exp(1j * angle)) == has_cal
+    a_obj = SingleQubitTimedomainAnalysis(tuid=tuid).run_until(
+        interrupt_before="run_fitting",  # avoid writing to disk
+        calibration_points=False,
+    )
+    # test many rotations on IQ plane
+    data = a_obj.dataset_processed.S21.values
+    for angle in angles:
+        assert has_calibration_points(data * np.exp(1j * angle)) == has_cal
 
-        # test more cal points per qubit state
-        assert (
-            has_calibration_points(
-                np.concatenate((data, data[-2:])),
-                indices_state_0=(-4, -2),
-                indices_state_1=(-3, -1),
-            )
-            == has_cal
+    # test more cal points per qubit state
+    assert (
+        has_calibration_points(
+            np.concatenate((data, data[-2:])),
+            indices_state_0=(-4, -2),
+            indices_state_1=(-3, -1),
         )
+        == has_cal
+    )
