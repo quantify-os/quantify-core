@@ -31,7 +31,7 @@ def mk_iq_shots(
     .. admonition:: Examples
         :class: dropdown
 
-        .. include:: ./examples/utilities.examples_support.mk_iq_shots.rst.txt
+        .. include:: /examples/utilities.examples_support.mk_iq_shots.py.rst.txt
 
     Parameters
     ----------
@@ -109,7 +109,7 @@ def mk_trace_for_iq_shot(
     .. admonition:: Examples
         :class: dropdown
 
-        .. include:: ./examples/utilities.examples_support.mk_trace_for_iq_shot.rst.txt
+        .. include:: /examples/utilities.examples_support.mk_trace_for_iq_shot.py.rst.txt
 
     Parameters
     ----------

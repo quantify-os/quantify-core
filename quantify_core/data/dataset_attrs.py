@@ -27,7 +27,7 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QDatasetIntraRelationship.rst.txt
+        .. include:: /examples/data.dataset_attrs.QDatasetIntraRelationship.py.rst.txt
     """
 
     item_name: str = None
@@ -62,7 +62,7 @@ class QCoordAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QCoordAttrs.rst.txt
+        .. include:: /examples/data.dataset_attrs.QCoordAttrs.py.rst.txt
     """
 
     units: str = ""
@@ -97,7 +97,7 @@ class QVarAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QVarAttrs.rst.txt
+        .. include:: /examples/data.dataset_attrs.QVarAttrs.py.rst.txt
     """
 
     units: str = ""
@@ -161,7 +161,7 @@ class QDatasetAttrs(DataClassJsonMixin):
 
     .. admonition:: Example
 
-        .. include:: /examples/data.dataset_attrs.QDatasetAttrs.rst.txt
+        .. include:: /examples/data.dataset_attrs.QDatasetAttrs.py.rst.txt
     """
 
     tuid: Union[str, None] = None
@@ -197,7 +197,7 @@ class QDatasetAttrs(DataClassJsonMixin):
 
     .. admonition:: Example
 
-        .. include:: /examples/data.dataset_attrs.QDatasetAttrs.software_versions.rst.txt
+        .. include:: /examples/data.dataset_attrs.QDatasetAttrs.software_versions.py.rst.txt
     """  # pylint: disable=line-too-long
     relationships: List[QDatasetIntraRelationship] = field(default_factory=list)
     """A list of relationships within the dataset specified as list of dictionaries

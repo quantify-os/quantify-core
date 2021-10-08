@@ -23,7 +23,7 @@ def set_hlsa(
     with the specified HLS values plus an optional alpha
 
 
-    .. include:: /examples/visualization.color_utilities.set_hlsa.rst.txt
+    .. include:: /examples/visualization.color_utilities.set_hlsa.py.rst.txt
     """
     rgb = mplc.to_rgb(color)
     hls = colorsys.rgb_to_hls(*mplc.to_rgb(rgb))

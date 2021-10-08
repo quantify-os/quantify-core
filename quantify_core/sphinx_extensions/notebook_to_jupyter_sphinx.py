@@ -27,7 +27,7 @@ An alternative to this extensions is to use `nbsphinx in combination with jupyte
 Usage
 -----
 
-1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
+1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.py.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
 
     .. tip::
 
@@ -43,6 +43,16 @@ Usage
 
 
 2. Version control only the :code:`.rst.py` file. Do not commit the :code:`.rst` nor the :code:`.ipynb` files.
+
+    .. tip::
+
+        To ensure this in a git repository add the following to your ``.gitignore`` file:
+
+        .. code-block::
+
+            *.rst.ipynb
+            *.py.rst
+            *.py.rst.txt
 
 3. Add this extension to your sphinx :code:`conf.py` file.
 
@@ -81,7 +91,9 @@ Code cells configuration magic comment
 Sometimes it is necessary to pass some configuration options to this extension in order
 for it to produce the indented output from code cells. To achieve this a magic comment
 is used, currently supporting two configuration keys. The configuration is a dictionary
-that will be parsed as json.
+that will be parsed as json. In addition a python dictionary with specific name can be
+defined on the first line of the cell. This can be handy to detect any typos and support
+IDE autocomplete.
 
 .. note::
 
@@ -89,9 +101,18 @@ that will be parsed as json.
 
 .. code-block:: python
 
-    # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:", ...]}
+    rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
     # ... the rest of the python code in the cell...
+
+**OR**
+
+.. code-block:: python
+
+    # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+
+    # ... the rest of the python code in the cell...
+
 
 The :code:`"indent"` entry specifies the indentation of the
 :code:`.. jupyter-execute::` block produced.
@@ -234,9 +255,20 @@ def get_code_indent_and_processed_lines(
 
         first_line = code_cell_lines[0]
         magic_comment = "# rst-json-conf:"
+        # Allow also an actual python dictionary
+        magic_line_versions = ("rst_json_conf=", "rst_json_conf =", "rst_json_conf= ")
 
+        magic_start = None
         if first_line.startswith(magic_comment):
-            conf = json.loads(first_line[len(magic_comment) :])
+            magic_start = magic_comment
+        else:
+            for mline in magic_line_versions:
+                if first_line.startswith(mline):
+                    magic_start = mline
+
+        if magic_start is not None:
+
+            conf = json.loads(first_line[len(magic_start) :])
 
             indent = conf.pop("indent", "")
             directive_options = conf.pop("jupyter_execute_options", [])
@@ -393,12 +425,22 @@ def notebooks_to_rst(app, config) -> None:
 
         return write
 
+    def strip_suffixes(path: Path, suffixes: list = None) -> str:
+        path = Path(path)
+        if suffixes is None:
+            suffixes = []
+        if path.suffix != ".rst":  # only remove extensions until `.rst`
+            suffixes.append(path.suffix)
+            path, suffixes = strip_suffixes(path.stem, suffixes)
+            path = Path(path)
+        return path.name, suffixes
+
     srcdir = Path(app.srcdir)
     rst_py_files = srcdir.rglob("*.rst.py")
     # Sometimes it is useful to generate rst contents in one dir but we want it to be
     # evaluated in another dir and for that the output file requires for example `.txt`
     # extension. A simple way to achieve this is to support input files
-    # with extensions `.rst.*.py`, e.g., `.rst.txt.py`.
+    # with extensions `.rst.*.py`, e.g., `.py.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
     for file in itertools.chain(rst_py_files, rst_other_py_files):
         if ".ipynb_checkpoints" in file.parts:
@@ -408,7 +450,11 @@ def notebooks_to_rst(app, config) -> None:
         logger.debug("Converting file...", location=file)
         try:
             notebook = jupytext.read(file, fmt="py:percent")
-            rst_filepath = file.parent / Path(file.stem)
+            rst_filepath = file.parent / Path(file.stem)  # removes .py extensions
+            name_dot_rst, suffixes = strip_suffixes(rst_filepath)
+            # we add extra .py extensions so that files can be `.gitignore`d
+            file_name = Path(name_dot_rst).stem + f".py.rst{''.join(suffixes)}"
+            rst_filepath = rst_filepath.parent / file_name
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
             always_rebuild = config["notebook_to_jupyter_sphinx_always_rebuild"]
             rst_str = notebook_to_rst(notebook, rst_indent)
