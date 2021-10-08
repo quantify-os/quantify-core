@@ -3,7 +3,7 @@
 """Module containing the pyqtgraph-based remote plotting monitor manager."""
 from multiprocessing import Queue
 from collections.abc import Iterable
-from collections import deque, OrderedDict
+from collections import deque
 import itertools
 import os
 
@@ -52,7 +52,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self._tuids_2d = None
 
         # keep all datasets in one place and update/remove as needed
-        self._dsets = dict()
+        self._dsets = {}
 
         self._tuids_max_num = 3
 
@@ -125,7 +125,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         """
         # Do not call again while processing
         self.timer_queue.stop()
-        unique_updates = OrderedDict()
+        unique_updates = {}
         while not self.queue.empty():
             attr_name, args = self.queue.get()
             # collect unique update calls
@@ -283,7 +283,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             del self.secondary_QtPlot
 
         self.secondary_QtPlot = QtPlot(
-            window_title="Secondary plotmon of {}".format(self.instr_name),
+            window_title=f"Secondary plotmon of {self.instr_name}",
             figsize=(600, 400),
             # We want the process to run locally to be able to
             # attach a QtTimer for the main loop of this process
@@ -291,7 +291,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.instr_name),
+            window_title=f"Main plotmon of {self.instr_name}",
             figsize=(600, 400),
             remote=False,
         )
@@ -309,7 +309,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         if self.secondary_QtPlot.traces:
             self.secondary_QtPlot.clear()
 
-        self.curves = dict()
+        self.curves = {}
 
         if not len(self._dsets):
             # Nothing to be done
@@ -368,7 +368,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
                     # Keep track of all traces so that any curves can be updated
                     if tuid not in self.curves.keys():
-                        self.curves[tuid] = dict()
+                        self.curves[tuid] = {}
                     self.curves[tuid][xi + yi] = self.main_QtPlot.traces[-1]
 
                 # Manual counter is used because we may want to add more
@@ -586,9 +586,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         """
         For testing purposes only, some objects cannot be pickled to be retrieved
         """
-        curves_dict = dict()
+        curves_dict = {}
         for tuid, xiyi_dict in self.curves.items():
-            curves_dict[tuid] = dict()
+            curves_dict[tuid] = {}
             for xiyi, items in xiyi_dict.items():
                 curves_dict[tuid][xiyi] = {"config": items["config"]}
 

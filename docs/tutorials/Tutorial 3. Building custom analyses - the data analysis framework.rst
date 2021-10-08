@@ -28,7 +28,6 @@ We conclude by showing how the same class is implemented much more easily by ext
     import numpy as np
     import xarray as xr
     import matplotlib.pyplot as plt
-    from collections import OrderedDict
     from quantify_core.measurement import MeasurementControl
     from quantify_core.measurement.control import Settable, Gettable
     import quantify_core.visualization.pyqt_plotmon as pqm
@@ -326,10 +325,10 @@ Let's now observe how such a class could look like.
             # objects to be filled up later when running the analysis
             self.tuid = None
             self.dataset = None
-            self.fit_results = OrderedDict()
-            self.quantities_of_interest = OrderedDict()
-            self.figs_mpl = OrderedDict()
-            self.axs_mpl = OrderedDict()
+            self.fit_results = {}
+            self.quantities_of_interest = {}
+            self.figs_mpl = {}
+            self.axs_mpl = {}
 
         # with just slight modification our functions become methods
         # with the advantage that we have access to all the necessary information from `self.`

@@ -8,7 +8,6 @@ import types
 import tempfile
 from os.path import join
 from collections.abc import Iterable
-from collections import OrderedDict
 import itertools
 from itertools import chain
 import signal
@@ -847,9 +846,7 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
         settables = [None] * len(setpoints)
 
     coordinates_names = [f"x{i}" for i, pnts in enumerate(setpoints)]
-    dataset_coordinates = xr.Dataset(
-        coords=OrderedDict(zip(coordinates_names, setpoints))
-    )
+    dataset_coordinates = xr.Dataset(coords=dict(zip(coordinates_names, setpoints)))
     coordinates_batched = [
         name for name, spar in zip(coordinates_names, settables) if is_batched(spar)
     ]
