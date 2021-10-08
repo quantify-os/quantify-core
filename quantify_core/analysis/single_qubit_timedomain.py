@@ -366,21 +366,23 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
         self,
         artificial_detuning: float = 0,
         qubit_frequency: float = None,
-        calibration_points: bool = True,
+        calibration_points: Union[bool, Literal["auto"]] = "auto",
     ):
         r"""
         Parameters
         ----------
-        artificial_detuning:
+        artificial_detuning
             The detuning in Hz that will be emulated by adding an extra phase in
             software.
-        qubit_frequency:
+        qubit_frequency
             The initial recorded value of the qubit frequency (before
             accurate fitting is done) in Hz.
-        calibration_points:
-            Indicates if the data analyzed includes calibration points. If set to True,
-            will interpret the last two data points in the dataset as :math:`|0\rangle`
-            and :math:`|1\rangle` respectively.
+        calibration_points
+            Indicates if the data analyzed includes calibration points. If set to
+            :code:`True`, will interpret the last two data points in the dataset as
+            :math:`|0\rangle` and :math:`|1\rangle` respectively. If ``"auto"``, will
+            use :func:`~.has_calibration_points` to determine if the data contains
+            calibration points.
 
         Returns
         -------
