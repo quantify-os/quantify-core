@@ -3,7 +3,7 @@
 """Module containing the pyqtgraph-based remote plotting monitor manager."""
 from multiprocessing import Queue
 from collections.abc import Iterable
-from collections import deque, OrderedDict
+from collections import deque
 import itertools
 import os
 
@@ -125,7 +125,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         """
         # Do not call again while processing
         self.timer_queue.stop()
-        unique_updates = OrderedDict()
+        unique_updates = dict()
         while not self.queue.empty():
             attr_name, args = self.queue.get()
             # collect unique update calls

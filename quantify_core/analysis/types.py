@@ -1,12 +1,11 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Module containing the types for use with the analysis classes"""
-from collections import OrderedDict
 from jsonschema import validate
 from quantify_core.utilities.general import load_json_schema
 
 
-class AnalysisSettings(OrderedDict):
+class AnalysisSettings(dict):
     """
     Analysis settings with built-in schema validations.
 
