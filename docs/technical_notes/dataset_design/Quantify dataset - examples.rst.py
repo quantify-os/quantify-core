@@ -16,7 +16,7 @@
 # ---
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -45,8 +45,8 @@ Quantify dataset - examples
     :class: dropdown
 """
 
-# %% tags=[]
-# rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+# %%
+rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
 import inspect
 from IPython.display import Code, display
@@ -95,13 +95,13 @@ drop down below.
     :class: dropdown
 """
 
-# %% tags=[]
-# rst-json-conf: {"indent": "    "}
+# %%
+rst_json_conf = {"indent": "    "}
 
 source_code = inspect.getsource(dataset_examples.mk_two_qubit_chevron_dataset)
 display(Code(source_code, language="python"))
 
-# %% tags=[]
+# %%
 dataset = dataset_examples.mk_two_qubit_chevron_dataset()
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
@@ -176,7 +176,7 @@ T1 dataset examples
 
 The T1 experiment is one of the most common quantum computing experiments.
 Here we explore how the datasets for such an experiment, for a transmon qubit, can be
-stored using the Qunatify dataset with increasing levels of data detail.
+stored using the Quantify dataset with increasing levels of data detail.
 
 We start with the most simple format that contains only processed (averaged) measurements
 and finish with a dataset containing the raw digitized signals from the transmon readout
@@ -196,38 +196,40 @@ during a T1 experiment.
     - :func:`quantify_core.utilities.examples_support.mk_trace_for_iq_shot`
     - :func:`quantify_core.utilities.examples_support.plot_centroids`
     - :func:`quantify_core.analysis.fitting_models.exp_decay_func`
-    
-    Below you can find the source-code of the most important ones and a few usage 
+
+    Below you can find the source-code of the most important ones and a few usage
     examples in order to gain some intuition for the mock data.
 """
 
-# %% tags=[]
-# rst-json-conf: {"indent": "    "}
+# %%
+rst_json_conf = {"indent": "    "}
 
 for func in (mk_iq_shots, mk_trace_time, mk_trace_for_iq_shot):
     source_code = Code(inspect.getsource(func), language="python")
     display(source_code)
 
-# %% tags=[]
-# rst-json-conf: {"indent": "    "}
+# %%
+rst_json_conf = {"indent": "    "}
 
-centroid_ground = -0.2 + 0.65j
-centroid_excited = 0.7 - 0.4j
+ground = -0.2 + 0.65j
+excited = 0.7 - 0.4j
+centroids = ground, excited
+sigmas = [0.1] * 2
 
 shots = mk_iq_shots(
     n_shots=256,
-    sigmas=[0.1] * 2,
-    centers=[centroid_ground, centroid_excited],
+    sigmas=sigmas,
+    centers=centroids,
     probabilities=[0.4, 1 - 0.4],
 )
 
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
-plot_centroids(plt.gca(), centroid_ground, centroid_excited)
+plot_centroids(plt.gca(), *centroids)
 
-# %% tags=[]
-# rst-json-conf: {"indent": "    "}
+# %%
+rst_json_conf = {"indent": "    "}
 
 time = mk_trace_time()
 trace = mk_trace_for_iq_shot(shots[0])
@@ -241,15 +243,16 @@ _ = ax.legend()
 
 # %% [raw]
 """
-First we define a few parameters of our mock qubit and mock data aquisition.
+First we define a few parameters of our mock qubit and mock data acquisition.
 """
 
 # %%
 # parameters of our qubit model
 tau = 30e-6
 ground = -0.2 + 0.65j  # ground state on the IQ-plane
-excited = 0.7 + -0.4j  # excited state on the IQ-plane
-sigma = 0.1  # centroids sigma, NB in general not the same for both state
+excited = 0.7 - 0.4j  # excited state on the IQ-plane
+centroids = ground, excited
+sigmas = [0.1] * 2  # centroids sigma, NB in general not the same for both state
 
 # mock of data acquisition configuration
 # NB usually at least 1000+ shots are taken, here we use less for faster code execution
@@ -272,7 +275,7 @@ _ = plt.xlabel("Time [µs]")
 T1 experiment averaged
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In this first example we generate the individual measuruement shots and average it,
+In this first example we generate the individual measurement shots and average it,
 similar to what some instrument are capable of doing directly in the hardware.
 """
 
@@ -282,8 +285,8 @@ q0_iq_av = np.fromiter(
         np.average(
             mk_iq_shots(
                 n_shots=num_shots,
-                sigmas=[sigma] * 2,
-                centers=[ground, excited],
+                sigmas=sigmas,
+                centers=centroids,
                 probabilities=[prob, 1 - prob],
             )
         )
@@ -335,7 +338,7 @@ dataset_gridded
 
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 
 def plot_decay_no_repetition(gridded_dataset, ax=None):
@@ -379,7 +382,7 @@ def plot_iq_no_repetition(gridded_dataset, ax=None):
 # %%
 plot_decay_no_repetition(dataset_gridded)
 fig, ax = plot_iq_no_repetition(dataset_gridded)
-plot_centroids(ax, ground, excited)
+plot_centroids(ax, *centroids)
 
 # %% [raw]
 """
@@ -387,7 +390,7 @@ T1 experiment averaged with calibration points
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is common for many experiment to require calibration data in order to interpret the
-results. Often, these calibration datapoinst have different array shapes. E.g. it can be
+results. Often, these calibration datapoints have different array shapes. E.g. it can be
 just two simple datapoints corresponding to the ground and excited states of our
 transmon.
 """
@@ -398,8 +401,8 @@ q0_iq_av_cal = np.fromiter(  # generate mock calibration data
         np.average(
             mk_iq_shots(
                 n_shots=num_shots,
-                sigmas=[sigma] * 2,
-                centers=[ground, excited],
+                sigmas=sigmas,
+                centers=centroids,
                 probabilities=[prob, 1 - prob],
             )
         )
@@ -411,7 +414,7 @@ q0_iq_av_cal
 
 # %% [raw]
 """
-To accomdate this data in the dataset we make use of a secondary dimensions along which
+To accommodate this data in the dataset we make use of a secondary dimensions along which
 the variables and its coordinate will lie along.
 
 Additionally, since the secondary variable and coordinate used for calibration can have
@@ -543,8 +546,8 @@ q0_iq_shots = np.array(
     tuple(
         mk_iq_shots(
             n_shots=num_shots,
-            sigmas=[sigma] * 2,
-            centers=[ground, excited],
+            sigmas=sigmas,
+            centers=centroids,
             probabilities=[prob, 1 - prob],
         )
         for prob in probabilities
@@ -555,8 +558,8 @@ q0_iq_shots_cal = np.array(
     tuple(
         mk_iq_shots(
             n_shots=num_shots,
-            sigmas=[sigma] * 2,
-            centers=[ground, excited],
+            sigmas=sigmas,
+            centers=centroids,
             probabilities=[prob, 1 - prob],
         )
         for prob in [0, 1]
@@ -620,7 +623,7 @@ dataset
 .. note:
 
     Note that we have to specify ``repetitions_dims=["repetitions"]`` in the dataset
-    attributes in oder to correctly identify the main and secundary dimensions later.
+    attributes in order to correctly identify the main and secondary dimensions later.
 """
 
 # %%
@@ -721,15 +724,15 @@ def plot_iq_decay_repetition(gridded_dataset):
 
 # %%
 fig, ax = plot_iq_decay_repetition(dataset_gridded)
-plot_centroids(ax, ground, excited)
+plot_centroids(ax, *centroids)
 
 # %% [raw]
 """
 T1 experiment storing digitized signals for all shots
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, in addtion to the individual shots we will store all the digitized readout
-singals that are required to obtain the previous measurement results.
+Finally, in addition to the individual shots we will store all the digitized readout
+signals that are required to obtain the previous measurement results.
 """
 
 # %%

@@ -15,17 +15,13 @@
 # ---
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
 # pylint: disable=pointless-statement
 # pylint: disable=invalid-name
-
-# %%
-# %load_ext autoreload
-# %autoreload 2
 
 # %% [raw]
 """
@@ -52,7 +48,7 @@ Quantify dataset specification
 """
 
 # %%
-# rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
 import inspect
 from IPython.display import Code
@@ -152,14 +148,14 @@ It should give you a more concrete feeling of the details that are exposed after
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 Code(
     inspect.getsource(dataset_examples.mk_two_qubit_chevron_dataset), language="python"
 )
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 dataset = dataset_examples.mk_two_qubit_chevron_dataset()
 
@@ -176,7 +172,7 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 dataset
 
@@ -187,7 +183,7 @@ dataset
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
@@ -256,7 +252,7 @@ The secondary dimensions comply with the following:
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 coord_name = "repetitions"
 coord_dims = ("repetitions",)
@@ -269,7 +265,7 @@ dataset_indexed_rep = xr.Dataset(
 dataset_indexed_rep
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 # merge with the previous dataset
 dataset_rep = dataset.merge(dataset_indexed_rep, combine_attrs="drop_conflicts")
@@ -284,7 +280,7 @@ dataset_rep
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset_rep,
@@ -299,7 +295,7 @@ dataset_gridded
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 _ = dataset_gridded.pop_q0.sel(repetitions="A").plot(x="amp")
 plt.show()
 _ = dataset_gridded.pop_q0.sel(repetitions="D").plot(x="amp")
@@ -341,7 +337,7 @@ dataset.attrs
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 dataset.quantify_dataset_version, dataset.tuid
 
@@ -386,12 +382,12 @@ Internally we write and load to/from disk using:
 """
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 
 Code(inspect.getsource(dh.write_dataset), language="python")
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 
 Code(inspect.getsource(dh.load_dataset), language="python")
 
