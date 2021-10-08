@@ -597,12 +597,21 @@ def to_gridded_dataset(
 
     .. include:: /examples/data.handling.to_gridded_dataset.py.rst.txt
     """
+    if dimension not in quantify_dataset.dims:
+        dims = tuple(quantify_dataset.dims.keys())
+        raise ValueError(f"Dimension {dimension} not in dims {dims}.")
 
     if coords_names is None:
         # for compatibility with older datasets we use `variables` instead of `coords`
         coords_names = sorted(
             v for v in quantify_dataset.variables.keys() if v.startswith("x")
         )
+    else:
+        for coord in coords_names:
+            vars_ = tuple(quantify_dataset.variables.keys())
+            if coord not in vars_:
+                raise ValueError(f"Coordinate {coord} not in coordinates {vars_}.")
+
     # Because xarray in general creates new objects and
     # due to https://github.com/pydata/xarray/issues/2245
     # the attributes need to be saved and restored in the new object
