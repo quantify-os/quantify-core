@@ -434,7 +434,7 @@ class BaseAnalysis(ABC):
             if self.settings_overwrite["mpl_exclude_fig_titles"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
-            if self.settings_overwrite["mpl_transparent_background"]:
+            if self.settings_overwrite["mpl_transparent_background"] is True:
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
             else:
