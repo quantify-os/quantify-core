@@ -1,4 +1,4 @@
-* Quantify version:
+* Quantify-Core version:
 * Python version:
 * Operating System:
 
