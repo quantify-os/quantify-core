@@ -65,7 +65,7 @@ class QCoordAttrs(DataClassJsonMixin):
         .. include:: /examples/data.dataset_attrs.QCoordAttrs.py.rst.txt
     """
 
-    units: str = ""
+    unit: str = ""
     """The units of the values."""
     long_name: str = ""
     """A long name for this coordinate."""
@@ -100,7 +100,7 @@ class QVarAttrs(DataClassJsonMixin):
         .. include:: /examples/data.dataset_attrs.QVarAttrs.py.rst.txt
     """
 
-    units: str = ""
+    unit: str = ""
     """The units of the values."""
     long_name: str = ""
     """A long name for this coordinate."""
