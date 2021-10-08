@@ -60,8 +60,8 @@ from quantify_core.data import handling as dh
 from rich import pretty
 from pathlib import Path
 from quantify_core.utilities import dataset_examples
-import quantify_core.data.dataset_attrs as dd
-import quantify_core.data.dataset_adapters as da
+import quantify_core.data.dataset_attrs as dattrs
+import quantify_core.data.dataset_adapters as dadapters
 from quantify_core.utilities.examples_support import round_trip_dataset
 
 pretty.install()
@@ -190,7 +190,7 @@ dataset
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
-    coords_names=dd.get_main_coords(dataset),
+    coords_names=dattrs.get_main_coords(dataset),
 )
 dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetitions")
 _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetitions")
@@ -287,7 +287,7 @@ dataset_rep
 dataset_gridded = dh.to_gridded_dataset(
     dataset_rep,
     dimension="main_dim",
-    coords_names=dd.get_main_coords(dataset),
+    coords_names=dattrs.get_main_coords(dataset),
 )
 dataset_gridded
 
@@ -403,4 +403,4 @@ Note that we use the ``h5netcdf`` engine that is more permissive than the defaul
 """
 
 # %%
-Code(inspect.getsource(da.AdapterH5NetCDF), language="python")
+Code(inspect.getsource(dadapters.AdapterH5NetCDF), language="python")

@@ -69,7 +69,7 @@ from qcodes import ManualParameter
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import get_datadir, set_datadir
-import quantify_core.data.dataset_attrs as dd
+import quantify_core.data.dataset_attrs as dattrs
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_main_coord_attrs,
@@ -393,7 +393,7 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 dataset
 
 # %%
-coords_for_multi_index = dd.get_main_coords(dataset)
+coords_for_multi_index = dattrs.get_main_coords(dataset)
 coords_for_multi_index
 
 # %% [raw]
