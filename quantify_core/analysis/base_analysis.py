@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import json
 from abc import ABC
-from collections import OrderedDict
 from copy import deepcopy
 from typing import List, Union
 from enum import Enum
@@ -194,11 +193,11 @@ class BaseAnalysis(ABC):
         self.analysis_result = {}
 
         # To be populated by a subclass
-        self.figs_mpl = OrderedDict()
-        self.axs_mpl = OrderedDict()
-        self.quantities_of_interest = OrderedDict()
+        self.figs_mpl = dict()
+        self.axs_mpl = dict()
+        self.quantities_of_interest = dict()
 
-        self.fit_results = OrderedDict()
+        self.fit_results = dict()
 
         self._interrupt_before = None
 
@@ -397,7 +396,7 @@ class BaseAnalysis(ABC):
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_results) > 0:
-            self.quantities_of_interest["fit_result"] = OrderedDict()
+            self.quantities_of_interest["fit_result"] = dict()
             for fr_name, fit_result in self.fit_results.items():
                 res = flatten_lmfit_modelresult(fit_result)
                 self.quantities_of_interest["fit_result"][fr_name] = res
@@ -721,7 +720,7 @@ def flatten_lmfit_modelresult(model):
     a custom fit function.
     """
     assert isinstance(model, (lmfit.model.ModelResult, lmfit.minimizer.MinimizerResult))
-    dic = OrderedDict()
+    dic = dict()
     dic["success"] = model.success
     dic["message"] = model.message
     dic["params"] = {}
