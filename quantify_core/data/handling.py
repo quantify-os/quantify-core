@@ -6,7 +6,6 @@ import os
 import sys
 import json
 from typing import Union
-from collections import OrderedDict
 from collections.abc import Iterable
 import datetime
 from uuid import uuid4
@@ -751,7 +750,7 @@ def get_tuids_containing(
     return tuids
 
 
-def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
+def snapshot(update: bool = False, clean: bool = True) -> dict:
     """
     State of all instruments setup as a JSON-compatible dictionary (everything that the
     custom JSON encoder class :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
@@ -765,12 +764,7 @@ def snapshot(update: bool = False, clean: bool = True) -> OrderedDict:
         compact snapshot.
     """
 
-    snap = OrderedDict(
-        {
-            "instruments": {},
-            "parameters": {},
-        }
-    )
+    snap = {"instruments": {}, "parameters": {}}
     for ins_name, ins_ref in Instrument._all_instruments.items():
         ref = ins_ref()
         # Check for dead weakrefs
