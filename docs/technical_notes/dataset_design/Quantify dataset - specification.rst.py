@@ -38,9 +38,11 @@ Quantify dataset specification
 
     The complete source code of this tutorial can be found in
 
-    :jupyter-download:notebook:`Quantify dataset - specification`
+    .. NB .py is from notebook_to_sphinx_extension
 
-    :jupyter-download:script:`Quantify dataset - specification`
+    :jupyter-download:notebook:`Quantify dataset - specification.py`
+
+    :jupyter-download:script:`Quantify dataset - specification.py`
 """
 
 # %% [raw]

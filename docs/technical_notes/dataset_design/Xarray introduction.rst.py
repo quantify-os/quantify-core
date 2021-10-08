@@ -34,9 +34,11 @@ Xarray - brief introduction
 
     The complete source code of this tutorial can be found in
 
-    :jupyter-download:notebook:`Xarray introduction`
+    .. NB .py is from notebook_to_sphinx_extension
 
-    :jupyter-download:script:`Xarray introduction`
+    :jupyter-download:notebook:`Xarray introduction.py`
+
+    :jupyter-download:script:`Xarray introduction.py`
 
 The Quantify dataset is based on :doc:`Xarray <xarray:index>`.
 This subsection is a very brief overview of some concepts and functionalities of xarray.

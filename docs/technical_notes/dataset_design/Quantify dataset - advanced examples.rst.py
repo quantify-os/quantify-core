@@ -46,9 +46,11 @@ Quantify dataset - advanced examples
 
     The complete source code of this tutorial can be found in
 
-    :jupyter-download:notebook:`Quantify dataset - advanced examples`
+    .. NB .py is from notebook_to_sphinx_extension
 
-    :jupyter-download:script:`Quantify dataset - advanced examples`
+    :jupyter-download:notebook:`Quantify dataset - advanced examples.py`
+
+    :jupyter-download:script:`Quantify dataset - advanced examples.py`
 """
 
 # %% [raw]
