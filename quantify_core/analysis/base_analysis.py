@@ -45,10 +45,8 @@ from .types import AnalysisSettings
 settings = AnalysisSettings(
     {
         "mpl_dpi": 450,  # define resolution of some matplotlib output formats
-        "mpl_fig_formats": [
-            "png",
-            "svg",
-        ],  # svg is superior but at least OneNote does not support it
+        # svg is superior but at least OneNote does not support it
+        "mpl_fig_formats": ["png", "svg"],
         "mpl_exclude_fig_titles": False,
         "mpl_transparent_background": True,
     }
@@ -179,7 +177,8 @@ class BaseAnalysis(ABC):
         # Allows individual setting per analysis instance
         # with defaults from global settings
         self.settings_overwrite = deepcopy(settings)
-        self.settings_overwrite.update(settings_overwrite or dict())
+        # NB this also runs validation against the corresponding schema
+        self.settings_overwrite.update(settings_overwrite or {})
 
         # Used to have access to a reference of the raw dataset, see also
         # self.extract_data
@@ -193,11 +192,11 @@ class BaseAnalysis(ABC):
         self.analysis_result = {}
 
         # To be populated by a subclass
-        self.figs_mpl = dict()
-        self.axs_mpl = dict()
-        self.quantities_of_interest = dict()
+        self.figs_mpl = {}
+        self.axs_mpl = {}
+        self.quantities_of_interest = {}
 
-        self.fit_results = dict()
+        self.fit_results = {}
 
         self._interrupt_before = None
 
@@ -396,7 +395,7 @@ class BaseAnalysis(ABC):
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_results) > 0:
-            self.quantities_of_interest["fit_result"] = dict()
+            self.quantities_of_interest["fit_result"] = {}
             for fr_name, fit_result in self.fit_results.items():
                 res = flatten_lmfit_modelresult(fit_result)
                 self.quantities_of_interest["fit_result"][fr_name] = res
@@ -460,7 +459,9 @@ class BaseAnalysis(ABC):
         self._add_fit_res_to_qoi()
 
         with open(
-            os.path.join(self.analysis_dir, QUANTITIES_OF_INTEREST_NAME), "w"
+            os.path.join(self.analysis_dir, QUANTITIES_OF_INTEREST_NAME),
+            "w",
+            encoding="utf-8",
         ) as file:
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
@@ -720,7 +721,7 @@ def flatten_lmfit_modelresult(model):
     a custom fit function.
     """
     assert isinstance(model, (lmfit.model.ModelResult, lmfit.minimizer.MinimizerResult))
-    dic = dict()
+    dic = {}
     dic["success"] = model.success
     dic["message"] = model.message
     dic["params"] = {}
