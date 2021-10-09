@@ -79,6 +79,7 @@ intersphinx_mapping = {
         "https://uncertainties-python-package.readthedocs.io/en/latest/",
         None,
     ),
+    "IPython": ("https://ipython.readthedocs.io/en/stable/", None),
 }
 
 bibtex_bibfiles = ["refs.bib"]

@@ -60,6 +60,7 @@ import quantify_core.data.dataset_attrs as dattrs
 from quantify_core.utilities import dataset_examples
 from quantify_core.analysis.fitting_models import exp_decay_func
 from quantify_core.analysis.calibration import rotate_to_calibrated_axis
+from quantify_core.utilities.inspect_utilities import display_source_code
 from quantify_core.utilities.examples_support import (
     mk_iq_shots,
     mk_trace_time,
@@ -98,8 +99,7 @@ drop down below.
 # %%
 rst_json_conf = {"indent": "    "}
 
-source_code = inspect.getsource(dataset_examples.mk_two_qubit_chevron_dataset)
-display(Code(source_code, language="python"))
+display_source_code(dataset_examples.mk_two_qubit_chevron_dataset)
 
 # %%
 dataset = dataset_examples.mk_two_qubit_chevron_dataset()
@@ -205,8 +205,7 @@ during a T1 experiment.
 rst_json_conf = {"indent": "    "}
 
 for func in (mk_iq_shots, mk_trace_time, mk_trace_for_iq_shot):
-    source_code = Code(inspect.getsource(func), language="python")
-    display(source_code)
+    display_source_code(func)
 
 # %%
 rst_json_conf = {"indent": "    "}

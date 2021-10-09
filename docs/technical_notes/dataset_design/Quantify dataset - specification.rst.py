@@ -51,7 +51,7 @@ Quantify dataset specification
 rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
 import inspect
-from IPython.display import Code
+from IPython.display import Code, display
 import xarray as xr
 import matplotlib.pyplot as plt
 from quantify_core.data import handling as dh
@@ -61,6 +61,7 @@ from quantify_core.utilities import dataset_examples
 import quantify_core.data.dataset_attrs as dattrs
 import quantify_core.data.dataset_adapters as dadapters
 from quantify_core.utilities.examples_support import round_trip_dataset
+from quantify_core.utilities.inspect_utilities import display_source_code
 
 pretty.install()
 
@@ -150,9 +151,7 @@ It should give you a more concrete feeling of the details that are exposed after
 # %%
 rst_json_conf = {"indent": "    "}
 
-Code(
-    inspect.getsource(dataset_examples.mk_two_qubit_chevron_dataset), language="python"
-)
+display_source_code(dataset_examples.mk_two_qubit_chevron_dataset)
 
 # %%
 rst_json_conf = {"indent": "    "}
@@ -382,14 +381,9 @@ Internally we write and load to/from disk using:
 """
 
 # %%
-rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
+display_source_code(dh.write_dataset)
+display_source_code(dh.load_dataset)
 
-Code(inspect.getsource(dh.write_dataset), language="python")
-
-# %%
-rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
-
-Code(inspect.getsource(dh.load_dataset), language="python")
 
 # %% [raw]
 """
@@ -401,4 +395,4 @@ Note that we use the ``h5netcdf`` engine that is more permissive than the defaul
 """
 
 # %%
-Code(inspect.getsource(dadapters.AdapterH5NetCDF), language="python")
+display_source_code(dadapters.AdapterH5NetCDF)
