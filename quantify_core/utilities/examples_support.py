@@ -8,6 +8,7 @@ from typing import List, Union, Any, Dict, Callable
 from pathlib import Path
 import xarray as xr
 import numpy as np
+import matplotlib.pyplot as plt
 from quantify_core.data.types import TUID
 import quantify_core.data.handling as dh
 import quantify_core.data.dataset_attrs as dd
@@ -18,12 +19,12 @@ import quantify_core.data.dataset_attrs as dd
 
 
 def mk_iq_shots(
-    n_shots: int,
-    sigmas: Union[tuple, list, np.ndarray],
-    centers: Union[tuple, list, np.ndarray],
-    probabilities: Union[tuple, list, np.ndarray],
+    n_shots: int = 128,
+    sigmas: Union[tuple, list, np.ndarray] = (0.1, 0.1),
+    centers: Union[tuple, list, np.ndarray] = (-0.2 + 0.65j, 0.7 + 4j),
+    probabilities: Union[tuple, list, np.ndarray] = (0.4, 0.6),
     seed: Union[int, None] = 112233,
-):
+) -> np.ndarray:
     """
     Generates clusters of (I + 1j*Q) points with a Gaussian distribution with the
     specified sigmas and centers according to the probabilities of each cluster
@@ -46,9 +47,9 @@ def mk_iq_shots(
     seed
         Random number generator passed to ``numpy.random.default_rng``.
     """
-    if not (len(sigmas) == len(centers) == len(probabilities)):
+    if not len(sigmas) == len(centers) == len(probabilities):
         raise ValueError(
-            "Incorrect input. sigmas={sigmas}, centers={centers} and "
+            f"Incorrect input. sigmas={sigmas}, centers={centers} and "
             f"probabilities={probabilities} must have the same length."
         )
 
@@ -124,21 +125,27 @@ def mk_trace_for_iq_shot(
     -------
     :
         An array of complex numbers.
-    """
+    """  # pylint: disable=line-too-long
 
     return iq_point * np.exp(2.0j * np.pi * intermediate_freq * time_values)
 
 
 def plot_centroids(
-    ax,
     ground: complex,
     excited: complex,
     markersize: int = 10,
     legend: bool = True,
+    ax=None,
     **kwargs,
 ):
     """Plots the centers of the ground and excited states on a 2D plot representing
     the IQ-plane.
+
+    .. admonition:: Example
+
+        from quantify_core.utilities.examples_support import plot_centroids
+
+        _ = plot_centroids(ground=1 + 1j, excited=-1.5 - 2j)
 
     Parameters
     ----------
@@ -155,6 +162,9 @@ def plot_centroids(
     **kwargs
         Keyword arguments passed to the ``ax.plot``.
     """
+    if ax is None:
+        _, ax = plt.subplots()
+
     ax.plot(
         [ground.real],
         [ground.imag],
@@ -177,6 +187,8 @@ def plot_centroids(
     )
     if legend:
         ax.legend()
+
+    return ax.get_figure(), ax
 
 
 # ######################################################################################
@@ -269,7 +281,6 @@ def mk_secondary_coord_attrs(
 
 
 def mk_main_var_attrs(
-    coords: List[str],
     grid: bool = True,
     uniformly_spaced: bool = True,
     is_main_var: bool = True,
@@ -283,8 +294,6 @@ def mk_main_var_attrs(
 
     Parameters
     ----------
-    coords
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.coords`.
     grid
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.grid`.
     uniformly_spaced
@@ -301,14 +310,12 @@ def mk_main_var_attrs(
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
         is_secondary_var=is_secondary_var,
-        coords=coords,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
 
 
 def mk_secondary_var_attrs(
-    coords: List[str],
     grid: bool = True,
     uniformly_spaced: bool = True,
     is_main_var: bool = False,
@@ -322,8 +329,6 @@ def mk_secondary_var_attrs(
 
     Parameters
     ----------
-    coords
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.coords`.
     grid
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.grid`.
     uniformly_spaced
@@ -340,7 +345,6 @@ def mk_secondary_var_attrs(
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
         is_secondary_var=is_secondary_var,
-        coords=coords,
     ).to_dict()
 
     attrs.update(kwargs)
@@ -358,7 +362,7 @@ def round_trip_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
 # to avoid dependency in scheduler, import only inside the function
 # pylint: disable=import-outside-toplevel, too-many-locals
-def mk_surface_7_sched(num_cycles: int = 3):
+def mk_surface7_sched(num_cycles: int = 3):
     """Generates a schedule with some of the feature of a Surface 7 experiment as
     portrayed in Fig. 4b of :cite:`marques_logical_qubit_2021`.
 
