@@ -145,10 +145,10 @@ class QVarAttrs(DataClassJsonMixin):
 
         If there are several coordinates that can be used to index this variables
         interchangeably, say a ``freq`` array of frequencies extracted from several
-        datasets and a ``freq_tuids`` array of :class:`~quantify_core.data.types.TUID`s
-        as a reference to the corresponding datasets, then a main variable ``bias`` would
-        have ``coords=[("freq", freq_tuid)]``. See also :attr:`~.is_dataset_ref` and
-        :ref:`sec-nested-mc-example`.
+        datasets and a ``freq_tuids`` array of :class:`~quantify_core.data.types.TUID`\s
+        as a reference to the corresponding datasets, then a main variable ``bias``
+        would have ``coords=[("freq", freq_tuid)]``. See also :attr:`~.is_dataset_ref`
+        and :ref:`sec-nested-mc-example`.
     """
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
