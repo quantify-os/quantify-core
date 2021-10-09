@@ -48,8 +48,6 @@ Quantify dataset - examples
 # %%
 rst_json_conf = {"indent": "    "}
 
-import inspect
-from IPython.display import Code, display
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -303,8 +301,8 @@ datapoints:
 
 # %%
 main_dims = ("main_dim",)
-q0_attrs = mk_main_var_attrs(units="V", long_name="Q0 IQ amplitude", coords=["t1_time"])
-t1_time_attrs = mk_main_coord_attrs(units="s", long_name="T1 Time")
+q0_attrs = mk_main_var_attrs(unit="V", long_name="Q0 IQ amplitude", coords=["t1_time"])
+t1_time_attrs = mk_main_coord_attrs(unit="s", long_name="T1 Time")
 
 data_vars = dict(q0_iq_av=(main_dims, q0_iq_av, q0_attrs))
 coords = dict(t1_time=(main_dims, t1_times, t1_time_attrs))
@@ -427,9 +425,9 @@ dataset.
 # %%
 secondary_dims = ("cal_dim",)
 q0_cal_attrs = mk_secondary_var_attrs(
-    units="V", long_name="Q0 IQ Calibration", coords=["cal"]
+    unit="V", long_name="Q0 IQ Calibration", coords=["cal"]
 )
-cal_attrs = mk_secondary_coord_attrs(units="", long_name="Q0 state")
+cal_attrs = mk_secondary_coord_attrs(unit="", long_name="Q0 state")
 
 relationships = [
     dattrs.QDatasetIntraRelationship(
@@ -702,7 +700,7 @@ def plot_iq_decay_repetition(gridded_dataset):
     y0_shots_mean = y0_shots.mean(dim="repetitions")
     y0_shots_mean.real.plot(marker=".", label="I data")
     y0_shots_mean.imag.plot(marker=".", label="Q data")
-    plt.ylabel(f"{y0_shots.long_name} [{y0_shots.units}]")
+    plt.ylabel(f"{y0_shots.long_name} [{y0_shots.unit}]")
     plt.suptitle(f"{y0_shots.name} shape = {y0_shots.shape}")
     plt.legend()
 

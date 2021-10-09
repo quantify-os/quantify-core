@@ -50,8 +50,6 @@ Quantify dataset specification
 # %%
 rst_json_conf = {"indent": "    "}
 
-import inspect
-from IPython.display import Code, display
 import xarray as xr
 import matplotlib.pyplot as plt
 from quantify_core.data import handling as dh
