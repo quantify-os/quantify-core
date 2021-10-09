@@ -134,7 +134,7 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
 
 def mk_surface7_cyles_dataset(num_cycles: int = 3, **kwargs) -> xr.Dataset:
     """
-    See also :func:`quantify_core.utilities.examples_support.mk_surface_7_sched`.
+    See also :func:`quantify_core.utilities.examples_support.mk_surface7_sched`.
 
     Parameters
     ----------
