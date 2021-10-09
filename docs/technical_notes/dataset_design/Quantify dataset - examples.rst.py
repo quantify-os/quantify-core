@@ -46,7 +46,7 @@ Quantify dataset - examples
 """
 
 # %%
-rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+rst_json_conf = {"indent": "    "}
 
 import inspect
 from IPython.display import Code, display
@@ -60,7 +60,7 @@ import quantify_core.data.dataset_attrs as dattrs
 from quantify_core.utilities import dataset_examples
 from quantify_core.analysis.fitting_models import exp_decay_func
 from quantify_core.analysis.calibration import rotate_to_calibrated_axis
-from quantify_core.utilities.inspect_utilities import display_source_code
+from quantify_core.utilities.inspect_utils import display_source_code
 from quantify_core.utilities.examples_support import (
     mk_iq_shots,
     mk_trace_time,

@@ -354,3 +354,70 @@ def round_trip_dataset(dataset: xr.Dataset) -> xr.Dataset:
     assert tuid != ""
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, dataset)
     return dh.load_dataset(tuid)
+
+
+# to avoid dependency in scheduler, import only inside the function
+# pylint: disable=import-outside-toplevel, too-many-locals
+def mk_surface_7_sched(num_cycles: int = 3):
+    """Generates a schedule with some of the feature of a Surface 7 experiment as
+    portrayed in Fig. 4b of :cite:`marques_logical_qubit_2021`.
+
+    Parameters
+    ----------
+    num_cycles
+        The number of times to repeat the main cycle.
+
+    Returns
+    -------
+    :
+        A schedule similar to a Surface 7 dance.
+    """
+
+    from quantify_scheduler import Schedule
+    from quantify_scheduler.gate_library import Reset, Measure, CZ, X, Y90
+
+    sched = Schedule("S7 dance")
+
+    q_d1, q_d2, q_d3, q_d4 = [f"D{i}" for i in range(1, 5)]
+    q_a1, q_a2, q_a3 = [f"A{i}" for i in range(1, 4)]
+    all_qubits = q_d1, q_d2, q_d3, q_d4, q_a1, q_a2, q_a3
+
+    sched.add(Reset(*all_qubits))
+
+    for cycle in range(num_cycles):
+        sched.add(Y90(q_d1))
+        for qubit in [q_d2, q_d3, q_d4]:
+            sched.add(Y90(qubit), ref_pt="start", rel_time=0)
+        sched.add(Y90(q_a2), ref_pt="start", rel_time=0)
+
+        for qubit in [q_d2, q_d1, q_d4, q_d3]:
+            sched.add(CZ(qC=qubit, qT=q_a2))
+
+        sched.add(Y90(q_d1))
+        for qubit in [q_d2, q_d3, q_d4]:
+            sched.add(Y90(qubit), ref_pt="start", rel_time=0)
+        sched.add(Y90(q_a2), ref_pt="start", rel_time=0)
+
+        sched.add(Y90(q_a1), ref_pt="end", rel_time=0)
+        sched.add(Y90(q_a3), ref_pt="start", rel_time=0)
+
+        sched.add(CZ(qC=q_d1, qT=q_a1))
+        sched.add(CZ(qC=q_d2, qT=q_a3))
+        sched.add(CZ(qC=q_d3, qT=q_a1))
+        sched.add(CZ(qC=q_d4, qT=q_a3))
+
+        sched.add(Y90(q_a1), ref_pt="end", rel_time=0)
+        sched.add(Y90(q_a3), ref_pt="start", rel_time=0)
+
+        sched.add(Measure(q_a2, acq_index=cycle))
+        for qubit in (q_a1, q_a3):
+            sched.add(Measure(qubit, acq_index=cycle), ref_pt="start", rel_time=0)
+
+        for qubit in [q_d1, q_d2, q_d3, q_d4]:
+            sched.add(X(qubit), ref_pt="start", rel_time=0)
+
+    # final measurements
+
+    sched.add(Measure(*all_qubits[:4], acq_index=0), ref_pt="end", rel_time=0)
+
+    return sched

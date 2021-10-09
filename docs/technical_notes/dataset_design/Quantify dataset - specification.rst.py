@@ -48,7 +48,7 @@ Quantify dataset specification
 """
 
 # %%
-rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+rst_json_conf = {"indent": "    "}
 
 import inspect
 from IPython.display import Code, display
@@ -61,7 +61,7 @@ from quantify_core.utilities import dataset_examples
 import quantify_core.data.dataset_attrs as dattrs
 import quantify_core.data.dataset_adapters as dadapters
 from quantify_core.utilities.examples_support import round_trip_dataset
-from quantify_core.utilities.inspect_utilities import display_source_code
+from quantify_core.utilities.inspect_utils import display_source_code
 
 pretty.install()
 

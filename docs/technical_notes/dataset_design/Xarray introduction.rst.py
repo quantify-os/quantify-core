@@ -56,7 +56,7 @@ before (it has very neat features!).
 """
 
 # %%
-rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+rst_json_conf = {"indent": "    "}
 
 import numpy as np
 import xarray as xr
