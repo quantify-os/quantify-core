@@ -45,6 +45,10 @@ Quantify dataset - advanced examples
 
 # %% [raw]
 """
+
+Here we will explore a few advanced usages of the quantify dataset and how it can
+accommodate them.
+
 .. admonition:: Imports and auxiliary utilities
     :class: dropdown
 """
@@ -77,17 +81,23 @@ set_datadir(Path.home() / "quantify-data")  # change me!
 """
 Dataset for an "unstructured" experiment
 ----------------------------------------
-"""
 
-# %% [raw]
-"""
-Schedule reference:
-:cite:`one of the papers from DiCarlo Lab <marques_logical_qubit_2021>`_, Fig. 4b.
+Let's take consider a Surface Code experiment, in particular the one portrayed in
+Fig. 4b from :cite:`one of the papers from DiCarlo Lab <marques_logical_qubit_2021>`.
 
-NB not exactly the same schedule, but what matter are the measurements.
+For simplicity, we will not use exactly the same schedule, because what matters here
+are the measurements. It is difficult to deal with the results of these measurements
+because we have a few repeating cycles followed by a final measurement that leaves the
+overall dataset "unstructured".
+
+.. figure:: /images/surface-7-sched.png
+    :width: 100%
 
 .. admonition:: Source code for generating this schedule and visualizing it
     :class: dropdown
+
+    The schedule from the figure above was generates with
+    :func:`quantify_core.utilities.examples_support.mk_surface_7_sched`.
 """
 
 # %%
@@ -109,11 +119,16 @@ except ImportError:
 
 # %% [raw]
 """
-How do we store all shots for this measurement? (we want it because, e.g., we know we
-have issue with leakage to the second excited state)
+How do we store all the shots for this measurement?
+We might want this because, e.g., we know we have an issue with leakage to the second
+excited state of a transmon and we would like to be able to store and inspect raw data.
+
+To support such use-case we will have a dimension in dataset for the repeating cycles
+and one for the final measurement.
 """
 
 # %%
+# mock data parameters
 num_shots = 128  # NB usually >~1000 in real experiments
 ground = -0.2 + 0.65j
 excited = 0.7 + 4j
@@ -148,15 +163,14 @@ mock_data_final = np.array(
 mock_data.shape, mock_data_final.shape
 
 # %%
-
-# NB same random data is used for all qubits only for the simplicity of the mock!
 data_vars = {}
 
+# NB same random data is used for all qubits only for the simplicity of the mock!
 for q in (f"A{i}" for i in range(3)):
     data_vars[f"{q}_shots"] = (
         ("repetitions", "dim_cycle"),
         mock_data,
-        mk_main_var_attrs(units="V", long_name=f"IQ amplitude {q}", coords=["cycles"]),
+        mk_main_var_attrs(unit="V", long_name=f"IQ amplitude {q}", coords=["cycles"]),
     )
 
 for q in (f"D{i}" for i in range(4)):
@@ -164,12 +178,12 @@ for q in (f"D{i}" for i in range(4)):
         ("repetitions", "dim_final"),
         mock_data_final,
         mk_main_var_attrs(
-            units="V", long_name=f"IQ amplitude {q}", coords=["final_msmt"]
+            unit="V", long_name=f"IQ amplitude {q}", coords=["final_msmt"]
         ),
     )
 
-cycle_attrs = mk_main_coord_attrs(units="", long_name="Surface code cycle number")
-final_msmt_attrs = mk_main_coord_attrs(units="", long_name="Final measurement")
+cycle_attrs = mk_main_coord_attrs(long_name="Surface code cycle number")
+final_msmt_attrs = mk_main_coord_attrs(long_name="Final measurement")
 coords = dict(
     cycle=("dim_cycle", cycles, cycle_attrs),
     final_msmt=("dim_final", [0], final_msmt_attrs),
@@ -203,6 +217,17 @@ dataset_gridded
 
 Dataset for a "nested MeasurementControl" experiment
 ----------------------------------------------------
+
+Now consider a dataset that has been constructed by an experiment involving the
+operation of two
+:class:`~quantify_core.measurement.control.MeasurementControl` objects. The second of
+them performs a "meta" outer loop in which we sweep a flux bias and then perform
+several experiments to characterize a transmon qubit, e.g. determining the frequency of
+a read-out resonator, the frequency of the transmon, and its T1 lifetime.
+
+Since the raw data is now split among several datasets, we would like to keep a
+reference to all these datasets. Below we showcase how this can be achieved, along with
+some useful xarray features and known limitations.
 """
 
 # %%
@@ -221,22 +246,22 @@ coords = dict(
     flux_bias=(
         "main_dim",
         flux_bias_values,
-        mk_main_coord_attrs(long_name="Flux bias", units="A"),
+        mk_main_coord_attrs(long_name="Flux bias", unit="A"),
     ),
     resonator_freq_tuids=(
         "main_dim",
         resonator_freq_tuids,
-        mk_main_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+        mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
     ),
     qubit_freq_tuids=(
         "main_dim",
         qubit_freq_tuids,
-        mk_main_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+        mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
     ),
     t1_tuids=(
         "main_dim",
         t1_tuids,
-        mk_main_coord_attrs(long_name="Dataset TUID", units="", is_dataset_ref=True),
+        mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
     ),
 )
 
@@ -249,20 +274,18 @@ data_vars = dict(
         "main_dim",
         resonator_frequencies,
         mk_main_var_attrs(
-            long_name="Resonator frequency", units="Hz", coords=[vars_coords]
+            long_name="Resonator frequency", unit="Hz", coords=[vars_coords]
         ),
     ),
     qubit_freq=(
         "main_dim",
         qubit_frequencies,
-        mk_main_var_attrs(
-            long_name="Qubit frequency", units="Hz", coords=[vars_coords]
-        ),
+        mk_main_var_attrs(long_name="Qubit frequency", unit="Hz", coords=[vars_coords]),
     ),
     t1=(
         "main_dim",
         t1_values,
-        mk_main_var_attrs(long_name="T1", units="s", coords=[vars_coords]),
+        mk_main_var_attrs(long_name="T1", unit="s", coords=[vars_coords]),
     ),
 )
 dataset_attrs = mk_dataset_attrs()
@@ -320,8 +343,8 @@ except NotImplementedError as exp:
 We could make our load/write utilities to take care of setting and resetting the index
 under the hood. Though there are some nuances there as well. If we would do that then
 some extra metadata needs to be stored in order to store/restore the multi-index.
-At the moment the MultiIndex is not supported yet when writing a Quantify dataset to
-disk. Below are a few examples of potential complications.
+At the moment, the MultiIndex is not supported when writing a Quantify dataset to
+disk. Below we show a few complications related to this.
 """
 
 # %% [raw]
