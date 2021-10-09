@@ -19,10 +19,10 @@
 import matplotlib.pyplot as plt
 from quantify_core.utilities.examples_support import mk_trace_for_iq_shot, mk_trace_time
 
-shot = 0.6 + 1.2j
+SHOT = 0.6 + 1.2j
 
 time = mk_trace_time()
-trace = mk_trace_for_iq_shot(shot)
+trace = mk_trace_for_iq_shot(SHOT)
 
 fig, ax = plt.subplots(1, 1, figsize=(12, 12 / 1.61 / 2))
 _ = ax.plot(time * 1e6, trace.imag, ".-", label="I-quadrature")

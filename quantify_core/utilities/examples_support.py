@@ -4,7 +4,7 @@
 # pylint: disable=too-many-arguments
 from __future__ import annotations
 
-from typing import List, Union, Any, Dict, Callable
+from typing import Tuple, Union, Any, Dict, Callable
 from pathlib import Path
 import xarray as xr
 import numpy as np
@@ -20,9 +20,9 @@ import quantify_core.data.dataset_attrs as dd
 
 def mk_iq_shots(
     n_shots: int = 128,
-    sigmas: Union[tuple, list, np.ndarray] = (0.1, 0.1),
-    centers: Union[tuple, list, np.ndarray] = (-0.2 + 0.65j, 0.7 + 4j),
-    probabilities: Union[tuple, list, np.ndarray] = (0.4, 0.6),
+    sigmas: Union[Tuple[float], np.ndarray] = (0.1, 0.1),
+    centers: Union[Tuple[complex], np.ndarray] = (-0.2 + 0.65j, 0.7 + 4j),
+    probabilities: Union[Tuple[float], np.ndarray] = (0.4, 0.6),
     seed: Union[int, None] = 112233,
 ) -> np.ndarray:
     """

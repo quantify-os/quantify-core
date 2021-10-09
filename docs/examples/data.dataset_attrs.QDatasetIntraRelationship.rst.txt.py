@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     cell_markers: \"\"\"
+#     cell_markers: '"""'
 #     formats: py:percent
 #     text_representation:
 #       extension: .py
@@ -15,14 +15,16 @@
 # ---
 
 # %% [raw]
-# This is how the attributes of a dataset containing a ``q0`` main variable and ``q0_cal`` secondary variables would look like.
-# The ``q0_cal`` corresponds to calibrations datapoints.
-# See :ref:`sec-quantify-dataset-examples` for examples with more context.
+"""
+This is how the attributes of a dataset containing a ``q0`` main variable and
+``q0_cal`` secondary variables would look like.
+The ``q0_cal`` corresponds to calibrations datapoints.
+See :ref:`sec-quantify-dataset-examples` for examples with more context.
+"""
 
 # %%
 from quantify_core.utilities import examples_support
 from quantify_core.data.dataset_attrs import QDatasetIntraRelationship
-import pendulum
 
 attrs = examples_support.mk_dataset_attrs(
     relationships=[

@@ -241,10 +241,6 @@ def mk_nested_mc_dataset(
         ),
     )
 
-    # A tuple instead of a single str will indicate that these coordinates can used as
-    # a Multindex
-    vars_coords = tuple(coords.keys())
-
     data_vars = dict(
         resonator_freq=(
             "main_dim",

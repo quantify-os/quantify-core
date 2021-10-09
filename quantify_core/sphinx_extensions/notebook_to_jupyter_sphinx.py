@@ -435,14 +435,20 @@ def notebooks_to_rst(app, config) -> None:
             path = Path(path)
         return path.name, suffixes
 
+    def rst_output_filepath(file: Path) -> Path:
+        rst_filepath = file.parent / Path(file.stem)  # removes .py extensions
+        name_dot_rst, suffixes = strip_suffixes(rst_filepath)
+        # we add extra .py extensions so that files can be `.gitignore`d
+        file_name = Path(name_dot_rst).stem + f".py.rst{''.join(suffixes)}"
+        return rst_filepath.parent / file_name
+
     srcdir = Path(app.srcdir)
-    rst_py_files = srcdir.rglob("*.rst.py")
     # Sometimes it is useful to generate rst contents in one dir but we want it to be
     # evaluated in another dir and for that the output file requires for example `.txt`
     # extension. A simple way to achieve this is to support input files
     # with extensions `.rst.*.py`, e.g., `.py.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
-    for file in itertools.chain(rst_py_files, rst_other_py_files):
+    for file in itertools.chain(srcdir.rglob("*.rst.py"), rst_other_py_files):
         if ".ipynb_checkpoints" in file.parts:
             # Ignore checkpoints created by Jupyter Notebook/Lab
             continue
@@ -450,14 +456,10 @@ def notebooks_to_rst(app, config) -> None:
         logger.debug("Converting file...", location=file)
         try:
             notebook = jupytext.read(file, fmt="py:percent")
-            rst_filepath = file.parent / Path(file.stem)  # removes .py extensions
-            name_dot_rst, suffixes = strip_suffixes(rst_filepath)
-            # we add extra .py extensions so that files can be `.gitignore`d
-            file_name = Path(name_dot_rst).stem + f".py.rst{''.join(suffixes)}"
-            rst_filepath = rst_filepath.parent / file_name
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
             always_rebuild = config["notebook_to_jupyter_sphinx_always_rebuild"]
             rst_str = notebook_to_rst(notebook, rst_indent)
+            rst_filepath = rst_output_filepath(file)
             if always_rebuild or _write_required(rst_filepath, rst_str):
                 Path(rst_filepath).write_text(rst_str, encoding=encoding)
         except Exception as e:
