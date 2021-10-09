@@ -56,20 +56,20 @@ accommodate them.
 # %%
 rst_json_conf = {"indent": "    "}
 
-import numpy as np
-import xarray as xr
 from quantify_core.data import handling as dh
 from rich import pretty
 from pathlib import Path
 from quantify_core.data.handling import set_datadir
 from quantify_core.utilities.inspect_utils import display_source_code
+from quantify_core.utilities.dataset_examples import (
+    mk_shots_from_probabilities,
+    mk_surface7_cyles_dataset,
+    mk_nested_mc_dataset,
+)
 from quantify_core.utilities.examples_support import (
-    mk_iq_shots,
-    mk_dataset_attrs,
-    mk_main_coord_attrs,
-    mk_main_var_attrs,
     round_trip_dataset,
-    mk_surface_7_sched,
+    mk_surface7_sched,
+    mk_iq_shots,
 )
 
 pretty.install()
@@ -83,7 +83,7 @@ Dataset for an "unstructured" experiment
 ----------------------------------------
 
 Let's take consider a Surface Code experiment, in particular the one portrayed in
-Fig. 4b from :cite:`one of the papers from DiCarlo Lab <marques_logical_qubit_2021>`.
+Fig. 4b from one of the papers from DiCarlo Lab :cite:`marques_logical_qubit_2021`.
 
 For simplicity, we will not use exactly the same schedule, because what matters here
 are the measurements. It is difficult to deal with the results of these measurements
@@ -97,12 +97,12 @@ overall dataset "unstructured".
     :class: dropdown
 
     The schedule from the figure above was generates with
-    :func:`quantify_core.utilities.examples_support.mk_surface_7_sched`.
+    :func:`quantify_core.utilities.examples_support.mk_surface7_sched`.
 """
 
 # %%
 rst_json_conf = {"indent": "    "}
-display_source_code(mk_surface_7_sched)
+display_source_code(mk_surface7_sched)
 
 # %%
 rst_json_conf = {"indent": "    "}
@@ -111,11 +111,12 @@ num_cycles = 3
 try:
     import quantify_scheduler.visualization.circuit_diagram as qscd
 
-    sched = mk_surface_7_sched(num_cycles=num_cycles)
+    sched = mk_surface7_sched(num_cycles=num_cycles)
     f, ax = qscd.circuit_diagram_matplotlib(sched)
     f.set_figwidth(30)
-except ImportError:
+except ImportError as exc:
     print("Quantify-Scheduler not installed.")
+    print(exc)
 
 # %% [raw]
 """
@@ -124,10 +125,10 @@ We might want this because, e.g., we know we have an issue with leakage to the s
 excited state of a transmon and we would like to be able to store and inspect raw data.
 
 To support such use-case we will have a dimension in dataset for the repeating cycles
-and one for the final measurement.
+and one extra dimension for the final measurement.
 """
 
-# %%
+# %% jupyter={"outputs_hidden": true} tags=[]
 # mock data parameters
 num_shots = 128  # NB usually >~1000 in real experiments
 ground = -0.2 + 0.65j
@@ -135,65 +136,12 @@ excited = 0.7 + 4j
 centroids = ground, excited
 sigmas = [0.1] * 2
 
-cycles = range(num_cycles)
+display_source_code(mk_iq_shots)
+display_source_code(mk_shots_from_probabilities)
+display_source_code(mk_surface7_cyles_dataset)
 
-mock_data = np.array(
-    tuple(
-        mk_iq_shots(
-            n_shots=num_shots,
-            sigmas=sigmas,
-            centers=centroids,
-            probabilities=[prob, 1 - prob],
-        )
-        for prob in [np.random.random() for _ in cycles]
-    )
-).T
-
-mock_data_final = np.array(
-    tuple(
-        mk_iq_shots(
-            n_shots=num_shots,
-            sigmas=sigmas,
-            centers=centroids,
-            probabilities=[prob, 1 - prob],
-        )
-        for prob in [np.random.random()]
-    )
-).T
-mock_data.shape, mock_data_final.shape
-
-# %%
-data_vars = {}
-
-# NB same random data is used for all qubits only for the simplicity of the mock!
-for q in (f"A{i}" for i in range(3)):
-    data_vars[f"{q}_shots"] = (
-        ("repetitions", "dim_cycle"),
-        mock_data,
-        mk_main_var_attrs(unit="V", long_name=f"IQ amplitude {q}", coords=["cycles"]),
-    )
-
-for q in (f"D{i}" for i in range(4)):
-    data_vars[f"{q}_shots"] = (
-        ("repetitions", "dim_final"),
-        mock_data_final,
-        mk_main_var_attrs(
-            unit="V", long_name=f"IQ amplitude {q}", coords=["final_msmt"]
-        ),
-    )
-
-cycle_attrs = mk_main_coord_attrs(long_name="Surface code cycle number")
-final_msmt_attrs = mk_main_coord_attrs(long_name="Final measurement")
-coords = dict(
-    cycle=("dim_cycle", cycles, cycle_attrs),
-    final_msmt=("dim_final", [0], final_msmt_attrs),
-)
-
-dataset = xr.Dataset(
-    data_vars=data_vars,
-    coords=coords,
-    attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
-)
+# %% jupyter={"outputs_hidden": true} tags=[]
+dataset = mk_surface7_cyles_dataset(n_shots=num_shots, sigmas=sigmas, centers=centroids)
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
@@ -230,70 +178,11 @@ reference to all these datasets. Below we showcase how this can be achieved, alo
 some useful xarray features and known limitations.
 """
 
-# %%
-flux_bias_values = np.linspace(-0.04, 0.04, 12)
+# %% jupyter={"outputs_hidden": true} tags=[]
+display_source_code(mk_nested_mc_dataset)
 
-resonator_frequencies = np.linspace(7e9, 8.5e9, len(flux_bias_values))
-qubit_frequencies = np.linspace(4.5e9, 4.6e9, len(flux_bias_values))
-t1_values = np.linspace(20e-6, 50e-6, len(flux_bias_values))
-
-resonator_freq_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
-qubit_freq_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
-t1_tuids = [dh.gen_tuid() for _ in range(len(flux_bias_values))]
-
-# %%
-coords = dict(
-    flux_bias=(
-        "main_dim",
-        flux_bias_values,
-        mk_main_coord_attrs(long_name="Flux bias", unit="A"),
-    ),
-    resonator_freq_tuids=(
-        "main_dim",
-        resonator_freq_tuids,
-        mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
-    ),
-    qubit_freq_tuids=(
-        "main_dim",
-        qubit_freq_tuids,
-        mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
-    ),
-    t1_tuids=(
-        "main_dim",
-        t1_tuids,
-        mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
-    ),
-)
-
-# A tuple instead of a single str will indicate that these coordinates can used as
-# a Multindex
-vars_coords = tuple(coords.keys())
-
-data_vars = dict(
-    resonator_freq=(
-        "main_dim",
-        resonator_frequencies,
-        mk_main_var_attrs(
-            long_name="Resonator frequency", unit="Hz", coords=[vars_coords]
-        ),
-    ),
-    qubit_freq=(
-        "main_dim",
-        qubit_frequencies,
-        mk_main_var_attrs(long_name="Qubit frequency", unit="Hz", coords=[vars_coords]),
-    ),
-    t1=(
-        "main_dim",
-        t1_values,
-        mk_main_var_attrs(long_name="T1", unit="s", coords=[vars_coords]),
-    ),
-)
-dataset_attrs = mk_dataset_attrs()
-
-dataset = xr.Dataset(data_vars=data_vars, coords=coords, attrs=dataset_attrs)
-
+dataset = mk_nested_mc_dataset()
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
-
 dataset
 
 # %% [raw]
@@ -304,8 +193,7 @@ possible to work with an explicit MultiIndex within a (python) xarray object:
 """
 
 # %%
-dataset_multi_indexed = dataset.set_index({"main_dim": vars_coords})
-
+dataset_multi_indexed = dataset.set_index({"main_dim": tuple(dataset.t1.coords.keys())})
 dataset_multi_indexed
 
 # %% [raw]
@@ -315,10 +203,12 @@ The MultiIndex is very handy for selecting data in different ways, e.g.:
 
 # %%
 index = 2
-dataset_multi_indexed.qubit_freq.sel(resonator_freq_tuids=resonator_freq_tuids[index])
+dataset_multi_indexed.qubit_freq.sel(
+    qubit_freq_tuids=dataset_multi_indexed.qubit_freq_tuids.values[index]
+)
 
 # %%
-dataset_multi_indexed.qubit_freq.sel(t1_tuids=t1_tuids[index])
+dataset_multi_indexed.qubit_freq.sel(t1_tuids=dataset.t1_tuids.values[index])
 
 # %% [raw]
 """
