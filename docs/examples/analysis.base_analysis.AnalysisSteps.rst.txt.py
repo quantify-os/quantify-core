@@ -15,7 +15,7 @@
 # ---
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -23,7 +23,7 @@
 
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:", ":hide-output:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:", ":hide-output:"]}
 
 from qcodes import Instrument
 
@@ -39,8 +39,7 @@ Instrument.close_all()
 """
 
 # %%
-# rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-code:", ":hide-output:"]}
-
+rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-code:"]}
 
 import numpy as np
 from pathlib import Path
@@ -69,7 +68,7 @@ dataset = meas_ctrl.run("2D-mock")
 
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_json_conf = {"indent": "    "}
 
 from quantify_core.analysis.base_analysis import BasicAnalysis
 

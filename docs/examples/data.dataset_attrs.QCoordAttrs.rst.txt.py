@@ -13,7 +13,7 @@
 # ---
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
