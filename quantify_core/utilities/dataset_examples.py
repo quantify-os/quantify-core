@@ -109,12 +109,8 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
     amp_values, time_values, pop_q0, pop_q1 = mk_two_qubit_chevron_data(**kwargs)
 
     dims_q0 = dims_q1 = ("repetitions", "main_dim")
-    pop_q0_attrs = mk_main_var_attrs(
-        long_name="Population Q0", unit="", coords=["amp", "time"]
-    )
-    pop_q1_attrs = mk_main_var_attrs(
-        long_name="Population Q1", unit="", coords=["amp", "time"]
-    )
+    pop_q0_attrs = mk_main_var_attrs(long_name="Population Q0", unit="")
+    pop_q1_attrs = mk_main_var_attrs(long_name="Population Q1", unit="")
     data_vars = dict(
         pop_q0=(dims_q0, pop_q0, pop_q0_attrs),
         pop_q1=(dims_q1, pop_q1, pop_q1_attrs),
@@ -166,18 +162,14 @@ def mk_surface7_cyles_dataset(num_cycles: int = 3, **kwargs) -> xr.Dataset:
         data_vars[f"{qubit}_shots"] = (
             ("repetitions", "dim_cycle"),
             mock_data,
-            mk_main_var_attrs(
-                unit="V", long_name=f"IQ amplitude {qubit}", coords=["cycles"]
-            ),
+            mk_main_var_attrs(unit="V", long_name=f"IQ amplitude {qubit}"),
         )
 
     for qubit in (f"D{i}" for i in range(4)):
         data_vars[f"{qubit}_shots"] = (
             ("repetitions", "dim_final"),
             mock_data_final,
-            mk_main_var_attrs(
-                unit="V", long_name=f"IQ amplitude {qubit}", coords=["final_msmt"]
-            ),
+            mk_main_var_attrs(unit="V", long_name=f"IQ amplitude {qubit}"),
         )
 
     cycle_attrs = mk_main_coord_attrs(long_name="Surface code cycle number")

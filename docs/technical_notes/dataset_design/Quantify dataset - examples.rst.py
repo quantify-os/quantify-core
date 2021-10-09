@@ -23,6 +23,8 @@ rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=pointless-string-statement
 # pylint: disable=pointless-statement
 # pylint: disable=invalid-name
+# pylint: disable=expression-not-assigned
+
 
 # %% [raw]
 """
@@ -223,7 +225,7 @@ shots = mk_iq_shots(
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
-plot_centroids(plt.gca(), *centroids)
+plot_centroids(*centroids, ax=plt.gca())
 
 # %%
 rst_json_conf = {"indent": "    "}
@@ -284,7 +286,7 @@ q0_iq_av = np.fromiter(
                 n_shots=num_shots,
                 sigmas=sigmas,
                 centers=centroids,
-                probabilities=[prob, 1 - prob],
+                probabilities=[1 - prob, prob],
             )
         )
         for prob in probabilities
@@ -301,7 +303,7 @@ datapoints:
 
 # %%
 main_dims = ("main_dim",)
-q0_attrs = mk_main_var_attrs(unit="V", long_name="Q0 IQ amplitude", coords=["t1_time"])
+q0_attrs = mk_main_var_attrs(unit="V", long_name="Q0 IQ amplitude")
 t1_time_attrs = mk_main_coord_attrs(unit="s", long_name="T1 Time")
 
 data_vars = dict(q0_iq_av=(main_dims, q0_iq_av, q0_attrs))
@@ -379,7 +381,7 @@ def plot_iq_no_repetition(gridded_dataset, ax=None):
 # %%
 plot_decay_no_repetition(dataset_gridded)
 fig, ax = plot_iq_no_repetition(dataset_gridded)
-plot_centroids(ax, *centroids)
+plot_centroids(*centroids, ax=ax)
 
 # %% [raw]
 """
@@ -400,7 +402,7 @@ q0_iq_av_cal = np.fromiter(  # generate mock calibration data
                 n_shots=num_shots,
                 sigmas=sigmas,
                 centers=centroids,
-                probabilities=[prob, 1 - prob],
+                probabilities=[1 - prob, prob],
             )
         )
         for prob in [0, 1]
@@ -424,9 +426,7 @@ dataset.
 
 # %%
 secondary_dims = ("cal_dim",)
-q0_cal_attrs = mk_secondary_var_attrs(
-    unit="V", long_name="Q0 IQ Calibration", coords=["cal"]
-)
+q0_cal_attrs = mk_secondary_var_attrs(unit="V", long_name="Q0 IQ Calibration")
 cal_attrs = mk_secondary_coord_attrs(unit="", long_name="Q0 state")
 
 relationships = [
@@ -545,7 +545,7 @@ q0_iq_shots = np.array(
             n_shots=num_shots,
             sigmas=sigmas,
             centers=centroids,
-            probabilities=[prob, 1 - prob],
+            probabilities=[1 - prob, prob],
         )
         for prob in probabilities
     )
@@ -557,7 +557,7 @@ q0_iq_shots_cal = np.array(
             n_shots=num_shots,
             sigmas=sigmas,
             centers=centroids,
-            probabilities=[prob, 1 - prob],
+            probabilities=[1 - prob, prob],
         )
         for prob in [0, 1]
     )
@@ -674,7 +674,7 @@ for t_example in chosen_time_values:
     plt.ylabel("Q")
     calib_0 = dataset_gridded.q0_iq_av_cal.sel(cal="|0>")
     calib_1 = dataset_gridded.q0_iq_av_cal.sel(cal="|1>")
-    plot_centroids(plt.gca(), calib_0, calib_1)
+    plot_centroids(calib_0, calib_1, ax=plt.gca())
     plt.suptitle(f"Shots fot t = {t_example:.5f} [s]")
     plt.show()
 
@@ -721,7 +721,7 @@ def plot_iq_decay_repetition(gridded_dataset):
 
 # %%
 fig, ax = plot_iq_decay_repetition(dataset_gridded)
-plot_centroids(ax, *centroids)
+plot_centroids(*centroids, ax=ax)
 
 # %% [raw]
 """
@@ -756,18 +756,13 @@ relationships_with_traces = relationships + [
     ).to_dict(),
 ]
 
-q0_trace_attrs = dict(q0_attrs)
-q0_trace_attrs.update(coords=["t1_time", "trace_time"])
-q0_trace_cal_attrs = dict(q0_attrs)
-q0_trace_cal_attrs.update(coords=["cal", "trace_time"])
-
 data_vars = dict(
     q0_iq_av=(main_dims, q0_iq_av, q0_attrs),
     q0_iq_av_cal=(secondary_dims, q0_iq_av_cal, q0_cal_attrs),
     q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs),
     q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs),
-    q0_traces=(traces_dims, q0_traces, q0_trace_attrs),
-    q0_traces_cal=(traces_cal_dims, q0_traces_cal, q0_trace_cal_attrs),
+    q0_traces=(traces_dims, q0_traces, q0_attrs),
+    q0_traces_cal=(traces_cal_dims, q0_traces_cal, q0_attrs),
 )
 coords = dict(
     t1_time=(main_dims, t1_times, t1_time_attrs),
