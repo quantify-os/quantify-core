@@ -78,12 +78,12 @@ n = 5
 
 values_pos = np.linspace(-5, 5, n)
 dimensions_pos = ("position_x",)
-# the "units" and "long_name" are a convention for automatic plotting
-attrs_pos = dict(units="m", long_name="Position")  # attributes of this data variable
+# the "unit" and "long_name" are a convention for automatic plotting
+attrs_pos = dict(unit="m", long_name="Position")  # attributes of this data variable
 
 values_vel = np.linspace(0, 10, n)
 dimensions_vel = ("velocity_x",)
-attrs_vel = dict(units="m/s", long_name="Velocity")
+attrs_vel = dict(unit="m/s", long_name="Velocity")
 
 data_vars = dict(
     position=(dimensions_pos, values_pos, attrs_pos),
@@ -149,7 +149,7 @@ does this for the Quantify dataset), as shown below (note the bold font in the o
 
 # %%
 dataset = dataset.set_index({"position_x": "position"})
-dataset.position_x.attrs["units"] = "m"
+dataset.position_x.attrs["unit"] = "m"
 dataset.position_x.attrs["long_name"] = "Position x"
 dataset
 
@@ -211,5 +211,5 @@ _ = dataset.velocity.plot(marker="o")
 
 # %% [raw]
 """
-Note the automatic labels and units.
+Note the automatic labels and unit.
 """

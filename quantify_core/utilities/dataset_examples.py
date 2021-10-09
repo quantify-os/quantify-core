@@ -84,10 +84,10 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
 
     dims_q0 = dims_q1 = ("repetitions", "main_dim")
     pop_q0_attrs = mk_main_var_attrs(
-        long_name="Population Q0", units="", coords=["amp", "time"]
+        long_name="Population Q0", unit="", coords=["amp", "time"]
     )
     pop_q1_attrs = mk_main_var_attrs(
-        long_name="Population Q1", units="", coords=["amp", "time"]
+        long_name="Population Q1", unit="", coords=["amp", "time"]
     )
     data_vars = dict(
         pop_q0=(dims_q0, pop_q0, pop_q0_attrs),
@@ -95,8 +95,8 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
     )
 
     dims_amp = dims_time = ("main_dim",)
-    amp_attrs = mk_main_coord_attrs(long_name="Amplitude", units="V")
-    time_attrs = mk_main_coord_attrs(long_name="Time", units="s")
+    amp_attrs = mk_main_coord_attrs(long_name="Amplitude", unit="V")
+    time_attrs = mk_main_coord_attrs(long_name="Time", unit="s")
     coords = dict(
         amp=(dims_amp, amp_values, amp_attrs),
         time=(dims_time, time_values, time_attrs),
