@@ -1,6 +1,10 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Module containing matplotlib and xarray plotting utilities."""
+"""Module containing matplotlib and xarray plotting utilities.
+
+Naming convention: plotting functions that require Xarray object(s) as inputs are named
+``plot_xr_...``.
+"""
 # pylint: disable=too-many-arguments, too-many-locals
 from typing import Tuple, Union
 from typing_extensions import Literal
@@ -14,11 +18,254 @@ from matplotlib.text import Text
 from matplotlib.collections import QuadMesh, Collection
 from matplotlib.image import AxesImage
 from matplotlib.colorbar import Colorbar
+from matplotlib.lines import Line2D
 from quantify_core.visualization.SI_utilities import (
     set_xlabel,
     set_ylabel,
     set_cbarlabel,
 )
+
+
+def plot_complex_points(
+    points: Union[list, np.ndarray],
+    colors: list = None,
+    labels: list = None,
+    markers: list = None,
+    legend: bool = True,
+    ax: Axes = None,
+    **kwargs,
+) -> Tuple[Figure, Axes]:
+    """Plots complex points with (by default) different colors and markers on
+    the imaginary plane using :meth:`matplotlib.axes.Axes.plot`.
+
+    Intended for a small number of points.
+
+    .. admonition:: Example
+
+        from quantify_core.utilities.examples_support import plot_centroids
+
+        _ = plot_centroids([1 + 1j, -1.5 - 2j])
+
+    Parameters
+    ----------
+    ax
+        A matplotlib axis to plot on.
+    points
+        Array of complex numbers.
+    colors
+        Colors to use for each point.
+    labels
+        Labels to use for each point. Defaults to ``f"|{i}>"``
+    markers
+        Markers to use for each point.
+    legend
+        Calls :meth:`~matplotlib.axes.Axes.legend` if ``True``.
+    **kwargs
+        Keyword arguments passed to the :meth:`~matplotlib.axes.Axes.plot`.
+    """
+    if ax is None:
+        _, ax = plt.subplots()
+
+    if colors is None:
+        colors = [f"C{i%9}" for i in range(len(points))]
+
+    if labels is None:
+        # expected usage: plot calibration points
+        labels = [f"|{i}>" for i in range(len(points))]
+
+    if markers is None:
+        markers = Line2D.filled_markers
+        markers = [markers[i % len(Line2D.filled_markers)] for i in range(len(points))]
+
+    if "linestyle" not in kwargs:
+        kwargs["linestyle"] = ""
+
+    if "markersize" not in kwargs:
+        kwargs["markersize"] = 10
+
+    points = np.asarray(points)
+
+    for real, imag, label, marker, color in zip(
+        points.real, points.imag, labels, markers, colors
+    ):
+        ax.plot(
+            [real],
+            [imag],
+            label=label,
+            marker=marker,
+            color=color,
+            **kwargs,
+        )
+
+    if legend:
+        ax.legend()
+
+    return ax.get_figure(), ax
+
+
+def get_unit_from_attrs(data_array: xr.DataArray, str_format: str = " [{}]") -> str:
+    """Extracts and formats the unit/units from an :class:`xarray.DataArray` attribute.
+
+    Parameters
+    ----------
+    data_array
+        Xarray array (coordinate or variable).
+    str_format
+        String that will be formatted if a unit is found.
+
+    Returns
+    -------
+    :
+        ``str_format`` string formatted with the ``data_array.unit`` or
+        ``data_array.units``, with that order of precedence. Empty string is returned
+        if none of these arguments are present.
+    """
+
+    if data_array.attrs.get("unit"):
+        str_format = str_format.format(data_array.attrs["unit"])
+    elif data_array.attrs.get("units"):
+        str_format = str_format.format(data_array.attrs["units"])
+    else:
+        str_format = ""
+
+    return str_format
+
+
+# pylint: disable=invalid-name
+def plot_xr_complex(
+    var: xr.DataArray,
+    marker_scatter: str = "o",
+    label_real: str = "Real",
+    label_imag: str = "Imag",
+    cmap: str = "viridis",
+    c: np.ndarray = None,
+    kwargs_line: dict = None,
+    kwargs_scatter: dict = None,
+    title: str = "{} [{}]; shape = {}",
+    legend: bool = True,
+    ax: object = None,
+) -> Tuple[Figure, Axes]:
+    """Plots the real and imaginary parts of complex data. Points are colored by default
+    according to their order in the array.
+
+    Parameters
+    ----------
+    var
+        1D array of complex data.
+    marker_scatter
+        Marker used for the scatter plot.
+    label_real
+        Label for legend.
+    label_imag
+        Label for legend.
+    cmap
+        The colormap to use for coloring the points.
+    c
+        Color of the points. Defaults to an array of integers.
+    kwargs_line
+        Keyword arguments passed to :meth:`matplotlib.axes.Axes.plot`.
+    kwargs_scatter
+        Keyword arguments passed to :meth:`matplotlib.axes.Axes.scatter`.
+    title
+        Axes title. By default gets formatted with ``var.long_name``, ``var.name`` and
+        var.shape``.
+    legend
+        Calls :meth:`~matplotlib.axes.Axes.legend` if ``True``.
+    ax
+        The matplotlib axes. If ``None`` a new axes (and figure) is created.
+    """
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    if c is None:
+        c = np.arange(len(var))
+
+    if kwargs_line is None:
+        kwargs_line = {}
+
+    if kwargs_scatter is None:
+        kwargs_scatter = {}
+
+    if "marker" not in kwargs_line:
+        kwargs_line["marker"] = ""
+
+    var.real.plot(ax=ax, label=label_real, **kwargs_line)
+    var.imag.plot(ax=ax, label=label_imag, **kwargs_line)
+
+    for vals in (var.real, var.imag):
+        ax.scatter(
+            next(iter(var.coords.values())).values,
+            vals,
+            marker=marker_scatter,
+            c=c,
+            cmap=cmap,
+            **kwargs_scatter,
+        )
+
+    ax.set_title(title.format(var.long_name, var.name, var.shape))
+
+    if legend:
+        ax.legend()
+
+    return ax.get_figure(), ax
+
+
+# pylint: disable=invalid-name
+def plot_xr_complex_on_plane(
+    var: xr.DataArray,
+    marker: str = "o",
+    label: str = "Data on imaginary plane",
+    cmap: str = "viridis",
+    c: np.ndarray = None,
+    xlabel: str = "Real{}{}{}",
+    ylabel: str = "Imag{}{}{}",
+    legend: bool = True,
+    ax: object = None,
+    **kwargs,
+) -> Tuple[Figure, Axes]:
+    """Plots complex data on the imaginary plane. Points are colored by default
+    according to their order in the array.
+
+
+    Parameters
+    ----------
+    var
+        1D array of complex data.
+    marker
+        Marker used for the scatter plot.
+    label
+        Data label for the legend.
+    cmap
+        The colormap to use for coloring the points.
+    c
+        Color of the points. Defaults to an array of integers.
+    xlabel
+        Label o x axes.
+    ylabel
+        Label o y axes.
+    legend
+        Calls :meth:`~matplotlib.axes.Axes.legend` if ``True``.
+    ax
+        The matplotlib axes. If ``None`` a new axes (and figure) is created.
+    """
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    if c is None:
+        c = np.arange(0, len(var))
+
+    ax.scatter(var.real, var.imag, marker=marker, label=label, c=c, cmap=cmap, **kwargs)
+
+    unit_str = get_unit_from_attrs(var)
+    ax.set_xlabel(xlabel.format(" ", var.name, unit_str))
+    ax.set_ylabel(ylabel.format(" ", var.name, unit_str))
+
+    if legend:
+        ax.legend()
+
+    return ax.get_figure(), ax
 
 
 def set_suptitle_from_dataset(

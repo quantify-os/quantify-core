@@ -65,15 +65,17 @@ from quantify_core.utilities.examples_support import (
     mk_iq_shots,
     mk_trace_time,
     mk_trace_for_iq_shot,
-    plot_centroids,
-    plot_complex,
-    plot_complex_on_plane,
     mk_dataset_attrs,
     mk_main_coord_attrs,
     mk_secondary_coord_attrs,
     mk_main_var_attrs,
     mk_secondary_var_attrs,
     round_trip_dataset,
+)
+from quantify_core.visualization.mpl_plotting import (
+    plot_complex_points,
+    plot_xr_complex,
+    plot_xr_complex_on_plane,
 )
 
 pretty.install()
@@ -192,7 +194,6 @@ during a T1 experiment.
     - :func:`quantify_core.utilities.examples_support.mk_iq_shots`
     - :func:`quantify_core.utilities.examples_support.mk_trace_time`
     - :func:`quantify_core.utilities.examples_support.mk_trace_for_iq_shot`
-    - :func:`quantify_core.utilities.examples_support.plot_centroids`
     - :func:`quantify_core.analysis.fitting_models.exp_decay_func`
 
     Below you can find the source-code of the most important ones and a few usage
@@ -223,7 +224,7 @@ shots = mk_iq_shots(
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
-_ = plot_centroids(*centroids, ax=plt.gca())
+_ = plot_complex_points(centroids, ax=plt.gca())
 
 # %%
 rst_json_conf = {"indent": "    "}
@@ -337,13 +338,13 @@ dataset_gridded
 # %% tags=[]
 rst_json_conf = {"indent": "    "}
 
-display_source_code(plot_complex)
-display_source_code(plot_complex_on_plane)
+display_source_code(plot_xr_complex)
+display_source_code(plot_xr_complex_on_plane)
 
 # %% tags=[]
-plot_complex(dataset_gridded.q0_iq_av)
-fig, ax = plot_complex_on_plane(dataset_gridded.q0_iq_av)
-_ = plot_centroids(*centroids, ax=ax)
+plot_xr_complex(dataset_gridded.q0_iq_av)
+fig, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
+_ = plot_complex_points(centroids, ax=ax)
 
 # %% [raw]
 """
@@ -451,7 +452,7 @@ dataset_gridded
 fig = plt.figure(figsize=(8, 5))
 
 ax = plt.subplot2grid((1, 10), (0, 0), colspan=9, fig=fig)
-plot_complex(dataset_gridded.q0_iq_av, ax=ax)
+plot_xr_complex(dataset_gridded.q0_iq_av, ax=ax)
 
 ax_calib = plt.subplot2grid((1, 10), (0, 9), colspan=1, fig=fig, sharey=ax)
 for i, color in zip(
@@ -466,8 +467,8 @@ for i, color in zip(
 ax_calib.yaxis.set_label_position("right")
 ax_calib.yaxis.tick_right()
 
-fig, ax = plot_complex_on_plane(dataset_gridded.q0_iq_av)
-_ = plot_centroids(*dataset_gridded.q0_iq_av_cal.values, ax=ax)
+fig, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
+_ = plot_complex_points(dataset_gridded.q0_iq_av_cal.values, ax=ax)
 
 
 # %% [raw]
@@ -499,7 +500,7 @@ rotated_and_normalized_da = xr.DataArray(dataset_gridded.q0_iq_av)
 rotated_and_normalized_da.values = rotated_and_normalized
 rotated_and_normalized_da.attrs["long_name"] = "|1> Population"
 rotated_and_normalized_da.attrs["units"] = ""
-_ = plot_complex(rotated_and_normalized_da)
+_ = plot_xr_complex(rotated_and_normalized_da)
 
 # %% [raw]
 """
@@ -610,9 +611,9 @@ can be plotted in the same way as before.
 """
 
 # %%
-_ = plot_complex(dataset_gridded.q0_iq_av)
-_, ax = plot_complex_on_plane(dataset_gridded.q0_iq_av)
-_ = plot_centroids(*dataset_gridded.q0_iq_av_cal.values, ax=ax)
+_ = plot_xr_complex(dataset_gridded.q0_iq_av)
+_, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
+_ = plot_complex_points(dataset_gridded.q0_iq_av_cal.values, ax=ax)
 
 # %% [raw]
 """
@@ -637,7 +638,7 @@ for t_example in chosen_time_values:
     plt.ylabel("Q")
     calib_0 = dataset_gridded.q0_iq_av_cal.sel(cal="|0>")
     calib_1 = dataset_gridded.q0_iq_av_cal.sel(cal="|1>")
-    plot_centroids(calib_0, calib_1, ax=plt.gca())
+    plot_complex_points([calib_0, calib_1], ax=plt.gca())
     plt.suptitle(f"Shots fot t = {t_example:.5f} [s]")
     plt.show()
 
@@ -649,9 +650,9 @@ We can collapse (average along) the ``repetitions`` dimension:
 
 # %%
 q0_iq_shots_mean = dataset_gridded.q0_iq_shots.mean(dim="repetitions", keep_attrs=True)
-plot_complex(q0_iq_shots_mean)
-_, ax = plot_complex_on_plane(q0_iq_shots_mean)
-_ = plot_centroids(*centroids, ax=ax)
+plot_xr_complex(q0_iq_shots_mean)
+_, ax = plot_xr_complex_on_plane(q0_iq_shots_mean)
+_ = plot_complex_points(centroids, ax=ax)
 
 # %% [raw]
 """
