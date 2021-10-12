@@ -6,10 +6,6 @@ import matplotlib.colors as mplc
 import numpy as np
 
 
-def clip(x, vmin=0.0, vmax=1.0):
-    return max(min(x, vmax), vmin)
-
-
 def set_hlsa(
     color,
     h: float = None,
@@ -25,6 +21,7 @@ def set_hlsa(
 
     .. include:: /examples/visualization.color_utilities.set_hlsa.py.rst.txt
     """
+    clip = lambda x: np.clip(x, 0, 1)
     rgb = mplc.to_rgb(color)
     hls = colorsys.rgb_to_hls(*mplc.to_rgb(rgb))
     new_hls = (old if new is None else clip(new) for old, new in zip(hls, (h, l, s)))

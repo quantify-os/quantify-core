@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Module containing matplotlib plotting utilities."""
+"""Module containing matplotlib and xarray plotting utilities."""
+# pylint: disable=too-many-arguments, too-many-locals
 from typing import Tuple, Union
 from typing_extensions import Literal
 import numpy as np
@@ -26,20 +27,20 @@ def set_suptitle_from_dataset(
     """
     Sets the suptitle of a matplotlib figure based on
 
-    - (optional) prefix
-    - data.name
-    - dataset.tuid
+    - (optional) ``prefix``;
+    - ``dataset.name``;
+    - ``dataset.tuid``,
 
     Intended for tagging figures with unique ID of the original dataset.
 
     Parameters
     ----------
     prefix
-        Optional string to pre-pend, e.g., :code:`x0-y0`.
+        Optional string to pre-pend, e.g., ``x0-y0``.
     fig
         The matplotlib figure.
     dataset
-        A dataset expected to have a :code:`.attrs["name"]` and a :code:`attrs["tuid"]`.
+        A dataset expected to have a ``.name`` and a ``.tuid"`` attributes.
     """
     fig.suptitle(f"{prefix} {dataset.name}\ntuid: {dataset.tuid}")
 
@@ -55,8 +56,8 @@ def set_cyclic_colormap(
 
     Parameters
     ----------
-    image_or_collection: Union[:class:`~matplotlib.image.AxesImage`, :class:`~matplotlib.collections.QuadMesh`, :class:`~matplotlib.collections.Collection`]
-        a matplotlib object returned by either one of :func:`~matplotlib.pyplot.pcolor`,
+    image_or_collection
+        A matplotlib object returned by either one of :func:`~matplotlib.pyplot.pcolor`,
         :func:`~matplotlib.pyplot.pcolormesh`, :func:`~matplotlib.pyplot.imshow` or
         :func:`~matplotlib.pyplot.matshow`.
     shifted
@@ -69,7 +70,7 @@ def set_cyclic_colormap(
 
 
     .. include:: /examples/visualization.mpl_plotting.set_cyclic_colormap.py.rst.txt
-    """
+    """  # pylint: disable=line-too-long
     shifted = bool(shifted)  # in case xarray min() is used
     if unit in {"deg", "rad"}:
         clim_d = {
@@ -87,10 +88,10 @@ def plot_textbox(ax: Axes, text: str, **kw) -> Text:
 
     Parameters
     ----------
-    ax: :obj:`~matplotlib.axes.Axes`
-        the :obj:`~matplotlib.axes.Axes` on which to plot
+    ax
+        The :obj:`~matplotlib.axes.Axes` on which to plot.
     text
-        the text of the textbox
+        The text of the textbox.
 
     Return
     ------
@@ -125,18 +126,18 @@ def plot_fit(
 
     Parameters
     ----------
-    ax: :obj:`~matplotlib.axes.Axes`
+    ax
         axis on which to plot the fit.
     fit_res
         an lmfit fit results object.
     plot_init
         if True, plot the initial guess of the fit.
     plot_numpoints
-        the number of points used on which to evaulate the fit.
+        the number of points used on which to evaluate the fit.
     range_casting
         how to plot fit functions that have a complex range.
-        Casting of values happens using :obj:`~numpy.absolute`, :obj:`~numpy.angle`, :obj:`~numpy.real` and :obj:`~numpy.imag`.
-        angle is in degrees.
+        Casting of values happens using :obj:`~numpy.absolute`, :obj:`~numpy.angle`,
+        :obj:`~numpy.real` and :obj:`~numpy.imag`. Angle is in degrees.
     """
     model = fit_res.model
 
@@ -210,43 +211,45 @@ def flex_colormesh_plot_vs_xy(
     transpose: bool = False,
 ) -> QuadMesh:
     """
-    Add a rectangular block to a color plot using pcolormesh.
+    Add a rectangular block to a color plot using
+    :meth:`~matplotlib.axes.Axes.pcolormesh`.
 
     Parameters
-    -----------------
-    xvals:
-        length N array corresponding to settable x0.
-    yvals:
-        length M array corresponding to settable x1.
-    zvals:
+    ----------
+    xvals
+        Length N array corresponding to settable x0.
+    yvals
+        Length M array corresponding to settable x1.
+    zvals
         M*N array corresponding to gettable yi.
-    ax: :obj:`~matplotlib.axes.Axes`
-        axis to which to add the colormesh
-    normalize:
-        if True, normalezes each row of data.
-    log:
-        if True, uses a logarithmic colorscale
-    cmap:
-        colormap to use. See `matplotlib docs <https://matplotlib.org/tutorials/colors/colormaps.html>`_
-        for choosing an appropriate colormap.
-    vlim:
-        limits of the z-axis.
-    transpose:
-        if True transposes the figure.
+    ax
+        Axis to which to add the colormesh.
+    normalize
+        If ``True``, normalizes each row of data.
+    log
+        if ``True``, uses a logarithmic colorscale.
+    cmap
+        Colormap to use. See
+        `matplotlib docs <https://matplotlib.org/tutorials/colors/colormaps.html>`_ for
+        choosing an appropriate colormap.
+    vlim
+        Limits of the z-axis.
+    transpose
+        If ``True`` transposes the figure.
 
     Returns
     ------------
     :
-        the created matplotlib QuadMesh
+        The created matplotlib QuadMesh.
 
 
     .. warning::
 
         The **grid orientation** for the zvals is the same as is used in
-        ax.pcolormesh.
+        :meth:`~matplotlib.axes.Axes.pcolormesh`.
         Note that the column index corresponds to the x-coordinate,
         and the row index corresponds to y.
-        This can be counterintuitive: zvals(y_idx, x_idx)
+        This can be counter.intuitive: zvals(y_idx, x_idx)
         and can be inconsistent with some arrays of zvals
         (such as a 2D histogram from numpy).
 
@@ -308,6 +311,7 @@ def flex_colormesh_plot_vs_xy(
     return colormap
 
 
+# pylint: disable=invalid-name
 def plot_2d_grid(
     x,
     y,
@@ -329,45 +333,52 @@ def plot_2d_grid(
     transpose: bool = False,
 ) -> Tuple[QuadMesh, Colorbar]:
     """
-    Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns" of data of equal length.
-
+    Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns"
+    of data of equal length.
 
     Parameters
-    ------------
-    x, y:
-        length N array corresponding to settable x0 and x1.
+    ----------
+    x
+        Length N array corresponding to x values.
+    y
+        Length N array corresponding to y values.
     z:
-        length N array corresponding to gettable yi.
-    xlabel, ylabel :
-        x/y label to add to the heatmap.
-    xunit, yunit :
-        x/y unit used in unit aware axis labels.
-    zlabel:
-        label used for the colorbar
-    ax: :obj:`~matplotlib.axes.Axes`
-        axis to which to add the colormesh
-    cax: :obj:`~matplotlib.axes.Axes`
-        axis on which to add the colorbar, if set to None, will create a new axis.
-    add_cbar:
-        if True, adds a colorbar.
-    title:
+        Length N array corresponding to gettable z values.
+    xlabel
+        x label to add to the heatmap.
+    ylabel
+        y label to add to the heatmap.
+    xunit
+        x unit used in unit aware axis labels.
+    yunit
+        y unit used in unit aware axis labels.
+    zlabel
+        Label used for the colorbar.
+    ax
+        Axis to which to add the colormesh.
+    cax
+        Axis on which to add the colorbar, if set to ``None``, will create a new axis.
+    add_cbar
+        if ``True``, adds a colorbar.
+    title
         Text to add as title to the axis.
-    normalize:
-        if True, normalezes each row of data.
-    log:
-        if True, uses a logarithmic colorscale
-    cmap:
-        colormap to use. See `matplotlib docs <https://matplotlib.org/tutorials/colors/colormaps.html>`_
-        for choosing an appropriate colormap.
-    vlim:
+    normalize
+        if ``True``, normalizes each row of data.
+    log
+        if ``True``, uses a logarithmic colorscale
+    cmap
+        The colormap to use. See
+        `matplotlib docs <https://matplotlib.org/tutorials/colors/colormaps.html>`_ for
+        choosing an appropriate colormap.
+    vlim
         limits of the z-axis.
-    transpose:
-        if True transposes the figure.
+    transpose
+        if ``True`` transposes the figure.
 
     Returns
-    ------------
+    -------
     :
-        The new matplotlib QuadMesh and Colorbar
+        The new matplotlib QuadMesh and Colorbar.
 
 
     """
@@ -375,7 +386,8 @@ def plot_2d_grid(
     if ax is None:
         _, ax = plt.subplots()
 
-    # Reshape the lenth N columns of data into unique xvals (n), yvals (m) and an (m*n) grid of zvals.
+    # Reshape the length N columns of data into unique xvals (n), yvals (m) and an (m*n)
+    # grid of zvals.
     xi = np.unique(x)
     yi = np.unique(y)
     zarr = np.array(z)  # to make this work natively with an xarray
@@ -400,7 +412,6 @@ def plot_2d_grid(
     set_ylabel(ax, ylabel, yunit)
 
     if add_cbar:
-        # colorbar is added here.
         if cax is None:
             ax_divider = make_axes_locatable(ax)
             cax = ax_divider.append_axes("right", size="5%", pad="2%")
