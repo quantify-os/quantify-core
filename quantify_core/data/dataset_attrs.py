@@ -253,8 +253,8 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
 def get_secondary_dims(dataset: xr.Dataset) -> List[str]:
     """Returns the 'main' secondary dimensions.
 
-    For details see :func:`~.get_main_dims`, :attr:`~.QVarAttrs.is_secondary_var`
-    and :attr:`~.QCoordAttrs.is_secondary_coord`.
+    For details see :func:`~.get_main_dims`, :attr:`~.QVarAttrs.is_main_var`
+    and :attr:`~.QCoordAttrs.is_main_coord`.
 
     Parameters
     ----------
