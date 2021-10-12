@@ -70,11 +70,8 @@ class QCoordAttrs(DataClassJsonMixin):
     long_name: str = ""
     """A long name for this coordinate."""
     is_main_coord: bool = None
-    """When set to ``True``, flags xarray coordinates to correspond to main
-    coordinates."""
-    is_secondary_coord: bool = None
-    """If ``True``, this main coordinates is intended to be a coordinate for
-    an main variable that corresponds to secondary data."""
+    """When set to ``True``, flags the xarray coordinate to correspond to a main
+    coordinate, otherwise (``False``) it corresponds to a secondary coordinate."""
     uniformly_spaced: Union[bool, None] = None
     """Indicates if the values are uniformly spaced."""
     is_dataset_ref: bool = False
@@ -105,13 +102,8 @@ class QVarAttrs(DataClassJsonMixin):
     long_name: str = ""
     """A long name for this coordinate."""
     is_main_var: bool = None
-    """When set to ``True``, flags this xarray data variables to correspond to an
-    main variables."""
-    is_secondary_var: bool = None
-    """If ``True``, the data of this main variable is intended to be used to
-    as reference data for another main variable. E.g., this main variable
-    could contain the amplitude of a signal for when a qubit is in the excited and
-    ground states."""
+    """When set to ``True``, flags this xarray data variable to correspond to a main
+    variable, otherwise (``False``) it corresponds to a secondary variable."""
     uniformly_spaced: Union[bool, None] = None
     """Indicates if the values are uniformly spaced.
     This does not apply to 'true' main variables but, because a MultiIndex is not
@@ -135,6 +127,12 @@ class QVarAttrs(DataClassJsonMixin):
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset. See also :ref:`sec-nested-mc-example`."""
+    has_repetitions: bool = False
+    """Indicates that the outermost dimension of this variable is a repetitions
+    dimension. This attribute is intended to allow easy programmatic detection of such
+    dimension. It can be used, for example, to average along this dimension before an
+    automatic live plotting or analysis.
+    """
 
     json_serialize_exclude: List[str] = field(default_factory=list)
     """A list of strings corresponding to the names of other attributes that should not
@@ -193,12 +191,6 @@ class QDatasetAttrs(DataClassJsonMixin):
     relationships: List[QDatasetIntraRelationship] = field(default_factory=list)
     """A list of relationships within the dataset specified as list of dictionaries
     that comply with the :class:`~.QDatasetIntraRelationship`."""
-    repetitions_dims: List[str] = field(default_factory=list)
-    """A list of xarray dimension names which correspond to outermost dimensions along
-    which main coordinates and variables lie on. This attribute is intended to
-    allow easy programmatic detection of such dimension. This can be used, for example,
-    to average along these dimensions before an automatic live plotting.
-    """
 
     json_serialize_exclude: List[str] = field(default_factory=list)
     """A list of strings corresponding to the names of other attributes that should not
@@ -206,18 +198,14 @@ class QDatasetAttrs(DataClassJsonMixin):
     """
 
 
-def _get_dims(
-    dataset: xr.Dataset, dim_type: Literal["main", "secondary"]
-) -> Tuple[List[str], List[str]]:
+def _get_dims(dataset: xr.Dataset) -> Tuple[List[str], List[str]]:
     """Return main or main secondary dimensions."""
     dims = set()
     for var_or_coords in (dataset.coords.values(), dataset.data_vars.values()):
         for var in var_or_coords:
-            if var.attrs.get(
-                f"is_{dim_type}_var", var.attrs.get(f"is_{dim_type}_coord", False)
-            ):
+            if var.attrs.get("is_main_var", var.attrs.get("is_main_coord", False)):
                 # Check if the outermost dimension is a repetitions dimension
-                if var.dims[0] in dataset.attrs.get("repetitions_dims", []):
+                if var.attrs.get("has_repetitions", False):
                     dims.add(var.dims[1])
                 else:
                     dims.add(var.dims[0])
@@ -230,8 +218,8 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
     """Determines the 'main' dimensions in the dataset.
 
     Each of the dimensions returned is the outermost dimension for an main
-    coordinate/variable, or the one after a dimension listed in
-    ``~QDatasetAttrs.repetition_dims``.
+    coordinate/variable, OR the second one when a repetitions dimension is present.
+    (see :attr:`~.QVarAttrs.has_repetitions`).
 
     These dimensions are detected based on :attr:`~.QCoordAttrs.is_main_coord`
     and :attr:`~.QVarAttrs.is_main_var` attributes.
@@ -258,7 +246,7 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
         The names of the main dimensions in the dataset.
     """
 
-    return _get_dims(dataset, dim_type="main")
+    return _get_dims(dataset)
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -280,13 +268,11 @@ def get_secondary_dims(dataset: xr.Dataset) -> List[str]:
         dataset.
     """
 
-    return _get_dims(dataset, dim_type="secondary")
+    return _get_dims(dataset)
 
 
 def _get_all_variables(
-    dataset: xr.Dataset,
-    var_type: str = Literal["coord", "var"],
-    attr_type: str = Literal["main", "secondary"],
+    dataset: xr.Dataset, var_type: Literal["coord", "var"], is_main: bool
 ) -> Tuple[List[str], List[str]]:
     """Shared internal logic used to retrieve variables/coordinates names."""
 
@@ -294,7 +280,7 @@ def _get_all_variables(
 
     var_names = []
     for var_name, var in variables.items():
-        if var.attrs.get(f"is_{attr_type}_{var_type}", False):
+        if var.attrs.get(f"is_main_{var_type}", False) is is_main:
             var_names.append(var_name)
 
     return var_names
@@ -319,7 +305,7 @@ def get_main_vars(dataset: xr.Dataset) -> List[str]:
     :
         The names of the main variables.
     """
-    return _get_all_variables(dataset, var_type="var", attr_type="main")
+    return _get_all_variables(dataset, var_type="var", is_main=True)
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -328,7 +314,7 @@ def get_secondary_vars(dataset: xr.Dataset) -> List[str]:
     Finds the secondary variables in the dataset.
 
     Finds the xarray data variables in the dataset that have their attributes
-    :attr:`~.QVarAttrs.is_secondary_var` set to ``True`` (inside the
+    :attr:`~.QVarAttrs.is_main_var` set to ``False`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -341,7 +327,7 @@ def get_secondary_vars(dataset: xr.Dataset) -> List[str]:
     :
         The names of the secondary variables.
     """
-    return _get_all_variables(dataset, var_type="var", attr_type="secondary")
+    return _get_all_variables(dataset, var_type="var", is_main=False)
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -363,7 +349,7 @@ def get_main_coords(dataset: xr.Dataset) -> List[str]:
     :
         The names of the main coordinates.
     """
-    return _get_all_variables(dataset, var_type="coord", attr_type="main")
+    return _get_all_variables(dataset, var_type="coord", is_main=True)
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -372,7 +358,7 @@ def get_secondary_coords(dataset: xr.Dataset) -> List[str]:
     Finds the secondary coordinates in the dataset.
 
     Finds the xarray coordinates in the dataset that have their attributes
-    :attr:`~.QCoordAttrs.is_secondary_coord` set to ``True`` (inside the
+    :attr:`~.QCoordAttrs.is_main_coord` set to ``False`` (inside the
     :attr:`xarray.DataArray.attrs` dictionary).
 
     Parameters
@@ -385,4 +371,4 @@ def get_secondary_coords(dataset: xr.Dataset) -> List[str]:
     :
         The names of the secondary coordinates.
     """
-    return _get_all_variables(dataset, var_type="coord", attr_type="secondary")
+    return _get_all_variables(dataset, var_type="coord", is_main=False)

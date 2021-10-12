@@ -13,6 +13,7 @@ from quantify_core.data.types import TUID
 import quantify_core.data.handling as dh
 import quantify_core.data.dataset_attrs as dd
 
+
 # ######################################################################################
 # IQ-related data manipulation and plotting
 # ######################################################################################
@@ -191,6 +192,118 @@ def plot_centroids(
     return ax.get_figure(), ax
 
 
+def get_unit_from_attrs(data_array: xr.DataArray, str_format: str = " [{}]") -> str:
+    """Extracts and formats the unit/units from a variable/coordinate attribute.
+
+    Parameters
+    ----------
+    data_array
+        Xarray coordinate or variable.
+    str_format
+        String that will be formatted if a unit is found.
+
+
+    Returns
+    -------
+    :
+        ``str_format`` string formatted with the ``data_array.unit`` or
+        ``data_array.units``, with that order of precedence. Empty string is returned
+        if none of these arguments are present.
+    """
+
+    if data_array.attrs.get("unit"):
+        str_format = str_format.format(data_array.attrs["unit"])
+    elif data_array.attrs.get("units"):
+        str_format = str_format.format(data_array.attrs["units"])
+    else:
+        str_format = ""
+
+    return str_format
+
+
+def plot_complex(
+    var: xr.DataArray,
+    marker_line: str = "",
+    marker_scatter: str = "o",
+    label_real: str = "Real",
+    label_imag: str = "Imag",
+    cmap: str = "viridis",
+    c: np.ndarray = None,  # pylint: disable=invalid-name
+    kwargs_line: dict = None,
+    kwargs_scatter: dict = None,
+    title: str = "{} [{}]; shape = {}",
+    legend: bool = True,
+    ax: object = None,
+):
+    """Plots the real and imaginary parts of complex data. Points are colored by default
+    according to their order in the array."""
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    if c is None:
+        c = np.arange(0, len(var))
+
+    if kwargs_line is None:
+        kwargs_line = {}
+
+    if kwargs_scatter is None:
+        kwargs_scatter = {}
+
+    var.real.plot(ax=ax, marker=marker_line, label=label_real, **kwargs_line)
+    var.imag.plot(ax=ax, marker=marker_line, label=label_imag, **kwargs_line)
+
+    for vals in (var.real, var.imag):
+        ax.scatter(
+            next(iter(var.coords.values())).values,
+            vals,
+            marker=marker_scatter,
+            c=c,
+            cmap=cmap,
+            **kwargs_scatter,
+        )
+
+    ax.set_title(title.format(var.long_name, var.name, var.shape))
+
+    if legend:
+        ax.legend()
+
+    return ax.get_figure(), ax
+
+
+def plot_complex_on_plane(
+    var: xr.DataArray,
+    marker: str = "o",
+    label: str = "Data on imaginary plane",
+    cmap: str = "viridis",
+    c: np.ndarray = None,  # pylint: disable=invalid-name
+    xlabel: str = "Real{}{}{}",
+    ylabel: str = "Imag{}{}{}",
+    legend: bool = True,
+    ax: object = None,
+    **kwargs,
+):
+    """Plots complex data on the imaginary plane. Points are colored by default
+    according to their order in the array."""
+
+    if ax is None:
+        _, ax = plt.subplots()
+
+    if c is None:
+        c = np.arange(0, len(var))
+
+    ax.scatter(var.real, var.imag, marker=marker, label=label, c=c, cmap=cmap, **kwargs)
+
+    unit_str = get_unit_from_attrs(var)
+    ax.set_xlabel(xlabel.format(" ", var.name, unit_str))
+    ax.set_ylabel(ylabel.format(" ", var.name, unit_str))
+
+    if legend:
+        ax.legend()
+
+    return ax.get_figure(), ax
+
+
 # ######################################################################################
 # Dataset-related
 # ######################################################################################
@@ -209,6 +322,8 @@ def mk_dataset_attrs(
     tuid
         If no tuid is provided a new one will be generated.
         See also :attr:`~quantify_core.data.dataset_attrs.QDatasetAttrs.tuid`.
+    **kwargs
+        Any other items used to update the output dictionary.
     """
     attrs = dd.QDatasetAttrs(
         tuid=tuid() if callable(tuid) else tuid,
@@ -221,11 +336,10 @@ def mk_dataset_attrs(
 def mk_main_coord_attrs(
     uniformly_spaced: bool = True,
     is_main_coord: bool = True,
-    is_secondary_coord: bool = False,
     **kwargs,
 ) -> Dict[str, Any]:
     """
-    A factory of attributes for secondary coordinates.
+    A factory of attributes for main coordinates.
 
     See :class:`~quantify_core.data.dataset_attrs.QCoordAttrs` for details.
 
@@ -235,15 +349,12 @@ def mk_main_coord_attrs(
         See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.uniformly_spaced`.
     is_main_coord
         See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord`.
-    is_secondary_coord
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_secondary_coord`.
     **kwargs
         Any other items used to update the output dictionary.
     """
     attrs = dd.QCoordAttrs(
         uniformly_spaced=uniformly_spaced,
         is_main_coord=is_main_coord,
-        is_secondary_coord=is_secondary_coord,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
@@ -252,7 +363,6 @@ def mk_main_coord_attrs(
 def mk_secondary_coord_attrs(
     uniformly_spaced: bool = True,
     is_main_coord: bool = False,
-    is_secondary_coord: bool = True,
     **kwargs,
 ) -> Dict[str, Any]:
     """
@@ -266,15 +376,12 @@ def mk_secondary_coord_attrs(
         See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.uniformly_spaced`.
     is_main_coord
         See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord`.
-    is_secondary_coord
-        See :attr:`quantify_core.data.dataset_attrs.QCoordAttrs.is_secondary_coord`.
     **kwargs
         Any other items used to update the output dictionary.
     """
     attrs = dd.QCoordAttrs(
         uniformly_spaced=uniformly_spaced,
         is_main_coord=is_main_coord,
-        is_secondary_coord=is_secondary_coord,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
@@ -284,7 +391,7 @@ def mk_main_var_attrs(
     grid: bool = True,
     uniformly_spaced: bool = True,
     is_main_var: bool = True,
-    is_secondary_var: bool = False,
+    has_repetitions: bool = False,
     **kwargs,
 ) -> Dict[str, Any]:
     """
@@ -300,8 +407,8 @@ def mk_main_var_attrs(
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.uniformly_spaced`.
     is_main_var
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_main_var`.
-    is_secondary_var
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_secondary_var`.
+    has_repetitions
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.has_repetitions`.
     **kwargs
         Any other items used to update the output dictionary.
     """
@@ -309,7 +416,7 @@ def mk_main_var_attrs(
         grid=grid,
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
-        is_secondary_var=is_secondary_var,
+        has_repetitions=has_repetitions,
     ).to_dict()
     attrs.update(kwargs)
     return attrs
@@ -319,7 +426,7 @@ def mk_secondary_var_attrs(
     grid: bool = True,
     uniformly_spaced: bool = True,
     is_main_var: bool = False,
-    is_secondary_var: bool = True,
+    has_repetitions: bool = False,
     **kwargs,
 ) -> Dict[str, Any]:
     """
@@ -335,8 +442,8 @@ def mk_secondary_var_attrs(
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.uniformly_spaced`.
     is_main_var
         See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_main_var`.
-    is_secondary_var
-        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.is_secondary_var`.
+    has_repetitions
+        See :attr:`quantify_core.data.dataset_attrs.QVarAttrs.has_repetitions`.
     **kwargs
         Any other items used to update the output dictionary.
     """
@@ -344,7 +451,6 @@ def mk_secondary_var_attrs(
         grid=grid,
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
-        is_secondary_var=is_secondary_var,
     ).to_dict()
 
     attrs.update(kwargs)

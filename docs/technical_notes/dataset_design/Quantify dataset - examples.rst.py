@@ -66,6 +66,8 @@ from quantify_core.utilities.examples_support import (
     mk_trace_time,
     mk_trace_for_iq_shot,
     plot_centroids,
+    plot_complex,
+    plot_complex_on_plane,
     mk_dataset_attrs,
     mk_main_coord_attrs,
     mk_secondary_coord_attrs,
@@ -143,13 +145,9 @@ dataset by merging it with a dataset containing the relevant extra information.
 """
 
 # %%
-coord_name = "repetitions"
 coord_dims = ("repetitions",)
 coord_values = ["A", "B", "C", "D", "E"]
-dataset_indexed_rep = xr.Dataset(
-    coords={coord_name: (coord_dims, coord_values)},
-    attrs=dict(repetitions_dims=["repetitions"]),
-)
+dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_values)))
 
 dataset_indexed_rep
 
@@ -225,7 +223,7 @@ shots = mk_iq_shots(
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
-plot_centroids(*centroids, ax=plt.gca())
+_ = plot_centroids(*centroids, ax=plt.gca())
 
 # %%
 rst_json_conf = {"indent": "    "}
@@ -234,10 +232,10 @@ time = mk_trace_time()
 trace = mk_trace_for_iq_shot(shots[0])
 
 fig, ax = plt.subplots(1, 1, figsize=(12, 12 / 1.61 / 2))
-_ = ax.plot(time * 1e6, trace.imag, ".-", label="I-quadrature")
-_ = ax.plot(time * 1e6, trace.real, ".-", label="Q-quadrature")
-_ = ax.set_xlabel("Time [µs]")
-_ = ax.set_ylabel("Amplitude [V]")
+ax.plot(time * 1e6, trace.imag, ".-", label="I-quadrature")
+ax.plot(time * 1e6, trace.real, ".-", label="Q-quadrature")
+ax.set_xlabel("Time [µs]")
+ax.set_ylabel("Amplitude [V]")
 _ = ax.legend()
 
 # %% [raw]
@@ -266,7 +264,7 @@ probabilities = exp_decay_func(t=t1_times, tau=tau, offset=0, n_factor=1, amplit
 # Ideal experiment result
 plt.ylabel("|1> probability")
 plt.suptitle("Typical processed data of a T1 experiment")
-_ = plt.plot(t1_times * 1e6, probabilities, ".-")
+plt.plot(t1_times * 1e6, probabilities, ".-")
 _ = plt.xlabel("Time [µs]")
 
 # %% [raw]
@@ -336,52 +334,16 @@ dataset_gridded
 """
 
 
-# %%
+# %% tags=[]
 rst_json_conf = {"indent": "    "}
 
+display_source_code(plot_complex)
+display_source_code(plot_complex_on_plane)
 
-def plot_decay_no_repetition(gridded_dataset, ax=None):
-    if ax is None:
-        fig, ax = plt.subplots(1, 1)
-    y0 = gridded_dataset[dattrs.get_main_vars(gridded_dataset)[0]]
-    y0.real.plot(ax=ax, marker="", label="I data")
-    y0.imag.plot(ax=ax, marker="", label="Q data")
-    for vals in (y0.real, y0.imag):
-        ax.scatter(
-            gridded_dataset[dattrs.get_main_coords(gridded_dataset)[0]].values,
-            vals,
-            marker="o",
-            c=np.arange(0, len(y0)),
-            cmap="viridis",
-        )
-    ax.set_title(f"{y0.long_name} [{y0.name}]; shape = {y0.shape}")
-    ax.legend()
-    return ax.get_figure(), ax
-
-
-def plot_iq_no_repetition(gridded_dataset, ax=None):
-    if ax is None:
-        fig, ax = plt.subplots(1, 1)
-    y0 = gridded_dataset[dattrs.get_main_vars(gridded_dataset)[0]]
-    ax.scatter(
-        y0.real,
-        y0.imag,
-        marker="o",
-        label=f"Data on IQ plane [{y0.name}]",
-        c=np.arange(0, len(y0)),
-        cmap="viridis",
-    )
-    ax.set_xlabel("I")
-    ax.set_ylabel("Q")
-    ax.legend()
-
-    return ax.get_figure(), ax
-
-
-# %%
-plot_decay_no_repetition(dataset_gridded)
-fig, ax = plot_iq_no_repetition(dataset_gridded)
-plot_centroids(*centroids, ax=ax)
+# %% tags=[]
+plot_complex(dataset_gridded.q0_iq_av)
+fig, ax = plot_complex_on_plane(dataset_gridded.q0_iq_av)
+_ = plot_centroids(*centroids, ax=ax)
 
 # %% [raw]
 """
@@ -470,14 +432,17 @@ dimensions:
 """
 
 # %%
+dattrs.get_secondary_dims(dataset_gridded)
+
+# %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
-    dimension=dattrs.get_main_dims(dataset)[0],
+    dimension="main_dim",
     coords_names=dattrs.get_main_coords(dataset),
 )
 dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded,
-    dimension=dattrs.get_secondary_dims(dataset_gridded)[0],
+    dimension="cal_dim",
     coords_names=dattrs.get_secondary_coords(dataset_gridded),
 )
 dataset_gridded
@@ -486,15 +451,23 @@ dataset_gridded
 fig = plt.figure(figsize=(8, 5))
 
 ax = plt.subplot2grid((1, 10), (0, 0), colspan=9, fig=fig)
-plot_decay_no_repetition(dataset_gridded, ax=ax)
+plot_complex(dataset_gridded.q0_iq_av, ax=ax)
 
 ax_calib = plt.subplot2grid((1, 10), (0, 9), colspan=1, fig=fig, sharey=ax)
-dataset_gridded.q0_iq_av_cal.real.plot(marker="o", ax=ax_calib, linestyle="")
-dataset_gridded.q0_iq_av_cal.imag.plot(marker="o", ax=ax_calib, linestyle="")
+for i, color in zip(
+    range(2), ["C0", "C1"]
+):  # plot each calibration point with same color
+    dataset_gridded.q0_iq_av_cal.real[i : i + 1].plot.line(
+        marker="o", ax=ax_calib, linestyle="", color=color
+    )
+    dataset_gridded.q0_iq_av_cal.imag[i : i + 1].plot.line(
+        marker="o", ax=ax_calib, linestyle="", color=color
+    )
 ax_calib.yaxis.set_label_position("right")
 ax_calib.yaxis.tick_right()
 
-_ = plot_iq_no_repetition(dataset_gridded)
+fig, ax = plot_complex_on_plane(dataset_gridded.q0_iq_av)
+_ = plot_centroids(*dataset_gridded.q0_iq_av_cal.values, ax=ax)
 
 
 # %% [raw]
@@ -522,12 +495,11 @@ rst_json_conf = {"indent": "    "}
 rotated_and_normalized = rotate_to_calibrated_axis(
     dataset_gridded.q0_iq_av.values, *dataset_gridded.q0_iq_av_cal.values
 )
-dataset_tmp = dataset_gridded.q0_iq_av.to_dataset()
-dataset_tmp.attrs.update(dataset_gridded.attrs)
-dataset_tmp.q0_iq_av.values = rotated_and_normalized
-dataset_gridded.q0_iq_av.attrs["long_name"] = "|1> Population"
-dataset_gridded.q0_iq_av.attrs["units"] = ""
-_ = plot_decay_no_repetition(dataset_tmp)
+rotated_and_normalized_da = xr.DataArray(dataset_gridded.q0_iq_av)
+rotated_and_normalized_da.values = rotated_and_normalized
+rotated_and_normalized_da.attrs["long_name"] = "|1> Population"
+rotated_and_normalized_da.attrs["units"] = ""
+_ = plot_complex(rotated_and_normalized_da)
 
 # %% [raw]
 """
@@ -565,7 +537,7 @@ q0_iq_shots_cal = np.array(
 q0_iq_shots.shape, q0_iq_shots_cal.shape
 
 # %%
-# the xarray dimensions will no require an outer repetitions dimension
+# the xarray dimensions will now require an outer repetitions dimension
 secondary_dims_rep = ("repetitions", "cal_dim")
 main_dims_rep = ("repetitions", "main_dim")
 
@@ -588,13 +560,20 @@ relationships = [
     ).to_dict(),
 ]
 
+# Flag that these variables use a repetitions dimension
+q0_attrs_rep = dict(q0_attrs)
+q0_attrs_rep["has_repetitions"] = True
+q0_cal_attrs_rep = dict(q0_cal_attrs)
+q0_cal_attrs_rep["has_repetitions"] = True
+
 data_vars = dict(
     # these are the same as in the previous dataset, and are now redundant,
     # however, we include them to showcase the dataset flexibility
     q0_iq_av=(main_dims, q0_iq_shots.mean(axis=0), q0_attrs),
     q0_iq_av_cal=(secondary_dims, q0_iq_shots_cal.mean(axis=0), q0_cal_attrs),
-    q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs),
-    q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs),
+    # the variables that contain all the individual shots
+    q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs_rep),
+    q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs_rep),
 )
 coords = dict(
     t1_time=(main_dims, t1_times, t1_time_attrs),
@@ -604,39 +583,22 @@ coords = dict(
 dataset = xr.Dataset(
     data_vars=data_vars,
     coords=coords,
-    attrs=mk_dataset_attrs(
-        relationships=relationships,  # relationships added here
-        # the dimensions that correspond to repetitions need to be specified here
-        repetitions_dims=["repetitions"],
-    ),
+    attrs=mk_dataset_attrs(relationships=relationships),  # relationships added here
 )
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 
-# %% [raw]
-"""
-.. note:
-
-    Note that we have to specify ``repetitions_dims=["repetitions"]`` in the dataset
-    attributes in order to correctly identify the main and secondary dimensions later.
-"""
-
-# %%
-rst_json_conf = {"indent": "    "}
-
-dattrs.get_main_dims(dataset), dattrs.get_secondary_dims(dataset)
-
 # %%
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
-    dimension=dattrs.get_main_dims(dataset)[0],
+    dimension="main_dim",
     coords_names=dattrs.get_main_coords(dataset),
 )
 dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded,
-    dimension=dattrs.get_secondary_dims(dataset_gridded)[0],
+    dimension="cal_dim",
     coords_names=dattrs.get_secondary_coords(dataset_gridded),
 )
 dataset_gridded
@@ -648,8 +610,9 @@ can be plotted in the same way as before.
 """
 
 # %%
-_ = plot_decay_no_repetition(dataset_gridded)
-_ = plot_iq_no_repetition(dataset_gridded)
+_ = plot_complex(dataset_gridded.q0_iq_av)
+_, ax = plot_complex_on_plane(dataset_gridded.q0_iq_av)
+_ = plot_centroids(*dataset_gridded.q0_iq_av_cal.values, ax=ax)
 
 # %% [raw]
 """
@@ -684,44 +647,11 @@ for t_example in chosen_time_values:
 We can collapse (average along) the ``repetitions`` dimension:
 """
 
-# %% [raw]
-"""
-.. admonition:: Plotting utility
-    :class: dropdown
-"""
-
-
 # %%
-rst_json_conf = {"indent": "    "}
-
-
-def plot_iq_decay_repetition(gridded_dataset):
-    y0_shots = gridded_dataset.q0_iq_shots
-    y0_shots_mean = y0_shots.mean(dim="repetitions")
-    y0_shots_mean.real.plot(marker=".", label="I data")
-    y0_shots_mean.imag.plot(marker=".", label="Q data")
-    plt.ylabel(f"{y0_shots.long_name} [{y0_shots.unit}]")
-    plt.suptitle(f"{y0_shots.name} shape = {y0_shots.shape}")
-    plt.legend()
-
-    fig, ax = plt.subplots(1, 1)
-    ax.plot(
-        y0_shots_mean.real,
-        y0_shots_mean.imag,
-        ".-",
-        label="Data on IQ plane",
-        color="C2",
-    )
-    ax.set_xlabel("I")
-    ax.set_ylabel("Q")
-    ax.legend()
-
-    return fig, ax
-
-
-# %%
-fig, ax = plot_iq_decay_repetition(dataset_gridded)
-plot_centroids(*centroids, ax=ax)
+q0_iq_shots_mean = dataset_gridded.q0_iq_shots.mean(dim="repetitions", keep_attrs=True)
+plot_complex(q0_iq_shots_mean)
+_, ax = plot_complex_on_plane(q0_iq_shots_mean)
+_ = plot_centroids(*centroids, ax=ax)
 
 # %% [raw]
 """
@@ -759,10 +689,10 @@ relationships_with_traces = relationships + [
 data_vars = dict(
     q0_iq_av=(main_dims, q0_iq_av, q0_attrs),
     q0_iq_av_cal=(secondary_dims, q0_iq_av_cal, q0_cal_attrs),
-    q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs),
-    q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs),
-    q0_traces=(traces_dims, q0_traces, q0_attrs),
-    q0_traces_cal=(traces_cal_dims, q0_traces_cal, q0_attrs),
+    q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs_rep),
+    q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs_rep),
+    q0_traces=(traces_dims, q0_traces, q0_attrs_rep),
+    q0_traces_cal=(traces_cal_dims, q0_traces_cal, q0_cal_attrs_rep),
 )
 coords = dict(
     t1_time=(main_dims, t1_times, t1_time_attrs),
@@ -773,9 +703,7 @@ coords = dict(
 dataset = xr.Dataset(
     data_vars=data_vars,
     coords=coords,
-    attrs=mk_dataset_attrs(
-        repetitions_dims=["repetitions"], relationships=relationships_with_traces
-    ),
+    attrs=mk_dataset_attrs(relationships=relationships_with_traces),
 )
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
@@ -786,8 +714,6 @@ dataset
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
-    # returns ['time', 'trace_time'] which is not what we need here
-    # coords_names=dattrs.get_main_coords(dataset)
     coords_names=["t1_time"],
 )
 dataset_gridded = dh.to_gridded_dataset(

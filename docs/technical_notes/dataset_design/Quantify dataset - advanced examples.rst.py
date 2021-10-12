@@ -128,7 +128,7 @@ To support such use-case we will have a dimension in dataset for the repeating c
 and one extra dimension for the final measurement.
 """
 
-# %% jupyter={"outputs_hidden": true} tags=[]
+# %% tags=[]
 # mock data parameters
 num_shots = 128  # NB usually >~1000 in real experiments
 ground = -0.2 + 0.65j
@@ -140,7 +140,7 @@ display_source_code(mk_iq_shots)
 display_source_code(mk_shots_from_probabilities)
 display_source_code(mk_surface7_cyles_dataset)
 
-# %% jupyter={"outputs_hidden": true} tags=[]
+# %% tags=[]
 dataset = mk_surface7_cyles_dataset(n_shots=num_shots, sigmas=sigmas, centers=centroids)
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
@@ -178,7 +178,7 @@ reference to all these datasets. Below we showcase how this can be achieved, alo
 some useful xarray features and known limitations.
 """
 
-# %% jupyter={"outputs_hidden": true} tags=[]
+# %% tags=[]
 display_source_code(mk_nested_mc_dataset)
 
 dataset = mk_nested_mc_dataset()

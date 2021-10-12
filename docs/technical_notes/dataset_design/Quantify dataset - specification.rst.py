@@ -74,7 +74,7 @@ If you are not familiar with it, we highly recommend to first have a look at our
 """
 
 # %% [raw]
-"""
+r"""
 .. _sec-coordinates-and-variables:
 
 Coordinates and Variables
@@ -102,7 +102,7 @@ Secondary coordinate(s)
 
 - An ubiquitous example are the coordinates that are used by "calibration" points.
 - Similar to `main coordinates <sec-main-coordinates>`_\, but intended to serve as the coordinates of `secondary variables <sec-secondary-variables>`_\.
-- Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_secondary_coord` set to ``True``.
+- Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord` set to ``False``.
 - See also :func:`~quantify_core.data.dataset_attrs.get_secondary_coords`.
 
 .. _sec-main-variables:
@@ -122,7 +122,7 @@ Secondary variables(s)
 
 - Again, the ubiquitous example are "calibration" datapoints.
 - Similar to `main variables <sec-main-variables>`_, but intended to serve as reference data for other main variables (e.g., calibration data).
-- Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_secondary_var` set to ``True``.
+- Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to ``False``.
 - The "assignment" of secondary variables to main variables should be done using :attr:`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
 - See also :func:`~quantify_core.data.dataset_attrs.get_secondary_vars`.
 
@@ -198,19 +198,6 @@ Dimensions
 """
 The main variables and coordinates present in a Quantify dataset have the following required and optional xarray dimensions:
 
-.. _sec-repetitions-dimensions:
-
-Repetitions dimension(s) [Optional]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Repetition dimensions comply with the following:
-
-- Any dimensions present in the dataset that are listed in the :attr:`QDatasetAttrs.repetitions_dims <quantify_core.data.dataset_attrs.QDatasetAttrs.repetitions_dims>` dataset attribute.
-- Intuition for these xarray dimension: the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
-- Default behavior of (live) plotting and analysis tools can be to average the main variables along the repetitions dimension(s).
-- Can be the outermost dimension of the main (and secondary) variables.
-- The main variables can lie along one (and only one) repetition dimension.
-
 Main dimension(s) [Required]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -229,13 +216,26 @@ The main dimensions comply with the following:
 
 
 Secondary dimension(s) [Optional]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Equivalent to the main dimensions but used by the secondary coordinates and variables.
 The secondary dimensions comply with the following:
 
 - The outermost dimension of any secondary coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
 - Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_secondary_dims` which simply applies the rule above while inspecting all the secondary coordinates and variables present in the dataset.
+
+.. _sec-repetitions-dimensions:
+
+Repetitions dimension(s) [Optional]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Repetition dimensions comply with the following:
+
+- Any dimension that is the outermost dimension of a main or secondary variable when its attribute :attr:`QVarAttrs.has_repetitions <quantify_core.data.dataset_attrs.QVarAttrs.has_repetitions>` is set to ``True``.
+- Intuition for this xarray dimension(s): the equivalent would be to have ``dataset_reptition_0.hdf5``, ``dataset_reptition_1.hdf5``, etc. where each dataset was obtained from repeating exactly the same experiment. Instead we define an outer dimension for this.
+- Default behavior of (live) plotting and analysis tools can be to average the main variables along the repetitions dimension(s).
+- Can be the outermost dimension of the main (and secondary) variables.
+- Variables can lie along one (and only one) repetitions outermost dimension.
 """
 
 # %% [raw]
@@ -249,13 +249,9 @@ The secondary dimensions comply with the following:
 # %%
 rst_json_conf = {"indent": "    "}
 
-coord_name = "repetitions"
 coord_dims = ("repetitions",)
 coord_values = ["A", "B", "C", "D", "E"]
-dataset_indexed_rep = xr.Dataset(
-    coords={coord_name: (coord_dims, coord_values)},
-    attrs=dict(repetitions_dims=["repetitions"]),
-)
+dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_values)))
 
 dataset_indexed_rep
 

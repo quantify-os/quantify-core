@@ -109,8 +109,12 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
     amp_values, time_values, pop_q0, pop_q1 = mk_two_qubit_chevron_data(**kwargs)
 
     dims_q0 = dims_q1 = ("repetitions", "main_dim")
-    pop_q0_attrs = mk_main_var_attrs(long_name="Population Q0", unit="")
-    pop_q1_attrs = mk_main_var_attrs(long_name="Population Q1", unit="")
+    pop_q0_attrs = mk_main_var_attrs(
+        long_name="Population Q0", unit="", has_repetitions=True
+    )
+    pop_q1_attrs = mk_main_var_attrs(
+        long_name="Population Q1", unit="", has_repetitions=True
+    )
     data_vars = dict(
         pop_q0=(dims_q0, pop_q0, pop_q0_attrs),
         pop_q1=(dims_q1, pop_q1, pop_q1_attrs),
@@ -124,9 +128,7 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
         time=(dims_time, time_values, time_attrs),
     )
 
-    dataset_attrs = mk_dataset_attrs(
-        main_dims=["main_dim"], repetitions_dims=["repetitions"]
-    )
+    dataset_attrs = mk_dataset_attrs()
     dataset = xr.Dataset(data_vars=data_vars, coords=coords, attrs=dataset_attrs)
 
     return dataset
@@ -162,14 +164,18 @@ def mk_surface7_cyles_dataset(num_cycles: int = 3, **kwargs) -> xr.Dataset:
         data_vars[f"{qubit}_shots"] = (
             ("repetitions", "dim_cycle"),
             mock_data,
-            mk_main_var_attrs(unit="V", long_name=f"IQ amplitude {qubit}"),
+            mk_main_var_attrs(
+                unit="V", long_name=f"IQ amplitude {qubit}", has_repetitions=True
+            ),
         )
 
     for qubit in (f"D{i}" for i in range(4)):
         data_vars[f"{qubit}_shots"] = (
             ("repetitions", "dim_final"),
             mock_data_final,
-            mk_main_var_attrs(unit="V", long_name=f"IQ amplitude {qubit}"),
+            mk_main_var_attrs(
+                unit="V", long_name=f"IQ amplitude {qubit}", has_repetitions=True
+            ),
         )
 
     cycle_attrs = mk_main_coord_attrs(long_name="Surface code cycle number")
@@ -182,7 +188,7 @@ def mk_surface7_cyles_dataset(num_cycles: int = 3, **kwargs) -> xr.Dataset:
     dataset = xr.Dataset(
         data_vars=data_vars,
         coords=coords,
-        attrs=mk_dataset_attrs(repetitions_dims=["repetitions"]),
+        attrs=mk_dataset_attrs(),
     )
 
     return dataset
