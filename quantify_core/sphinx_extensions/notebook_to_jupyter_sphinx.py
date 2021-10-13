@@ -291,6 +291,8 @@ def get_code_indent_and_processed_lines(
             # evaluate the expression
             # eval is used instead of ast.literal_eval for more flexibility,
             # e.g. makes possible rst_conf = {"indent": "    " * 2}
+            # Note the eval is really needed because the dict code can span several
+            # lines due to for example automatic code formatters like `black`.
             try:
                 compiled = compile(
                     ast.Expression(rst_conf_expression.value),
