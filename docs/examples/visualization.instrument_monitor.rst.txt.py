@@ -13,7 +13,7 @@
 # ---
 
 # %%
-rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -26,13 +26,13 @@ rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
 """
 
 # %%
-rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-code:"]}
+rst_conf = {"indent": "    ", "jupyter_execute_options": [":hide-code:"]}
 from qcodes import Instrument
 
 Instrument.close_all()
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 from quantify_core.measurement import MeasurementControl
 from quantify_core.visualization import InstrumentMonitor

@@ -15,7 +15,7 @@
 # ---
 
 # %%
-rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -47,7 +47,7 @@ Quantify dataset - examples
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 import numpy as np
 import xarray as xr
@@ -95,7 +95,7 @@ drop down below.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 display_source_code(dataset_examples.mk_two_qubit_chevron_dataset)
 
@@ -195,13 +195,13 @@ during a T1 experiment.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 for func in (mk_iq_shots, mk_trace_time, mk_trace_for_iq_shot):
     display_source_code(func)
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 ground = -0.2 + 0.65j
 excited = 0.7 - 0.4j
@@ -221,7 +221,7 @@ plt.ylabel("Q")
 _ = plot_complex_points(centers, ax=plt.gca())
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 time = mk_trace_time()
 trace = mk_trace_for_iq_shot(shots[0])
@@ -291,7 +291,7 @@ datapoints:
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_av_dataset)
 
 # %%
@@ -320,7 +320,7 @@ dataset_gridded
 
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 display_source_code(plot_xr_complex)
 display_source_code(plot_xr_complex_on_plane)
@@ -358,7 +358,7 @@ dataset.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_av_with_cal_dataset)
 
 # %%
@@ -435,7 +435,7 @@ We can use the calibration points to normalize the data and obtain the typical T
 
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 rotated_and_normalized = rotate_to_calibrated_axis(
     dataset_gridded.q0_iq_av.values, *dataset_gridded.q0_iq_av_cal.values
@@ -462,7 +462,7 @@ individual measurement.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_shots_dataset)
 
 # %%
@@ -549,7 +549,7 @@ signals that are required to obtain the previous measurement results.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_traces_dataset)
 
 # %%

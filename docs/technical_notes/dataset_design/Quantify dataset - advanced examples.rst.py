@@ -15,7 +15,7 @@
 # ---
 
 # %%
-rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -54,7 +54,7 @@ accommodate them.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 from rich import pretty
 from pathlib import Path
@@ -106,11 +106,11 @@ overall dataset "unstructured".
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 display_source_code(mk_surface7_sched)
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 # If Quantify-Scheduler is installed you can create the schedule and visualize it
 num_cycles = 3
 try:

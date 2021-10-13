@@ -54,6 +54,18 @@ Usage
             *.py.rst
             *.py.rst.txt
 
+    .. tip::
+
+        When switching between git branches you might need to clean up all the generated ``*.rst`` files.
+        You canuse the following unix commands (or integrate them in the ``Makefile`` your project).
+
+        .. code-block:: console
+
+            $ find . -iname "*.py.rst" -exec rm -f -i {} +
+            $ find . -iname "*.py.rst.txt" -exec rm -f -i {} +
+
+        Remove the ``-i`` option to remove files without confirmation.
+
 3. Add this extension to your sphinx :code:`conf.py` file.
 
     .. code-block:: python
@@ -101,7 +113,7 @@ IDE autocomplete.
 
 .. code-block:: python
 
-    rst_json_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+    rst_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
     # ... the rest of the python code in the cell...
 
@@ -223,6 +235,7 @@ You can remove that line if you wish to use the default representation.
 
 from __future__ import annotations
 
+import ast
 import itertools
 from typing import List, Tuple
 import json
@@ -254,22 +267,42 @@ def get_code_indent_and_processed_lines(
             code_cell_lines = code_cell_lines[1:]
 
         first_line = code_cell_lines[0]
+
+        conf = None
+        exc = None
+
+        exc_msg = (
+            "Error evaluating rst configuration while processing the cell:\n\n"
+            f"{cell_source_code}"
+        )
+
         magic_comment = "# rst-json-conf:"
-        # Allow also an actual python dictionary
-        magic_line_versions = ("rst_json_conf=", "rst_json_conf =", "rst_json_conf= ")
-
-        magic_start = None
         if first_line.startswith(magic_comment):
-            magic_start = magic_comment
-        else:
-            for mline in magic_line_versions:
-                if first_line.startswith(mline):
-                    magic_start = mline
+            try:
+                conf = json.loads(first_line[len(magic_comment) :])
+            except Exception as exc:
+                raise ExtensionError(exc_msg, modname=__name__) from exc
 
-        if magic_start is not None:
+        # Allow also an actual python dictionary defined on first line(s) of the cell
+        elif first_line.startswith("rst_conf"):
+            # parse the expression that comes after `rst_conf = `
+            python_module_from_cell = ast.parse(cell_source_code)
+            rst_conf_expression = python_module_from_cell.body[0]
+            # evaluate the expression
+            # eval is used instead of ast.literal_eval for more flexibility,
+            # e.g. makes possible rst_conf = {"indent": "    " * 2}
+            # pylint: disable=eval-used
+            try:
+                compiled = compile(
+                    ast.Expression(rst_conf_expression.value),
+                    "cell_module",
+                    "eval",
+                )
+                conf = dict(eval(compiled))
+            except (Exception, SyntaxError) as exc:
+                raise ExtensionError(exc_msg, modname=__name__) from exc
 
-            conf = json.loads(first_line[len(magic_start) :])
-
+        if conf is not None:
             indent = conf.pop("indent", "")
             directive_options = conf.pop("jupyter_execute_options", [])
 
@@ -316,7 +349,7 @@ def make_jupyter_sphinx_block(cell_source_code: str, rst_indent: str = "    ") -
     header = f"\n\n\n{indent}.. jupyter-execute::\n"
     indent = f"{indent}{rst_indent}"
     for line in lines:
-        out += f"{indent}{line}\n" if line != "" else "\n"
+        out += f"{indent}{line}\n" if line.strip() != "" else "\n"
 
     return header + out if out.strip() != "" else ""
 
@@ -438,7 +471,7 @@ def notebooks_to_rst(app, config) -> None:
     def rst_output_filepath(file: Path) -> Path:
         rst_filepath = file.parent / Path(file.stem)  # removes .py extensions
         name_dot_rst, suffixes = strip_suffixes(rst_filepath)
-        # we add extra .py extensions so that files can be `.gitignore`d
+        # we prefix an extra .py extension so that output files can be `.gitignore`d
         file_name = Path(name_dot_rst).stem + f".py.rst{''.join(suffixes)}"
         return rst_filepath.parent / file_name
 

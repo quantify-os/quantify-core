@@ -67,7 +67,7 @@ def has_calibration_points(
         In these examples this function is able to correctly predict the presence of
         the calibrations in both cases.
 
-        .. include:: /examples/analysis.calibration.has_calibration_points.py.rst.txt
+        .. include:: examples/analysis.calibration.has_calibration_points.py.rst.txt
 
     Parameters
     ----------

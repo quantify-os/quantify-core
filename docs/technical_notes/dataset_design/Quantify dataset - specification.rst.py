@@ -15,7 +15,7 @@
 # ---
 
 # %%
-rst_json_conf = {"jupyter_execute_options": [":hide-code:"]}
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -48,7 +48,7 @@ Quantify dataset specification
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -148,12 +148,12 @@ See :ref:`sec-quantify-dataset-examples` for exemplary dataset.
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 display_source_code(dataset_examples.mk_two_qubit_chevron_dataset)
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 dataset = dataset_examples.mk_two_qubit_chevron_dataset()
 
@@ -171,7 +171,7 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 dataset
 
@@ -188,7 +188,7 @@ dataset
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 n_points = 110  # only plot a few points for clarity
 _, axs = plt.subplots(4, 1, sharex=True, figsize=(10, 10))
@@ -218,7 +218,7 @@ for ax in axs:
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
@@ -287,7 +287,7 @@ Repetition dimensions comply with the following:
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 coord_dims = ("repetitions",)
 coord_values = ["A", "B", "C", "D", "E"]
@@ -296,7 +296,7 @@ dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_valu
 dataset_indexed_rep
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 # merge with the previous dataset
 dataset_rep = dataset.merge(dataset_indexed_rep, combine_attrs="drop_conflicts")
@@ -311,7 +311,7 @@ dataset_rep
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset_rep,
@@ -326,7 +326,7 @@ dataset_gridded
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 _ = dataset_gridded.pop_q0.sel(repetitions="A").plot(x="amp")
 plt.show()
 _ = dataset_gridded.pop_q0.sel(repetitions="D").plot(x="amp")
@@ -368,7 +368,7 @@ dataset.attrs
 """
 
 # %%
-rst_json_conf = {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 dataset.quantify_dataset_version, dataset.tuid
 

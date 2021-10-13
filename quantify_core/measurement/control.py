@@ -786,7 +786,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             order.
 
 
-        .. include:: /examples/measurement.control.setpoints_grid.py.rst.txt
+        .. include:: examples/measurement.control.setpoints_grid.py.rst.txt
         """  # pylint: disable=line-too-long
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
