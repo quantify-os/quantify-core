@@ -262,14 +262,12 @@ def get_code_indent_and_processed_lines(
     indent = ""
     directive_options = []
     if code_cell_lines:
-        # skip line in case of a cell magic used for code highlight in Jupyter Notebook
-        if code_cell_lines[0] == r"%%rst":
-            code_cell_lines = code_cell_lines[1:]
 
         first_line = code_cell_lines[0]
 
         conf = None
         exc = None
+        skip_lines = 0
 
         exc_msg = (
             "Error evaluating rst configuration while processing the cell:\n\n"
@@ -280,6 +278,7 @@ def get_code_indent_and_processed_lines(
         if first_line.startswith(magic_comment):
             try:
                 conf = json.loads(first_line[len(magic_comment) :])
+                skip_lines = 1
             except Exception as exc:
                 raise ExtensionError(exc_msg, modname=__name__) from exc
 
@@ -288,9 +287,12 @@ def get_code_indent_and_processed_lines(
             # parse the expression that comes after `rst_conf = `
             python_module_from_cell = ast.parse(cell_source_code)
             rst_conf_expression = python_module_from_cell.body[0]
+            skip_lines = rst_conf_expression.end_lineno
             # evaluate the expression
             # eval is used instead of ast.literal_eval for more flexibility,
             # e.g. makes possible rst_conf = {"indent": "    " * 2}
+            # Note the eval is really needed because the dict code can span several
+            # lines due to for example automatic code formatters like `black`.
             try:
                 compiled = compile(
                     ast.Expression(rst_conf_expression.value),
@@ -306,10 +308,10 @@ def get_code_indent_and_processed_lines(
             directive_options = conf.pop("jupyter_execute_options", [])
 
             # don't output the magic comment nor the empty line after it
-            if code_cell_lines[1:] and code_cell_lines[1] == "":
-                code_cell_lines = code_cell_lines[2:]
+            if code_cell_lines[skip_lines:] and code_cell_lines[skip_lines] == "":
+                code_cell_lines = code_cell_lines[skip_lines + 1 :]
             else:
-                code_cell_lines = code_cell_lines[1:]
+                code_cell_lines = code_cell_lines[skip_lines:]
 
             if len(conf):
                 raise ExtensionError(

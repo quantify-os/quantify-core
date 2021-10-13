@@ -85,6 +85,36 @@ def test_rst_conf():
     assert strp_cmp(strip_rst(rst), expected)
 
 
+def test_rst_conf_multi_line():
+    """Test that the python dictionary can span multiple lines."""
+    py_percent_nb = """
+    # %%
+    rst_conf = {
+        "jupyter_execute_options": [
+            ":hide-code:", ":hide-output:", ":code-below:", ":linenos:"
+        ]
+    }
+
+    1+1"""
+    py_percent_nb = dedent(py_percent_nb)
+
+    expected = """
+    .. jupyter-execute::
+        :hide-code:
+        :hide-output:
+        :code-below:
+        :linenos:
+
+        1+1
+    """
+    expected = dedent(expected)
+
+    rst = notebook_to_rst(
+        jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
+    )
+    assert strp_cmp(strip_rst(rst), expected)
+
+
 def test_bad_json():
     py_percent_nb = """
     # %%
