@@ -19,7 +19,7 @@ import quantify_core.data.dataset_attrs as dd
 
 
 def mk_iq_shots(
-    n_shots: int = 128,
+    num_shots: int = 128,
     sigmas: Union[Tuple[float], np.ndarray] = (0.1, 0.1),
     centers: Union[Tuple[complex], np.ndarray] = (-0.2 + 0.65j, 0.7 + 4j),
     probabilities: Union[Tuple[float], np.ndarray] = (0.4, 0.6),
@@ -36,7 +36,7 @@ def mk_iq_shots(
 
     Parameters
     ----------
-    n_shots
+    num_shots
         The number of shot to generate.
     sigma
         The sigma of the Gaussian distribution used for both real and imaginary parts.
@@ -56,7 +56,7 @@ def mk_iq_shots(
     rng = np.random.default_rng(seed=seed)
 
     cluster_indices = tuple(range(len(centers)))
-    choices = rng.choice(a=cluster_indices, size=n_shots, p=probabilities)
+    choices = rng.choice(a=cluster_indices, size=num_shots, p=probabilities)
 
     shots = []
     for idx in cluster_indices:

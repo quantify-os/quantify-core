@@ -141,7 +141,9 @@ display_source_code(mk_shots_from_probabilities)
 display_source_code(mk_surface7_cyles_dataset)
 
 # %% tags=[]
-dataset = mk_surface7_cyles_dataset(n_shots=num_shots, sigmas=sigmas, centers=centroids)
+dataset = mk_surface7_cyles_dataset(
+    num_shots=num_shots, sigmas=sigmas, centers=centroids
+)
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 

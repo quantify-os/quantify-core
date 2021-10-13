@@ -9,11 +9,16 @@ import numpy as np
 import xarray as xr
 import quantify_core.data.handling as dh
 import quantify_core.measurement.control as mc
+import quantify_core.data.dataset_attrs as dattrs
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_main_var_attrs,
     mk_main_coord_attrs,
+    mk_secondary_var_attrs,
+    mk_secondary_coord_attrs,
     mk_iq_shots,
+    mk_trace_for_iq_shot,
+    mk_trace_time,
 )
 
 
@@ -68,17 +73,20 @@ def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Union[int, None] = 112233)
 
 
 def mk_shots_from_probabilities(probabilities: Union[np.ndarray, list], **kwargs):
-    """Generates multiple shots for a list of probabilities.
+    """Generates multiple shots for a list of probabilities assuming two states.
 
     Parameters
     ----------
     probabilities
-        The list/array of the probabilities of one the states.
+        The list/array of the probabilities of one of the states.
+    **kwargs
+        Keyword arguments passed to
+        :func:`~quantify_core.utilities.examples_support.mk_iq_shots`.
 
     Returns
     -------
     :
-        Array containing the shots. Shape: (n_shots, len(probabilities)).
+        Array containing the shots. Shape: (num_shots, len(probabilities)).
     """
 
     shots = np.array(
@@ -130,6 +138,236 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
 
     dataset_attrs = mk_dataset_attrs()
     dataset = xr.Dataset(data_vars=data_vars, coords=coords, attrs=dataset_attrs)
+
+    return dataset
+
+
+def mk_t1_av_dataset(
+    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+) -> xr.Dataset:
+    """
+    Generates a dataset with mock data of a T1 experiment for a single qubit.
+
+    Parameters
+    ----------
+    t1_times
+        Array with the T1 times corresponding to each probability in ``probabilities``.
+    probabilities
+        The probabilities of finding the qubit in the excited state.
+    **kwargs
+        Keyword arguments passed to
+        :func:`~quantify_core.utilities.examples_support.mk_iq_shots`.
+    """
+    q0_iq_av = mk_shots_from_probabilities(probabilities, **kwargs).mean(axis=0)
+
+    main_dims = ("main_dim",)
+    q0_attrs = mk_main_var_attrs(unit="V", long_name="Q0 IQ amplitude")
+    t1_time_attrs = mk_main_coord_attrs(unit="s", long_name="T1 Time")
+
+    data_vars = dict(q0_iq_av=(main_dims, q0_iq_av, q0_attrs))
+    coords = dict(t1_time=(main_dims, t1_times, t1_time_attrs))
+
+    dataset = xr.Dataset(
+        data_vars=data_vars,
+        coords=coords,
+        attrs=mk_dataset_attrs(),
+    )
+    return dataset
+
+
+def mk_t1_av_with_cal_dataset(
+    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+) -> xr.Dataset:
+    """
+    Generates a dataset with mock data of a T1 experiment for a single qubit including
+    calibration points for the ground and excited states.
+
+    Parameters
+    ----------
+    t1_times
+        Array with the T1 times corresponding to each probability in ``probabilities``.
+    probabilities
+        The probabilities of finding the qubit in the excited state.
+    **kwargs
+        Keyword arguments passed to
+        :func:`~quantify_core.utilities.examples_support.mk_iq_shots`.
+    """
+    # reuse previous dataset
+    dataset_av = mk_t1_av_dataset(t1_times, probabilities, **kwargs)
+
+    # generate mock calibration data for the ground and excited states
+    q0_iq_av_cal = mk_shots_from_probabilities([0, 1], **kwargs).mean(axis=0)
+
+    secondary_dims = ("cal_dim",)
+    q0_cal_attrs = mk_secondary_var_attrs(unit="V", long_name="Q0 IQ Calibration")
+    cal_attrs = mk_secondary_coord_attrs(unit="", long_name="Q0 state")
+
+    relationships = [
+        dattrs.QDatasetIntraRelationship(
+            item_name=dataset_av.q0_iq_av.name,  # name of a variable in the dataset
+            relation_type="calibration",
+            related_names=["q0_iq_av_cal"],  # the secondary variable in the dataset
+        ).to_dict()
+    ]
+
+    data_vars = dict(
+        q0_iq_av=dataset_av.q0_iq_av,  # reuse from the other dataset
+        q0_iq_av_cal=(secondary_dims, q0_iq_av_cal, q0_cal_attrs),
+    )
+    coords = dict(
+        t1_time=dataset_av.t1_time,  # reuse from the other dataset
+        cal=(secondary_dims, ["|0>", "|1>"], cal_attrs),  # coords can be strings
+    )
+
+    dataset = xr.Dataset(
+        data_vars=data_vars,
+        coords=coords,
+        attrs=mk_dataset_attrs(relationships=relationships),  # relationships added here
+    )
+
+    return dataset
+
+
+def mk_t1_shots_dataset(
+    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+) -> xr.Dataset:
+    """
+    Generates a dataset with mock data of a T1 experiment for a single qubit including
+    calibration points for the ground and excited states, including all the individual
+    shots (repeated qubit state measurement for the same exact experiment).
+
+    Parameters
+    ----------
+    t1_times
+        Array with the T1 times corresponding to each probability in ``probabilities``.
+    probabilities
+        The probabilities of finding the qubit in the excited state.
+    **kwargs
+        Keyword arguments passed to
+        :func:`~quantify_core.utilities.examples_support.mk_iq_shots`.
+    """
+    # reuse previous dataset
+    dataset_av_with_cal = mk_t1_av_with_cal_dataset(t1_times, probabilities, **kwargs)
+
+    # generate mock data containing all the shots,
+    # NB not the same data that was used for the average above, but this is just a mock
+    q0_iq_shots = mk_shots_from_probabilities(probabilities, **kwargs)
+    q0_iq_shots_cal = mk_shots_from_probabilities([0, 1], **kwargs)
+
+    # the xarray dimensions will now require an outer repetitions dimension
+    secondary_dims_rep = ("repetitions", "cal_dim")
+    main_dims_rep = ("repetitions", "main_dim")
+
+    relationships = [
+        dattrs.QDatasetIntraRelationship(
+            item_name=dataset_av_with_cal.q0_iq_av.name,
+            relation_type="calibration",
+            related_names=[dataset_av_with_cal.q0_iq_av_cal.name],
+        ).to_dict(),
+        dattrs.QDatasetIntraRelationship(
+            item_name="q0_iq_shots",
+            relation_type="calibration",
+            related_names=["q0_iq_cal_shots"],
+        ).to_dict(),
+        # suggestion of a custom relationship
+        dattrs.QDatasetIntraRelationship(
+            item_name=dataset_av_with_cal.q0_iq_av.name,
+            relation_type="individual_shots",
+            related_names=["q0_iq_shots"],
+        ).to_dict(),
+    ]
+
+    # Flag that these variables use a repetitions dimension
+    q0_attrs_rep = dict(dataset_av_with_cal.q0_iq_av.attrs)
+    q0_attrs_rep["has_repetitions"] = True
+    q0_cal_attrs_rep = dict(dataset_av_with_cal.q0_iq_av.attrs)
+    q0_cal_attrs_rep["has_repetitions"] = True
+
+    data_vars = dict(
+        # variables that are the same as in the previous dataset, and are now redundant,
+        # however, we include them to showcase the dataset flexibility
+        q0_iq_av=dataset_av_with_cal.q0_iq_av,
+        q0_iq_av_cal=dataset_av_with_cal.q0_iq_av_cal,
+        # variables that contain all the individual shots
+        q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs_rep),
+        q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs_rep),
+    )
+
+    dataset = xr.Dataset(
+        data_vars=data_vars,
+        coords=dataset_av_with_cal.coords,  # same coordinates as in previous dataset
+        attrs=mk_dataset_attrs(relationships=relationships),  # relationships added here
+    )
+
+    return dataset
+
+
+def mk_t1_traces_dataset(
+    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+) -> xr.Dataset:
+    """
+    Generates a dataset with mock data of a T1 experiment for a single qubit including
+    calibration points for the ground and excited states, including all the individual
+    shots (repeated qubit state measurement for the same exact experiment); and
+    including all the signals that had to be digitized to obtain the rest of the data.
+
+    Parameters
+    ----------
+    t1_times
+        Array with the T1 times corresponding to each probability in ``probabilities``.
+    probabilities
+        The probabilities of finding the qubit in the excited state.
+    **kwargs
+        Keyword arguments passed to
+        :func:`~quantify_core.utilities.examples_support.mk_iq_shots`.
+    """
+    dataset_shots = mk_t1_shots_dataset(t1_times, probabilities, **kwargs)
+    shots = dataset_shots.q0_iq_shots.values
+    shots_cal = dataset_shots.q0_iq_shots_cal.values
+
+    # generate mock traces for all shots
+    q0_traces = np.array(tuple(map(mk_trace_for_iq_shot, shots.flatten())))
+    q0_traces = q0_traces.reshape(*shots.shape, q0_traces.shape[-1])
+    # generate mock traces for calibration points shots
+    q0_traces_cal = np.array(tuple(map(mk_trace_for_iq_shot, shots_cal.flatten())))
+    q0_traces_cal = q0_traces_cal.reshape(*shots_cal.shape, q0_traces_cal.shape[-1])
+
+    traces_dims = ("repetitions", "main_dim", "trace_dim")
+    traces_cal_dims = ("repetitions", "cal_dim", "trace_dim")
+    trace_times = mk_trace_time()
+    trace_attrs = mk_main_coord_attrs(long_name="Trace time", unit="s")
+
+    relationships_with_traces = dataset_shots.relationships + [
+        dattrs.QDatasetIntraRelationship(
+            item_name="q0_traces",
+            related_names=["q0_traces_cal"],
+            relation_type="calibration",
+        ).to_dict(),
+    ]
+
+    data_vars = dict(
+        q0_iq_av=dataset_shots.q0_iq_av,
+        q0_iq_av_cal=dataset_shots.q0_iq_av_cal,
+        q0_iq_shots=dataset_shots.q0_iq_shots,
+        q0_iq_shots_cal=dataset_shots.q0_iq_shots_cal,
+        q0_traces=(traces_dims, q0_traces, dataset_shots.q0_iq_shots.attrs),
+        q0_traces_cal=(
+            traces_cal_dims,
+            q0_traces_cal,
+            dataset_shots.q0_iq_shots_cal.attrs,
+        ),
+    )
+    coords = dict(
+        t1_time=dataset_shots.t1_time,
+        cal=dataset_shots.cal,
+        trace_time=(("trace_dim",), trace_times, trace_attrs),
+    )
+
+    dataset = xr.Dataset(
+        data_vars=data_vars,
+        coords=coords,
+        attrs=mk_dataset_attrs(relationships=relationships_with_traces),
+    )
 
     return dataset
 

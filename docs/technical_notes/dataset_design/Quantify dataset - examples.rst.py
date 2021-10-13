@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -210,20 +211,20 @@ rst_json_conf = {"indent": "    "}
 
 ground = -0.2 + 0.65j
 excited = 0.7 - 0.4j
-centroids = ground, excited
+centers = ground, excited
 sigmas = [0.1] * 2
 
 shots = mk_iq_shots(
-    n_shots=256,
+    num_shots=256,
     sigmas=sigmas,
-    centers=centroids,
+    centers=centers,
     probabilities=[0.4, 1 - 0.4],
 )
 
 plt.hexbin(shots.real, shots.imag)
 plt.xlabel("I")
 plt.ylabel("Q")
-_ = plot_complex_points(centroids, ax=plt.gca())
+_ = plot_complex_points(centers, ax=plt.gca())
 
 # %%
 rst_json_conf = {"indent": "    "}
@@ -248,8 +249,8 @@ First we define a few parameters of our mock qubit and mock data acquisition.
 tau = 30e-6
 ground = -0.2 + 0.65j  # ground state on the IQ-plane
 excited = 0.7 - 0.4j  # excited state on the IQ-plane
-centroids = ground, excited
-sigmas = [0.1] * 2  # centroids sigma, NB in general not the same for both state
+centers = ground, excited
+sigmas = [0.1] * 2  # sigma, NB in general not the same for both state
 
 # mock of data acquisition configuration
 # NB usually at least 1000+ shots are taken, here we use less for faster code execution
@@ -267,6 +268,16 @@ plt.suptitle("Typical processed data of a T1 experiment")
 plt.plot(t1_times * 1e6, probabilities, ".-")
 _ = plt.xlabel("Time [µs]")
 
+# %%
+# convenience dict with the mock parameters
+mock_conf = dict(
+    num_shots=num_shots,
+    centers=centers,
+    sigmas=sigmas,
+    t1_times=t1_times,
+    probabilities=probabilities,
+)
+
 # %% [raw]
 """
 T1 experiment averaged
@@ -274,49 +285,22 @@ T1 experiment averaged
 
 In this first example we generate the individual measurement shots and average it,
 similar to what some instrument are capable of doing directly in the hardware.
-"""
 
-# %%
-q0_iq_av = np.fromiter(
-    (
-        np.average(
-            mk_iq_shots(
-                n_shots=num_shots,
-                sigmas=sigmas,
-                centers=centroids,
-                probabilities=[1 - prob, prob],
-            )
-        )
-        for prob in probabilities
-    ),
-    dtype=complex,
-)
-q0_iq_av
-
-# %% [raw]
-"""
-And here is how we store this data in the dataset along with the coordinates of these
+Here is how we store this data in the dataset along with the coordinates of these
 datapoints:
 """
 
 # %%
-main_dims = ("main_dim",)
-q0_attrs = mk_main_var_attrs(unit="V", long_name="Q0 IQ amplitude")
-t1_time_attrs = mk_main_coord_attrs(unit="s", long_name="T1 Time")
+display_source_code(dataset_examples.mk_t1_av_dataset)
 
-data_vars = dict(q0_iq_av=(main_dims, q0_iq_av, q0_attrs))
-coords = dict(t1_time=(main_dims, t1_times, t1_time_attrs))
-
-dataset = xr.Dataset(
-    data_vars=data_vars,
-    coords=coords,
-    attrs=mk_dataset_attrs(),
-)
-
-
+# %%
+dataset = dataset_examples.mk_t1_av_dataset(**mock_conf)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
+
+# %%
+dataset.q0_iq_av.shape, dataset.q0_iq_av.dtype
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
@@ -343,7 +327,7 @@ display_source_code(plot_xr_complex_on_plane)
 # %% tags=[]
 plot_xr_complex(dataset_gridded.q0_iq_av)
 fig, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
-_ = plot_complex_points(centroids, ax=ax)
+_ = plot_complex_points(centers, ax=ax)
 
 # %% [raw]
 """
@@ -354,27 +338,7 @@ It is common for many experiment to require calibration data in order to interpr
 results. Often, these calibration datapoints have different array shapes. E.g. it can be
 just two simple datapoints corresponding to the ground and excited states of our
 transmon.
-"""
 
-# %%
-q0_iq_av_cal = np.fromiter(  # generate mock calibration data
-    (
-        np.average(
-            mk_iq_shots(
-                n_shots=num_shots,
-                sigmas=sigmas,
-                centers=centroids,
-                probabilities=[1 - prob, prob],
-            )
-        )
-        for prob in [0, 1]
-    ),
-    dtype=complex,
-)
-q0_iq_av_cal
-
-# %% [raw]
-"""
 To accommodate this data in the dataset we make use of a secondary dimensions along which
 the variables and its coordinate will lie along.
 
@@ -387,34 +351,10 @@ dataset.
 """
 
 # %%
-secondary_dims = ("cal_dim",)
-q0_cal_attrs = mk_secondary_var_attrs(unit="V", long_name="Q0 IQ Calibration")
-cal_attrs = mk_secondary_coord_attrs(unit="", long_name="Q0 state")
+display_source_code(dataset_examples.mk_t1_av_with_cal_dataset)
 
-relationships = [
-    dattrs.QDatasetIntraRelationship(
-        item_name="q0_iq_av",  # name of a variable in the dataset
-        relation_type="calibration",
-        related_names=["q0_iq_av_cal"],  # the secondary variable in the dataset
-    ).to_dict()
-]
-
-data_vars = dict(
-    q0_iq_av=(main_dims, q0_iq_av, q0_attrs),
-    q0_iq_av_cal=(secondary_dims, q0_iq_av_cal, q0_cal_attrs),
-)
-coords = dict(
-    t1_time=(main_dims, t1_times, t1_time_attrs),
-    cal=(secondary_dims, ["|0>", "|1>"], cal_attrs),
-)
-
-dataset = xr.Dataset(
-    data_vars=data_vars,
-    coords=coords,
-    attrs=mk_dataset_attrs(relationships=relationships),  # relationships added here
-)
-
-
+# %%
+dataset = dataset_examples.mk_t1_av_with_cal_dataset(**mock_conf)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
@@ -510,84 +450,11 @@ Now we will include in the dataset all the single qubit states (shot) for each
 individual measurement.
 """
 
-# %%
-q0_iq_shots = np.array(
-    tuple(
-        mk_iq_shots(
-            n_shots=num_shots,
-            sigmas=sigmas,
-            centers=centroids,
-            probabilities=[1 - prob, prob],
-        )
-        for prob in probabilities
-    )
-).T
+# %% tags=[]
+display_source_code(dataset_examples.mk_t1_shots_dataset)
 
-q0_iq_shots_cal = np.array(
-    tuple(
-        mk_iq_shots(
-            n_shots=num_shots,
-            sigmas=sigmas,
-            centers=centroids,
-            probabilities=[1 - prob, prob],
-        )
-        for prob in [0, 1]
-    )
-).T
-q0_iq_shots.shape, q0_iq_shots_cal.shape
-
-# %%
-# the xarray dimensions will now require an outer repetitions dimension
-secondary_dims_rep = ("repetitions", "cal_dim")
-main_dims_rep = ("repetitions", "main_dim")
-
-relationships = [
-    dattrs.QDatasetIntraRelationship(
-        item_name="q0_iq_av",
-        relation_type="calibration",
-        related_names=["q0_iq_av_cal"],
-    ).to_dict(),
-    dattrs.QDatasetIntraRelationship(
-        item_name="q0_iq_av_shots",
-        relation_type="calibration",
-        related_names=["q0_iq_av_cal_shots"],
-    ).to_dict(),
-    # suggestion of a custom relationship
-    dattrs.QDatasetIntraRelationship(
-        item_name="q0_iq_av",
-        relation_type="individual_shots",
-        related_names=["q0_iq_av_shots"],
-    ).to_dict(),
-]
-
-# Flag that these variables use a repetitions dimension
-q0_attrs_rep = dict(q0_attrs)
-q0_attrs_rep["has_repetitions"] = True
-q0_cal_attrs_rep = dict(q0_cal_attrs)
-q0_cal_attrs_rep["has_repetitions"] = True
-
-data_vars = dict(
-    # these are the same as in the previous dataset, and are now redundant,
-    # however, we include them to showcase the dataset flexibility
-    q0_iq_av=(main_dims, q0_iq_shots.mean(axis=0), q0_attrs),
-    q0_iq_av_cal=(secondary_dims, q0_iq_shots_cal.mean(axis=0), q0_cal_attrs),
-    # the variables that contain all the individual shots
-    q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs_rep),
-    q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs_rep),
-)
-coords = dict(
-    t1_time=(main_dims, t1_times, t1_time_attrs),
-    cal=(secondary_dims, ["|0>", "|1>"], cal_attrs),
-)
-
-dataset = xr.Dataset(
-    data_vars=data_vars,
-    coords=coords,
-    attrs=mk_dataset_attrs(relationships=relationships),  # relationships added here
-)
-
-assert dataset == round_trip_dataset(dataset)  # confirm read/write
-
+# %% tags=[]
+dataset = dataset_examples.mk_t1_shots_dataset(**mock_conf)
 dataset
 
 # %%
@@ -624,7 +491,7 @@ Note that we are plotting the calibration points as well.
 
 # %%
 chosen_time_values = [
-    t1_times[1],  # second value selected otherwise we won't see both centroids
+    t1_times[1],  # second value selected otherwise we won't see both centers
     t1_times[len(t1_times) // 5],  # a value close to the end of the experiment
 ]
 for t_example in chosen_time_values:
@@ -651,7 +518,7 @@ We can collapse (average along) the ``repetitions`` dimension:
 q0_iq_shots_mean = dataset_gridded.q0_iq_shots.mean(dim="repetitions", keep_attrs=True)
 plot_xr_complex(q0_iq_shots_mean)
 _, ax = plot_xr_complex_on_plane(q0_iq_shots_mean)
-_ = plot_complex_points(centroids, ax=ax)
+_ = plot_complex_points(centers, ax=ax)
 
 # %% [raw]
 """
@@ -663,52 +530,16 @@ signals that are required to obtain the previous measurement results.
 """
 
 # %%
-_q0_traces = np.array(tuple(map(mk_trace_for_iq_shot, q0_iq_shots.flatten())))
-q0_traces = _q0_traces.reshape(*q0_iq_shots.shape, _q0_traces.shape[-1])
-
-_q0_traces_cal = np.array(tuple(map(mk_trace_for_iq_shot, q0_iq_shots_cal.flatten())))
-q0_traces_cal = _q0_traces_cal.reshape(*q0_iq_shots_cal.shape, _q0_traces_cal.shape[-1])
-
-q0_traces.shape, q0_traces_cal.shape
+display_source_code(dataset_examples.mk_t1_traces_dataset)
 
 # %%
-# NB this is not necessarily the most efficient way to generate this mock data
-traces_dims = ("repetitions", "main_dim", "trace_dim")
-traces_cal_dims = ("repetitions", "cal_dim", "trace_dim")
-trace_times = mk_trace_time()
-trace_attrs = mk_main_coord_attrs(long_name="Trace time", unit="s")
-
-relationships_with_traces = relationships + [
-    dattrs.QDatasetIntraRelationship(
-        item_name="q0_traces",
-        related_names=["q0_traces_cal"],
-        relation_type="calibration",
-    ).to_dict(),
-]
-
-data_vars = dict(
-    q0_iq_av=(main_dims, q0_iq_av, q0_attrs),
-    q0_iq_av_cal=(secondary_dims, q0_iq_av_cal, q0_cal_attrs),
-    q0_iq_shots=(main_dims_rep, q0_iq_shots, q0_attrs_rep),
-    q0_iq_shots_cal=(secondary_dims_rep, q0_iq_shots_cal, q0_cal_attrs_rep),
-    q0_traces=(traces_dims, q0_traces, q0_attrs_rep),
-    q0_traces_cal=(traces_cal_dims, q0_traces_cal, q0_cal_attrs_rep),
-)
-coords = dict(
-    t1_time=(main_dims, t1_times, t1_time_attrs),
-    cal=(secondary_dims, ["|0>", "|1>"], cal_attrs),
-    trace_time=(("trace_dim",), trace_times, trace_attrs),
-)
-
-dataset = xr.Dataset(
-    data_vars=data_vars,
-    coords=coords,
-    attrs=mk_dataset_attrs(relationships=relationships_with_traces),
-)
-
+dataset = dataset_examples.mk_t1_traces_dataset(**mock_conf)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
+
+# %%
+dataset.q0_traces.shape, dataset.q0_traces_cal.shape
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
@@ -750,5 +581,7 @@ part of the signal.
 
 # %%
 trace_example_plt = trace_example[:200]
-trace_example_plt.real.plot(figsize=(15, 5), marker=".")
-_ = trace_example_plt.imag.plot(marker=".")
+trace_example_plt.real.plot(figsize=(15, 5), marker=".", label="I-quadrature")
+trace_example_plt.imag.plot(marker=".", label="Q-quadrature")
+plt.gca().legend()
+plt.show()
