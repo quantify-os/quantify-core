@@ -133,7 +133,8 @@ Secondary variables(s)
     However, for completeness, we always show a valid Quantify dataset with all the required properties.
 
 In order to follow the rest of this specification more easily have a look at the example below.
-It should give you a more concrete feeling of the details that are exposed afterwards. See :ref:`sec-quantify-dataset-examples` for exemplary dataset.
+It should give you a more concrete feeling of the details that are exposed afterwards.
+See :ref:`sec-quantify-dataset-examples` for exemplary dataset.
 """
 
 # %% [raw]
@@ -141,7 +142,9 @@ It should give you a more concrete feeling of the details that are exposed after
 .. admonition:: Generate dataset
     :class: dropdown
 
-    We use the :func:`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset` to generate our dataset.
+    We use the
+    :func:`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset` to
+    generate our dataset.
 """
 
 # %%
@@ -161,7 +164,8 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 .. admonition:: Quantify dataset: 2D example
     :class: dropdown, toggle-shown
 
-    In the dataset below we have two main coordinates ``amp`` and ``time``; and two main variables ``pop_q0`` and ``pop_q1``.
+    In the dataset below we have two main coordinates ``amp`` and ``time``; and two main
+    variables ``pop_q0`` and ``pop_q1``.
     Both main coordinates "lie" along a single xarray dimension, ``main_dim``.
     Both main variables lie along two xarray dimensions ``main_dim`` and ``repetitions``.
 """
@@ -170,6 +174,39 @@ assert dataset == round_trip_dataset(dataset)  # confirm read/write
 rst_json_conf = {"indent": "    "}
 
 dataset
+
+# %% [raw]
+"""
+    **Please note** how the underlying arrays for the coordinates are structured!
+    As the figure below depicts, even for "gridded" data the coordinates are
+    "unrolled" into arrays the specify the value of that coordinate for the
+    corresponding index in the variables that lie along the same xarray
+    dimensions (here ``main_dim``). This is intentional in order to support, in an
+    uniform manner, more complex use-cases such as arbitrarily sparse sampling of the
+    coordinates domain and adaptive measurements in which the points to be measured are
+    not know before a measurement is actually executed.
+"""
+
+# %%
+rst_json_conf = {"indent": "    "}
+
+n_points = 110  # only plot a few points for clarity
+_, axs = plt.subplots(4, 1, sharex=True, figsize=(10, 10))
+dataset.amp[:n_points].plot(
+    ax=axs[0], marker=".", color="C0", label=dataset.amp.long_name
+)
+dataset.time[:n_points].plot(
+    ax=axs[1], marker=".", color="C1", label=dataset.time.long_name
+)
+_ = dataset.pop_q0.sel(repetitions=0)[:n_points].plot(
+    ax=axs[2], marker=".", color="C2", label=dataset.pop_q0.long_name
+)
+_ = dataset.pop_q1.sel(repetitions=0)[:n_points].plot(
+    ax=axs[3], marker=".", color="C3", label=dataset.pop_q1.long_name
+)
+for ax in axs:
+    ax.legend()
+    ax.grid()
 
 # %% [raw]
 """
