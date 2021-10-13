@@ -595,7 +595,7 @@ def to_gridded_dataset(
         The new dataset.
 
 
-    .. include:: /examples/data.handling.to_gridded_dataset.py.rst.txt
+    .. include:: examples/data.handling.to_gridded_dataset.py.rst.txt
     """
     if dimension not in quantify_dataset.dims:
         dims = tuple(quantify_dataset.dims.keys())

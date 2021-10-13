@@ -316,7 +316,7 @@ def set_cyclic_colormap(
         The colormap limit.
 
 
-    .. include:: /examples/visualization.mpl_plotting.set_cyclic_colormap.py.rst.txt
+    .. include:: examples/visualization.mpl_plotting.set_cyclic_colormap.py.rst.txt
     """  # pylint: disable=line-too-long
     shifted = bool(shifted)  # in case xarray min() is used
     if unit in {"deg", "rad"}:

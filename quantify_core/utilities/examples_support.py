@@ -32,7 +32,7 @@ def mk_iq_shots(
     .. admonition:: Examples
         :class: dropdown
 
-        .. include:: /examples/utilities.examples_support.mk_iq_shots.py.rst.txt
+        .. include:: examples/utilities.examples_support.mk_iq_shots.py.rst.txt
 
     Parameters
     ----------

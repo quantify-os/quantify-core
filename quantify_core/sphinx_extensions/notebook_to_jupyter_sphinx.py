@@ -299,7 +299,7 @@ def get_code_indent_and_processed_lines(
                     "eval",
                 )
                 conf = dict(eval(compiled))
-            except (Exception, SyntaxError) as exc:
+            except Exception as exc:
                 raise ExtensionError(exc_msg, modname=__name__) from exc
 
         if conf is not None:
