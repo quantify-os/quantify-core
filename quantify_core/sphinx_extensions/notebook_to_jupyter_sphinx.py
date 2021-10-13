@@ -291,14 +291,13 @@ def get_code_indent_and_processed_lines(
             # evaluate the expression
             # eval is used instead of ast.literal_eval for more flexibility,
             # e.g. makes possible rst_conf = {"indent": "    " * 2}
-            # pylint: disable=eval-used
             try:
                 compiled = compile(
                     ast.Expression(rst_conf_expression.value),
                     "cell_module",
                     "eval",
                 )
-                conf = dict(eval(compiled))
+                conf = dict(eval(compiled))  # pylint: disable=eval-used
             except Exception as exc:
                 raise ExtensionError(exc_msg, modname=__name__) from exc
 
