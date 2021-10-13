@@ -8,7 +8,6 @@ from typing import Tuple, Union, Any, Dict, Callable
 from pathlib import Path
 import xarray as xr
 import numpy as np
-import matplotlib.pyplot as plt
 from quantify_core.data.types import TUID
 import quantify_core.data.handling as dh
 import quantify_core.data.dataset_attrs as dd
@@ -278,6 +277,7 @@ def mk_secondary_var_attrs(
         grid=grid,
         uniformly_spaced=uniformly_spaced,
         is_main_var=is_main_var,
+        has_repetitions=has_repetitions,
     ).to_dict()
 
     attrs.update(kwargs)

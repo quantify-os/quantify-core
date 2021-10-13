@@ -31,7 +31,4 @@ jupytext
 
 scikit-learn
 scikit-optimize
-
-# tmp
-
-quantify-scheduler
+quantify-scheduler # used to generate schedule example in the dataset design docs
