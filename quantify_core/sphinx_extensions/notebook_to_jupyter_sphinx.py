@@ -269,17 +269,38 @@ def get_code_indent_and_processed_lines(
         first_line = code_cell_lines[0]
 
         conf = None
+        exc = None
+
+        exc_msg = (
+            "Error evaluating rst configuration while processing the cell:\n\n"
+            f"{cell_source_code}"
+        )
 
         magic_comment = "# rst-json-conf:"
         if first_line.startswith(magic_comment):
-            conf = json.loads(first_line[len(magic_comment) :])
+            try:
+                conf = json.loads(first_line[len(magic_comment) :])
+            except Exception as exc:
+                raise ExtensionError(exc_msg, modname=__name__) from exc
+
         # Allow also an actual python dictionary defined on first line(s) of the cell
         elif first_line.startswith("rst_conf"):
             # parse the expression that comes after `rst_conf = `
             python_module_from_cell = ast.parse(cell_source_code)
             rst_conf_expression = python_module_from_cell.body[0]
-            # evaluate the expression, fairly safe
-            conf = dict(ast.literal_eval(ast.Expression(rst_conf_expression.value)))
+            # evaluate the expression
+            # eval is used instead of ast.literal_eval for more flexibility,
+            # e.g. makes possible rst_conf = {"indent": "    " * 2}
+            # pylint: disable=eval-used
+            try:
+                compiled = compile(
+                    ast.Expression(rst_conf_expression.value),
+                    "cell_module",
+                    "eval",
+                )
+                conf = dict(eval(compiled))
+            except (Exception, SyntaxError) as exc:
+                raise ExtensionError(exc_msg, modname=__name__) from exc
 
         if conf is not None:
             indent = conf.pop("indent", "")
@@ -328,7 +349,7 @@ def make_jupyter_sphinx_block(cell_source_code: str, rst_indent: str = "    ") -
     header = f"\n\n\n{indent}.. jupyter-execute::\n"
     indent = f"{indent}{rst_indent}"
     for line in lines:
-        out += f"{indent}{line}\n" if line != "" else "\n"
+        out += f"{indent}{line}\n" if line.strip() != "" else "\n"
 
     return header + out if out.strip() != "" else ""
 
