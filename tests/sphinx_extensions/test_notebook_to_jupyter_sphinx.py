@@ -3,10 +3,11 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=line-too-long
 from textwrap import dedent
-import jupytext
-from quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx import notebook_to_rst
-from sphinx.errors import ExtensionError
 import pytest
+import jupytext
+
+from sphinx.errors import ExtensionError
+from quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx import notebook_to_rst
 
 RST_INDENT = "    "
 
