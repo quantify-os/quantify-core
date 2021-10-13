@@ -133,7 +133,7 @@ To support such use-case we will have a dimension in dataset for the repeating c
 and one extra dimension for the final measurement.
 """
 
-# %% tags=[]
+# %%
 # mock data parameters
 num_shots = 128  # NB usually >~1000 in real experiments
 ground = -0.2 + 0.65j
@@ -145,7 +145,7 @@ display_source_code(mk_iq_shots)
 display_source_code(mk_shots_from_probabilities)
 display_source_code(mk_surface7_cyles_dataset)
 
-# %% tags=[]
+# %%
 dataset = mk_surface7_cyles_dataset(
     num_shots=num_shots, sigmas=sigmas, centers=centroids
 )
@@ -165,6 +165,11 @@ dataset_gridded = dh.to_gridded_dataset(
     dataset_gridded, dimension="dim_final", coords_names=["final_msmt"]
 )
 dataset_gridded
+
+# %%
+dataset_gridded.A0_shots.real.mean("repetitions").plot(marker="o", label="I-quadrature")
+dataset_gridded.A0_shots.imag.mean("repetitions").plot(marker="^", label="Q-quadrature")
+_ = plt.gca().legend()
 
 # %% [raw]
 """
@@ -223,9 +228,10 @@ We start by generating a mock dataset that combines all the information that wou
 been obtained from analyzing a series of other datasets.
 """
 
-# %% tags=[]
+# %%
 display_source_code(mk_nested_mc_dataset)
 
+# %%
 dataset = mk_nested_mc_dataset(num_points=num_t1_datasets)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 dataset
@@ -233,8 +239,23 @@ dataset
 # %% [raw]
 """
 In this case the four main coordinates are not orthogonal coordinates, but instead
-just different label for the same data points, also known as a "multi-index". It is
-possible to work with an explicit MultiIndex within a (python) xarray object:
+just different label for the same data points, also known as a "multi-index".
+"""
+
+# %%
+fig, axs = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+
+_ = dataset.t1.plot(x="flux_bias", marker="o", ax=axs[0].twiny(), color="C0")
+x = "t1_tuids"
+_ = dataset.t1.plot(x=x, marker="o", ax=axs[0], color="C0")
+_ = dataset.resonator_freq.plot(x=x, marker="o", ax=axs[1], color="C1")
+_ = dataset.qubit_freq.plot(x=x, marker="o", ax=axs[2], color="C2")
+for tick in axs[2].get_xticklabels():
+    tick.set_rotation(15)  # avoid tuid labels overlapping
+
+# %% [raw]
+"""
+It is possible to work with an explicit MultiIndex within a (python) xarray object:
 """
 
 # %%

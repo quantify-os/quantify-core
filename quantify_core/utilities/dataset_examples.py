@@ -485,17 +485,21 @@ def mk_nested_mc_dataset(
         resonator_freq_tuids=(
             "main_dim",
             resonator_freq_tuids,
-            mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
+            mk_main_coord_attrs(
+                long_name="Dataset TUID resonator frequency", is_dataset_ref=True
+            ),
         ),
         qubit_freq_tuids=(
             "main_dim",
             qubit_freq_tuids,
-            mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
+            mk_main_coord_attrs(
+                long_name="Dataset TUID qubit frequency", is_dataset_ref=True
+            ),
         ),
         t1_tuids=(
             "main_dim",
             t1_tuids,
-            mk_main_coord_attrs(long_name="Dataset TUID", is_dataset_ref=True),
+            mk_main_coord_attrs(long_name="Dataset TUID T1", is_dataset_ref=True),
         ),
     )
 
