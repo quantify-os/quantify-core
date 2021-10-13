@@ -17,27 +17,33 @@ def strip_rst(rst: str):
     return "\n".join(rst.split("\n")[2:])
 
 
-def strp_cmp(str_a: str, str_b: str):
-    return str_a.strip() == str_b.strip()
+def strp_cmp(rst_from_nb: str, expected_rst: str):
+    rst_from_nb = rst_from_nb.strip()
+    expected_rst = expected_rst.strip()
+    return rst_from_nb == expected_rst
+
+
+def nb_to_rst(notebook: str):
+    notebook = dedent(notebook)
+    rst = notebook_to_rst(
+        jupytext.reads(notebook, fmt="py:percent"), rst_indent=RST_INDENT
+    )
+    return strip_rst(rst)
 
 
 def test_single_cell():
     py_percent_nb = """
     # %%
     1+1"""
-    py_percent_nb = dedent(py_percent_nb)
 
-    expected = f"""
+    expected = """
     .. jupyter-execute::
 
-    {RST_INDENT}1+1
+        1+1
     """
     expected = dedent(expected)
 
-    rst = notebook_to_rst(
-        jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
-    )
-    assert strp_cmp(strip_rst(rst), expected)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
 
 
 def test_rst_json_conf():
@@ -45,21 +51,109 @@ def test_rst_json_conf():
     # %%
     # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-code:", ":hide-output:"]}
     1+1"""
-    py_percent_nb = dedent(py_percent_nb)
 
     expected = """
     {indent}.. jupyter-execute::
     {indent}    :hide-code:
     {indent}    :hide-output:
 
-    {indent}{indent}1+1
+    {indent}    1+1
     """
-    expected = dedent(expected).format(indent=RST_INDENT)  # format after dedent
+    expected = dedent(expected).format(indent=RST_INDENT)  # must format after dedent
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
 
-    rst = notebook_to_rst(
-        jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
-    )
-    assert strp_cmp(strip_rst(rst), expected)
+
+def test_rst_conf_space():
+    py_percent_nb = """
+    # %%
+    rst_conf = {"jupyter_execute_options": [":hide-code:"]}
+
+    1+1"""
+
+    expected = """
+    .. jupyter-execute::
+        :hide-code:
+
+        1+1
+    """
+    expected = dedent(expected)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
+
+
+def test_rst_conf_comment():
+    py_percent_nb = """
+    # %%
+    rst_conf = {"jupyter_execute_options": [":hide-code:"]}
+    # something
+    1+1"""
+
+    expected = """
+    .. jupyter-execute::
+        :hide-code:
+
+        # something
+        1+1
+    """
+    expected = dedent(expected)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
+
+
+def test_rst_conf_only_comments():
+    py_percent_nb = """
+    # %%
+    rst_conf = {"jupyter_execute_options": [":hide-code:"]}
+    # something
+    # something
+    # something
+    """
+
+    expected = """
+    .. jupyter-execute::
+        :hide-code:
+
+        # something
+        # something
+        # something
+    """
+    expected = dedent(expected)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
+
+
+def test_rst_conf_only_comments_indent():
+    py_percent_nb = """
+    # %%
+    rst_conf = {"indent": "    "}
+    # something
+    # something
+    """
+
+    expected = """
+    {indent}.. jupyter-execute::
+
+    {indent}    # something
+    {indent}    # something
+    """
+    expected = dedent(expected).format(indent=RST_INDENT)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
+
+
+def test_rst_conf_only_comments_indent_space():
+    py_percent_nb = """
+    # %%
+    rst_conf = {"indent": "    "}
+
+    # something
+    # something
+    """
+
+    expected = """
+    {indent}.. jupyter-execute::
+
+    {indent}    # something
+    {indent}    # something
+    """
+    expected = dedent(expected).format(indent=RST_INDENT)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
 
 
 def test_rst_conf():
@@ -68,7 +162,6 @@ def test_rst_conf():
     # %%
     rst_conf = {"indent": "    " * 2, "jupyter_execute_options": [":hide-code:", ":hide-output:"]}
     1+1"""
-    py_percent_nb = dedent(py_percent_nb)
 
     expected = """
     {indent}.. jupyter-execute::
@@ -78,11 +171,7 @@ def test_rst_conf():
     {indent}{r_indent}1+1
     """
     expected = dedent(expected).format(indent=RST_INDENT * 2, r_indent=RST_INDENT)
-
-    rst = notebook_to_rst(
-        jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
-    )
-    assert strp_cmp(strip_rst(rst), expected)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
 
 
 def test_rst_conf_multi_line():
@@ -96,7 +185,6 @@ def test_rst_conf_multi_line():
     }
 
     1+1"""
-    py_percent_nb = dedent(py_percent_nb)
 
     expected = """
     .. jupyter-execute::
@@ -108,11 +196,7 @@ def test_rst_conf_multi_line():
         1+1
     """
     expected = dedent(expected)
-
-    rst = notebook_to_rst(
-        jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
-    )
-    assert strp_cmp(strip_rst(rst), expected)
+    assert strp_cmp(nb_to_rst(py_percent_nb), expected)
 
 
 def test_bad_json():
@@ -120,12 +204,9 @@ def test_bad_json():
     # %%
     # rst-json-conf: {"indent": False}
     1+1"""
-    py_percent_nb = dedent(py_percent_nb)
 
     with pytest.raises(ExtensionError):
-        notebook_to_rst(
-            jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
-        )
+        nb_to_rst(py_percent_nb)
 
 
 def test_bad_key():
@@ -133,9 +214,6 @@ def test_bad_key():
     # %%
     rst_conf = {"bla": "    "}
     1+1"""
-    py_percent_nb = dedent(py_percent_nb)
 
     with pytest.raises(ExtensionError):
-        notebook_to_rst(
-            jupytext.reads(py_percent_nb, fmt="py:percent"), rst_indent=RST_INDENT
-        )
+        nb_to_rst(py_percent_nb)
