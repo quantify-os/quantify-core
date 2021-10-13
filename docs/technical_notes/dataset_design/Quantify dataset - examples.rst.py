@@ -65,11 +65,6 @@ from quantify_core.utilities.examples_support import (
     mk_iq_shots,
     mk_trace_time,
     mk_trace_for_iq_shot,
-    mk_dataset_attrs,
-    mk_main_coord_attrs,
-    mk_secondary_coord_attrs,
-    mk_main_var_attrs,
-    mk_secondary_var_attrs,
     round_trip_dataset,
 )
 from quantify_core.visualization.mpl_plotting import (
@@ -90,7 +85,7 @@ In this page we explore a series of datasets that comply with the :ref:`Quantify
 ------------------
 
 We use the :func:`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset`
-to generate our examplery dataset. Its source code is conveniently displayed in the
+to generate our exemplary dataset. Its source code is conveniently displayed in the
 drop down below.
 """
 

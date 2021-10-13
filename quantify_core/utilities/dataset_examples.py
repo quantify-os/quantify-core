@@ -31,17 +31,18 @@ def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Union[int, None] = 112233)
     rep_num
         The number of repetitions with noise to generate.
     seed
-        Random number generator passed to ``numpy.random.default_rng``.
+        Random number generator seed passed to ``numpy.random.default_rng``.
 
     Returns
     -------
     amp_values
-
+        Amplitude values.
     time_values
-
+        Time values.
     population_q0
-
+        Q0 population values.
     population_q1
+        Q1 population values.
     """
 
     rng = np.random.default_rng(seed=seed)  # random number generator
@@ -432,31 +433,44 @@ def mk_surface7_cyles_dataset(num_cycles: int = 3, **kwargs) -> xr.Dataset:
     return dataset
 
 
+# pylint: disable=too-many-arguments
 def mk_nested_mc_dataset(
     num_points: int = 12,
     flux_bias_min_max: tuple = (-0.04, 0.04),
-    resonator_freqs_min_max: tuple = (7e9, 8.5e9),
-    qubit_freqs_min_max: tuple = (4.5e9, 4.6e9),
+    resonator_freqs_min_max: tuple = (7e9, 7.3e9),
+    qubit_freqs_min_max: tuple = (4.5e9, 5.0e9),
     t1_values_min_max: tuple = (20e-6, 50e-6),
+    seed: Union[int, None] = 112233,
 ) -> xr.Dataset:
     """
     Generates a dataset with dataset references and several coordinates that serve to
-    index the same variable(s).
+    index the same variables.
+
+    Note that the each value for ``resonator_freqs``, ``qubit_freqs`` and ``t1_values``
+    would have been extracted from other dataset corresponding to individual experiments
+    with their own dataset.
 
     Parameters
     ----------
     num_points
         Number of datapoints to generate (used for all variables/coordinates).
     flux_bias_min_max
+        Range for mock values.
     resonator_freqs_min_max
+        Range for mock values.
     qubit_freqs_min_max
+        Range for mock values.
     t1_values_min_max
+        Range for mock random values.
+    seed
+        Random number generator seed passed to ``numpy.random.default_rng``.
     """
+    rng = np.random.default_rng(seed=seed)  # random number generator
 
     flux_bias_vals = np.linspace(*flux_bias_min_max, num_points)
     resonator_freqs = np.linspace(*resonator_freqs_min_max, num_points)
     qubit_freqs = np.linspace(*qubit_freqs_min_max, num_points)
-    t1_values = np.linspace(*t1_values_min_max, num_points)
+    t1_values = rng.uniform(*t1_values_min_max, num_points)
 
     resonator_freq_tuids = [dh.gen_tuid() for _ in range(num_points)]
     qubit_freq_tuids = [dh.gen_tuid() for _ in range(num_points)]

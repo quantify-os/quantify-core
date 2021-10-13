@@ -56,11 +56,16 @@ accommodate them.
 # %%
 rst_json_conf = {"indent": "    "}
 
-from quantify_core.data import handling as dh
 from rich import pretty
 from pathlib import Path
-from quantify_core.data.handling import set_datadir
+import numpy as np
+import xarray as xr
+import matplotlib.pyplot as plt
+from quantify_core.data import handling as dh
+from quantify_core.analysis.fitting_models import exp_decay_func
+from quantify_core.analysis.calibration import rotate_to_calibrated_axis
 from quantify_core.utilities.inspect_utils import display_source_code
+from quantify_core.utilities import dataset_examples
 from quantify_core.utilities.dataset_examples import (
     mk_shots_from_probabilities,
     mk_surface7_cyles_dataset,
@@ -74,7 +79,7 @@ from quantify_core.utilities.examples_support import (
 
 pretty.install()
 
-set_datadir(Path.home() / "quantify-data")  # change me!
+dh.set_datadir(Path.home() / "quantify-data")  # change me!
 
 
 # %% [raw]
@@ -175,15 +180,53 @@ them performs a "meta" outer loop in which we sweep a flux bias and then perform
 several experiments to characterize a transmon qubit, e.g. determining the frequency of
 a read-out resonator, the frequency of the transmon, and its T1 lifetime.
 
+Below we showcase what the data from the dataset containing the T1 experiment results
+could look like
+"""
+
+# %%
+fig, ax = plt.subplots()
+rng = np.random.default_rng(seed=112244)  # random number generator
+
+num_t1_datasets = 7
+t1_times = np.linspace(0, 120e-6, 30)
+
+for tau in rng.uniform(10e-6, 50e-6, num_t1_datasets):
+    probabilities = exp_decay_func(
+        t=t1_times, tau=tau, offset=0, n_factor=1, amplitude=1
+    )
+    dataset = dataset_examples.mk_t1_av_with_cal_dataset(t1_times, probabilities)
+
+    round_trip_dataset(dataset)  # confirm read/write
+    dataset_g = dh.to_gridded_dataset(
+        dataset, dimension="main_dim", coords_names=["t1_time"]
+    )
+    # rotate the iq data
+    rotated_and_normalized = rotate_to_calibrated_axis(
+        dataset_g.q0_iq_av.values, *dataset_g.q0_iq_av_cal.values
+    )
+    rotated_and_normalized_da = xr.DataArray(dataset_g.q0_iq_av)
+    rotated_and_normalized_da.values = rotated_and_normalized
+    rotated_and_normalized_da.attrs["long_name"] = "|1> Population"
+    rotated_and_normalized_da.attrs["units"] = ""
+    rotated_and_normalized_da.real.plot(ax=ax, label=dataset.tuid, marker=".")
+ax.set_title("Results from repeated T1 experiments\n(different datasets)")
+_ = ax.legend()
+
+# %% [raw]
+"""
 Since the raw data is now split among several datasets, we would like to keep a
-reference to all these datasets. Below we showcase how this can be achieved, along with
-some useful xarray features and known limitations.
+reference to all these datasets in our "combined" datasets. Below we showcase how this
+can be achieved, along with some useful xarray features and known limitations.
+
+We start by generating a mock dataset that combines all the information that would have
+been obtained from analyzing a series of other datasets.
 """
 
 # %% tags=[]
 display_source_code(mk_nested_mc_dataset)
 
-dataset = mk_nested_mc_dataset()
+dataset = mk_nested_mc_dataset(num_points=num_t1_datasets)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 dataset
 
@@ -237,10 +280,7 @@ under the hood. Though there are some nuances there as well. If we would do that
 some extra metadata needs to be stored in order to store/restore the multi-index.
 At the moment, the MultiIndex is not supported when writing a Quantify dataset to
 disk. Below we show a few complications related to this.
-"""
 
-# %% [raw]
-"""
 Fortunately, the MultiIndex can be reset back:
 """
 

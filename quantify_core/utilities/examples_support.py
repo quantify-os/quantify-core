@@ -45,7 +45,7 @@ def mk_iq_shots(
     probabilities
         The probabilities of each cluster being randomly selected for each shot.
     seed
-        Random number generator passed to ``numpy.random.default_rng``.
+        Random number generator seed passed to ``numpy.random.default_rng``.
     """
     if not len(sigmas) == len(centers) == len(probabilities):
         raise ValueError(
