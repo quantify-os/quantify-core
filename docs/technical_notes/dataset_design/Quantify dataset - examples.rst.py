@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -285,7 +284,14 @@ Here is how we store this data in the dataset along with the coordinates of thes
 datapoints:
 """
 
+# %% [raw]
+"""
+.. admonition:: Generate dataset
+    :class: dropdown, toggle-shown
+"""
+
 # %%
+rst_json_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_av_dataset)
 
 # %%
@@ -313,13 +319,13 @@ dataset_gridded
 """
 
 
-# %% tags=[]
+# %%
 rst_json_conf = {"indent": "    "}
 
 display_source_code(plot_xr_complex)
 display_source_code(plot_xr_complex_on_plane)
 
-# %% tags=[]
+# %%
 plot_xr_complex(dataset_gridded.q0_iq_av)
 fig, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
 _ = plot_complex_points(centers, ax=ax)
@@ -345,7 +351,14 @@ This information can be used later, for example, to run an appropriate analysis 
 dataset.
 """
 
+# %% [raw]
+"""
+.. admonition:: Generate dataset
+    :class: dropdown, toggle-shown
+"""
+
 # %%
+rst_json_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_av_with_cal_dataset)
 
 # %%
@@ -365,9 +378,6 @@ dataset.relationships
 As before the coordinates can be set to index the variables that lie along the same
 dimensions:
 """
-
-# %%
-dattrs.get_secondary_dims(dataset_gridded)
 
 # %%
 dataset_gridded = dh.to_gridded_dataset(
@@ -445,10 +455,17 @@ Now we will include in the dataset all the single qubit states (shot) for each
 individual measurement.
 """
 
-# %% tags=[]
+# %% [raw]
+"""
+.. admonition:: Generate dataset
+    :class: dropdown, toggle-shown
+"""
+
+# %%
+rst_json_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_shots_dataset)
 
-# %% tags=[]
+# %%
 dataset = dataset_examples.mk_t1_shots_dataset(**mock_conf)
 dataset
 
@@ -524,7 +541,15 @@ Finally, in addition to the individual shots we will store all the digitized rea
 signals that are required to obtain the previous measurement results.
 """
 
+
+# %% [raw]
+"""
+.. admonition:: Generate dataset
+    :class: dropdown, toggle-shown
+"""
+
 # %%
+rst_json_conf = {"indent": "    "}
 display_source_code(dataset_examples.mk_t1_traces_dataset)
 
 # %%

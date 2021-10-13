@@ -210,8 +210,11 @@ for ax in axs:
 
 # %% [raw]
 """
-    As seen above, in the Quantify dataset the main coordinates do not index the main variables because not all use-cases fit within this paradigm.
-    However, when possible, the Quantify dataset can be reshaped to take advantage of the xarray built-in utilities. Note, however, that this reshaping will produce an xarray dataset that does not comply with the Quantify dataset specification.
+    As seen above, in the Quantify dataset the main coordinates do not explicitly index the main variables because not all use-cases fit within this paradigm.
+    However, when possible, the Quantify dataset can be reshaped to take advantage of the xarray built-in utilities.
+
+    .. FIXME when a Quantify dataset has a class re-evaluate the need for following sentence or some equivalent:
+    .. Note, however, that this reshaping will produce an xarray dataset that does not comply with the Quantify dataset specification.
 """
 
 # %%
@@ -420,7 +423,7 @@ Note that we use the ``h5netcdf`` engine that is more permissive than the defaul
 
 .. note::
 
-    Furthermore, in order to support a variety of attribute types (e.g. the `None` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below that implements the two-way conversion adapter used by the functions shown above.
+    Furthermore, in order to support a variety of attribute types (e.g. the ``None`` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below that implements the two-way conversion adapter used by the functions shown above.
 """
 
 # %%
