@@ -246,6 +246,58 @@ from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
 
+
+def _eval_conf(cell_source_code: str, code_cell_lines: List[str], exc_msg: str):
+    # Parse the expression that comes after `rst_conf = `
+    try:
+        py_body = ast.parse(cell_source_code).body
+    except Exception as exc:
+        raise (ExtensionError(exc_msg, modname=__name__)) from exc
+
+    rst_conf_expression = py_body[0]
+    second_line = code_cell_lines[1].strip()
+    # We need to know how many line this expression has, however
+    # the simple and easy solution is not available in python 3.7
+    # skip_lines = rst_conf_expression.end_lineno
+    second_line_is_expr = len(py_body) > 1 and py_body[1].lineno == 1
+    if second_line == "" or second_line.startswith("#") or second_line_is_expr:
+        skip_lines = 1
+    else:
+        # the rst_conf_expression spans multiple lines
+        # NB assumes no empty line(s) will be there for a multi-line expression
+
+        if len(py_body) > 1:
+            # great, there is some more python code in the cell
+            # -1 because we actually want the next expression in the output
+            skip_lines = py_body[1].lineno - 1
+        else:
+            # there is probably only comments and empty lines in this cell
+            # but we do not really know how many lines the rst_conf expression has
+            for i in range(1, len(code_cell_lines)):
+                line = code_cell_lines[i].strip()
+                if line == "" or line.startswith("#"):
+                    skip_lines = i
+                    break  # break on next comment line or at the end of the cell
+
+    # Evaluate the expression
+
+    # eval is used instead of ast.literal_eval for more flexibility,
+    # e.g. makes possible rst_conf = {"indent": "    " * 2}
+    # Note that the eval is really necessary because the rst_conf dict code can span
+    # several lines due to for example automatic code formatters like `black`.
+    try:
+        compiled = compile(
+            ast.Expression(rst_conf_expression.value),
+            "cell_module",
+            "eval",
+        )
+        conf = dict(eval(compiled))  # pylint: disable=eval-used
+    except Exception as exc:
+        raise ExtensionError(exc_msg, modname=__name__) from exc
+
+    return conf, skip_lines
+
+
 # pylint: disable=unused-argument
 def get_code_indent_and_processed_lines(
     cell_source_code: str,
@@ -262,7 +314,6 @@ def get_code_indent_and_processed_lines(
     indent = ""
     directive_options = []
     if code_cell_lines:
-
         first_line = code_cell_lines[0]
 
         conf = None
@@ -284,24 +335,7 @@ def get_code_indent_and_processed_lines(
 
         # Allow also an actual python dictionary defined on first line(s) of the cell
         elif first_line.startswith("rst_conf"):
-            # parse the expression that comes after `rst_conf = `
-            python_module_from_cell = ast.parse(cell_source_code)
-            rst_conf_expression = python_module_from_cell.body[0]
-            skip_lines = rst_conf_expression.end_lineno
-            # evaluate the expression
-            # eval is used instead of ast.literal_eval for more flexibility,
-            # e.g. makes possible rst_conf = {"indent": "    " * 2}
-            # Note the eval is really needed because the dict code can span several
-            # lines due to for example automatic code formatters like `black`.
-            try:
-                compiled = compile(
-                    ast.Expression(rst_conf_expression.value),
-                    "cell_module",
-                    "eval",
-                )
-                conf = dict(eval(compiled))  # pylint: disable=eval-used
-            except Exception as exc:
-                raise ExtensionError(exc_msg, modname=__name__) from exc
+            conf, skip_lines = _eval_conf(cell_source_code, code_cell_lines, exc_msg)
 
         if conf is not None:
             indent = conf.pop("indent", "")
