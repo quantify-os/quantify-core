@@ -19,9 +19,8 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=duplicate-code
 
 
-import matplotlib.pyplot as plt
-
 # %%
+import matplotlib.pyplot as plt
 import numpy as np
 
 from quantify_core.analysis.calibration import has_calibration_points
