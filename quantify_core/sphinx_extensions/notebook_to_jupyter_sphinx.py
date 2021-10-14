@@ -27,7 +27,7 @@ An alternative to this extensions is to use `nbsphinx in combination with jupyte
 Usage
 -----
 
-1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
+1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.py.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
 
     .. tip::
 
@@ -43,6 +43,28 @@ Usage
 
 
 2. Version control only the :code:`.rst.py` file. Do not commit the :code:`.rst` nor the :code:`.ipynb` files.
+
+    .. tip::
+
+        To ensure this in a git repository add the following to your ``.gitignore`` file:
+
+        .. code-block::
+
+            *.rst.ipynb
+            *.py.rst
+            *.py.rst.txt
+
+    .. tip::
+
+        When switching between git branches you might need to clean up all the generated ``*.rst`` files.
+        You canuse the following unix commands (or integrate them in the ``Makefile`` your project).
+
+        .. code-block:: console
+
+            $ find . -iname "*.py.rst" -exec rm -f -i {} +
+            $ find . -iname "*.py.rst.txt" -exec rm -f -i {} +
+
+        Remove the ``-i`` option to remove files without confirmation.
 
 3. Add this extension to your sphinx :code:`conf.py` file.
 
@@ -81,7 +103,9 @@ Code cells configuration magic comment
 Sometimes it is necessary to pass some configuration options to this extension in order
 for it to produce the indented output from code cells. To achieve this a magic comment
 is used, currently supporting two configuration keys. The configuration is a dictionary
-that will be parsed as json.
+that will be parsed as json. In addition a python dictionary with specific name can be
+defined on the first line of the cell. This can be handy to detect any typos and support
+IDE autocomplete.
 
 .. note::
 
@@ -89,9 +113,18 @@ that will be parsed as json.
 
 .. code-block:: python
 
-    # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:", ...]}
+    rst_conf = {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
 
     # ... the rest of the python code in the cell...
+
+**OR**
+
+.. code-block:: python
+
+    # rst-json-conf: {"indent": "    ", "jupyter_execute_options": [":hide-output:"]}
+
+    # ... the rest of the python code in the cell...
+
 
 The :code:`"indent"` entry specifies the indentation of the
 :code:`.. jupyter-execute::` block produced.
@@ -150,7 +183,7 @@ To make use of this extensions you can start from this ``template.rst.py``.
     # ---
     # jupyter:
     #   jupytext:
-    #     cell_markers: '\"\"\"'
+    #     cell_markers: \\\"\\\"\\\"
     #     formats: py:percent
     #     text_representation:
     #       extension: .py
@@ -202,6 +235,7 @@ You can remove that line if you wish to use the default representation.
 
 from __future__ import annotations
 
+import ast
 import itertools
 from typing import List, Tuple
 import json
@@ -211,6 +245,58 @@ from sphinx.errors import ExtensionError
 from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _eval_conf(cell_source_code: str, code_cell_lines: List[str], exc_msg: str):
+    # Parse the expression that comes after `rst_conf = `
+    try:
+        py_body = ast.parse(cell_source_code).body
+    except Exception as exc:
+        raise (ExtensionError(exc_msg, modname=__name__)) from exc
+
+    rst_conf_expression = py_body[0]
+    second_line = code_cell_lines[1].strip()
+    # We need to know how many line this expression has, however
+    # the simple and easy solution is not available in python 3.7
+    # skip_lines = rst_conf_expression.end_lineno
+    second_line_is_expr = len(py_body) > 1 and py_body[1].lineno == 1
+    if second_line == "" or second_line.startswith("#") or second_line_is_expr:
+        skip_lines = 1
+    else:
+        # the rst_conf_expression spans multiple lines
+        # NB assumes no empty line(s) will be there for a multi-line expression
+
+        if len(py_body) > 1:
+            # great, there is some more python code in the cell
+            # -1 because we actually want the next expression in the output
+            skip_lines = py_body[1].lineno - 1
+        else:
+            # there is probably only comments and empty lines in this cell
+            # but we do not really know how many lines the rst_conf expression has
+            for i in range(1, len(code_cell_lines)):
+                line = code_cell_lines[i].strip()
+                if line == "" or line.startswith("#"):
+                    skip_lines = i
+                    break  # break on next comment line or at the end of the cell
+
+    # Evaluate the expression
+
+    # eval is used instead of ast.literal_eval for more flexibility,
+    # e.g. makes possible rst_conf = {"indent": "    " * 2}
+    # Note that the eval is really necessary because the rst_conf dict code can span
+    # several lines due to for example automatic code formatters like `black`.
+    try:
+        compiled = compile(
+            ast.Expression(rst_conf_expression.value),
+            "cell_module",
+            "eval",
+        )
+        conf = dict(eval(compiled))  # pylint: disable=eval-used
+    except Exception as exc:
+        raise ExtensionError(exc_msg, modname=__name__) from exc
+
+    return conf, skip_lines
+
 
 # pylint: disable=unused-argument
 def get_code_indent_and_processed_lines(
@@ -228,24 +314,38 @@ def get_code_indent_and_processed_lines(
     indent = ""
     directive_options = []
     if code_cell_lines:
-        # skip line in case of a cell magic used for code highlight in Jupyter Notebook
-        if code_cell_lines[0] == r"%%rst":
-            code_cell_lines = code_cell_lines[1:]
-
         first_line = code_cell_lines[0]
+
+        conf = None
+        exc = None
+        skip_lines = 0
+
+        exc_msg = (
+            "Error evaluating rst configuration while processing the cell:\n\n"
+            f"{cell_source_code}"
+        )
+
         magic_comment = "# rst-json-conf:"
-
         if first_line.startswith(magic_comment):
-            conf = json.loads(first_line[len(magic_comment) :])
+            try:
+                conf = json.loads(first_line[len(magic_comment) :])
+                skip_lines = 1
+            except Exception as exc:
+                raise ExtensionError(exc_msg, modname=__name__) from exc
 
+        # Allow also an actual python dictionary defined on first line(s) of the cell
+        elif first_line.startswith("rst_conf"):
+            conf, skip_lines = _eval_conf(cell_source_code, code_cell_lines, exc_msg)
+
+        if conf is not None:
             indent = conf.pop("indent", "")
             directive_options = conf.pop("jupyter_execute_options", [])
 
             # don't output the magic comment nor the empty line after it
-            if code_cell_lines[1:] and code_cell_lines[1] == "":
-                code_cell_lines = code_cell_lines[2:]
+            if code_cell_lines[skip_lines:] and code_cell_lines[skip_lines] == "":
+                code_cell_lines = code_cell_lines[skip_lines + 1 :]
             else:
-                code_cell_lines = code_cell_lines[1:]
+                code_cell_lines = code_cell_lines[skip_lines:]
 
             if len(conf):
                 raise ExtensionError(
@@ -284,7 +384,7 @@ def make_jupyter_sphinx_block(cell_source_code: str, rst_indent: str = "    ") -
     header = f"\n\n\n{indent}.. jupyter-execute::\n"
     indent = f"{indent}{rst_indent}"
     for line in lines:
-        out += f"{indent}{line}\n" if line != "" else "\n"
+        out += f"{indent}{line}\n" if line.strip() != "" else "\n"
 
     return header + out if out.strip() != "" else ""
 
@@ -393,21 +493,41 @@ def notebooks_to_rst(app, config) -> None:
 
         return write
 
+    def strip_suffixes(path: Path, suffixes: list = None) -> str:
+        path = Path(path)
+        if suffixes is None:
+            suffixes = []
+        if path.suffix != ".rst":  # only remove extensions until `.rst`
+            suffixes.append(path.suffix)
+            path, suffixes = strip_suffixes(path.stem, suffixes)
+            path = Path(path)
+        return path.name, suffixes
+
+    def rst_output_filepath(file: Path) -> Path:
+        rst_filepath = file.parent / Path(file.stem)  # removes .py extensions
+        name_dot_rst, suffixes = strip_suffixes(rst_filepath)
+        # we prefix an extra .py extension so that output files can be `.gitignore`d
+        file_name = Path(name_dot_rst).stem + f".py.rst{''.join(suffixes)}"
+        return rst_filepath.parent / file_name
+
     srcdir = Path(app.srcdir)
-    rst_py_files = srcdir.rglob("*.rst.py")
     # Sometimes it is useful to generate rst contents in one dir but we want it to be
     # evaluated in another dir and for that the output file requires for example `.txt`
     # extension. A simple way to achieve this is to support input files
     # with extensions `.rst.*.py`, e.g., `.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
-    for file in itertools.chain(rst_py_files, rst_other_py_files):
+    for file in itertools.chain(srcdir.rglob("*.rst.py"), rst_other_py_files):
+        if ".ipynb_checkpoints" in file.parts:
+            # Ignore checkpoints created by Jupyter Notebook/Lab
+            continue
+
         logger.debug("Converting file...", location=file)
         try:
             notebook = jupytext.read(file, fmt="py:percent")
-            rst_filepath = file.parent / Path(file.stem)
             rst_indent = config["notebook_to_jupyter_sphinx_rst_indent"]
             always_rebuild = config["notebook_to_jupyter_sphinx_always_rebuild"]
             rst_str = notebook_to_rst(notebook, rst_indent)
+            rst_filepath = rst_output_filepath(file)
             if always_rebuild or _write_required(rst_filepath, rst_str):
                 Path(rst_filepath).write_text(rst_str, encoding=encoding)
         except Exception as e:

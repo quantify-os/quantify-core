@@ -13,7 +13,7 @@
 # ---
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:"]}
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=line-too-long
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
@@ -21,7 +21,7 @@
 
 
 # %%
-# rst-json-conf: {"jupyter_execute_options": [":hide-code:", ":hide-output:"]}
+rst_conf = {"jupyter_execute_options": [":hide-code:", ":hide-output:"]}
 
 from qcodes import Instrument
 
@@ -36,7 +36,7 @@ Instrument.close_all()
 """
 
 # %%
-# rst-json-conf: {"indent": "    "}
+rst_conf = {"indent": "    "}
 
 import numpy as np
 import xarray as xr
@@ -62,7 +62,7 @@ sig = Parameter(name="sig", label="Signal", unit="V", get_cmd=lambda: np.exp(par
 """
 
 # %%
-# rst-json-conf: {"indent": "        "}
+rst_conf = {"indent": "        "}
 
 par0.batched = False
 par1.batched = False
@@ -93,7 +93,7 @@ plt.gca().legend()
 """
 
 # %%
-# rst-json-conf: {"indent": "        "}
+rst_conf = {"indent": "        "}
 
 par0.batched = True
 par1.batch_size = 8
@@ -129,7 +129,7 @@ plt.gca().legend()
 """
 
 # %%
-# rst-json-conf: {"indent": "        "}
+rst_conf = {"indent": "        "}
 
 par0.batched = False
 par1.batched = True
