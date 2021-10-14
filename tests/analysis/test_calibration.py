@@ -3,14 +3,15 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 
-import pytest
 import numpy as np
-from quantify_core.data.handling import set_datadir
+import pytest
+
 from quantify_core.analysis.calibration import (
-    rotate_to_calibrated_axis,
     has_calibration_points,
+    rotate_to_calibrated_axis,
 )
 from quantify_core.analysis.single_qubit_timedomain import SingleQubitTimedomainAnalysis
+from quantify_core.data.handling import set_datadir
 from quantify_core.utilities.examples_support import mk_iq_shots
 
 

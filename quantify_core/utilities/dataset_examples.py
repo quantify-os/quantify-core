@@ -5,18 +5,20 @@
 from __future__ import annotations
 
 from typing import Union
+
 import numpy as np
 import xarray as xr
+
+import quantify_core.data.dataset_attrs as dattrs
 import quantify_core.data.handling as dh
 import quantify_core.measurement.control as mc
-import quantify_core.data.dataset_attrs as dattrs
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
-    mk_main_var_attrs,
-    mk_main_coord_attrs,
-    mk_secondary_var_attrs,
-    mk_secondary_coord_attrs,
     mk_iq_shots,
+    mk_main_coord_attrs,
+    mk_main_var_attrs,
+    mk_secondary_coord_attrs,
+    mk_secondary_var_attrs,
     mk_trace_for_iq_shot,
     mk_trace_time,
 )

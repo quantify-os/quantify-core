@@ -51,14 +51,16 @@ Quantify dataset specification
 # %%
 rst_conf = {"indent": "    "}
 
-import xarray as xr
-import matplotlib.pyplot as plt
-from quantify_core.data import handling as dh
-from rich import pretty
 from pathlib import Path
-from quantify_core.utilities import dataset_examples
-import quantify_core.data.dataset_attrs as dattrs
+
+import matplotlib.pyplot as plt
+import xarray as xr
+from rich import pretty
+
 import quantify_core.data.dataset_adapters as dadapters
+import quantify_core.data.dataset_attrs as dattrs
+from quantify_core.data import handling as dh
+from quantify_core.utilities import dataset_examples
 from quantify_core.utilities.examples_support import round_trip_dataset
 from quantify_core.utilities.inspect_utils import display_source_code
 

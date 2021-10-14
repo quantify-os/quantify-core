@@ -2,22 +2,24 @@
 # Licensed according to the LICENCE file on the master branch
 """Utilities for handling data."""
 from __future__ import annotations
+
+import datetime
+import json
 import os
 import sys
-import json
-from typing import Union
 from collections.abc import Iterable
-import datetime
-from uuid import uuid4
 from pathlib import Path
-from dateutil.parser import parse
+from typing import Union
+from uuid import uuid4
 
 import numpy as np
 import xarray as xr
+from dateutil.parser import parse
 from qcodes import Instrument
+
+import quantify_core.data.dataset_adapters as da
 from quantify_core.data.types import TUID
 from quantify_core.utilities.general import delete_keys_from_dict
-import quantify_core.data.dataset_adapters as da
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]

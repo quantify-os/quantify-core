@@ -1,13 +1,15 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Wrapper of appnope to avoid App Nap (macOS) of Quantify process."""
+import platform
+
 # Necessary issues with the power-saving features on macOS
 # See also:
 # https://github.com/pyqtgraph/pyqtgraph/pull/1092
 # https://forum.libcinder.org/topic/os-x-how-to-keep-rendering-in-background
 import sys
-import platform
 from distutils.version import LooseVersion as V
+
 import appnope
 
 

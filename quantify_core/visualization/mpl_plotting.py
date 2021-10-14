@@ -7,22 +7,24 @@ Naming convention: plotting functions that require Xarray object(s) as inputs ar
 """
 # pylint: disable=too-many-arguments, too-many-locals
 from typing import Tuple, Union
-from typing_extensions import Literal
+
+import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-from matplotlib.text import Text
-from matplotlib.collections import QuadMesh, Collection
-from matplotlib.image import AxesImage
+from matplotlib.collections import Collection, QuadMesh
 from matplotlib.colorbar import Colorbar
+from matplotlib.figure import Figure
+from matplotlib.image import AxesImage
 from matplotlib.lines import Line2D
+from matplotlib.text import Text
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from typing_extensions import Literal
+
 from quantify_core.visualization.SI_utilities import (
+    set_cbarlabel,
     set_xlabel,
     set_ylabel,
-    set_cbarlabel,
 )
 
 

@@ -3,30 +3,30 @@
 """Module containing the pyqtgraph-based remote plotting monitor manager."""
 from __future__ import annotations
 
-import logging
-from multiprocessing import Queue
-from collections.abc import Iterable
-from collections import deque
 import itertools
+import logging
 import os
+from collections import deque
+from collections.abc import Iterable
+from multiprocessing import Queue
 
 import numpy as np
 from filelock import FileLock
+from pyqtgraph.Qt import QtCore
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
-from pyqtgraph.Qt import QtCore
 
 from quantify_core.data.handling import (
-    load_dataset,
-    _xi_and_yi_match,
-    _get_parnames,
-    set_datadir,
     DATASET_NAME,
+    _get_parnames,
+    _xi_and_yi_match,
+    load_dataset,
+    set_datadir,
 )
-from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 from quantify_core.data.types import TUID
-from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization import _appnope
+from quantify_core.visualization.color_utilities import make_fadded_colors
+from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
 # Silence irrelevant logs from filelock that would fail the docs CI
 # https://github.com/tox-dev/py-filelock/issues/104#issuecomment-940020884

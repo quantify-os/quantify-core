@@ -1,9 +1,10 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 import matplotlib.pyplot as plt
+
 from quantify_core.analysis import base_analysis as ba
-from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 from quantify_core.visualization import mpl_plotting as qpl
+from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
 
 class InterpolationAnalysis2D(ba.BaseAnalysis):

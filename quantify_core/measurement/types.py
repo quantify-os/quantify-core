@@ -3,6 +3,7 @@
 """Module containing the core types for use with the MeasurementControl."""
 from jsonschema import Draft7Validator
 from jsonschema.validators import extend
+
 from quantify_core.utilities.general import load_json_schema
 
 

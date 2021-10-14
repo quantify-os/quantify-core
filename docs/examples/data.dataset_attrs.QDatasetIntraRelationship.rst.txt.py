@@ -26,9 +26,10 @@ The ``q0_cal`` corresponds to calibrations datapoints.
 See :ref:`sec-quantify-dataset-examples` for examples with more context.
 """
 
+from quantify_core.data.dataset_attrs import QDatasetIntraRelationship
+
 # %%
 from quantify_core.utilities import examples_support
-from quantify_core.data.dataset_attrs import QDatasetIntraRelationship
 
 attrs = examples_support.mk_dataset_attrs(
     relationships=[

@@ -38,6 +38,7 @@ rst_conf = {"indent": "    "}
 
 from quantify_core.analysis.base_analysis import BaseAnalysis
 
+
 # pylint: disable=too-few-public-methods
 class MyAnalysis(BaseAnalysis):
     """A docstring for the custom analysis."""

@@ -57,26 +57,28 @@ accommodate them.
 # %%
 rst_conf = {"indent": "    "}
 
-from rich import pretty
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import matplotlib.pyplot as plt
-from quantify_core.data import handling as dh
-from quantify_core.analysis.fitting_models import exp_decay_func
+from rich import pretty
+
 from quantify_core.analysis.calibration import rotate_to_calibrated_axis
-from quantify_core.utilities.inspect_utils import display_source_code
+from quantify_core.analysis.fitting_models import exp_decay_func
+from quantify_core.data import handling as dh
 from quantify_core.utilities import dataset_examples
 from quantify_core.utilities.dataset_examples import (
+    mk_nested_mc_dataset,
     mk_shots_from_probabilities,
     mk_surface7_cyles_dataset,
-    mk_nested_mc_dataset,
 )
 from quantify_core.utilities.examples_support import (
-    round_trip_dataset,
-    mk_surface7_sched,
     mk_iq_shots,
+    mk_surface7_sched,
+    round_trip_dataset,
 )
+from quantify_core.utilities.inspect_utils import display_source_code
 
 pretty.install()
 

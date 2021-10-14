@@ -32,10 +32,12 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # %%
 rst_conf = {"indent": "    "}
 
-import numpy as np
 import colorsys
+
 import matplotlib.colors as mplc
 import matplotlib.pyplot as plt
+import numpy as np
+
 from quantify_core.visualization.color_utilities import set_hlsa
 
 color_cycle = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]

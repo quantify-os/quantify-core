@@ -3,39 +3,40 @@
 """Module containing the MeasurementControl."""
 from __future__ import annotations
 
-import logging
-import time
-import json
-import types
-import tempfile
-from os.path import join
-from collections.abc import Iterable
 import itertools
-from itertools import chain
+import json
+import logging
 import signal
+import tempfile
 import threading
+import time
+import types
+from collections.abc import Iterable
+from itertools import chain
+from os.path import join
 from typing import Optional
 
-import xarray as xr
-import numpy as np
 import adaptive
+import numpy as np
+import xarray as xr
 from filelock import FileLock
 from qcodes import Instrument
 from qcodes import validators as vals
-from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
+from qcodes.instrument.parameter import InstrumentRefParameter, ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
+
 from quantify_core.data.handling import (
-    initialize_dataset,
-    create_exp_folder,
-    snapshot,
-    grow_dataset,
-    trim_dataset,
     DATASET_NAME,
-    write_dataset,
     _is_uniformly_spaced_array,
+    create_exp_folder,
+    grow_dataset,
+    initialize_dataset,
+    snapshot,
+    trim_dataset,
+    write_dataset,
 )
+from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
-from quantify_core.measurement.types import Settable, Gettable, is_batched
 
 # Intended for plotting monitors that run in separate processes
 _DATASET_LOCKS_DIR = tempfile.gettempdir()

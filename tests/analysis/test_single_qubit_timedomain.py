@@ -2,20 +2,20 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
-import pytest
 import numpy as np
+import pytest
 import xarray as xr
 from pytest import approx
-from uncertainties.core import Variable, AffineScalarFunc
-from quantify_core.data.handling import set_datadir
+from uncertainties.core import AffineScalarFunc, Variable
 
 from quantify_core.analysis.single_qubit_timedomain import (
-    T1Analysis,
-    EchoAnalysis,
-    RamseyAnalysis,
     AllXYAnalysis,
+    EchoAnalysis,
     RabiAnalysis,
+    RamseyAnalysis,
+    T1Analysis,
 )
+from quantify_core.data.handling import set_datadir
 
 
 @pytest.fixture(scope="module", autouse=True)

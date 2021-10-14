@@ -1,12 +1,13 @@
 import numpy as np
+import pytest
 from qcodes.instrument import Instrument, ManualParameter
 from qcodes.utils import validators
-import pytest
+
+from quantify_core.data.handling import set_datadir
 from quantify_core.utilities.experiment_helpers import (
     create_plotmon_from_historical,
     load_settings_onto_instrument,
 )
-from quantify_core.data.handling import set_datadir
 
 
 def test_load_settings_onto_instrument(tmp_test_data_dir):

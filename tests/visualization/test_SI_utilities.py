@@ -4,16 +4,18 @@
 # pylint: disable=missing-function-docstring
 
 
-import numpy as np
 import matplotlib.pyplot as plt
-from lmfit.parameter import Parameter
+import numpy as np
 import uncertainties
-from quantify_core.visualization.SI_utilities import SI_prefix_and_scale_factor
-from quantify_core.visualization.SI_utilities import set_xlabel, set_ylabel
-from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
+from lmfit.parameter import Parameter
+
 from quantify_core.visualization.SI_utilities import (
     SafeFormatter,
+    SI_prefix_and_scale_factor,
+    SI_val_to_msg_str,
     format_value_string,
+    set_xlabel,
+    set_ylabel,
     value_precision,
 )
 

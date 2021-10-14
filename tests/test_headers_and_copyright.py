@@ -1,10 +1,11 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
-import os
-import re
 import datetime
+import os
 import pprint
+import re
 from pathlib import Path
+
 import pytest
 
 
