@@ -18,6 +18,7 @@
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=duplicate-code
+# pylint: disable=wrong-import-position
 
 
 # %%
