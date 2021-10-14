@@ -14,6 +14,12 @@
 #     name: python3
 # ---
 
+
+# %%
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
+# pylint: disable=duplicate-code
+
+
 # %%
 import matplotlib.pyplot as plt
 from quantify_core.utilities.examples_support import mk_iq_shots

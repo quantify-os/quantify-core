@@ -19,6 +19,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
 # pylint: disable=attribute-defined-outside-init
+# pylint: disable=duplicate-code
 
 
 # %% [raw]

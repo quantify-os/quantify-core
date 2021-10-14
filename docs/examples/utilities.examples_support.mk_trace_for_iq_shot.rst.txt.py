@@ -15,6 +15,11 @@
 # ---
 
 # %%
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
+# pylint: disable=duplicate-code
+
+
+# %%
 import matplotlib.pyplot as plt
 from quantify_core.utilities.examples_support import mk_trace_for_iq_shot, mk_trace_time
 

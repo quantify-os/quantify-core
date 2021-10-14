@@ -22,6 +22,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=pointless-string-statement
 # pylint: disable=pointless-statement
 # pylint: disable=invalid-name
+# pylint: disable=duplicate-code
 
 # %% [raw]
 """

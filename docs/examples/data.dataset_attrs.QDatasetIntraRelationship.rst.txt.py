@@ -14,6 +14,10 @@
 #     name: python3
 # ---
 
+# %%
+rst_conf = {"jupyter_execute_options": [":hide-code:"]}
+# pylint: disable=duplicate-code
+
 # %% [raw]
 """
 This is how the attributes of a dataset containing a ``q0`` main variable and
