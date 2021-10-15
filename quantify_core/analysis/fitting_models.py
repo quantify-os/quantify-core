@@ -22,7 +22,9 @@ def get_model_common_doc() -> str:
             :pyobject: ResonatorModel
     """
     return (
-        lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        lmfit.models.COMMON_INIT_DOC.replace(
+            ":class:`Model`", ":class:`~lmfit.model.Model`"
+        )
         .replace("\n    ", "\n")
         .replace(" : str", " : :obj:`str`")
         .replace("['x']", ":code:`['x']`")
