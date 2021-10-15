@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import itertools
 import json
-import logging
 import signal
 import tempfile
 import threading
@@ -40,10 +39,6 @@ from quantify_core.utilities.general import call_if_has_method
 
 # Intended for plotting monitors that run in separate processes
 _DATASET_LOCKS_DIR = tempfile.gettempdir()
-
-# Silence irrelevant logs from filelock that would fail the docs CI
-# https://github.com/tox-dev/py-filelock/issues/104#issuecomment-940020884
-logging.getLogger("filelock").setLevel(logging.WARNING)
 
 
 class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attributes

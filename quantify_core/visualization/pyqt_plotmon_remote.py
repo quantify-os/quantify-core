@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import itertools
-import logging
 import os
 from collections import deque
 from collections.abc import Iterable
@@ -27,10 +26,6 @@ from quantify_core.data.types import TUID
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
-
-# Silence irrelevant logs from filelock that would fail the docs CI
-# https://github.com/tox-dev/py-filelock/issues/104#issuecomment-940020884
-logging.getLogger("filelock").setLevel(logging.WARNING)
 
 
 class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
