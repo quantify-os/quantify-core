@@ -198,12 +198,14 @@ class QDatasetAttrs(DataClassJsonMixin):
     """
 
 
-def _get_dims(dataset: xr.Dataset) -> Tuple[List[str], List[str]]:
-    """Return main or main secondary dimensions."""
+def _get_dims(dataset: xr.Dataset, main: bool) -> Tuple[List[str], List[str]]:
+    """Return main or secondary dimensions."""
     dims = set()
-    for var_or_coords in (dataset.coords.values(), dataset.data_vars.values()):
-        for var in var_or_coords:
-            if var.attrs.get("is_main_var", var.attrs.get("is_main_coord", False)):
+    for vars_or_coords in (dataset.coords.values(), dataset.data_vars.values()):
+        for var in vars_or_coords:
+            is_main_var = var.attrs.get("is_main_var", None)
+            is_main_coord = var.attrs.get("is_main_coord", None)
+            if is_main_var is main or is_main_coord is main:
                 # Check if the outermost dimension is a repetitions dimension
                 if var.attrs.get("has_repetitions", False):
                     dims.add(var.dims[1])
@@ -233,7 +235,7 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
     .. note::
 
         The dimensions, on which the secondary coordinates/variables lie, are not
-        included in this list.
+        included in this list. See also :func:`~.get_secondary_dims`.
 
     Parameters
     ----------
@@ -246,7 +248,7 @@ def get_main_dims(dataset: xr.Dataset) -> List[str]:
         The names of the main dimensions in the dataset.
     """
 
-    return _get_dims(dataset)
+    return _get_dims(dataset, main=True)
 
 
 # FIXME add as a dataset property to the quantify dataset # pylint: disable=fixme
@@ -268,7 +270,7 @@ def get_secondary_dims(dataset: xr.Dataset) -> List[str]:
         dataset.
     """
 
-    return _get_dims(dataset)
+    return _get_dims(dataset, main=False)
 
 
 def _get_all_variables(
