@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 from typing import Tuple
-import numpy as np
+
 import lmfit
+import numpy as np
 
 
 def get_model_common_doc() -> str:

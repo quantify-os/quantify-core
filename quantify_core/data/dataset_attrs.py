@@ -7,12 +7,12 @@ Utilities for handling the attributes of :class:`xarray.Dataset` and
 # pylint: disable=too-many-instance-attributes
 from __future__ import annotations
 
-from typing import List, Union, Dict, Any, Tuple
 from dataclasses import dataclass, field
-from typing_extensions import Literal
+from typing import Any, Dict, List, Tuple, Union
 
 import xarray as xr
 from dataclasses_json import DataClassJsonMixin
+from typing_extensions import Literal
 
 
 @dataclass

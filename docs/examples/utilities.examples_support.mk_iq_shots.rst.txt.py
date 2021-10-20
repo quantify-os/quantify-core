@@ -18,10 +18,12 @@
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=duplicate-code
+# pylint: disable=wrong-import-position
 
 
 # %%
 import matplotlib.pyplot as plt
+
 from quantify_core.utilities.examples_support import mk_iq_shots
 
 center_0, center_1, center_2 = 0.6 + 1.2j, -0.2 + 0.5j, 0 + 1.5j

@@ -4,14 +4,15 @@
 # pylint: disable=too-many-arguments
 from __future__ import annotations
 
-from typing import Tuple, Union, Any, Dict, Callable
 from pathlib import Path
-import xarray as xr
-import numpy as np
-from quantify_core.data.types import TUID
-import quantify_core.data.handling as dh
-import quantify_core.data.dataset_attrs as dd
+from typing import Any, Callable, Dict, Tuple, Union
 
+import numpy as np
+import xarray as xr
+
+import quantify_core.data.dataset_attrs as dd
+import quantify_core.data.handling as dh
+from quantify_core.data.types import TUID
 
 # ######################################################################################
 # IQ-related data manipulation and plotting
@@ -311,7 +312,7 @@ def mk_surface7_sched(num_cycles: int = 3):
     """
 
     from quantify_scheduler import Schedule
-    from quantify_scheduler.gate_library import Reset, Measure, CZ, X, Y90
+    from quantify_scheduler.gate_library import CZ, Y90, Measure, Reset, X
 
     sched = Schedule("S7 dance")
 

@@ -1,13 +1,14 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from quantify_core.analysis import base_analysis as ba
-from quantify_core.visualization.SI_utilities import (
-    format_value_string,
-    adjust_axeslabels_SI,
-)
 from quantify_core.visualization import mpl_plotting as qpl
+from quantify_core.visualization.SI_utilities import (
+    adjust_axeslabels_SI,
+    format_value_string,
+)
 
 
 class OptimizationAnalysis(ba.BaseAnalysis):

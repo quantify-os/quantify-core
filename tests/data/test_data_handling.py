@@ -1,26 +1,26 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
+import gc
+import json
 import os
-from pathlib import Path
 import shutil
 import tempfile
 from datetime import datetime
-import json
+from pathlib import Path
+
 import dateutil
-import uncertainties
-import gc
-
-
-import pytest
-import xarray as xr
 import numpy as np
-from qcodes import ManualParameter, Instrument
+import pytest
+import uncertainties
+import xarray as xr
+from qcodes import Instrument, ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify_core.data.types import TUID
-from quantify_core.measurement.control import MeasurementControl
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis.base_analysis import BasicAnalysis
+from quantify_core.data.types import TUID
+from quantify_core.measurement.control import MeasurementControl
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 

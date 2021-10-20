@@ -1,10 +1,10 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Helpers for testing quantify_core."""
-import pathlib
-from typing import Union
 import os
+import pathlib
 import shutil
+from typing import Union
 
 
 def get_test_data_dir() -> Union[pathlib.PosixPath, pathlib.WindowsPath]:

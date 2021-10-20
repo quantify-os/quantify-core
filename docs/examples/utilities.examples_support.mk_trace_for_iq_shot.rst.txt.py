@@ -17,10 +17,12 @@
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=duplicate-code
+# pylint: disable=wrong-import-position
 
 
 # %%
 import matplotlib.pyplot as plt
+
 from quantify_core.utilities.examples_support import mk_trace_for_iq_shot, mk_trace_time
 
 SHOT = 0.6 + 1.2j

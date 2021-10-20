@@ -17,13 +17,15 @@
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=duplicate-code
+# pylint: disable=wrong-import-position
 
 
 # %%
-import numpy as np
 import matplotlib.pyplot as plt
-from quantify_core.utilities.examples_support import mk_iq_shots
+import numpy as np
+
 from quantify_core.analysis.calibration import has_calibration_points
+from quantify_core.utilities.examples_support import mk_iq_shots
 
 
 def _with_cal(data_):

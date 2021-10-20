@@ -38,10 +38,12 @@ Instrument.close_all()
 # %%
 rst_conf = {"indent": "    "}
 
-import numpy as np
 from pathlib import Path
-from quantify_core.data.handling import set_datadir, to_gridded_dataset
+
+import numpy as np
 from qcodes import ManualParameter, Parameter, validators
+
+from quantify_core.data.handling import set_datadir, to_gridded_dataset
 from quantify_core.measurement import MeasurementControl
 
 set_datadir(Path.home() / "quantify-data")

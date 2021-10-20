@@ -17,6 +17,7 @@
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=duplicate-code
+# pylint: disable=wrong-import-position
 
 # %% [raw]
 """
@@ -27,8 +28,8 @@ See :ref:`sec-quantify-dataset-examples` for examples with more context.
 """
 
 # %%
-from quantify_core.utilities import examples_support
 from quantify_core.data.dataset_attrs import QDatasetIntraRelationship
+from quantify_core.utilities import examples_support
 
 attrs = examples_support.mk_dataset_attrs(
     relationships=[

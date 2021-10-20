@@ -23,8 +23,9 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 
 # %%
 
-from quantify_core.utilities import examples_support
 import pendulum
+
+from quantify_core.utilities import examples_support
 
 examples_support.mk_dataset_attrs(
     dataset_name="My experiment",

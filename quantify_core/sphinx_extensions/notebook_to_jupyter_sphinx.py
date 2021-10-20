@@ -237,9 +237,10 @@ from __future__ import annotations
 
 import ast
 import itertools
-from typing import List, Tuple
 import json
 from pathlib import Path
+from typing import List, Tuple
+
 import jupytext
 from sphinx.errors import ExtensionError
 from sphinx.util import logging

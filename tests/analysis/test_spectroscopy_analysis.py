@@ -3,9 +3,11 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 from pathlib import Path
+
 import pytest
 from pytest import approx
 from uncertainties.core import Variable
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis import spectroscopy_analysis as sa
 

@@ -3,14 +3,15 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import tempfile
-from pathlib import Path
 from distutils.dir_util import copy_tree
+from pathlib import Path
 
-import pytest
 import numpy as np
-from quantify_core.visualization import PlotMonitor_pyqt
-from quantify_core.data.types import TUID
+import pytest
+
 import quantify_core.data.handling as dh
+from quantify_core.data.types import TUID
+from quantify_core.visualization import PlotMonitor_pyqt
 
 
 @pytest.fixture(scope="function")

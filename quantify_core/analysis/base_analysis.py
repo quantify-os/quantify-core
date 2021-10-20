@@ -2,43 +2,45 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
-import os
+
+import inspect
 import json
+import logging
+import os
+import warnings
 from abc import ABC
 from copy import deepcopy
-from typing import List, Union
 from enum import Enum
 from pathlib import Path
-import logging
-import inspect
-import warnings
 from textwrap import wrap
+from typing import List, Union
 
-from IPython.display import display
-import numpy as np
-import xarray as xr
 import lmfit
-from uncertainties import ufloat
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import xarray as xr
+from IPython.display import display
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
+from uncertainties import ufloat
 
-from quantify_core.visualization import mpl_plotting as qpl
-from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
-from quantify_core.data.types import TUID
 from quantify_core.data.handling import (
-    load_dataset,
-    get_latest_tuid,
-    get_datadir,
     DATASET_NAME,
     PROCESSED_DATASET_NAME,
     QUANTITIES_OF_INTEREST_NAME,
-    write_dataset,
     create_exp_folder,
+    get_datadir,
+    get_latest_tuid,
+    load_dataset,
     locate_experiment_container,
     to_gridded_dataset,
+    write_dataset,
 )
+from quantify_core.data.types import TUID
+from quantify_core.visualization import mpl_plotting as qpl
+from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
+
 from .types import AnalysisSettings
 
 # global configurations at the level of the analysis module

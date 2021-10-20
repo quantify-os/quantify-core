@@ -2,6 +2,7 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing utilities for color manipulation"""
 import colorsys
+
 import matplotlib.colors as mplc
 import numpy as np
 

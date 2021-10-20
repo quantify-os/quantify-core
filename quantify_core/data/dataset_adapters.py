@@ -5,9 +5,10 @@
 from __future__ import annotations
 
 import json
-from copy import deepcopy
-from typing import Callable, Any
 from abc import abstractmethod
+from copy import deepcopy
+from typing import Any, Callable
+
 import xarray as xr
 
 

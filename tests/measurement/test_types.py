@@ -1,7 +1,8 @@
 import pytest
 from jsonschema import ValidationError
 from qcodes import ManualParameter, Parameter
-from quantify_core.measurement.types import Settable, Gettable
+
+from quantify_core.measurement.types import Gettable, Settable
 
 
 def test_settable():

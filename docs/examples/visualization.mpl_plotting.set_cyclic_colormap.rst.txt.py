@@ -30,9 +30,10 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # %%
 rst_conf = {"indent": "    "}
 
+import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-import matplotlib.pyplot as plt
+
 from quantify_core.visualization.mpl_plotting import set_cyclic_colormap
 
 zvals = xr.DataArray(np.random.rand(6, 10) * 360)

@@ -4,7 +4,8 @@
 import inspect
 import sys
 from types import FunctionType, ModuleType
-from typing import Any, Callable, Dict, List, Tuple, Type, Union, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+
 from IPython.display import Code, display
 
 

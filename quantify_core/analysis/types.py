@@ -2,8 +2,11 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing the types for use with the analysis classes"""
 from collections import UserDict
+
 from jsonschema import validate
+
 from quantify_core.utilities.general import load_json_schema
+
 
 # pylint: disable=too-few-public-methods
 # WARNING! Do not inherit from dict! if you do, `AnalysisSettings.update will skip the

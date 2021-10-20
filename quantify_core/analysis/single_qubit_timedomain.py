@@ -4,26 +4,27 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Literal
-import numpy as np
-import xarray as xr
 
 import matplotlib.pyplot as plt
+import numpy as np
+import xarray as xr
+from typing_extensions import Literal
+
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import fitting_models as fm
-from quantify_core.visualization.mpl_plotting import (
-    set_xlabel,
-    set_ylabel,
-    set_suptitle_from_dataset,
-    plot_textbox,
-    plot_fit,
+from quantify_core.analysis.calibration import (
+    has_calibration_points,
+    rotate_to_calibrated_axis,
 )
 from quantify_core.data.types import TUID
-from quantify_core.visualization.SI_utilities import format_value_string
-from quantify_core.analysis.calibration import (
-    rotate_to_calibrated_axis,
-    has_calibration_points,
+from quantify_core.visualization.mpl_plotting import (
+    plot_fit,
+    plot_textbox,
+    set_suptitle_from_dataset,
+    set_xlabel,
+    set_ylabel,
 )
+from quantify_core.visualization.SI_utilities import format_value_string
 
 
 class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
