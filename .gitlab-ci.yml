@@ -168,8 +168,8 @@ services:
     # For latest we do not specify a version
     # choco does not allow to specify a minor version (--version=3.9 does not work)
     - choco install python -y -f
-    # assume here the latest is 3.9 will fail when a 3.10 is available
-    - $env:PATH+=";C:\Python39;C:\Python39\Scripts"
+    # assume here the latest is 3.10
+    - $env:PATH+=";C:\Python310;C:\Python310\Scripts"
     - *upgrade_pip
     - *pip_install_and_freeze_windows
 
