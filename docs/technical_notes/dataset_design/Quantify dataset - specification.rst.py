@@ -184,10 +184,10 @@ dataset
     As the figure below depicts, even for "gridded" data the coordinates are
     "unrolled" into arrays the specify the value of that coordinate for the
     corresponding index in the variables that lie along the same xarray
-    dimensions (here ``main_dim``). This is intentional in order to support, in an
+    dimensions (here ``main_dim``). This is intentional in order to support, in a
     uniform manner, more complex use-cases such as arbitrarily sparse sampling of the
     coordinates domain and adaptive measurements in which the points to be measured are
-    not know before a measurement is actually executed.
+    not known before a measurement is executed.
 """
 
 # %%
