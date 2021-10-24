@@ -24,7 +24,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 This is how the attributes of a dataset containing a ``q0`` main variable and
 ``q0_cal`` secondary variables would look like.
 The ``q0_cal`` corresponds to calibrations datapoints.
-See :ref:`sec-quantify-dataset-examples` for examples with more context.
+See :ref:`sec-dataset-examples` for examples with more context.
 """
 
 # %%

@@ -28,7 +28,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 
 # %% [raw]
 """
-.. _sec-quantify-dataset-examples:
+.. _sec-dataset-examples:
 
 Quantify dataset - examples
 ===========================
@@ -537,6 +537,8 @@ _ = plot_complex_points(centers, ax=ax)
 
 # %% [raw]
 """
+.. _sec-dataset-t1-traces:
+
 T1 experiment storing digitized signals for all shots
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

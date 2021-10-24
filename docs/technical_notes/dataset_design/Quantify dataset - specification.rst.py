@@ -104,7 +104,7 @@ Secondary coordinate(s)
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 - An ubiquitous example are the coordinates that are used by "calibration" points.
-- Similar to `main coordinates <sec-main-coordinates>`_\, but intended to serve as the coordinates of `secondary variables <sec-secondary-variables>`_\.
+- Similar to :ref:`main coordinates <sec-main-coordinates>`, but intended to serve as the coordinates of :ref:`secondary variables <sec-secondary-variables>`.
 - Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord` set to ``False``.
 - See also :func:`~quantify_core.data.dataset_attrs.get_secondary_coords`.
 
@@ -124,7 +124,7 @@ Secondary variables(s)
 ^^^^^^^^^^^^^^^^^^^^^^
 
 - Again, the ubiquitous example are "calibration" datapoints.
-- Similar to `main variables <sec-main-variables>`_, but intended to serve as reference data for other main variables (e.g., calibration data).
+- Similar to :ref:`main variables <sec-main-variables>`, but intended to serve as reference data for other main variables (e.g., calibration data).
 - Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to ``False``.
 - The "assignment" of secondary variables to main variables should be done using :attr:`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
 - See also :func:`~quantify_core.data.dataset_attrs.get_secondary_vars`.
@@ -137,7 +137,7 @@ Secondary variables(s)
 
 In order to follow the rest of this specification more easily have a look at the example below.
 It should give you a more concrete feeling of the details that are exposed afterwards.
-See :ref:`sec-quantify-dataset-examples` for exemplary dataset.
+See :ref:`sec-dataset-examples` for exemplary dataset.
 """
 
 # %% [raw]
@@ -184,7 +184,7 @@ dataset
     As the figure below depicts, even for "gridded" data the coordinates are
     "unrolled" into arrays the specify the value of that coordinate for the
     corresponding index in the variables that lie along the same xarray
-    dimensions (here ``main_dim``). This is intentional in order to support, in an
+    dimensions (here ``main_dim``). This is intentional in order to support, in a
     uniform manner, more complex use-cases such as arbitrarily sparse sampling of the
     coordinates domain and adaptive measurements in which the points to be measured are
     not know before a measurement is actually executed.
@@ -246,7 +246,7 @@ Main dimension(s) [Required]
 
 The main dimensions comply with the following:
 
-- The outermost dimension of any main coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
+- The outermost dimension of any main coordinate/variable, OR the second outermost dimension if the outermost one is a :ref:`repetitions dimension <sec-repetitions-dimensions>`.
 - Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_main_dims` which simply applies the rule above while inspecting all the main coordinates and variables present in the dataset.
 - The dataset must have at least one main dimension.
 
@@ -255,7 +255,7 @@ The main dimensions comply with the following:
     Nesting main dimensions is allowed in principle and such examples are
     provided but it should be considered an experimental feature.
 
-    - Intuition: intended primarily for time series, also known as "time trace" or simply trace. See :ref:`sec-quantify-dataset-examples` for an example.
+    - Intuition: intended primarily for time series, also known as "time trace" or simply trace. See :ref:`sec-dataset-t1-traces` for an example.
 
 
 Secondary dimension(s) [Optional]
@@ -264,7 +264,7 @@ Secondary dimension(s) [Optional]
 Equivalent to the main dimensions but used by the secondary coordinates and variables.
 The secondary dimensions comply with the following:
 
-- The outermost dimension of any secondary coordinate/variable, OR the second outermost dimension if the outermost one is a `repetitions dimension <sec-repetitions-dimensions>`_.
+- The outermost dimension of any secondary coordinate/variable, OR the second outermost dimension if the outermost one is a :ref:`repetitions dimension <sec-repetitions-dimensions>`.
 - Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See :func:`~quantify_core.data.dataset_attrs.get_secondary_dims` which simply applies the rule above while inspecting all the secondary coordinates and variables present in the dataset.
 
 .. _sec-repetitions-dimensions:
