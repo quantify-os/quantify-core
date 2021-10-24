@@ -7,11 +7,10 @@ import warnings
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
-
-from qcodes.utils.helpers import strip_attrs
 from qcodes.instrument.base import Instrument
-from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
+from qcodes.utils import validators as vals
+from qcodes.utils.helpers import strip_attrs
 
 from quantify_core.data.handling import snapshot
 from quantify_core.utilities.general import traverse_dict

@@ -18,6 +18,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
+# pylint: disable=duplicate-code
 
 
 # %%
@@ -38,13 +39,15 @@ Instrument.close_all()
 # %%
 rst_conf = {"indent": "    "}
 
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from pathlib import Path
-import matplotlib.pyplot as plt
 from qcodes import ManualParameter, Parameter
-from quantify_core.measurement import MeasurementControl
+
 import quantify_core.data.handling as dh
+from quantify_core.measurement import MeasurementControl
 
 dh.set_datadir(Path.home() / "quantify-data")
 meas_ctrl = MeasurementControl("meas_ctrl")

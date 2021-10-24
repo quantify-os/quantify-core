@@ -258,7 +258,7 @@ Depending on which Control Mode the :class:`~quantify_core.measurement.Measureme
 
             dset_grid.y0.plot()
 
-
+.. _sec-batched-and-batch_size:
 
 .batched and .batch_size
 ------------------------

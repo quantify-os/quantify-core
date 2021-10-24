@@ -3,13 +3,14 @@
 """General utilities."""
 from __future__ import annotations
 
-from typing import Any, Union
-import pathlib
-from collections.abc import MutableMapping
-import importlib
 import copy
+import importlib
 import json
+import pathlib
 import warnings
+from collections.abc import MutableMapping
+from typing import Any, Union
+
 import numpy as np
 import xxhash
 

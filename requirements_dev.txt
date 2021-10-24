@@ -24,9 +24,11 @@ pylint
 pre-commit
 scanpydoc>=0.7.1 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
 docutils<0.17 # pinned due to issue #175
+rich[jupyter]
 jupytext
 
 # quantify-core only
 
 scikit-learn
 scikit-optimize
+quantify-scheduler # used to generate schedule example in the dataset design docs

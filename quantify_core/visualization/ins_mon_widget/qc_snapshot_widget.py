@@ -2,7 +2,8 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing the pyqtgraph based plotting monitor."""
 import pprint
-from pyqtgraph.Qt import QtGui, QtCore
+
+from pyqtgraph.Qt import QtCore, QtGui
 
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.SI_utilities import SI_val_to_msg_str

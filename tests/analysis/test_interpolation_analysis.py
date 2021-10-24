@@ -3,6 +3,7 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis import interpolation_analysis as ia
 

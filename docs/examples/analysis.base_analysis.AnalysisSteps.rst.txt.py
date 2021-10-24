@@ -20,6 +20,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=wrong-import-order
 # pylint: disable=wrong-import-position
 # pylint: disable=pointless-string-statement
+# pylint: disable=duplicate-code
 
 
 # %%
@@ -41,12 +42,14 @@ Instrument.close_all()
 # %%
 rst_conf = {"indent": "    ", "jupyter_execute_options": [":hide-code:"]}
 
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+from qcodes import ManualParameter, Parameter, validators
+
+from quantify_core.analysis import base_analysis as ba
 from quantify_core.data.handling import set_datadir
 from quantify_core.measurement import MeasurementControl
-from qcodes import ManualParameter, Parameter, validators
-from quantify_core.analysis import base_analysis as ba
 
 formats = list(ba.settings["mpl_fig_formats"])
 ba.settings["mpl_fig_formats"] = []

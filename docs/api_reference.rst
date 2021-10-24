@@ -1,6 +1,13 @@
 .. jupyter-kernel:: python3
     :id: quantify_core_all_docs
 
+.. jupyter-execute::
+    :hide-code:
+
+    # Prettify the outputs in the entire API reference
+    from rich import pretty
+    pretty.install()
+
 =============
 quantify_core
 =============
@@ -92,6 +99,18 @@ handling
 .. automodule:: quantify_core.data.handling
     :members:
 
+dataset_adapters
+----------------
+
+.. automodule:: quantify_core.data.dataset_adapters
+    :members:
+
+dataset_attrs
+-------------
+
+.. automodule:: quantify_core.data.dataset_attrs
+    :members:
+
 
 measurement
 ===========
@@ -107,6 +126,12 @@ experiment_helpers
 ------------------
 
 .. automodule:: quantify_core.utilities.experiment_helpers
+    :members:
+
+dataset_examples
+----------------
+
+.. automodule:: quantify_core.utilities.dataset_examples
     :members:
 
 examples_support

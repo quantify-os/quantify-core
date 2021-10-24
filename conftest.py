@@ -5,10 +5,11 @@
 # see also https://stackoverflow.com/questions/10253826/path-issue-with-pytest-importerror-no-module-named-yadayadayada
 
 import pytest
-from quantify_core.utilities._tests_helpers import get_test_data_dir
+
 from quantify_core.utilities._tests_helpers import (
-    rmdir_recursive,
+    get_test_data_dir,
     remove_target_then_copy_from,
+    rmdir_recursive,
 )
 
 

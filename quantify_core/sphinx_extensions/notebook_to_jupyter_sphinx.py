@@ -237,9 +237,10 @@ from __future__ import annotations
 
 import ast
 import itertools
-from typing import List, Tuple
 import json
 from pathlib import Path
+from typing import List, Tuple
+
 import jupytext
 from sphinx.errors import ExtensionError
 from sphinx.util import logging
@@ -514,7 +515,7 @@ def notebooks_to_rst(app, config) -> None:
     # Sometimes it is useful to generate rst contents in one dir but we want it to be
     # evaluated in another dir and for that the output file requires for example `.txt`
     # extension. A simple way to achieve this is to support input files
-    # with extensions `.rst.*.py`, e.g., `.rst.txt.py`.
+    # with extensions `.rst.*.py`, e.g., `.py.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
     for file in itertools.chain(srcdir.rglob("*.rst.py"), rst_other_py_files):
         if ".ipynb_checkpoints" in file.parts:

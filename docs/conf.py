@@ -79,6 +79,7 @@ intersphinx_mapping = {
         "https://uncertainties-python-package.readthedocs.io/en/latest/",
         None,
     ),
+    "IPython": ("https://ipython.readthedocs.io/en/stable/", None),
 }
 
 bibtex_bibfiles = ["refs.bib"]
@@ -252,6 +253,7 @@ if os.environ.get("GITLAB_CI", "false") == "true":
 # qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
 # here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
 import lmfit  # related to quantify-core#218 and quantify-core#221
+import marshmallow
 import qcodes
 
 # When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
@@ -272,3 +274,18 @@ import qcodes
 #     from my_expensive_to_import_module import BlaClass # Potential circular import
 
 set_type_checking_flag = True  # this will run `typing.TYPE_CHECKING = True`
+
+
+# Enable nitpicky mode - which ensures that all references in the docs
+# resolve.
+
+nitpicky = True
+nitpick_ignore = []
+
+with open("nitpick-exceptions.txt", encoding="utf-8") as nitpick_exceptions:
+    for line in nitpick_exceptions:
+        if line.strip() == "" or line.startswith("#"):
+            continue
+        dtype, target = line.split(None, 1)
+        target = target.strip()
+        nitpick_ignore.append((dtype, target))

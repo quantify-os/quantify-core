@@ -3,12 +3,12 @@
 """Module containing the pyqtgraph based plotting monitor."""
 import warnings
 
+import pyqtgraph.multiprocess as pgmp
 from qcodes import validators as vals
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import Parameter
 from qcodes.utils.helpers import strip_attrs
 
-import pyqtgraph.multiprocess as pgmp
 from quantify_core.data.handling import get_datadir
 from quantify_core.measurement.control import _DATASET_LOCKS_DIR
 

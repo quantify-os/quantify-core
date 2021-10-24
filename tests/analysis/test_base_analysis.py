@@ -2,14 +2,16 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
-import os
 import logging
+import os
 from pathlib import Path
-import xarray as xr
-from jsonschema import ValidationError
-import pytest
+
 import lmfit
 import numpy as np
+import pytest
+import xarray as xr
+from jsonschema import ValidationError
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis import base_analysis as ba
 

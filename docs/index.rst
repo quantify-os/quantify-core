@@ -15,13 +15,17 @@ Welcome to Quantify's documentation!
    authors
    changelog
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Technical notes
+
+   technical_notes/dataset_design/index
 
 .. toctree::
    :maxdepth: 2
    :caption: API reference
 
    api_reference
-
 
 .. toctree::
    :maxdepth: 2

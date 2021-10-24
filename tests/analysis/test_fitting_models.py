@@ -1,6 +1,7 @@
 """Tests for analysis fitting models"""
-import pytest
 import numpy as np
+import pytest
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis import fitting_models as fm
 
