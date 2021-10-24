@@ -185,3 +185,16 @@ def call_if_has_method(obj: Any, method: str) -> None:
     """
     prepare_method = getattr(obj, method, lambda: None)
     prepare_method()
+
+
+def last_modified(path: pathlib.Path) -> float:
+    """Returns the timestamp of the last modification of a file.
+
+    Parameters
+    ----------
+    path
+        File path.
+    """
+    path = pathlib.Path(path)
+
+    return path.stat().st_mtime
