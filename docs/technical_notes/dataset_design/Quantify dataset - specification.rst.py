@@ -187,7 +187,7 @@ dataset
     dimensions (here ``main_dim``). This is intentional in order to support, in a
     uniform manner, more complex use-cases such as arbitrarily sparse sampling of the
     coordinates domain and adaptive measurements in which the points to be measured are
-    not know before a measurement is actually executed.
+    not known before a measurement is executed.
 """
 
 # %%

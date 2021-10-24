@@ -520,7 +520,7 @@ for t_example in chosen_time_values:
     calib_0 = dataset_gridded.q0_iq_av_cal.sel(cal="|0>")
     calib_1 = dataset_gridded.q0_iq_av_cal.sel(cal="|1>")
     plot_complex_points([calib_0, calib_1], ax=plt.gca())
-    plt.suptitle(f"Shots fot t = {t_example:.5f} [s]")
+    plt.suptitle(f"Shots for t = {t_example:.5f} [s]")
     plt.show()
 
 
