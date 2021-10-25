@@ -23,6 +23,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=pointless-statement
 # pylint: disable=invalid-name
 # pylint: disable=duplicate-code
+# pylint: disable=too-few-public-methods
 
 # %% [raw]
 """
@@ -54,7 +55,6 @@ We will create a fictional device and showcase how the plot monitor can be used.
 """
 
 # %%
-import random
 
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
@@ -65,6 +65,8 @@ from quantify_core.data.handling import get_tuids_containing, set_datadir
 from quantify_core.measurement import MeasurementControl
 from quantify_core.utilities.examples_support import default_datadir
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
+
+rng = np.random.default_rng(seed=555555)  # random number generator
 
 # Display any variable or statement on its own line
 InteractiveShell.ast_node_interactivity = "all"
@@ -105,7 +107,7 @@ class Device(Instrument):
     def _get_dac_value(self):
         s1 = np.exp(-3 * self.amp_0()) * np.sin(self.amp_0() * 2 * np.pi * 3)
         s2 = np.cos(self.amp_1() * 2 * np.pi * 2)
-        return s1 + s2 + random.uniform(0, 0.2) + self.offset()
+        return s1 + s2 + rng.uniform(0, 0.2) + self.offset()
 
 
 # %% [raw]
@@ -380,8 +382,9 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
 """
 
 # %%
-# When we have 2D plots only the first dataset from plotmon.tuids or plotmon.tuids_extra, in that order of priority.
-# will be plotted in the secondary window
+# When we have 2D plots only the first dataset from plotmon.tuids or
+# plotmon.tuids_extra, in that order of priority, will be plotted in the
+# secondary window
 
 meas_ctrl.settables([device.amp_0, device.amp_1])
 meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])

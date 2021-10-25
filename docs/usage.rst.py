@@ -24,6 +24,8 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=invalid-name
 # pylint: disable=duplicate-code
 # pylint: disable=too-many-lines
+# pylint: disable=no-self-use
+# pylint: disable=too-few-public-methods
 
 # %% [raw]
 """
@@ -325,19 +327,23 @@ t = ManualParameter("time", label="Time", unit="s")
 
 
 class WaveGettable:
+    """An examples of a gettable."""
+
     def __init__(self):
         self.unit = "V"
         self.label = "Amplitude"
         self.name = "sine"
 
     def get(self):
+        """Return the gettable value."""
         return np.sin(t() / np.pi)
 
-    # optional methods to prepare can be left undefined
     def prepare(self) -> None:
+        """Optional methods to prepare can be left undefined."""
         print("Preparing the WaveGettable for acquisition.")
 
     def finish(self) -> None:
+        """Optional methods to finish can be left undefined."""
         print("Finishing WaveGettable to wrap up the experiment.")
 
 
@@ -364,20 +370,23 @@ t = ManualParameter(
 )
 
 
-class DualWave:
+class DualWave1D:
+    """Example of a "dual" gettable."""
+
     def __init__(self):
         self.unit = ["V", "V"]
         self.label = ["Sine Amplitude", "Cosine Amplitude"]
         self.name = ["sin", "cos"]
 
     def get(self):
+        """Return the value of the gettable."""
         return np.array([np.sin(t() / np.pi), np.cos(t() / np.pi)])
 
     # N.B. the optional prepare and finish methods are omitted in this Gettable.
 
 
 # verify compliance with the Gettable format
-wave_gettable = DualWave()
+wave_gettable = DualWave1D()
 Gettable(wave_gettable)
 
 # %% [raw]
@@ -565,19 +574,18 @@ An experiment container within a data directory with the name `"quantify-data"` 
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 
-old_dir = dh.get_datadir()
-tmpdir = tempfile.TemporaryDirectory()
-dh.set_datadir(Path(tmpdir.name) / "quantify-data")
-# we generate a dummy dataset and a few empty dirs for pretty printing
-(Path(dh.get_datadir()) / "20210301").mkdir()
-(Path(dh.get_datadir()) / "20210428").mkdir()
+with tempfile.TemporaryDirectory() as tmpdir:
+    old_dir = dh.get_datadir()
+    dh.set_datadir(Path(tmpdir) / "quantify-data")
+    # we generate a dummy dataset and a few empty dirs for pretty printing
+    (Path(dh.get_datadir()) / "20210301").mkdir()
+    (Path(dh.get_datadir()) / "20210428").mkdir()
 
-quantify_dataset = mk_2d_dataset_v1()
-ba.BasicAnalysis(dataset=quantify_dataset).run()
-# to make sure the full path is displayed
-print(display_tree(dh.get_datadir(), string_rep=True), end="")
-dh.set_datadir(old_dir)
-tmpdir.cleanup()
+    quantify_dataset = mk_2d_dataset_v1()
+    ba.BasicAnalysis(dataset=quantify_dataset).run()
+    # to make sure the full path is displayed
+    print(display_tree(dh.get_datadir(), string_rep=True), end="")
+    dh.set_datadir(old_dir)
 
 # %% [raw]
 """
@@ -609,9 +617,9 @@ The resulting dataset will look similar to the following:
 # %%
 # plot the columns of the dataset
 _, axs = plt.subplots(3, 1, sharex=True)
-xr.plot.line(quantify_dataset["x0"][:54], label="x0", ax=axs[0], marker=".")
-xr.plot.line(quantify_dataset["x1"][:54], label="x1", ax=axs[1], color="C1", marker=".")
-xr.plot.line(quantify_dataset["y0"][:54], label="y0", ax=axs[2], color="C2", marker=".")
+xr.plot.line(quantify_dataset.x0[:54], label="x0", ax=axs[0], marker=".")
+xr.plot.line(quantify_dataset.x1[:54], label="x1", ax=axs[1], color="C1", marker=".")
+xr.plot.line(quantify_dataset.y0[:54], label="y0", ax=axs[2], color="C2", marker=".")
 tuple(ax.legend() for ax in axs)
 # return the dataset
 quantify_dataset
@@ -957,17 +965,20 @@ signal = Parameter(
 )
 
 
-class DualWave:
+class DualWave2D:
+    """A "dual" gettable example that depends on two settables."""
+
     def __init__(self):
         self.unit = ["V", "V"]
         self.label = ["Sine Amplitude", "Cosine Amplitude"]
         self.name = ["sin", "cos"]
 
     def get(self):
+        """Returns the value of the gettable."""
         return np.array([np.sin(time_a() * np.pi), np.cos(time_b() * np.pi)])
 
 
-dual_wave = DualWave()
+dual_wave = DualWave2D()
 meas_ctrl.settables([time_a, time_b])
 meas_ctrl.gettables([signal, dual_wave])
 meas_ctrl.setpoints_grid([np.linspace(0, 3, 21), np.linspace(4, 0, 20)])
@@ -1098,7 +1109,9 @@ time = ManualParameter(
 )
 
 
-class DualWave:
+class DualWaveBatched:
+    """A "dual" batched gettable example."""
+
     def __init__(self):
         self.unit = ["V", "V"]
         self.label = ["Amplitude W1", "Amplitude W2"]
@@ -1107,11 +1120,12 @@ class DualWave:
         self.batch_size = 100
 
     def get(self):
+        """Returns the value of the gettable."""
         return np.array([np.sin(time() * np.pi), np.cos(time() * np.pi)])
 
 
 time.batched = True
-dual_wave = DualWave()
+dual_wave = DualWaveBatched()
 
 meas_ctrl.settables(time)
 meas_ctrl.gettables(dual_wave)

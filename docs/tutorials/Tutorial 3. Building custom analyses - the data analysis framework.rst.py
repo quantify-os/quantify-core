@@ -24,6 +24,7 @@ rst_conf = {"jupyter_execute_options": [":hide-code:"]}
 # pylint: disable=invalid-name
 # pylint: disable=duplicate-code
 # pylint: disable=abstract-method
+# pylint: disable=too-few-public-methods
 
 # %% [raw]
 """
@@ -300,10 +301,11 @@ We explore the details of the object-oriented approach later in this tutorial.
 # %%
 class MyCosineModel(lmfit.model.Model):
     """
-    lmfit model with a guess for a cosine fit.
+    `lmfit` model with a guess for a cosine fit.
     """
 
     def __init__(self, *args, **kwargs):
+        """Configures the constraints of the model."""
         # pass in the model's equation
         super().__init__(cos_func, *args, **kwargs)
 
@@ -317,8 +319,7 @@ class MyCosineModel(lmfit.model.Model):
         )  # enforce phase range
 
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-
-        # guess parameters based on the data
+        """Guess parameters based on the data."""
 
         self.set_param_hint("offset", value=np.average(data))
         self.set_param_hint("amplitude", value=(np.max(data) - np.min(data)) / 2)

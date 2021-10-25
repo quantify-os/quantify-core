@@ -370,8 +370,8 @@ theta = np.cos(2 * np.pi * f * dt)
 
 
 def polar_coords(r_, theta_):
-    x_ = r_ * np.cos(2 * np.pi * theta)
-    y_ = r_ * np.sin(2 * np.pi * theta)
+    x_ = r_ * np.cos(2 * np.pi * theta_)
+    y_ = r_ * np.sin(2 * np.pi * theta_)
     return x_, y_
 
 

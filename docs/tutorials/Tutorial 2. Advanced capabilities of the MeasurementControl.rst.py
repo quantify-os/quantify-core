@@ -65,7 +65,6 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
 
 # %%
 import os
-import random
 import signal
 import sys
 import time
@@ -79,6 +78,8 @@ from quantify_core.data.handling import set_datadir
 from quantify_core.measurement.control import MeasurementControl
 from quantify_core.utilities.examples_support import default_datadir
 from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+
+rng = np.random.default_rng(seed=222222)  # random number generator
 
 # %matplotlib inline
 
@@ -297,7 +298,7 @@ class MockQubit:
         """Adds a delay to be able to appreciate the data acquisition."""
         time.sleep(self.delay)
         rel_time = self.test_relaxation_time
-        _func = lambda x: decay(x, rel_time) + random.uniform(-0.1, 0.1)
+        _func = lambda x: decay(x, rel_time) + rng.uniform(-0.1, 0.1)
         return np.array(list(map(_func, time_par())))
 
 

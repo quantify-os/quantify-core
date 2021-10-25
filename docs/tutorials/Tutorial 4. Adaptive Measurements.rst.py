@@ -250,9 +250,9 @@ res = Instrument("Resonator")
 
 res.add_parameter("freq", unit="Hz", label="Frequency", parameter_class=ManualParameter)
 res.add_parameter("amp", unit="V", label="Amplitude", parameter_class=ManualParameter)
-res._fwhm = 15e6  # pretend you don't know what this value is
-res._res_freq = 6.78e9  # pretend you don't know what this value is
-res._noise_level = 0.1
+_fwhm = 15e6  # pretend you don't know what this value is
+_res_freq = 6.78e9  # pretend you don't know what this value is
+_noise_level = 0.1
 
 
 def lorenz():
@@ -262,10 +262,10 @@ def lorenz():
         1
         - (
             res.amp()
-            * ((res._fwhm / 2.0) ** 2)
-            / ((res.freq() - res._res_freq) ** 2 + (res._fwhm / 2.0) ** 2)
+            * ((_fwhm / 2.0) ** 2)
+            / ((res.freq() - _res_freq) ** 2 + (_fwhm / 2.0) ** 2)
         )
-        + res._noise_level * np.random.rand(1)
+        + _noise_level * np.random.rand(1)
     )
 
 
@@ -274,7 +274,7 @@ res.add_parameter("S21", unit="V", label="Transmission amp. S21", get_cmd=lorenz
 # %%
 rst_conf = {"jupyter_execute_options": [":hide-output:"]}
 
-res._noise_level = 0.0
+_noise_level = 0.0
 res.amp(1)
 meas_ctrl.settables([res.freq])
 af_pars = {
