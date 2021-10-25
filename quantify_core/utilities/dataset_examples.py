@@ -6,7 +6,7 @@ Factories of exemplary and mock datasets to be used for testing and documentatio
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import xarray as xr
@@ -65,7 +65,7 @@ def mk_2d_dataset_v1(num_amps: int = 10, num_times: int = 100):
     return dataset
 
 
-def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Union[int, None] = 112233):
+def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Optional[int] = 112233):
     """
     Generates data that look similar to a two-qubit Chevron experiment.
 
@@ -187,7 +187,9 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
 
 
 def mk_t1_av_dataset(
-    t1_times: np.ndarray = None, probabilities: np.ndarray = None, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit.
@@ -206,8 +208,6 @@ def mk_t1_av_dataset(
         t1_times = np.linspace(0, 120e-6, 30)
 
     if probabilities is None:
-        if t1_times is None:
-            ValueError("Missing values for t1_times.")
         probabilities = exp_decay_func(
             t=t1_times, tau=50e-6, offset=0, n_factor=1, amplitude=1
         )
@@ -230,7 +230,9 @@ def mk_t1_av_dataset(
 
 
 def mk_t1_av_with_cal_dataset(
-    t1_times: np.ndarray = None, probabilities: np.ndarray = None, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit including
@@ -283,7 +285,9 @@ def mk_t1_av_with_cal_dataset(
 
 
 def mk_t1_shots_dataset(
-    t1_times: np.ndarray = None, probabilities: np.ndarray = None, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit including
@@ -361,7 +365,9 @@ def mk_t1_shots_dataset(
 
 
 def mk_t1_traces_dataset(
-    t1_times: np.ndarray = None, probabilities: np.ndarray = None, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit including
@@ -497,7 +503,7 @@ def mk_nested_mc_dataset(
     resonator_freqs_min_max: tuple = (7e9, 7.3e9),
     qubit_freqs_min_max: tuple = (4.5e9, 5.0e9),
     t1_values_min_max: tuple = (20e-6, 50e-6),
-    seed: Union[int, None] = 112233,
+    seed: Optional[int] = 112233,
 ) -> xr.Dataset:
     """
     Generates a dataset with dataset references and several coordinates that serve to
