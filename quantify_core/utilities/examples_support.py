@@ -5,14 +5,101 @@
 from __future__ import annotations
 
 from pathlib import Path
+from time import sleep
 from typing import Any, Callable, Dict, Tuple, Union
 
 import numpy as np
 import xarray as xr
+from qcodes.instrument import Instrument, ManualParameter
 
 import quantify_core.data.dataset_attrs as dd
 import quantify_core.data.handling as dh
+from quantify_core.analysis.fitting_models import cos_func
 from quantify_core.data.types import TUID
+
+# ######################################################################################
+# Tutorial utilities
+# ######################################################################################
+
+
+def default_datadir(verbose: bool = True) -> Path:
+    """Returns (and optionally print) a default datadir path.
+
+    Intended for fast prototyping, tutorials, examples, etc..
+
+    Parameters
+    ----------
+    verbose
+        If ``True`` prints the returned datadir.
+
+    Returns
+    -------
+    :
+        The ``Path.home() / "quantify-data"`` path.
+    """
+    datadir = (Path.home() / "quantify-data").resolve()
+    if verbose:
+        print(f"Data will be saved in:\n{datadir}")
+
+    return datadir
+
+
+def mk_cosine_instrument() -> Instrument:
+    """A container of parameters (mock instrument) providing a cosine model."""
+
+    instr = Instrument("ParameterHolder")
+
+    # ManualParameter's is a handy class that preserves the QCoDeS' Parameter
+    # structure without necessarily having a connection to the physical world
+    instr.add_parameter(
+        "amp",
+        initial_value=1,
+        unit="V",
+        label="Amplitude",
+        parameter_class=ManualParameter,
+    )
+    instr.add_parameter(
+        "freq",
+        initial_value=0.5,
+        unit="Hz",
+        label="Frequency",
+        parameter_class=ManualParameter,
+    )
+    instr.add_parameter(
+        "t", initial_value=1, unit="s", label="Time", parameter_class=ManualParameter
+    )
+    instr.add_parameter(
+        "phi",
+        initial_value=0,
+        unit="Rad",
+        label="Phase",
+        parameter_class=ManualParameter,
+    )
+    instr.add_parameter(
+        "noise_level",
+        initial_value=0.05,
+        unit="V",
+        label="Noise level",
+        parameter_class=ManualParameter,
+    )
+    instr.add_parameter(
+        "acq_delay", initial_value=0.02, unit="s", parameter_class=ManualParameter
+    )
+
+    def cosine_model():
+        sleep(instr.acq_delay())  # simulates the acquisition delay of an instrument
+        return (
+            cos_func(instr.t(), instr.amp(), instr.freq(), phase=instr.phi(), offset=0)
+            + np.random.randn() * instr.noise_level()
+        )
+
+    # Wrap our function in a Parameter to be able to associate metadata to it, e.g. unit
+    instr.add_parameter(
+        name="sig", label="Signal level", unit="V", get_cmd=cosine_model
+    )
+
+    return instr
+
 
 # ######################################################################################
 # IQ-related data manipulation and plotting
