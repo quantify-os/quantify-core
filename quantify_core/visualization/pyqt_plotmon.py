@@ -133,10 +133,9 @@ class PlotMonitor_pyqt(Instrument):
 
     def update(self, tuid: str = None):
         """
-        Updates the curves/heatmaps os a specific dataset.
+        Updates the curves/heatmaps of a specific dataset.
 
-        If the dataset is not specified the latest on in `.tuids()`
-        is used.
+        If the dataset is not specified the latest dataset in `.tuids()` is used.
 
         If `.tuids()` is empty and `tuid` is provided
         then `.tuids_append(tuid)` will be called.
@@ -145,7 +144,6 @@ class PlotMonitor_pyqt(Instrument):
         """
         try:
             self.remote_plotmon.queue.put(("update", (tuid, get_datadir())))
-            # self.remote_plotmon.update(tuid)
         except Exception as e:
             warnings.warn(f"At update encountered: {e}", Warning)
 
@@ -161,19 +159,15 @@ class PlotMonitor_pyqt(Instrument):
         with data
         """
         self.remote_plotmon.queue.put(("tuids_append", (tuid, get_datadir())))
-        # self.remote_plotmon.tuids_append(tuid)
 
     def _set_tuids_max_num(self, val):
         self.remote_plotmon.queue.put(("_set_tuids_max_num", (val,)))
-        # self.remote_plotmon._set_tuids_max_num(val)
 
     def _set_tuids(self, tuids: list):
         self.remote_plotmon.queue.put(("_set_tuids", (tuids, get_datadir())))
-        # self.remote_plotmon._set_tuids(tuids)
 
     def _set_tuids_extra(self, tuids: list):
         self.remote_plotmon.queue.put(("_set_tuids_extra", (tuids, get_datadir())))
-        # self.remote_plotmon._set_tuids_extra(tuids)
 
     # Blocking calls
     # For this ones we wait to get the return
@@ -216,8 +210,7 @@ class PlotMonitor_pyqt(Instrument):
         if hasattr(self, "connection") and hasattr(self.connection, "close"):
             self.connection.close()
 
-        # Essential!!!
-        # Close the process
+        # Essential!!! Close the process
         self.proc.join()
 
         strip_attrs(self, whitelist=["_name"])

@@ -12,7 +12,7 @@ import time
 import types
 from collections.abc import Iterable
 from itertools import chain
-from os.path import join
+from pathlib import Path
 from typing import Optional
 
 import adaptive
@@ -38,7 +38,7 @@ from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
 
 # Intended for plotting monitors that run in separate processes
-_DATASET_LOCKS_DIR = tempfile.gettempdir()
+_DATASET_LOCKS_DIR = Path(tempfile.gettempdir())
 
 
 class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attributes
@@ -163,7 +163,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         # variables used for persistence and plotting
         self._dataset = None
-        self._exp_folder = None
+        self._exp_folder: Path = None
         self._plotmon_name = ""
         # attributes named as if they are python attributes, e.g. dset.drid_2d == True
         self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
@@ -248,17 +248,21 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self._settable_pars, self._setpoints, self._gettable_pars
         )
 
-        # cannot add it as a separate (nested) dict so make it flat.
         self._dataset.attrs["name"] = name
+        # cannot add it as a separate (nested) dict so make it flat.
         self._dataset.attrs.update(self._plot_info)
 
-        self._exp_folder = create_exp_folder(
-            tuid=self._dataset.attrs["tuid"], name=self._dataset.attrs["name"]
-        )
+        tuid = self._dataset.attrs["tuid"]
+
+        self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
         self._safe_write_dataset()  # Write the empty dataset
 
+        if self.instr_plotmon():
+            # Tell plotmon to start monitoring the new dataset
+            self.instr_plotmon.get_instr().update(tuid=tuid)
+
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        with open(join(self._exp_folder, "snapshot.json"), "w") as file:
+        with open(self._exp_folder / "snapshot.json", "w", encoding="utf-8") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
     def run(
@@ -576,10 +580,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
             self._safe_write_dataset()
 
-            if self.instr_plotmon():
-                # Plotmon requires to know which dataset was modified
-                self.instr_plotmon.get_instr().update(tuid=self._dataset.attrs["tuid"])
-
             if self.instrument_monitor():
                 self.instrument_monitor.get_instr().update()
 
@@ -710,11 +710,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         Locking files are written into a temporary dir to avoid polluting
         the experiment container.
         """
-        filename = join(self._exp_folder, DATASET_NAME)
+        filename = self._exp_folder / DATASET_NAME
         # Multiprocess safe
-        lockfile = join(
-            _DATASET_LOCKS_DIR,
-            self._dataset.attrs["tuid"] + "-" + DATASET_NAME + ".lock",
+        lockfile = (
+            _DATASET_LOCKS_DIR / f"{self._dataset.attrs['tuid']}-{DATASET_NAME}.lock"
         )
         with FileLock(lockfile, 5):
             write_dataset(path=filename, dataset=self._dataset)
