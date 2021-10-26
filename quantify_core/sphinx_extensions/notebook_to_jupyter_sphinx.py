@@ -1,7 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""
-A sphinx extension that converts python Jupyter notebook scripts ``.rst.py`` (or ``.rst.*.py)`` in
+r'''
+A sphinx extension that converts python Jupyter notebook scripts ``.rst.py`` (or ``.rst.*.py``) in
 the percent format to ``.rst`` (``.rst.*``) files to be executed by sphinx.
 
 The extension purpose is to minimize the required overhead for writing and modifying
@@ -27,7 +27,7 @@ An alternative to this extensions is to use `nbsphinx in combination with jupyte
 Usage
 -----
 
-1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.py.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
+1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
 
     .. tip::
 
@@ -183,7 +183,7 @@ To make use of this extensions you can start from this ``template.rst.py``.
     # ---
     # jupyter:
     #   jupytext:
-    #     cell_markers: \\\"\\\"\\\"
+    #     cell_markers: \"\"\"
     #     formats: py:percent
     #     text_representation:
     #       extension: .py
@@ -195,9 +195,9 @@ To make use of this extensions you can start from this ``template.rst.py``.
     # ---
 
     # %% [raw]
-    \"\"\"
+    """
     The contents of this raw cell will be copy-pasted into the ``.rst`` file.
-    \"\"\"
+    """
 
     # %%
     # This is a code cell, will be translated into a `.. jupyter-execute::` block.
@@ -216,10 +216,10 @@ this:
 .. code-block:: python
 
     # %% [raw]
-    \"\"\"
+    """
     Raw cell contents
     goes here
-    \"\"\"
+    """
 
 Instead of the default:
 
@@ -231,7 +231,10 @@ Instead of the default:
 
 You can remove that line if you wish to use the default representation.
 
-"""  # pylint: disable=line-too-long
+API
+---
+
+'''  # pylint: disable=line-too-long
 
 from __future__ import annotations
 
@@ -350,7 +353,7 @@ def get_code_indent_and_processed_lines(
 
             if len(conf):
                 raise ExtensionError(
-                    f"Unexpected key(s) in the rst-json-conf: `{conf}` while "
+                    f"Unexpected key(s) in the rst conf: `{conf}` while "
                     f"processing the cell:\n\n{cell_source_code}",
                     modname=__name__,
                 )
@@ -515,7 +518,7 @@ def notebooks_to_rst(app, config) -> None:
     # Sometimes it is useful to generate rst contents in one dir but we want it to be
     # evaluated in another dir and for that the output file requires for example `.txt`
     # extension. A simple way to achieve this is to support input files
-    # with extensions `.rst.*.py`, e.g., `.py.rst.txt.py`.
+    # with extensions `.rst.*.py`, e.g., `.rst.txt.py`.
     rst_other_py_files = srcdir.rglob("*.rst.*.py")
     for file in itertools.chain(srcdir.rglob("*.rst.py"), rst_other_py_files):
         if ".ipynb_checkpoints" in file.parts:
