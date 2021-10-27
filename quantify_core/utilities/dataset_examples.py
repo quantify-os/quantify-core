@@ -1,10 +1,12 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-"""Factories of exemplary and mock datasets to be used for testing and documentation."""
+"""
+Factories of exemplary and mock datasets to be used for testing and documentation.
+"""
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import xarray as xr
@@ -12,6 +14,9 @@ import xarray as xr
 import quantify_core.data.dataset_attrs as dattrs
 import quantify_core.data.handling as dh
 import quantify_core.measurement.control as mc
+from quantify_core.analysis.calibration import rotate_to_calibrated_axis
+from quantify_core.analysis.fitting_models import exp_decay_func
+from quantify_core.measurement.control import grid_setpoints
 from quantify_core.utilities.examples_support import (
     mk_dataset_attrs,
     mk_iq_shots,
@@ -24,7 +29,43 @@ from quantify_core.utilities.examples_support import (
 )
 
 
-def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Union[int, None] = 112233):
+def mk_2d_dataset_v1(num_amps: int = 10, num_times: int = 100):
+    """Generates a 2D Quantify dataset (v1).
+
+    Parameters
+    ----------
+    num_amps
+        Number of x points.
+    num_times
+        Number of y points.
+    """
+    amps, times = np.linspace(-1, 1, num_amps), np.linspace(0, 10, num_times)
+    amps, times = grid_setpoints([amps, times]).T
+    sig = amps * np.cos(times)
+
+    attrs = dict(
+        tuid=dh.gen_tuid(),
+        name="my experiment",
+        grid_2d=True,
+        grid_2d_uniformly_spaced=True,
+        xlen=num_amps,
+        ylen=num_times,
+    )
+
+    dataset = xr.Dataset(
+        coords=dict(
+            x0=("dim_0", amps, dict(name="amp", long_name="Amplitude", units="V")),
+            x1=("dim_0", times, dict(name="t", long_name="Time", units="s")),
+        ),
+        data_vars=dict(
+            y0=("dim_0", sig, dict(name="sig", long_name="Signal", units="V"))
+        ),
+        attrs=attrs,
+    )
+    return dataset
+
+
+def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Optional[int] = 112233):
     """
     Generates data that look similar to a two-qubit Chevron experiment.
 
@@ -146,7 +187,9 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
 
 
 def mk_t1_av_dataset(
-    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit.
@@ -161,6 +204,14 @@ def mk_t1_av_dataset(
         Keyword arguments passed to
         :func:`~quantify_core.utilities.examples_support.mk_iq_shots`.
     """
+    if t1_times is None:
+        t1_times = np.linspace(0, 120e-6, 30)
+
+    if probabilities is None:
+        probabilities = exp_decay_func(
+            t=t1_times, tau=50e-6, offset=0, n_factor=1, amplitude=1
+        )
+
     q0_iq_av = mk_shots_from_probabilities(probabilities, **kwargs).mean(axis=0)
 
     main_dims = ("main_dim",)
@@ -179,7 +230,9 @@ def mk_t1_av_dataset(
 
 
 def mk_t1_av_with_cal_dataset(
-    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit including
@@ -232,7 +285,9 @@ def mk_t1_av_with_cal_dataset(
 
 
 def mk_t1_shots_dataset(
-    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit including
@@ -251,7 +306,11 @@ def mk_t1_shots_dataset(
     """
     # reuse previous dataset
     dataset_av_with_cal = mk_t1_av_with_cal_dataset(t1_times, probabilities, **kwargs)
-
+    if probabilities is None:
+        probabilities = dataset_av_with_cal.q0_iq_av.values
+        probabilities = rotate_to_calibrated_axis(
+            probabilities, *dataset_av_with_cal.q0_iq_av_cal.values
+        ).real
     # generate mock data containing all the shots,
     # NB not the same data that was used for the average above, but this is just a mock
     q0_iq_shots = mk_shots_from_probabilities(probabilities, **kwargs)
@@ -283,7 +342,7 @@ def mk_t1_shots_dataset(
     # Flag that these variables use a repetitions dimension
     q0_attrs_rep = dict(dataset_av_with_cal.q0_iq_av.attrs)
     q0_attrs_rep["has_repetitions"] = True
-    q0_cal_attrs_rep = dict(dataset_av_with_cal.q0_iq_av.attrs)
+    q0_cal_attrs_rep = dict(dataset_av_with_cal.q0_iq_av_cal.attrs)
     q0_cal_attrs_rep["has_repetitions"] = True
 
     data_vars = dict(
@@ -306,7 +365,9 @@ def mk_t1_shots_dataset(
 
 
 def mk_t1_traces_dataset(
-    t1_times: np.ndarray, probabilities: np.ndarray, **kwargs
+    t1_times: Optional[np.ndarray] = None,
+    probabilities: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generates a dataset with mock data of a T1 experiment for a single qubit including
@@ -442,7 +503,7 @@ def mk_nested_mc_dataset(
     resonator_freqs_min_max: tuple = (7e9, 7.3e9),
     qubit_freqs_min_max: tuple = (4.5e9, 5.0e9),
     t1_values_min_max: tuple = (20e-6, 50e-6),
-    seed: Union[int, None] = 112233,
+    seed: Optional[int] = 112233,
 ) -> xr.Dataset:
     """
     Generates a dataset with dataset references and several coordinates that serve to

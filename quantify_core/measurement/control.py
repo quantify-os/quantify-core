@@ -56,10 +56,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         .. code-block:: python
 
-            MC.settables(mw_source1.freq)
-            MC.setpoints(np.arange(5e9, 5.2e9, 100e3))
-            MC.gettables(pulsar_QRM.signal)
-            dataset = MC.run(name='Frequency sweep')
+            meas_ctrl.settables(mw_source1.freq)
+            meas_ctrl.setpoints(np.arange(5e9, 5.2e9, 100e3))
+            meas_ctrl.gettables(pulsar_QRM.signal)
+            dataset = meas_ctrl.run(name='Frequency sweep')
 
 
     MC exists to enforce structure on experiments. Enforcing this structure allows:
