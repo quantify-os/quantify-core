@@ -27,7 +27,7 @@ An alternative to this extensions is to use `nbsphinx in combination with jupyte
 Usage
 -----
 
-1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rsr.*.py` (e.g. :code:`.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
+1. Create a Jupyter notebook in the `percent format <https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format>`_ with an extra suffix :code:`.rst.py`, or :code:`.rst.*.py` (e.g. :code:`.rst.txt.py`). The extra suffix is necessary in order to collect the files that are to be converted. The percent format allows to keep the scripts compatible with IPyhton, Jupyter and most IDEs.
 
     .. tip::
 
@@ -37,9 +37,9 @@ Usage
 
     .. tip::
 
-        The ``.rsr.*.py`` extensions, e.g. ``.rst.txt.py``, will preserve its extension(s). This is supported in order to be able to produce rst files that are ignored by sphinx and can be ``.. include::``\d in other parts of the project. For example, you might want to keep long code example in a separate directory instead of including everything directly inside a docstring of a class. This makes it also easier to modify examples without having to build the docs in order to test that the examples work.
+        The ``.rst.*.py`` extensions, e.g. ``.rst.txt.py``, will preserve its extension(s). This is supported in order to be able to produce rst files that are ignored by sphinx and can be ``.. include::``\d in other parts of the project. For example, you might want to keep long code example in a separate directory instead of including everything directly inside a docstring of a class. This makes it also easier to modify examples without having to build the docs in order to test that the examples work.
 
-        The rest of the documentation below applies equally for ``.rsr.py`` and ``.rsr.*.py``, even though the latter is not mentioned explicitly for simplicity.
+        The rest of the documentation below applies equally for ``.rst.py`` and ``.rst.*.py``, even though the latter is not mentioned explicitly for simplicity.
 
 
 2. Version control only the :code:`.rst.py` file. Do not commit the :code:`.rst` nor the :code:`.ipynb` files.
