@@ -118,6 +118,18 @@ measurement
 .. automodule:: quantify_core.measurement
     :members:
 
+types
+-----
+
+.. automodule:: quantify_core.measurement.types
+    :members:
+
+control
+-------
+
+.. automodule:: quantify_core.measurement.control
+    :members:
+
 
 utilities
 =========
@@ -146,12 +158,23 @@ visualization
 .. automodule:: quantify_core.visualization
     :members:
 
+instrument_monitor
+------------------
+
+.. automodule:: quantify_core.visualization.instrument_monitor
+    :members:
+
+pyqt_plotmon
+------------
+
+.. automodule:: quantify_core.visualization.pyqt_plotmon
+    :members:
+
 color_utilities
 ---------------
 
 .. automodule:: quantify_core.visualization.color_utilities
     :members:
-
 
 mpl_plotting
 ------------
@@ -164,7 +187,6 @@ plot_interpolation
 
 .. automodule:: quantify_core.visualization.plot_interpolation
     :members:
-
 
 SI Utilities
 ------------

@@ -55,6 +55,9 @@ extensions = [
     "sphinx.ext.mathjax",
     "jupyter_sphinx",
     "sphinx_togglebutton",
+    # fancy type hints in docs and
+    # solves the same issue as "sphinx_automodapi.smart_resolver"
+    # however the smart_resolver seems to fail for external packages like `zhinst`
     "scanpydoc.elegant_typehints",
     "sphinxcontrib.bibtex",
     "quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx",
@@ -225,14 +228,13 @@ add_module_names = False
 # that have a mismatch between the python modules real location vs how they are imported
 # and documented. These overrides are necessary to fix "reference target not found" when
 # these classes are used as type annotations.
-# NB Use this only for external packages. Do not do this quantify and cause problems to
-# internal and external developers
+# NB Use this only for external packages. Do not do this in quantify and cause problems
+# to internal and external developers.
 qualname_overrides = {
     # "<true path to module>" : "<API path>"
     "matplotlib.axes._axes.Axes": "matplotlib.axes.Axes",
     "xarray.core.dataset.Dataset": "xarray.Dataset",
     "xarray.core.dataarray.DataArray": "xarray.DataArray",
-    "quantify_core.visualization.pyqt_plotmon.PlotMonitor_pyqt": "quantify_core.visualization.PlotMonitor_pyqt",
 }
 
 autodoc_default_options = {
@@ -246,9 +248,7 @@ autodoc_default_options = {
 
 # For debugging the CI just add `or True` on the line below
 if os.environ.get("GITLAB_CI", "false") == "true":
-    print(
-        "\n[INFO] Building docs with private-members...\n[INFO] See `conf.py` for details.\n"
-    )
+    print("\n[INFO] Building docs with private-members... See `conf.py` for details.\n")
     # for local build and CI force documentation to build for private members
     # this make sure the docstrings of private members are also correctly formatted, etc
     autodoc_default_options["private-members"] = True
