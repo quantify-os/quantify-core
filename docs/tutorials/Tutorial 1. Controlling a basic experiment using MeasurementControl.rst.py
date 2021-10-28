@@ -56,8 +56,8 @@ Following this Tutorial requires familiarity with the **core concepts** of Quant
 
 # %% [raw]
 """
-This tutorial covers basic usage of Quantify focusing on running basic experiments using :class:`~quantify_core.measurement.MeasurementControl`.
-The :class:`~quantify_core.measurement.MeasurementControl` is the main :class:`~qcodes.instrument.base.Instrument` in charge of running any experiment.
+This tutorial covers basic usage of Quantify focusing on running basic experiments using :class:`.MeasurementControl`.
+The :class:`.MeasurementControl` is the main :class:`~qcodes.instrument.base.Instrument` in charge of running any experiment.
 """
 
 # %% [raw]
@@ -68,12 +68,12 @@ Quantify makes a distinction between :ref:`Iterative<Control Mode>` measurements
 
 # %% [raw]
 """
-In an :ref:`Iterative<Control Mode>` measurement, the :class:`~quantify_core.measurement.MeasurementControl` processes each setpoint fully before advancing to the next.
+In an :ref:`Iterative<Control Mode>` measurement, the :class:`.MeasurementControl` processes each setpoint fully before advancing to the next.
 """
 
 # %% [raw]
 """
-In a :ref:`Batched<Control Mode>` measurement, the :class:`~quantify_core.measurement.MeasurementControl` processes setpoints in batches, for example triggering 10 samples and then reading those 10 outputs.
+In a :ref:`Batched<Control Mode>` measurement, the :class:`.MeasurementControl` processes setpoints in batches, for example triggering 10 samples and then reading those 10 outputs.
 This is useful in resource constrained or overhead heavy situations.
 """
 
@@ -194,7 +194,7 @@ We then tell the :ref:`MeasurementControl<Measurement Control>` `meas_ctrl` to r
 
 # %% [raw]
 """
-We use the :class:`~quantify_core.measurement.Settable` and :class:`~quantify_core.measurement.Gettable` helper classes to ensure our parameters contain the correct attributes.
+We use the :class:`.Settable` and :class:`.Gettable` helper classes to ensure our parameters contain the correct attributes.
 """
 
 # %%

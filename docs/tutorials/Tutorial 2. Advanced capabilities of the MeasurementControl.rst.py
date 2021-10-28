@@ -118,13 +118,13 @@ In this example, we want to find the resonance of some device. We expect to find
 
 # %% [raw]
 """
-We first create `freq`: a :class:`~quantify_core.measurement.Settable` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :class:`~quantify_core.measurement.Gettable` to mock (i.e. emulate) the resonator.
-The :class:`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our :class:`~quantify_core.measurement.Gettable` will read the setpoints from `freq`, in this case a 1D array.
+We first create `freq`: a :class:`.Settable` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :class:`.Gettable` to mock (i.e. emulate) the resonator.
+The :class:`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our :class:`.Gettable` will read the setpoints from `freq`, in this case a 1D array.
 """
 
 # %% [raw]
 """
-.. note:: The `Resonator` :class:`~quantify_core.measurement.Gettable` has a new attribute `.batched` set to `True`. This property informs the :class:`~quantify_core.measurement.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition. Similarly, the `freq` :class:`~quantify_core.measurement.Settable` must have a `.batched=True` so that the :class:`~quantify_core.measurement.MeasurementControl` hands over the setpoints correctly.
+.. note:: The `Resonator` :class:`.Gettable` has a new attribute `.batched` set to `True`. This property informs the :class:`.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition. Similarly, the `freq` :class:`.Settable` must have a `.batched=True` so that the :class:`.MeasurementControl` hands over the setpoints correctly.
 """
 
 
@@ -190,8 +190,8 @@ Just like our Iterative 1D loop, our complete experiment is expressed in just fo
 
 # %% [raw]
 """
-The main difference is defining the `batched` property of our :class:`~quantify_core.measurement.Gettable` to `True`.
-The :class:`~quantify_core.measurement.MeasurementControl` will detect these settings and run in the appropriate mode.
+The main difference is defining the `batched` property of our :class:`.Gettable` to `True`.
+The :class:`.MeasurementControl` will detect these settings and run in the appropriate mode.
 """
 
 
@@ -225,12 +225,12 @@ Memory-limited Settables/Gettables
 # %% [raw]
 """
 Instruments (either physical or virtual) operating in `batched` mode have an upper limit on how many datapoints can be processed at once.
-When an experiment is comprised of more datapoints than the instrument can handle, the :class:`~quantify_core.measurement.MeasurementControl` takes care of fulfilling the measurement of all the requested setpoints by running and internal loop.
+When an experiment is comprised of more datapoints than the instrument can handle, the :class:`.MeasurementControl` takes care of fulfilling the measurement of all the requested setpoints by running and internal loop.
 """
 
 # %% [raw]
 """
-By default the :class:`~quantify_core.measurement.MeasurementControl` assumes no limitations and passes all setpoints to the `batched` settable. However, as a best practice, the instrument limitation must be reflected by the `.batch_size` attribute of the `batched` settables. This is illustrated below.
+By default the :class:`.MeasurementControl` assumes no limitations and passes all setpoints to the `batched` settable. However, as a best practice, the instrument limitation must be reflected by the `.batch_size` attribute of the `batched` settables. This is illustrated below.
 """
 
 # %%
@@ -255,13 +255,13 @@ Software Averaging: T1 Experiment
 # %% [raw]
 """
 In many cases it is desirable to run an experiment many times and average the result, such as when filtering noise on instruments or measuring probability.
-For this purpose, the :meth:`~quantify_core.measurement.MeasurementControl.run` provides the `soft_avg` argument.
+For this purpose, the :meth:`.MeasurementControl.run` provides the `soft_avg` argument.
 If set to *x*, the experiment will run *x* times whilst performing a running average over each setpoint.
 """
 
 # %% [raw]
 """
-In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :class:`~quantify_core.measurement.Settable` and :class:`~quantify_core.measurement.Gettable`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
+In this example, we want to find the relaxation time (aka T1) of a Qubit. As before, we define a :class:`.Settable` and :class:`.Gettable`, representing the varying timescales we will probe through and a mock Qubit emulated in software.
 The mock Qubit returns the expected decay sweep but with a small amount of noise (simulating the variable qubit characteristics). We set the qubit's T1 to 60 ms - obviously in a real experiment we would be trying to determine this, but for this illustration purposes in this tutorial we set it to a known value to verify our fit later on.
 """
 
@@ -317,7 +317,7 @@ plotmon.main_QtPlot
 
 # %% [raw]
 """
-Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` argument of the :meth:`~quantify_core.measurement.MeasurementControl.run` to 100, averaging the results and hopefully filtering out the noise.
+Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` argument of the :meth:`.MeasurementControl.run` to 100, averaging the results and hopefully filtering out the noise.
 """
 
 # %%
@@ -347,13 +347,13 @@ Interrupting
 # %% [raw]
 """
 Sometimes experiments unfortunately do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration).
-Rather than waiting for this experiment to complete, instead we can interrupt any :class:`~quantify_core.measurement.MeasurementControl` loop using the standard interrupt signal.
+Rather than waiting for this experiment to complete, instead we can interrupt any :class:`.MeasurementControl` loop using the standard interrupt signal.
 In a terminal environment this is usually achieved with a ``ctrl`` + ``c`` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel (stop button) will cause the same result.
 """
 
 # %% [raw]
 """
-When the :class:`~quantify_core.measurement.MeasurementControl` is interrupted, it will wait to obtain the results of current iteration (or batch) and perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
+When the :class:`.MeasurementControl` is interrupted, it will wait to obtain the results of current iteration (or batch) and perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
 """
 
 # %% [raw]
