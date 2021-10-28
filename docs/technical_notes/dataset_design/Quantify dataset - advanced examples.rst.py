@@ -183,7 +183,7 @@ Dataset for a "nested MeasurementControl" experiment
 
 Now consider a dataset that has been constructed by an experiment involving the
 operation of two
-:class:`~quantify_core.measurement.MeasurementControl` objects. The second of
+:class:`.MeasurementControl` objects. The second of
 them performs a "meta" outer loop in which we sweep a flux bias and then perform
 several experiments to characterize a transmon qubit, e.g. determining the frequency of
 a read-out resonator, the frequency of the transmon, and its T1 lifetime.

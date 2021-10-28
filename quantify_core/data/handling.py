@@ -578,7 +578,7 @@ def to_gridded_dataset(
     - The :code:`y0, y1, ...` Variables are reshaped into a (multi-)dimensional grid
         and associated to the Coordinates.
 
-    .. seealso:: :meth:`~quantify_core.measurement.MeasurementControl.setpoints_grid`
+    .. seealso:: :meth:`.MeasurementControl.setpoints_grid`
 
     Parameters
     ----------

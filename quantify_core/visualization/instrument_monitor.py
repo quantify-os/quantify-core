@@ -34,9 +34,9 @@ class InstrumentMonitor(Instrument):
         Parameters
         ----------
         name
-            name of the :class:`~quantify_core.visualization.InstrumentMonitor` object.
+            name of the :class:`.InstrumentMonitor` object.
         window_size
-            The size of the :class:`~quantify_core.visualization.InstrumentMonitor`
+            The size of the :class:`.InstrumentMonitor`
             window in px.
         remote
             Switch to use a remote instance of the pyqtgraph class.
@@ -91,8 +91,8 @@ class InstrumentMonitor(Instrument):
         """
         Updates the Qc widget with the current snapshot of the instruments.
         This function is also called within the class
-        :class:`~quantify_core.measurement.MeasurementControl`
-        in the function :meth:`~quantify_core.measurement.MeasurementControl.run`.
+        :class:`.MeasurementControl`
+        in the function :meth:`.MeasurementControl.run`.
 
         Parameters
         ----------
@@ -135,7 +135,7 @@ class InstrumentMonitor(Instrument):
         Parameters
         ----------
         window_size
-            The size of the :class:`~quantify_core.visualization.InstrumentMonitor`
+            The size of the :class:`.InstrumentMonitor`
             window in px.
         """  # pylint: disable=line-too-long
 

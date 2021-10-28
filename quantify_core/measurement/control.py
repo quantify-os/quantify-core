@@ -726,7 +726,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         Define the settable parameters for the acquisition loop.
 
-        The :class:`~quantify_core.measurement.Settable` helper class defines the
+        The :class:`.Settable` helper class defines the
         requirements for a Settable object.
 
         Parameters
@@ -799,7 +799,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         Define the parameters to be acquired during the acquisition loop.
 
-        The :class:`~quantify_core.measurement.Gettable` helper class defines the
+        The :class:`.Gettable` helper class defines the
         requirements for a Gettable object.
 
         Parameters

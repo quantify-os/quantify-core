@@ -131,7 +131,7 @@ Overview
 
 # %% [raw]
 """
-There are 3 parameters in the :class:`~quantify_core.visualization.PlotMonitor_pyqt` that control the datasets being displayed.
+There are 3 parameters in the :class:`.PlotMonitor_pyqt` that control the datasets being displayed.
 """
 
 # %% [raw]
@@ -156,7 +156,7 @@ The interface is the same for both. The parameters accept a list of tuids or an 
 
 # %% [raw]
 """
-The difference is that the :class:`~quantify_core.measurement.MeasurementControl` uses `tuids` and overrides them when running measurements.
+The difference is that the :class:`.MeasurementControl` uses `tuids` and overrides them when running measurements.
 """
 
 
@@ -169,7 +169,7 @@ The difference is that the :class:`~quantify_core.measurement.MeasurementControl
 
 # %% [raw]
 """
-The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the :class:`~quantify_core.measurement.MeasurementControl` is running.
+The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the :class:`.MeasurementControl` is running.
 """
 
 # %%

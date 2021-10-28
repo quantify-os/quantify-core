@@ -92,7 +92,7 @@ Main coordinate(s)
 
 - Xarray **Coordinates** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord` set to ``True``.
 - Often correspond to physical coordinates, e.g., a signal frequency or amplitude.
-- Often correspond to quantities set through :class:`~quantify_core.measurement.Settable`\s.
+- Often correspond to quantities set through :class:`.Settable`\s.
 - The dataset must have at least one main coordinate.
 
     - Example: In some cases, the idea of a coordinate does not apply, however a main coordinate in the dataset is required. A simple "index" coordinate should be used, e.g., an array of integers.
@@ -115,7 +115,7 @@ Main variable(s)
 
 - Xarray **Variables** that have an attribute :attr:`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to ``True``.
 - Often correspond to a physical quantity being measured, e.g., the signal magnitude at a specific frequency measured on a metal contact of a quantum chip.
-- Often correspond to quantities returned by :class:`~quantify_core.measurement.Gettable`\s.
+- Often correspond to quantities returned by :class:`.Gettable`\s.
 - See also :func:`~quantify_core.data.dataset_attrs.get_main_vars`.
 
 .. _sec-secondary-variables:

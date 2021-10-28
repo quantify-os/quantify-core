@@ -59,7 +59,7 @@ We **highly recommended** to first follow :ref:`Tutorial 1. Controlling a basic 
 
 # %% [raw]
 """
-In this tutorial, we explore the adaptive functionality of the :class:`~quantify_core.measurement.MeasurementControl`.
+In this tutorial, we explore the adaptive functionality of the :class:`.MeasurementControl`.
 With this mode, instead of predefining a grid of values to sweep through, we provide an optimization function and an initial state to the `meas_ctrl`.
 The `meas_ctrl` will then use this function to build the sweep. We import our usual modules and setup an `meas_ctrl` with visualization:
 """
