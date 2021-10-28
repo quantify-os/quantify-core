@@ -18,7 +18,7 @@ quantify_core
 .. _analysis_api:
 
 analysis
-=============
+========
 
 .. automodule:: quantify_core.analysis
     :members:
@@ -61,7 +61,7 @@ interpolation_analysis
     :show-inheritance:
 
 optimization_analysis
-----------------------
+---------------------
 
 .. automodule:: quantify_core.analysis.optimization_analysis
     :members:
