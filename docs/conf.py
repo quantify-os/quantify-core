@@ -236,6 +236,11 @@ qualname_overrides = {
 }
 
 autodoc_default_options = {
+    # Ignore any __all__ that might be added accidentally by inexperienced developers
+    # This is done to avoid nasty complications with sphinx and its extensions and
+    # plenty of "reference target not found" warnings.
+    # See also qualname_overrides above, which has to be used for external packages.
+    "ignore-module-all": True,
     "member-order": "groupwise",
 }
 
