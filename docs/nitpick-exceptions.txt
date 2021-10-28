@@ -1,4 +1,7 @@
-# See conf.py for details
+# sphinx warnings to be ignored, see `nitpick_ignore` in conf.py for details
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-nitpicky
+
+# Please always add comments justifying the warning ignore
 
 # A type hint from typing_extensions that sphinx and its extensions do not handle well
 py:class Literal[None, running, interrupted (safety), interrupted (forced), done]
