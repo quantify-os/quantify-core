@@ -56,8 +56,18 @@ Quantify-core is the core module that contains all basic functionality to contro
 
     This is a pre-release **beta version**, changes and improvements are expected.
 
-About
+Overview
 --------
+
+Quantify evolves rapidly, nevertheless, he following presentation by Adriaan Rol gives
+a good general overview of Quantify.
+
+.. raw:: html
+
+    <iframe width="720" height="405" src="https://www.youtube.com/embed/koWIp12hD8Q?start=150&end=1126" title="Quantify" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+About
+-----
 
 Quantify-core is maintained by The Quantify consortium consisting of Qblox and Orange Quantum Systems.
 
