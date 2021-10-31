@@ -6,7 +6,7 @@ Factories of exemplary and mock datasets to be used for testing and documentatio
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Optional, Union
 
 import numpy as np
 import xarray as xr

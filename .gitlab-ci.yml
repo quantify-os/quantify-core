@@ -377,11 +377,11 @@ docs-win-make-html-latest-nightly:
 # Static Analysis
 # ######################################################################################
 
-black:
+pre-commit:
   stage: Static Analysis
   image: $CI_REGISTRY_IMAGE:python_3.8
   script:
-    - black --check --fast .
+    - pre-commit run --all-files --hook-stage commit  # see .pre-commit-config.yaml
   extends:
     - .run-always-except-docker-images
 
