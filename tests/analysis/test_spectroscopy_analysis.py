@@ -3,9 +3,11 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 from pathlib import Path
+
 import pytest
 from pytest import approx
 from uncertainties.core import Variable
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis import spectroscopy_analysis as sa
 
@@ -36,7 +38,13 @@ def analyses(tmp_test_data_dir):
         "Resonator_id", t_start="20210305", t_stop="20210306"
     )
 
-    analysis = [sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in tuid_list]
+    with pytest.warns(None) as warning_list:
+        analysis = [
+            sa.ResonatorSpectroscopyAnalysis(tuid=tuid).run() for tuid in tuid_list
+        ]
+
+    # Check that there are no warnings raised
+    assert len(warning_list) == 0
 
     return analysis
 

@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 from typing import Tuple
-import numpy as np
+
 import lmfit
+import numpy as np
 
 
 def get_model_common_doc() -> str:
@@ -22,7 +23,9 @@ def get_model_common_doc() -> str:
             :pyobject: ResonatorModel
     """
     return (
-        lmfit.models.COMMON_DOC.replace(":class:`Model`", ":class:`~lmfit.model.Model`")
+        lmfit.models.COMMON_INIT_DOC.replace(
+            ":class:`Model`", ":class:`~lmfit.model.Model`"
+        )
         .replace("\n    ", "\n")
         .replace(" : str", " : :obj:`str`")
         .replace("['x']", ":code:`['x']`")
@@ -246,8 +249,7 @@ def exp_damp_osc_func(
     frequency: float,
     phase: float,
     amplitude: float,
-    oscillation_offset: float,
-    exponential_offset: float,
+    offset: float,
 ):
     r"""
     A sinusoidal oscillation with an exponentially decaying envelope function:
@@ -279,10 +281,9 @@ def exp_damp_osc_func(
         Output of decaying cosine function as a float
     """  # pylint: disable=line-too-long
 
-    oscillation = amplitude * (
-        np.cos(2 * np.pi * frequency * t + phase) + oscillation_offset
-    )
-    osc_decay = oscillation * np.exp(-((t / tau) ** n_factor)) + exponential_offset
+    oscillation = amplitude * (np.cos(2 * np.pi * frequency * t + phase))
+    exp_decay = np.exp(-((t / tau) ** n_factor))
+    osc_decay = oscillation * exp_decay + offset
     return osc_decay
 
 
@@ -379,8 +380,8 @@ class ResonatorModel(lmfit.model.Model):
         )  # Come up with a guess for phase velocity
 
         self.set_param_hint("fr", value=fr_guess, min=fmin, max=fmax)
-        self.set_param_hint("Ql", value=Q_guess, min=Q_min, max=Q_max)
-        self.set_param_hint("Qe", value=Q_guess, min=0)
+        self.set_param_hint("Ql", value=Q_guess * 1.01, min=Q_min, max=Q_max)
+        self.set_param_hint("Qe", value=Q_guess * 0.99, min=0)
         self.set_param_hint("A", value=np.mean(abs(data)), min=0)
 
         # The parameters below need a proper guess.
@@ -458,8 +459,6 @@ class RabiModel(lmfit.model.Model):
 
         # Enforce oscillation frequency is positive
         self.set_param_hint("frequency", min=0)
-        # Enforce amplitude is positive
-        self.set_param_hint("amplitude", min=0)
 
         # Fix the phase at pi so that the ouput is at a minimum when x=0
         self.set_param_hint("phase", expr="3.141592653589793", vary=False)
@@ -513,24 +512,25 @@ class DecayOscillationModel(lmfit.model.Model):
 
         # Fix the n_factor at 1
         self.set_param_hint("n_factor", expr="1", vary=False)
-        # Fix the oscillation offset at 0
-        self.set_param_hint("oscillation_offset", expr="0", vary=False)
 
     # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-        time = kws.get("time", None)
-        if time is None:
+        t = kws.get("t", None)
+        if t is None:
+            raise ValueError(
+                'Time variable "t" must be specified in order to guess parameters'
+            )
             return None
 
         amp_guess = abs(max(data) - min(data)) / 2  # amp is positive by convention
         exp_offs_guess = np.mean(data)
-        tau_guess = 2 / 3 * np.max(time)
+        tau_guess = 2 / 3 * np.max(t)
 
-        (freq_guess, phase_guess) = fft_freq_phase_guess(data, time)
+        (freq_guess, phase_guess) = fft_freq_phase_guess(data, t)
 
         self.set_param_hint("frequency", value=freq_guess, min=0)
         self.set_param_hint("amplitude", value=amp_guess, min=0)
-        self.set_param_hint("exponential_offset", value=exp_offs_guess)
+        self.set_param_hint("offset", value=exp_offs_guess)
         self.set_param_hint("phase", value=phase_guess)
         self.set_param_hint("tau", value=tau_guess, min=0)
 

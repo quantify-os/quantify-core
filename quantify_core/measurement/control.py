@@ -2,41 +2,43 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing the MeasurementControl."""
 from __future__ import annotations
-import time
-import json
-import types
-import tempfile
-from os.path import join
-from collections.abc import Iterable
-from collections import OrderedDict
-import itertools
-from itertools import chain
-import signal
-import threading
 
-import xarray as xr
-import numpy as np
+import itertools
+import json
+import signal
+import tempfile
+import threading
+import time
+import types
+from collections.abc import Iterable
+from itertools import chain
+from pathlib import Path
+from typing import Optional
+
 import adaptive
+import numpy as np
+import xarray as xr
 from filelock import FileLock
 from qcodes import Instrument
 from qcodes import validators as vals
-from qcodes.instrument.parameter import ManualParameter, InstrumentRefParameter
+from qcodes.instrument.parameter import InstrumentRefParameter, ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
+
 from quantify_core.data.handling import (
-    initialize_dataset,
-    create_exp_folder,
-    snapshot,
-    grow_dataset,
-    trim_dataset,
     DATASET_NAME,
-    write_dataset,
     _is_uniformly_spaced_array,
+    create_exp_folder,
+    grow_dataset,
+    initialize_dataset,
+    snapshot,
+    trim_dataset,
+    write_dataset,
 )
+from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
-from quantify_core.measurement.types import Settable, Gettable, is_batched
 
 # Intended for plotting monitors that run in separate processes
-_DATASET_LOCKS_DIR = tempfile.gettempdir()
+_DATASET_LOCKS_DIR = Path(tempfile.gettempdir())
 
 
 class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attributes
@@ -54,10 +56,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         .. code-block:: python
 
-            MC.settables(mw_source1.freq)
-            MC.setpoints(np.arange(5e9, 5.2e9, 100e3))
-            MC.gettables(pulsar_QRM.signal)
-            dataset = MC.run(name='Frequency sweep')
+            meas_ctrl.settables(mw_source1.freq)
+            meas_ctrl.setpoints(np.arange(5e9, 5.2e9, 100e3))
+            meas_ctrl.gettables(pulsar_QRM.signal)
+            dataset = meas_ctrl.run(name='Frequency sweep')
 
 
     MC exists to enforce structure on experiments. Enforcing this structure allows:
@@ -86,52 +88,58 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         # Parameters are attributes included in logging and which the user can change.
 
-        self.add_parameter(
-            "verbose",
-            docstring="If set to True, prints to std_out during experiments.",
-            parameter_class=ManualParameter,
+        self.lazy_set = ManualParameter(
+            vals=vals.Bool(),
+            initial_value=False,
+            name="lazy_set",
+            instrument=self,
+        )
+        """If set to ``True``, only set any settable if the setpoint differs
+        from the previous setpoint. Note that this parameter is overridden by the
+        ``lazy_set`` argument passed to the :meth:`.run` and :meth:`.run_adaptive`
+        methods."""
+
+        self.verbose = ManualParameter(
             vals=vals.Bool(),
             initial_value=True,
+            instrument=self,
+            name="verbose",
         )
+        """If set to ``True``, prints to ``std_out`` during experiments."""
 
-        self.add_parameter(
-            "on_progress_callback",
+        self.on_progress_callback = ManualParameter(
             vals=vals.Callable(),
-            docstring="A callback to communicate progress. This should be a "
-            "Callable accepting floats between 0 and 100 indicating %% done.",
-            parameter_class=ManualParameter,
-            initial_value=None,
+            instrument=self,
+            name="on_progress_callback",
         )
+        """A callback to communicate progress. This should be a callable accepting
+        floats between 0 and 100 indicating the percentage done."""
 
-        self.add_parameter(
-            "instr_plotmon",
-            docstring="Instrument responsible for live plotting. "
-            "Can be set to str(None) to disable live plotting.",
-            parameter_class=InstrumentRefParameter,
+        self.instr_plotmon = InstrumentRefParameter(
             vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
+            instrument=self,
+            name="instr_plotmon",
         )
+        """Instrument responsible for live plotting. Can be set to ``None`` to disable
+        live plotting."""
 
-        self.add_parameter(
-            "instrument_monitor",
-            docstring="Instrument responsible for live monitoring summarized snapshot. "
-            "Can be set to str(None) to disable monitoring of snapshot.",
-            parameter_class=InstrumentRefParameter,
+        self.instrument_monitor = InstrumentRefParameter(
             vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
+            instrument=self,
+            name="instrument_monitor",
         )
+        """Instrument responsible for live monitoring summarized snapshot. Can be set to
+        ``None`` to disable monitoring of snapshot."""
 
-        self.add_parameter(
-            "update_interval",
+        self.update_interval = ManualParameter(
             initial_value=0.5,
-            docstring=(
-                "Interval for updates during the data acquisition loop,"
-                " every time more than `update_interval` time has elapsed "
-                "when acquiring new data points, data is written to file "
-                "and the live monitoring is updated."
-            ),
-            parameter_class=ManualParameter,
-            # minimum value set to avoid performance issues
             vals=vals.Numbers(min_value=0.1),
+            instrument=self,
+            name="update_interval",
         )
+        """Interval for updates during the data acquisition loop, every time more than
+        :attr:`.update_interval` time has elapsed when acquiring new data points, data
+        is written to file (and the live monitoring detects updated)."""
 
         self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
 
@@ -151,7 +159,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         # variables used for persistence and plotting
         self._dataset = None
-        self._exp_folder = None
+        self._exp_folder: Path = None
         self._plotmon_name = ""
         # attributes named as if they are python attributes, e.g. dset.drid_2d == True
         self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
@@ -160,6 +168,43 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._thread_data = threading.local()
         # counter for KeyboardInterrupts to allow forced interrupt
         self._thread_data.events_num = 0
+
+    def __repr__full__(self):
+        str_out = super().__repr__() + "\n"
+
+        # hasattr is necessary in case the instrument was closed
+        if hasattr(self, "_settable_pars"):
+            settable_names = [p.name for p in self._settable_pars]
+            str_out += f"    settables: {settable_names}\n"
+
+        if hasattr(self, "_gettable_pars"):
+            gettable_names = [p.name for p in self._gettable_pars]
+            str_out += f"    gettables: {gettable_names}\n"
+
+        if hasattr(self, "_setpoints_input") and self._setpoints_input is not None:
+            input_shapes = [
+                np.asarray(points).shape for points in self._setpoints_input
+            ]
+            str_out += f"    setpoints_grid input shapes: {input_shapes}\n"
+
+        if hasattr(self, "_setpoints") and self._setpoints is not None:
+            str_out += f"    setpoints shape: {np.asarray(self._setpoints).shape}\n"
+
+        return str_out
+
+    def __repr__(self):
+        """
+        Returns a string containing a summary of this object regarding settables,
+        gettables and setpoints.
+
+        Intended, for example, to give a more useful representation in interactive
+        shells.
+        """
+        return self.__repr__full__()
+
+    def show(self):
+        """Print short representation of the object to stdout."""
+        print(self.__repr__full__())
 
     ############################################
     # Methods used to control the measurements #
@@ -199,20 +244,26 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self._settable_pars, self._setpoints, self._gettable_pars
         )
 
-        # cannot add it as a separate (nested) dict so make it flat.
         self._dataset.attrs["name"] = name
+        # cannot add it as a separate (nested) dict so make it flat.
         self._dataset.attrs.update(self._plot_info)
 
-        self._exp_folder = create_exp_folder(
-            tuid=self._dataset.attrs["tuid"], name=self._dataset.attrs["name"]
-        )
+        tuid = self._dataset.attrs["tuid"]
+
+        self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
         self._safe_write_dataset()  # Write the empty dataset
 
+        if self.instr_plotmon():
+            # Tell plotmon to start monitoring the new dataset
+            self.instr_plotmon.get_instr().update(tuid=tuid)
+
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        with open(join(self._exp_folder, "snapshot.json"), "w") as file:
+        with open(self._exp_folder / "snapshot.json", "w", encoding="utf-8") as file:
             json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
 
-    def run(self, name: str = "", soft_avg: int = 1) -> xr.Dataset:
+    def run(
+        self, name: str = "", soft_avg: int = 1, lazy_set: Optional[bool] = None
+    ) -> xr.Dataset:
         """
         Starts a data acquisition loop.
 
@@ -225,7 +276,15 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             E.g. if `soft_avg=3` the full dataset will be measured 3 times and the
             measured values will be averaged element-wise, the averaged dataset is then
             returned.
+        lazy_set
+            If ``True`` and a setpoint equals the previous setpoint, the ``.set`` method
+            of the settable will not be called for that iteration.
+            If this argument is ``None``, the ``.lazy_set()`` ManualParameter is used
+            instead (which by default is ``False``).
+
+            .. warning:: This feature is not available yet when running in batched mode.
         """
+        lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
         self._soft_avg_validator(soft_avg)  # validate first
         self._soft_avg = soft_avg
         self._reset()
@@ -241,7 +300,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             else:
                 if self.verbose():
                     print("Starting iterative measurement...")
-                self._run_iterative()
+                self._run_iterative(lazy_set)
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
@@ -253,7 +312,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return self._dataset
 
-    def run_adaptive(self, name, params) -> xr.Dataset:
+    def run_adaptive(self, name, params, lazy_set: Optional[bool] = None) -> xr.Dataset:
         """
         Starts a data acquisition loop using an adaptive function.
 
@@ -269,7 +328,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         params
             Key value parameters describe the adaptive function to use, and any further
             parameters for that function.
+        lazy_set
+            If ``True`` and a setpoint equals the previous setpoint, the ``.set`` method
+            of the settable will not be called for that iteration.
+            If this argument is ``None``, the ``.lazy_set()`` ManualParameter is used
+            instead (which by default is ``False``).
         """
+        lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
 
         def measure(vec) -> float:
             """
@@ -286,7 +351,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             if np.isscalar(vec):
                 vec = [vec]
 
-            self._iterative_set_and_get(vec, self._nr_acquired_values)
+            self._iterative_set_and_get(vec, self._nr_acquired_values, lazy_set)
             # only y0 is returned so as to match the function signature for a valid
             # measurement function.
             ret = self._dataset["y0"].values[self._nr_acquired_values]
@@ -339,11 +404,11 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return self._dataset
 
-    def _run_iterative(self):
+    def _run_iterative(self, lazy_set: bool = False):
         while self._get_fracdone() < 1.0:
             self._prepare_gettables()
             for row in self._setpoints:
-                self._iterative_set_and_get(row, self._curr_setpoint_idx())
+                self._iterative_set_and_get(row, self._curr_setpoint_idx(), lazy_set)
                 self._nr_acquired_values += 1
                 self._update()
                 self._check_interrupt()
@@ -418,10 +483,15 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return (new_data + old_data * self._loop_count) / (1 + self._loop_count)
 
-    def _iterative_set_and_get(self, setpoints: np.ndarray, idx: int):
+    def _iterative_set_and_get(
+        self, setpoints: np.ndarray, idx: int, lazy_set: bool = False
+    ):
         """
         Processes one row of setpoints. Sets all settables, gets all gettables, encodes
         new data in dataset.
+
+        If lazy_set==True and any setpoint equals the corresponding previous setpoint,
+        that setpoint is not set in its corresponding settable.
 
         .. note ::
 
@@ -434,7 +504,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             self._dataset[f"x{setpar_idx}"].values[idx] = spt
-            spar.set(spt)
+            prev_spt = self._dataset[f"x{setpar_idx}"].values[idx - 1] if idx else None
+            # if lazy_set==True and the setpoint equals the previous setpoint, do not
+            # set the setpoint.
+            if not (lazy_set and spt == prev_spt):
+                spar.set(spt)
+
         # get all data points
         y_offset = 0
         for gpar in self._gettable_pars:
@@ -500,10 +575,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self.print_progress(print_message)
 
             self._safe_write_dataset()
-
-            if self.instr_plotmon():
-                # Plotmon requires to know which dataset was modified
-                self.instr_plotmon.get_instr().update(tuid=self._dataset.attrs["tuid"])
 
             if self.instrument_monitor():
                 self.instrument_monitor.get_instr().update()
@@ -635,11 +706,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         Locking files are written into a temporary dir to avoid polluting
         the experiment container.
         """
-        filename = join(self._exp_folder, DATASET_NAME)
+        filename = self._exp_folder / DATASET_NAME
         # Multiprocess safe
-        lockfile = join(
-            _DATASET_LOCKS_DIR,
-            self._dataset.attrs["tuid"] + "-" + DATASET_NAME + ".lock",
+        lockfile = (
+            _DATASET_LOCKS_DIR / f"{self._dataset.attrs['tuid']}-{DATASET_NAME}.lock"
         )
         with FileLock(lockfile, 5):
             write_dataset(path=filename, dataset=self._dataset)
@@ -652,7 +722,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         Define the settable parameters for the acquisition loop.
 
-        The :class:`~quantify_core.measurement.Settable` helper class defines the
+        The :class:`.Settable` helper class defines the
         requirements for a Settable object.
 
         Parameters
@@ -688,6 +758,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
         self._setpoints = setpoints
+        # `.setpoints()` and `.setpoints_grid()` cannot be used at the same time
+        self._setpoints_input = None
 
     def setpoints_grid(self, setpoints: Iterable[np.ndarray]):
         """
@@ -705,7 +777,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             order.
 
 
-        .. include:: ./docstring_examples/quantify_core.measurement.control.setpoints_grid.rst.txt
+        .. include:: examples/measurement.control.setpoints_grid.py.rst.txt
         """  # pylint: disable=line-too-long
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
@@ -723,7 +795,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         Define the parameters to be acquired during the acquisition loop.
 
-        The :class:`~quantify_core.measurement.Gettable` helper class defines the
+        The :class:`.Gettable` helper class defines the
         requirements for a Gettable object.
 
         Parameters
@@ -771,9 +843,7 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
         settables = [None] * len(setpoints)
 
     coordinates_names = [f"x{i}" for i, pnts in enumerate(setpoints)]
-    dataset_coordinates = xr.Dataset(
-        coords=OrderedDict(zip(coordinates_names, setpoints))
-    )
+    dataset_coordinates = xr.Dataset(coords=dict(zip(coordinates_names, setpoints)))
     coordinates_batched = [
         name for name, spar in zip(coordinates_names, settables) if is_batched(spar)
     ]

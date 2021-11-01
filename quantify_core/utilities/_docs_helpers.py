@@ -3,13 +3,14 @@
 """Helpers for building docs"""
 from __future__ import annotations
 
-from typing import Union
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Union
+
 import quantify_core.data.handling as dh
-from quantify_core.utilities._tests_helpers import get_test_data_dir
 from quantify_core.data.types import TUID
+from quantify_core.utilities._tests_helpers import get_test_data_dir
 
 
 def create_tmp_dir_from_test_dataset(tuid: Union[TUID, str]):
@@ -24,7 +25,7 @@ def create_tmp_dir_from_test_dataset(tuid: Union[TUID, str]):
 
     Parameters
     ----------
-    tuid:
+    tuid
         Identifier of the experiment container that will be copied into the
         temporary directory.
 

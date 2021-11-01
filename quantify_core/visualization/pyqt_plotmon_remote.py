@@ -1,29 +1,33 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Module containing the pyqtgraph-based remote plotting monitor manager."""
-from multiprocessing import Queue
-from collections.abc import Iterable
-from collections import deque, OrderedDict
+from __future__ import annotations
+
 import itertools
 import os
+from collections import deque
+from collections.abc import Iterable
+from multiprocessing import Queue
 
 import numpy as np
 from filelock import FileLock
+from pyqtgraph.Qt import QtCore
 from qcodes.plots.colors import color_cycle
 from qcodes.plots.pyqtgraph import QtPlot, TransformState
-from pyqtgraph.Qt import QtCore
 
 from quantify_core.data.handling import (
-    load_dataset,
-    _xi_and_yi_match,
-    _get_parnames,
-    set_datadir,
     DATASET_NAME,
+    _get_parnames,
+    _locate_experiment_file,
+    _xi_and_yi_match,
+    load_dataset,
+    set_datadir,
 )
-from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 from quantify_core.data.types import TUID
-from quantify_core.visualization.color_utilities import make_fadded_colors
+from quantify_core.utilities.general import last_modified
 from quantify_core.visualization import _appnope
+from quantify_core.visualization.color_utilities import make_fadded_colors
+from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
 
 class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
@@ -52,7 +56,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self._tuids_2d = None
 
         # keep all datasets in one place and update/remove as needed
-        self._dsets = dict()
+        self._dsets = {}
+        # keeps track of when a dataset was last modified
+        self._last_modified = {}
 
         self._tuids_max_num = 3
 
@@ -72,8 +78,8 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self._im_scatters_last = []
 
         self.queue = Queue()
-        self.timer_queue = None
-        self._queue_refresh_ms = 50
+        self.timer_queue = None  # timer to check for new commands and update the plot
+        self._update_interval_ms = 100
 
         self.timer_appnope = None
         self._appnope_refresh_ms = 30
@@ -99,12 +105,12 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
     def _run(self):
         """
         Start a timer in this process that calls `self._exec_queue`
-        periodically
+        periodically.
         """
         # This line requires the QtPlot's to be created with `remote=False`
         self.timer_queue = QtCore.QTimer(self.main_QtPlot.win)
         self.timer_queue.timeout.connect(self._exec_queue)
-        self.timer_queue.start(self._queue_refresh_ms)  # milliseconds
+        self.timer_queue.start(self._update_interval_ms)
 
         if _appnope.requires_appnope():
             # Start a timer to ensure the App Nap of macOS does not idle this process.
@@ -116,7 +122,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             # This line requires the QtPlot's to be created with `remote=False`
             self.timer_appnope = QtCore.QTimer(self.main_QtPlot.win)
             self.timer_appnope.timeout.connect(_appnope.refresh_nope)
-            self.timer_appnope.start(self._appnope_refresh_ms)  # milliseconds
+            self.timer_appnope.start(self._appnope_refresh_ms)
 
     def _exec_queue(self):
         """
@@ -125,7 +131,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         """
         # Do not call again while processing
         self.timer_queue.stop()
-        unique_updates = OrderedDict()
+        unique_updates = {}
         while not self.queue.empty():
             attr_name, args = self.queue.get()
             # collect unique update calls
@@ -135,12 +141,20 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 # Abusing ordered dict to get an ordered set
                 unique_updates[(attr_name, args)] = None
 
+        # Periodically issue an update if there are monitored tuids
+        if len(unique_updates) == 0 and len(self._tuids) > 0:
+            unique_updates[("update", tuple())] = None
+
         for attr_name, args in unique_updates.keys():
             getattr(self, attr_name)(*args)
 
-        self.timer_queue.start(self._queue_refresh_ms)
+        self.timer_queue.start(self._update_interval_ms)
 
     # ##################################################################
+
+    def _pop_dset(self, tuid: str) -> None:
+        self._dsets.pop(tuid, None)
+        self._last_modified.pop(tuid, None)
 
     def _get_tuids_max_num(self):
         return self._tuids_max_num
@@ -160,7 +174,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         while len(self._tuids) > max_tuids:
             discard_tuid = self._tuids.pop()
             if discard_tuid not in self._tuids_extra:
-                self._dsets.pop(discard_tuid, None)
+                self._pop_dset(discard_tuid)
 
     def tuids_append(self, tuid: str, datadir: str):
         """Appends a tuid to be plotted"""
@@ -183,7 +197,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         ):
             # Force reset the user-defined extra datasets
             # Must be manual otherwise we go in circles checking for _xi_and_yi_match
-            _ = [self._dsets.pop(t, None) for t in self._tuids_extra]  # discard dsets
+            _ = [self._pop_dset(t) for t in self._tuids_extra]  # discard dsets
             self._tuids_extra = []
 
         self._tuids.appendleft(tuid)
@@ -219,12 +233,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             itertools.chain(dsets.values(), self._dsets.values())
         ):
             # Reset the extra tuids
-            _ = [self._dsets.pop(t, None) for t in self._tuids_extra if t not in tuids]
+            _ = [self._pop_dset(t) for t in self._tuids_extra if t not in tuids]
 
         # Discard old dsets
-        _ = [
-            self._dsets.pop(t, None) for t in self._tuids if t not in self._tuids_extra
-        ]
+        _ = [self._pop_dset(t) for t in self._tuids if t not in self._tuids_extra]
 
         self._tuids = deque(tuids)
         self._dsets.update(dsets)
@@ -283,7 +295,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             del self.secondary_QtPlot
 
         self.secondary_QtPlot = QtPlot(
-            window_title="Secondary plotmon of {}".format(self.instr_name),
+            window_title=f"Secondary plotmon of {self.instr_name}",
             figsize=(600, 400),
             # We want the process to run locally to be able to
             # attach a QtTimer for the main loop of this process
@@ -291,7 +303,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         )
         # Create last to appear on top
         self.main_QtPlot = QtPlot(
-            window_title="Main plotmon of {}".format(self.instr_name),
+            window_title=f"Main plotmon of {self.instr_name}",
             figsize=(600, 400),
             remote=False,
         )
@@ -309,7 +321,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         if self.secondary_QtPlot.traces:
             self.secondary_QtPlot.clear()
 
-        self.curves = dict()
+        self.curves = {}
 
         if not len(self._dsets):
             # Nothing to be done
@@ -368,7 +380,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
                     # Keep track of all traces so that any curves can be updated
                     if tuid not in self.curves.keys():
-                        self.curves[tuid] = dict()
+                        self.curves[tuid] = {}
                     self.curves[tuid][xi + yi] = self.main_QtPlot.traces[-1]
 
                 # Manual counter is used because we may want to add more
@@ -497,12 +509,12 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self.secondary_QtPlot.update_plot()
 
     # pylint: disable=too-many-locals
-    def update(self, tuid: str, datadir: str):
+    def update(self, tuid: str = None, datadir: str = None):
         """
         Updates the plots to reflect the latest data.
         """
 
-        if tuid and tuid not in self._dsets.keys():
+        if tuid is not None and tuid not in self._dsets.keys():
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
             self.tuids_append(tuid, datadir)
@@ -512,6 +524,16 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             return
 
         tuid = self._tuids[0] if tuid is None else tuid
+
+        # Only load a dataset again if it was modified
+        last_modified_prev = self._last_modified.get(tuid, 0)
+        self._last_modified[tuid] = _last_modified(tuid)
+        if last_modified_prev < self._last_modified[tuid]:
+            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+            self._dsets[tuid] = dset
+        else:
+            # Nothing to be done here, skip any plot updates
+            return
 
         dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
         self._dsets[tuid] = dset
@@ -586,9 +608,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         """
         For testing purposes only, some objects cannot be pickled to be retrieved
         """
-        curves_dict = dict()
+        curves_dict = {}
         for tuid, xiyi_dict in self.curves.items():
-            curves_dict[tuid] = dict()
+            curves_dict[tuid] = {}
             for xiyi, items in xiyi_dict.items():
                 curves_dict[tuid][xiyi] = {"config": items["config"]}
 
@@ -615,6 +637,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         """
         win = getattr(self, which).win
         return win.x(), win.y(), win.width(), win.height()
+
+
+def _last_modified(tuid) -> float:
+    return last_modified(_locate_experiment_file(tuid))
 
 
 def _safe_load_dataset(tuid, dataset_locks_dir):

@@ -2,54 +2,53 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
-import os
+
+import inspect
 import json
+import logging
+import os
+import warnings
 from abc import ABC
-from collections import OrderedDict
 from copy import deepcopy
-from typing import List, Union
 from enum import Enum
 from pathlib import Path
-import logging
-import inspect
-import warnings
 from textwrap import wrap
+from typing import List, Union
 
-from IPython.display import display
-import numpy as np
-import xarray as xr
 import lmfit
-from uncertainties import ufloat
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import xarray as xr
+from IPython.display import display
 from matplotlib.collections import QuadMesh
 from qcodes.utils.helpers import NumpyJSONEncoder
+from uncertainties import ufloat
 
-from quantify_core.visualization import mpl_plotting as qpl
-from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
-from quantify_core.data.types import TUID
 from quantify_core.data.handling import (
-    load_dataset,
-    get_latest_tuid,
-    get_datadir,
     DATASET_NAME,
     PROCESSED_DATASET_NAME,
     QUANTITIES_OF_INTEREST_NAME,
-    write_dataset,
     create_exp_folder,
+    get_datadir,
+    get_latest_tuid,
+    load_dataset,
     locate_experiment_container,
     to_gridded_dataset,
+    write_dataset,
 )
+from quantify_core.data.types import TUID
+from quantify_core.visualization import mpl_plotting as qpl
+from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
+
 from .types import AnalysisSettings
 
 # global configurations at the level of the analysis module
 settings = AnalysisSettings(
     {
         "mpl_dpi": 450,  # define resolution of some matplotlib output formats
-        "mpl_fig_formats": [
-            "png",
-            "svg",
-        ],  # svg is superior but at least OneNote does not support it
+        # svg is superior but at least OneNote does not support it
+        "mpl_fig_formats": ["png", "svg"],
         "mpl_exclude_fig_titles": False,
         "mpl_transparent_background": True,
     }
@@ -82,14 +81,14 @@ class AnalysisSteps(Enum):
         from quantify_core.analysis import base_analysis as ba
         print(ba.analysis_steps_to_str(ba.AnalysisSteps))
 
-    .. include:: ./docstring_examples/quantify_core.analysis.base_analysis.AnalysisSteps.rst.txt
+    .. include:: examples/analysis.base_analysis.AnalysisSteps.py.rst.txt
 
     .. tip::
 
         A custom analysis flow (e.g. inserting new steps) can be created by implementing
         an object similar to this one and overriding the
         :obj:`~BaseAnalysis.analysis_steps`.
-    """  # pylint: disable=line-too-long
+    """
 
     # Variables must start with a letter but we want them to have sorted names
     # for auto-complete to indicate the execution order
@@ -180,7 +179,8 @@ class BaseAnalysis(ABC):
         # Allows individual setting per analysis instance
         # with defaults from global settings
         self.settings_overwrite = deepcopy(settings)
-        self.settings_overwrite.update(settings_overwrite or dict())
+        # NB this also runs validation against the corresponding schema
+        self.settings_overwrite.update(settings_overwrite or {})
 
         # Used to have access to a reference of the raw dataset, see also
         # self.extract_data
@@ -194,11 +194,11 @@ class BaseAnalysis(ABC):
         self.analysis_result = {}
 
         # To be populated by a subclass
-        self.figs_mpl = OrderedDict()
-        self.axs_mpl = OrderedDict()
-        self.quantities_of_interest = OrderedDict()
+        self.figs_mpl = {}
+        self.axs_mpl = {}
+        self.quantities_of_interest = {}
 
-        self.fit_results = OrderedDict()
+        self.fit_results = {}
 
         self._interrupt_before = None
 
@@ -240,7 +240,7 @@ class BaseAnalysis(ABC):
 
         This function is typically called right after instantiating an analysis class.
 
-        .. include:: ./docstring_examples/quantify_core.analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
+        .. include:: examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.py.rst.txt
 
         Returns
         -------
@@ -397,7 +397,7 @@ class BaseAnalysis(ABC):
 
     def _add_fit_res_to_qoi(self):
         if len(self.fit_results) > 0:
-            self.quantities_of_interest["fit_result"] = OrderedDict()
+            self.quantities_of_interest["fit_result"] = {}
             for fr_name, fit_result in self.fit_results.items():
                 res = flatten_lmfit_modelresult(fit_result)
                 self.quantities_of_interest["fit_result"][fr_name] = res
@@ -434,9 +434,11 @@ class BaseAnalysis(ABC):
             if self.settings_overwrite["mpl_exclude_fig_titles"]:
                 # Remove the experiment name and tuid from figures
                 fig.suptitle(r"")
-            if self.settings_overwrite["mpl_transparent_background"]:
+            if self.settings_overwrite["mpl_transparent_background"] is True:
                 # Set transparent background on figures
                 fig.patch.set_alpha(0)
+            else:
+                fig.patch.set_alpha(1)
 
     def save_processed_dataset(self):
         """
@@ -459,7 +461,9 @@ class BaseAnalysis(ABC):
         self._add_fit_res_to_qoi()
 
         with open(
-            os.path.join(self.analysis_dir, QUANTITIES_OF_INTEREST_NAME), "w"
+            os.path.join(self.analysis_dir, QUANTITIES_OF_INTEREST_NAME),
+            "w",
+            encoding="utf-8",
         ) as file:
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
 
@@ -719,7 +723,7 @@ def flatten_lmfit_modelresult(model):
     a custom fit function.
     """
     assert isinstance(model, (lmfit.model.ModelResult, lmfit.minimizer.MinimizerResult))
-    dic = OrderedDict()
+    dic = {}
     dic["success"] = model.success
     dic["message"] = model.message
     dic["params"] = {}
@@ -801,7 +805,7 @@ def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
     generated.
 
     For usage see, for example, source code of
-    :meth:`~quantify_core.analysis.t1_analysis.T1Analysis.create_figures`.
+    :meth:`~quantify_core.analysis.single_qubit_timedomain.T1Analysis.create_figures`.
 
     Parameters
     ----------

@@ -1,6 +1,8 @@
 from datetime import datetime
-from quantify_core.data.types import TUID
+
 import pytest
+
+from quantify_core.data.types import TUID
 
 
 def test_TUID():

@@ -54,6 +54,10 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 docs/build_errors.log
+# Docs auto-generated files with the notebook_to_jupyter_sphinx sphinx extension
+*.rst.ipynb
+*.py.rst
+*.py.rst.txt
 
 # PyBuilder
 target/
@@ -79,6 +83,9 @@ ENV/
 # Spyder project settings
 .spyderproject
 .spyproject
+
+# PyCharm project settings
+.idea/
 
 # Rope project settings
 .ropeproject
