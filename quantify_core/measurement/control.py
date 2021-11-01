@@ -88,62 +88,58 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         # Parameters are attributes included in logging and which the user can change.
 
-        self.add_parameter(
-            "lazy_set",
-            docstring="If set to True, only set any settable if the setpoint differs "
-            "from the previous setpoint. Note that this parameter is overridden by the "
-            "lazy_set argument passed to the .run and .run_adaptive methods.",
-            parameter_class=ManualParameter,
+        self.lazy_set = ManualParameter(
             vals=vals.Bool(),
             initial_value=False,
+            name="lazy_set",
+            instrument=self,
         )
+        """If set to ``True``, only set any settable if the setpoint differs
+        from the previous setpoint. Note that this parameter is overridden by the
+        ``lazy_set`` argument passed to the :meth:`.run` and :meth:`.run_adaptive`
+        methods."""
 
-        self.add_parameter(
-            "verbose",
-            docstring="If set to True, prints to std_out during experiments.",
-            parameter_class=ManualParameter,
+        self.verbose = ManualParameter(
             vals=vals.Bool(),
             initial_value=True,
+            instrument=self,
+            name="verbose",
         )
+        """If set to ``True``, prints to ``std_out`` during experiments."""
 
-        self.add_parameter(
-            "on_progress_callback",
+        self.on_progress_callback = ManualParameter(
             vals=vals.Callable(),
-            docstring="A callback to communicate progress. This should be a "
-            "Callable accepting floats between 0 and 100 indicating %% done.",
-            parameter_class=ManualParameter,
-            initial_value=None,
+            instrument=self,
+            name="on_progress_callback",
         )
+        """A callback to communicate progress. This should be a callable accepting
+        floats between 0 and 100 indicating the percentage done."""
 
-        self.add_parameter(
-            "instr_plotmon",
-            docstring="Instrument responsible for live plotting. "
-            "Can be set to str(None) to disable live plotting.",
-            parameter_class=InstrumentRefParameter,
+        self.instr_plotmon = InstrumentRefParameter(
             vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
+            instrument=self,
+            name="instr_plotmon",
         )
+        """Instrument responsible for live plotting. Can be set to ``None`` to disable
+        live plotting."""
 
-        self.add_parameter(
-            "instrument_monitor",
-            docstring="Instrument responsible for live monitoring summarized snapshot. "
-            "Can be set to str(None) to disable monitoring of snapshot.",
-            parameter_class=InstrumentRefParameter,
+        self.instrument_monitor = InstrumentRefParameter(
             vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
+            instrument=self,
+            name="instrument_monitor",
         )
+        """Instrument responsible for live monitoring summarized snapshot. Can be set to
+        ``None`` to disable monitoring of snapshot."""
 
-        self.add_parameter(
-            "update_interval",
+        self.update_interval = ManualParameter(
             initial_value=0.5,
-            docstring=(
-                "Interval for updates during the data acquisition loop,"
-                " every time more than `update_interval` time has elapsed "
-                "when acquiring new data points, data is written to file "
-                "and the live monitoring is updated."
-            ),
-            parameter_class=ManualParameter,
-            # minimum value set to avoid performance issues
             vals=vals.Numbers(min_value=0.1),
+            instrument=self,
+            name="update_interval",
         )
+        """Interval for updates during the data acquisition loop, every time more than
+        :attr:`.update_interval` time has elapsed when acquiring new data points, data
+        is written to file (and the live monitoring detects updated)."""
 
         self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
 

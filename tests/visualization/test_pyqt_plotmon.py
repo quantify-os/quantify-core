@@ -150,21 +150,21 @@ def test_persistence(plotmon_instance):
 def test_set_geometry(plotmon_instance):
     # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
     xywh = (400, 400, 300, 400)
-    xywh_init_main = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
+    xywh_init_main = plotmon_instance._remote_plotmon._get_qt_plot_geometry(
         which="main_QtPlot"
     )
-    xywh_init_sec = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
+    xywh_init_sec = plotmon_instance._remote_plotmon._get_qt_plot_geometry(
         which="secondary_QtPlot"
     )
 
     plotmon_instance.setGeometry_main(*xywh)
-    xywh_new = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
+    xywh_new = plotmon_instance._remote_plotmon._get_qt_plot_geometry(
         which="main_QtPlot"
     )
     assert xywh_new != xywh_init_main
 
     plotmon_instance.setGeometry_secondary(*xywh)
-    xywh_new = plotmon_instance.remote_plotmon._get_qt_plot_geometry(
+    xywh_new = plotmon_instance._remote_plotmon._get_qt_plot_geometry(
         which="secondary_QtPlot"
     )
     assert xywh_new != xywh_init_sec
@@ -191,33 +191,33 @@ def test_changed_datadir_main_process(plotmon_instance):
 
     # .update()
     plotmon_instance.update(tuid)
-    plotmon_instance.remote_plotmon._exec_queue()
+    plotmon_instance._remote_plotmon._exec_queue()
     assert (
-        tuid == tuple(plotmon_instance.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        tuid == tuple(plotmon_instance._remote_plotmon._dsets.values())[0].attrs["tuid"]
     )
     plotmon_instance.tuids([])  # reset
 
     # .tuids()
     plotmon_instance.tuids([tuid])
-    plotmon_instance.remote_plotmon._exec_queue()
+    plotmon_instance._remote_plotmon._exec_queue()
     assert (
-        tuid == tuple(plotmon_instance.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        tuid == tuple(plotmon_instance._remote_plotmon._dsets.values())[0].attrs["tuid"]
     )
     plotmon_instance.tuids([])  # reset
 
     # .tuids_append()
     plotmon_instance.tuids_append(tuid)
-    plotmon_instance.remote_plotmon._exec_queue()
+    plotmon_instance._remote_plotmon._exec_queue()
     assert (
-        tuid == tuple(plotmon_instance.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        tuid == tuple(plotmon_instance._remote_plotmon._dsets.values())[0].attrs["tuid"]
     )
     plotmon_instance.tuids([])  # reset
 
     # .tuids_extra()
     plotmon_instance.tuids_extra([tuid])
-    plotmon_instance.remote_plotmon._exec_queue()
+    plotmon_instance._remote_plotmon._exec_queue()
     assert (
-        tuid == tuple(plotmon_instance.remote_plotmon._dsets.values())[0].attrs["tuid"]
+        tuid == tuple(plotmon_instance._remote_plotmon._dsets.values())[0].attrs["tuid"]
     )
 
     tmp_dir.cleanup()
