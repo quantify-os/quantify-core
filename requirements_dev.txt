@@ -30,6 +30,7 @@ scanpydoc>=0.7.1 # ensures latest typing_extensions is used in sphinx (https://g
 docutils<0.17 # pinned due to issue #175
 rich[jupyter]
 jupytext
+qcodes>=0.28.0 # document Parameter attributes
 
 # quantify-core only
 
