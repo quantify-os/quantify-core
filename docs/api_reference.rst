@@ -1,6 +1,14 @@
 .. jupyter-kernel:: python3
     :id: quantify_core_all_docs
 
+.. jupyter-execute::
+    :hide-code:
+
+    # Prettify the outputs in the entire API reference
+    from rich import pretty
+    pretty.install()
+
+=============
 quantify_core
 =============
 
@@ -10,7 +18,7 @@ quantify_core
 .. _analysis_api:
 
 analysis
-=============
+========
 
 .. automodule:: quantify_core.analysis
     :members:
@@ -37,26 +45,13 @@ spectroscopy_analysis
     :members:
     :show-inheritance:
 
-t1_analysis
------------
+single_qubit_timedomain
+-----------------------
 
-.. automodule:: quantify_core.analysis.t1_analysis
+.. automodule:: quantify_core.analysis.single_qubit_timedomain
     :members:
     :show-inheritance:
 
-rabi_analysis
--------------
-
-.. automodule:: quantify_core.analysis.rabi_analysis
-    :members:
-    :show-inheritance:
-
-ramsey_analysis
----------------
-
-.. automodule:: quantify_core.analysis.ramsey_analysis
-    :members:
-    :show-inheritance:
 
 interpolation_analysis
 ----------------------
@@ -66,30 +61,25 @@ interpolation_analysis
     :show-inheritance:
 
 optimization_analysis
-----------------------
+---------------------
 
 .. automodule:: quantify_core.analysis.optimization_analysis
     :members:
     :show-inheritance:
 
-allxy_analysis
---------------
-
-.. automodule:: quantify_core.analysis.allxy_analysis
-    :members:
-    :show-inheritance:
-
-echo_analysis
--------------
-
-.. automodule:: quantify_core.analysis.echo_analysis
-    :members:
-    :show-inheritance:
 
 fitting_models
 --------------
 
 .. automodule:: quantify_core.analysis.fitting_models
+    :members:
+    :show-inheritance:
+
+
+calibration
+-----------
+
+.. automodule:: quantify_core.analysis.calibration
     :members:
     :show-inheritance:
 
@@ -109,11 +99,35 @@ handling
 .. automodule:: quantify_core.data.handling
     :members:
 
+dataset_adapters
+----------------
+
+.. automodule:: quantify_core.data.dataset_adapters
+    :members:
+
+dataset_attrs
+-------------
+
+.. automodule:: quantify_core.data.dataset_attrs
+    :members:
+
 
 measurement
 ===========
 
 .. automodule:: quantify_core.measurement
+    :members:
+
+types
+-----
+
+.. automodule:: quantify_core.measurement.types
+    :members:
+
+control
+-------
+
+.. automodule:: quantify_core.measurement.control
     :members:
 
 
@@ -126,6 +140,17 @@ experiment_helpers
 .. automodule:: quantify_core.utilities.experiment_helpers
     :members:
 
+dataset_examples
+----------------
+
+.. automodule:: quantify_core.utilities.dataset_examples
+    :members:
+
+examples_support
+----------------
+
+.. automodule:: quantify_core.utilities.examples_support
+    :members:
 
 visualization
 =============
@@ -133,12 +158,23 @@ visualization
 .. automodule:: quantify_core.visualization
     :members:
 
+instrument_monitor
+------------------
+
+.. automodule:: quantify_core.visualization.instrument_monitor
+    :members:
+
+pyqt_plotmon
+------------
+
+.. automodule:: quantify_core.visualization.pyqt_plotmon
+    :members:
+
 color_utilities
 ---------------
 
 .. automodule:: quantify_core.visualization.color_utilities
     :members:
-
 
 mpl_plotting
 ------------
@@ -152,9 +188,14 @@ plot_interpolation
 .. automodule:: quantify_core.visualization.plot_interpolation
     :members:
 
-
 SI Utilities
 ------------
 
 .. automodule:: quantify_core.visualization.SI_utilities
     :members:
+
+============
+bibliography
+============
+
+.. bibliography::

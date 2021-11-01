@@ -1,25 +1,26 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
+import gc
+import json
 import os
-from pathlib import Path
 import shutil
 import tempfile
 from datetime import datetime
-import json
+from pathlib import Path
+
 import dateutil
-import uncertainties
-
-
-import pytest
-import xarray as xr
 import numpy as np
-from qcodes import ManualParameter
+import pytest
+import uncertainties
+import xarray as xr
+from qcodes import Instrument, ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
-from quantify_core.data.types import TUID
-from quantify_core.measurement.control import MeasurementControl
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis.base_analysis import BasicAnalysis
+from quantify_core.data.types import TUID
+from quantify_core.measurement.control import MeasurementControl
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 
@@ -414,11 +415,26 @@ def test_snapshot():
     test_MC = MeasurementControl(name="MC")
 
     test_MC.update_interval(0.77)
+
     snap = dh.snapshot()
+
     assert snap["instruments"].keys() == {"MC"}
     assert snap["instruments"]["MC"]["parameters"]["update_interval"]["value"] == 0.77
 
     test_MC.close()
+
+
+def test_snapshot_dead_instruments():
+    """Ensure that the snapshot does not attempt to access dead instruments."""
+    instrument_a = Instrument("a")
+    instrument_b = Instrument("b")
+    instrument_a = 123
+    gc.collect()
+
+    snap = dh.snapshot()
+
+    assert "a" not in dh.snapshot()["instruments"]
+    assert dh.snapshot()["instruments"].keys() == {"b"}
 
 
 def test_dynamic_dataset():

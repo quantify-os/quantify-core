@@ -1,6 +1,7 @@
 import pytest
-from quantify_core.analysis.types import AnalysisSettings
 from jsonschema import ValidationError
+
+from quantify_core.analysis.types import AnalysisSettings
 
 
 def test_analysis_settings_valid():

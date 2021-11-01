@@ -1,28 +1,33 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """General utilities."""
-import importlib
+from __future__ import annotations
+
 import copy
+import importlib
 import json
-import numpy as np
 import pathlib
+import warnings
 from collections.abc import MutableMapping
+from typing import Any, Union
+
+import numpy as np
 import xxhash
 
 
-def delete_keys_from_dict(dictionary: dict, keys: set):
+def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
     """
     Delete keys from dictionary recursively.
 
     Parameters
     ----------
-    dictionary : dict
+    dictionary
         to be mutated
-    keys : set
+    keys
         a set of keys to strip from the dictionary
     Returns
     -------
-    dict
+    :
         a new dictionary that does not included the blacklisted keys
     """
     keys_set = set(keys)  # optimization for the "if key in keys" lookup.
@@ -37,27 +42,28 @@ def delete_keys_from_dict(dictionary: dict, keys: set):
     return modified_dict
 
 
-def traverse_dict(obj, convert_to_string: bool = True):
+def traverse_dict(obj: dict, convert_to_string: bool = True):
     """
     Traversal implementation which recursively visits each node in a dict.
     We modify this function so that at the lowest hierarchy,
     we convert the element to a string.
 
-    from https://nvie.com/posts/modifying-deeply-nested-structures/
+    From https://nvie.com/posts/modifying-deeply-nested-structures/
     """
     if isinstance(obj, dict):
         out_dict = {}
         for key, val in obj.items():
             out_dict[key] = traverse_dict(val)
         return out_dict
-    elif isinstance(obj, list):
+
+    if isinstance(obj, list):
         return [traverse_dict(elem) for elem in obj]
 
     return_obj = str(obj) if convert_to_string else obj
     return str(return_obj)
 
 
-def get_keys_containing(obj, key):
+def get_keys_containing(obj: Union[dict, Any], key) -> set:
     """
     Returns a set with the keys that contain `key`
 
@@ -74,69 +80,82 @@ def get_keys_containing(obj, key):
 
     Parameters
     -----------
-    obj: obj
+    obj
         any object with a `.keys()` attribute, usually a dictionary
-    key:
+    key
         the search key, usually a string
     Returns
     -------
-    set:
+    :
         a new set containing the keys that match the search
     """
     return set(filter(lambda k: key in k, obj.keys()))
 
 
-def make_hash(o):
+def make_hash(obj: Any):
     """
     Makes a hash from a dictionary, list, tuple or set to any level, that contains
     only other hashable types (including any lists, tuples, sets, and
     dictionaries).
 
-    from: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
+    From: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
     """
 
     new_hash = xxhash.xxh64()
-    if isinstance(o, (set, tuple, list)):
-        return tuple([make_hash(e) for e in o])
+    if isinstance(obj, (set, tuple, list)):
+        return tuple(make_hash(e) for e in obj)
 
-    elif isinstance(o, np.ndarray):
+    if isinstance(obj, np.ndarray):
         # numpy arrays behave funny for hashing
-        new_hash.update(o)
+        new_hash.update(obj)
         val = new_hash.intdigest()
         new_hash.reset()
         return val
 
-    elif not isinstance(o, dict):
-        return hash(o)
+    if not isinstance(obj, dict):
+        return hash(obj)
 
-    new_o = copy.deepcopy(o)
+    new_o = copy.deepcopy(obj)
     for key, val in new_o.items():
         new_o[key] = make_hash(val)
 
     return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
-def import_func_from_string(function_string):
+def import_func_from_string(function_string: str) -> Any:
+    """A deprecated alias for :func:`~.import_python_object_from_string`."""
+    warnings.warn(
+        "This functions is deprecated. Use `import_python_object_from_string` instead.",
+        category=DeprecationWarning,
+    )
+    return import_python_object_from_string(function_string)
+
+
+def import_python_object_from_string(function_string: str) -> Any:
     """
     Based on https://stackoverflow.com/questions/3061/calling-a-function-of-a-module-by-using-its-name-a-string
-    """
+    """  # pylint: disable=line-too-long
     mod_name, func_name = function_string.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
     return func
 
 
-def load_json_schema(relative_to, filename):
+def load_json_schema(relative_to: Union[str, pathlib.Path], filename: str):
     """
-    Load a JSON schema from file. Expects a 'schemas' directory in the same directory as `relative_to`.
+    Load a JSON schema from file. Expects a 'schemas' directory in the same directory
+    as `relative_to`.
 
-    .. tip:: Typical usage of the form `schema = load_json_schema(__file__, 'definition.json')`
+    .. tip::
+
+        Typical usage of the form
+        `schema = load_json_schema(__file__, 'definition.json')`
 
     Parameters
     ----------
-    relative_to : str
+    relative_to
         the file to begin searching from
-    filename : str
+    filename
         the JSON file to load
     Returns
     -------
@@ -144,11 +163,11 @@ def load_json_schema(relative_to, filename):
         the schema
     """
     path = pathlib.Path(relative_to).resolve().parent.joinpath("schemas", filename)
-    with path.open(mode="r") as file:
+    with path.open(mode="r", encoding="utf-8") as file:
         return json.load(file)
 
 
-def without(dict_in, keys):
+def without(dict_in: dict, keys: list):
     """
     Utility that copies a dictionary excluding a specific list of keys.
     """
@@ -160,15 +179,22 @@ def without(dict_in, keys):
     return new_d
 
 
-class KeyboardFinish(KeyboardInterrupt):
-    """
-    Indicates the user has signaled to safely abort/finish the experiment.
-    """
-
-
-def call_if_has_method(obj, method: str) -> None:
+def call_if_has_method(obj: Any, method: str) -> None:
     """
     Calls the `method` of the `obj` if it has it
     """
     prepare_method = getattr(obj, method, lambda: None)
     prepare_method()
+
+
+def last_modified(path: pathlib.Path) -> float:
+    """Returns the timestamp of the last modification of a file.
+
+    Parameters
+    ----------
+    path
+        File path.
+    """
+    path = pathlib.Path(path)
+
+    return path.stat().st_mtime

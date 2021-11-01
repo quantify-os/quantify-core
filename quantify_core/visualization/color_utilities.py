@@ -2,12 +2,9 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing utilities for color manipulation"""
 import colorsys
+
 import matplotlib.colors as mplc
 import numpy as np
-
-
-def clip(x, vmin=0.0, vmax=1.0):
-    return max(min(x, vmax), vmin)
 
 
 def set_hlsa(
@@ -23,8 +20,9 @@ def set_hlsa(
     with the specified HLS values plus an optional alpha
 
 
-    .. include:: ./docstring_examples/quantify_core.visualization.color_utilities.set_hlsa.rst.txt
+    .. include:: examples/visualization.color_utilities.set_hlsa.py.rst.txt
     """
+    clip = lambda x: np.clip(x, 0, 1)
     rgb = mplc.to_rgb(color)
     hls = colorsys.rgb_to_hls(*mplc.to_rgb(rgb))
     new_hls = (old if new is None else clip(new) for old, new in zip(hls, (h, l, s)))

@@ -4,7 +4,7 @@ numpy!=1.19.4  # 1.19.4 not allowed because of a bug on windows https://github.c
 qcodes>=0.25.0
 scipy>=1.5.0,!=1.6.0
 h5netcdf
-xarray>=0.17.0
+xarray>=0.19.0
 xxhash
 matplotlib
 lmfit
@@ -18,3 +18,8 @@ uncertainties
 # used to display the structure of the experiments container in tutorials
 # placed here to avoid errors when users download tutorials
 directory-tree>=0.0.2
+pendulum  # used for timestamps formatting in the dataset attributes
+
+# tmp fixes
+
+funcparserlib==1.0.0a0 # https://github.com/vlasovskikh/funcparserlib/issues/69

@@ -1,0 +1,23 @@
+
+**Before instantiating any instruments or starting a measurement** we change the
+directory in which the experiments are saved using the
+:meth:`~quantify_core.data.handling.set_datadir`
+[:meth:`~quantify_core.data.handling.get_datadir`] functions.
+
+.. admonition:: Tip: What data directory should I use?
+    :class: dropdown, tip
+
+    We **highly recommended to** settle for a single common data directory for all
+    notebooks/experiments within your measurement setup/PC (e.g. :code:`~/quantify-data`
+    (unix) or :code:`D:\\quantify-data` (Windows).
+    The utilities to find/search/extract data only work if all the experiment containers
+    are located within the same directory.
+
+.. jupyter-execute::
+    :hide-code:
+
+    # We recommend to always set the directory at the start of the python kernel
+    # and stick to a single common data directory for all
+    # notebooks/experiments within your measurement setup/PC
+    # This sets a default data directory for tutorial purposes. Change it to your
+    # desired data directory.

@@ -4,6 +4,7 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import pytest
 from pytest import approx
+
 import quantify_core.data.handling as dh
 from quantify_core.analysis import optimization_analysis as oa
 

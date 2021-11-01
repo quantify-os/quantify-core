@@ -1,24 +1,30 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
 import os
-import sys
-import signal
-import time
 import random
+import signal
+import sys
 import tempfile
+import time
 from collections.abc import Iterable
-import xarray as xr
+from unittest.mock import Mock
+
+import adaptive
 import numpy as np
 import pytest
-import adaptive
-from scipy import optimize
+import xarray as xr
 from qcodes import ManualParameter, Parameter
 from qcodes.instrument.base import Instrument
 from qcodes.utils import validators as vals
-from quantify_core.measurement.control import MeasurementControl, grid_setpoints
+from scipy import optimize
+
 import quantify_core.data.handling as dh
 from quantify_core.data.types import TUID
-from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
-from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+from quantify_core.measurement.control import MeasurementControl, grid_setpoints
 from quantify_core.utilities.experiment_helpers import load_settings_onto_instrument
+from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 try:
     from adaptive import SKOptLearner
@@ -189,40 +195,81 @@ class TestMeasurementControl:
     def setup_class(cls):
         cls.tmp_dir = tempfile.TemporaryDirectory()
         dh.set_datadir(cls.tmp_dir.name)
-        cls.MC = MeasurementControl(name="MC")
+        cls.meas_ctrl = MeasurementControl(name="meas_ctrl")
         # ensures the default datadir is used which is excluded from git
         cls.dummy_parabola = DummyParHolder("parabola")
 
     @classmethod
     def teardown_class(cls):
-        cls.MC.close()
+        cls.meas_ctrl.close()
         cls.dummy_parabola.close()
         dh._datadir = None
         cls.tmp_dir.cleanup()
 
     def test_MeasurementControl_name(self):
-        assert self.MC.name == "MC"
+        assert self.meas_ctrl.name == "meas_ctrl"
+
+    def test_repr(self):
+        number_points = 5
+        xvals = np.linspace(0, 2, number_points)
+        yvals = np.linspace(0, 1, number_points * 2)
+
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(xvals)
+        self.meas_ctrl.gettables(sig)
+        repr1 = self.meas_ctrl.__repr__()
+        _ = self.meas_ctrl.run()
+        repr2 = self.meas_ctrl.__repr__()
+        expected = (
+            "<MeasurementControl: meas_ctrl>\n"
+            "    settables: ['t']\n"
+            "    gettables: ['sig']\n"
+            f"    setpoints shape: ({len(xvals)}, 1)\n"
+        )
+        assert repr1 == repr2 == expected
+
+        self.meas_ctrl.setpoints_grid([xvals, yvals])
+        repr1 = self.meas_ctrl.__repr__()
+        expected = (
+            "<MeasurementControl: meas_ctrl>\n"
+            "    settables: ['t']\n"
+            "    gettables: ['sig']\n"
+            f"    setpoints_grid input shapes: [({len(xvals)},), ({len(yvals)},)]\n"
+        )
+        assert repr1 == expected
+
+        self.meas_ctrl.settables([t, amp])
+        _ = self.meas_ctrl.run()
+        repr2 = self.meas_ctrl.__repr__()
+        expected = (
+            "<MeasurementControl: meas_ctrl>\n"
+            "    settables: ['t', 'amp']\n"
+            "    gettables: ['sig']\n"
+            f"    setpoints_grid input shapes: [({len(xvals)},), ({len(yvals)},)]\n"
+            f"    setpoints shape: ({len(xvals) * len(yvals)}, 2)\n"
+        )
+        assert repr2 == expected
 
     def test_setpoints(self):
         x = np.linspace(0, 10, 11)
-        self.MC.setpoints(x)
-        assert np.array_equal(self.MC._setpoints[:, 0], x)
+        self.meas_ctrl.setpoints(x)
+        assert np.array_equal(self.meas_ctrl._setpoints[:, 0], x)
 
         x = np.random.rand(15, 2)
-        self.MC.setpoints(x)
-        assert np.array_equal(self.MC._setpoints, x)
+        self.meas_ctrl.setpoints(x)
+        assert np.array_equal(self.meas_ctrl._setpoints, x)
 
         x = np.random.rand(15, 4)
-        self.MC.setpoints(x)
-        assert np.array_equal(self.MC._setpoints, x)
+        self.meas_ctrl.setpoints(x)
+        assert np.array_equal(self.meas_ctrl._setpoints, x)
 
     def test_iterative_1D(self):
         xvals = np.linspace(0, 2 * np.pi, 31)
 
-        self.MC.settables(t)
-        self.MC.setpoints(xvals)
-        self.MC.gettables(sig)
-        dset = self.MC.run()
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(xvals)
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -250,10 +297,10 @@ class TestMeasurementControl:
     def test_iterative_1D_multi_return(self):
         xvals = np.linspace(0, 2 * np.pi, 31)
 
-        self.MC.settables(t)
-        self.MC.setpoints(xvals)
-        self.MC.gettables(DualWave())
-        dset = self.MC.run()
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(xvals)
+        self.meas_ctrl.gettables(DualWave())
+        dset = self.meas_ctrl.run()
 
         exp_y0 = SinFunc(xvals, 1, 1, 0)
         exp_y1 = CosFunc(xvals, 1, 1, 0)
@@ -268,12 +315,12 @@ class TestMeasurementControl:
 
         rand_get = Parameter(name="sig", label="Signal level", unit="V", get_cmd=rand)
         setpoints = np.arange(100.0)
-        self.MC.settables(t)
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(rand_get)
-        r_dset = self.MC.run("random")
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(rand_get)
+        r_dset = self.meas_ctrl.run("random")
 
-        avg_dset = self.MC.run("averaged", soft_avg=50)
+        avg_dset = self.meas_ctrl.run("averaged", soft_avg=50)
 
         expected_vals = 0.5 * np.arange(100.0)
         r_delta = abs(r_dset["y0"].values - expected_vals)
@@ -283,11 +330,11 @@ class TestMeasurementControl:
     def test_batched_1D(self):
         x = np.linspace(0, 10, 5)
         device = DummyBatchedSettable()
-        self.MC.settables(device)
-        self.MC.setpoints(x)
+        self.meas_ctrl.settables(device)
+        self.meas_ctrl.setpoints(x)
         # settables are passed for test purposes only, this is not a design pattern!
-        self.MC.gettables(DummyBatchedGettable(device))
-        dset = self.MC.run()
+        self.meas_ctrl.gettables(DummyBatchedGettable(device))
+        dset = self.meas_ctrl.run()
 
         expected_vals = batched_mock_values(x)
         assert np.array_equal(dset["x0"].values, x)
@@ -313,14 +360,14 @@ class TestMeasurementControl:
     def test_batched_batch_size_1D(self):
         x = np.linspace(0, 10, 50)
         device = DummyBatchedSettable()
-        self.MC.settables(device)
-        self.MC.setpoints(x)
+        self.meas_ctrl.settables(device)
+        self.meas_ctrl.setpoints(x)
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(device)
         # Must be specified otherwise all setpoints will be passed to the settable
         gettable.batch_size = 10
-        self.MC.gettables(gettable)
-        dset = self.MC.run()
+        self.meas_ctrl.gettables(gettable)
+        dset = self.meas_ctrl.run()
 
         expected_vals = batched_mock_values(x)
         assert np.array_equal(dset["x0"].values, x)
@@ -332,15 +379,15 @@ class TestMeasurementControl:
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settable)
         gettable.noise = 0.4
-        self.MC.settables(settable)
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(gettable)
-        noisy_dset = self.MC.run("noisy")
+        self.meas_ctrl.settables(settable)
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(gettable)
+        noisy_dset = self.meas_ctrl.run("noisy")
         xn_0 = noisy_dset["x0"].values
         expected_vals = batched_mock_values(xn_0)
         yn_0 = abs(noisy_dset["y0"].values - expected_vals)
 
-        avg_dset = self.MC.run("averaged", soft_avg=1000)
+        avg_dset = self.meas_ctrl.run("averaged", soft_avg=1000)
         yavg_0 = abs(avg_dset["y0"].values - expected_vals)
 
         np.testing.assert_array_equal(xn_0, setpoints)
@@ -352,32 +399,32 @@ class TestMeasurementControl:
         # as at least one settable is batched.
 
         setpoints = np.linspace(0, 360, 8)
-        self.MC.settables(t)  # iterative settable
-        self.MC.setpoints(setpoints)
+        self.meas_ctrl.settables(t)  # iterative settable
+        self.meas_ctrl.setpoints(setpoints)
 
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(t)
-        self.MC.gettables(gettable)  # batched gettable
+        self.meas_ctrl.gettables(gettable)  # batched gettable
         with pytest.raises(
             RuntimeError,
             match=r"At least one settable must have `settable.batched=True`",
         ):
-            self.MC.run("raises")
+            self.meas_ctrl.run("raises")
 
     def test_iterative_2D_grid(self):
 
         times = np.linspace(0, 5, 20)
         amps = np.linspace(-1, 1, 5)
 
-        self.MC.settables([t, amp])
-        self.MC.setpoints_grid([times, amps])
+        self.meas_ctrl.settables([t, amp])
+        self.meas_ctrl.setpoints_grid([times, amps])
 
         exp_sp = grid_setpoints([times, amps])
 
-        self.MC.gettables(sig)
-        dset = self.MC.run()
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
 
-        assert np.array_equal(self.MC._setpoints, exp_sp)
+        assert np.array_equal(self.meas_ctrl._setpoints, exp_sp)
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -391,6 +438,82 @@ class TestMeasurementControl:
 
         # Test properties of the dataset
         assert isinstance(dset, xr.Dataset)
+        assert set(dset.variables.keys()) == {"x0", "x1", "y0"}
+
+        assert all(e in dset["x0"].values for e in times)
+        assert all(e in dset["x1"].values for e in amps)
+
+        assert dset["x0"].attrs == {
+            "name": "t",
+            "long_name": "Time",
+            "units": "s",
+            "batched": False,
+        }
+        assert dset["x1"].attrs == {
+            "name": "amp",
+            "long_name": "Amplitude",
+            "units": "V",
+            "batched": False,
+        }
+        assert dset["y0"].attrs == {
+            "name": "sig",
+            "long_name": "Signal level",
+            "units": "V",
+            "batched": False,
+        }
+
+    @pytest.mark.parametrize(
+        "lazy_set_parameter,lazy_set_argument,lazy_set_turned_on",
+        [
+            (True, True, True),
+            (True, False, False),
+            (False, True, True),
+            (False, False, False),
+            (True, None, True),
+            (False, None, False),
+        ],
+    )
+    def test_iterative_2D_grid_with_lazy_set(
+        self, lazy_set_parameter, lazy_set_argument, lazy_set_turned_on
+    ):
+        t.set = Mock(wraps=t.set)
+        amp.set = Mock(wraps=amp.set)
+
+        times = np.linspace(0, 5, 20)
+        amps = np.linspace(-1, 1, 5)
+
+        self.meas_ctrl.settables([t, amp])
+        self.meas_ctrl.setpoints_grid([times, amps])
+
+        exp_sp = grid_setpoints([times, amps])
+
+        self.meas_ctrl.gettables(sig)
+        # the lazy_set_argument should override the lazy_set_parameter
+        self.meas_ctrl.lazy_set(lazy_set_parameter)
+        dset = self.meas_ctrl.run(lazy_set=lazy_set_argument)
+
+        # if lazy_set is turned on, verify that the slow axis (amp) was only called each
+        # row (=5 times), but the fast
+        # axis (times) each time (=100 times). Otherwise, both should be set each time.
+        assert t.set.call_count == 100
+        if lazy_set_turned_on:
+            assert amp.set.call_count == 5
+        else:
+            assert amp.set.call_count == 20 * 5
+
+        assert np.array_equal(self.meas_ctrl._setpoints, exp_sp)
+
+        assert TUID.is_valid(dset.attrs["tuid"])
+
+        expected_vals = CosFunc(
+            t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0
+        )
+
+        assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
+        assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
+        assert np.array_equal(dset["y0"].values, expected_vals)
+
+        # Test properties of the dataset
         assert set(dset.variables.keys()) == {"x0", "x1", "y0"}
 
         assert all(e in dset["x0"].values for e in times)
@@ -434,10 +557,10 @@ class TestMeasurementControl:
         x, y = polar_coords(r, theta)
         setpoints = np.column_stack([x, y])
 
-        self.MC.settables([t, amp])
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(sig)
-        dset = self.MC.run()
+        self.meas_ctrl.settables([t, amp])
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -454,13 +577,13 @@ class TestMeasurementControl:
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
-        self.MC.settables(settables)
-        self.MC.setpoints_grid([times, amps])
-        self.MC.gettables(gettable)
-        dset = self.MC.run("2D batched")
+        self.meas_ctrl.settables(settables)
+        self.meas_ctrl.setpoints_grid([times, amps])
+        self.meas_ctrl.gettables(gettable)
+        dset = self.meas_ctrl.run("2D batched")
 
         exp_sp = grid_setpoints([times, amps])
-        assert np.array_equal(exp_sp, self.MC._setpoints)
+        assert np.array_equal(exp_sp, self.meas_ctrl._setpoints)
         assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
         assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
 
@@ -494,14 +617,14 @@ class TestMeasurementControl:
 
     def test_iterative_outer_loop_with_inner_batched_2D(self):
         _, _, _ = t(1), amp(1), freq(1)  # Reset globals
-        self.MC.settables([t, freq])
+        self.meas_ctrl.settables([t, freq])
         times = np.linspace(0, 15, 20)
         freqs = np.linspace(0.1, 1, 10)
         setpoints = [times, freqs]
-        self.MC.setpoints_grid(setpoints)
+        self.meas_ctrl.setpoints_grid(setpoints)
 
         # Using the same gettable for test purposes
-        self.MC.gettables([sig, sig])
+        self.meas_ctrl.gettables([sig, sig])
 
         t.batched = True
         freq.batched = False
@@ -510,11 +633,11 @@ class TestMeasurementControl:
         sig.batch_size = len(times)
         sig.batched = True
 
-        dset = self.MC.run("iterative-outer-loop-with-inner-batched-2D")
+        dset = self.meas_ctrl.run("iterative-outer-loop-with-inner-batched-2D")
 
         expected_vals = CosFunc(
-            t=self.MC._setpoints[:, 0],
-            frequency=self.MC._setpoints[:, 1],
+            t=self.meas_ctrl._setpoints[:, 0],
+            frequency=self.meas_ctrl._setpoints[:, 1],
             amplitude=1,
             phase=0,
         )
@@ -534,13 +657,13 @@ class TestMeasurementControl:
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settables)
         gettable.set_return_2D()
-        self.MC.settables(settables)
-        self.MC.setpoints_grid([times, amps])
-        self.MC.gettables(gettable)
-        dset = self.MC.run("2D batched multi return")
+        self.meas_ctrl.settables(settables)
+        self.meas_ctrl.setpoints_grid([times, amps])
+        self.meas_ctrl.gettables(gettable)
+        dset = self.meas_ctrl.run("2D batched multi return")
 
         exp_sp = grid_setpoints([times, amps])
-        assert np.array_equal(exp_sp, self.MC._setpoints)
+        assert np.array_equal(exp_sp, self.meas_ctrl._setpoints)
         assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
         assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
 
@@ -558,10 +681,10 @@ class TestMeasurementControl:
         gettable = DummyBatchedGettable(settables)
         gettable.noise = 0.2
         gettable.set_return_2D()
-        self.MC.settables(settables)
-        self.MC.setpoints_grid([x0, x1])
-        self.MC.gettables(gettable)
-        noisy_dset = self.MC.run("noisy_batched_grid")
+        self.meas_ctrl.settables(settables)
+        self.meas_ctrl.setpoints_grid([x0, x1])
+        self.meas_ctrl.gettables(gettable)
+        noisy_dset = self.meas_ctrl.run("noisy_batched_grid")
 
         expected_vals = batched_mock_values(
             np.stack((noisy_dset["x0"].values, noisy_dset["x1"]))
@@ -569,7 +692,7 @@ class TestMeasurementControl:
         yn_0 = abs(noisy_dset["y0"].values - expected_vals[0])
         yn_1 = abs(noisy_dset["y1"].values - expected_vals[1])
 
-        avg_dset = self.MC.run("avg_batched_grid", soft_avg=1000)
+        avg_dset = self.meas_ctrl.run("avg_batched_grid", soft_avg=1000)
         yavg_0 = abs(avg_dset["y0"].values - expected_vals[0])
         yavg_1 = abs(avg_dset["y1"].values - expected_vals[1])
 
@@ -597,11 +720,11 @@ class TestMeasurementControl:
         setpoints = np.column_stack([x, y])
 
         settables = [DummyBatchedSettable(), DummyBatchedSettable()]
-        self.MC.settables(settables)
-        self.MC.setpoints(setpoints)
+        self.meas_ctrl.settables(settables)
+        self.meas_ctrl.setpoints(setpoints)
         # settables are passed for test purposes only, this is not a design pattern!
-        self.MC.gettables(DummyBatchedGettable(settables))
-        dset = self.MC.run()
+        self.meas_ctrl.gettables(DummyBatchedGettable(settables))
+        dset = self.meas_ctrl.run()
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -629,10 +752,10 @@ class TestMeasurementControl:
         # settables are passed for test purposes only, this is not a design pattern!
         gettable = DummyBatchedGettable(settable)
         gettable.get_func = v_size
-        self.MC.settables(settable)
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(gettable)
-        dset = self.MC.run("varying")
+        self.meas_ctrl.settables(settable)
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(gettable)
+        dset = self.meas_ctrl.run("varying")
 
         assert np.array_equal(dset["x0"], setpoints)
         assert np.array_equal(dset["y0"], 2 * setpoints)
@@ -656,10 +779,10 @@ class TestMeasurementControl:
         gettable = DummyBatchedGettable(settable)
         gettable.get_func = v_size
         gettable.noise = 0.25
-        self.MC.settables(settable)
-        self.MC.setpoints(setpoints)
-        self.MC.gettables(gettable)
-        dset = self.MC.run("varying", soft_avg=1000)
+        self.meas_ctrl.settables(settable)
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(gettable)
+        dset = self.meas_ctrl.run("varying", soft_avg=1000)
 
         assert np.array_equal(dset["x0"], setpoints)
         np.testing.assert_array_almost_equal(dset.y0, 2 * setpoints, decimal=2)
@@ -669,15 +792,15 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
 
-        self.MC.settables([t, amp, freq])
-        self.MC.setpoints_grid([times, amps, freqs])
+        self.meas_ctrl.settables([t, amp, freq])
+        self.meas_ctrl.setpoints_grid([times, amps, freqs])
 
         exp_sp = grid_setpoints([times, amps, freqs])
 
-        self.MC.gettables(sig)
-        dset = self.MC.run()
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
 
-        assert np.array_equal(self.MC._setpoints, exp_sp)
+        assert np.array_equal(self.meas_ctrl._setpoints, exp_sp)
 
         assert TUID.is_valid(dset.attrs["tuid"])
 
@@ -721,10 +844,10 @@ class TestMeasurementControl:
         amps = np.linspace(-1, 1, 3)
         freqs = np.linspace(41000, 82000, 2)
 
-        self.MC.settables([t, amp, freq])
-        self.MC.setpoints_grid([times, amps, freqs])
-        self.MC.gettables([DualWave(), sig, DualWave()])
-        dset = self.MC.run()
+        self.meas_ctrl.settables([t, amp, freq])
+        self.meas_ctrl.setpoints_grid([times, amps, freqs])
+        self.meas_ctrl.gettables([DualWave(), sig, DualWave()])
+        dset = self.meas_ctrl.run()
 
         exp_sp = grid_setpoints([times, amps, freqs])
         exp_y0 = exp_y3 = SinFunc(
@@ -760,10 +883,12 @@ class TestMeasurementControl:
         noisy_gettable.get_func = v_get
         noisy_gettable.noise = 0.25
 
-        self.MC.settables([batched_settable_t, batched_settable_0, batched_settable_1])
-        self.MC.setpoints_grid([times, amps, freqs])
-        self.MC.gettables([noisy_gettable, nd_gettable])
-        dset = self.MC.run(soft_avg=1000)
+        self.meas_ctrl.settables(
+            [batched_settable_t, batched_settable_0, batched_settable_1]
+        )
+        self.meas_ctrl.setpoints_grid([times, amps, freqs])
+        self.meas_ctrl.gettables([noisy_gettable, nd_gettable])
+        dset = self.meas_ctrl.run(soft_avg=1000)
 
         exp_sp = grid_setpoints([times, amps, freqs])
         np.testing.assert_array_almost_equal(dset.y0, exp_sp[:, 0], decimal=2)
@@ -783,14 +908,14 @@ class TestMeasurementControl:
         freq.batch_size = 8
         t.batched = False
 
-        self.MC.settables([freq, t])
-        self.MC.setpoints_grid([freqs, times])
+        self.meas_ctrl.settables([freq, t])
+        self.meas_ctrl.setpoints_grid([freqs, times])
         # Ensure forgetting this raises exception
         # sig.batched = True
-        self.MC.gettables(sig)
+        self.meas_ctrl.gettables(sig)
 
         with pytest.raises(RuntimeError):
-            self.MC.run()
+            self.meas_ctrl.run()
 
         # reset for other tests
         delattr(freq, "batched")
@@ -814,11 +939,11 @@ class TestMeasurementControl:
         sig2.batched = True
 
         settables = [freq, t, other_freq, amp]
-        self.MC.settables(settables)
+        self.meas_ctrl.settables(settables)
         setpoints = [freqs, times, other_freqs, amps]
-        self.MC.setpoints_grid(setpoints)
-        self.MC.gettables(sig2)
-        dset = self.MC.run("bla", soft_avg=2)
+        self.meas_ctrl.setpoints_grid(setpoints)
+        self.meas_ctrl.gettables(sig2)
+        dset = self.meas_ctrl.run("bla", soft_avg=2)
 
         assert isinstance(freq(), Iterable)
         assert not isinstance(t(), Iterable)
@@ -826,7 +951,7 @@ class TestMeasurementControl:
         assert not isinstance(amp(), Iterable)
 
         exp_sp = grid_setpoints(setpoints, settables=settables)
-        assert np.array_equal(self.MC._setpoints, exp_sp)
+        assert np.array_equal(self.meas_ctrl._setpoints, exp_sp)
 
         exp_sp = exp_sp.T
         _, _, _, _ = (
@@ -848,15 +973,15 @@ class TestMeasurementControl:
         _, _, _, _ = t(1), amp(1), freq(1), other_freq(1)  # Reset globals
 
     def test_adaptive_nelder_mead(self):
-        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        self.meas_ctrl.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": optimize.minimize,
             "x0": [-50, -50],
             "method": "Nelder-Mead",
         }
         self.dummy_parabola.noise(0.5)
-        self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive("nelder_mead", af_pars)
+        self.meas_ctrl.gettables(self.dummy_parabola.parabola)
+        dset = self.meas_ctrl.run_adaptive("nelder_mead", af_pars)
 
         assert dset["x0"][-1] < 0.7
         assert dset["x1"][-1] < 0.7
@@ -886,14 +1011,14 @@ class TestMeasurementControl:
             def get(self):
                 return [lorenz(), dummy()]
 
-        self.MC.settables(freq)
+        self.meas_ctrl.settables(freq)
         af_pars = {
             "adaptive_function": adaptive.learner.Learner1D,
             "goal": lambda l: l.npoints > 5,
             "bounds": (6e9, 7e9),
         }
-        self.MC.gettables([ResonancePlus(), dummy])
-        dset = self.MC.run_adaptive("multi return", af_pars)
+        self.meas_ctrl.gettables([ResonancePlus(), dummy])
+        dset = self.meas_ctrl.run_adaptive("multi return", af_pars)
         assert (dset["y1"].values == 99).all()
         assert (dset["y2"].values == 99).all()
 
@@ -912,34 +1037,85 @@ class TestMeasurementControl:
 
         resonance = Parameter("resonance", unit="V", label="Amplitude", get_cmd=lorenz)
 
-        self.MC.settables(freq)
+        self.meas_ctrl.settables(freq)
         af_pars = {
             "adaptive_function": adaptive.learner.Learner1D,
             "goal": lambda l: l.npoints > 20 * 20,
             "bounds": (6e9, 7e9),
         }
-        self.MC.gettables(resonance)
-        dset = self.MC.run_adaptive("adaptive sample", af_pars)
-        print("jej")
+        self.meas_ctrl.gettables(resonance)
+        _ = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
 
     def test_adaptive_sampling(self):
         self.dummy_parabola.noise(0)
-        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        self.meas_ctrl.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": adaptive.learner.Learner2D,
             "goal": lambda l: l.npoints > 20 * 20,
             "bounds": ((-50, 50), (-20, 30)),
         }
-        self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive("adaptive sample", af_pars)
+        self.meas_ctrl.gettables(self.dummy_parabola.parabola)
+        _ = self.meas_ctrl.run_adaptive("adaptive sample", af_pars)
         # todo pycqed has no verification step here, what should we do?
+
+    @pytest.mark.parametrize(
+        "lazy_set_parameter,lazy_set_argument,lazy_set_turned_on",
+        [
+            (True, True, True),
+            (True, False, False),
+            (False, True, True),
+            (False, False, False),
+            (True, None, True),
+            (False, None, False),
+        ],
+    )
+    def test_adaptive_sampling_with_lazy_set(
+        self, lazy_set_parameter, lazy_set_argument, lazy_set_turned_on
+    ):
+        self.dummy_parabola.x.set = Mock(wraps=self.dummy_parabola.x.set)
+        self.dummy_parabola.y.set = Mock(wraps=self.dummy_parabola.y.set)
+
+        self.dummy_parabola.noise(0)
+        self.meas_ctrl.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+
+        num_x = 5
+        num_y = 20
+
+        def _adaptive_function(meas_func, **kwargs):
+            """A dimple adaptive function that executes a 2D sweep and conforms with
+            the accepted interface for an adaptive function."""
+            points = grid_setpoints(
+                [np.linspace(-50, 50, num_x), np.linspace(-20, 30, num_y)]
+            )
+
+            for setpoint in points:
+                _ = meas_func(setpoint)
+
+            # The meas_ctrl takes care of intercepting the measured values so no return
+            # is specified here
+
+        af_pars = {"adaptive_function": _adaptive_function}
+        self.meas_ctrl.gettables(self.dummy_parabola.parabola)
+        self.meas_ctrl.lazy_set(lazy_set_parameter)
+        _ = self.meas_ctrl.run_adaptive(
+            "adaptive sample", af_pars, lazy_set=lazy_set_argument
+        )
+
+        # if lazy_set is turned on, verify that the adaptive algorithm did not set the
+        # parameters each time
+        if lazy_set_turned_on:
+            assert self.dummy_parabola.x.set.call_count == num_x * num_y
+            assert self.dummy_parabola.y.set.call_count == num_y
+        else:
+            assert self.dummy_parabola.x.set.call_count == num_x * num_y
+            assert self.dummy_parabola.y.set.call_count == num_x * num_y
 
     @pytest.mark.skipif(
         not WITH_SKOPTLEARNER, reason="scikit-optimize is not installed"
     )
     def test_adaptive_skoptlearner(self):
         self.dummy_parabola.noise(0)
-        self.MC.settables([self.dummy_parabola.x, self.dummy_parabola.y])
+        self.meas_ctrl.settables([self.dummy_parabola.x, self.dummy_parabola.y])
         af_pars = {
             "adaptive_function": SKOptLearner,
             "goal": lambda l: l.npoints > 15,
@@ -948,8 +1124,8 @@ class TestMeasurementControl:
             "acq_func": "EI",
             "acq_optimizer": "lbfgs",
         }
-        self.MC.gettables(self.dummy_parabola.parabola)
-        dset = self.MC.run_adaptive("skopt", af_pars)
+        self.meas_ctrl.gettables(self.dummy_parabola.parabola)
+        _ = self.meas_ctrl.run_adaptive("skopt", af_pars)
         # todo pycqed has no verification step here, what should we do?
 
     def test_progress_callback(self):
@@ -958,43 +1134,43 @@ class TestMeasurementControl:
         def set_progress_param_callable(progress):
             progress_param(progress)
 
-        self.MC.on_progress_callback(set_progress_param_callable)
+        self.meas_ctrl.on_progress_callback(set_progress_param_callable)
         assert progress_param() == 0
 
         xvals = np.linspace(0, 2 * np.pi, 31)
-        self.MC.settables(t)
-        self.MC.setpoints(xvals)
-        self.MC.gettables(sig)
-        self.MC.run()
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(xvals)
+        self.meas_ctrl.gettables(sig)
+        self.meas_ctrl.run()
 
         assert progress_param() == 100
 
-    def test_MC_plotmon_integration(self):
-        plotmon = PlotMonitor_pyqt("plotmon_MC")
+    def test_meas_ctrl_plotmon_integration(self):
+        plotmon = PlotMonitor_pyqt("plotmon_meas_ctrl")
 
-        self.MC.instr_plotmon(plotmon.name)
+        self.meas_ctrl.instr_plotmon(plotmon.name)
 
         assert len(plotmon.tuids()) == 0
 
         times = np.linspace(0, 5, 18)
         amps = np.linspace(-1, 1, 5)
 
-        self.MC.settables([t, amp])
-        self.MC.setpoints_grid([times, amps])
-        self.MC.gettables(sig)
-        self.MC.run("2D Cosine test")
+        self.meas_ctrl.settables([t, amp])
+        self.meas_ctrl.setpoints_grid([times, amps])
+        self.meas_ctrl.gettables(sig)
+        self.meas_ctrl.run("2D Cosine test")
 
         assert len(plotmon.tuids()) > 0
 
         plotmon.close()
-        self.MC.instr_plotmon("")
+        self.meas_ctrl.instr_plotmon("")
 
-    def test_MC_insmon_integration(self):
-        inst_mon = InstrumentMonitor("insmon_MC")
-        self.MC.instrument_monitor(inst_mon.name)
-        assert self.MC.instrument_monitor.get_instr().widget.getNodes()
+    def test_meas_ctrl_insmon_integration(self):
+        inst_mon = InstrumentMonitor("insmon_meas_ctrl")
+        self.meas_ctrl.instrument_monitor(inst_mon.name)
+        assert self.meas_ctrl.instrument_monitor.get_instr().widget.getNodes()
         inst_mon.close()
-        self.MC.instrument_monitor("")
+        self.meas_ctrl.instrument_monitor("")
 
     def test_instrument_settings_from_disk(self, tmp_test_data_dir):
         load_settings_onto_instrument(
@@ -1033,14 +1209,14 @@ class TestMeasurementControl:
             def set(self, val):
                 pass
 
-        self.MC.settables(badSetter("badSetter"))
-        self.MC.setpoints(np.linspace(0, 1, 10))
-        self.MC.gettables(freq)
+        self.meas_ctrl.settables(badSetter("badSetter"))
+        self.meas_ctrl.setpoints(np.linspace(0, 1, 10))
+        self.meas_ctrl.gettables(freq)
         with pytest.raises(
             AttributeError,
             match="'badSetter' object has no attribute 'non_existing_param'",
         ):
-            self.MC.run("This raises exception as expected")
+            self.meas_ctrl.run("This raises exception as expected")
 
         class badGetter:
             def __init__(self, param2):
@@ -1059,14 +1235,14 @@ class TestMeasurementControl:
             def finish(self):
                 pass
 
-        self.MC.settables(t)
-        self.MC.setpoints(np.linspace(0, 1, 10) * 1e-9)
-        self.MC.gettables(badGetter("badGetter"))
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(np.linspace(0, 1, 10) * 1e-9)
+        self.meas_ctrl.gettables(badGetter("badGetter"))
         with pytest.raises(
             AttributeError,
             match="'badGetter' object has no attribute 'non_existing_param'",
         ):
-            self.MC.run("This raises exception as expected")
+            self.meas_ctrl.run("This raises exception as expected")
 
     @pytest.mark.skipif(
         sys.platform == "win32",
@@ -1094,28 +1270,37 @@ class TestMeasurementControl:
 
         gettable = GettableUserInterrupt()
 
-        self.MC.settables(time_par)
-        self.MC.setpoints(np.arange(10))
-        self.MC.gettables(gettable)
+        self.meas_ctrl.settables(time_par)
+        self.meas_ctrl.setpoints(np.arange(10))
+        self.meas_ctrl.gettables(gettable)
         with pytest.raises(KeyboardInterrupt):
-            self.MC.run("interrupt_test")
+            self.meas_ctrl.run("interrupt_test")
 
-        dset = self.MC._dataset
+        dset = self.meas_ctrl._dataset
         # we stop after 4th iteration
         assert sum(np.isnan(dset.y0) ^ 1) == 4
 
         # Ensure force stop still possible
         gettable._num_interrupts = 5
-        self.MC.settables(time_par)
-        self.MC.setpoints(np.arange(10))
-        self.MC.gettables(gettable)
+        self.meas_ctrl.settables(time_par)
+        self.meas_ctrl.setpoints(np.arange(10))
+        self.meas_ctrl.gettables(gettable)
 
         with pytest.raises(KeyboardInterrupt):
-            self.MC.run("interrupt_test_force")
+            self.meas_ctrl.run("interrupt_test_force")
 
-        dset = self.MC._dataset
+        dset = self.meas_ctrl._dataset
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
+
+
+def test_repr_new_and_closed():
+
+    meas_ctrl = MeasurementControl("meas_ctrl")
+    assert meas_ctrl.__repr__()
+    meas_ctrl.close()
+    assert meas_ctrl.__repr__()
+    meas_ctrl.close()
 
 
 class TestGridSetpoints:
@@ -1137,7 +1322,7 @@ class TestGridSetpoints:
     def mk_settables(self, batched_mask):
         settables = []
         for i, m in enumerate(batched_mask):
-            par = ManualParameter(f"x{i}", f"X{i}", "s")
+            par = ManualParameter(name=f"x{i}", label=f"X{i}", unit="s")
             par.batched = m
             settables.append(par)
         return settables
@@ -1146,11 +1331,7 @@ class TestGridSetpoints:
 
         # Most simple case
         batched_mask = [True, False]
-        settables = []
-        for i, m in enumerate(batched_mask):
-            par = ManualParameter(f"x{i}", f"X{i}", "s")
-            par.batched = m
-            settables.append(par)
+        settables = self.mk_settables(batched_mask)
 
         it_i = iter(self.iterative)
         it_b = iter(self.batched)

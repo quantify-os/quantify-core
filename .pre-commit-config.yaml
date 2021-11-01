@@ -1,6 +1,109 @@
 repos:
-  - repo: https://github.com/ambv/black
-    rev: 20.8b1
+  - repo: local  # set up all as local to manage packages with pip in Docker
     hooks:
-    - id: black
-      language_version: python3
+      # NB to ignore git hook when for a specific commit/push:
+      # git commit ... --no-verify
+      # git push ... --no-verify
+
+      # NB if `requirements_dev.txt` are installed in a virtual env, then
+      # the git commit/push must be executed in the same env (applies to IDEs as well!)
+
+      # ################################################################################
+      # Static analysis before committing
+      # ################################################################################
+
+      # To install these hooks run:
+      # pre-commit install --hook-type pre-commit
+      # To execute them manually run:
+      # pre-commit run --all-files --hook-stage commit
+
+      # pip install pre-commit-hooks  # provides the utilities below
+
+      - id: trailing-whitespace-fixer  # unique id
+        name: pre-commit-hooks [trailing-whitespace-fixer]  # displayed name
+        entry: trailing-whitespace-fixer  # shell command
+        stages: [commit]
+        language: python
+        types: [text]  # file types
+
+      - id: end-of-file-fixer
+        name: pre-commit-hooks [end-of-file-fixer]
+        entry: end-of-file-fixer
+        exclude: \.(svg)$  # do not modify SVG images
+        stages: [commit]
+        language: python
+        types: [text]
+
+      - id: check-yaml
+        name: pre-commit-hooks [check-yaml]
+        entry: check-yaml
+        args: ["--allow-multiple-documents"]
+        stages: [commit]
+        language: python
+        types: [yaml]
+
+      - id: fix-encoding-pragma
+        name: pre-commit-hooks [fix-encoding-pragma]
+        entry: fix-encoding-pragma
+        # notebooks for notebook_to_jupyer_sphinx have an jupytext header,
+        # but that header sometimes gets destroyed by Jupyter that adds
+        # a `# -*- coding: utf-8 -*-` encoding at the top of the file
+        args: ["--remove"]
+        stages: [commit]
+        language: python
+        types: [text]
+        files: \.(rst.py|rst.txt.py)$
+
+      - id: mixed-line-ending
+        name: pre-commit-hooks [mixed-line-ending]
+        entry: mixed-line-ending
+        args: ["--fix=lf"]
+        stages: [commit]
+        language: python
+        types: [text]
+
+      - id: pretty-format-json
+        name: pre-commit-hooks [pretty-format-json]
+        entry: pretty-format-json
+        args: ["--autofix", "--indent", "4", "--no-ensure-ascii", "--no-sort-keys"]
+        stages: [commit]
+        language: python
+        types: [json]
+
+      # pip install isort
+      - id: isort
+        name: Python imports sort [isort]
+        entry: isort
+        language_version: python3
+        args: ["--profile", "black"]  # compatible with black
+        stages: [commit]
+        language: python
+        types: [python]
+
+      # pip install black
+      - id: black
+        name: Python code autoformatter [black]
+        language_version: python3
+        entry: black
+        args: ["--check", "--fast"]
+        stages: [commit]
+        language: python
+        types: [python]
+
+      # ################################################################################
+      # Run tests before pushing
+      # ################################################################################
+
+      # To install this hook run:
+      # pre-commit install --hook-type pre-push
+      # To execute it manually run:
+      # pre-commit run --hook-stage push
+
+      - id: pytest
+        name: Run tests
+        entry: pytest
+        args: ["-n", "auto"]  # run in parallel, requires pytest-xdist
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [push]

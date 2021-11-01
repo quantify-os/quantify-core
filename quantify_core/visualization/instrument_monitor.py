@@ -7,11 +7,10 @@ import warnings
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
-
-from qcodes.utils.helpers import strip_attrs
 from qcodes.instrument.base import Instrument
-from qcodes.utils import validators as vals
 from qcodes.instrument.parameter import ManualParameter
+from qcodes.utils import validators as vals
+from qcodes.utils.helpers import strip_attrs
 
 from quantify_core.data.handling import snapshot
 from quantify_core.utilities.general import traverse_dict
@@ -22,19 +21,7 @@ class InstrumentMonitor(Instrument):
     """
     Creates a pyqtgraph widget that displays the instrument monitor window.
 
-    Example:
-
-        .. code-block:: python
-
-            from quantify_core.measurement import MeasurementControl
-            from quantify_core.visualization import InstrumentMonitor
-
-            MC = MeasurementControl('MC')
-            insmon = InstrumentMonitor("Ins Mon custom")
-            MC.instrument_monitor(insmon.name)
-            insmon.update()
-
-
+    .. include:: examples/visualization.instrument_monitor.py.rst.txt
     """
 
     proc = None
@@ -42,25 +29,38 @@ class InstrumentMonitor(Instrument):
 
     def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True):
         """
-        Initializes the pyqtgraph window
+        Initializes the pyqtgraph window.
 
         Parameters
         ----------
         name
-            name of the :class:`~quantify_core.visualization.InstrumentMonitor` object
+            name of the :class:`.InstrumentMonitor` object.
         window_size
-            The size of the :class:`~quantify_core.visualization.InstrumentMonitor` window in px
+            The size of the :class:`.InstrumentMonitor`
+            window in px.
         remote
-            Switch to use a remote instance of the pyqtgraph class
+            Switch to use a remote instance of the pyqtgraph class.
         """
         super().__init__(name=name)
-        self.add_parameter(
-            "update_interval",
+        self.update_interval = ManualParameter(
             unit="s",
             vals=vals.Numbers(min_value=0.001),
             initial_value=5,
-            parameter_class=ManualParameter,
+            name="update_interval",
+            instrument=self,
         )
+        """Only update the window if this amount of time has passed since last last
+        update."""
+
+        self.update_snapshot = ManualParameter(
+            initial_value=False,
+            vals=vals.Bool(),
+            name="update_snapshot",
+            instrument=self,
+        )
+        """Set to True in order to query the instruments about each parameter before
+        updating the window. Can be slow due to communication overhead."""
+
         if remote:
             if not self.__class__.proc:
                 self._init_qt()
@@ -84,17 +84,23 @@ class InstrumentMonitor(Instrument):
             else:
                 break
 
-    def update(self):
+    def update(self, force: bool = False) -> None:
         """
         Updates the Qc widget with the current snapshot of the instruments.
-        This function is also called within the class :class:`~quantify_core.measurement.MeasurementControl`
-        in the function :meth:`~quantify_core.measurement.MeasurementControl.run`.
+        This function is also called within the class
+        :class:`.MeasurementControl`
+        in the function :meth:`.MeasurementControl.run`.
+
+        Parameters
+        ----------
+        force
+            Forces an update ignoring the :code:`updated_interval`.
         """
         time_since_last_update = time.time() - self.last_update_time
-        if time_since_last_update > self.update_interval():
+        if force or time_since_last_update > self.update_interval():
             self.last_update_time = time.time()
             # Take an updated, clean snapshot
-            snap = snapshot(update=False, clean=True)
+            snap = snapshot(update=self.update_snapshot(), clean=True)
             try:
                 self.widget.setData(snap["instruments"])
             except AttributeError as e:
@@ -117,17 +123,20 @@ class InstrumentMonitor(Instrument):
 
     def create_widget(self, window_size: tuple = (1000, 600)):
         """
-        Saves an instance of the :class:`!quantify_core.visualization.ins_mon_widget.qc_snapshot_widget.QcSnaphotWidget`
-        class during startup. Creates the :class:`~quantify_core.data.handling.snapshot` tree to display within the
+        Saves an instance of the
+        :class:`!quantify_core.visualization.ins_mon_widget.qc_snapshot_widget.QcSnapshotWidget`
+        class during startup. Creates the
+        :class:`~quantify_core.data.handling.snapshot` tree to display within the
         remote widget window.
 
         Parameters
         ----------
         window_size
-            The size of the :class:`~quantify_core.visualization.InstrumentMonitor` window in px
-        """
+            The size of the :class:`.InstrumentMonitor`
+            window in px.
+        """  # pylint: disable=line-too-long
 
-        self.widget = self.rwidget.QcSnaphotWidget()
+        self.widget = self.rwidget.QcSnapshotWidget()
         self.update()
         self.widget.show()
         self.widget.setWindowTitle(self.name)
@@ -139,13 +148,13 @@ class InstrumentMonitor(Instrument):
         Parameters
         ----------
         x
-            Horizontal position of the top-left corner of the window
+            Horizontal position of the top-left corner of the window.
         y
-            Vertical position of the top-left corner of the window
+            Vertical position of the top-left corner of the window.
         w
-            Width of the window
+            Width of the window.
         h
-            Height of the window
+            Height of the window.
         """
         self.widget.setGeometry(x, y, w, h)
 

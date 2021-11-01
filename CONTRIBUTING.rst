@@ -7,6 +7,10 @@ Contributions are welcome and greatly appreciated! Every little bit helps, and c
 
 In order to contribute to the documentation and/or code please follow the :ref:`Setting up for local development` instructions.
 
+You can also find us in our public `Slack workspace through this link <https://quantify-hq.slack.com/archives/C01ETDK6P97/p1630597303007700>`_. There you can join the `software for users <https://quantify-hq.slack.com/archives/C01ETDK6P97>`_ and the `software for developers <https://quantify-hq.slack.com/archives/C02DE4ZENNQ>`_ channels.
+
+You are also welcome to the public weekly maintainers meeting for which you can find the link in the `software for developers <https://quantify-hq.slack.com/archives/C02DE4ZENNQ>`_ channel.
+
 Types of Contributions
 ----------------------
 

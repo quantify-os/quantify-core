@@ -1,7 +1,8 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import fitting_models as fm
 from quantify_core.visualization import mpl_plotting as qpl

@@ -2,14 +2,14 @@
 # Licensed according to the LICENCE file on the master branch
 """Module containing the pyqtgraph based plotting monitor."""
 import pprint
-from pyqtgraph.Qt import QtGui, QtCore
+
+from pyqtgraph.Qt import QtCore, QtGui
 
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
 
 
-class QcSnaphotWidget(QtGui.QTreeWidget):
-
+class QcSnapshotWidget(QtGui.QTreeWidget):
     """
     Widget for displaying QcoDes instrument snapshots.
     Heavily inspired by the DataTreeWidget.
@@ -48,50 +48,79 @@ class QcSnaphotWidget(QtGui.QTreeWidget):
             return
 
         parent = self.invisibleRootItem()
-
-        instruments_in_snapshot = sorted(snapshot.keys())
-
-        for ins in instruments_in_snapshot:
-            current_instrument = snapshot[ins]
+        for instrument in sorted(snapshot.keys()):
+            sub_snap = snapshot[instrument]
             # Name of the node in the self.nodes dictionary
-            ins_name = current_instrument["name"]
-            if ins_name not in self.nodes:
-                self.nodes[ins_name] = QtGui.QTreeWidgetItem([ins_name, "", ""])
-                parent.addChild(self.nodes[ins_name])
+            instrument_name = sub_snap["name"]
+            node = self._add_node(parent, instrument_name, instrument_name)
+            self._fill_node_recursively(sub_snap, node, instrument_name)
 
-            node = self.nodes[ins_name]
+    def _add_node(self, parent, display_string, node_key):
+        if node_key not in self.nodes:
+            self.nodes[node_key] = QtGui.QTreeWidgetItem([display_string, "", ""])
+            parent.addChild(self.nodes[node_key])
+        node = self.nodes[node_key]
+        return node
 
-            for par_name in sorted(current_instrument["parameters"].keys()):
-                par_snap = current_instrument["parameters"][par_name]
-                # Depending on the type of data stored in value do different
-                # things, currently only blocks non-dicts
-                if "value" in par_snap.keys():
-                    # Some parameters do not have a value, these are not shown
-                    # in the instrument monitor.
-                    if not isinstance(par_snap["value"], dict):
-                        value_str, unit = SI_val_to_msg_str(
-                            par_snap["value"], par_snap["unit"]
-                        )
+    def _fill_node_recursively(self, snapshot, node, node_key):
+        sub_snaps = {}
+        for key in ["submodules", "channels"]:
+            sub_snaps.update(snapshot.get(key, {}))
 
-                        # Omits printing of the date to make it more readable
-                        if par_snap["ts"] is not None:
-                            latest_str = par_snap["ts"][11:]
-                        else:
-                            latest_str = ""
+        for sub_snapshot_key in sorted(sub_snaps.keys()):
+            sub_snap = sub_snaps[sub_snapshot_key]
+            # Some names contain higher nodes, remove them (with underscore) for brevity
+            for node_key_part in node_key.split("."):
+                sub_snapshot_key = QcSnapshotWidget._remove_left(
+                    sub_snapshot_key, node_key_part
+                )
+            sub_node_key = f"{node_key}.{sub_snapshot_key}"
+            sub_node = self._add_node(node, sub_snapshot_key, sub_node_key)
+            self._fill_node_recursively(sub_snap, sub_node, sub_node_key)
 
-                        param_node_name = "{}.{}".format(ins_name, par_name)
-                        # If node does not yet exist, create a node
-                        if param_node_name not in self.nodes:
-                            param_node = QtGui.QTreeWidgetItem(
-                                [par_name, value_str, unit, latest_str]
-                            )
-                            node.addChild(param_node)
-                            self.nodes[param_node_name] = param_node
-                        else:  # else update existing node
-                            param_node = self.nodes[param_node_name]
-                            param_node.setData(1, 0, value_str)
-                            param_node.setData(2, 0, unit)
-                            param_node.setData(3, 0, latest_str)
+        param_snaps = snapshot.get("parameters", {})
+        for param_name in sorted(param_snaps.keys()):
+            param_snap = param_snaps[param_name]
+            # Depending on the type of data stored in value do different things,
+            # currently only blocks non-dicts
+            if "value" in param_snap.keys():
+                # Some parameters do not have a value, these are not shown
+                # in the instrument monitor.
+                if not isinstance(param_snap["value"], dict):
+                    self._add_single_parameter(param_snap, param_name, node, node_key)
+
+    def _add_single_parameter(self, param_snap, param_name, node, node_key):
+        value_str, unit = SI_val_to_msg_str(param_snap["value"], param_snap["unit"])
+        # Omits printing of the date to make it more readable
+        if param_snap["ts"] is not None:
+            latest_str = param_snap["ts"][11:]
+        else:
+            latest_str = ""
+        param_node_key = f"{node_key}.{param_name}"
+        # If node does not yet exist, create a node
+        if param_node_key not in self.nodes:
+            param_node = QtGui.QTreeWidgetItem(
+                [param_name, value_str, unit, latest_str]
+            )
+            node.addChild(param_node)
+            self.nodes[param_node_key] = param_node
+        else:  # else update existing node
+            param_node = self.nodes[param_node_key]
+            param_node.setData(1, 0, value_str)
+            param_node.setData(2, 0, unit)
+            param_node.setData(3, 0, latest_str)
+
+    @staticmethod
+    def _remove_left(in_string, to_be_removed):
+        # Do not remove if to_be_removed matches the whole in_string
+        if in_string != to_be_removed:
+            try:
+                _, out_string = in_string.split(f"{to_be_removed}_", 1)
+                return out_string
+            except ValueError:
+                pass
+
+        return in_string
 
     def getNodes(self):
         return pprint.pformat(self.nodes)

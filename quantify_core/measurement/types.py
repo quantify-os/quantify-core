@@ -3,12 +3,14 @@
 """Module containing the core types for use with the MeasurementControl."""
 from jsonschema import Draft7Validator
 from jsonschema.validators import extend
+
 from quantify_core.utilities.general import load_json_schema
 
 
 class Settable:
     """
-    Defines the Settable concept, which is considered complete if the given type satisfies the following:
+    Defines the Settable concept, which is considered complete if the given type
+    satisfies the following:
     This class does not wrap the passed in object but simply verifies and returns it.
 
     .. jsonschema:: schemas/Settable.json#/attrs
@@ -24,7 +26,8 @@ class Settable:
 
 class Gettable:
     """
-    Defines the Gettable concept, which is considered complete if the given type satisfies the following:
+    Defines the Gettable concept, which is considered complete if the given type
+    satisfies the following:
     This class does not wrap the passed in object but simply verifies and returns it.
 
     .. jsonschema:: schemas/Gettable.json#/attrs
