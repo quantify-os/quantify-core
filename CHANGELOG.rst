@@ -5,7 +5,7 @@ Changelog
 0.5.1 (2021-11-01)
 ------------------
 
-Merged branched and closed issues
+Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Analysis - Automatically rotate Rabi data to the axis with the best SNR (#249, !223)
