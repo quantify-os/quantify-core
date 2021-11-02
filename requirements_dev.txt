@@ -37,3 +37,7 @@ qcodes>=0.28.0 # document Parameter attributes
 scikit-learn
 scikit-optimize
 quantify-scheduler # used to generate schedule example in the dataset design docs
+
+# Prospector
+prospector
+prospector[with_mypy]
