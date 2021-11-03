@@ -780,12 +780,12 @@ def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     :
         A warning message if there is a problem with the fit.
     """
-    if fit_res.success is False:
+    if fit_res.success == False:
         fit_warning = "fit failed. lmfit was not able to fit the data."
         warnings.warn(fit_warning)
         return "Warning: " + fit_warning
 
-    if fit_res.errorbars is False:
+    if fit_res.errorbars == False:
         fit_warning = (
             "lmfit could not find a good fit. Fitted parameters may not be accurate."
         )
