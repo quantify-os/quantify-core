@@ -2,25 +2,44 @@
 Changelog
 =========
 
-Unreleased
-----------
+0.5.1 (2021-11-01)
+------------------
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Analysis - Automatically rotate Rabi data to the axis with the best SNR (#249, !223)
 * Analysis - Added support for calibration points to rotate and scale data to a calibrated axis for single-qubit timedomain experiments (T1, Echo, Ramsey and AllXY) (#227,  !219)
 * Analysis - Added extra constraints to fits for T1, Echo and Ramsey when using a calibrated axis (T1, Echo, Ramsey) (#236,  !219)
 * Analysis - Removed requirement for data on which to perform timedomain analysis to be acquired in radial coordinates (#227, !213).
 * Analysis - Removed positive amplitude constraint from Rabi analysis (!213).
+* Analysis - Detect calibration points automatically for single qubit time-domain experiments (!234)
+* Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
+* Docs - Added notebook_to_jupyter_sphinx sphinx extension converter for tutorials writing (!220).
+* Docs - Add qcodes parameters docs to sphinx build (!255)
+* Docs - Adds a notebook to jupyter sphinx converter for tutorials writing. (!220)
+* MeasurementControl - Added representation with summary of settables, gettables and setpoints (!222).
+* MeasurementControl - Added lazy_set functionality to avoid setting settables to same value (#261, !233).
+* InstrumentMonitor - Extended Instrument Monitor to handle submodules and channels (#213, !226).
+* Data - Adopted new specification for dataset v2.0 format. (!224)
+* Infrastructure - Adds additional pre-commit and pre-push hooks (!254)
+* Infrastructure - Ensure line endings are always committed with unix-like style (!227)
+* Visualization - Factor out plotmon refresh from MeasurementControl (!248)
 * Bugfix - Solved a bug where a fit would fail for a Ramsey experiment with negative values (#246, !219)
-* Bugfix - Rabi analysis for negative signal amplitudes can now converge.
+* Bugfix - Rabi analysis for negative signal amplitudes can now converge. (!213)
 * Bugfix - Fixed divide by 0 warning in resonator spectroscopy analysis (!216).
 * Bugfix - Fixed snapshot failing for qcodes instruments with dead weakrefs (!221).
 * Bugfix - load_settings_onto_instrument does not try to set parameters to None if they are already None (#232, !225)
-* Docs - Added bibliography with sphinxcontrib-bibtex extension (!207).
-* MeasurementControl - Added representation with summary of settables, gettables and setpoints (!222).
-* InstrumentMonitor - Extended Instrument Monitor to handle submodules and channels (#213, !226).
-* Docs - Added notebook_to_jupyter_sphinx sphinx extension converter for tutorials writing (!220).
-* MeasurementControl - Added lazy_set functionality to avoid setting settables to same value (#261, !233).
-* Analysis - Detect calibration points automatically for single qubit time-domain experiments (!234)
+* Bugfix - replace OrderedDict with dict (!237)
+* Bugfix - Fixes to utilities.general and function rename (!232)
+* Bugfix - Fixes temporarily the funcparserlib failing rtd. (!249)
+* Bugfix - alpha settings_overwrite["mpl_transparent_background"] = False (!236)
+* Bugfix - Ramsey analysis cal points (!235)
+* Bugfix - Ensures MeasurementControl representation works even when instruments are closed/freshly instantiated. (follow up from !226) (!229)
+* Bugfix - fix snapshot for dead instruments (!221)
+* Bugfix - The load_settings_onto_instrument function no longer attempts to set a QCoDeS parameter to None in certain cases. (!225)
+* Bugfix - Fix filelock logging (!238)
+* Bugfix - Fix divide by 0 which gives warning in resonator analysis (!216)
 
 0.5.0 (2021-08-06)
 ------------------

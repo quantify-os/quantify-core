@@ -42,28 +42,25 @@ class InstrumentMonitor(Instrument):
             Switch to use a remote instance of the pyqtgraph class.
         """
         super().__init__(name=name)
-        self.add_parameter(
-            "update_interval",
+        self.update_interval = ManualParameter(
             unit="s",
             vals=vals.Numbers(min_value=0.001),
             initial_value=5,
-            parameter_class=ManualParameter,
-            docstring=(
-                "Only update the window if this amount of time has passed since last "
-                "last update."
-            ),
+            name="update_interval",
+            instrument=self,
         )
-        self.add_parameter(
-            "update_snapshot",
+        """Only update the window if this amount of time has passed since last last
+        update."""
+
+        self.update_snapshot = ManualParameter(
             initial_value=False,
-            parameter_class=ManualParameter,
             vals=vals.Bool(),
-            docstring=(
-                "Set to True in order to query the instruments about the each "
-                "parameter before updating the window. Can be slow due to "
-                "communication overhead."
-            ),
+            name="update_snapshot",
+            instrument=self,
         )
+        """Set to True in order to query the instruments about each parameter before
+        updating the window. Can be slow due to communication overhead."""
+
         if remote:
             if not self.__class__.proc:
                 self._init_qt()
