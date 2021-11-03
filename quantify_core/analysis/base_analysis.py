@@ -761,7 +761,7 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
 
     return ufloat(value, stderr)
 
-
+# pylint: disable=singleton-comparison
 def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     """
     Check that `lmfit` was able to successfully return a valid fit, and give
