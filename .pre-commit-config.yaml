@@ -85,7 +85,7 @@ repos:
         name: Python code autoformatter [black]
         language_version: python3
         entry: black
-        args: ["--check", "--fast"]
+        args: ["--fast"]
         stages: [commit]
         language: python
         types: [python]
