@@ -762,7 +762,6 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     return ufloat(value, stderr)
 
 
-# pylint: disable=singleton-comparison
 def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     """
     Check that `lmfit` was able to successfully return a valid fit, and give
@@ -781,12 +780,12 @@ def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     :
         A warning message if there is a problem with the fit.
     """
-    if fit_res.success == False:
+    if not fit_res.success:
         fit_warning = "fit failed. lmfit was not able to fit the data."
         warnings.warn(fit_warning)
         return "Warning: " + fit_warning
 
-    if fit_res.errorbars == False:
+    if not fit_res.errorbars:
         fit_warning = (
             "lmfit could not find a good fit. Fitted parameters may not be accurate."
         )
