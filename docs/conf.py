@@ -21,6 +21,12 @@
 import os
 import sys
 
+# qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
+# here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
+import lmfit  # related to quantify-core#218 and quantify-core#221
+import marshmallow
+import qcodes
+
 package_path = os.path.abspath("..")
 sys.path.insert(0, package_path)
 
@@ -137,6 +143,21 @@ napoleon_include_init_with_doc = True
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
+
+
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+
+# the white text fits better with the current sphinx theme
+# both files are in the repository
+# html_logo = "images/QUANTIFY-LOGO.svg"
+html_logo = "images/QUANTIFY-LOGO-WHITE-TEXT.svg"
+
+# The name of an image file (within the static path) to use as favicon of the
+# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# pixels large.
+html_favicon = "images/QUANTIFY-FAVICON_16.png"
+
 
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.  For a list of options available for each theme, see the
@@ -268,11 +289,6 @@ if os.environ.get("GITLAB_CI", "false") == "true":
 # https://github.com/QCoDeS/Qcodes/pull/2909
 # but the issues popped up again, so this is the best and easier solution so far
 
-# qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
-# here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
-import lmfit  # related to quantify-core#218 and quantify-core#221
-import marshmallow
-import qcodes
 
 # When building the docs we need `typing.TYPE_CHECKING` to be `True` so that the
 # sphinx' kernel loads the modules corresponding to the typehints and is able to

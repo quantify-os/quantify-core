@@ -24,7 +24,7 @@ black
 pylint
 pre-commit
 pre-commit-hooks # common hooks for git repos
-isort # sort python imports
+isort>=5.10.0 # sort python imports
 
 scanpydoc>=0.7.1 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
 docutils<0.17 # pinned due to issue #175
