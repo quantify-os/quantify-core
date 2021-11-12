@@ -6,9 +6,10 @@ import warnings
 
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
+from pyqtgraph.Qt import QtCore
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
 from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import ManualParameter
+from qcodes.instrument.parameter import ManualParameter, Parameter
 from qcodes.utils import validators as vals
 from qcodes.utils.helpers import strip_attrs
 
@@ -42,14 +43,15 @@ class InstrumentMonitor(Instrument):
             Switch to use a remote instance of the pyqtgraph class.
         """
         super().__init__(name=name)
-        self.update_interval = ManualParameter(
+        self.update_interval = Parameter(
+            get_cmd=lambda : self._update_interval,
+            set_cmd=self._set_update_interval,
             unit="s",
             vals=vals.Numbers(min_value=0.001),
-            initial_value=5,
             name="update_interval",
             instrument=self,
         )
-        """Only update the window if this amount of time has passed since last last
+        """Only update the window if this amount of time has passed since the last
         update."""
 
         self.update_snapshot = ManualParameter(
@@ -60,7 +62,7 @@ class InstrumentMonitor(Instrument):
         )
         """Set to True in order to query the instruments about each parameter before
         updating the window. Can be slow due to communication overhead."""
-
+        print("before not remote")
         if remote:
             if not self.__class__.proc:
                 self._init_qt()
@@ -69,12 +71,14 @@ class InstrumentMonitor(Instrument):
             self.rpg = pg
             self.rwidget = qc_snapshot_widget
 
+        print("after not remote")
         # initial value is fake but ensures it will update the first time
         self.last_update_time = 0
 
         for i in range(10):
             try:
                 self.create_widget(window_size=window_size)
+                print("widget created")
             except (ClosedError, ConnectionResetError) as e:
                 # the remote process might crash
                 if i >= 9:
@@ -83,6 +87,17 @@ class InstrumentMonitor(Instrument):
                 self._init_qt()
             else:
                 break
+
+        print(type(self.widget), type(self.widget))
+        # self.timer_update = QtCore.QTimer(self.widget)
+        # self.timer_update.timeout.connect(self.update)
+        self.update_interval(5)
+        print("finished init")
+
+    def _set_update_interval(self, value):
+        self._update_interval = value
+        # self.timer_update.stop()
+        # self.timer_update.start(1000 * value)
 
     def update(self, force: bool = False) -> None:
         """
@@ -96,8 +111,10 @@ class InstrumentMonitor(Instrument):
         force
             Forces an update ignoring the :code:`updated_interval`.
         """
+        print("not updating")
+        return
         time_since_last_update = time.time() - self.last_update_time
-        if force or time_since_last_update > self.update_interval():
+        if True or force or time_since_last_update > self.update_interval():
             self.last_update_time = time.time()
             # Take an updated, clean snapshot
             snap = snapshot(update=self.update_snapshot(), clean=True)
@@ -135,8 +152,9 @@ class InstrumentMonitor(Instrument):
             The size of the :class:`.InstrumentMonitor`
             window in px.
         """  # pylint: disable=line-too-long
-
+        print("before QcSnapshotWidget")
         self.widget = self.rwidget.QcSnapshotWidget()
+        print("after QcSnapshotWidget")
         self.update()
         self.widget.show()
         self.widget.setWindowTitle(self.name)

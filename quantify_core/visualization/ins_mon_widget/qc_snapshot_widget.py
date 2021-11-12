@@ -16,7 +16,9 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
     """
 
     def __init__(self, parent=None, data=None):
+        print("before super init")
         QtGui.QTreeWidget.__init__(self, parent)
+        print("after super init")
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setData(data)
         self.setColumnCount(4)
@@ -111,7 +113,7 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
             param_node.setData(3, 0, latest_str)
 
     @staticmethod
-    def _remove_left(in_string, to_be_removed):
+    def _remove_left(in_string, to_be_removed):  # todo: replace this method with str.removeprefix when at Python 3.9
         # Do not remove if to_be_removed matches the whole in_string
         if in_string != to_be_removed:
             try:
@@ -124,3 +126,7 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
 
     def getNodes(self):
         return pprint.pformat(self.nodes)
+
+    def closeEvent(self, event):
+        self.is_closed = True
+        print("closing!!!")
