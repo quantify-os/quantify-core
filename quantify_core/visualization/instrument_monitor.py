@@ -3,10 +3,10 @@
 """Module containing the pyqtgraph based plotting monitor."""
 import time
 import warnings
+from threading import Event, Lock, Thread
 
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
-from pyqtgraph.Qt import QtCore
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
 from qcodes.instrument.base import Instrument
 from qcodes.instrument.parameter import ManualParameter, Parameter
@@ -28,7 +28,13 @@ class InstrumentMonitor(Instrument):
     proc = None
     rpg = None
 
-    def __init__(self, name, window_size: tuple = (600, 600), remote: bool = True):
+    def __init__(
+        self,
+        name,
+        window_size: tuple = (600, 600),
+        remote: bool = True,
+        update_interval: int = 5,
+    ):
         """
         Initializes the pyqtgraph window.
 
@@ -41,10 +47,12 @@ class InstrumentMonitor(Instrument):
             window in px.
         remote
             Switch to use a remote instance of the pyqtgraph class.
+        update_interval
+            Interval in seconds between two updates
         """
         super().__init__(name=name)
         self.update_interval = Parameter(
-            get_cmd=lambda : self._update_interval,
+            get_cmd=self._get_update_interval,
             set_cmd=self._set_update_interval,
             unit="s",
             vals=vals.Numbers(min_value=0.001),
@@ -62,7 +70,6 @@ class InstrumentMonitor(Instrument):
         )
         """Set to True in order to query the instruments about each parameter before
         updating the window. Can be slow due to communication overhead."""
-        print("before not remote")
         if remote:
             if not self.__class__.proc:
                 self._init_qt()
@@ -71,14 +78,13 @@ class InstrumentMonitor(Instrument):
             self.rpg = pg
             self.rwidget = qc_snapshot_widget
 
-        print("after not remote")
-        # initial value is fake but ensures it will update the first time
-        self.last_update_time = 0
+        self._update_lock = Lock()
+        self._update_thread = RepeatTimer(update_interval, self._update)
+        self._update_thread.start()
 
         for i in range(10):
             try:
                 self.create_widget(window_size=window_size)
-                print("widget created")
             except (ClosedError, ConnectionResetError) as e:
                 # the remote process might crash
                 if i >= 9:
@@ -88,44 +94,28 @@ class InstrumentMonitor(Instrument):
             else:
                 break
 
-        print(type(self.widget), type(self.widget))
-        # self.timer_update = QtCore.QTimer(self.widget)
-        # self.timer_update.timeout.connect(self.update)
-        self.update_interval(5)
-        print("finished init")
+    def _get_update_interval(self):
+        return self._update_thread.interval
 
     def _set_update_interval(self, value):
-        self._update_interval = value
-        # self.timer_update.stop()
-        # self.timer_update.start(1000 * value)
+        self._update_thread.interval = value
 
-    def update(self, force: bool = False) -> None:
+    def _update(self) -> None:
         """
         Updates the Qc widget with the current snapshot of the instruments.
-        This function is also called within the class
-        :class:`.MeasurementControl`
-        in the function :meth:`.MeasurementControl.run`.
-
-        Parameters
-        ----------
-        force
-            Forces an update ignoring the :code:`updated_interval`.
         """
-        print("not updating")
-        return
-        time_since_last_update = time.time() - self.last_update_time
-        if True or force or time_since_last_update > self.update_interval():
-            self.last_update_time = time.time()
-            # Take an updated, clean snapshot
-            snap = snapshot(update=self.update_snapshot(), clean=True)
-            try:
-                self.widget.setData(snap["instruments"])
-            except AttributeError as e:
-                # This is to catch any potential pickling problems with the snapshot.
-                # We do so by converting all lowest elements of the snapshot to string.
-                snap_collated = traverse_dict(snap["instruments"])
-                self.widget.setData(snap_collated)
-                warnings.warn(f"Encountered: {e}", Warning)
+        if not self._update_lock.locked():  # skip if already updating instead of waiting for lock to be released
+            with self._update_lock:
+                # Take an updated, clean snapshot
+                snap = snapshot(update=self.update_snapshot(), clean=True)
+                try:
+                    self.widget.setData(snap["instruments"])
+                except AttributeError as e:
+                    # This is to catch any potential pickling problems with the snapshot.
+                    # We do so by converting all lowest elements of the snapshot to string.
+                    snap_collated = traverse_dict(snap["instruments"])
+                    self.widget.setData(snap_collated)
+                    warnings.warn(f"Encountered: {e}", Warning)
 
     def _init_qt(self, timeout=60):
         # starting the process for the pyqtgraph plotting
@@ -152,10 +142,8 @@ class InstrumentMonitor(Instrument):
             The size of the :class:`.InstrumentMonitor`
             window in px.
         """  # pylint: disable=line-too-long
-        print("before QcSnapshotWidget")
         self.widget = self.rwidget.QcSnapshotWidget()
-        print("after QcSnapshotWidget")
-        self.update()
+        self._update()
         self.widget.show()
         self.widget.setWindowTitle(self.name)
         self.widget.resize(*window_size)
@@ -185,6 +173,8 @@ class InstrumentMonitor(Instrument):
         Subclasses should override this if they have other specific
         resources to close.
         """
+        self._update_thread.cancel()
+
         if hasattr(self, "connection") and hasattr(self.connection, "close"):
             self.connection.close()
 
@@ -194,3 +184,40 @@ class InstrumentMonitor(Instrument):
 
         strip_attrs(self, whitelist=["_name"])
         self.remove_instance(self)
+
+
+class RepeatTimer(Thread):
+    def __init__(self, interval, function, args=None, kwargs=None):
+        super().__init__()
+        self.function = function
+        self.args = args if args is not None else []
+        self.kwargs = kwargs if kwargs is not None else {}
+        self.finished = Event()
+        self._paused = Event()
+        self._interval_lock = Lock()
+        self.interval = interval
+
+    def run(self):
+        while not self.finished.wait(self.interval):
+            if not self._paused.is_set():
+                self.function(*self.args, **self.kwargs)
+
+    def cancel(self):
+        """Stop the timer if it hasn't finished yet."""
+        self.finished.set()
+
+    def pause(self):
+        self._paused.set()
+
+    def unpause(self):
+        self._paused.clear()
+
+    @property
+    def interval(self):
+        with self._interval_lock:  # not completely sure if an instance attribute is atomic, so let's be sure
+            return self._interval
+
+    @interval.setter
+    def interval(self, value):
+        with self._interval_lock:  # not completely sure if an instance attribute is atomic, so let's be sure
+            self._interval = value

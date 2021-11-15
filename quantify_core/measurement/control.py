@@ -123,14 +123,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """Instrument responsible for live plotting. Can be set to ``None`` to disable
         live plotting."""
 
-        self.instrument_monitor = InstrumentRefParameter(
-            vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
-            instrument=self,
-            name="instrument_monitor",
-        )
-        """Instrument responsible for live monitoring summarized snapshot. Can be set to
-        ``None`` to disable monitoring of snapshot."""
-
         self.update_interval = ManualParameter(
             initial_value=0.5,
             vals=vals.Numbers(min_value=0.1),
@@ -575,9 +567,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self.print_progress(print_message)
 
             self._safe_write_dataset()
-
-            if self.instrument_monitor():
-                self.instrument_monitor.get_instr().update()
 
             self._last_upd = time.time()
 
