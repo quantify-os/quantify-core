@@ -10,7 +10,7 @@ class StopWatchGettable:
     Gettable used to track time elapsed per acquisition.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "dt"
         self.label = r"$\Delta T$"
         self.unit = "s"

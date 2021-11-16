@@ -1,3 +1,7 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+
 import tempfile
 
 import matplotlib.pyplot as plt
@@ -10,7 +14,7 @@ from quantify_core.visualization.mpl_plotting import set_cyclic_colormap
 dh.set_datadir(tempfile.TemporaryDirectory().name)
 
 
-def test_set_cyclic_colormap():
+def test_set_cyclic_colormap() -> None:
     zvals = xr.DataArray(np.random.rand(6, 10) * 360.0)
     zvals.attrs["units"] = "deg"
 

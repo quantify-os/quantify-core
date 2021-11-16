@@ -20,14 +20,14 @@ from quantify_core.visualization.SI_utilities import (
 )
 
 
-def test_non_si():
+def test_non_si() -> None:
     unit = "arb.unit."
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5, unit=unit)
     assert scale_factor == 1
     assert unit == post_unit
 
 
-def test_si_scale_factors():
+def test_si_scale_factors() -> None:
     unit = "V"
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5, unit=unit)
     assert scale_factor == 1
@@ -42,7 +42,7 @@ def test_si_scale_factors():
     assert "m" + unit == post_unit
 
 
-def test_label_scaling():
+def test_label_scaling() -> None:
     """
     This test creates a dummy plot and checks if the tick labels are
     rescaled correctly
@@ -61,7 +61,7 @@ def test_label_scaling():
     assert ylab == "Amplitude [μV]"
 
 
-def test_si_val_to_msg_str():
+def test_si_val_to_msg_str() -> None:
     val, unit = SI_val_to_msg_str(1030, "m")
     assert val == str(1.03)
     assert unit == "km"
@@ -71,13 +71,13 @@ BASE_STR = "my_test_values_{:.2f}_{:.3f}"
 fmt = SafeFormatter()
 
 
-def test_safe_formatter():
+def test_safe_formatter() -> None:
 
     fmt_string = fmt.format(BASE_STR, 4, 4.32497)
     assert fmt_string == "my_test_values_4.00_4.325"
 
 
-def test_safe_formatter_missing():
+def test_safe_formatter_missing() -> None:
     fmt_string = fmt.format(BASE_STR, 4, None)
     assert fmt_string == "my_test_values_4.00_~~"
     fmt_custom = SafeFormatter(missing="?")
@@ -85,7 +85,7 @@ def test_safe_formatter_missing():
     assert fmt_string == "my_test_values_4.00_?"
 
 
-def test_safe_formatter_bad_format():
+def test_safe_formatter_bad_format() -> None:
     fmt_string = fmt.format(BASE_STR, 4, "myvalue")
     assert fmt_string == "my_test_values_4.00_!!"
 
@@ -94,14 +94,14 @@ def test_safe_formatter_bad_format():
     assert fmt_string == "my_test_values_4.00_!"
 
 
-def test_save_formatter_named_args():
+def test_save_formatter_named_args() -> None:
     plot_title = fmt.format(
         "{measurement}\n{timestamp}", timestamp="190101_001122", measurement="test"
     )
     assert plot_title == "test\n190101_001122"
 
 
-def test_format_value_string():
+def test_format_value_string() -> None:
     """
     If no stderr is given, display to 5 significant figures. Otherwise, use
     a precision one order of magnitude more precise
@@ -150,7 +150,7 @@ def test_format_value_string():
     assert formatted_string == r"tau: 7767$\pm$36 "
 
 
-def test_format_value_string_unit_aware():
+def test_format_value_string_unit_aware() -> None:
     """
     If no stderr is given, display to 5 significant figures in the appropriate units.
     Otherwise, the stderr use a precision one order of magnitude more precise than the
@@ -186,7 +186,7 @@ def test_format_value_string_unit_aware():
     assert formatted_string == r"tau: 5123$\pm$10 "
 
 
-def test_value_precision():
+def test_value_precision() -> None:
     """
     The precision should be 5 significant figures if there is no stderr.
     Otherwise the precision should be one order of magnitude  more precise than
@@ -204,7 +204,7 @@ def test_value_precision():
     assert format_specifier == ("{:.0f}", "{:.0f}")
 
 
-def test_format_value_ufloat():
+def test_format_value_ufloat() -> None:
     tau = uncertainties.ufloat(2.0, 0.1)
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 2.00$\pm$0.10 "

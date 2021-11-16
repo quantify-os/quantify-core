@@ -1,7 +1,11 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+
 from quantify_core.utilities.general import delete_keys_from_dict, make_hash
 
 
-def test_delete_keys_from_dict():
+def test_delete_keys_from_dict() -> None:
 
     test_dict = {"a": 5, "b": 6, "c": {"D": 4, "E": 8}}
 
@@ -9,12 +13,16 @@ def test_delete_keys_from_dict():
     test_dict = delete_keys_from_dict(test_dict, {"a"})
     assert "a" not in test_dict.keys()
 
+    assert isinstance(test_dict["c"], dict)
     assert "D" in test_dict["c"].keys()
+
     test_dict = delete_keys_from_dict(test_dict, {"D"})
+
+    assert isinstance(test_dict["c"], dict)
     assert "D" not in test_dict["c"].keys()
 
 
-def test_make_hash():
+def test_make_hash() -> None:
 
     my_test_dict = {"a": 5, "nested_dict": {"a": 2, "c": 4, "B": "str"}, "b": 24}
 
