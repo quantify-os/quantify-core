@@ -40,6 +40,7 @@ Merged branches and closed issues
 * Bugfix - The load_settings_onto_instrument function no longer attempts to set a QCoDeS parameter to None in certain cases. (!225)
 * Bugfix - Fix filelock logging (!238)
 * Bugfix - Fix divide by 0 which gives warning in resonator analysis (!216)
+* Bugfix - Fix a bug in adjust_axeslabels_SI where it would update a label if no unit was provided (!272)
 
 0.5.0 (2021-08-06)
 ------------------
