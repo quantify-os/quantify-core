@@ -19,7 +19,7 @@ uncertainties
 # placed here to avoid errors when users download tutorials
 directory-tree>=0.0.2
 pendulum  # used for timestamps formatting in the dataset attributes
+dataclasses_json # used in dataset_attrs
 
 # tmp fixes
-
 funcparserlib==1.0.0a0 # https://github.com/vlasovskikh/funcparserlib/issues/69
