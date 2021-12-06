@@ -2,7 +2,14 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 
-from quantify_core.utilities.general import delete_keys_from_dict, make_hash
+import numpy as np
+
+from quantify_core.utilities.general import (
+    delete_keys_from_dict,
+    make_hash,
+    save_json,
+    load_json,
+)
 
 
 def test_delete_keys_from_dict() -> None:
@@ -47,3 +54,17 @@ def test_make_hash() -> None:
     my_test_dict["efg"] = 15
     new_hash = make_hash(my_test_dict)
     assert test_hash != new_hash
+
+
+def test_save_load_json(tmp_test_data_dir) -> None:
+    data = {"snap": 1, "snap2": "str", "dat": np.array([1.0, 3.14, 5])}
+    save_json(directory=tmp_test_data_dir, filename="test_save.json", data=data)
+    loaded_data = load_json(full_path=tmp_test_data_dir / "test_save.json")
+
+    assert data.keys() == loaded_data.keys()
+
+    for key, value in data.items():
+        if isinstance(value, np.ndarray):
+            np.testing.assert_array_almost_equal(value, loaded_data.get("dat"))
+        else:
+            assert value == loaded_data.get(key)

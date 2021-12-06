@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Data - Introduced a QuantifyExperiment class within the data.experiment module to separate data handling responsibilities from MeasurementControl. (!273, !274)
+
+
 0.5.1 (2021-11-01)
 ------------------
 
