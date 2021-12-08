@@ -12,7 +12,7 @@ from distutils.version import LooseVersion as V
 import appnope
 
 
-def requires_appnope():
+def requires_appnope() -> bool:
     """
     Used to check if `appnope` is necessary
     """
@@ -20,7 +20,7 @@ def requires_appnope():
     return (sys.platform == "darwin") and V(platform.mac_ver()[0]) > V("10.9")
 
 
-def refresh_nope():
+def refresh_nope() -> None:
     """
     Communicate to the macOS that the process needs to stay awake
     and must not be sent to App Nap.
