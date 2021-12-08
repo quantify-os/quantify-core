@@ -399,7 +399,7 @@ def mk_surface7_sched(num_cycles: int = 3):
     """
 
     from quantify_scheduler import Schedule
-    from quantify_scheduler.gate_library import CZ, Y90, Measure, Reset, X
+    from quantify_scheduler.operations.gate_library import CZ, Y90, Measure, Reset, X
 
     sched = Schedule("S7 dance")
 

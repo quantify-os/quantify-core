@@ -1,3 +1,11 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=unused-argument
+# pylint: disable=no-self-use
+
+from typing import Any
+
 import pytest
 from jsonschema import ValidationError
 from qcodes import ManualParameter, Parameter
@@ -5,12 +13,12 @@ from qcodes import ManualParameter, Parameter
 from quantify_core.measurement.types import Gettable, Settable
 
 
-def test_settable():
+def test_settable() -> None:
     x = 5
     with pytest.raises(ValidationError):
         Settable(x)
 
-    def test_func(x):
+    def test_func(x: Any) -> int:
         return 5
 
     with pytest.raises(ValidationError):
@@ -27,7 +35,7 @@ def test_settable():
     Settable(std_par)
 
     class NoName:
-        def set(self):
+        def set(self) -> None:
             return
 
         unit = "no_name"
@@ -36,37 +44,37 @@ def test_settable():
         Settable(NoName())
 
 
-def test_attrs_as_property_decorator():
+def test_attrs_as_property_decorator() -> None:
     class SettableWithProperties:
-        def __init__(self):
+        def __init__(self) -> None:
             self.name = "bla"
             self._label = "x"
             self._unit = "V"
 
         @property
-        def label(self):
+        def label(self) -> str:
             return self._label
 
         @property
-        def batched(self):
+        def batched(self) -> bool:
             return False
 
         @property
-        def unit(self):
+        def unit(self) -> str:
             return self._unit
 
-        def set(self, value):
+        def set(self, value: Any) -> None:
             pass
 
     Settable(SettableWithProperties())
 
 
-def test_gettable():
+def test_gettable() -> None:
     x = 5
     with pytest.raises(ValidationError):
         Gettable(x)
 
-    def test_func():
+    def test_func() -> int:
         return 5
 
     with pytest.raises(ValidationError):

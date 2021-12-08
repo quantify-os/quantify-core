@@ -24,6 +24,7 @@ from qcodes import validators as vals
 from qcodes.instrument.parameter import InstrumentRefParameter, ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 
+from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
     DATASET_NAME,
     _is_uniformly_spaced_array,
@@ -157,9 +158,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._last_upd = time.time()
         self._batch_size_last = None
 
-        # variables used for persistence and plotting
+        # variables used for persistence, plotting and data handling
         self._dataset = None
         self._exp_folder: Path = None
+        self._experiment = None
         self._plotmon_name = ""
         # attributes named as if they are python attributes, e.g. dset.drid_2d == True
         self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
@@ -251,6 +253,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         tuid = self._dataset.attrs["tuid"]
 
         self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
+        self._experiment = QuantifyExperiment(tuid=tuid)
         self._safe_write_dataset()  # Write the empty dataset
 
         if self.instr_plotmon():
@@ -258,8 +261,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self.instr_plotmon.get_instr().update(tuid=tuid)
 
         snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        with open(self._exp_folder / "snapshot.json", "w", encoding="utf-8") as file:
-            json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
+        self._experiment.save_snapshot(snap)
 
     def run(
         self, name: str = "", soft_avg: int = 1, lazy_set: Optional[bool] = None
@@ -706,13 +708,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         Locking files are written into a temporary dir to avoid polluting
         the experiment container.
         """
-        filename = self._exp_folder / DATASET_NAME
         # Multiprocess safe
         lockfile = (
             _DATASET_LOCKS_DIR / f"{self._dataset.attrs['tuid']}-{DATASET_NAME}.lock"
         )
         with FileLock(lockfile, 5):
-            write_dataset(path=filename, dataset=self._dataset)
+            self._experiment.write_dataset(self._dataset)
 
     ####################################
     # Non-parameter get/set functions  #

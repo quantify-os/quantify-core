@@ -1,0 +1,45 @@
+# This config file is used in Prospector to determine which tools
+# are run within Codacy.
+
+mypy:
+  run: true
+  options:
+    ignore-missing-imports: true
+    disallow-untyped-defs: true
+
+dodgy:
+  run: true
+
+mccabe:
+  run: true
+
+pydocstyle:
+  run: true
+
+
+# Disable other tools that are run directly by codacy,
+# or not selected in default prospector of Codacy at migration time
+bandit:
+  run: false
+
+# Codacy has its' own pylint stage.
+pylint:
+  run: false
+
+frosted:
+  run: false
+
+pep257:
+  run: false
+
+pep8:
+  run: false
+
+pyflakes:
+  run: false
+
+pyroma:
+  run: false
+
+vulture:
+  run: false
