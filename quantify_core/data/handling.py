@@ -9,13 +9,14 @@ import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Dict, Optional
 from uuid import uuid4
 
 import numpy as np
 import xarray as xr
 from dateutil.parser import parse
 from qcodes import Instrument
+from quantify_core.data.dataset_attrs import QCoordAttrs
 
 import quantify_core.data.dataset_adapters as da
 from quantify_core.data.types import TUID
@@ -551,6 +552,171 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
             break
 
     return dataset
+
+
+def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
+    """
+    This function takes in a list of TUIDs and concatenates the corresponding datasets. It adds the TUIDs as a
+    coordinate in the new dataset.
+
+    Parameters
+    ----------
+    tuids:
+        List of TUIDs.
+    dim:
+        Dimension along which to concatenate the datasets.
+
+    Returns
+    -------
+        Concatenated dataset with new TUID and references to the old TUIDs.
+
+    """
+    dataset_list = []
+    extended_tuids = []
+    for j, tuid in enumerate(reversed(tuids)):
+        dataset = load_dataset(tuid)
+        dataset.attrs["tuid"] = None
+        dataset_list.append(dataset)
+        for i in range(len(dataset.dim_0)):
+            extended_tuids.insert(-j, tuid)
+
+    new_dataset = xr.concat(dataset_list, dim=dim, combine_attrs="no_conflicts")
+    new_coord = {
+        f"concat_tuids": (
+            dim,
+            extended_tuids,
+            QCoordAttrs(
+                is_main_coord=True, long_name="concatenated_tuids", is_dataset_ref=True
+            ).to_dict(),
+        )
+    }
+    new_dataset = new_dataset.assign_coords(new_coord)
+    new_dataset.attrs["tuid"] = gen_tuid()
+    return new_dataset
+
+
+def get_varying_parameter(tuids, varying_parameter) -> np.ndarray:
+    """
+
+    Parameters
+    ----------
+    tuids
+    varying_parameter
+
+    Returns
+    -------
+
+    """
+    value = []
+    for tuid in tuids:
+        snapshot = load_snapshot(tuid)
+        value.append(
+            snapshot["instruments"][varying_parameter["instrument"]]["parameters"][
+                varying_parameter["parameter"]
+            ]["value"]
+        )
+    values = np.array(value)
+
+    return values
+
+
+def multi_experiment_data_extractor(
+    varying_parameter: Dict[str, Dict[str, str]],
+    experiments: Union[str, List[str]],
+    new_name: Optional[str] = None,
+    t_start: Optional[str] = None,
+    t_stop: Optional[str] = None,
+) -> xr.Dataset:
+    """
+    A data extraction function which loops through multiple quantify data directories
+    and extracts the selected varying parameter value and corresponding datasets, then
+    compiles this data into a single dataset for further analysis.
+
+    Parameters
+    -----------
+    t_start:
+        Datetime to search from, inclusive. If a string is specified, it will be
+        converted to a datetime object using :obj:`~dateutil.parser.parse`.
+        If no value is specified, will use the year 1 as a reference t_start.
+    t_stop:
+        Datetime to search until, exclusive. If a string is specified, it will be
+        converted to a datetime object using :obj:`~dateutil.parser.parse`.
+        If no value is specified, will use the current time as a reference t_stop.
+    varying_parameter:
+        The parameter which is varied over the experiments.
+    experiments:
+        The experiments to be included in the new dataset.
+    new_name:
+        The name of the new multifile dataset. If no new name is given, it will use
+        the name of the first experiment given in the experiments variable.
+
+    Returns
+    -----------
+    new_dataset:
+        The compiled quantify dataset.
+    """
+
+    # Get the tuids of the relevant experiments
+    tuids = []
+
+    if isinstance(experiments, str):
+        tuids += get_tuids_containing(experiments, t_start=t_start, t_stop=t_stop)
+        if new_name is None:
+            new_name = experiments
+    elif isinstance(experiments, List):
+        for experiment in experiments:
+            if isinstance(experiment, str):
+                tuids += get_tuids_containing(
+                    experiment, t_start=t_start, t_stop=t_stop
+                )
+            else:
+                raise ValueError(
+                    f"experiments variable should be either a string or a list of strings. {experiment} "
+                    f"is not a string."
+                )
+        if new_name is None:
+            new_name = experiments[0]
+    else:
+        raise ValueError(
+            "experiments variable should be either a string or a list of strings"
+        )
+
+    tuids.sort()
+
+    # Get the new dataset containing all selected experiments
+    new_dataset = concat_dataset(tuids)
+
+    # Get the varying parameter from the snapshot.json file
+    varying_parameter_values = get_varying_parameter(tuids, varying_parameter)
+
+    # Extend the varying parameter such that the dimensions line up with the new dataset
+    varying_parameter_values_extended = np.repeat(
+        varying_parameter_values, len(new_dataset.dim_0) // len(tuids)
+    )
+
+    # Set the varying parameter as a new coordinate
+    nr_existing_coords = len(new_dataset.coords)
+    coords = {
+        f"x{nr_existing_coords - 1}": (
+            "dim_0",
+            varying_parameter_values_extended,
+            QCoordAttrs(
+                is_main_coord=True, long_name=varying_parameter["long_name"]
+            ).to_dict(),
+        ),
+    }
+    new_dataset = new_dataset.assign_coords(coords)
+
+    # Set new attributes such as name and TUID
+    new_attrs = {
+        "grid_2d": True,
+        "name": f"{new_name}",
+        "tuid": f"{gen_tuid()}]",
+        "xlen": len(new_dataset.dim_0) // len(tuids),
+        "ylen": len(tuids),
+    }
+    new_dataset = new_dataset.assign_attrs(new_attrs)
+    return new_dataset
 
 
 def to_gridded_dataset(
