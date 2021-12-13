@@ -571,14 +571,24 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         Concatenated dataset with new TUID and references to the old TUIDs.
 
     """
+    if isinstance(tuids, List):
+        for tuid in tuids:
+            if not isinstance(tuid, str):
+                raise TypeError(
+                    f"tuids should be a list of strings, {tuid} is not a string"
+                )
+    else:
+        raise TypeError(f"tuids should be a list of strings. {tuids} is not a list")
+
     dataset_list = []
     extended_tuids = []
-    for j, tuid in enumerate(reversed(tuids)):
+    # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can be made
+    for tuid in tuids:
         dataset = load_dataset(tuid)
+        # Set dataset attribute 'tuid' to None to resolve conflicting tuids between the loaded datasets
         dataset.attrs["tuid"] = None
         dataset_list.append(dataset)
-        for i in range(len(dataset.dim_0)):
-            extended_tuids.insert(-j, tuid)
+        extended_tuids += [tuid] * len(dataset[f"{dim}"])
 
     new_dataset = xr.concat(dataset_list, dim=dim, combine_attrs="no_conflicts")
     new_coord = {
@@ -595,34 +605,55 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
     return new_dataset
 
 
-def get_varying_parameter(tuids, varying_parameter) -> np.ndarray:
+def get_varying_parameter_values(
+    tuids: List[str], varying_parameter: Dict[str, str]
+) -> np.ndarray:
     """
 
     Parameters
     ----------
-    tuids
-    varying_parameter
+    tuids:
+        The list of TUIDs from which to get the varying parameter.
+    varying_parameter:
+        The varying_parameter for which to get the values.
+        ex
 
     Returns
     -------
-
+    values:
+        The values of the varying parameter.
     """
     value = []
+    if isinstance(tuids, List):
+        for tuid in tuids:
+            if not isinstance(tuid, str):
+                raise TypeError(
+                    f"tuids should be a list of strings, {tuid} is not a string"
+                )
+    else:
+        raise TypeError(f"tuids should be a list of strings. {tuids} is not a list")
+
     for tuid in tuids:
-        snapshot = load_snapshot(tuid)
-        value.append(
-            snapshot["instruments"][varying_parameter["instrument"]]["parameters"][
-                varying_parameter["parameter"]
-            ]["value"]
-        )
+        try:
+            snapshot = load_snapshot(tuid)
+            value.append(
+                snapshot["instruments"][varying_parameter["instrument"]]["parameters"][
+                    varying_parameter["parameter"]
+                ]["value"]
+            )
+        except FileNotFoundError as fnf_error:
+            raise FileNotFoundError(fnf_error)
+        except KeyError as key_error:
+            print("Check the varying parameter you put in.")
+            raise KeyError(f"Check the varying parameter you put in.\n {key_error}")
     values = np.array(value)
 
     return values
 
 
 def multi_experiment_data_extractor(
-    varying_parameter: Dict[str, Dict[str, str]],
-    experiments: Union[str, List[str]],
+    varying_parameter: Dict[str, str],
+    experiment: str,
     new_name: Optional[str] = None,
     t_start: Optional[str] = None,
     t_stop: Optional[str] = None,
@@ -644,8 +675,8 @@ def multi_experiment_data_extractor(
         If no value is specified, will use the current time as a reference t_stop.
     varying_parameter:
         The parameter which is varied over the experiments.
-    experiments:
-        The experiments to be included in the new dataset.
+    experiment:
+        The experiment to be included in the new dataset.
     new_name:
         The name of the new multifile dataset. If no new name is given, it will use
         the name of the first experiment given in the experiments variable.
@@ -659,26 +690,13 @@ def multi_experiment_data_extractor(
     # Get the tuids of the relevant experiments
     tuids = []
 
-    if isinstance(experiments, str):
-        tuids += get_tuids_containing(experiments, t_start=t_start, t_stop=t_stop)
+    if isinstance(experiment, str):
+        tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
         if new_name is None:
-            new_name = experiments
-    elif isinstance(experiments, List):
-        for experiment in experiments:
-            if isinstance(experiment, str):
-                tuids += get_tuids_containing(
-                    experiment, t_start=t_start, t_stop=t_stop
-                )
-            else:
-                raise ValueError(
-                    f"experiments variable should be either a string or a list of strings. {experiment} "
-                    f"is not a string."
-                )
-        if new_name is None:
-            new_name = experiments[0]
+            new_name = f"concat-{experiment}"
     else:
-        raise ValueError(
-            "experiments variable should be either a string or a list of strings"
+        raise TypeError(
+            f"experiment variable should be a string. {experiment} is not a string"
         )
 
     tuids.sort()
@@ -687,7 +705,7 @@ def multi_experiment_data_extractor(
     new_dataset = concat_dataset(tuids)
 
     # Get the varying parameter from the snapshot.json file
-    varying_parameter_values = get_varying_parameter(tuids, varying_parameter)
+    varying_parameter_values = get_varying_parameter_values(tuids, varying_parameter)
 
     # Extend the varying parameter such that the dimensions line up with the new dataset
     varying_parameter_values_extended = np.repeat(
@@ -711,7 +729,7 @@ def multi_experiment_data_extractor(
     new_attrs = {
         "grid_2d": True,
         "name": f"{new_name}",
-        "tuid": f"{gen_tuid()}]",
+        "tuid": f"{gen_tuid()}",
         "xlen": len(new_dataset.dim_0) // len(tuids),
         "ylen": len(tuids),
     }

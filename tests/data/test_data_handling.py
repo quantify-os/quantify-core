@@ -583,7 +583,6 @@ def test_load_analysis_output_files(tmp_test_data_dir):
 
 
 def test_is_uniformly_spaced_array():
-
     x0 = [1, 1.1, 1.2, 1.3, 1.4]
     x0_ng = [1, 1.1, 1.2, 1.3, 1.401]
 
@@ -604,3 +603,131 @@ def test_is_uniformly_spaced_array():
 
     for expected, points in cases:
         assert dh._is_uniformly_spaced_array(points) == expected
+
+
+def test_concat_dataset(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    correct_tuids = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    )
+    tuid_string = "test"
+    tuid_wrong_list = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    ) + [5]
+    tuid_wrong_values = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    ) + ["test"]
+    dim_non_existing = "main_dim"
+
+    with pytest.raises(TypeError):
+        dh.concat_dataset(tuid_string)
+
+    with pytest.raises(TypeError):
+        dh.concat_dataset(tuid_wrong_list)
+
+    with pytest.raises(FileNotFoundError):
+        dh.concat_dataset(tuid_wrong_values)
+
+    with pytest.raises(KeyError):
+        dh.concat_dataset(correct_tuids, dim=dim_non_existing)
+
+    new_dataset = dh.concat_dataset(correct_tuids)
+    assert isinstance(new_dataset, xr.Dataset)
+    assert len(new_dataset.dim_0) == 720
+    assert isinstance(new_dataset["concat_tuids"], xr.DataArray)
+    assert len(new_dataset["concat_tuids"]) == 720
+    assert new_dataset["concat_tuids"].is_dataset_ref
+
+
+def test_get_varying_parameter(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    parameter = {
+        "name": "flux",
+        "long_name": "flux bias current",
+        "instrument": "fluxcurrent",
+        "parameter": "FBL_4",
+        "units": "A",
+    }
+    non_existing_parameter = {
+        "name": "flux",
+        "long_name": "flux bias current",
+        "instrument": "fluxcurrent",
+        "parameter": "FBL_5",
+        "units": "A",
+    }
+    correct_tuids = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    )
+    tuid_string = "test"
+    tuid_wrong_list = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    ) + [5]
+    tuid_wrong_values = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    ) + ["test"]
+    values = np.array([-0.00100625, -0.000996875, -0.0009875])
+
+    with pytest.raises(TypeError):
+        dh.get_varying_parameter_values(tuid_string, parameter)
+
+    with pytest.raises(TypeError):
+        dh.get_varying_parameter_values(tuid_wrong_list, parameter)
+
+    with pytest.raises(FileNotFoundError):
+        dh.get_varying_parameter_values(tuid_wrong_values, parameter)
+
+    with pytest.raises(KeyError):
+        dh.get_varying_parameter_values(correct_tuids, non_existing_parameter)
+
+    varying_parameter_values = dh.get_varying_parameter_values(correct_tuids, parameter)
+    assert isinstance(varying_parameter_values, np.ndarray)
+    assert len(varying_parameter_values) == len(correct_tuids)
+    assert varying_parameter_values == pytest.approx(values)
+
+
+def test_multi_experiment_data_extractor(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    t_start = "20211029"
+    t_stop = "20211030"
+    parameter = {
+        "name": "flux",
+        "long_name": "flux bias current",
+        "instrument": "fluxcurrent",
+        "parameter": "FBL_4",
+        "units": "A",
+    }
+    new_name = "concat"
+    experiment = "Pulsed spectroscopy"
+    experiment_wrong_type = 5
+    expected_varying_parameter_values = np.array(
+        [-0.00100625, -0.000996875, -0.0009875]
+    )
+
+    with pytest.raises(TypeError):
+        dh.multi_experiment_data_extractor(
+            parameter, experiment_wrong_type, new_name, t_start, t_stop
+        )
+
+    # Test filling in all parameters
+    new_dataset = dh.multi_experiment_data_extractor(
+        parameter, experiment, new_name, t_start, t_stop
+    )
+    assert len(new_dataset.dim_0) == 720
+    assert TUID.is_valid(new_dataset.attrs["tuid"])
+    assert isinstance(new_dataset.attrs["tuid"], str)
+    assert new_dataset.x1.values == pytest.approx(
+        np.repeat(expected_varying_parameter_values, 240)
+    )
+
+    # Test with new_name=None
+    new_dataset = dh.multi_experiment_data_extractor(
+        parameter, experiment, t_start=t_start, t_stop=t_stop
+    )
+    assert len(new_dataset.dim_0) == 720
+    assert TUID.is_valid(new_dataset.attrs["tuid"])
+    assert isinstance(new_dataset.attrs["tuid"], str)
+    assert new_dataset.x1.values == pytest.approx(
+        np.repeat(expected_varying_parameter_values, 240)
+    )
+    assert new_dataset.name == f"concat-{experiment}"
