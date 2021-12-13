@@ -568,7 +568,7 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
     Returns
     -------
-    new_dataset:
+    :
         Concatenated dataset with new TUID and references to the old TUIDs.
 
     """
@@ -628,7 +628,7 @@ def get_varying_parameter_values(
 
     Returns
     -------
-    values:
+    :
         The values of the varying parameter.
     """
     value = []
@@ -695,7 +695,7 @@ def multi_experiment_data_extractor(
 
     Returns
     -----------
-    new_dataset:
+    :
         The compiled quantify dataset.
     """
 
