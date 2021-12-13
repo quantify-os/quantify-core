@@ -16,7 +16,6 @@ import numpy as np
 import xarray as xr
 from dateutil.parser import parse
 from qcodes import Instrument
-from quantify_core.data.dataset_attrs import QCoordAttrs
 
 import quantify_core.data.dataset_adapters as da
 from quantify_core.data.types import TUID
@@ -184,9 +183,8 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     """
     Loads a :class:`~xarray.Dataset` with a specific engine preference.
 
-    Before returning the dataset
-    :meth:`AdapterH5NetCDF.recover() <quantify_core.data.dataset_adapters.AdapterH5NetCDF.recover>`
-    is applied.
+    Before returning the dataset :meth:`AdapterH5NetCDF.recover()
+    <quantify_core.data.dataset_adapters.AdapterH5NetCDF.recover>` is applied.
 
     This function tries to load the dataset until success with the following engine
     preference:
@@ -556,8 +554,8 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
 def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
     """
-    This function takes in a list of TUIDs and concatenates the corresponding datasets. It adds the TUIDs as a
-    coordinate in the new dataset.
+    This function takes in a list of TUIDs and concatenates the corresponding
+    datasets. It adds the TUIDs as a coordinate in the new dataset.
 
     Parameters
     ----------
@@ -583,17 +581,19 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
     dataset_list = []
     extended_tuids = []
-    # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can be made
+    # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can
+    # be made
     for tuid in tuids:
         dataset = load_dataset(tuid)
-        # Set dataset attribute 'tuid' to None to resolve conflicting tuids between the loaded datasets
+        # Set dataset attribute 'tuid' to None to resolve conflicting tuids between
+        # the loaded datasets
         dataset.attrs["tuid"] = None
         dataset_list.append(dataset)
         extended_tuids += [tuid] * len(dataset[f"{dim}"])
 
     new_dataset = xr.concat(dataset_list, dim=dim, combine_attrs="no_conflicts")
     new_coord = {
-        f"concat_tuids": (
+        "concat_tuids": (
             dim,
             extended_tuids,
             dict(
@@ -613,7 +613,8 @@ def get_varying_parameter_values(
     tuids: List[str], varying_parameter: Dict[str, str]
 ) -> np.ndarray:
     """
-    A function that gets a parameter which varies over multiple experiments and puts it in a ndarray.
+    A function that gets a parameter which varies over multiple experiments and puts
+    it in a ndarray.
 
     Parameters
     ----------
@@ -623,8 +624,8 @@ def get_varying_parameter_values(
         The varying_parameter for which to get the values.
         .. obj:: Example
 
-            parameter = {"name": "flux", "long_name": "flux bias current", "instrument": "fluxcurrent", "parameter":
-            "FBL_4", "units": "A",}
+            parameter = {"name": "flux", "long_name": "flux bias current",
+            "instrument": "fluxcurrent", "parameter": "FBL_4", "units": "A",}
 
     Returns
     -------
@@ -643,17 +644,19 @@ def get_varying_parameter_values(
 
     for tuid in tuids:
         try:
-            snapshot = load_snapshot(tuid)
+            _tuid = TUID(tuid)
+            _snapshot = load_snapshot(_tuid)
             value.append(
-                snapshot["instruments"][varying_parameter["instrument"]]["parameters"][
+                _snapshot["instruments"][varying_parameter["instrument"]]["parameters"][
                     varying_parameter["parameter"]
                 ]["value"]
             )
         except FileNotFoundError as fnf_error:
-            raise FileNotFoundError(fnf_error)
+            raise FileNotFoundError(fnf_error) from fnf_error
         except KeyError as key_error:
-            print("Check the varying parameter you put in.")
-            raise KeyError(f"Check the varying parameter you put in.\n {key_error}")
+            raise KeyError(
+                f"Check the varying parameter you put in.\n {key_error}"
+            ) from key_error
     values = np.array(value)
 
     return values
@@ -685,8 +688,8 @@ def multi_experiment_data_extractor(
         The parameter which is varied over the experiments.
         .. obj:: Example
 
-            parameter = {"name": "flux", "long_name": "flux bias current", "instrument": "fluxcurrent", "parameter":
-            "FBL_4", "units": "A",}
+            parameter = {"name": "flux", "long_name": "flux bias current", "instrument":
+             "fluxcurrent", "parameter":"FBL_4", "units": "A",}
     experiment:
         The experiment to be included in the new dataset.
     new_name:
