@@ -595,9 +595,12 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         f"concat_tuids": (
             dim,
             extended_tuids,
-            QCoordAttrs(
-                is_main_coord=True, long_name="concatenated_tuids", is_dataset_ref=True
-            ).to_dict(),
+            dict(
+                is_main_coord=True,
+                long_name="concatenated_tuids",
+                is_dataset_ref=True,
+                uniformly_spaced=False,
+            ),
         )
     }
     new_dataset = new_dataset.assign_coords(new_coord)
@@ -616,7 +619,13 @@ def get_varying_parameter_values(
         The list of TUIDs from which to get the varying parameter.
     varying_parameter:
         The varying_parameter for which to get the values.
-        ex
+        Example: parameter = {
+                    "name": "flux",
+                    "long_name": "flux bias current",
+                    "instrument": "fluxcurrent",
+                    "parameter": "FBL_4",
+                    "units": "A",
+                }
 
     Returns
     -------
@@ -675,6 +684,13 @@ def multi_experiment_data_extractor(
         If no value is specified, will use the current time as a reference t_stop.
     varying_parameter:
         The parameter which is varied over the experiments.
+        Example: parameter = {
+                    "name": "flux",
+                    "long_name": "flux bias current",
+                    "instrument": "fluxcurrent",
+                    "parameter": "FBL_4",
+                    "units": "A",
+                }
     experiment:
         The experiment to be included in the new dataset.
     new_name:
@@ -688,8 +704,6 @@ def multi_experiment_data_extractor(
     """
 
     # Get the tuids of the relevant experiments
-    tuids = []
-
     if isinstance(experiment, str):
         tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
         if new_name is None:
@@ -718,9 +732,12 @@ def multi_experiment_data_extractor(
         f"x{nr_existing_coords - 1}": (
             "dim_0",
             varying_parameter_values_extended,
-            QCoordAttrs(
-                is_main_coord=True, long_name=varying_parameter["long_name"]
-            ).to_dict(),
+            dict(
+                is_main_coord=True,
+                long_name=varying_parameter["long_name"],
+                units=varying_parameter["units"],
+                uniformly_spaced=_is_uniformly_spaced_array(varying_parameter_values),
+            ),
         ),
     }
     new_dataset = new_dataset.assign_coords(coords)
