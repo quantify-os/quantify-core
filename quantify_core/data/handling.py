@@ -568,6 +568,7 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
     Returns
     -------
+    new_dataset:
         Concatenated dataset with new TUID and references to the old TUIDs.
 
     """
@@ -612,6 +613,7 @@ def get_varying_parameter_values(
     tuids: List[str], varying_parameter: Dict[str, str]
 ) -> np.ndarray:
     """
+    A function that gets a parameter which varies over multiple experiments and puts it in a ndarray.
 
     Parameters
     ----------
@@ -619,13 +621,10 @@ def get_varying_parameter_values(
         The list of TUIDs from which to get the varying parameter.
     varying_parameter:
         The varying_parameter for which to get the values.
-        Example: parameter = {
-                    "name": "flux",
-                    "long_name": "flux bias current",
-                    "instrument": "fluxcurrent",
-                    "parameter": "FBL_4",
-                    "units": "A",
-                }
+        .. obj:: Example
+
+            parameter = {"name": "flux", "long_name": "flux bias current", "instrument": "fluxcurrent", "parameter":
+            "FBL_4", "units": "A",}
 
     Returns
     -------
@@ -684,13 +683,10 @@ def multi_experiment_data_extractor(
         If no value is specified, will use the current time as a reference t_stop.
     varying_parameter:
         The parameter which is varied over the experiments.
-        Example: parameter = {
-                    "name": "flux",
-                    "long_name": "flux bias current",
-                    "instrument": "fluxcurrent",
-                    "parameter": "FBL_4",
-                    "units": "A",
-                }
+        .. obj:: Example
+
+            parameter = {"name": "flux", "long_name": "flux bias current", "instrument": "fluxcurrent", "parameter":
+            "FBL_4", "units": "A",}
     experiment:
         The experiment to be included in the new dataset.
     new_name:
