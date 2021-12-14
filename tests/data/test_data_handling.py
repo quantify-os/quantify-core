@@ -674,7 +674,7 @@ def test_get_varying_parameter(tmp_test_data_dir):
     with pytest.raises(TypeError):
         dh.get_varying_parameter_values(tuid_wrong_list, parameter)
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError):
         dh.get_varying_parameter_values(tuid_wrong_values, parameter)
 
     with pytest.raises(KeyError):

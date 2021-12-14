@@ -653,6 +653,8 @@ def get_varying_parameter_values(
             )
         except FileNotFoundError as fnf_error:
             raise FileNotFoundError(fnf_error) from fnf_error
+        except ValueError as vl_error:
+            raise ValueError(vl_error) from vl_error
         except KeyError as key_error:
             raise KeyError(
                 f"Check the varying parameter you put in.\n {key_error}"
