@@ -589,16 +589,16 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         # the loaded datasets
         dataset.attrs["tuid"] = None
         dataset_list.append(dataset)
-        extended_tuids += [tuid] * len(dataset[f"{dim}"])
+        extended_tuids += [TUID.datetime(tuid)] * len(dataset[f"{dim}"])
 
     new_dataset = xr.concat(dataset_list, dim=dim, combine_attrs="no_conflicts")
     new_coord = {
-        "concat_tuids": (
+        "ref_tuids": (
             dim,
             extended_tuids,
             dict(
                 is_main_coord=True,
-                long_name="concatenated_tuids",
+                long_name="reference_tuids",
                 is_dataset_ref=True,
                 uniformly_spaced=False,
             ),
@@ -708,7 +708,7 @@ def multi_experiment_data_extractor(
     if isinstance(experiment, str):
         tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
         if new_name is None:
-            new_name = f"concat-{experiment}"
+            new_name = f"{experiment} vs {varying_parameter['name']}"
     else:
         raise TypeError(
             f"experiment variable should be a string. {experiment} is not a string"

@@ -635,9 +635,9 @@ def test_concat_dataset(tmp_test_data_dir):
     new_dataset = dh.concat_dataset(correct_tuids)
     assert isinstance(new_dataset, xr.Dataset)
     assert len(new_dataset.dim_0) == 720
-    assert isinstance(new_dataset["concat_tuids"], xr.DataArray)
-    assert len(new_dataset["concat_tuids"]) == 720
-    assert new_dataset["concat_tuids"].is_dataset_ref
+    assert isinstance(new_dataset["ref_tuids"], xr.DataArray)
+    assert len(new_dataset["ref_tuids"]) == 720
+    assert new_dataset["ref_tuids"].is_dataset_ref
 
 
 def test_get_varying_parameter(tmp_test_data_dir):
@@ -730,4 +730,4 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir):
     assert new_dataset.x1.values == pytest.approx(
         np.repeat(expected_varying_parameter_values, 240)
     )
-    assert new_dataset.name == f"concat-{experiment}"
+    assert new_dataset.name == f"{experiment} vs {parameter['name']}"
