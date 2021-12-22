@@ -373,6 +373,19 @@ class TestMeasurementControl:
         assert np.array_equal(dset["x0"].values, x)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
+    def test_measurement_description(self):
+        p_param = ManualParameter("p_param")
+        amplitude = ManualParameter("amplitude", initial_value=0.1)
+
+        self.meas_ctrl.settables(p_param)
+        self.meas_ctrl.setpoints(np.linspace(-50, 0, 13))
+        self.meas_ctrl.gettables(amplitude)
+        _ = self.meas_ctrl.run("1D test")
+
+        measurement_description = self.meas_ctrl.measurement_description()
+        assert isinstance(measurement_description, dict)
+        assert measurement_description["name"] == "1D test"
+
     def test_soft_averages_batched_1D(self):
         setpoints = np.arange(50.0)
         settable = DummyBatchedSettable()
