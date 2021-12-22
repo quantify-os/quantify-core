@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement.
+
 
 0.5.2 (2021-12-08)
 ------------------
