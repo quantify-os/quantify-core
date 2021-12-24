@@ -571,7 +571,7 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
     """
     if not isinstance(tuids, List):
-        raise TypeError(f"{type(tuids)=} should be a list of TUIDs")
+        raise TypeError(f"type(tuids)={type(tuids)} should be a list of TUIDs")
 
     dataset_list = []
     extended_tuids = []
@@ -628,7 +628,7 @@ def get_varying_parameter_values(
     """
     value = []
     if not isinstance(tuids, List):
-        TypeError(f"{type(tuids)=} should be a list of TUIDs")
+        TypeError(f"type(tuids)={type(tuids)} should be a list of TUIDs")
 
     for tuid in tuids:
         try:
