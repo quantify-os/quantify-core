@@ -9,7 +9,7 @@ import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Optional
 from uuid import uuid4
 
 import numpy as np
@@ -570,14 +570,8 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         Concatenated dataset with new TUID and references to the old TUIDs.
 
     """
-    if isinstance(tuids, List):
-        for tuid in tuids:
-            if not isinstance(tuid, str):
-                raise TypeError(
-                    f"tuids should be a list of strings, {tuid} is not a string"
-                )
-    else:
-        raise TypeError(f"tuids should be a list of strings. {tuids} is not a list")
+    if not isinstance(tuids, List):
+        raise TypeError(f"{type(tuids)=} should be a list of TUIDs")
 
     dataset_list = []
     extended_tuids = []
@@ -610,7 +604,9 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
 
 def get_varying_parameter_values(
-    tuids: List[str], varying_parameter: Dict[str, str]
+    tuids: List[TUID],
+    instrument: str,
+    parameter: str,
 ) -> np.ndarray:
     """
     A function that gets a parameter which varies over multiple experiments and puts
@@ -620,12 +616,10 @@ def get_varying_parameter_values(
     ----------
     tuids:
         The list of TUIDs from which to get the varying parameter.
-    varying_parameter:
-        The varying_parameter for which to get the values.
-        .. obj:: Example
-
-            parameter = {"name": "flux", "long_name": "flux bias current",
-            "instrument": "fluxcurrent", "parameter": "FBL_4", "units": "A",}
+    instrument:
+        The name of the instrument from which to get the value.
+    parameter:
+        The name of the parameter from which to get the value.
 
     Returns
     -------
@@ -633,23 +627,15 @@ def get_varying_parameter_values(
         The values of the varying parameter.
     """
     value = []
-    if isinstance(tuids, List):
-        for tuid in tuids:
-            if not isinstance(tuid, str):
-                raise TypeError(
-                    f"tuids should be a list of strings, {tuid} is not a string"
-                )
-    else:
-        raise TypeError(f"tuids should be a list of strings. {tuids} is not a list")
+    if not isinstance(tuids, List):
+        TypeError(f"{type(tuids)=} should be a list of TUIDs")
 
     for tuid in tuids:
         try:
             _tuid = TUID(tuid)
             _snapshot = load_snapshot(_tuid)
             value.append(
-                _snapshot["instruments"][varying_parameter["instrument"]]["parameters"][
-                    varying_parameter["parameter"]
-                ]["value"]
+                _snapshot["instruments"][instrument]["parameters"][parameter]["value"]
             )
         except FileNotFoundError as fnf_error:
             raise FileNotFoundError(fnf_error) from fnf_error
@@ -665,8 +651,9 @@ def get_varying_parameter_values(
 
 
 def multi_experiment_data_extractor(
-    varying_parameter: Dict[str, str],
     experiment: str,
+    instrument: str,
+    parameter: str,
     new_name: Optional[str] = None,
     t_start: Optional[str] = None,
     t_stop: Optional[str] = None,
@@ -686,14 +673,12 @@ def multi_experiment_data_extractor(
         Datetime to search until, exclusive. If a string is specified, it will be
         converted to a datetime object using :obj:`~dateutil.parser.parse`.
         If no value is specified, will use the current time as a reference t_stop.
-    varying_parameter:
-        The parameter which is varied over the experiments.
-        .. obj:: Example
-
-            parameter = {"name": "flux", "long_name": "flux bias current", "instrument":
-             "fluxcurrent", "parameter":"FBL_4", "units": "A",}
     experiment:
         The experiment to be included in the new dataset.
+    instrument:
+        The name of the instrument from which to get the value.
+    parameter:
+        The name of the parameter from which to get the value.
     new_name:
         The name of the new multifile dataset. If no new name is given, it will use
         the name of the first experiment given in the experiments variable.
@@ -705,14 +690,13 @@ def multi_experiment_data_extractor(
     """
 
     # Get the tuids of the relevant experiments
-    if isinstance(experiment, str):
-        tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
-        if new_name is None:
-            new_name = f"{experiment} vs {varying_parameter['name']}"
-    else:
+    if not isinstance(experiment, str):
         raise TypeError(
             f"experiment variable should be a string. {experiment} is not a string"
         )
+    tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
+    if new_name is None:
+        new_name = f"{experiment} vs {instrument}"
 
     tuids.sort()
 
@@ -720,13 +704,15 @@ def multi_experiment_data_extractor(
     new_dataset = concat_dataset(tuids)
 
     # Get the varying parameter from the snapshot.json file
-    varying_parameter_values = get_varying_parameter_values(tuids, varying_parameter)
+    varying_parameter_values = get_varying_parameter_values(
+        tuids, instrument, parameter
+    )
 
     # Extend the varying parameter such that the dimensions line up with the new dataset
     varying_parameter_values_extended = np.repeat(
         varying_parameter_values, len(new_dataset.dim_0) // len(tuids)
     )
-
+    _snapshot = load_snapshot(tuids[0])
     # Set the varying parameter as a new coordinate
     nr_existing_coords = len(new_dataset.coords)
     coords = {
@@ -735,8 +721,10 @@ def multi_experiment_data_extractor(
             varying_parameter_values_extended,
             dict(
                 is_main_coord=True,
-                long_name=varying_parameter["long_name"],
-                units=varying_parameter["units"],
+                long_name=instrument,
+                units=_snapshot["instruments"][instrument]["parameters"][parameter][
+                    "unit"
+                ],
                 uniformly_spaced=_is_uniformly_spaced_array(varying_parameter_values),
             ),
         ),
