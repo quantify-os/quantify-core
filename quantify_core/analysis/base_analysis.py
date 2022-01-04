@@ -101,6 +101,7 @@ class AnalysisSteps(Enum):
     STEP_6_SAVE_FIGURES = "save_figures"
     STEP_7_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
     STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    STEP_9_SAVE_FIT_RESULTS = "save_fit_results"
 
 
 class BaseAnalysis(ABC):
@@ -466,6 +467,21 @@ class BaseAnalysis(ABC):
             encoding="utf-8",
         ) as file:
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
+
+    def save_fit_results(self):
+        """
+        Saves the :code:`lmfit.model_result` objects for each fit in a sub-directory
+        within the analysis directory
+        """
+        results_dir = self.analysis_dir / "fit_results"
+        if not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
+
+        for fr_name, fit_result in self.fit_results.items():
+            filename = f"{fr_name}_result.txt"
+            path = os.path.join(self.analysis_dir, "fit_results", filename)
+
+            lmfit.model.save_modelresult(fit_result, path)
 
     def save_figures(self):
         """
