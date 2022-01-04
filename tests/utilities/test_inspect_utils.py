@@ -4,7 +4,7 @@
 from quantify_core.utilities import inspect_utils
 
 
-def test_get_classes():
+def test_get_classes() -> None:
     # Arrange
     from quantify_core.data import types  # pylint: disable=import-outside-toplevel
 
@@ -16,7 +16,7 @@ def test_get_classes():
     assert isinstance(classes["TUID"], type)
 
 
-def test_get_functions():
+def test_get_functions() -> None:
     # Arrange
     expected = {
         "get_members_of_module": inspect_utils.get_members_of_module,

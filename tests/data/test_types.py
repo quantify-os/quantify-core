@@ -1,3 +1,8 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=invalid-name
+
 from datetime import datetime
 
 import pytest
@@ -5,7 +10,7 @@ import pytest
 from quantify_core.data.types import TUID
 
 
-def test_TUID():
+def test_TUID() -> None:
     tuid = TUID("20200409-123015-123-abcdef")
 
     dt = TUID.datetime(tuid)
@@ -29,7 +34,7 @@ def test_TUID():
         tuid = TUID("200409-123015-123-abcdefasf")
 
 
-def test_TUID_validation():
+def test_TUID_validation() -> None:
     TUID.is_valid("20200409-123015-123-abcdef")
 
     problems = [

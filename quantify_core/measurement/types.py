@@ -1,6 +1,8 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Module containing the core types for use with the MeasurementControl."""
+from typing import Any, Callable
+
 from jsonschema import Draft7Validator
 from jsonschema.validators import extend
 
@@ -20,7 +22,7 @@ class Settable:
     __slots__ = ()  # avoid unnecessary overheads
     schema = load_json_schema(__file__, "Settable.json")
 
-    def __new__(cls, obj):
+    def __new__(cls, obj: Any) -> Any:
         return _validade_schema(cls, obj)
 
 
@@ -37,11 +39,11 @@ class Gettable:
     __slots__ = ()  # avoid unnecessary overheads
     schema = load_json_schema(__file__, "Gettable.json")
 
-    def __new__(cls, obj):
+    def __new__(cls, obj: Any) -> Any:
         return _validade_schema(cls, obj)
 
 
-def _validade_schema(cls, obj):
+def _validade_schema(cls: Any, obj: Any) -> Any:
     for attr_type in ("attrs", "methods"):
         attr_names = cls.schema[attr_type]["properties"].keys()
         validator.validate(
@@ -58,7 +60,15 @@ def _validade_schema(cls, obj):
     return obj
 
 
-def is_object_or_function(checker, instance):
+def is_object_or_function(checker: Callable, instance: Any) -> bool:
+    # pylint: disable=unused-argument
+    """
+    Checks if an instance is an object/function
+
+    Returns
+    -------
+        `True` if the `instance` is an object or a function, `False` otherwise
+    """
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "object") or callable(
         instance
     )
@@ -69,7 +79,7 @@ ObjectValidator = extend(Draft7Validator, type_checker=type_checker)
 validator = ObjectValidator(schema={"type": "number"})
 
 
-def is_batched(obj) -> bool:
+def is_batched(obj: Any) -> bool:
     """
     Returns
     -------
