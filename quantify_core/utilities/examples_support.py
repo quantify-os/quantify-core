@@ -89,7 +89,7 @@ def mk_cosine_instrument() -> Instrument:
     def cosine_model():
         sleep(instr.acq_delay())  # simulates the acquisition delay of an instrument
         return (
-            cos_func(instr.t(), instr.amp(), instr.freq(), phase=instr.phi(), offset=0)
+            cos_func(instr.t(), instr.freq(), instr.amp(), phase=instr.phi(), offset=0)
             + np.random.randn() * instr.noise_level()
         )
 
