@@ -53,14 +53,14 @@ def mk_cosine_instrument() -> Instrument:
     # structure without necessarily having a connection to the physical world
     instr.add_parameter(
         "amp",
-        initial_value=1,
+        initial_value=0.5,
         unit="V",
         label="Amplitude",
         parameter_class=ManualParameter,
     )
     instr.add_parameter(
         "freq",
-        initial_value=0.5,
+        initial_value=1,
         unit="Hz",
         label="Frequency",
         parameter_class=ManualParameter,
