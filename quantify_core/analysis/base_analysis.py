@@ -40,6 +40,7 @@ from quantify_core.data.handling import (
 from quantify_core.data.types import TUID
 from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
+from quantify_core.analysis import fitting_models
 
 from .types import AnalysisSettings
 
@@ -109,6 +110,10 @@ class BaseAnalysis(ABC):
 
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-public-methods
+
+    # Dictionary containing definitions of all fitting functions used in analysis
+    # (to be overridden in subclasses)
+    fit_function_definitions = {}
 
     def __init__(
         self,
@@ -209,6 +214,44 @@ class BaseAnalysis(ABC):
     Can be overridden in a subclass in order to define a custom analysis flow.
     See :class:`~quantify_core.analysis.base_analysis.AnalysisSteps` for a template.
     """
+
+    @classmethod
+    def load_fit_result(cls, tuid: TUID, fit_name: str) -> lmfit.model.ModelResult:
+        """
+        Load a saved :code:`lmfit.model.ModelResult` object from file. For analyses
+        that use custom fit functions, the :code:`cls.fit_function_definitions` object
+        must be defined in the subclass for that analysis.
+
+        Parameters
+        ------------
+        tuid:
+            The TUID reference of the saved analysis.
+        fit_name:
+            The name of the fit result to be loaded.
+
+        Returns
+        ------------
+        The lmfit model result object.
+        """
+
+        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+        analysis_dir = exp_folder / f"analysis_{cls.__name__}"
+
+        if not analysis_dir.is_dir():
+            raise FileNotFoundError("Analysis not found in current experiment.")
+
+        results_dir = analysis_dir / "fit_results"
+
+        if not results_dir.is_dir():
+            raise FileNotFoundError("No fit results found for this analysis.")
+
+        file = results_dir / f"{fit_name}.txt"
+
+        result = lmfit.model.load_modelresult(
+            file, funcdefs=cls.fit_function_definitions
+        )
+
+        return result
 
     @property
     def name(self):
@@ -470,7 +513,7 @@ class BaseAnalysis(ABC):
 
     def save_fit_results(self):
         """
-        Saves the :code:`lmfit.model_result` objects for each fit in a sub-directory
+        Saves the :code:`lmfit.model.model_result` objects for each fit in a sub-directory
         within the analysis directory
         """
         results_dir = self.analysis_dir / "fit_results"
@@ -478,7 +521,7 @@ class BaseAnalysis(ABC):
             os.makedirs(results_dir)
 
         for fr_name, fit_result in self.fit_results.items():
-            filename = f"{fr_name}_result.txt"
+            filename = f"{fr_name}.txt"
             path = os.path.join(self.analysis_dir, "fit_results", filename)
 
             lmfit.model.save_modelresult(fit_result, path)

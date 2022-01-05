@@ -14,6 +14,8 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
     Analysis for a spectroscopy experiment of a hanger resonator.
     """
 
+    fit_function_definitions = {"hanger_func_complex_SI": fm.hanger_func_complex_SI}
+
     def process_data(self):
         """
         Verifies that the data is measured as magnitude and phase and casts it to
