@@ -49,6 +49,17 @@ def analyses(tmp_test_data_dir):
     return analysis
 
 
+def test_load_fit_results(analyses):
+    for analysis in analyses:
+        for fit_name, fit_result in analysis.fit_results.items():
+
+            loaded_fit_result = sa.ResonatorSpectroscopyAnalysis.load_fit_result(
+                tuid=analysis.tuid, fit_name=fit_name
+            )
+
+            assert loaded_fit_result.params == fit_result.params
+
+
 def test_raw_data_not_in_processed_dataset(analyses):
     for analysis in analyses:
         container = Path(dh.locate_experiment_container(analysis.tuid))
