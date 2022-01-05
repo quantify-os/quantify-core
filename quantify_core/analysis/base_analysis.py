@@ -13,7 +13,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from textwrap import wrap
-from typing import List, Union
+from typing import List, Union, Callable, Dict
 
 import lmfit
 import matplotlib
@@ -40,7 +40,6 @@ from quantify_core.data.handling import (
 from quantify_core.data.types import TUID
 from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
-from quantify_core.analysis import fitting_models
 
 from .types import AnalysisSettings
 
@@ -113,7 +112,7 @@ class BaseAnalysis(ABC):
 
     # Dictionary containing definitions of all fitting functions used in analysis
     # (to be overridden in subclasses)
-    fit_function_definitions = {}
+    fit_function_definitions: Dict[str, Callable] = {}
 
     def __init__(
         self,
@@ -231,7 +230,8 @@ class BaseAnalysis(ABC):
 
         Returns
         ------------
-        The lmfit model result object.
+        result:
+            The lmfit model result object.
         """
 
         exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
@@ -513,8 +513,8 @@ class BaseAnalysis(ABC):
 
     def save_fit_results(self):
         """
-        Saves the :code:`lmfit.model.model_result` objects for each fit in a sub-directory
-        within the analysis directory
+        Saves the :code:`lmfit.model.model_result` objects for each fit in a
+        sub-directory within the analysis directory
         """
         results_dir = self.analysis_dir / "fit_results"
         if not os.path.isdir(results_dir):
