@@ -230,7 +230,7 @@ class BaseAnalysis(ABC):
 
         Returns
         ------------
-        result:
+        :
             The lmfit model result object.
         """
 
