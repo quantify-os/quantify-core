@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
 """Utilities for handling data."""
@@ -650,6 +651,7 @@ def get_varying_parameter_values(
     return values
 
 
+# pylint: disable=too-many-arguments
 def multi_experiment_data_extractor(
     experiment: str,
     instrument: str,

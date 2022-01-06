@@ -697,25 +697,19 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir):
             experiment_wrong_type, instrument, parameter, new_name, t_start, t_stop
         )
 
-    # Test filling in all parameters
-    new_dataset = dh.multi_experiment_data_extractor(
-        experiment, instrument, parameter, new_name, t_start, t_stop
-    )
-    assert len(new_dataset.dim_0) == 720
-    assert TUID.is_valid(new_dataset.attrs["tuid"])
-    assert isinstance(new_dataset.attrs["tuid"], str)
-    assert new_dataset.x1.values == pytest.approx(
-        np.repeat(expected_varying_parameter_values, 240)
-    )
+    for name in [None, new_name]:
 
-    # Test with new_name=None
-    new_dataset = dh.multi_experiment_data_extractor(
-        experiment, instrument, parameter, t_start=t_start, t_stop=t_stop
-    )
-    assert len(new_dataset.dim_0) == 720
-    assert TUID.is_valid(new_dataset.attrs["tuid"])
-    assert isinstance(new_dataset.attrs["tuid"], str)
-    assert new_dataset.x1.values == pytest.approx(
-        np.repeat(expected_varying_parameter_values, 240)
-    )
-    assert new_dataset.name == f"{experiment} vs {instrument}"
+        # Test filling in all parameters and new_name=None
+        new_dataset = dh.multi_experiment_data_extractor(
+            experiment, instrument, parameter, name, t_start, t_stop
+        )
+        assert len(new_dataset.dim_0) == 720
+        assert TUID.is_valid(new_dataset.attrs["tuid"])
+        assert isinstance(new_dataset.attrs["tuid"], str)
+        assert new_dataset.x1.values == pytest.approx(
+            np.repeat(expected_varying_parameter_values, 240)
+        )
+        if name is None:
+            assert new_dataset.name == f"{experiment} vs {instrument}"
+        else:
+            assert new_dataset.name == new_name
