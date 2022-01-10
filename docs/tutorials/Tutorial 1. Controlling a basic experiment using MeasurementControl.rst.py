@@ -335,7 +335,7 @@ meas_ctrl.update_interval(2.0)
 
 # %%
 times = np.linspace(0, 5, 500)
-amps = np.linspace(-1, 0, 31)
+amps = np.linspace(-1, 1, 31)
 
 meas_ctrl.settables([pars.t, pars.amp])
 # meas_ctrl takes care of creating a meshgrid

@@ -14,6 +14,8 @@ from typing import Any, Union
 import numpy as np
 import xxhash
 
+from qcodes.utils.helpers import NumpyJSONEncoder
+
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
     """
@@ -139,6 +141,39 @@ def import_python_object_from_string(function_string: str) -> Any:
     mod = importlib.import_module(mod_name)
     func = getattr(mod, func_name)
     return func
+
+
+def save_json(directory: pathlib.Path, filename: str, data) -> None:
+    """
+    Utility function to save serializable data to disk.
+
+    Parameters
+    ----------
+    directory
+        The directory where the data needs to be written to
+    filename
+        The filename of the data
+    data
+        The serializable data which needs to be saved to disk
+
+    """
+    full_path_to_file = directory / filename
+    with open(full_path_to_file, "w", encoding="utf-8") as file:
+        json.dump(data, file, cls=NumpyJSONEncoder, indent=4)
+
+
+def load_json(full_path: pathlib.Path) -> dict:
+    """
+    Utility function to load from a json file to dict.
+
+    Parameters
+    ----------
+    full_path
+        The full path to the json file which needs to be loaded
+
+    """
+    with open(full_path, encoding="utf-8") as file:
+        return json.load(file)
 
 
 def load_json_schema(relative_to: Union[str, pathlib.Path], filename: str):

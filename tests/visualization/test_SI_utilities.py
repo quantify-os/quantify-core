@@ -17,6 +17,7 @@ from quantify_core.visualization.SI_utilities import (
     set_xlabel,
     set_ylabel,
     value_precision,
+    adjust_axeslabels_SI,
 )
 
 
@@ -59,6 +60,44 @@ def test_label_scaling() -> None:
     ylab = ax.get_ylabel()
     assert xlab == "Distance [km]"
     assert ylab == "Amplitude [μV]"
+
+
+def test_adjust_adjust_axeslabels_SI() -> None:
+    """
+    This test creates a dummy plot and checks if the tick labels are
+    rescaled correctly
+    """
+    _, ax = plt.subplots()
+    x = np.linspace(-6, 6, 101)
+    y = np.cos(x)
+    ax.plot(x * 1000, y / 1e5)
+    ax.set_xlabel("Distance [m]")
+    ax.set_ylabel("Amplitude [V]")
+    adjust_axeslabels_SI(ax)
+
+    xlab = ax.get_xlabel()
+    ylab = ax.get_ylabel()
+    assert xlab == "Distance [km]"
+    assert ylab == "Amplitude [μV]"
+
+
+def test_adjust_adjust_axeslabels_SI_no_unit() -> None:
+    """
+    This test creates a dummy plot and checks if the tick labels are
+    rescaled correctly
+    """
+    _, ax = plt.subplots()
+    x = np.linspace(-6, 6, 101)
+    y = np.cos(x)
+    ax.plot(x * 1000, y / 1e5)
+    ax.set_xlabel("Distance")
+    ax.set_ylabel("Amplitude")
+    adjust_axeslabels_SI(ax)
+
+    xlab = ax.get_xlabel()
+    ylab = ax.get_ylabel()
+    assert xlab == "Distance"
+    assert ylab == "Amplitude"
 
 
 def test_si_val_to_msg_str() -> None:

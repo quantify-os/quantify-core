@@ -2,6 +2,26 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement.
+
+
+0.5.2 (2021-12-08)
+------------------
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Data - Introduced a QuantifyExperiment class within the data.experiment module to separate data handling responsibilities from MeasurementControl. (!273, !274)
+* Docs - Added quantify logo to the documentation. (!263)
+* Infrastructure - Fixes the latest tests. (Except for Sphinx issues) (!275)
+* Infrastructure - Fixes the tests temporarily by pinning matplotlib 3.4.3 (!269)
+* Infrastructure - Added prospector config file for mypy in codacy. (copy from quantify-scheduler) (!259)
+* Bugfix - Fix a bug in adjust_axeslabels_SI. (!272)
+
+
 0.5.1 (2021-11-01)
 ------------------
 
@@ -40,6 +60,7 @@ Merged branches and closed issues
 * Bugfix - The load_settings_onto_instrument function no longer attempts to set a QCoDeS parameter to None in certain cases. (!225)
 * Bugfix - Fix filelock logging (!238)
 * Bugfix - Fix divide by 0 which gives warning in resonator analysis (!216)
+* Bugfix - Fix a bug in adjust_axeslabels_SI where it would update a label if no unit was provided (!272)
 
 0.5.0 (2021-08-06)
 ------------------
