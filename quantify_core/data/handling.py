@@ -618,9 +618,10 @@ def get_varying_parameter_values(
     tuids:
         The list of TUIDs from which to get the varying parameter.
     instrument:
-        The name of the instrument from which to get the value.
+        The name of the instrument from which to get the value. For example
+        "fluxcurrent"
     parameter:
-        The name of the parameter from which to get the value.
+        The name of the parameter from which to get the value. For example "FBL_0"
 
     Returns
     -------
@@ -656,9 +657,7 @@ def multi_experiment_data_extractor(
     experiment: str,
     instrument: str,
     parameter: str,
-    new_name: Optional[str] = None,
-    t_start: Optional[str] = None,
-    t_stop: Optional[str] = None,
+    **kwargs,
 ) -> xr.Dataset:
     """
     A data extraction function which loops through multiple quantify data directories
@@ -667,30 +666,35 @@ def multi_experiment_data_extractor(
 
     Parameters
     -----------
-    t_start:
-        Datetime to search from, inclusive. If a string is specified, it will be
-        converted to a datetime object using :obj:`~dateutil.parser.parse`.
-        If no value is specified, will use the year 1 as a reference t_start.
-    t_stop:
-        Datetime to search until, exclusive. If a string is specified, it will be
-        converted to a datetime object using :obj:`~dateutil.parser.parse`.
-        If no value is specified, will use the current time as a reference t_stop.
     experiment:
-        The experiment to be included in the new dataset.
+        The experiment to be included in the new dataset. For example "Pulsed
+        spectroscopy"
     instrument:
-        The name of the instrument from which to get the value.
+        The name of the instrument from which to get the value. For example
+        "fluxcurrent"
     parameter:
-        The name of the parameter from which to get the value.
-    new_name:
-        The name of the new multifile dataset. If no new name is given, it will use
-        the name of the first experiment given in the experiments variable.
+        The name of the parameter from which to get the value. For example "FBL_0"
+    **kwargs:
+        new_name: str
+            The name of the new multifile dataset. If no new name is given, it will
+            create a new name as `experiment` vs `instrument`.
+        t_start: str
+            Datetime to search from, inclusive. If a string is specified, it will be
+            converted to a datetime object using :obj:`~dateutil.parser.parse`.
+            If no value is specified, will use the year 1 as a reference t_start.
+        t_stop: str
+            Datetime to search until, exclusive. If a string is specified, it will be
+            converted to a datetime object using :obj:`~dateutil.parser.parse`.
+            If no value is specified, will use the current time as a reference t_stop.
 
     Returns
     -----------
     :
         The compiled quantify dataset.
     """
-
+    new_name = kwargs.get("new_name")
+    t_start = kwargs.get("t_start")
+    t_stop = kwargs.get("t_stop")
     # Get the tuids of the relevant experiments
     if not isinstance(experiment, str):
         raise TypeError(
@@ -700,6 +704,7 @@ def multi_experiment_data_extractor(
     if new_name is None:
         new_name = f"{experiment} vs {instrument}"
 
+    # Necessary to correctly extend the varying_parameter_values
     tuids.sort()
 
     # Get the new dataset containing all selected experiments
@@ -710,9 +715,12 @@ def multi_experiment_data_extractor(
         tuids, instrument, parameter
     )
 
+    # This counts the number of unique tuids to extend the varying parameter with. This
+    # assumes the ref_tuids are sorted.
+    _, counts = np.unique(new_dataset.ref_tuids.values, return_counts=True)
     # Extend the varying parameter such that the dimensions line up with the new dataset
     varying_parameter_values_extended = np.repeat(
-        varying_parameter_values, len(new_dataset.dim_0) // len(tuids)
+        varying_parameter_values, repeats=counts
     )
     _snapshot = load_snapshot(tuids[0])
     # Set the varying parameter as a new coordinate

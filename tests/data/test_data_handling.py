@@ -679,13 +679,13 @@ def test_get_varying_parameter(tmp_test_data_dir):
     assert varying_parameter_values == pytest.approx(values)
 
 
-def test_multi_experiment_data_extractor(tmp_test_data_dir):
+@pytest.mark.parametrize("new_name", [None, "concat"])
+def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     dh.set_datadir(tmp_test_data_dir)
     t_start = "20211029"
     t_stop = "20211030"
     instrument = "fluxcurrent"
     parameter = "FBL_4"
-    new_name = "concat"
     experiment = "Pulsed spectroscopy"
     experiment_wrong_type = 5
     expected_varying_parameter_values = np.array(
@@ -694,22 +694,30 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir):
 
     with pytest.raises(TypeError):
         dh.multi_experiment_data_extractor(
-            experiment_wrong_type, instrument, parameter, new_name, t_start, t_stop
+            experiment_wrong_type,
+            instrument,
+            parameter,
+            new_name=new_name,
+            t_start=t_start,
+            t_stop=t_stop,
         )
 
-    for name in [None, new_name]:
-
-        # Test filling in all parameters and new_name=None
-        new_dataset = dh.multi_experiment_data_extractor(
-            experiment, instrument, parameter, name, t_start, t_stop
-        )
-        assert len(new_dataset.dim_0) == 720
-        assert TUID.is_valid(new_dataset.attrs["tuid"])
-        assert isinstance(new_dataset.attrs["tuid"], str)
-        assert new_dataset.x1.values == pytest.approx(
-            np.repeat(expected_varying_parameter_values, 240)
-        )
-        if name is None:
-            assert new_dataset.name == f"{experiment} vs {instrument}"
-        else:
-            assert new_dataset.name == new_name
+    # Test filling in all parameters and new_name=None
+    new_dataset = dh.multi_experiment_data_extractor(
+        experiment,
+        instrument,
+        parameter,
+        new_name=new_name,
+        t_start=t_start,
+        t_stop=t_stop,
+    )
+    assert len(new_dataset.dim_0) == 720
+    assert TUID.is_valid(new_dataset.attrs["tuid"])
+    assert isinstance(new_dataset.attrs["tuid"], str)
+    assert new_dataset.x1.values == pytest.approx(
+        np.repeat(expected_varying_parameter_values, 240)
+    )
+    if new_name is None:
+        assert new_dataset.name == f"{experiment} vs {instrument}"
+    else:
+        assert new_dataset.name == new_name
