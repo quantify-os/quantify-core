@@ -10,7 +10,7 @@ import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Optional
 from uuid import uuid4
 
 import numpy as np
@@ -657,7 +657,10 @@ def multi_experiment_data_extractor(
     experiment: str,
     instrument: str,
     parameter: str,
-    **kwargs,
+    *,
+    new_name: Optional[str] = None,
+    t_start: Optional[str] = None,
+    t_stop: Optional[str] = None,
 ) -> xr.Dataset:
     """
     A data extraction function which loops through multiple quantify data directories
@@ -674,27 +677,23 @@ def multi_experiment_data_extractor(
         "fluxcurrent"
     parameter:
         The name of the parameter from which to get the value. For example "FBL_0"
-    **kwargs:
-        new_name: str
-            The name of the new multifile dataset. If no new name is given, it will
-            create a new name as `experiment` vs `instrument`.
-        t_start: str
-            Datetime to search from, inclusive. If a string is specified, it will be
-            converted to a datetime object using :obj:`~dateutil.parser.parse`.
-            If no value is specified, will use the year 1 as a reference t_start.
-        t_stop: str
-            Datetime to search until, exclusive. If a string is specified, it will be
-            converted to a datetime object using :obj:`~dateutil.parser.parse`.
-            If no value is specified, will use the current time as a reference t_stop.
+    new_name:
+        The name of the new multifile dataset. If no new name is given, it will
+        create a new name as `experiment` vs `instrument`.
+    t_start:
+        Datetime to search from, inclusive. If a string is specified, it will be
+        converted to a datetime object using :obj:`~dateutil.parser.parse`.
+        If no value is specified, will use the year 1 as a reference t_start.
+    t_stop:
+        Datetime to search until, exclusive. If a string is specified, it will be
+        converted to a datetime object using :obj:`~dateutil.parser.parse`.
+        If no value is specified, will use the current time as a reference t_stop.
 
     Returns
     -----------
     :
         The compiled quantify dataset.
     """
-    new_name = kwargs.get("new_name")
-    t_start = kwargs.get("t_start")
-    t_stop = kwargs.get("t_stop")
     # Get the tuids of the relevant experiments
     if not isinstance(experiment, str):
         raise TypeError(
