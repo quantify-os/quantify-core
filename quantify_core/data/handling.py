@@ -1,5 +1,6 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the master branch
+# pylint: disable=too-many-lines
 """Utilities for handling data."""
 from __future__ import annotations
 
@@ -9,7 +10,7 @@ import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union
+from typing import Union, List, Optional
 from uuid import uuid4
 
 import numpy as np
@@ -183,9 +184,8 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     """
     Loads a :class:`~xarray.Dataset` with a specific engine preference.
 
-    Before returning the dataset
-    :meth:`AdapterH5NetCDF.recover() <quantify_core.data.dataset_adapters.AdapterH5NetCDF.recover>`
-    is applied.
+    Before returning the dataset :meth:`AdapterH5NetCDF.recover()
+    <quantify_core.data.dataset_adapters.AdapterH5NetCDF.recover>` is applied.
 
     This function tries to load the dataset until success with the following engine
     preference:
@@ -551,6 +551,205 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
             break
 
     return dataset
+
+
+def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
+    """
+    This function takes in a list of TUIDs and concatenates the corresponding
+    datasets. It adds the TUIDs as a coordinate in the new dataset.
+
+    Parameters
+    ----------
+    tuids:
+        List of TUIDs.
+    dim:
+        Dimension along which to concatenate the datasets.
+
+    Returns
+    -------
+    :
+        Concatenated dataset with new TUID and references to the old TUIDs.
+
+    """
+    if not isinstance(tuids, List):
+        raise TypeError(f"type(tuids)={type(tuids)} should be a list of TUIDs")
+
+    dataset_list = []
+    extended_tuids = []
+    # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can
+    # be made
+    for tuid in tuids:
+        dataset = load_dataset(tuid)
+        # Set dataset attribute 'tuid' to None to resolve conflicting tuids between
+        # the loaded datasets
+        dataset.attrs["tuid"] = None
+        dataset_list.append(dataset)
+        extended_tuids += [TUID.datetime(tuid)] * len(dataset[dim])
+
+    new_dataset = xr.concat(dataset_list, dim=dim, combine_attrs="no_conflicts")
+    new_coord = {
+        "ref_tuids": (
+            dim,
+            extended_tuids,
+            dict(
+                is_main_coord=True,
+                long_name="reference_tuids",
+                is_dataset_ref=True,
+                uniformly_spaced=False,
+            ),
+        )
+    }
+    new_dataset = new_dataset.assign_coords(new_coord)
+    new_dataset.attrs["tuid"] = gen_tuid()
+    return new_dataset
+
+
+def get_varying_parameter_values(
+    tuids: List[TUID],
+    instrument: str,
+    parameter: str,
+) -> np.ndarray:
+    """
+    A function that gets a parameter which varies over multiple experiments and puts
+    it in a ndarray.
+
+    Parameters
+    ----------
+    tuids:
+        The list of TUIDs from which to get the varying parameter.
+    instrument:
+        The name of the instrument from which to get the value. For example
+        "fluxcurrent"
+    parameter:
+        The name of the parameter from which to get the value. For example "FBL_0"
+
+    Returns
+    -------
+    :
+        The values of the varying parameter.
+    """
+    value = []
+    if not isinstance(tuids, List):
+        TypeError(f"type(tuids)={type(tuids)} should be a list of TUIDs")
+
+    for tuid in tuids:
+        try:
+            _tuid = TUID(tuid)
+            _snapshot = load_snapshot(_tuid)
+            value.append(
+                _snapshot["instruments"][instrument]["parameters"][parameter]["value"]
+            )
+        except FileNotFoundError as fnf_error:
+            raise FileNotFoundError(fnf_error) from fnf_error
+        except ValueError as vl_error:
+            raise ValueError(vl_error) from vl_error
+        except KeyError as key_error:
+            raise KeyError(
+                f"Check the varying parameter you put in.\n {key_error}"
+            ) from key_error
+    values = np.array(value)
+
+    return values
+
+
+# pylint: disable=too-many-arguments
+def multi_experiment_data_extractor(
+    experiment: str,
+    instrument: str,
+    parameter: str,
+    *,
+    new_name: Optional[str] = None,
+    t_start: Optional[str] = None,
+    t_stop: Optional[str] = None,
+) -> xr.Dataset:
+    """
+    A data extraction function which loops through multiple quantify data directories
+    and extracts the selected varying parameter value and corresponding datasets, then
+    compiles this data into a single dataset for further analysis.
+
+    Parameters
+    -----------
+    experiment:
+        The experiment to be included in the new dataset. For example "Pulsed
+        spectroscopy"
+    instrument:
+        The name of the instrument from which to get the value. For example
+        "fluxcurrent"
+    parameter:
+        The name of the parameter from which to get the value. For example "FBL_0"
+    new_name:
+        The name of the new multifile dataset. If no new name is given, it will
+        create a new name as `experiment` vs `instrument`.
+    t_start:
+        Datetime to search from, inclusive. If a string is specified, it will be
+        converted to a datetime object using :obj:`~dateutil.parser.parse`.
+        If no value is specified, will use the year 1 as a reference t_start.
+    t_stop:
+        Datetime to search until, exclusive. If a string is specified, it will be
+        converted to a datetime object using :obj:`~dateutil.parser.parse`.
+        If no value is specified, will use the current time as a reference t_stop.
+
+    Returns
+    -----------
+    :
+        The compiled quantify dataset.
+    """
+    # Get the tuids of the relevant experiments
+    if not isinstance(experiment, str):
+        raise TypeError(
+            f"experiment variable should be a string. {experiment} is not a string"
+        )
+    tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
+    if new_name is None:
+        new_name = f"{experiment} vs {instrument}"
+
+    # Necessary to correctly extend the varying_parameter_values
+    tuids.sort()
+
+    # Get the new dataset containing all selected experiments
+    new_dataset = concat_dataset(tuids)
+
+    # Get the varying parameter from the snapshot.json file
+    varying_parameter_values = get_varying_parameter_values(
+        tuids, instrument, parameter
+    )
+
+    # This counts the number of unique tuids to extend the varying parameter with. This
+    # assumes the ref_tuids are sorted.
+    _, counts = np.unique(new_dataset.ref_tuids.values, return_counts=True)
+    # Extend the varying parameter such that the dimensions line up with the new dataset
+    varying_parameter_values_extended = np.repeat(
+        varying_parameter_values, repeats=counts
+    )
+    _snapshot = load_snapshot(tuids[0])
+    # Set the varying parameter as a new coordinate
+    nr_existing_coords = len(new_dataset.coords)
+    coords = {
+        f"x{nr_existing_coords - 1}": (
+            "dim_0",
+            varying_parameter_values_extended,
+            dict(
+                is_main_coord=True,
+                long_name=instrument,
+                units=_snapshot["instruments"][instrument]["parameters"][parameter][
+                    "unit"
+                ],
+                uniformly_spaced=_is_uniformly_spaced_array(varying_parameter_values),
+            ),
+        ),
+    }
+    new_dataset = new_dataset.assign_coords(coords)
+
+    # Set new attributes such as name and TUID
+    new_attrs = {
+        "grid_2d": True,
+        "name": f"{new_name}",
+        "tuid": f"{gen_tuid()}",
+        "xlen": len(new_dataset.dim_0) // len(tuids),
+        "ylen": len(tuids),
+    }
+    new_dataset = new_dataset.assign_attrs(new_attrs)
+    return new_dataset
 
 
 def to_gridded_dataset(
