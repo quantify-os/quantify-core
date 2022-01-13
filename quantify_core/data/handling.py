@@ -584,7 +584,7 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         # the loaded datasets
         dataset.attrs["tuid"] = None
         dataset_list.append(dataset)
-        extended_tuids += [TUID.datetime(tuid)] * len(dataset[f"{dim}"])
+        extended_tuids += [TUID.datetime(tuid)] * len(dataset[dim])
 
     new_dataset = xr.concat(dataset_list, dim=dim, combine_attrs="no_conflicts")
     new_coord = {
