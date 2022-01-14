@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 # pylint: disable=invalid-name  # disabled because of capital SI in module name
 """
 Utilities for managing SI units with plotting systems.

@@ -16,7 +16,7 @@ def test_header() -> None:
     quantify_core_path = Path(__file__).resolve().parent.parent.resolve()
     header_lines = [
         "# Repository: https://gitlab.com/quantify-os/quantify-core",
-        "# Licensed according to the LICENCE file on the master branch",
+        "# Licensed according to the LICENCE file on the main branch",
     ]
     for root, _, files in os.walk(quantify_core_path):
         # skip hidden folders, etc

@@ -180,7 +180,7 @@ html_context = {
     "display_gitlab": True,
     "gitlab_user": "quantify-os",
     "gitlab_repo": "quantify-core",
-    "gitlab_version": "develop/docs/",
+    "gitlab_version": "main/docs/",
 }
 
 # -- Options for LaTeX output ------------------------------------------
