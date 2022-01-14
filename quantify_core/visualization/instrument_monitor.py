@@ -104,7 +104,9 @@ class InstrumentMonitor(Instrument):
         """
         Updates the Qc widget with the current snapshot of the instruments.
         """
-        if not self._update_lock.locked():  # skip if already updating instead of waiting for lock to be released
+        if (
+            not self._update_lock.locked()
+        ):  # skip if already updating instead of waiting for lock to be released
             with self._update_lock:
                 # Take an updated, clean snapshot
                 snap = snapshot(update=self.update_snapshot(), clean=True)
@@ -198,18 +200,21 @@ class RepeatTimer(Thread):
         self.interval = interval
 
     def run(self):
+        """Function called in separate thread after calling .start() on the instance."""
         while not self.finished.wait(self.interval):
             if not self._paused.is_set():
                 self.function(*self.args, **self.kwargs)
 
     def cancel(self):
-        """Stop the timer if it hasn't finished yet."""
+        """Stop the timer (and exit the loop/thread)."""
         self.finished.set()
 
     def pause(self):
+        """Pause the timer, i.e. do not execute the function, but stay in the loop/thread."""
         self._paused.set()
 
     def unpause(self):
+        """Unpause the timer, i.e. execute the function in the loop again."""
         self._paused.clear()
 
     @property
