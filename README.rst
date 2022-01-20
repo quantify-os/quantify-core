@@ -65,7 +65,7 @@ Quantify-core is the core module that contains all basic functionality to contro
 Overview
 --------
 
-Quantify evolves rapidly, nevertheless, he following `presentation <https://www.youtube.com/embed/koWIp12hD8Q?start=150&end=1126>`_ by Adriaan Rol gives
+Quantify evolves rapidly, nevertheless, the following `presentation <https://www.youtube.com/embed/koWIp12hD8Q?start=150&end=1126>`_ by Adriaan Rol gives
 a good general overview of Quantify.
 
 
