@@ -14,7 +14,7 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
 
 - [ ] Merge request has been reviewed and approved by a project maintainer.
 - [ ] Merge request contains a clear description of the proposed changes and the issue it addresses.
-- [ ] Merge request made onto appropriate branch (develop for most MRs).
+- [ ] Merge request made onto appropriate branch (main for most MRs).
 - [ ] New code is fully tested.
 - [ ] New code is documented and docstrings use [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - [ ] `CHANGELOG.rst` and `AUTHORS.rst` have been updated (when applicable).
