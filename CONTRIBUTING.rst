@@ -158,38 +158,38 @@ Versioning and deprecation policy
 
 .. note::
 
-    This policy is valid since the `1.0` release of `quantify-core` and any project that adapts it.
+    This policy is valid from the `1.0` release of `quantify-core` and any project that adopts it.
 
-We adapt semantic versioning scheme for all subprojects of Quantify.
-Version number consists of three numbers: major, minor and patch version consequently.
-Major version bump is performed, when API of a project has changed significantly
-and requires rewrite of significant part of a user code.
-Minor version bump is done for the new features, and patch version bump is for bugfixes in the released version.
+We adopt a semantic versioning scheme for all subprojects of Quantify.
+Version numbers consist of three numbers: a major, minor and patch version consequently.
+A major version bump is performed, when the API of a project has changed significantly
+and requires a rewrite of significant parts of user code.
+A minor version bump is done for the new features, and a patch version bump is for bugfixes in the released version.
 
 We aim to provide backward compatibility for the future releases of Quantify within the same major version.
 This means that code that uses `quantify-core-1.1` should be also executable using `quantify-core-1.2`.
 It is not realistic to keep this policy for *every* minor breaking change,
-for example the rename of a method or change of its location.
-For such minor changes, we may deprecate some parts of API with a warning and remove it after three minor versions releases.
+for example renaming of a method or a change of its location.
+For such minor changes, we may deprecate some parts of API with a warning and remove it after three minor version releases.
 Therefore we define the following policies:
 
-1. If a function is a part of public API, it should be declared in ``__all__`` list of a module.
-2. We guarantee backwards-compatible behaviour for all public API element for three minor releases forward,
+1. If a function is a part of the public API, it should be declared in the ``__all__`` list of a module.
+2. We guarantee backwards-compatible behaviour for all public API elements for three minor releases forward,
    unless this element is deprecated.
-3. Each deprecation must issue a ``DeprecationWarning``, mentioning the release when this API part is dropped
-   and a (short) explanation how to port the code.
+3. Each deprecation must issue a ``DeprecationWarning``, mentioning the release when this part of the API is dropped
+   and if possible, a (short) explanation how to port the code.
 4. Violation of backwards compatibility is considered an issue
    and a bugfix release fixing it must be done as soon as possible.
-5. If some API part is not declared as public, but is important for some use-cases,
-   user can (and is encouraged) to request stabilizing it using an issue.
-   If this proposal is accepted, this API part should be stabilized in the next minor release.
+5. If some part of the API is not declared as public, but is important for some use-cases,
+   a user can (and is encouraged) to request stabilizing it using an issue.
+   If this proposal is accepted, this part of the API should be stabilized in the next minor release.
 
-For example, if some function is deprecated in `quantify-core-1.2` release,
-it should be mark for removal in `quantify-core-1.5` using a ``DeprecationWarning``,
+For example, if some function is deprecated in the `quantify-core-1.2` release,
+it should be marked for removal in the `quantify-core-1.5` using a ``DeprecationWarning``,
 mentioning the version of removal (in this case `1.5`)
-and an instruction for user how to port the code to the new Quantify versions.
-The recommended way to do it is :func:`~quantify_core.utilities.deprecated` decorator.
+and an instruction for the user on how to port the code to the new versions of Quantify.
+The recommended way to do it is through the :func:`~quantify_core.utilities.deprecated` decorator.
 
-If there is a doubt about whether the API change is considered major (requiring major version bump) or minor,
-it must be discussed on a maintainers meeting.
-Changes to this policy should also be discussed and approved on a maintainers meeting.
+If there is doubt about whether the API change is considered major (requiring major version bump) or minor,
+it must be discussed during a developers meeting.
+Changes to this policy should also be discussed and approved during a developers meeting.
