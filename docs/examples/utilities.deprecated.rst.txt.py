@@ -27,7 +27,7 @@ import warnings
 from quantify_core.utilities import deprecated
 
 # %%
-@deprecated("99.99", 'Initialize the "foo" literal dicectly.')
+@deprecated("99.99", 'Initialize the "foo" literal directly.')
 def get_foo():
     return "foo"
 
