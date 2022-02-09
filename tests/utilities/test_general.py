@@ -6,6 +6,7 @@ import numpy as np
 
 from quantify_core.utilities.general import (
     delete_keys_from_dict,
+    get_subclasses,
     make_hash,
     save_json,
     load_json,
@@ -27,6 +28,26 @@ def test_delete_keys_from_dict() -> None:
 
     assert isinstance(test_dict["c"], dict)
     assert "D" not in test_dict["c"].keys()
+
+
+def test_get_subclasses() -> None:
+    class Foo:
+        pass
+
+    class Bar(Foo):
+        pass
+
+    class Baz(Foo):
+        pass
+
+    class Bing(Bar):
+        pass
+
+    classes = set(cls for cls in get_subclasses(Foo))
+    assert {Bar, Baz, Bing} == classes
+
+    classes = set(cls for cls in get_subclasses(Foo, include_base=True))
+    assert {Foo, Bar, Baz, Bing} == classes
 
 
 def test_make_hash() -> None:
