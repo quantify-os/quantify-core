@@ -30,10 +30,9 @@ scanpydoc >=0.7.1, <=0.7.3 # ensures latest typing_extensions is used in sphinx 
 docutils<0.17 # pinned due to issue #175
 rich[jupyter]
 jupytext
-qcodes>=0.28.0 # document Parameter attributes
+qcodes>=0.32
 
 # quantify-core only
-netcdf4
 scikit-learn
 scikit-optimize
 quantify-scheduler # used to generate schedule example in the dataset design docs
