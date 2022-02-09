@@ -987,7 +987,9 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
     # Instances of Instrument subclasses are recorded inside their subclasses,
     # see qcodes.Instrument.instances()
     for instrument_class in get_subclasses(Instrument, include_base=True):
-        for instrument in instrument_class.instances():  # instances() returns valid objects only
+        for (
+            instrument
+        ) in instrument_class.instances():  # instances() returns valid objects only
             snap["instruments"][instrument.name] = instrument.snapshot(update=update)
 
     if clean:
