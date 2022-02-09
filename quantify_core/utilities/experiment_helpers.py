@@ -8,6 +8,7 @@ from qcodes import Instrument
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
+from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
@@ -107,8 +108,10 @@ def create_plotmon_from_historical(
     name_str = str(name)
     i = 0
 
-    while name_str in PlotMonitor_pyqt._all_instruments:
-        name_str += f"_{i}"
+    for plotmon_class in get_subclasses(PlotMonitor_pyqt, include_base=True):
+        for plotmon in plotmon_class.instances():
+            if name_str == plotmon.name:
+                name_str += f"_{i}"
 
     plotmon = PlotMonitor_pyqt(name)
     plotmon.tuids_append(tuid)

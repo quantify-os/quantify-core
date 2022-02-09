@@ -20,7 +20,7 @@ from qcodes import Instrument
 
 import quantify_core.data.dataset_adapters as da
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import delete_keys_from_dict
+from quantify_core.utilities.general import delete_keys_from_dict, get_subclasses
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -464,13 +464,7 @@ def initialize_dataset(
                 attrs["batch_size"] = getattr(getpar, "batch_size")
             empty_arr = np.empty(numpoints)
             empty_arr[:] = np.nan
-            darrs.append(
-                xr.DataArray(
-                    data=empty_arr,
-                    name=f"y{j + idx}",
-                    attrs=attrs,
-                )
-            )
+            darrs.append(xr.DataArray(data=empty_arr, name=f"y{j + idx}", attrs=attrs,))
             count += 1
         j += count
 
@@ -605,9 +599,7 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
 
 def get_varying_parameter_values(
-    tuids: List[TUID],
-    instrument: str,
-    parameter: str,
+    tuids: List[TUID], instrument: str, parameter: str,
 ) -> np.ndarray:
     """
     A function that gets a parameter which varies over multiple experiments and puts
@@ -990,13 +982,13 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
         If True, removes certain keys from the snapshot to create a more readable and
         compact snapshot.
     """
-
     snap = {"instruments": {}, "parameters": {}}
-    for ins_name, ins_ref in Instrument._all_instruments.items():
-        ref = ins_ref()
-        # Check for dead weakrefs
-        if ref is not None:
-            snap["instruments"][ins_name] = ref.snapshot(update=update)
+
+    # Instances of Instrument subclasses are recorded inside their subclasses,
+    # see qcodes.Instrument.instances()
+    for instrument_class in get_subclasses(Instrument, include_base=True):
+        for instrument in instrument_class.instances():  # instances() returns valid objects only
+            snap["instruments"][instrument.name] = instrument.snapshot(update=update)
 
     if clean:
         exclude_keys = {
