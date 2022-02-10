@@ -38,17 +38,21 @@ def test_get_subclasses() -> None:
     class Bar(Foo):
         pass
 
-    class Baz(Foo):
+    class Baz(Bar):
         pass
 
     class Bing(Bar):
         pass
 
     classes = set(cls for cls in get_subclasses(Foo))
-    assert {Bar, Baz, Bing} == classes
+    assert {Bar, Baz, Bing} == classes, "Only all subclasses"
 
     classes = set(cls for cls in get_subclasses(Foo, include_base=True))
-    assert {Foo, Bar, Baz, Bing} == classes
+    assert {Foo, Bar, Baz, Bing} == classes, "Base + all subclasses"
+
+    cls = next(get_subclasses(Foo))
+    assert issubclass(cls, Foo), "We return a subclass"
+    assert type(cls) is not Foo, "A returned class does not quack like the base"
 
 
 def test_make_hash() -> None:

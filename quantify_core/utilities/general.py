@@ -10,11 +10,15 @@ import pathlib
 import warnings
 from collections.abc import MutableMapping
 from typing import Any, Union, Iterator
+from typing import TypeVar
+
 
 import numpy as np
 import xxhash
 
 from qcodes.utils.helpers import NumpyJSONEncoder
+
+T = TypeVar("T")
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
@@ -235,7 +239,7 @@ def last_modified(path: pathlib.Path) -> float:
     return path.stat().st_mtime
 
 
-def get_subclasses(cls: type, include_base: bool = False) -> Iterator[type]:
+def get_subclasses(cls: T, include_base: bool = False) -> Iterator[T]:
     """
     Returns Iterator of all subclasses for a class
     From: https://stackoverflow.com/a/33607093
