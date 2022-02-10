@@ -464,7 +464,13 @@ def initialize_dataset(
                 attrs["batch_size"] = getattr(getpar, "batch_size")
             empty_arr = np.empty(numpoints)
             empty_arr[:] = np.nan
-            darrs.append(xr.DataArray(data=empty_arr, name=f"y{j + idx}", attrs=attrs,))
+            darrs.append(
+                xr.DataArray(
+                    data=empty_arr,
+                    name=f"y{j + idx}",
+                    attrs=attrs,
+                )
+            )
             count += 1
         j += count
 
@@ -599,7 +605,9 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
 
 def get_varying_parameter_values(
-    tuids: List[TUID], instrument: str, parameter: str,
+    tuids: List[TUID],
+    instrument: str,
+    parameter: str,
 ) -> np.ndarray:
     """
     A function that gets a parameter which varies over multiple experiments and puts
