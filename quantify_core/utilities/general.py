@@ -9,7 +9,7 @@ import json
 import pathlib
 import warnings
 from collections.abc import MutableMapping
-from typing import Any, Union, Type, Iterator
+from typing import Any, Union, Iterator
 
 import numpy as np
 import xxhash
@@ -235,7 +235,7 @@ def last_modified(path: pathlib.Path) -> float:
     return path.stat().st_mtime
 
 
-def get_subclasses(cls: Type, include_base: bool = False) -> Iterator[Type]:
+def get_subclasses(cls: type, include_base: bool = False) -> Iterator[type]:
     """
     Returns Iterator of all subclasses for a class
     From: https://stackoverflow.com/a/33607093
