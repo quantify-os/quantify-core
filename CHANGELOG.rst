@@ -5,6 +5,7 @@ Changelog
 Unreleased
 ----------
 
+* Analysis - Changed the metric of the AllXY analysis to use the mean of the absolute deviations. (!300)
 * Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement.
 
 
