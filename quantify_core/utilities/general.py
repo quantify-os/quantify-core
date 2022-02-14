@@ -6,19 +6,18 @@ from __future__ import annotations
 import copy
 import importlib
 import json
+import numpy as np
 import pathlib
 import warnings
+import xxhash
+
 from collections.abc import MutableMapping
+from qcodes.utils.helpers import NumpyJSONEncoder
 from typing import Any, Union, Iterator
 from typing import TypeVar
 
 
-import numpy as np
-import xxhash
-
-from qcodes.utils.helpers import NumpyJSONEncoder
-
-T = TypeVar("T")
+T = TypeVar("T", object, object)
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
@@ -251,7 +250,7 @@ def get_subclasses(cls: T, include_base: bool = False) -> Iterator[T]:
     include_base
         include the base class in the Iterator
     """
-    for subclass in cls.__subclasses__():
+    for subclass in cls.__subclasses__():  # type: ignore[attr-defined]
         yield from get_subclasses(subclass)
         yield subclass
 

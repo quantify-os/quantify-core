@@ -52,7 +52,7 @@ def test_get_subclasses() -> None:
 
     cls = next(get_subclasses(Foo))
     assert issubclass(cls, Foo), "We return a subclass"
-    assert type(cls) is not Foo, "A returned class does not quack like the base"
+    assert not isinstance(cls, Foo), "A returned subclass should not quack like the base"
 
 
 def test_make_hash() -> None:
