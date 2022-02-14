@@ -1,23 +1,21 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """General utilities."""
-from __future__ import annotations
-
 import copy
 import importlib
 import json
-import numpy as np
 import pathlib
 import warnings
+from collections.abc import MutableMapping
+from typing import Any, Union, Iterator, TypeVar
+
+import numpy as np
 import xxhash
 
-from collections.abc import MutableMapping
 from qcodes.utils.helpers import NumpyJSONEncoder
-from typing import Any, Union, Iterator
-from typing import TypeVar
 
 
-T = TypeVar("T", object, object)
+T = TypeVar("T", type, type)
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
@@ -250,7 +248,7 @@ def get_subclasses(cls: T, include_base: bool = False) -> Iterator[T]:
     include_base
         include the base class in the Iterator
     """
-    for subclass in cls.__subclasses__():  # type: ignore[attr-defined]
+    for subclass in cls.__subclasses__():
         yield from get_subclasses(subclass)
         yield subclass
 
