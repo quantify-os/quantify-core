@@ -7,15 +7,12 @@ import json
 import pathlib
 import warnings
 from collections.abc import MutableMapping
-from typing import Any, Union, Iterator, TypeVar
+from typing import Any, Union, Iterator, Type, TypeVar
 
 import numpy as np
 import xxhash
 
 from qcodes.utils.helpers import NumpyJSONEncoder
-
-
-T = TypeVar("T", type, type)
 
 
 def delete_keys_from_dict(dictionary: dict, keys: set) -> dict:
@@ -51,7 +48,7 @@ def traverse_dict(obj: dict, convert_to_string: bool = True):
     We modify this function so that at the lowest hierarchy,
     we convert the element to a string.
 
-    From https://nvie.com/posts/modifying-deeply-nested-structures/
+    From: `<https://nvie.com/posts/modifying-deeply-nested-structures/>`_
     """
     if isinstance(obj, dict):
         out_dict = {}
@@ -101,7 +98,7 @@ def make_hash(obj: Any):
     only other hashable types (including any lists, tuples, sets, and
     dictionaries).
 
-    From: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
+    From: `<https://stackoverflow.com/questions/5884066/hashing-a-dictionary>`_.
     """
 
     new_hash = xxhash.xxh64()
@@ -236,21 +233,31 @@ def last_modified(path: pathlib.Path) -> float:
     return path.stat().st_mtime
 
 
-def get_subclasses(cls: T, include_base: bool = False) -> Iterator[T]:
+T = TypeVar("T")
+
+
+def get_subclasses(base: Type[T], include_base: bool = False) -> Iterator[Type[T]]:
     """
-    Returns Iterator of all subclasses for a class
-    From: https://stackoverflow.com/a/33607093
+    Obtain all subclasses of a class.
+    From: `<https://stackoverflow.com/a/33607093>`_.
 
     Parameters
     ----------
-    cls
-        class for which subclasses will be returned
+    base
+        base class for which subclasses will be returned.
     include_base
-        include the base class in the Iterator
+        include the base class in the iterator.
+
+    Yields
+    ------
+    subclass : Type[T]
+        Next subclass for a class.
+    base : Type[T]
+        Optionally, base class itself included in the iterator.
     """
-    for subclass in cls.__subclasses__():
+    for subclass in base.__subclasses__():
         yield from get_subclasses(subclass)
         yield subclass
 
     if include_base:
-        yield cls
+        yield base

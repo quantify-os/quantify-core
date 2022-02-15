@@ -41,7 +41,7 @@ def test_get_subclasses() -> None:
     class Baz(Bar):
         pass
 
-    class Bing(Bar):
+    class Bing(Baz):
         pass
 
     classes = set(cls for cls in get_subclasses(Foo))
@@ -50,11 +50,12 @@ def test_get_subclasses() -> None:
     classes = set(cls for cls in get_subclasses(Foo, include_base=True))
     assert {Foo, Bar, Baz, Bing} == classes, "Base + all subclasses"
 
-    cls = next(get_subclasses(Foo))
-    assert issubclass(cls, Foo), "We return a subclass"
-    assert not isinstance(
-        cls, Foo
-    ), "A returned subclass should not quack like the base"
+    base = next(get_subclasses(Bing, include_base=True))
+    assert base is Bing, "Verify class identity check"
+
+    subclass = next(get_subclasses(Foo))
+    assert issubclass(subclass, Foo), "We yield a subclass"
+    assert subclass is not Foo, "And that subclass doesn't identify as the base"
 
 
 def test_make_hash() -> None:
