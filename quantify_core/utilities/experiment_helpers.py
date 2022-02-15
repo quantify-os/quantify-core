@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
 from typing import Any, Optional

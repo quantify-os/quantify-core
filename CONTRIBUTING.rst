@@ -78,7 +78,7 @@ An issue does not need to go through all the steps. But we differentiate this ma
 Merge Request Guidelines
 ------------------------
 
-Please make merge requests into the *develop* branch (not the *master* branch). Each request should be self-contained and address a single issue on the tracker.
+Please make merge requests into the *main* branch. Each request should be self-contained and address a single issue on the tracker.
 
 Before you submit a merge request, check that it meets these guidelines:
 

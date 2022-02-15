@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Utilities used for creating examples for docs/tutorials/tests."""
 # pylint: disable=too-many-arguments
 from __future__ import annotations
@@ -53,14 +53,14 @@ def mk_cosine_instrument() -> Instrument:
     # structure without necessarily having a connection to the physical world
     instr.add_parameter(
         "amp",
-        initial_value=1,
+        initial_value=0.5,
         unit="V",
         label="Amplitude",
         parameter_class=ManualParameter,
     )
     instr.add_parameter(
         "freq",
-        initial_value=0.5,
+        initial_value=1,
         unit="Hz",
         label="Frequency",
         parameter_class=ManualParameter,
@@ -89,7 +89,7 @@ def mk_cosine_instrument() -> Instrument:
     def cosine_model():
         sleep(instr.acq_delay())  # simulates the acquisition delay of an instrument
         return (
-            cos_func(instr.t(), instr.amp(), instr.freq(), phase=instr.phi(), offset=0)
+            cos_func(instr.t(), instr.freq(), instr.amp(), phase=instr.phi(), offset=0)
             + np.random.randn() * instr.noise_level()
         )
 

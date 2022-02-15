@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Module containing the MeasurementControl."""
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import types
 from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import adaptive
 import numpy as np
@@ -812,6 +812,27 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._gettable_pars = []
         for gpar in gettable_pars:
             self._gettable_pars.append(Gettable(gpar))
+
+    def measurement_description(self) -> Dict[str, Any]:
+        """Return a serializable description of the latest measurement
+
+        Users can add additional information to the description manually.
+
+        Returns
+        -------
+        :
+            Dictionary with description of the measurement
+        """
+        experiment_description = {
+            "name": self._dataset.attrs["name"],
+            "settables": [str(s) for s in self._settable_pars],
+        }
+        experiment_description["gettables"] = [str(s) for s in self._gettable_pars]
+        experiment_description["setpoints_shape"] = self._setpoints.shape
+        experiment_description["soft_avg"] = self._soft_avg
+        experiment_description["acquired_dataset"] = {"tuid": self._dataset.tuid}
+
+        return experiment_description
 
 
 def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarray:

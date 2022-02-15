@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Module containing matplotlib and xarray plotting utilities.
 
 Naming convention: plotting functions that require Xarray object(s) as inputs are named

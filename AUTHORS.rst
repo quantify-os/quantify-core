@@ -23,3 +23,5 @@ Contributors
 * Pieter Eendebak <pieter.eendebak@tno.nl>
 * Sander de Snoo <S.L.deSnoo@tudelft.nl>
 * Harold Meerwaldt <h.b.meerwaldt@tudelft.nl>
+* Tobias Bonsen <tobias@orangeqs.com>
+* Michiel Dubbelman <michiel@orangeqs.com>
