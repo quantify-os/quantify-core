@@ -564,7 +564,7 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         self.dataset_processed["ideal_data"] = ideal_data
 
         ### Analyzing Data ###
-        deviation = np.mean(abs(self.dataset_processed.pop_exc - ideal_data)).item()
+        deviation = np.mean(np.abs(self.dataset_processed.pop_exc - ideal_data)).item()
         self.quantities_of_interest["deviation"] = deviation
 
     def create_figures(self):
