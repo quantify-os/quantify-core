@@ -33,7 +33,6 @@ jupytext
 qcodes>=0.28.0 # document Parameter attributes
 
 # quantify-core only
-
 scikit-learn
 scikit-optimize
 quantify-scheduler # used to generate schedule example in the dataset design docs

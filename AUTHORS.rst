@@ -16,6 +16,7 @@ Developers
 * Thomas Reynders <thomas@orangeqs.com>
 * Adam Lawrence <adam@orangeqs.com>
 * Diogo Valada <dvalada@qblox.com>
+* Edgar Reehuis <ereehuis@qblox.com>
 
 Contributors
 ------------
