@@ -10,7 +10,7 @@ Motivate why the particular solution was chosen.
 --------------------
 
 ## Merge checklist
-See also [merge request guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/develop/contributing.html#merge-request-guidelines)
+See also [merge request guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/main/contributing.html#merge-request-guidelines)
 
 - [ ] Merge request has been reviewed and approved by a project maintainer.
 - [ ] Merge request contains a clear description of the proposed changes and the issue it addresses.
@@ -28,4 +28,4 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
 
 ---
 
-For reference, the issues workflow is described in the [contribution guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/develop/contributing.html#merge-requests-workflow).
+For reference, the issues workflow is described in the [contribution guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/main/contributing.html#merge-requests-workflow).
