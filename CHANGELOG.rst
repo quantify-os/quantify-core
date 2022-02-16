@@ -5,8 +5,11 @@ Changelog
 Unreleased
 ----------
 
-* Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement.
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement. (!279)
+* Bugfix - Fix qcodes 0.32.0 incompatibility by replacing all references of `qcodes.Instrument._all_instruments`. (!295)
 
 0.5.2 (2021-12-08)
 ------------------
@@ -20,7 +23,6 @@ Merged branches and closed issues
 * Infrastructure - Fixes the tests temporarily by pinning matplotlib 3.4.3 (!269)
 * Infrastructure - Added prospector config file for mypy in codacy. (copy from quantify-scheduler) (!259)
 * Bugfix - Fix a bug in adjust_axeslabels_SI. (!272)
-
 
 0.5.1 (2021-11-01)
 ------------------
