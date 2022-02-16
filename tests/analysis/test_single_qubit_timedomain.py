@@ -326,7 +326,7 @@ def test_allxy_quantities_of_interest(allxy_analysis_obj):
         "deviation",
     }
 
-    exp_deviation = 0.0107
+    exp_deviation = 0.022
 
     assert isinstance(allxy_analysis_obj.quantities_of_interest["deviation"], float)
 

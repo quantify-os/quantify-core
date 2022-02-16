@@ -8,6 +8,7 @@ Unreleased
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* Analysis - Changed the metric of the AllXY analysis to use the mean of the absolute deviations. (!300)
 * Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement. (!279)
 * Bugfix - Fix qcodes 0.32.0 incompatibility by replacing all references of `qcodes.Instrument._all_instruments`. (!295)
 
