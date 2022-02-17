@@ -3,6 +3,7 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import tempfile
+import sys
 from distutils.dir_util import copy_tree
 from pathlib import Path
 
@@ -39,6 +40,7 @@ def test_validator_accepts_tuid_objects(plotmon_instance):
     plotmon_instance.tuids([])  # reset for next tests
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="Plotmon test fails regularly on Windows")
 def test_basic_1d_plot(plotmon_instance):
     plotmon_instance.tuids_max_num(1)
     # Test 1D plotting using an example dataset
