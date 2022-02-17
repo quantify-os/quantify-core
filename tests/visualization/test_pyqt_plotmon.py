@@ -40,7 +40,9 @@ def test_validator_accepts_tuid_objects(plotmon_instance):
     plotmon_instance.tuids([])  # reset for next tests
 
 
-@pytest.mark.xfail(sys.platform.startswith("win"), reason="Plotmon test fails regularly on Windows")
+@pytest.mark.xfail(
+    sys.platform.startswith("win"), reason="Plotmon test fails regularly on Windows"
+)
 def test_basic_1d_plot(plotmon_instance):
     plotmon_instance.tuids_max_num(1)
     # Test 1D plotting using an example dataset
