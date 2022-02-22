@@ -8,7 +8,7 @@ import sys
 import tempfile
 import time
 from collections.abc import Iterable
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import adaptive
 import numpy as np
@@ -208,6 +208,17 @@ class TestMeasurementControl:
 
     def test_MeasurementControl_name(self):
         assert self.meas_ctrl.name == "meas_ctrl"
+
+    def test_MeasurementControl_save_data(self):
+
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints([0, 1, 2, 3])
+        self.meas_ctrl.gettables(sig)
+
+        with patch.object(self.meas_ctrl, "_safe_write_dataset") as mock:
+            _ = self.meas_ctrl.run(save_data=False)
+
+        assert mock.call_count == 0
 
     def test_repr(self):
         number_points = 5
