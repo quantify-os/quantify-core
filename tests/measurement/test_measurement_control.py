@@ -210,9 +210,8 @@ class TestMeasurementControl:
         assert self.meas_ctrl.name == "meas_ctrl"
 
     def test_MeasurementControl_save_data(self):
-
         self.meas_ctrl.settables(t)
-        self.meas_ctrl.setpoints([0, 1, 2, 3])
+        self.meas_ctrl.setpoints(np.array([0, 1, 2, 3]))
         self.meas_ctrl.gettables(sig)
 
         with patch.object(self.meas_ctrl, "_safe_write_dataset") as mock:
@@ -378,7 +377,7 @@ class TestMeasurementControl:
         # Must be specified otherwise all setpoints will be passed to the settable
         gettable.batch_size = 10
         self.meas_ctrl.gettables(gettable)
-        dset = self.meas_ctrl.run()
+        dset = self.meas_ctrl.run(save_data=False)
 
         expected_vals = batched_mock_values(x)
         assert np.array_equal(dset["x0"].values, x)
@@ -391,7 +390,7 @@ class TestMeasurementControl:
         self.meas_ctrl.settables(p_param)
         self.meas_ctrl.setpoints(np.linspace(-50, 0, 13))
         self.meas_ctrl.gettables(amplitude)
-        _ = self.meas_ctrl.run("1D test")
+        _ = self.meas_ctrl.run("1D test", save_data=False)
 
         measurement_description = self.meas_ctrl.measurement_description()
         assert isinstance(measurement_description, dict)
@@ -406,7 +405,7 @@ class TestMeasurementControl:
         self.meas_ctrl.settables(settable)
         self.meas_ctrl.setpoints(setpoints)
         self.meas_ctrl.gettables(gettable)
-        noisy_dset = self.meas_ctrl.run("noisy")
+        noisy_dset = self.meas_ctrl.run("noisy", save_data=False)
         xn_0 = noisy_dset["x0"].values
         expected_vals = batched_mock_values(xn_0)
         yn_0 = abs(noisy_dset["y0"].values - expected_vals)
@@ -604,7 +603,7 @@ class TestMeasurementControl:
         self.meas_ctrl.settables(settables)
         self.meas_ctrl.setpoints_grid([times, amps])
         self.meas_ctrl.gettables(gettable)
-        dset = self.meas_ctrl.run("2D batched")
+        dset = self.meas_ctrl.run("2D batched", save_data=False)
 
         exp_sp = grid_setpoints([times, amps])
         assert np.array_equal(exp_sp, self.meas_ctrl._setpoints)
