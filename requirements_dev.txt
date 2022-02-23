@@ -30,7 +30,7 @@ scanpydoc >=0.7.1, <=0.7.3 # ensures latest typing_extensions is used in sphinx 
 docutils<0.17 # pinned due to issue #175
 rich[jupyter]
 jupytext
-qcodes>=0.28.0, <=0.31.0 # 0.28.0: document Parameter attributes; 0.31.0: pinned due to API reference on RTD broken #296
+qcodes>=0.28.0,<=0.31.0 # 0.28.0: document Parameter attributes; 0.31.0: pinned due to API reference on RTD broken #296
 
 # quantify-core only
 scikit-learn
