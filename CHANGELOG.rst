@@ -2,7 +2,7 @@
 Changelog
 =========
 
-0.5.2 (2022-02-25)
+0.5.3 (2022-02-25)
 ------------------
 
 Merged branches and closed issues
