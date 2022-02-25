@@ -2,8 +2,8 @@
 Changelog
 =========
 
-Unreleased
-----------
+0.5.2 (2022-02-25)
+------------------
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
