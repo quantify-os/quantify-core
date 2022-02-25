@@ -2,14 +2,16 @@
 Changelog
 =========
 
-Unreleased
-----------
+0.5.3 (2022-02-25)
+------------------
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Analysis - Changed the metric of the AllXY analysis to use the mean of the absolute deviations. (!300)
-* Control - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement. (!279)
+* MeasurementControl - Added a `measurement_description` function in the MeasurementControl to return a serializable description of the latest measurement. (!279)
+* MeasurementControl - Add option to run an experiment without saving data (!308)
+* Infrastructure - Added utilities to support deprecation (!281)
 * Bugfix - Fix qcodes 0.32.0 incompatibility by replacing all references of `qcodes.Instrument._all_instruments`. (!295)
 
 0.5.2 (2021-12-08)
