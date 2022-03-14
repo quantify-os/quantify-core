@@ -29,6 +29,8 @@ from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
+import warnings
+warnings.filterwarnings(action="ignore", category=RuntimeWarning, message=r"All-NaN (slice|axis)")
 
 class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
     """
