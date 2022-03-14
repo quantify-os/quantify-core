@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Plotmon - Suppress warning about all-NaN datasets during plotting.
+
 0.5.3 (2022-02-25)
 ------------------
 
