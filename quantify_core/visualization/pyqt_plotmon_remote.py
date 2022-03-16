@@ -32,7 +32,7 @@ from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
 
 warnings.filterwarnings(
-    action="ignore", category=RuntimeWarning, message=r"All-NaN (slice|axis)"
+    action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
 )
 
 
