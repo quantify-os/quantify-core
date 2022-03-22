@@ -27,7 +27,7 @@ def test_settable() -> None:
     manpar = ManualParameter("x")
     Settable(manpar)
 
-    del manpar.unit
+    manpar.unit = None
     with pytest.raises(ValidationError):
         Settable(manpar)
 
@@ -83,7 +83,7 @@ def test_gettable() -> None:
     manpar = ManualParameter("x")
     Gettable(manpar)
 
-    del manpar.unit
+    manpar.unit = None
     with pytest.raises(ValidationError):
         Gettable(manpar)
 
