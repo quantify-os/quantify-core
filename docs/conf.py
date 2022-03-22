@@ -326,5 +326,5 @@ with open("nitpick-exceptions.txt", encoding="utf-8") as nitpick_exceptions:
 
 
 # We need to import xarray here to prevent sphinx import failing on that line in
-# quantify_core/data/dataset_attrs.py (see #296)
+# quantify_core/data/dataset_attrs.py (see https://gitlab.com/quantify-os/quantify-core/-/issues/296)
 import xarray as xr
