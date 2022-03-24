@@ -21,6 +21,8 @@ directory-tree>=0.0.2
 pendulum  # used for timestamps formatting in the dataset attributes
 dataclasses_json # used in dataset_attrs
 
+scanpydoc >=0.7.1, <=0.7.3 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
+
 # tmp fixes
 funcparserlib==1.0.0a0 # https://github.com/vlasovskikh/funcparserlib/issues/69
 setuptools<60.0 # https://gitlab.com/quantify-os/quantify-core/-/issues/290
