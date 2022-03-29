@@ -24,3 +24,4 @@ dataclasses_json # used in dataset_attrs
 # tmp fixes
 funcparserlib==1.0.0a0 # https://github.com/vlasovskikh/funcparserlib/issues/69
 setuptools<60.0 # https://gitlab.com/quantify-os/quantify-core/-/issues/290
+Jinja2==3.0.3 # due to old sphinx incompatibility with newer API of Jinja2 #304
