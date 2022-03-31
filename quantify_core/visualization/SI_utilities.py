@@ -176,9 +176,9 @@ def SI_prefix_and_scale_factor(val, unit=None):
                 if plt.rcParams["text.usetex"] and prefix == "μ":
                     prefix = r"$\mu$"
             if unit == "SI_PREFIX_ONLY":
-                scale_factor, scaled_unit = 10**-prefix_power, prefix
+                scale_factor, scaled_unit = 10 ** -prefix_power, prefix
             else:
-                scale_factor, scaled_unit = 10**-prefix_power, prefix + unit
+                scale_factor, scaled_unit = 10 ** -prefix_power, prefix + unit
         # this exception can be triggered in the pyqtgraph multi processing
         except (KeyError, TypeError):
             scale_factor, scaled_unit = 1, unit
