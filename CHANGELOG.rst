@@ -6,6 +6,7 @@ Unreleased
 ----------
 
 * Plotmon - Suppress warning about all-NaN datasets during plotting.
+* Add functions to load and save lmfit fit results from file
 
 0.5.3 (2022-02-25)
 ------------------
