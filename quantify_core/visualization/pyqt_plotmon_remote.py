@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph-based remote plotting monitor manager."""
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import os
 from collections import deque
 from collections.abc import Iterable
 from multiprocessing import Queue
+import warnings
 
 import numpy as np
 from filelock import FileLock
@@ -28,6 +29,11 @@ from quantify_core.utilities.general import last_modified
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
+
+
+warnings.filterwarnings(
+    action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
+)
 
 
 class RemotePlotmon:  # pylint: disable=too-many-instance-attributes

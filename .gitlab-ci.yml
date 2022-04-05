@@ -1,14 +1,9 @@
 workflow:
-  # these rules define if a pipeline will be created for certain events
-  # note that each job needs its on rules that define when it will run
   rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
-      when: never  # avoid duplicate pipelines for pushes for branches with a MR opened
-    - if: '$CI_OPEN_MERGE_REQUESTS || $CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_PIPELINE_SOURCE == "external_pull_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - when: always
-
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "api"'
 
 .shared-windows-runners:
   tags:

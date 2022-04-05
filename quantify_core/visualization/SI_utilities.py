@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 # pylint: disable=invalid-name  # disabled because of capital SI in module name
 """
 Utilities for managing SI units with plotting systems.
@@ -176,9 +176,9 @@ def SI_prefix_and_scale_factor(val, unit=None):
                 if plt.rcParams["text.usetex"] and prefix == "μ":
                     prefix = r"$\mu$"
             if unit == "SI_PREFIX_ONLY":
-                scale_factor, scaled_unit = 10 ** -prefix_power, prefix
+                scale_factor, scaled_unit = 10**-prefix_power, prefix
             else:
-                scale_factor, scaled_unit = 10 ** -prefix_power, prefix + unit
+                scale_factor, scaled_unit = 10**-prefix_power, prefix + unit
         # this exception can be triggered in the pyqtgraph multi processing
         except (KeyError, TypeError):
             scale_factor, scaled_unit = 1, unit
@@ -312,7 +312,7 @@ def format_value_string(
 
     fmt = SafeFormatter(missing="NaN")
     if stderr is not None:
-        val_string = fr": {val_format_specifier}$\pm${err_format_specifier} {{}}{{}}"
+        val_string = rf": {val_format_specifier}$\pm${err_format_specifier} {{}}{{}}"
         # par name is excluded from the format command to allow latex {} characters.
         val_string = par_name + fmt.format(val_string, val, stderr, unit, end_char)
     else:
@@ -322,7 +322,7 @@ def format_value_string(
     return val_string
 
 
-def value_precision(val, stderr=None) -> Tuple[str]:
+def value_precision(val, stderr=None) -> Tuple[str, str]:
     """
     Calculate the precision to which a parameter is to be specified, according to
     its standard error. Returns the appropriate format specifier string.

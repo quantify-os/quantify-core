@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Models and fit functions to be used with the lmfit fitting framework."""
 from __future__ import annotations
 

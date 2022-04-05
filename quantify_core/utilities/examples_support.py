@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Utilities used for creating examples for docs/tutorials/tests."""
 # pylint: disable=too-many-arguments
 from __future__ import annotations
