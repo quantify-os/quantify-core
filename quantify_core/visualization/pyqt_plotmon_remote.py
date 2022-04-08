@@ -425,7 +425,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         is_uniformly_spaced = dset and dset.attrs.get(
             "grid_2d_uniformly_spaced", dset.attrs.get("2D-grid", False)
-        )  # "2D-grid" is for legacy datasets support"
+        )  # "2D-grid" is for legacy datasets support
         if is_uniformly_spaced:
             plot_idx = 1
             for yi in get_parnames:
@@ -444,7 +444,6 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 }
                 self.secondary_QtPlot.add(**config_dict)
                 plot_idx += 1
-            self.secondary_QtPlot.update_plot()
 
         #############################################################
         # if data has two uniformly spaced settables in 1D, do not interpolate
@@ -478,7 +477,6 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 self.secondary_QtPlot.add(**config_dict)
                 self._im_curves.append(self.secondary_QtPlot.traces[-1])
                 plot_idx += 1
-            self.secondary_QtPlot.update_plot()
 
         #############################################################
         # if data is not on a uniformly spaced grid but is 2D then interpolate
@@ -525,7 +523,8 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 )
                 self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
                 plot_idx += 1
-            self.secondary_QtPlot.update_plot()
+
+        self.secondary_QtPlot.update_plot()
 
     # pylint: disable=too-many-locals
     def update(self, tuid: str = None, datadir: str = None):
