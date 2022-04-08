@@ -164,7 +164,11 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._experiment = None
         self._plotmon_name = ""
         # attributes named as if they are python attributes, e.g. dset.drid_2d == True
-        self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
+        self._plot_info = {
+            "grid_2d": False,
+            "grid_2d_uniformly_spaced": False,
+            "1d_2_settables_uniformly_spaced": False,
+        }
 
         # properly handling KeyboardInterrupts
         self._thread_data = threading.local()
@@ -230,7 +234,11 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         Resets specific variables that can change before `.run()`.
         """
-        self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
+        self._plot_info = {
+            "grid_2d": False,
+            "grid_2d_uniformly_spaced": False,
+            "1d_2_settables_uniformly_spaced": False,
+        }
         # Reset to default interrupt handler
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
@@ -770,6 +778,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
+        elif len(np.shape(setpoints)) == 2:
+            # used in plotmon to detect need for interpolation in 2d plot
+            is_uniform = all(
+                _is_uniformly_spaced_array(setpoints_i) for setpoints_i in setpoints.T
+            )
+            self._plot_info["1d_2_settables_uniformly_spaced"] = is_uniform
+
         self._setpoints = setpoints
         # `.setpoints()` and `.setpoints_grid()` cannot be used at the same time
         self._setpoints_input = None
