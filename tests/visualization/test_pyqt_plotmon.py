@@ -88,6 +88,17 @@ def test_basic_2d_plot(plotmon_instance):
     plotmon_instance.tuids([])  # reset for next tests
 
 
+def test_2d_plot_from_1d_scan_with_two_uniformly_spaced_settables(plotmon_instance):
+    plotmon_instance.tuids_max_num(1)
+    tuid = "20220409-095654-698-b2dc1f"
+    plotmon_instance.tuids_append(tuid)
+    plotmon_instance.update()
+
+    cfg = plotmon_instance._get_traces_config(which="secondary_QtPlot")[0]["config"]
+    assert np.shape(cfg["z"]) == (101, 101)
+    plotmon_instance.tuids([])  # reset for next tests
+
+
 def test_persistence(plotmon_instance):
     """
     NB this test reuses same too datasets, ideally the user will

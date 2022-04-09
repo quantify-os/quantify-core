@@ -46,6 +46,8 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
 
+    color_map = "viridis"
+
     def __init__(self, instr_name: str, dataset_locks_dir: str):
         # Used to mirror the name of the instrument in the windows titles
         self.instr_name = instr_name
@@ -329,7 +331,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         self.curves = {}
 
-        if not len(self._dsets):
+        if not self._dsets:
             # Nothing to be done
             return
 
@@ -351,10 +353,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         # We reserve "o" symbol for the latest dataset
         symbols = tuple(
             self.symbols[i % len(self.symbols)]
-            for i in range(len(all_colors) - bool(len(fadded_colors)))
+            for i in range(len(all_colors) - bool(fadded_colors))
         )
         # In case only extra datasets are present
-        symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
+        symbols = (symbols + ("o",)) if fadded_colors else symbols
         symbols_brush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
         symbols_brush = tuple(reversed(symbols_brush))
 
@@ -385,7 +387,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     )
 
                     # Keep track of all traces so that any curves can be updated
-                    if tuid not in self.curves.keys():
+                    if tuid not in self.curves:
                         self.curves[tuid] = {}
                     self.curves[tuid][xi + yi] = self.main_QtPlot.traces[-1]
 
@@ -440,7 +442,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     "zlabel": dset[yi].attrs["long_name"],
                     "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
-                    "cmap": "viridis",
+                    "cmap": self.color_map,
                 }
                 self.secondary_QtPlot.add(**config_dict)
                 plot_idx += 1
@@ -459,8 +461,8 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             shape = (len(x), len(y))
             for yi in get_parnames:
                 # the background values of z_matrix are filled to be np.nan. Note that
-                # qcodes.plots.pyqtgraph.QtPlot._update_image converts np.nan to the minimum value
-                # although it _should_ be possible to have NaNs in pyqtgraph.
+                # qcodes.plots.pyqtgraph.QtPlot._update_image converts np.nan to the
+                # minimum value though it should be possible to have NaNs in pyqtgraph
                 z_matrix = np.full(shape, np.nan)
                 np.fill_diagonal(z_matrix, dset[yi].values)
                 z = np.reshape(z_matrix, shape, order="F").T
@@ -472,7 +474,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     "zlabel": dset[yi].attrs["long_name"],
                     "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
-                    "cmap": "viridis",
+                    "cmap": self.color_map,
                 }
                 self.secondary_QtPlot.add(**config_dict)
                 self._im_curves.append(self.secondary_QtPlot.traces[-1])
@@ -491,7 +493,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     "zlabel": dset[yi].attrs["long_name"],
                     "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
-                    "cmap": "viridis",
+                    "cmap": self.color_map,
                 }
                 self.secondary_QtPlot.add(**config_dict)
                 self._im_curves.append(self.secondary_QtPlot.traces[-1])
@@ -532,7 +534,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         Updates the plots to reflect the latest data.
         """
 
-        if tuid is not None and tuid not in self._dsets.keys():
+        if tuid is not None and tuid not in self._dsets:
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
             self.tuids_append(tuid, datadir)
