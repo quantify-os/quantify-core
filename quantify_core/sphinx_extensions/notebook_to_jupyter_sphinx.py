@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 r'''
 A sphinx extension that converts python Jupyter notebook scripts ``.rst.py`` (or ``.rst.*.py``) in
 the percent format to ``.rst`` (``.rst.*``) files to be executed by sphinx.
@@ -83,7 +83,7 @@ Usage
 
     .. note::
 
-        This extension will not process all :code:`.rst.py` files but will only write to
+        This extension will process all :code:`.rst.py` files but will only write to
         disk the files that result in different contents compared to the contents of the
         existing :code:`.rst` file. Since sphinx is efficient and does not process files
         that have not changed, this speeds up the development time.

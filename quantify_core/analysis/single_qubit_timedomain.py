@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Module containing analyses for common single qubit timedomain experiments."""
 from __future__ import annotations
 
@@ -559,12 +559,12 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
                 )
             ),
             name="ideal_data",
-            dims="dim_0",
+            coords={"x0": self.dataset_processed.coords["x0"]},
         )
         self.dataset_processed["ideal_data"] = ideal_data
 
         ### Analyzing Data ###
-        deviation = np.mean(self.dataset_processed.pop_exc - ideal_data).item()
+        deviation = np.mean(np.abs(self.dataset_processed.pop_exc - ideal_data)).item()
         self.quantities_of_interest["deviation"] = deviation
 
     def create_figures(self):

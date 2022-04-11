@@ -151,7 +151,7 @@ PyYAML==6.0
 pyzmq==22.3.0
 qblox-instruments==0.5.2
 qcodes==0.29.1
--e git+https://gitlab-ci-token:y6ZsLkCyRwob4UMLvad4@gitlab.com/quantify-os/quantify-core.git@f81d9ca749e583d9e159184e3d43910aa44c6401#egg=quantify_core
+-e git+https://gitlab.com/quantify-os/quantify-core.git@f81d9ca749e583d9e159184e3d43910aa44c6401#egg=quantify_core
 quantify-scheduler==0.5.0
 readme-renderer==30.0
 regex==2021.10.23

@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Module containing example gettables."""
 
 import time
@@ -10,7 +10,7 @@ class StopWatchGettable:
     Gettable used to track time elapsed per acquisition.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = "dt"
         self.label = r"$\Delta T$"
         self.unit = "s"

@@ -152,6 +152,12 @@ examples_support
 .. automodule:: quantify_core.utilities.examples_support
     :members:
 
+deprecation
+-----------
+
+.. automodule:: quantify_core.utilities.deprecation
+   :members:
+
 visualization
 =============
 

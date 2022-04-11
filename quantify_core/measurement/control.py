@@ -1,5 +1,5 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Module containing the MeasurementControl."""
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import types
 from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import adaptive
 import numpy as np
@@ -24,6 +24,7 @@ from qcodes import validators as vals
 from qcodes.instrument.parameter import InstrumentRefParameter, ManualParameter
 from qcodes.utils.helpers import NumpyJSONEncoder
 
+from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
     DATASET_NAME,
     _is_uniformly_spaced_array,
@@ -149,9 +150,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._last_upd = time.time()
         self._batch_size_last = None
 
-        # variables used for persistence and plotting
+        # variables used for persistence, plotting and data handling
         self._dataset = None
         self._exp_folder: Path = None
+        self._experiment = None
         self._plotmon_name = ""
         # attributes named as if they are python attributes, e.g. dset.drid_2d == True
         self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
@@ -202,7 +204,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     # Methods used to control the measurements #
     ############################################
 
-    def _reset(self):
+    def _reset(self, save_data=True):
         """
         Resets all experiment specific variables for a new run.
         """
@@ -214,6 +216,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._thread_data.events_num = 0
         # Assign handler to interrupt signal
         signal.signal(signal.SIGINT, self._interrupt_handler)
+        self._save_data = save_data
 
     def _reset_post(self):
         """
@@ -242,19 +245,26 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         tuid = self._dataset.attrs["tuid"]
 
-        self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
-        self._safe_write_dataset()  # Write the empty dataset
+        self._experiment = QuantifyExperiment(tuid=tuid)
+        if self._save_data:
+            self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
+            self._safe_write_dataset()  # Write the empty dataset
+
+            snap = snapshot(update=False, clean=True)  # Save a snapshot of all
+            self._experiment.save_snapshot(snap)
+        else:
+            self._exp_folder = None
 
         if self.instr_plotmon():
             # Tell plotmon to start monitoring the new dataset
             self.instr_plotmon.get_instr().update(tuid=tuid)
 
-        snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        with open(self._exp_folder / "snapshot.json", "w", encoding="utf-8") as file:
-            json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
-
     def run(
-        self, name: str = "", soft_avg: int = 1, lazy_set: Optional[bool] = None
+        self,
+        name: str = "",
+        soft_avg: int = 1,
+        lazy_set: Optional[bool] = None,
+        save_data: bool = True,
     ) -> xr.Dataset:
         """
         Starts a data acquisition loop.
@@ -275,11 +285,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             instead (which by default is ``False``).
 
             .. warning:: This feature is not available yet when running in batched mode.
+        save_data
+            If ``True`` that the measurement data is stored.
         """
         lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
         self._soft_avg_validator(soft_avg)  # validate first
         self._soft_avg = soft_avg
-        self._reset()
+        self._reset(save_data=save_data)
         self._init(name)
 
         self._prepare_settables()
@@ -296,7 +308,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
-        self._safe_write_dataset()  # Wrap up experiment and store data
+        if self._save_data:
+            self._safe_write_dataset()  # Wrap up experiment and store data
         self._finish()
         self._reset_post()
 
@@ -566,7 +579,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if update:
             self.print_progress(print_message)
 
-            self._safe_write_dataset()
+            if self._save_data:
+                self._safe_write_dataset()
 
             self._last_upd = time.time()
 
@@ -695,13 +709,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         Locking files are written into a temporary dir to avoid polluting
         the experiment container.
         """
-        filename = self._exp_folder / DATASET_NAME
         # Multiprocess safe
         lockfile = (
             _DATASET_LOCKS_DIR / f"{self._dataset.attrs['tuid']}-{DATASET_NAME}.lock"
         )
         with FileLock(lockfile, 5):
-            write_dataset(path=filename, dataset=self._dataset)
+            self._experiment.write_dataset(self._dataset)
 
     ####################################
     # Non-parameter get/set functions  #
@@ -800,6 +813,27 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._gettable_pars = []
         for gpar in gettable_pars:
             self._gettable_pars.append(Gettable(gpar))
+
+    def measurement_description(self) -> Dict[str, Any]:
+        """Return a serializable description of the latest measurement
+
+        Users can add additional information to the description manually.
+
+        Returns
+        -------
+        :
+            Dictionary with description of the measurement
+        """
+        experiment_description = {
+            "name": self._dataset.attrs["name"],
+            "settables": [str(s) for s in self._settable_pars],
+        }
+        experiment_description["gettables"] = [str(s) for s in self._gettable_pars]
+        experiment_description["setpoints_shape"] = self._setpoints.shape
+        experiment_description["soft_avg"] = self._soft_avg
+        experiment_description["acquired_dataset"] = {"tuid": self._dataset.tuid}
+
+        return experiment_description
 
 
 def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarray:

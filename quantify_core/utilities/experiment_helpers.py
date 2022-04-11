@@ -1,19 +1,20 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
-# Licensed according to the LICENCE file on the master branch
+# Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Any, Union
+from typing import Any, Optional
 
 from qcodes import Instrument
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
+from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
 def load_settings_onto_instrument(
     instrument: Instrument, tuid: TUID = None, datadir: str = None
-):
+) -> None:
     """
     Loads settings from a previous experiment onto a current
     :class:`~qcodes.instrument.base.Instrument`. This information
@@ -79,7 +80,7 @@ def load_settings_onto_instrument(
 
 
 def create_plotmon_from_historical(
-    tuid: Union[TUID, str] = None, label: str = None
+    tuid: Optional[TUID] = None, label: str = ""
 ) -> PlotMonitor_pyqt:
     """
     Creates a plotmon using the dataset of the provided experiment denoted by the tuid
@@ -104,9 +105,13 @@ def create_plotmon_from_historical(
     """
     # avoid creating a plotmon with the same name
     name = tuid = tuid or get_latest_tuid(contains=label)
+    name_str = str(name)
     i = 0
-    while name in PlotMonitor_pyqt._all_instruments:
-        name += f"_{i}"
+
+    for plotmon_class in get_subclasses(PlotMonitor_pyqt, include_base=True):
+        for plotmon in plotmon_class.instances():
+            if name_str == plotmon.name:
+                name_str += f"_{i}"
 
     plotmon = PlotMonitor_pyqt(name)
     plotmon.tuids_append(tuid)

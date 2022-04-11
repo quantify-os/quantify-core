@@ -6,7 +6,7 @@ Quantify-core
     :target: https://join.slack.com/t/quantify-hq/shared_invite/zt-vao45946-f_NaRc4mvYQDQE_oYB8xSw
     :alt: Slack
 
-.. image:: https://gitlab.com/quantify-os/quantify-core/badges/develop/pipeline.svg
+.. image:: https://gitlab.com/quantify-os/quantify-core/badges/main/pipeline.svg
     :target: https://gitlab.com/quantify-os/quantify-core/pipelines/
     :alt: Pipelines
 
@@ -22,12 +22,12 @@ Quantify-core
     :target: https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Coverage
     :alt: Coverage
 
-.. image:: https://readthedocs.com/projects/quantify-quantify-core/badge/?version=develop&token=2f68e7fc6a2426b5eb9b44bb2f764a9d75a9932f41c39efdf0a8a99bf33e6a34
+.. image:: https://readthedocs.com/projects/quantify-quantify-core/badge/?version=latest
     :target: https://quantify-quantify-core.readthedocs-hosted.com
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/badge/License-BSD%204--Clause-blue.svg
-    :target: https://gitlab.com/quantify-os/quantify-core/-/blob/master/LICENSE
+    :target: https://gitlab.com/quantify-os/quantify-core/-/blob/main/LICENSE
     :alt: License
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -48,7 +48,7 @@ Quantify is a python based data acquisition platform focused on Quantum Computin
 It is build on top of `QCoDeS <https://qcodes.github.io/Qcodes/>`_ and is a spiritual successor of `PycQED <https://github.com/DiCarloLab-Delft/PycQED_py3>`_.
 Quantify currently consists of `quantify-core <https://pypi.org/project/quantify-core/>`_ and `quantify-scheduler <https://pypi.org/project/quantify-scheduler/>`_.
 
-Take a look at the documentation for quantify-core: `last release <https://quantify-quantify-core.readthedocs-hosted.com/>`_ (or `develop <https://quantify-quantify-core.readthedocs-hosted.com/en/develop/?badge=develop>`_).
+Take a look at the  `latest documentation for quantify-core <https://quantify-quantify-core.readthedocs-hosted.com/>`_ or use the switch in the bottom of left panel to switch to the documentation for older releases.
 
 Quantify-core is the core module that contains all basic functionality to control experiments. This includes:
 
@@ -65,12 +65,9 @@ Quantify-core is the core module that contains all basic functionality to contro
 Overview
 --------
 
-Quantify evolves rapidly, nevertheless, he following presentation by Adriaan Rol gives
+Quantify evolves rapidly, nevertheless, the following `presentation <https://www.youtube.com/embed/koWIp12hD8Q?start=150&end=1126>`_ by Adriaan Rol gives
 a good general overview of Quantify.
 
-.. raw:: html
-
-    <iframe width="720" height="405" src="https://www.youtube.com/embed/koWIp12hD8Q?start=150&end=1126" title="Quantify" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 About
 -----

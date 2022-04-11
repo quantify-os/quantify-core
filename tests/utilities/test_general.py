@@ -1,7 +1,20 @@
-from quantify_core.utilities.general import delete_keys_from_dict, make_hash
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=too-few-public-methods
+
+import numpy as np
+
+from quantify_core.utilities.general import (
+    delete_keys_from_dict,
+    get_subclasses,
+    make_hash,
+    save_json,
+    load_json,
+)
 
 
-def test_delete_keys_from_dict():
+def test_delete_keys_from_dict() -> None:
 
     test_dict = {"a": 5, "b": 6, "c": {"D": 4, "E": 8}}
 
@@ -9,12 +22,43 @@ def test_delete_keys_from_dict():
     test_dict = delete_keys_from_dict(test_dict, {"a"})
     assert "a" not in test_dict.keys()
 
+    assert isinstance(test_dict["c"], dict)
     assert "D" in test_dict["c"].keys()
+
     test_dict = delete_keys_from_dict(test_dict, {"D"})
+
+    assert isinstance(test_dict["c"], dict)
     assert "D" not in test_dict["c"].keys()
 
 
-def test_make_hash():
+def test_get_subclasses() -> None:
+    class Foo:
+        pass
+
+    class Bar(Foo):
+        pass
+
+    class Baz(Bar):
+        pass
+
+    class Bing(Baz):
+        pass
+
+    classes = set(cls for cls in get_subclasses(Foo))
+    assert {Bar, Baz, Bing} == classes, "Only all subclasses"
+
+    classes = set(cls for cls in get_subclasses(Foo, include_base=True))
+    assert {Foo, Bar, Baz, Bing} == classes, "Base + all subclasses"
+
+    base = next(get_subclasses(Bing, include_base=True))
+    assert base is Bing, "Verify class identity check"
+
+    subclass = next(get_subclasses(Foo))
+    assert issubclass(subclass, Foo), "We yield a subclass"
+    assert subclass is not Foo, "And that subclass doesn't identify as the base"
+
+
+def test_make_hash() -> None:
 
     my_test_dict = {"a": 5, "nested_dict": {"a": 2, "c": 4, "B": "str"}, "b": 24}
 
@@ -39,3 +83,17 @@ def test_make_hash():
     my_test_dict["efg"] = 15
     new_hash = make_hash(my_test_dict)
     assert test_hash != new_hash
+
+
+def test_save_load_json(tmp_test_data_dir) -> None:
+    data = {"snap": 1, "snap2": "str", "dat": np.array([1.0, 3.14, 5])}
+    save_json(directory=tmp_test_data_dir, filename="test_save.json", data=data)
+    loaded_data = load_json(full_path=tmp_test_data_dir / "test_save.json")
+
+    assert data.keys() == loaded_data.keys()
+
+    for key, value in data.items():
+        if isinstance(value, np.ndarray):
+            np.testing.assert_array_almost_equal(value, loaded_data.get("dat"))
+        else:
+            assert value == loaded_data.get(key)

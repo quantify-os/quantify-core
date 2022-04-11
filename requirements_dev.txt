@@ -26,14 +26,12 @@ pre-commit
 pre-commit-hooks # common hooks for git repos
 isort>=5.10.0 # sort python imports
 
-scanpydoc>=0.7.1 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
+scanpydoc >=0.7.1, <=0.7.3 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
 docutils<0.17 # pinned due to issue #175
 rich[jupyter]
 jupytext
-qcodes>=0.28.0 # document Parameter attributes
 
 # quantify-core only
-
 scikit-learn
 scikit-optimize
 quantify-scheduler # used to generate schedule example in the dataset design docs

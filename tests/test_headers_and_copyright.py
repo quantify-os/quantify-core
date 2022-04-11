@@ -9,14 +9,14 @@ from pathlib import Path
 import pytest
 
 
-def test_header():
+def test_header() -> None:
     skipfiles = {"__init__.py", "conftest.py", "setup.py"}
     skipdirs = {"docs", ".", "tests", "__pycache__", "venv"}
     failures = []
     quantify_core_path = Path(__file__).resolve().parent.parent.resolve()
     header_lines = [
         "# Repository: https://gitlab.com/quantify-os/quantify-core",
-        "# Licensed according to the LICENCE file on the master branch",
+        "# Licensed according to the LICENCE file on the main branch",
     ]
     for root, _, files in os.walk(quantify_core_path):
         # skip hidden folders, etc
@@ -37,7 +37,7 @@ def test_header():
         pytest.fail("Bad headers:\n{}".format(pprint.pformat(failures)))
 
 
-def test_docs_copyright():
+def test_docs_copyright() -> None:
     quantify_core_path = Path(__file__).resolve().parent.parent.resolve()
     conf_file = quantify_core_path / "docs" / "conf.py"
     copyright_found = False
