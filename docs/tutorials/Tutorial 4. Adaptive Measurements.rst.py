@@ -92,7 +92,6 @@ set_datadir(default_datadir())
 # %%
 meas_ctrl = MeasurementControl("meas_ctrl")
 insmon = InstrumentMonitor("Instruments Monitor")
-meas_ctrl.instrument_monitor(insmon.name)
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
 meas_ctrl.instr_plotmon(plotmon.name)
 

@@ -40,8 +40,6 @@ from quantify_core.visualization import InstrumentMonitor
 
 meas_ctrl = MeasurementControl("meas_ctrl")
 instrument_monitor = InstrumentMonitor("instrument_monitor")
-meas_ctrl.instrument_monitor(instrument_monitor.name)
 # Set True if you want to query the instruments about each parameter
 # before updating the window. Can be slow due to communication overhead.
 instrument_monitor.update_snapshot(False)
-instrument_monitor.update(force=True)
