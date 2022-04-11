@@ -43,4 +43,3 @@ instrument_monitor = InstrumentMonitor("instrument_monitor")
 # Set True if you want to query the instruments about each parameter
 # before updating the window. Can be slow due to communication overhead.
 instrument_monitor.update_snapshot(False)
-instrument_monitor.update(force=True)
