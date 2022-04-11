@@ -6,6 +6,7 @@ Unreleased
 ----------
 
 * Plotmon - Suppress warning about all-NaN datasets during plotting.
+* Bugfix - Fix QHullError occurring in RemotePlotmon when supplying two uniformly spaced settables to MeasurementControl.setpoints() (#305, !323)
 
 0.5.3 (2022-02-25)
 ------------------
