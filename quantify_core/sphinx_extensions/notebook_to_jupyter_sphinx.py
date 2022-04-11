@@ -83,7 +83,7 @@ Usage
 
     .. note::
 
-        This extension will not process all :code:`.rst.py` files but will only write to
+        This extension will process all :code:`.rst.py` files but will only write to
         disk the files that result in different contents compared to the contents of the
         existing :code:`.rst` file. Since sphinx is efficient and does not process files
         that have not changed, this speeds up the development time.
