@@ -97,7 +97,6 @@ meas_ctrl = MeasurementControl("meas_ctrl")
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
 meas_ctrl.instr_plotmon(plotmon.name)
 insmon = InstrumentMonitor("Instruments Monitor")
-meas_ctrl.instrument_monitor(insmon.name)
 
 # %% [raw]
 """
