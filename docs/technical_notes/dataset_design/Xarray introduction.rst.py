@@ -111,7 +111,7 @@ A variable can be "promoted" to (or defined as) a **Coordinate** for its dimensi
 """
 
 # %%
-values_vel = 1 + values_pos ** 2
+values_vel = 1 + values_pos**2
 data_vars = dict(
     position=(dimensions_pos, values_pos, attrs_pos),
     # now the velocity array "lies" along the same dimension as the position array

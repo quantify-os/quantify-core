@@ -77,7 +77,8 @@ class QuantifyExperiment:
 
         Returns
         -------
-        : the path to the experiment directory
+        :
+            The path to the experiment directory.
 
         """
         try:
