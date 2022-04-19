@@ -24,15 +24,17 @@ with open("requirements_dev.txt") as test_requirements_file:
 
 setup(
     author="The Quantify consortium consisting of Qblox and Orange Quantum Systems",
-    python_requires=">=3.7",
+    author_email="support@orangeqs.com",  # FIXME should be neutral one
+    python_requires=">=3.8",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     description="Unified quantum computing, solid-state and pulse sequencing physical experimentation framework.",
     install_requires=requirements,
