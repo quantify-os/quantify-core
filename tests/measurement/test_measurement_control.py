@@ -1190,10 +1190,8 @@ class TestMeasurementControl:
 
     def test_meas_ctrl_insmon_integration(self):
         inst_mon = InstrumentMonitor("insmon_meas_ctrl")
-        self.meas_ctrl.instrument_monitor(inst_mon.name)
-        assert self.meas_ctrl.instrument_monitor.get_instr().widget.getNodes()
+        assert inst_mon.widget.getNodes()
         inst_mon.close()
-        self.meas_ctrl.instrument_monitor("")
 
     def test_instrument_settings_from_disk(self, tmp_test_data_dir):
         load_settings_onto_instrument(

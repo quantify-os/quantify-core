@@ -2,20 +2,21 @@
 # Licensed according to the LICENCE file on the main branch
 """Utilities for managing experiment data."""
 
-from typing import Dict, Any, Optional
+import os
 from pathlib import Path
+from typing import Dict, Any, Optional
 
 import xarray as xr
-
-from quantify_core.data.types import TUID
-from quantify_core.utilities.general import save_json, load_json
 from quantify_core.data.handling import (
     locate_experiment_container,
     load_dataset,
     DATASET_NAME,
     write_dataset,
+    create_exp_folder,
 )
 from quantify_core.data.handling import snapshot as create_snapshot
+from quantify_core.data.types import TUID
+from quantify_core.utilities.general import save_json, load_json
 
 
 class QuantifyExperiment:
@@ -65,6 +66,28 @@ class QuantifyExperiment:
         experiment_directory = locate_experiment_container(tuid=self.tuid)
         return Path(experiment_directory)
 
+    def _get_or_create_experiment_directory(self) -> Path:
+        """
+        Create the experiment directory containing the TUID set within the class,
+        if it does not exist already.
+
+        To be used by methods that write/save. The experiment directory will be
+        created on the first write/save, not before. Methods that load should not
+        create an experiment directory.
+
+        Returns
+        -------
+        :
+            The path to the experiment directory.
+
+        """
+        try:
+            experiment_directory = self.experiment_directory
+        except FileNotFoundError:
+            experiment_directory = create_exp_folder(tuid=self.tuid)
+
+        return Path(experiment_directory)
+
     def load_dataset(self) -> xr.Dataset:
         """
         Loads the quantify dataset associated with the TUID set within
@@ -89,8 +112,21 @@ class QuantifyExperiment:
             The dataset to be written to the directory
 
         """
-        path = self.experiment_directory / DATASET_NAME
+        path = self._get_or_create_experiment_directory() / DATASET_NAME
         write_dataset(path, dataset)
+
+    def load_snapshot(self) -> Dict[str, Any]:
+        """
+        Loads the snapshot from the directory specified by
+        `~.experiment_directory`.
+
+        Returns
+        -------
+        :
+            The loaded snapshot from disk
+
+        """
+        return load_json(full_path=self.experiment_directory / "snapshot.json")
 
     def save_snapshot(self, snapshot: Optional[Dict[str, Any]] = None):
         """
@@ -106,18 +142,47 @@ class QuantifyExperiment:
         if snapshot is None:
             snapshot = create_snapshot()
         save_json(
-            directory=self.experiment_directory, filename="snapshot.json", data=snapshot
+            directory=self._get_or_create_experiment_directory(),
+            filename="snapshot.json",
+            data=snapshot,
         )
 
-    def load_snapshot(self) -> Dict[str, Any]:
+    def load_text(self, rel_path: str) -> str:
         """
-        Loads the snapshot from the directory specified by
-        `~.experiment_directory`.
+        Loads a string from a text file from the path specified by
+        `~.experiment_directory` / rel_path.
+
+        Parameters
+        ----------
+        rel_path
+            path relative to the base directory of the experiment,
+            e.g. "data.json" or "my_folder/data.txt"
 
         Returns
         -------
         :
-            The loaded snapshot from disk
+            The loaded text from disk
 
         """
-        return load_json(full_path=self.experiment_directory / "snapshot.json")
+        file_path = self.experiment_directory / rel_path
+        text = file_path.read_text(encoding="utf-8")
+        return text
+
+    def save_text(self, text: str, rel_path: str) -> None:
+        """
+        Saves a string to a text file in the path specified by
+        `~.experiment_directory` / rel_path.
+
+        Parameters
+        ----------
+        text
+            text to be saved
+        rel_path
+            path relative to the base directory of the experiment,
+            e.g. "data.json" or "my_folder/data.txt"
+
+        """
+        directory = (self._get_or_create_experiment_directory() / rel_path).parent
+        os.makedirs(directory, exist_ok=True)
+        file_path = self.experiment_directory / rel_path
+        file_path.write_text(text, encoding="utf-8")
