@@ -539,9 +539,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             # x coordinates
             for val in new_data:
                 yi_name = f"y{y_offset}"
-                if not yi_name in self._dataarray_cache:
-                    self._dataarray_cache[yi_name] = self._dataset[yi_name].values
-                yi_dataarray_values = self._dataarray_cache[yi_name]
+                if self._dataarray_cache is None:
+                    yi_dataarray_values = self._dataset[yi_name].values
+                else:
+                    if not yi_name in self._dataarray_cache:
+                        self._dataarray_cache[yi_name] = self._dataset[yi_name].values
+                    yi_dataarray_values = self._dataarray_cache[yi_name]
                 old_val = yi_dataarray_values[idx]
                 if self._soft_avg == 1 or np.isnan(old_val):
                     yi_dataarray_values[idx] = val
