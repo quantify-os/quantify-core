@@ -218,6 +218,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         signal.signal(signal.SIGINT, self._interrupt_handler)
         self._save_data = save_data
 
+        self._dataarray_cache = None
+
     def _reset_post(self):
         """
         Resets specific variables that can change before `.run()`.
@@ -395,6 +397,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             np.empty((64, len(self._settable_pars)))
         )  # block out some space in the dataset
         self._init(name)
+
         try:
             print("Running adaptively...")
             subroutine()
@@ -419,7 +422,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 self._nr_acquired_values += 1
                 self._update()
                 self._check_interrupt()
-            self._dataarray_cache = {}
+            self._dataarray_cache = None
             self._loop_count += 1
 
     def _run_batched(self):  # pylint: disable=too-many-locals
@@ -512,7 +515,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             xi_name = f"x{setpar_idx}"
-            if not xi_name in self._dataarray_cache:
+            if (
+                self._dataarray_cache is not None
+                and not xi_name in self._dataarray_cache
+            ):
                 self._dataarray_cache[xi_name] = self._dataset[xi_name].values
             xi_dataarray_values = self._dataarray_cache[xi_name]
             xi_dataarray_values[idx] = spt
