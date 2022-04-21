@@ -515,12 +515,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             xi_name = f"x{setpar_idx}"
-            if (
-                self._dataarray_cache is not None
-                and not xi_name in self._dataarray_cache
-            ):
-                self._dataarray_cache[xi_name] = self._dataset[xi_name].values
-            xi_dataarray_values = self._dataarray_cache[xi_name]
+            if self._dataarray_cache is None:
+                xi_dataarray_values = self._dataset[xi_name].values
+            else:
+                if not xi_name in self._dataarray_cache:
+                    self._dataarray_cache[xi_name] = self._dataset[xi_name].values
+                xi_dataarray_values = self._dataarray_cache[xi_name]
             xi_dataarray_values[idx] = spt
             prev_spt = xi_dataarray_values[idx - 1] if idx else None
             # if lazy_set==True and the setpoint equals the previous setpoint, do not
