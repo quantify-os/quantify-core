@@ -5,9 +5,8 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "api"'
 
-# If you want to define variables, be sure to carefully override ones in quantify-os/ci/common.yml
-# variables:
-#   FOO: bar
+variables:
+  COV_MODULE: quantify_core
 
 include:
   - project: "quantify-os/ci"
