@@ -47,6 +47,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
     """
 
     color_map = "viridis"
+    """The color_map to use for the secondary plot."""
 
     def __init__(self, instr_name: str, dataset_locks_dir: str):
         # Used to mirror the name of the instrument in the windows titles
