@@ -95,8 +95,8 @@ dataset_attrs = dict(my_attribute_name="some meta information")
 
 dataset = xr.Dataset(
     data_vars=data_vars,
-    attrs=dataset_attrs,  # dataset attributes
-)
+    attrs=dataset_attrs,
+)  # dataset attributes
 dataset
 
 # %%

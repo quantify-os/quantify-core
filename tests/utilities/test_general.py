@@ -1,11 +1,13 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
+# pylint: disable=too-few-public-methods
 
 import numpy as np
 
 from quantify_core.utilities.general import (
     delete_keys_from_dict,
+    get_subclasses,
     make_hash,
     save_json,
     load_json,
@@ -27,6 +29,33 @@ def test_delete_keys_from_dict() -> None:
 
     assert isinstance(test_dict["c"], dict)
     assert "D" not in test_dict["c"].keys()
+
+
+def test_get_subclasses() -> None:
+    class Foo:
+        pass
+
+    class Bar(Foo):
+        pass
+
+    class Baz(Bar):
+        pass
+
+    class Bing(Baz):
+        pass
+
+    classes = set(cls for cls in get_subclasses(Foo))
+    assert {Bar, Baz, Bing} == classes, "Only all subclasses"
+
+    classes = set(cls for cls in get_subclasses(Foo, include_base=True))
+    assert {Foo, Bar, Baz, Bing} == classes, "Base + all subclasses"
+
+    base = next(get_subclasses(Bing, include_base=True))
+    assert base is Bing, "Verify class identity check"
+
+    subclass = next(get_subclasses(Foo))
+    assert issubclass(subclass, Foo), "We yield a subclass"
+    assert subclass is not Foo, "And that subclass doesn't identify as the base"
 
 
 def test_make_hash() -> None:

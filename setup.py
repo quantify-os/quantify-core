@@ -42,11 +42,14 @@ setup(
     keywords="quantify-core",
     name="quantify-core",
     packages=find_packages(include=["quantify_core", "quantify_core.*"]),
-    package_data={"": ["*.json"]},  # ensures JSON schema are included
+    package_data={
+        "": ["*.json"],  # ensures JSON schema are included
+        "quantify_core": ["py.typed"],
+    },
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.com/quantify-os/quantify-core",
-    version="0.5.2",
+    version="0.5.3",
     zip_safe=False,
 )

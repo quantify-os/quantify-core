@@ -124,14 +124,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """Instrument responsible for live plotting. Can be set to ``None`` to disable
         live plotting."""
 
-        self.instrument_monitor = InstrumentRefParameter(
-            vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
-            instrument=self,
-            name="instrument_monitor",
-        )
-        """Instrument responsible for live monitoring summarized snapshot. Can be set to
-        ``None`` to disable monitoring of snapshot."""
-
         self.update_interval = ManualParameter(
             initial_value=0.5,
             vals=vals.Numbers(min_value=0.1),
@@ -212,7 +204,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     # Methods used to control the measurements #
     ############################################
 
-    def _reset(self):
+    def _reset(self, save_data=True):
         """
         Resets all experiment specific variables for a new run.
         """
@@ -224,6 +216,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._thread_data.events_num = 0
         # Assign handler to interrupt signal
         signal.signal(signal.SIGINT, self._interrupt_handler)
+        self._save_data = save_data
 
     def _reset_post(self):
         """
@@ -252,19 +245,26 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         tuid = self._dataset.attrs["tuid"]
 
-        self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
         self._experiment = QuantifyExperiment(tuid=tuid)
-        self._safe_write_dataset()  # Write the empty dataset
+        if self._save_data:
+            self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
+            self._safe_write_dataset()  # Write the empty dataset
+
+            snap = snapshot(update=False, clean=True)  # Save a snapshot of all
+            self._experiment.save_snapshot(snap)
+        else:
+            self._exp_folder = None
 
         if self.instr_plotmon():
             # Tell plotmon to start monitoring the new dataset
             self.instr_plotmon.get_instr().update(tuid=tuid)
 
-        snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        self._experiment.save_snapshot(snap)
-
     def run(
-        self, name: str = "", soft_avg: int = 1, lazy_set: Optional[bool] = None
+        self,
+        name: str = "",
+        soft_avg: int = 1,
+        lazy_set: Optional[bool] = None,
+        save_data: bool = True,
     ) -> xr.Dataset:
         """
         Starts a data acquisition loop.
@@ -285,11 +285,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             instead (which by default is ``False``).
 
             .. warning:: This feature is not available yet when running in batched mode.
+        save_data
+            If ``True`` that the measurement data is stored.
         """
         lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
         self._soft_avg_validator(soft_avg)  # validate first
         self._soft_avg = soft_avg
-        self._reset()
+        self._reset(save_data=save_data)
         self._init(name)
 
         self._prepare_settables()
@@ -306,7 +308,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
-        self._safe_write_dataset()  # Wrap up experiment and store data
+        if self._save_data:
+            self._safe_write_dataset()  # Wrap up experiment and store data
         self._finish()
         self._reset_post()
 
@@ -576,10 +579,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if update:
             self.print_progress(print_message)
 
-            self._safe_write_dataset()
-
-            if self.instrument_monitor():
-                self.instrument_monitor.get_instr().update()
+            if self._save_data:
+                self._safe_write_dataset()
 
             self._last_upd = time.time()
 

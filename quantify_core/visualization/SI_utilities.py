@@ -322,7 +322,7 @@ def format_value_string(
     return val_string
 
 
-def value_precision(val, stderr=None) -> Tuple[str]:
+def value_precision(val, stderr=None) -> Tuple[str, str]:
     """
     Calculate the precision to which a parameter is to be specified, according to
     its standard error. Returns the appropriate format specifier string.

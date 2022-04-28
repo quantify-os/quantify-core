@@ -135,8 +135,6 @@ meas_ctrl.instr_plotmon(plotmon.name)
 
 # The instrument monitor will give an overview of all parameters of all instruments
 insmon = InstrumentMonitor("Instruments Monitor")
-# By connecting to the meas_ctrl the parameters will be updated in real-time during an experiment.
-meas_ctrl.instrument_monitor(insmon.name)
 
 # %% [raw]
 """
