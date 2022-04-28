@@ -441,6 +441,7 @@ def plot_fit(
 
     return lines
 
+
 def plot_fit_complex_plane(
     ax, fit_res, plot_init: bool = True, plot_numpoints: int = 1000
 ) -> None:
