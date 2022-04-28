@@ -149,7 +149,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._begintime = time.time()
         self._last_upd = time.time()
         self._batch_size_last = None
-        self._dataarray_cache = None
+        self._dataarray_cache: Optional[Dict[str, Any]] = None
 
         # variables used for persistence, plotting and data handling
         self._dataset = None
@@ -512,6 +512,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 - in sweep, the x dimensions are already filled
                 - in adaptive, soft_avg is always 1
         """
+        assert self._dataset is not None
+
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
             xi_name = f"x{setpar_idx}"
