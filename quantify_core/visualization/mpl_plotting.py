@@ -6,7 +6,7 @@ Naming convention: plotting functions that require Xarray object(s) as inputs ar
 ``plot_xr_...``.
 """
 # pylint: disable=too-many-arguments, too-many-locals
-from typing import Tuple, Union, List
+from typing import List, Literal, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +19,6 @@ from matplotlib.image import AxesImage
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from typing_extensions import Literal
 
 from quantify_core.visualization.SI_utilities import (
     set_cbarlabel,

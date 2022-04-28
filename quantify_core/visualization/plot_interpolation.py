@@ -2,10 +2,10 @@
 # Licensed according to the LICENCE file on the main branch
 """Plot interpolations."""
 import logging
+from typing import Literal
 
 import numpy as np
 from scipy import interpolate
-from typing_extensions import Literal
 
 
 def areas(ip):
