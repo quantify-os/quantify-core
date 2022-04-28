@@ -18,6 +18,7 @@ Developers
 * Diogo Valada <dvalada@qblox.com>
 * Edgar Reehuis <ereehuis@qblox.com>
 * Konstantin Lehmann <konstantin@orangeqs.com>
+* Tim Vroomans <tim@orangeqs.com>
 
 Contributors
 ------------
