@@ -149,6 +149,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._begintime = time.time()
         self._last_upd = time.time()
         self._batch_size_last = None
+        self._dataarray_cache = None
 
         # variables used for persistence, plotting and data handling
         self._dataset = None
@@ -217,7 +218,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # Assign handler to interrupt signal
         signal.signal(signal.SIGINT, self._interrupt_handler)
         self._save_data = save_data
-
         self._dataarray_cache = None
 
     def _reset_post(self):
