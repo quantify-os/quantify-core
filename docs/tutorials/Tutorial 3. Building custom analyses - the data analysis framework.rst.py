@@ -348,7 +348,7 @@ def extract_data(label: str) -> xr.Dataset:
 def run_fitting(dataset_: xr.Dataset) -> lmfit.model.ModelResult:
     """Executes fitting."""
     model = CosineModel()  # create the fitting model
-    params_guess = model.guess(data=dataset_.y0.values)
+    params_guess = model.guess(data=dataset_.y0.values, x=dataset_.x0.values)
     result = model.fit(
         data=dataset_.y0.values, x=dataset_.x0.values, params=params_guess
     )
