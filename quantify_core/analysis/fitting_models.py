@@ -314,15 +314,26 @@ class CosineModel(lmfit.model.Model):
         )  # enforce phase range
 
     # pylint: disable=missing-function-docstring
-    def guess(self, data, **kws) -> lmfit.parameter.Parameters:
+    def guess(self, data, x, **kws) -> lmfit.parameter.Parameters:
+        """
+        guess parameters based on the data
 
-        # guess parameters based on the data
+        Parameters
+        ----------
+        data: np.ndarray
+            Data to fit to
+        x: np.ndarray
+            Independet variable
+        """
 
         self.set_param_hint("offset", value=np.average(data))
         self.set_param_hint("amplitude", value=(np.max(data) - np.min(data)) / 2)
-        # a simple educated guess based on experiment type
-        # a more elaborate but general approach is to use a Fourier transform
-        self.set_param_hint("frequency", value=1.2)
+
+        # Guess frequency and phase using Fourier Transform
+        freq_guess, phase_guess = fft_freq_phase_guess(data, x)
+        phase_wrap = (phase_guess + np.pi) % (2 * np.pi) - np.pi
+        self.set_param_hint("frequency", value=freq_guess)
+        self.set_param_hint("phase", value=phase_wrap)
 
         params = self.make_params()
         return lmfit.models.update_param_vals(params, self.prefix, **kws)
