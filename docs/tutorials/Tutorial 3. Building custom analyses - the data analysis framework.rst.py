@@ -103,7 +103,7 @@ from quantify_core.visualization.SI_utilities import set_xlabel, set_ylabel
 """
 
 # %%
-set_datadir(r"D:\quantify-data")  # change me!
+set_datadir(default_datadir())  # change me!
 
 # %% [raw]
 """
