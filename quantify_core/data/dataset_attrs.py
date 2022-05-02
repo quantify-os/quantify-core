@@ -8,11 +8,10 @@ Utilities for handling the attributes of :class:`xarray.Dataset` and
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Literal, Tuple, Union
 
 import xarray as xr
 from dataclasses_json import DataClassJsonMixin
-from typing_extensions import Literal
 
 
 @dataclass

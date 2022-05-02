@@ -837,6 +837,8 @@ def to_gridded_dataset(
     for name, attrs in zip(coords_names, attrs_coords):
         dataset[name].attrs = attrs
 
+    if "grid_2d" in dataset.attrs:
+        dataset.attrs["grid_2d"] = False
     return dataset
 
 
