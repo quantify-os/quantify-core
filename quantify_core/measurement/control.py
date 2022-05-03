@@ -149,6 +149,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._begintime = time.time()
         self._last_upd = time.time()
         self._batch_size_last = None
+        self._dataarray_cache: Optional[Dict[str, Any]] = None
 
         # variables used for persistence, plotting and data handling
         self._dataset = None
@@ -217,6 +218,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # Assign handler to interrupt signal
         signal.signal(signal.SIGINT, self._interrupt_handler)
         self._save_data = save_data
+        self._dataarray_cache = None
 
     def _reset_post(self):
         """
@@ -395,6 +397,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             np.empty((64, len(self._settable_pars)))
         )  # block out some space in the dataset
         self._init(name)
+
         try:
             print("Running adaptively...")
             subroutine()
@@ -412,11 +415,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     def _run_iterative(self, lazy_set: bool = False):
         while self._get_fracdone() < 1.0:
             self._prepare_gettables()
+
+            self._dataarray_cache = {}
             for row in self._setpoints:
                 self._iterative_set_and_get(row, self._curr_setpoint_idx(), lazy_set)
                 self._nr_acquired_values += 1
                 self._update()
                 self._check_interrupt()
+            self._dataarray_cache = None
             self._loop_count += 1
 
     def _run_batched(self):  # pylint: disable=too-many-locals
@@ -506,10 +512,19 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 - in sweep, the x dimensions are already filled
                 - in adaptive, soft_avg is always 1
         """
+        assert self._dataset is not None
+
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
-            self._dataset[f"x{setpar_idx}"].values[idx] = spt
-            prev_spt = self._dataset[f"x{setpar_idx}"].values[idx - 1] if idx else None
+            xi_name = f"x{setpar_idx}"
+            if self._dataarray_cache is None:
+                xi_dataarray_values = self._dataset[xi_name].values
+            else:
+                if not xi_name in self._dataarray_cache:
+                    self._dataarray_cache[xi_name] = self._dataset[xi_name].values
+                xi_dataarray_values = self._dataarray_cache[xi_name]
+            xi_dataarray_values[idx] = spt
+            prev_spt = xi_dataarray_values[idx - 1] if idx else None
             # if lazy_set==True and the setpoint equals the previous setpoint, do not
             # set the setpoint.
             if not (lazy_set and spt == prev_spt):
@@ -526,14 +541,20 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             # x coordinates
             for val in new_data:
                 yi_name = f"y{y_offset}"
-                old_val = self._dataset[yi_name].values[idx]
+                if self._dataarray_cache is None:
+                    yi_dataarray_values = self._dataset[yi_name].values
+                else:
+                    if not yi_name in self._dataarray_cache:
+                        self._dataarray_cache[yi_name] = self._dataset[yi_name].values
+                    yi_dataarray_values = self._dataarray_cache[yi_name]
+                old_val = yi_dataarray_values[idx]
                 if self._soft_avg == 1 or np.isnan(old_val):
-                    self._dataset[yi_name].values[idx] = val
+                    yi_dataarray_values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
                         1 + self._loop_count
                     )
-                    self._dataset[yi_name].values[idx] = averaged
+                    yi_dataarray_values[idx] = averaged
                 y_offset += 1
 
     ############################################
