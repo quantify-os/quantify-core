@@ -4,6 +4,7 @@
 from enum import Enum
 import pprint
 from typing import Any, Optional, Tuple
+from collections import OrderedDict
 
 from pyqtgraph.Qt import QtCore, QtGui
 
@@ -80,16 +81,38 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
             sub_node = self._add_node(node, sub_snapshot_key, sub_node_key)
             self._fill_node_recursively(sub_snap, sub_node, sub_node_key)
 
+        # Don't sort keys if we encounter an OrderedDict
         param_snaps = snapshot.get("parameters", {})
-        for param_name in sorted(param_snaps.keys()):
+        param_snaps_keys = param_snaps.keys()
+        if not isinstance(param_snaps, OrderedDict):
+            param_snaps_keys = sorted(param_snaps.keys())
+
+        for param_name in param_snaps_keys:
             param_snap = param_snaps[param_name]
             # Depending on the type of data stored in value do different things,
             # currently only blocks non-dicts
-            if "value" in param_snap.keys():
+            if not "value" in param_snap.keys():
                 # Some parameters do not have a value, these are not shown
                 # in the instrument monitor.
-                if not isinstance(param_snap["value"], dict):
-                    self._add_single_parameter(param_snap, param_name, node, node_key)
+                continue
+            if isinstance(param_snap["value"], dict):
+                # Treat dict as submodule and all entries of dict as parameters.
+                # If the dict keys are not str, they are converted to str. Use
+                # OrderedDict to sort numbers properly.
+                pars = OrderedDict()
+                for key in sorted(param_snap["value"].keys()):
+                    val = param_snap["value"][key]
+                    pars[str(key)] = {
+                        "value": val,
+                        "name": str(key),
+                        "ts": param_snap["ts"],
+                        "unit": "",
+                        "label": "",
+                    }
+                sub_snap = {"submodules": {param_name: {"parameters": pars}}}
+                self._fill_node_recursively(sub_snap, node, node_key)
+            else:
+                self._add_single_parameter(param_snap, param_name, node, node_key)
 
     @staticmethod
     def _convert_to_str(value: Any, unit: Optional[str]) -> Tuple[str, str]:
