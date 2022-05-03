@@ -10,7 +10,9 @@ from quantify_core.visualization.instrument_monitor import (
     InstrumentMonitor,
     RepeatTimer,
 )
-from quantify_core.visualization.ins_mon_widget.qc_snapshot_widget import QcSnapshotWidget
+from quantify_core.visualization.ins_mon_widget.qc_snapshot_widget import (
+    QcSnapshotWidget,
+)
 
 
 class TestInstrumentMonitor:
@@ -128,6 +130,7 @@ class TestQcSnapshotWidget:
             and "test_snapshot.ch1.param1" in nodes_str
             and "test_snapshot.other1.param1" not in nodes_str
         )
+
 
 def test_parameter_conversion():
     convert = QcSnapshotWidget._convert_to_str
