@@ -1,9 +1,14 @@
 import time
+from unittest.mock import Mock
 
 import pyqtgraph.multiprocess as pgmp
+import pytest
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
 
-from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+from quantify_core.visualization.instrument_monitor import (
+    InstrumentMonitor,
+    RepeatTimer,
+)
 
 
 class TestInstrumentMonitor:
@@ -19,7 +24,7 @@ class TestInstrumentMonitor:
         hasattr(self.inst_mon, "update_interval")
 
     def test_update(self):
-        self.inst_mon.update()
+        self.inst_mon._update()
 
     def test_setGeometry(self):
         xywh = (400, 400, 300, 400)
@@ -28,6 +33,48 @@ class TestInstrumentMonitor:
         self.inst_mon.setGeometry(*xywh)
         # N.B. x an y are absolute, OS docs or menu bars might prevent certain positions
         assert wh_init != xywh[-2:]
+
+    def test_change_update_interval(self):
+        # first test default
+        assert self.inst_mon.update_interval() == 5
+
+        # then change it
+        self.inst_mon.update_interval(10)
+        assert self.inst_mon.update_interval() == 10
+
+
+class TestRepeatTimer:
+    def setup(self):
+        self.mock_function = Mock()
+        self.repeat_timer = RepeatTimer(
+            0.1, self.mock_function, args=(1, 2), kwargs={"a": 3}
+        )
+
+    def test_attributes_created_during_init(self):
+        hasattr(self.repeat_timer, "interval")
+
+    def test_function_is_called_with_args_and_kwargs(self):
+        self.repeat_timer.start()
+        time.sleep(0.2)
+        self.repeat_timer.cancel()
+
+        self.mock_function.assert_called_with(1, 2, a=3)
+
+    def test_timer_can_be_paused_and_not_call_the_function(self):
+        self.repeat_timer.start()
+        self.repeat_timer.pause()
+        time.sleep(0.2)
+        self.repeat_timer.unpause()
+        self.repeat_timer.cancel()
+
+        self.mock_function.assert_not_called()
+
+    def test_timer_cannot_be_restarted_after_being_cancelled(self):
+        # use pause/unpause instead
+        self.repeat_timer.start()
+        self.repeat_timer.cancel()
+        with pytest.raises(RuntimeError):
+            self.repeat_timer.start()
 
 
 class TestQcSnapshotWidget:

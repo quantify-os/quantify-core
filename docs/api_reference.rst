@@ -111,6 +111,12 @@ dataset_attrs
 .. automodule:: quantify_core.data.dataset_attrs
     :members:
 
+experiment
+-------------
+
+.. automodule:: quantify_core.data.experiment
+    :members:
+
 
 measurement
 ===========

@@ -111,7 +111,9 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
             param_node.setData(3, 0, latest_str)
 
     @staticmethod
-    def _remove_left(in_string, to_be_removed):
+    def _remove_left(
+        in_string, to_be_removed
+    ):  # todo: replace this method with str.removeprefix when at Python 3.9
         # Do not remove if to_be_removed matches the whole in_string
         if in_string != to_be_removed:
             try:
