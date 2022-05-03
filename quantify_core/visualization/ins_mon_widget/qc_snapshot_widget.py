@@ -1,7 +1,9 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph based plotting monitor."""
+from enum import Enum
 import pprint
+from typing import Any, Optional, Tuple
 
 from pyqtgraph.Qt import QtCore, QtGui
 
@@ -89,8 +91,32 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
                 if not isinstance(param_snap["value"], dict):
                     self._add_single_parameter(param_snap, param_name, node, node_key)
 
+    @staticmethod
+    def _convert_to_str(value: Any, unit: Optional[str]) -> Tuple[str, str]:
+        """If no unit is given, convert to string and apply nice formatting.
+        Otherwise make sure to interpret SI unit appropriately.
+
+        Parameters
+        ----------
+        value:
+            Value of parameter
+        unit:
+            Unit of parameter
+
+        Returns
+        -------
+        :
+            new value and new unit
+        """
+        if unit is None or unit == "":
+            if isinstance(value, Enum):
+                # For Enum, don't show class name
+                return value.name, ""
+            return str(value), ""
+        return SI_val_to_msg_str(value, unit)
+
     def _add_single_parameter(self, param_snap, param_name, node, node_key):
-        value_str, unit = SI_val_to_msg_str(param_snap["value"], param_snap["unit"])
+        value_str, unit = self._convert_to_str(param_snap["value"], param_snap["unit"])
         # Omits printing of the date to make it more readable
         if param_snap["ts"] is not None:
             latest_str = param_snap["ts"][11:]
