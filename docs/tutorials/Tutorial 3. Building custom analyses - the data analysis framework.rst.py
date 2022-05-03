@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.0
+#       jupytext_version: 1.13.8
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -347,7 +347,7 @@ def extract_data(label: str) -> xr.Dataset:
 
 def run_fitting(dataset_: xr.Dataset) -> lmfit.model.ModelResult:
     """Executes fitting."""
-    model = CosineModel()  # create the fitting model
+    model = MyCosineModel()  # create the fitting model
     params_guess = model.guess(data=dataset_.y0.values)
     result = model.fit(
         data=dataset_.y0.values, x=dataset_.x0.values, params=params_guess
@@ -645,3 +645,5 @@ logging.basicConfig(level=logging.WARNING)
 # set analysis logger level to info (the logger is inherited from BaseAnalysis)
 a_obj.logger.setLevel(level=logging.INFO)
 _ = a_obj.run()
+
+# %%

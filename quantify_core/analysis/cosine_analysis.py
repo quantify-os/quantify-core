@@ -38,7 +38,7 @@ class CosineAnalysis(ba.BaseAnalysis):
         """
         # create a fitting model based on a cosine function
         model = CosineModel()
-        guess = model.guess(self.dataset.y0.values)
+        guess = model.guess(self.dataset.y0.values, x=self.dataset.x0.values)
         result = model.fit(
             self.dataset.y0.values, x=self.dataset.x0.values, params=guess
         )
