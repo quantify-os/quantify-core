@@ -593,6 +593,26 @@ class TestMeasurementControl:
         assert np.array_equal(dset["x1"].values, y)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
+    @pytest.mark.parametrize(
+        "setpoints_x,setpoints_y,is_uniformly_spaced",
+        [
+            (np.linspace(0, 10, 101), np.linspace(10, 20, 101), True),
+            (np.linspace(0, 10, 101) ** 2, np.linspace(10, 20, 101), False),
+            (np.linspace(0, 10, 101) ** 2, np.linspace(10, 20, 101) ** 2, False),
+        ],
+    )
+    def test_iterative_1D_with_two_settables_signals_plotmon_of_spacing(
+        self, setpoints_x, setpoints_y, is_uniformly_spaced
+    ):
+        setpoints = np.column_stack((setpoints_x, setpoints_y))
+
+        self.meas_ctrl.settables([freq, other_freq])
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
+
+        assert dset.attrs["1d_2_settables_uniformly_spaced"] == is_uniformly_spaced
+
     def test_batched_2D_grid(self):
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
