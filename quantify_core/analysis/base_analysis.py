@@ -8,9 +8,10 @@ import json
 import logging
 import os
 import warnings
-from abc import ABC
+from abc import ABCMeta
 from copy import deepcopy
 from enum import Enum
+from functools import lru_cache, wraps
 from pathlib import Path
 from textwrap import wrap
 from typing import List, Union
@@ -42,6 +43,12 @@ from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
 
 from .types import AnalysisSettings
+
+
+@lru_cache(maxsize=8)
+def _analyses_figures_cache(_: BaseAnalysis):
+    return [None, None]
+
 
 # global configurations at the level of the analysis module
 settings = AnalysisSettings(
@@ -103,7 +110,59 @@ class AnalysisSteps(Enum):
     STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
-class BaseAnalysis(ABC):
+class AnalysisMeta(ABCMeta):
+    """Metaclass, whose purpose is to avoid storing large amount of figure in memory.
+
+    By convention, analysis object stores figures in ``self.figs_mpl`` and
+    ``self.axs_mpl`` dictionalries. This causes troubles for long-running operations,
+    because figures are all in memory and eventually this uses all available memory of
+    the PC. In order to avoid it, :meth:`BaseAnalysis.created_figures` and its
+    derivatives are patched so that all the figures are put in LRU cache and lazily
+    constructed upon request to :attr:`BaseAnalysis.figs_mpl` or
+    :attr:`BaseAnalysis.axs_mpl`, and :meth:`BaseAnalysis.created_figures` actually does
+    nothing.
+
+    Provided that analyses subclasses follow convention of figures being created in
+    :meth:`BaseAnalysis.created_figures`, this approach should solve the memory issue
+    and preserve reverse compatibility with present code.
+    """
+
+    def __new__(cls, name, bases, namespace, /, **kwargs):
+        if "create_figures" in namespace.keys():
+            namespace = dict(namespace)
+            create_figures_orig = namespace.pop("create_figures")
+
+            @wraps(create_figures_orig)
+            def dummy_create_figures(_):
+                # We are actually not creating any figures here. Instead, if needed,
+                # they will be created when querying them with Analysis.figs_mpl
+                # or Analysis.axs_mpl
+                pass
+
+            def _figs_axs_mpl(self):
+                cache = _analyses_figures_cache(self)
+                if cache[0] is None:
+                    cache[0] = {}
+                    cache[1] = {}
+                    self._create_figures_original()
+                return cache
+
+            def figs_mpl(self):
+                return self._figs_axs_mpl[0]
+
+            def axs_mpl(self):
+                return self._figs_axs_mpl[1]
+
+            namespace["_create_figures_original"] = create_figures_orig
+            namespace["_figs_axs_mpl"] = property(_figs_axs_mpl)
+            namespace["figs_mpl"] = property(figs_mpl)
+            namespace["axs_mpl"] = property(axs_mpl)
+            namespace["create_figures"] = dummy_create_figures
+
+        return super().__new__(cls, name, bases, namespace, **kwargs)
+
+
+class BaseAnalysis(metaclass=AnalysisMeta):
     """A template for analysis classes."""
 
     # pylint: disable=too-many-instance-attributes
@@ -194,8 +253,6 @@ class BaseAnalysis(ABC):
         self.analysis_result = {}
 
         # To be populated by a subclass
-        self.figs_mpl = {}
-        self.axs_mpl = {}
         self.quantities_of_interest = {}
 
         self.fit_results = {}
