@@ -158,6 +158,7 @@ def test_parameter_conversion():
 
     class TestEnum(Enum):
         """Dummy enum to test conversion"""
+
         val1 = 0
         val2 = 1
 
