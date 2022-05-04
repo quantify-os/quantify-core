@@ -159,8 +159,8 @@ def test_parameter_conversion():
     class TestEnum(Enum):
         """Dummy enum to test conversion"""
 
-        val1 = 0
-        val2 = 1
+        VAL1 = 0
+        VAL2 = 1
 
-    assert convert(TestEnum.val1, "") == ("val1", "")
-    assert convert(TestEnum.val2, "") == ("val2", "")
+    assert convert(TestEnum.VAL1, "") == ("VAL1", "")
+    assert convert(TestEnum.VAL2, "") == ("VAL2", "")
