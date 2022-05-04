@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ----------
+* InstrumentMonitor - Display parameter values with non-number type nicely. Only for parameters without unit. (!336)
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
