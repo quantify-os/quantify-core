@@ -147,8 +147,8 @@ SI_UNITS = (
 
 def SI_prefix_and_scale_factor(val, unit=None):
     """
-    Takes in a value and unit and if applicable returns the proper scale factor
-    and SI prefix.
+    Takes in a value and unit. If the unit is an unscaled SI unit (eg. 'm', but not
+    'mm'), the proper scale factor and SI prefix are returned.
 
     If the unit is None, no scaling is done.
     If the unit is "SI_PREFIX_ONLY", the value is scaled and an SI prefix is applied
@@ -190,7 +190,7 @@ def SI_prefix_and_scale_factor(val, unit=None):
     return scale_factor, scaled_unit
 
 
-def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
+def SI_val_to_msg_str(val: Union[float, int], unit: str = None, return_type=str):
     """
     Takes in a value  with optional unit and returns a string tuple consisting of
     (value_str, unit) where the value and unit are rescaled according to SI prefixes,
@@ -204,6 +204,11 @@ def SI_val_to_msg_str(val: float, unit: str = None, return_type=str):
         new_val = sc * val
     except TypeError:
         return return_type(val), unit
+
+    # Convert floats to int if possible and if inital value was int
+    if isinstance(val, int):
+        if isinstance(new_val, float) and new_val.is_integer():
+            new_val = int(new_val)
 
     return return_type(new_val), new_unit
 

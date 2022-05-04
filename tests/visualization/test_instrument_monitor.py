@@ -1,3 +1,4 @@
+from enum import Enum
 import time
 from unittest.mock import Mock
 
@@ -8,6 +9,9 @@ from pyqtgraph.multiprocess.remoteproxy import ClosedError
 from quantify_core.visualization.instrument_monitor import (
     InstrumentMonitor,
     RepeatTimer,
+)
+from quantify_core.visualization.ins_mon_widget.qc_snapshot_widget import (
+    QcSnapshotWidget,
 )
 
 
@@ -126,3 +130,37 @@ class TestQcSnapshotWidget:
             and "test_snapshot.ch1.param1" in nodes_str
             and "test_snapshot.other1.param1" not in nodes_str
         )
+
+
+def test_parameter_conversion():
+    """Test conversion of snapshot parameters to displayed values."""
+    convert = QcSnapshotWidget._convert_to_str
+
+    # Test SI unit conversion
+    assert convert(1.1, "m") == ("1.1", "m")
+    assert convert(1, "m") == ("1", "m")
+    assert convert(1.0, "m") == ("1.0", "m")
+    assert convert(0.9, "m") == ("900.0", "mm")
+    assert convert(0.00004, "m") == ("40.0", "μm")
+    assert convert(0.0000004321, "m") == ("432.1", "nm")
+    assert convert(1050, "m") == ("1.05", "km")
+    assert convert(2000, "m") == ("2", "km")
+    assert convert(100, "mm") == ("100", "mm")
+    assert convert(0.08, "mm") == ("0.08", "mm")
+    assert convert(1234, "nm") == ("1234", "nm")
+
+    # Test value formatting without unit
+    assert convert(None, "") == ("None", "")
+    assert convert(None, None) == ("None", "")
+    assert convert(1, "") == ("1", "")
+    assert convert(1.0, "") == ("1.0", "")
+    assert convert(True, "") == ("True", "")
+
+    class TestEnum(Enum):
+        """Dummy enum to test conversion"""
+
+        VAL1 = 0
+        VAL2 = 1
+
+    assert convert(TestEnum.VAL1, "") == ("VAL1", "")
+    assert convert(TestEnum.VAL2, "") == ("VAL2", "")

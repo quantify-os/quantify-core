@@ -1,7 +1,10 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph based plotting monitor."""
+from enum import Enum
 import pprint
+from typing import Any, Optional, Tuple
+from collections import OrderedDict
 
 from pyqtgraph.Qt import QtCore, QtGui
 
@@ -78,19 +81,65 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
             sub_node = self._add_node(node, sub_snapshot_key, sub_node_key)
             self._fill_node_recursively(sub_snap, sub_node, sub_node_key)
 
+        # Don't sort keys if we encounter an OrderedDict
         param_snaps = snapshot.get("parameters", {})
-        for param_name in sorted(param_snaps.keys()):
+        param_snaps_keys = param_snaps.keys()
+        if not isinstance(param_snaps, OrderedDict):
+            param_snaps_keys = sorted(param_snaps.keys())
+
+        for param_name in param_snaps_keys:
             param_snap = param_snaps[param_name]
             # Depending on the type of data stored in value do different things,
             # currently only blocks non-dicts
-            if "value" in param_snap.keys():
+            if not "value" in param_snap.keys():
                 # Some parameters do not have a value, these are not shown
                 # in the instrument monitor.
-                if not isinstance(param_snap["value"], dict):
-                    self._add_single_parameter(param_snap, param_name, node, node_key)
+                continue
+            if isinstance(param_snap["value"], dict):
+                # Treat dict as submodule and all entries of dict as parameters.
+                # If the dict keys are not str, they are converted to str. Use
+                # OrderedDict to sort numbers properly.
+                pars = OrderedDict()
+                for key in sorted(param_snap["value"].keys()):
+                    val = param_snap["value"][key]
+                    pars[str(key)] = {
+                        "value": val,
+                        "name": str(key),
+                        "ts": param_snap["ts"],
+                        "unit": "",
+                        "label": "",
+                    }
+                sub_snap = {"submodules": {param_name: {"parameters": pars}}}
+                self._fill_node_recursively(sub_snap, node, node_key)
+            else:
+                self._add_single_parameter(param_snap, param_name, node, node_key)
+
+    @staticmethod
+    def _convert_to_str(value: Any, unit: Optional[str]) -> Tuple[str, str]:
+        """If no unit is given, convert to string and apply nice formatting.
+        Otherwise make sure to interpret SI unit appropriately.
+
+        Parameters
+        ----------
+        value:
+            Value of parameter
+        unit:
+            Unit of parameter
+
+        Returns
+        -------
+        :
+            new value and new unit
+        """
+        if unit is None or unit == "":
+            if isinstance(value, Enum):
+                # For Enum, don't show class name
+                return value.name, ""
+            return str(value), ""
+        return SI_val_to_msg_str(value, unit)
 
     def _add_single_parameter(self, param_snap, param_name, node, node_key):
-        value_str, unit = SI_val_to_msg_str(param_snap["value"], param_snap["unit"])
+        value_str, unit = self._convert_to_str(param_snap["value"], param_snap["unit"])
         # Omits printing of the date to make it more readable
         if param_snap["ts"] is not None:
             latest_str = param_snap["ts"][11:]
