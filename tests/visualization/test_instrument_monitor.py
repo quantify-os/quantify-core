@@ -133,6 +133,7 @@ class TestQcSnapshotWidget:
 
 
 def test_parameter_conversion():
+    """Test conversion of snapshot parameters to displayed values."""
     convert = QcSnapshotWidget._convert_to_str
 
     # Test SI unit conversion
@@ -156,8 +157,9 @@ def test_parameter_conversion():
     assert convert(True, "") == ("True", "")
 
     class TestEnum(Enum):
-        Val1 = 0
-        Val2 = 1
+        """Dummy enum to test conversion"""
+        val1 = 0
+        val2 = 1
 
-    assert convert(TestEnum.Val1, "") == ("Val1", "")
-    assert convert(TestEnum.Val2, "") == ("Val2", "")
+    assert convert(TestEnum.val1, "") == ("val1", "")
+    assert convert(TestEnum.val2, "") == ("val2", "")
