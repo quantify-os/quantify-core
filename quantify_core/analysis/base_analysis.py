@@ -114,7 +114,7 @@ class AnalysisMeta(ABCMeta):
     """Metaclass, whose purpose is to avoid storing large amount of figure in memory.
 
     By convention, analysis object stores figures in ``self.figs_mpl`` and
-    ``self.axs_mpl`` dictionalries. This causes troubles for long-running operations,
+    ``self.axs_mpl`` dictionaries. This causes troubles for long-running operations,
     because figures are all in memory and eventually this uses all available memory of
     the PC. In order to avoid it, :meth:`BaseAnalysis.created_figures` and its
     derivatives are patched so that all the figures are put in LRU cache and lazily
