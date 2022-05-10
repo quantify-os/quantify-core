@@ -31,6 +31,28 @@ QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
 PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
+def default_datadir(verbose: bool = True) -> Path:
+    """Returns (and optionally print) a default datadir path.
+
+    Intended for fast prototyping, tutorials, examples, etc..
+
+    Parameters
+    ----------
+    verbose
+        If ``True`` prints the returned datadir.
+
+    Returns
+    -------
+    :
+        The ``Path.home() / "quantify-data"`` path.
+    """
+    datadir = (Path.home() / "quantify-data").resolve()
+    if verbose:
+        print(f"Data will be saved in:\n{datadir}")
+
+    return datadir
+
+
 def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
     """
     Generates a :class:`~quantify_core.data.types.TUID` based on current time.
@@ -84,7 +106,7 @@ def get_datadir() -> str:
     return this._datadir
 
 
-def set_datadir(datadir: str) -> None:
+def set_datadir(datadir: Union[str, None]) -> None:
     """
     Sets the data directory.
 
@@ -94,6 +116,9 @@ def set_datadir(datadir: str) -> None:
         Path of the data directory. If set to ``None``, resets the datadir to the
         default datadir (``<top_level>/data``).
     """
+    if datadir is None:
+        datadir = default_datadir()
+
     if not os.path.isdir(datadir):
         os.mkdir(datadir)
     this._datadir = datadir

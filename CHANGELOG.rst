@@ -5,6 +5,10 @@ Changelog
 Unreleased
 ----------
 * InstrumentMonitor - Display parameter values with non-number type nicely. Only for parameters without unit. (!336)
+* Data Handling - Setting datadir to None now correctly sets datadir to default directory (~/quantify-data/)
+* Experiment helpers - Loading settings from snapshot now supports Instrument submodules
+
+
 
 Breaking changes
 ~~~~~~~~~~~~~~~~

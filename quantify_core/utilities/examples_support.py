@@ -17,31 +17,13 @@ import quantify_core.data.handling as dh
 from quantify_core.analysis.fitting_models import cos_func
 from quantify_core.data.types import TUID
 
+# import is here because docs use method from this location.
+# pylint: disable=unused-import
+from quantify_core.data.handling import default_datadir
+
 # ######################################################################################
 # Tutorial utilities
 # ######################################################################################
-
-
-def default_datadir(verbose: bool = True) -> Path:
-    """Returns (and optionally print) a default datadir path.
-
-    Intended for fast prototyping, tutorials, examples, etc..
-
-    Parameters
-    ----------
-    verbose
-        If ``True`` prints the returned datadir.
-
-    Returns
-    -------
-    :
-        The ``Path.home() / "quantify-data"`` path.
-    """
-    datadir = (Path.home() / "quantify-data").resolve()
-    if verbose:
-        print(f"Data will be saved in:\n{datadir}")
-
-    return datadir
 
 
 def mk_cosine_instrument() -> Instrument:
