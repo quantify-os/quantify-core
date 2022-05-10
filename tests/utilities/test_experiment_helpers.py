@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
-from qcodes.instrument import Instrument, ManualParameter
+from qcodes.instrument import Instrument, ManualParameter, InstrumentChannel
 from qcodes.utils import validators
-
 from quantify_core.data.handling import set_datadir
 from quantify_core.utilities.experiment_helpers import (
     create_plotmon_from_historical,
@@ -10,17 +9,14 @@ from quantify_core.utilities.experiment_helpers import (
 )
 
 
-def test_load_settings_onto_instrument(tmp_test_data_dir):
+@pytest.fixture(scope="function", autouse=False)
+def mock_instr(request):
     """
-    Test that we can successfully load the settings of a dummy instrument
+    Set up an instrument with a sub module with the following structure
     """
-    # Always set datadir before instruments
-    set_datadir(tmp_test_data_dir)
 
     def get_func():
         return 20
-
-    tuid = "20210319-094728-327-69b211"
 
     instr = Instrument("DummyInstrument")
 
@@ -49,13 +45,33 @@ def test_load_settings_onto_instrument(tmp_test_data_dir):
         vals=validators.Numbers(),
     )
 
+    def cleanup_instruments():
+        instr.close()
+
+    request.addfinalizer(cleanup_instruments)
+
+    return instr
+
+
+# pylint: disable=redefined-outer-name
+def test_load_settings_onto_instrument(tmp_test_data_dir, mock_instr):
+    """
+    Test that we can successfully load the settings of a dummy instrument
+    """
+    # Always set datadir before instruments
+    set_datadir(tmp_test_data_dir)
+
+    instr = mock_instr
+
+    tuid = "20210319-094728-327-69b211"
+
     # The snapshot also contains an 'obsolete_param', that is not included here.
     # This represents a parameter which is no longer in the qcodes driver.
 
     with pytest.warns(
         UserWarning,
-        match="Parameter none_param_warning of instrument DummyInstrument could not be "
-        "set to None due to error",
+        match='Parameter "none_param_warning" of "DummyInstrument" could not be '
+        'set to "None" due to error',
     ):
         load_settings_onto_instrument(instr, tuid)
 
@@ -79,6 +95,66 @@ def test_load_settings_onto_instrument(tmp_test_data_dir):
     assert not instr.get("boolean_param")
 
     instr.close()
+
+
+# pylint: disable=redefined-outer-name
+@pytest.fixture(scope="function", autouse=False)
+def mock_instr_nested(request):
+    """
+    Set up an instrument with a sub module with the following structure
+
+    instr
+    -> a
+    -> mod_a
+        -> b
+    -> mod_b
+        -> mod_c
+            -> c
+    """
+
+    instr = Instrument("DummyInstrument")
+
+    instr.add_parameter("a", parameter_class=ManualParameter)
+
+    mod_a = InstrumentChannel(instr, "mod_a")
+    mod_a.add_parameter("b", parameter_class=ManualParameter)
+    instr.add_submodule("mod_a", mod_a)
+
+    mod_b = InstrumentChannel(instr, "mod_b")
+    mod_c = InstrumentChannel(instr, "mod_b")
+    mod_b.add_submodule("mod_c", mod_c)
+    mod_c.add_parameter("c", parameter_class=ManualParameter)
+
+    instr.add_submodule("mod_b", mod_b)
+
+    def cleanup_instruments():
+        instr.close()
+
+    request.addfinalizer(cleanup_instruments)
+
+    return instr
+
+
+def test_load_settings_onto_instrument_submodules(tmp_test_data_dir, mock_instr_nested):
+    """
+    Test that we can successfully load the settings of a dummy instrument
+    """
+    # Always set datadir before instruments
+    set_datadir(tmp_test_data_dir)
+
+    # set some random values
+    mock_instr_nested.a(23)
+    mock_instr_nested.mod_a.b(42)
+    mock_instr_nested.mod_b.mod_c.c(23.1)
+
+    # load settings from a dataset
+    tuid = "20220509-204728-327-69b211"
+    load_settings_onto_instrument(mock_instr_nested, tuid)
+
+    assert mock_instr_nested.a() == 5
+    assert mock_instr_nested.mod_a.b() == 3
+
+    assert mock_instr_nested.mod_b.mod_c.c() == 2
 
 
 def test_create_plotmon_from_historical(tmp_test_data_dir):

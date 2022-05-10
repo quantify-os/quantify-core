@@ -1,0 +1,58 @@
+{
+    "instruments": {
+        "DummyInstrument": {
+            "submodules": {
+                "mod_a": {
+                    "submodules": {},
+                    "parameters": {
+                        "b": {
+                            "value": 3,
+                            "ts": "2022-05-10 09:22:16",
+                            "name": "b",
+                            "unit": "",
+                            "label": "b"
+                        }
+                    },
+                    "name": "DummyInstrument_mod_a"
+                },
+                "mod_b": {
+                    "submodules": {
+                        "mod_c": {
+                            "submodules": {},
+                            "parameters": {
+                                "c": {
+                                    "value": 2,
+                                    "ts": "2022-05-10 09:22:16",
+                                    "name": "c",
+                                    "unit": "",
+                                    "label": "c"
+                                }
+                            },
+                            "name": "DummyInstrument_mod_b"
+                        }
+                    },
+                    "parameters": {},
+                    "name": "DummyInstrument_mod_b"
+                }
+            },
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "name": "IDN",
+                    "unit": "",
+                    "label": "IDN"
+                },
+                "a": {
+                    "value": 5,
+                    "ts": "2022-05-10 09:22:16",
+                    "name": "a",
+                    "unit": "",
+                    "label": "a"
+                }
+            },
+            "name": "DummyInstrument"
+        }
+    },
+    "parameters": {}
+}

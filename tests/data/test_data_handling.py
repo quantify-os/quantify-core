@@ -98,8 +98,12 @@ def test_getset_datadir(tmp_test_data_dir):
     os.rmdir(new_dir_path)
 
     # Test setting to None
+    dh.set_datadir(None)
+    assert dh.get_datadir() == dh.default_datadir()
+
+    # Test setting invalid type (not a directory)
     with pytest.raises(TypeError):
-        dh.set_datadir(None)
+        dh.set_datadir(5)
 
     # Test setting to empty str
     with pytest.raises(FileNotFoundError):
