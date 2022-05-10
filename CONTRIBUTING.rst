@@ -132,7 +132,7 @@ The workflow of the Merge Requests (MRs) is managed using the ``MR State | <stat
     - Next state: ``2. Review me!``.
 - ``MR State | 2. Review me!``
     - *Progress captain*: assignee.
-    - MR was submitted and is ready for a first complete review. Assignee may tag potential reviewers in the comments (do not assign someone without their consent). Maintainers should be tagged in case of a week of inactivity.
+    - MR was submitted and is ready for review. Assignee may tag potential reviewers in the comments. Next state: "3. In review...".
     - Next state: ``3. In review...``.
 - ``MR State | 3. In review...``
     - *Progress captain*: reviewer.
@@ -141,12 +141,8 @@ The workflow of the Merge Requests (MRs) is managed using the ``MR State | <stat
 - ``MR State | 4. Change requested``
     - *Progress captain*: assignee.
     - Reviewer's comments need to be addressed (comments/code/test/docs/etc.). Conflict with target branch should be addressed carefully.
-    - Next state: ``5. Review me (again)!``.
-- ``MR State | 5. Review me (again)!``
-    - *Progress captain*: assignee & reviewer.
-    - MR is ready for review after addressing the reviewer's concerns. The assignee should request the reviewers for approval. Reviewers should move the MR to the next state.
-    - Next state: ``4. Change requested`` or ``6. Merge me!``.
-- ``MR State | 6. Merge me!``
+    - Next state: ``2. Review me!``.
+- ``MR State | 5. Merge me!``
     - *Progress captain*: assignee & maintainer.
     - MR ready to be merged. Assignee should tag maintainers.
     - Next state: Merged or ``4. Change requested``.
