@@ -148,6 +148,7 @@ def test_flow_ylim_all(caplog, tmp_test_data_dir):
         assert log_msg in str(rec.msg)
 
 
+@pytest.mark.xfail(reason="Randomly fails, issue #308.")
 def test_flow_clim_all(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     clim = (1.0, 2.0)
