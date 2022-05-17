@@ -6,6 +6,7 @@ Unreleased
 ----------
 * InstrumentMonitor - Display parameter values with non-number type nicely. Only for parameters without unit. (!336)
 * Data Handling - Setting datadir to None now correctly sets datadir to default directory (~/quantify-data/)
+* Data Handling - Added a DecodeToNumpy decoder class and function argument `list_to_ndarray` to the function `load_snapshot`, which enables `load_settings_onto_instrument` to support loading numpy arrays parameters from json lists. (!342, !343, #309)
 * Experiment helpers - Loading settings from snapshot now supports Instrument submodules
 
 
