@@ -19,6 +19,7 @@ from dateutil.parser import parse
 from qcodes import Instrument
 
 import quantify_core.data.dataset_adapters as da
+import quantify_core.data.handling as dh
 from quantify_core.data.types import TUID
 from quantify_core.utilities.general import delete_keys_from_dict, get_subclasses
 
@@ -29,6 +30,31 @@ this._datadir = None
 DATASET_NAME = "dataset.hdf5"
 QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
 PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
+
+
+class DecodeToNumpy(json.JSONDecoder):
+    def __init__(self, list_to_ndarray: bool = False, *args, **kwargs):
+        """Decodes a JSON object to Python/Numpy's objects.
+
+        Example
+        -------
+        json.loads(json_string, cls=DecodeToNumpy, list_to_numpy=True)
+
+        Parameters
+        ----------
+        list_to_numpy
+            If True, will try to convert python lists to a numpy array.
+
+        """
+        self.list_to_ndarray = list_to_ndarray
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, obj):
+        for key, val in obj.items():
+            if self.list_to_ndarray:
+                if isinstance(val, list):
+                    obj[key] = np.array(val)
+        return obj
 
 
 def default_datadir(verbose: bool = True) -> Path:
@@ -370,7 +396,12 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 
-def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") -> dict:
+def load_snapshot(
+    tuid: TUID,
+    datadir: str = None,
+    list_to_ndarray: bool = False,
+    file: str = "snapshot.json",
+) -> dict:
     """
     Loads a snapshot specified by a tuid.
 
@@ -382,6 +413,9 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
     datadir
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
+    list_to_ndarray
+        Uses an internal DecodeToNumpy decoder which allows a user to automatically
+        convert a list to numpy array during deserialization of the snapshot.
     file
         Filename to load.
     Returns
@@ -394,7 +428,7 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
         No data found for specified date.
     """
     with open(_locate_experiment_file(tuid, datadir, file)) as snap:
-        return json.load(snap)
+        return json.load(snap, cls=dh.DecodeToNumpy, list_to_ndarray=list_to_ndarray)
 
 
 def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):

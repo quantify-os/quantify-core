@@ -428,6 +428,29 @@ def test_snapshot():
     test_MC.close()
 
 
+def test_snapshot_list(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    tuid = "20200430-170837-001-315f36"
+
+    experiment_directory = dh.locate_experiment_container(tuid=tuid)
+    snap = dh.snapshot()
+
+    snap["instruments"]["test_instrument"] = {"parameters": {"test_list": [1, 2, 3]}}
+
+    full_path_to_file = f"{experiment_directory}/test_snapshot_list.json"
+    with open(full_path_to_file, "w", encoding="utf-8") as file:
+        json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
+    decoded_snapshot = dh.load_snapshot(
+        tuid=tuid,
+        list_to_ndarray=True,
+        file="test_snapshot_list.json",
+    )
+    assert isinstance(
+        decoded_snapshot["instruments"]["test_instrument"]["parameters"]["test_list"],
+        np.ndarray,
+    )
+
+
 def test_snapshot_dead_instruments():
     """Ensure that the snapshot does not attempt to access dead instruments."""
     instrument_a = Instrument("a")
@@ -552,7 +575,7 @@ def test_qcodes_numpyjsonencoder():
     }
 
     encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
-    decoded = json.loads(encoded)
+    decoded = json.loads(encoded, cls=dh.DecodeToNumpy)
 
     assert isinstance(decoded["python_tuple"], list)
     assert isinstance(decoded["python_list"], list)
@@ -567,6 +590,45 @@ def test_qcodes_numpyjsonencoder():
         {"__dtype__": "complex", "re": 1.0, "im": 0.0},
         {"__dtype__": "complex", "re": 2.0, "im": 0.0},
     ]
+    assert np.isnan(decoded["nan_value"])
+    assert decoded["inf_value"] == float("inf")
+    assert decoded["-inf_value"] == float("-inf")
+
+
+def test_decode_list_to_numpy():
+    quantities_of_interest = {
+        "python_tuple": (1, 2, 3, 4),
+        "python_list": [1, 2, 3, 4],
+        "numpy_array": np.array([1, 2, 3, 4]),
+        "numpy_array_complex": np.array([1, 2], dtype=complex),
+        "uncertainties_ufloat": uncertainties.ufloat(1.0, 2.0),
+        "complex": complex(1.0, 2.0),
+        "nan_value": float("nan"),
+        "inf_value": float("inf"),
+        "-inf_value": float("-inf"),
+    }
+
+    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
+    decoded = json.loads(encoded, cls=dh.DecodeToNumpy, list_to_ndarray=True)
+
+    assert isinstance(decoded["python_tuple"], np.ndarray)
+    assert isinstance(decoded["python_list"], np.ndarray)
+    assert isinstance(decoded["numpy_array"], np.ndarray)
+    assert decoded["uncertainties_ufloat"] == {
+        "__dtype__": "UFloat",
+        "nominal_value": 1.0,
+        "std_dev": 2.0,
+    }
+    assert decoded["complex"] == {"__dtype__": "complex", "re": 1.0, "im": 2.0}
+    assert (
+        decoded["numpy_array_complex"]
+        == np.array(
+            [
+                {"__dtype__": "complex", "re": 1.0, "im": 0.0},
+                {"__dtype__": "complex", "re": 2.0, "im": 0.0},
+            ]
+        )
+    ).all()
     assert np.isnan(decoded["nan_value"])
     assert decoded["inf_value"] == float("inf")
     assert decoded["-inf_value"] == float("-inf")
