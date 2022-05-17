@@ -44,6 +44,13 @@ def mock_instr(request):
         parameter_class=ManualParameter,
         vals=validators.Numbers(),
     )
+    # A parameter which our function will try to set to a numpy array
+    instr.add_parameter(
+        "numpy_array_param",
+        initial_value=np.array([1]),
+        parameter_class=ManualParameter,
+        vals=validators.Arrays(),
+    )
 
     def cleanup_instruments():
         instr.close()
@@ -93,6 +100,9 @@ def test_load_settings_onto_instrument(tmp_test_data_dir, mock_instr):
     assert instr.get("none_param") is None
     assert instr.get("none_param_warning") == 1
     assert not instr.get("boolean_param")
+    assert isinstance(instr.get("numpy_array_param"), np.ndarray)
+    assert instr.get("numpy_array_param").shape[0] == 4
+    assert (instr.get("numpy_array_param") == np.array([0, 1, 2, 3])).all()
 
     instr.close()
 

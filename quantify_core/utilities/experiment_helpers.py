@@ -4,6 +4,8 @@
 import warnings
 from typing import Any, Optional, Union, Dict
 
+import numpy as np
+
 from qcodes.instrument import Instrument, InstrumentChannel
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
@@ -39,6 +41,9 @@ def load_settings_onto_instrument(
         tuid = get_latest_tuid()
 
     instruments = load_snapshot(tuid, datadir)["instruments"]
+    instruments_numpy_array = load_snapshot(tuid, datadir, list_to_ndarray=True)[
+        "instruments"
+    ]
     if instrument.name not in instruments:
         raise ValueError(
             'Instrument "{}" not found in snapshot {}:{}'.format(
@@ -47,6 +52,7 @@ def load_settings_onto_instrument(
         )
 
     instr_snap = instruments[instrument.name]
+    instr_snap_numpy_array = instruments_numpy_array[instrument.name]
 
     def _try_to_set_par_safe(
         instr_mod: Union[Instrument, InstrumentChannel],
@@ -72,6 +78,7 @@ def load_settings_onto_instrument(
 
     def _set_params_instr_mod(
         instr_mod_snap: Dict,
+        instr_mod_snap_np: Dict,
         instr_mod: Union[Instrument, InstrumentChannel],
     ):
         """
@@ -82,6 +89,8 @@ def load_settings_onto_instrument(
             # Check that the parameter exists in this instrument
             if parname in instr_mod.parameters:
                 value = par["value"]
+                if isinstance(instr_mod.parameters[parname](), np.ndarray):
+                    value = instr_mod_snap_np["parameters"][parname]["value"]
                 _try_to_set_par_safe(instr_mod, parname, value)
             else:
                 warnings.warn(
@@ -92,10 +101,19 @@ def load_settings_onto_instrument(
         if "submodules" in instr_mod_snap.keys():
             for module_name, module_snap in instr_mod_snap["submodules"].items():
                 submodule = instr_mod.submodules[module_name]
-                _set_params_instr_mod(instr_mod_snap=module_snap, instr_mod=submodule)
+                module_snap_np = instr_mod_snap_np["submodules"][module_name]
+                _set_params_instr_mod(
+                    instr_mod_snap=module_snap,
+                    instr_mod_snap_np=module_snap_np,
+                    instr_mod=submodule,
+                )
 
     # set the top-level parameters and then recursively set parameters of submodules
-    _set_params_instr_mod(instr_mod_snap=instr_snap, instr_mod=instrument)
+    _set_params_instr_mod(
+        instr_mod_snap=instr_snap,
+        instr_mod_snap_np=instr_snap_numpy_array,
+        instr_mod=instrument,
+    )
 
 
 def create_plotmon_from_historical(
