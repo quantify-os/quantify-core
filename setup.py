@@ -4,6 +4,23 @@
 
 from setuptools import find_packages, setup
 
+
+def get_version_and_cmdclass(pkg_path):
+    """Load version.py module without importing the whole package.
+
+    Template code from miniver
+    """
+    import os
+    from importlib.util import module_from_spec, spec_from_file_location
+
+    spec = spec_from_file_location("version", os.path.join(pkg_path, "_version.py"))
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.__version__, module.get_cmdclass(pkg_path)
+
+
+version, cmdclass = get_version_and_cmdclass(r"quantify_core")
+
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
@@ -41,6 +58,7 @@ setup(
     install_requires=requirements,
     license="BSD-4 license",
     long_description=readme + "\n\n" + authors + "\n\n" + history,
+    long_description_content_type="text/x-rst",
     include_package_data=True,
     keywords="quantify-core",
     name="quantify-core",
@@ -53,6 +71,7 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://gitlab.com/quantify-os/quantify-core",
-    version="0.5.3",
+    version=version,
+    cmdclass=cmdclass,
     zip_safe=False,
 )
