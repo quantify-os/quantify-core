@@ -58,6 +58,7 @@ setup(
     install_requires=requirements,
     license="BSD-4 license",
     long_description=readme + "\n\n" + authors + "\n\n" + history,
+    long_description_content_type="text/x-rst",
     include_package_data=True,
     keywords="quantify-core",
     name="quantify-core",
