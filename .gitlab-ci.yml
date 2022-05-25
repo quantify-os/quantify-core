@@ -10,8 +10,11 @@ variables:
 
 include:
   - project: "quantify-os/ci"
-    ref: main
+    ref: packaging
     file: "/python-vanilla.yml"
   - project: "quantify-os/ci"
-    ref: main
+    ref: packaging
     file: "/python-windows.yml"
+  - project: "quantify-os/ci"
+    ref: packaging
+    file: "/python-packaging-pypi.yml"
