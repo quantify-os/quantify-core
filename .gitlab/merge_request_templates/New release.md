@@ -1,33 +1,22 @@
 ## Checklist for a new release
 
 1. [ ] Review `CHANGELOG.rst` and `AUTHORS.rst` have been updated.
+1. [ ] Update `Unreleased` chapter title in `CHANGELOG.rst` to `X.Y.Z (YYYY-MM-DD)`. Commit it.
 1. [ ] Review deprecation warnings that can be cleaned up now.
 
 1. CI pipeline:
     - [ ] Automated pipeline passes.
-    - [ ] `test-win-3.8.9-manual` passes (trigger manually!).
-
-1. [ ] Bump version and commit & push:
-   ```bash
-   VERSION_PART=patch # or minor, or major
-   bump2version $VERSION_PART --config-file setup.cfg
-
-   NEW_VERSION=$(python setup.py --version)
-   echo $NEW_VERSION
-
-   git add setup.py setup.cfg quantify_core/__init__.py
-   git commit -m "Bump to version $NEW_VERSION"
-   git push
-   ```
+    - [ ] `Test (py3.8, Windows, manual)` passes (trigger manually!).
+    - [ ] `Test (py3.10, Windows, manual)` passes (trigger manually!).
 
 1. [ ] Commit pip frozen requirements for future reference:
-    - Go to the `test-unix-3.8` pipeline job and download the `artifacts` (right side "Job artifacts" `-->` "Download").
+    - Go to the `Test (py3.9, Linux)` pipeline job and download the `artifacts` (right side "Job artifacts" `-->` "Download").
     - Unzip, get the `frozen-requirements.txt`.
     - Paste it in `frozen-requirements` directory.
     - Rename it, commit & push:
 
       ```bash
-      NEW_VERSION=$(python setup.py --version)
+      NEW_VERSION=X.Y.Z  # Can also be X.Y.Z.rcT for release candidate
       echo $NEW_VERSION
 
       mv frozen-requirements.txt frozen-requirements-$NEW_VERSION.txt
@@ -39,8 +28,15 @@
 
 1. [ ] Create tag for bumped version:
     - Merge this MR into `main`.
-    - Create tag via GitLab from `main` using the bumped version number (https://gitlab.com/quantify-os/quantify-core/-/tags/new).
+    - Create an **annotated** tag `vX.Y.Z`:.
 
+      ```bash
+      echo $NEW_VERSION
+
+      git tag -a "v${NEW_VERSION}"  # Note: should be vX.Y.Z, not X.Y.Z
+      # You will be prompted for a tag description here. Provide a list of highlights.
+      git push origin "v${NEW_VERSION}"
+      ```
     <!-- - Future TODO: finish automation of this step in `.gitlab-ci.yml`. -->
     <!-- 1. [ ] Run **one** of the major/minor/patch version bump (manual) jobs in the CI pipeline of the MR. -->
     <!--     - NB this can only be done after unix and windows test & docs jobs pass. -->
@@ -59,26 +55,10 @@
     - List of highlights followed by changelog.
     - Add a few images or animated GIFs showcasing the new exciting features.
 
-1. Do TestPyPi release (also see https://adriaanrol.com/posts/pypi/):
-    - [ ] Checkout the tag you just created:
-       ```bash
-       git fetch && git checkout $NEW_VERSION
-       ```
-    - [ ] Build package and upload to TestPyPi:
-       ```bash
-       # Always update first
-       pip install --user --upgrade setuptools wheel
+1. [ ] When `Release to test.pypi.org` job of a tag pipeline succeeds,
+       install a package from test.pypi.org in an empty test virtual environment and validate it
+       (e.g., run a quick notebook, pytest, etc.).
 
-       # Clear dist/ directory
-       rm dist/*
-
-       # This creates several files in the dist/ directory
-       python setup.py sdist bdist_wheel
-
-       # If ^ runs without warnings you can upload to test.pypi.org
-       python -m twine upload --repository testpypi dist/*
-       ```
-    - [ ] Install package in (test) env and validate (e.g., run a quick notebook).
        ```bash
        pip install quantify-core==x.x.x --extra-index-url=https://test.pypi.org/simple/
        ```
@@ -94,11 +74,7 @@
          python -m ipykernel install --user --name=$ENV_NAME --display-name="$DISPLAY_NAME"
          ```
 
-1. [ ] Release on PyPi and wait for it to become available (also see https://adriaanrol.com/posts/pypi/).
-    ```bash
-    twine upload dist/*
-    ```
-
+1. [ ] Release on PyPi by triggering manual `Release to pypi.org` job and wait till it succeeds.
 1. [ ] Post the new release in Slack (`#software-for-users` and `#software-for-developers`).
     - PS Rockets are a must! 🚀🚀🚀
 1. [ ] Inform the Quantify Marketing Team.
