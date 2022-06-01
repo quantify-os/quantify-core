@@ -22,7 +22,7 @@ Merged branches and closed issues
 * Plotmon - Suppress warning about all-NaN datasets during plotting. (!314)
 * Visualization - Added kwarg dicts to `plot_fit` to pass matplotlib keyword arguments and `plot_fit` returns list of matplotlib Line2D objects. (!334, !331 (closed))
 * Analysis - CosineModel now guesses a frequency based on a Fourier transform of the data. (!335)
-* Analysis - We do not store all Matplotlib figures and axes for all analysis objects in memory anymore. This fixes out-of-memory error for long measurement runs, when a lot of figures are created. (#298, !337)
+* Analysis - We do not store all Matplotlib figures and axes for all analysis objects in memory anymore. This fixes out-of-memory error for long measurement runs, when a lot of figures are created. (#298, !337, !345)
 * MeasurementControl - Performance improvement in MeasurementControl data construction. (!333)
 * Bugfix - Fix QHullError occurring in RemotePlotmon when supplying two uniformly spaced settables to MeasurementControl.setpoints(). (#305, !323)
 * Packaging and distribution - Added support for PEP 561. (!322)
