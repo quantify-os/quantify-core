@@ -2,10 +2,17 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Require lmfit >= 1.0.3 due to a typo within lmfit for the `guess_from_peak2d` function. (!346)
+* Fixed calling `super().create_figures()` when inheriting analysis classes (issue was introduced by merge request !337). (#313)
+
 0.6.0 (2022-05-25)
 ------------------
-* Require lmfit >= 1.0.3 due to a typo within lmfit for the `guess_from_peak2d` function. (!346)
-
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
