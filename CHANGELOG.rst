@@ -4,6 +4,8 @@ Changelog
 
 0.6.0 (2022-05-25)
 ------------------
+* Require lmfit >= 1.0.3 due to a typo within lmfit for the `guess_from_peak2d` function. (!346)
+
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
