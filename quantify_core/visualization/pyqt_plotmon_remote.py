@@ -619,9 +619,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 if len(z) < 8:
                     break
 
-                x_equal = True if (x == x[0]).all() else False
-                y_equal = True if (y == y[0]).all() else False
-                if x_equal or y_equal:
+                # if data is one-dimensional, skip plotting
+                all_x_equal = True if (x == x[0]).all() else False
+                all_y_equal = True if (y == y[0]).all() else False
+                if all_x_equal or all_y_equal:
                     break
 
                 x_grid, y_grid, z_grid = interpolate_heatmap(
