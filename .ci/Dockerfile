@@ -21,5 +21,6 @@ RUN pip install --upgrade --upgrade-strategy eager \
         -r requirements.txt \
         -r requirements_dev.txt \
     # save the version of the packages installed for CI debugging
+    && pip install twine \
     && pip freeze --all > /frozen-requirements.txt \
     && cat /frozen-requirements.txt

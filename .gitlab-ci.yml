@@ -15,3 +15,6 @@ include:
   - project: "quantify-os/ci"
     ref: main
     file: "/python-windows.yml"
+  - project: "quantify-os/ci"
+    ref: main
+    file: "/python-packaging-pypi.yml"

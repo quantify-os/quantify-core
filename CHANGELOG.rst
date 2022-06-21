@@ -4,27 +4,38 @@ Changelog
 
 Unreleased
 ----------
-* InstrumentMonitor - Display parameter values with non-number type nicely. Only for parameters without unit. (!336)
-* Data Handling - Setting datadir to None now correctly sets datadir to default directory (~/quantify-data/)
-* Data Handling - Added a DecodeToNumpy decoder class and function argument `list_to_ndarray` to the function `load_snapshot`, which enables `load_settings_onto_instrument` to support loading numpy arrays parameters from json lists. (!342, !343, #309)
-* Experiment helpers - Loading settings from snapshot now supports Instrument submodules
-* PlotMonitor - Fix crash in secondary plotmon when data is one-dimensional.
 
+Merged branches and closed issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* Require lmfit >= 1.0.3 due to a typo within lmfit for the `guess_from_peak2d` function. (!346)
+* Fixed calling `super().create_figures()` when inheriting analysis classes (issue was introduced by merge request !337). (#313)
+* PlotMonitor - Fix crash in secondary plotmon when data is one-dimensional. (!349)
+
+0.6.0 (2022-05-25)
+------------------
 
 Breaking changes
 ~~~~~~~~~~~~~~~~
+* Supported Python versions are now 3.8-3.10. Python 3.7 support is dropped. (!328)
 * MeasurementControl - Removed the `instrument_monitor` (InstrumentRefParameter) from the `MeasurementControl` class. There is no need to couple the instrument monitor object with the `MeasurementControl` anymore. (!324)
 * InstrumentMonitor - Made the `update` method private (renamed to `_update`). Also removed the `force` argument in the method. (!324)
 
 Merged branches and closed issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* InstrumentMonitor - Display parameter values with non-number type nicely. Only for parameters without unit. (!336)
+* Data Handling - Setting datadir to None now correctly sets datadir to default directory (~/quantify-data/). (!338)
+* Data Handling - Added a DecodeToNumpy decoder class and function argument `list_to_ndarray` to the function `load_snapshot`, which enables `load_settings_onto_instrument` to support loading numpy arrays parameters from json lists. (!342, !343, #309)
+* Data handling - Add API to save custom text files as experiment data. (!325)
+* Data handling - Fix attributes handling when converting datasets with `to_gridded()` method. (!277, !302)
+* Experiment helpers - Loading settings from snapshot now supports Instrument submodules. (#307, !338)
 * Plotmon - Suppress warning about all-NaN datasets during plotting. (!314)
 * Visualization - Added kwarg dicts to `plot_fit` to pass matplotlib keyword arguments and `plot_fit` returns list of matplotlib Line2D objects. (!334, !331 (closed))
-* Analysis - CosineModel now guesses a frequency based on a Fourier transform of the data (!335)
-* Analysis - We do not store all Matplotlib figures and axes for all analysis objects in memory anymore. This fixes out-of-memory error for long measurement runs, when a lot of figures are created (#298, !337).
+* Analysis - CosineModel now guesses a frequency based on a Fourier transform of the data. (!335)
+* Analysis - We do not store all Matplotlib figures and axes for all analysis objects in memory anymore. This fixes out-of-memory error for long measurement runs, when a lot of figures are created. (#298, !337, !345)
 * MeasurementControl - Performance improvement in MeasurementControl data construction. (!333)
-* Bugfix - Fix QHullError occurring in RemotePlotmon when supplying two uniformly spaced settables to MeasurementControl.setpoints() (#305, !323)
+* Bugfix - Fix QHullError occurring in RemotePlotmon when supplying two uniformly spaced settables to MeasurementControl.setpoints(). (#305, !323)
+* Packaging and distribution - Added support for PEP 561. (!322)
 
 0.5.3 (2022-02-25)
 ------------------
