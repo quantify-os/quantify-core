@@ -619,7 +619,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 if len(z) < 8:
                     break
 
-                # if data is one-dimensional, skip plotting
+                # If data is one-dimensional, skip plotting.
+                # Scipy's LinearNDInterpolator cannot interpolate 1d data
+                # (used in interpolate_heatmap).
                 all_x_equal = True if (x == x[0]).all() else False
                 all_y_equal = True if (y == y[0]).all() else False
                 if all_x_equal or all_y_equal:
