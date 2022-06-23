@@ -9,7 +9,7 @@ Welcome to Quantify's documentation!
    :glob:
 
    installation
-   usage.py.rst
+   usage
    tutorials/index
    contributing
    authors

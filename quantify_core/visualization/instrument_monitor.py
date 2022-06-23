@@ -21,7 +21,7 @@ class InstrumentMonitor(Instrument):
     """
     Creates a pyqtgraph widget that displays the instrument monitor window.
 
-    .. include:: examples/visualization.instrument_monitor.py.rst.txt
+    .. include:: examples/visualization.instrument_monitor.rst.txt
     """
 
     proc = None

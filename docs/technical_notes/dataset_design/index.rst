@@ -7,7 +7,7 @@ In this part of the documentation, you will find the dataset specification, star
    :maxdepth: 1
    :caption: Dataset design
 
-   Xarray introduction.py.rst
-   Quantify dataset - specification.py.rst
-   Quantify dataset - examples.py.rst
-   Quantify dataset - advanced examples.py.rst
+   Xarray introduction
+   Quantify dataset - specification
+   Quantify dataset - examples
+   Quantify dataset - advanced examples
