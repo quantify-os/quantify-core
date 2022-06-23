@@ -18,13 +18,13 @@
 
 # Tutorial 5. Plot monitor
 
-:::{seealso}
+```{seealso}
 The complete source code of this tutorial can be found in
 
 {jupyter-download:notebook}`Tutorial 5. Plot monitor`
 
 {jupyter-download:script}`Tutorial 5. Plot monitor`
-:::
+```
 
 In this tutorial we dive into the capabilities of the plot monitor.
 We will create a fictional device and showcase how the plot monitor can be used. Enjoy!
@@ -132,9 +132,9 @@ The interface is the same for both. The parameters accept a list of tuids or an 
 
 The difference is that the {class}`.MeasurementControl` uses `tuids` and overrides them when running measurements.
 
-:::{note}
+```{note}
 All the datasets must have matching data variables (settables and gettables).
-:::
+```
 
 The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the {class}`.MeasurementControl` is running.
 
@@ -146,9 +146,9 @@ The third relevant parameter is the *tuids_max_num*. It accepts an integer which
 
 ```
 
-:::{note}
+```{note}
 This parameter has no effect when setting the *tuids* manually.
-:::
+```
 
 ## Usage examples
 
@@ -393,11 +393,11 @@ When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tu
 
 ```
 
-:::{note}
+```{note}
 The secondary window displays the last dataset with a 2D structure, and it remains persistent until replaced by a new dataset with a 2D structure.
 
 Mind that the data on the secondary window does not always display data corresponding to the same dataset as the main window.
-:::
+```
 
 We still have the persistence of the previous dataset on the main window:
 

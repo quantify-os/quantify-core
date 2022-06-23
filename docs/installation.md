@@ -49,48 +49,48 @@ If you are familiar with software development (package manager, git, terminal, P
    > - Install for `All Users (requires admin privileges)`; and
    > - `Add Anaconda3 the system PATH environment variable`.
    >
-   > ::::{admonition} Instructions: Anaconda install (Windows)
+   > ``````{admonition} Instructions: Anaconda install (Windows)
    > :class: dropdown, info
    >
-   > :::{figure} /images/install/conda_install.gif
+   > ```{figure} /images/install/conda_install.gif
    > :name: conda_install
    > :width: 800
-   > :::
-   > ::::
+   > ```
+   > ``````
 
 2. (Windows only) Install [Git BASH](https://gitforwindows.org/) to have a unix-like bash terminal (default options during installation should work well on most setups).
 
-   > :::{tip}
+   > ```{tip}
    > Users can right click any folder in windows and open Git BASH in that location.
-   > :::
+   > ```
    >
-   > :::{note}
+   > ```{note}
    > Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any python code using [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/) (installation steps below).
-   > :::
+   > ```
 
 3. (Windows only) Add {code}`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc` (or in the `.bash_profile`) to expose the anaconda in bash terminal (see instruction below if you need help).
 
-   > :::{tip}
+   > ```{tip}
    > If you followed the default anaconda installation the path to it will be similar to
    > {code}`/c/Users/<YOUR_USERNAME>/anaconda3/etc/profile.d/conda.sh` or {code}`/c/ProgramData/Anaconda3/etc/profile.d/conda.sh`.
    >
    > Pro tip: you can drag and drop a file from the file explorer into the terminal and get the path of the file (instead of typing it manually).
-   > :::
+   > ```
    >
-   > ::::{admonition} Instructions: expose anaconda in the bash terminal
+   > ``````{admonition} Instructions: expose anaconda in the bash terminal
    > :class: dropdown, info
    >
    > Below we illustrate this process in Git Bash. You can find detailed step-by-step instructions [here](https://superuser.com/a/602896).
    >
-   > :::{figure} /images/install/conda_source_installed_all_users.gif
+   > ```{figure} /images/install/conda_source_installed_all_users.gif
    > :name: conda_source
    > :width: 800
-   > :::
-   > ::::
+   > ```
+   > ``````
    >
-   > :::{note}
+   > ```{note}
    > To confirm you have a functional installation of anaconda, run {code}`conda` in the terminal. This will print the conda help message which is an indication of a working installation.
-   > :::
+   > ```
 
 4. Create a conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
 
@@ -99,18 +99,18 @@ If you are familiar with software development (package manager, git, terminal, P
    > $ conda activate quantify-env                   # activates the conda environment
    > ```
    >
-   > :::{tip}
+   > ```{tip}
    > You can add {code}`conda activate quantify-env` at the end of the `.bashrc` (or `.bash_profile`) if you wish for this environment to be activated automatically in the terminal when it is opened (see instructions below).
-   > :::
+   > ```
    >
-   > ::::{admonition} Instructions: create conda env and auto-activate (Windows)
+   > ``````{admonition} Instructions: create conda env and auto-activate (Windows)
    > :class: dropdown, info
    >
-   > :::{figure} /images/install/conda_activate.gif
+   > ```{figure} /images/install/conda_activate.gif
    > :name: conda_activate
    > :width: 800
-   > :::
-   > ::::
+   > ```
+   > ``````
 
 5. Install jupyter-lab in the new environment using:
 
@@ -128,9 +128,9 @@ If you are familiar with software development (package manager, git, terminal, P
    > $ pip install quantify-core
    > ```
    >
-   > :::{note}
+   > ```{note}
    > We currently do not have a conda recipe for installation, instead we refer to the default pip installation within a conda environment.
-   > :::
+   > ```
 
 7. (Optionally) install quantify-scheduler
 
@@ -198,9 +198,9 @@ Ready to contribute? Here's how to set up Quantify for local development.
     > $ pre-commit install
     > ```
     >
-    > :::{note}
+    > ```{note}
     > When the code is not well formatted a `git commit` will fail. You only need to run it again. This second time the code will be already *black*-compliant.
-    > :::
+    > ```
 
 05. Create a branch for local development:
 
@@ -219,7 +219,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
     > $ pytest --cov
     > ```
     >
-    > :::{tip}
+    > ``````{tip}
     > Running parts of the test suite
     >
     > To run only parts of the test suite, specify the folder in which to look for
@@ -230,15 +230,15 @@ Ready to contribute? Here's how to set up Quantify for local development.
     > ```
     >
     > will look for tests located in the tests/measurement directory and report test coverage of the quantify_core/measurement module.
-    > :::
+    > ``````
     >
-    > :::{tip}
+    > ``````{tip}
     > Speed up tests with parallel execution
     >
     > ```
     > $ py.test -n 2 # where 2 is the number of cores of your CPU
     > ```
-    > :::
+    > ``````
 
 08. Building the documentation
 
@@ -257,7 +257,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
     >
     > The docs will be located in `quantify_core/docs/_build`.
     >
-    > :::{tip}
+    > ``````{tip}
     > If you are working on documentation it can be useful to automatically rebuild the docs after every change.
     > This can be done using the `sphinx-autobuild` package. Through the following command:
     >
@@ -266,11 +266,11 @@ Ready to contribute? Here's how to set up Quantify for local development.
     > ```
     >
     > The documentation will then be hosted on `localhost:8000`
-    > :::
+    > ``````
     >
-    > :::{tip}
+    > ```{tip}
     > Building the tutorials can be time consuming, if you are not editing them, feel free to delete your local copy of the `quantify-core/docs/tutorials` to skip their build. You can recover the files using git (do not commit the deleted files).
-    > :::
+    > ```
 
 09. Commit your changes and push your branch to GitLab:
 

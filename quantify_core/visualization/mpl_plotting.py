@@ -397,7 +397,8 @@ def plot_fit(
 
     Returns
     -------
-    list of matplotlib pyplot Line2D objects
+    :
+        list of matplotlib pyplot Line2D objects
     """
 
     # Handle default values

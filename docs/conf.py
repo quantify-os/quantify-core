@@ -26,6 +26,7 @@ import sys
 import lmfit  # related to quantify-core#218 and quantify-core#221
 import marshmallow
 import qcodes
+import quantify_core
 
 package_path = os.path.abspath("..")
 sys.path.insert(0, package_path)

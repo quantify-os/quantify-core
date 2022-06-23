@@ -17,13 +17,13 @@
 
 # Tutorial 2. Advanced capabilities of the MeasurementControl
 
-:::{seealso}
+```{seealso}
 The complete source code of this tutorial can be found in
 
 {jupyter-download:notebook}`Tutorial 2. Advanced capabilities of the MeasurementControl`
 
 {jupyter-download:script}`Tutorial 2. Advanced capabilities of the MeasurementControl`
-:::
+```
 
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) {ref}`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the {ref}`User guide`!
 
@@ -93,9 +93,9 @@ In this example, we want to find the resonance of some device. We expect to find
 We first create `freq`: a {class}`.Settable` with a {class}`~qcodes.parameters.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom {class}`.Gettable` to mock (i.e. emulate) the resonator.
 The {class}`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our {class}`.Gettable` will read the setpoints from `freq`, in this case a 1D array.
 
-:::{note}
+```{note}
 The `Resonator` {class}`.Gettable` has a new attribute `.batched` set to `True`. This property informs the {class}`.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition. Similarly, the `freq` {class}`.Settable` must have a `.batched=True` so that the {class}`.MeasurementControl` hands over the setpoints correctly.
-:::
+```
 
 ```{eval-rst}
 .. jupyter-execute::
@@ -310,11 +310,11 @@ In a terminal environment this is usually achieved with a `ctrl` + `c` press on 
 
 When the {class}`.MeasurementControl` is interrupted, it will wait to obtain the results of current iteration (or batch) and perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
 
-:::{note}
+```{note}
 The exact means of triggering an interrupt will differ depending on your platform and environment; the important part is to cause a `KeyboardInterrupt` exception to be raised in the Python process.
-:::
+```
 
-:::{warning}
+``````{warning}
 In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times `ctrl` + `c`). Mind that performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
 ```{eval-rst}
@@ -350,7 +350,7 @@ In case the current iteration is taking too long to complete (e.g. instruments n
     # Try interrupting me!
     dset = meas_ctrl.run("slow")
 ```
-:::
+``````
 
 ```{eval-rst}
 .. jupyter-execute::

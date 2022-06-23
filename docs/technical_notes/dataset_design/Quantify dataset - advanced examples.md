@@ -1,70 +1,50 @@
-```{eval-rst}
-.. jupyter-execute::
-    :hide-code:
-
-    # pylint: disable=line-too-long
-    # pylint: disable=wrong-import-order
-    # pylint: disable=wrong-import-position
-    # pylint: disable=pointless-string-statement
-    # pylint: disable=pointless-statement
-    # pylint: disable=invalid-name
-    # pylint: disable=expression-not-assigned
-    # pylint: disable=duplicate-code
-
-
-```
-
 (sec-dataset-advanced-examples)=
-
 # Quantify dataset - advanced examples
 
-:::{seealso}
+```{seealso}
 The complete source code of this tutorial can be found in
-
-% NB .py is from notebook_to_sphinx_extension
 
 {jupyter-download:notebook}`Quantify dataset - advanced examples`
 
 {jupyter-download:script}`Quantify dataset - advanced examples`
-:::
+```
 
 Here we will explore a few advanced usages of the quantify dataset and how it can
 accommodate them.
 
-:::{admonition} Imports and auxiliary utilities
+```{admonition} Imports and auxiliary utilities
 :class: dropdown
 
-```{eval-rst}
-.. jupyter-execute::
+````{jupyter-execute}
 
-    from pathlib import Path
+from pathlib import Path
 
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import xarray as xr
-    from rich import pretty
+import matplotlib.pyplot as plt
+import numpy as np
+import xarray as xr
+from rich import pretty
 
-    from quantify_core.analysis.calibration import rotate_to_calibrated_axis
-    from quantify_core.analysis.fitting_models import exp_decay_func
-    from quantify_core.data import handling as dh
-    from quantify_core.utilities import dataset_examples
-    from quantify_core.utilities.dataset_examples import (
-        mk_nested_mc_dataset,
-        mk_shots_from_probabilities,
-        mk_surface7_cyles_dataset,
-    )
-    from quantify_core.utilities.examples_support import (
-        mk_iq_shots,
-        mk_surface7_sched,
-        round_trip_dataset,
-    )
-    from quantify_core.utilities.inspect_utils import display_source_code
+from quantify_core.analysis.calibration import rotate_to_calibrated_axis
+from quantify_core.analysis.fitting_models import exp_decay_func
+from quantify_core.data import handling as dh
+from quantify_core.utilities import dataset_examples
+from quantify_core.utilities.dataset_examples import (
+    mk_nested_mc_dataset,
+    mk_shots_from_probabilities,
+    mk_surface7_cyles_dataset,
+)
+from quantify_core.utilities.examples_support import (
+    mk_iq_shots,
+    mk_surface7_sched,
+    round_trip_dataset,
+)
+from quantify_core.utilities.inspect_utils import display_source_code
 
-    pretty.install()
+pretty.install()
 
-    dh.set_datadir(Path.home() / "quantify-data")  # change me!
+dh.set_datadir(Path.home() / "quantify-data")  # change me!
+````
 ```
-:::
 
 ## Dataset for an "unstructured" experiment
 
@@ -76,40 +56,33 @@ are the measurements. It is difficult to deal with the results of these measurem
 because we have a few repeating cycles followed by a final measurement that leaves the
 overall dataset "unstructured".
 
-:::{figure} /images/surface-7-sched.png
+```{figure} /images/surface-7-sched.png
 :width: 100%
-:::
+```
 
-:::{admonition} Source code for generating this schedule and visualizing it
+```{admonition} Source code for generating this schedule and visualizing it
 :class: dropdown
 
-The schedule from the figure above was generates with
-{func}`quantify_core.utilities.examples_support.mk_surface7_sched`.
+The schedule from the figure above was generates with {func}`quantify_core.utilities.examples_support.mk_surface7_sched`.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    display_source_code(mk_surface7_sched)
-
-
+````{jupyter-execute}
+display_source_code(mk_surface7_sched)
+````
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# If Quantify-Scheduler is installed you can create the schedule and visualize it
+num_cycles = 3
+try:
+    import quantify_scheduler.visualization.circuit_diagram as qscd
 
-    # If Quantify-Scheduler is installed you can create the schedule and visualize it
-    num_cycles = 3
-    try:
-        import quantify_scheduler.visualization.circuit_diagram as qscd
-
-        sched = mk_surface7_sched(num_cycles=num_cycles)
-        f, ax = qscd.circuit_diagram_matplotlib(sched)
-        f.set_figwidth(30)
-    except ImportError as exc:
-        print("Quantify-Scheduler not installed.")
-        print(exc)
+    sched = mk_surface7_sched(num_cycles=num_cycles)
+    f, ax = qscd.circuit_diagram_matplotlib(sched)
+    f.set_figwidth(30)
+except ImportError as exc:
+    print("Quantify-Scheduler not installed.")
+    print(exc)
 ```
-:::
 
 How do we store all the shots for this measurement?
 We might want this because, e.g., we know we have an issue with leakage to the second
@@ -118,67 +91,48 @@ excited state of a transmon and we would like to be able to store and inspect ra
 To support such use-case we will have a dimension in dataset for the repeating cycles
 and one extra dimension for the final measurement.
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# mock data parameters
+num_shots = 128  # NB usually >~1000 in real experiments
+ground = -0.2 + 0.65j
+excited = 0.7 + 4j
+centroids = ground, excited
+sigmas = [0.1] * 2
 
-    # mock data parameters
-    num_shots = 128  # NB usually >~1000 in real experiments
-    ground = -0.2 + 0.65j
-    excited = 0.7 + 4j
-    centroids = ground, excited
-    sigmas = [0.1] * 2
-
-    display_source_code(mk_iq_shots)
-    display_source_code(mk_shots_from_probabilities)
-    display_source_code(mk_surface7_cyles_dataset)
-
-
+display_source_code(mk_iq_shots)
+display_source_code(mk_shots_from_probabilities)
+display_source_code(mk_surface7_cyles_dataset)
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
 
-    dataset = mk_surface7_cyles_dataset(
-        num_shots=num_shots, sigmas=sigmas, centers=centroids
-    )
+dataset = mk_surface7_cyles_dataset(
+    num_shots=num_shots, sigmas=sigmas, centers=centroids
+)
 
-    assert dataset == round_trip_dataset(dataset)  # confirm read/write
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
-    dataset
-
-
+dataset
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset.A1_shots.shape, dataset.D1_shots.shape
-
-
+```{jupyter-execute}
+dataset.A1_shots.shape, dataset.D1_shots.shape
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset_gridded = dh.to_gridded_dataset(
-        dataset, dimension="dim_cycle", coords_names=["cycle"]
-    )
-    dataset_gridded = dh.to_gridded_dataset(
-        dataset_gridded, dimension="dim_final", coords_names=["final_msmt"]
-    )
-    dataset_gridded
-
-
+```{jupyter-execute}
+dataset_gridded = dh.to_gridded_dataset(
+    dataset, dimension="dim_cycle", coords_names=["cycle"]
+)
+dataset_gridded = dh.to_gridded_dataset(
+    dataset_gridded, dimension="dim_final", coords_names=["final_msmt"]
+)
+dataset_gridded
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset_gridded.A0_shots.real.mean("repetitions").plot(marker="o", label="I-quadrature")
-    dataset_gridded.A0_shots.imag.mean("repetitions").plot(marker="^", label="Q-quadrature")
-    _ = plt.gca().legend()
-
-
+```{jupyter-execute}
+dataset_gridded.A0_shots.real.mean("repetitions").plot(marker="o", label="I-quadrature")
+dataset_gridded.A0_shots.imag.mean("repetitions").plot(marker="^", label="Q-quadrature")
+_ = plt.gca().legend()
 ```
 
 (sec-nested-mc-example)=
@@ -195,38 +149,34 @@ a read-out resonator, the frequency of the transmon, and its T1 lifetime.
 Below we showcase what the data from the dataset containing the T1 experiment results
 could look like
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+fig, ax = plt.subplots()
+rng = np.random.default_rng(seed=112244)  # random number generator
 
-    fig, ax = plt.subplots()
-    rng = np.random.default_rng(seed=112244)  # random number generator
+num_t1_datasets = 7
+t1_times = np.linspace(0, 120e-6, 30)
 
-    num_t1_datasets = 7
-    t1_times = np.linspace(0, 120e-6, 30)
+for tau in rng.uniform(10e-6, 50e-6, num_t1_datasets):
+    probabilities = exp_decay_func(
+        t=t1_times, tau=tau, offset=0, n_factor=1, amplitude=1
+    )
+    dataset = dataset_examples.mk_t1_av_with_cal_dataset(t1_times, probabilities)
 
-    for tau in rng.uniform(10e-6, 50e-6, num_t1_datasets):
-        probabilities = exp_decay_func(
-            t=t1_times, tau=tau, offset=0, n_factor=1, amplitude=1
-        )
-        dataset = dataset_examples.mk_t1_av_with_cal_dataset(t1_times, probabilities)
-
-        round_trip_dataset(dataset)  # confirm read/write
-        dataset_g = dh.to_gridded_dataset(
-            dataset, dimension="main_dim", coords_names=["t1_time"]
-        )
-        # rotate the iq data
-        rotated_and_normalized = rotate_to_calibrated_axis(
-            dataset_g.q0_iq_av.values, *dataset_g.q0_iq_av_cal.values
-        )
-        rotated_and_normalized_da = xr.DataArray(dataset_g.q0_iq_av)
-        rotated_and_normalized_da.values = rotated_and_normalized
-        rotated_and_normalized_da.attrs["long_name"] = "|1> Population"
-        rotated_and_normalized_da.attrs["units"] = ""
-        rotated_and_normalized_da.real.plot(ax=ax, label=dataset.tuid, marker=".")
-    ax.set_title("Results from repeated T1 experiments\n(different datasets)")
-    _ = ax.legend()
-
-
+    round_trip_dataset(dataset)  # confirm read/write
+    dataset_g = dh.to_gridded_dataset(
+        dataset, dimension="main_dim", coords_names=["t1_time"]
+    )
+    # rotate the iq data
+    rotated_and_normalized = rotate_to_calibrated_axis(
+        dataset_g.q0_iq_av.values, *dataset_g.q0_iq_av_cal.values
+    )
+    rotated_and_normalized_da = xr.DataArray(dataset_g.q0_iq_av)
+    rotated_and_normalized_da.values = rotated_and_normalized
+    rotated_and_normalized_da.attrs["long_name"] = "|1> Population"
+    rotated_and_normalized_da.attrs["units"] = ""
+    rotated_and_normalized_da.real.plot(ax=ax, label=dataset.tuid, marker=".")
+ax.set_title("Results from repeated T1 experiments\n(different datasets)")
+_ = ax.legend()
 ```
 
 Since the raw data is now split among several datasets, we would like to keep a
@@ -236,73 +186,49 @@ can be achieved, along with some useful xarray features and known limitations.
 We start by generating a mock dataset that combines all the information that would have
 been obtained from analyzing a series of other datasets.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    display_source_code(mk_nested_mc_dataset)
-
-
+```{jupyter-execute}
+display_source_code(mk_nested_mc_dataset)
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset = mk_nested_mc_dataset(num_points=num_t1_datasets)
-    assert dataset == round_trip_dataset(dataset)  # confirm read/write
-    dataset
-
-
+```{jupyter-execute}
+dataset = mk_nested_mc_dataset(num_points=num_t1_datasets)
+assert dataset == round_trip_dataset(dataset)  # confirm read/write
+dataset
 ```
 
 In this case the four main coordinates are not orthogonal coordinates, but instead
 just different label for the same data points, also known as a "multi-index".
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+fig, axs = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
 
-    fig, axs = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
-
-    _ = dataset.t1.plot(x="flux_bias", marker="o", ax=axs[0].twiny(), color="C0")
-    x = "t1_tuids"
-    _ = dataset.t1.plot(x=x, marker="o", ax=axs[0], color="C0")
-    _ = dataset.resonator_freq.plot(x=x, marker="o", ax=axs[1], color="C1")
-    _ = dataset.qubit_freq.plot(x=x, marker="o", ax=axs[2], color="C2")
-    for tick in axs[2].get_xticklabels():
-        tick.set_rotation(15)  # avoid tuid labels overlapping
-
-
+_ = dataset.t1.plot(x="flux_bias", marker="o", ax=axs[0].twiny(), color="C0")
+x = "t1_tuids"
+_ = dataset.t1.plot(x=x, marker="o", ax=axs[0], color="C0")
+_ = dataset.resonator_freq.plot(x=x, marker="o", ax=axs[1], color="C1")
+_ = dataset.qubit_freq.plot(x=x, marker="o", ax=axs[2], color="C2")
+for tick in axs[2].get_xticklabels():
+    tick.set_rotation(15)  # avoid tuid labels overlapping
 ```
 
 It is possible to work with an explicit MultiIndex within a (python) xarray object:
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset_multi_indexed = dataset.set_index({"main_dim": tuple(dataset.t1.coords.keys())})
-    dataset_multi_indexed
-
-
+```{jupyter-execute}
+dataset_multi_indexed = dataset.set_index({"main_dim": tuple(dataset.t1.coords.keys())})
+dataset_multi_indexed
 ```
 
 The MultiIndex is very handy for selecting data in different ways, e.g.:
 
-```{eval-rst}
-.. jupyter-execute::
-
-    index = 2
-    dataset_multi_indexed.qubit_freq.sel(
-        qubit_freq_tuids=dataset_multi_indexed.qubit_freq_tuids.values[index]
-    )
-
-
+```{jupyter-execute}
+index = 2
+dataset_multi_indexed.qubit_freq.sel(
+    qubit_freq_tuids=dataset_multi_indexed.qubit_freq_tuids.values[index]
+)
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset_multi_indexed.qubit_freq.sel(t1_tuids=dataset.t1_tuids.values[index])
-
-
+```{jupyter-execute}
+dataset_multi_indexed.qubit_freq.sel(t1_tuids=dataset.t1_tuids.values[index])
 ```
 
 ### Known limitations
@@ -310,15 +236,11 @@ The MultiIndex is very handy for selecting data in different ways, e.g.:
 Unfortunately, at the moment the MultiIndex has the problem of not being compatible with
 the NetCDF format used to write to disk:
 
-```{eval-rst}
-.. jupyter-execute::
-
-    try:
-        assert dataset_multi_indexed == round_trip_dataset(dataset_multi_indexed)
-    except NotImplementedError as exp:
-        print(exp)
-
-
+```{jupyter-execute}
+try:
+    assert dataset_multi_indexed == round_trip_dataset(dataset_multi_indexed)
+except NotImplementedError as exp:
+    print(exp)
 ```
 
 We could make our load/write utilities to take care of setting and resetting the index
@@ -329,35 +251,21 @@ disk. Below we show a few complications related to this.
 
 Fortunately, the MultiIndex can be reset back:
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset_multi_indexed.reset_index(dims_or_levels="main_dim")
-
-
+```{jupyter-execute}
+dataset_multi_indexed.reset_index(dims_or_levels="main_dim")
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    all(dataset_multi_indexed.reset_index("main_dim").t1_tuids == dataset.t1_tuids)
-
-
+```{jupyter-execute}
+all(dataset_multi_indexed.reset_index("main_dim").t1_tuids == dataset.t1_tuids)
 ```
 
 But, for example, the `dtype` has been changed to `object`
 (from fixed-length string):
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("main_dim").t1_tuids.dtype
-
-
+```{jupyter-execute}
+dataset.t1_tuids.dtype, dataset_multi_indexed.reset_index("main_dim").t1_tuids.dtype
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset.t1_tuids.dtype == dataset_multi_indexed.reset_index("main_dim").t1_tuids.dtype
+```{jupyter-execute}
+dataset.t1_tuids.dtype == dataset_multi_indexed.reset_index("main_dim").t1_tuids.dtype
 ```

@@ -17,15 +17,13 @@
 
 # Xarray - brief introduction
 
-:::{seealso}
+```{seealso}
 The complete source code of this tutorial can be found in
-
-% NB .py is from notebook_to_sphinx_extension
 
 {jupyter-download:notebook}`Xarray introduction`
 
 {jupyter-download:script}`Xarray introduction`
-:::
+```
 
 The Quantify dataset is based on {doc}`Xarray <xarray:index>`.
 This subsection is a very brief overview of some concepts and functionalities of xarray.
@@ -35,7 +33,7 @@ This is not intended as an extensive introduction to xarray.
 Please consult the {doc}`xarray documentation <xarray:index>` if you never used it
 before (it has very neat features!).
 
-:::{admonition} Imports and auxiliary utilities
+``````{admonition} Imports and auxiliary utilities
 :class: dropdown
 
 ```{eval-rst}
@@ -47,7 +45,7 @@ before (it has very neat features!).
 
     pretty.install()
 ```
-:::
+``````
 
 There are different ways to create a new xarray dataset.
 Below we exemplify a few of them to showcase specific functionalities.

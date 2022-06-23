@@ -1,20 +1,3 @@
-```{eval-rst}
-.. jupyter-execute::
-    :hide-code:
-
-    # pylint: disable=line-too-long
-    # pylint: disable=wrong-import-order
-    # pylint: disable=wrong-import-position
-    # pylint: disable=pointless-string-statement
-    # pylint: disable=pointless-statement
-    # pylint: disable=invalid-name
-    # pylint: disable=duplicate-code
-    # pylint: disable=too-many-lines
-    # pylint: disable=no-self-use
-    # pylint: disable=too-few-public-methods
-
-```
-
 (user-guide)=
 
 # User guide
@@ -33,13 +16,13 @@ The core of Quantify can be understood by understanding the following concepts:
 
 ### Code snippets
 
-:::{seealso}
+```{seealso}
 The complete source code of the examples on this page can be found in
 
 {jupyter-download:notebook}`usage`
 
 {jupyter-download:script}`usage`
-:::
+```
 
 Bellow we import common utilities used in the examples.
 
@@ -111,7 +94,7 @@ Quantify provides two helper classes, {class}`.Settable` and {class}`.Gettable` 
 
 - Enforce standardization of experiments
 - Standardized data storage
-- {ref}`Live plotting of the experiment <plotmon_tutorial>`
+- {ref}`Live plotting of the experiment <plotmon-tutorial>`
 - n-dimensional sweeps
 - Data acquisition controlled iteratively or in batches
 - Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
@@ -172,19 +155,19 @@ In **Iterative** mode, the meas_ctrl steps through each setpoint one at a time, 
 In **Batched** mode, the meas_ctrl vectorizes the setpoints such that they are processed in batches.
 The size of these batches is automatically calculated but usually dependent on resource constraints; you may have a device which can hold 100 samples but you wish to sweep over 2000 points.
 
-:::{note}
+```{note}
 The maximum batch size of the settable(s)/gettable(s) should be specified using the `.batch_size` attribute. If not specified infinite size is assumed and all setpoint are passed to the settable(s).
-:::
+```
 
-:::{tip}
+```{tip}
 In *Batched* mode it is still possible to perform outer iterative sweeps with an inner batched sweep. This is performed automatically when batched settables (`.batched=True`) are mixed with iterative settables (`.batched=False`). To correctly grid the points in this mode use {meth}`.MeasurementControl.setpoints_grid`.
-:::
+```
 
 Control mode is detected automatically based on the `.batched` attribute of the settable(s) and gettable(s); this is expanded upon in subsequent sections.
 
-:::{note}
+```{note}
 All gettables must have the same value for the `.batched` attribute. Only when all gettables have `.batched=True`, settables are allowed to have mixed `.batched` attribute (e.g. `settable_A.batched=True`, `settable_B.batched=False`).
-:::
+```
 
 ## Settables and Gettables
 
@@ -233,7 +216,7 @@ In addition to using a library which fits these contracts (such as the {class}`~
 
 ```
 
-:::{admonition} Note: "Grouped" gettable(s) are also allowed.
+``````{admonition} Note: "Grouped" gettable(s) are also allowed.
 :class: dropdown
 
 Below we create a Gettable which returns two distinct quantities at once:
@@ -268,16 +251,16 @@ Below we create a Gettable which returns two distinct quantities at once:
     wave_gettable = DualWave1D()
     Gettable(wave_gettable)
 ```
-:::
+``````
 
 Depending on which Control Mode the {class}`.MeasurementControl` is running in, the interfaces for Settables (their input interface) and Gettables (their output interface) are slightly different.
 
-::::{note}
+`````{note}
 It is also possible for batched Gettables return an array with length less than then the length of the setpoints, and similarly for the input of the Settables.
 This is often the case when working with resource constrained devices, for example if you have *n* setpoints but your device can load only less than *n* datapoints into memory.
 In this scenario, the meas_ctrl tracks how many datapoints were actually processed, automatically adjusting the size of the next batch.
 
-:::{admonition} Example
+````{admonition} Example
 :class: dropdown, note
 
 ```{eval-rst}
@@ -306,8 +289,8 @@ In this scenario, the meas_ctrl tracks how many datapoints were actually process
 
     dset_grid.y0.plot()
 ```
-:::
-::::
+````
+`````
 
 (sec-batched-and-batch-size)=
 
@@ -317,11 +300,11 @@ The {py:class}`.Gettable` and {py:class}`.Settable` objects can have a `bool` pr
 
 Setting the `.batched` property to `True` enables the batch Control Mode in the {class}`.MeasurementControl`. In this mode, if present, the `.batch_size` attribute is used to determine the maximum size of a batch of setpoints.
 
-:::{admonition} Heterogeneous batch size and effective batch size
+```{admonition} Heterogeneous batch size and effective batch size
 :class: dropdown, note
 
 The minimum `.batch_size` among all settables and gettables will determine the (maximum) size of a batch. During execution of a measurement the size of a batch will be reduced if necessary to comply to the setpoints grid and/or total number of setpoints.
-:::
+```
 
 ### .prepare() and .finish()
 
@@ -358,9 +341,9 @@ all experiments which take place on a certain date will be saved together in a s
 
 Individual experiments are saved to their own subdirectories (of the Data Directory) named based on the {class}`~quantify_core.data.types.TUID` and the {code}`<experiment name (if any)>`.
 
-:::{note}
+```{note}
 TUID: A Time-based Unique ID is of the form {code}`YYYYmmDD-HHMMSS-sss-<random 6 character string>` and these subdirectories' names take the form {code}`YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>`.
-:::
+```
 
 These subdirectories are termed 'Experiment Containers', typical output being the Dataset in hdf5 format and a JSON format file describing Parameters, Instruments and such.
 
@@ -422,7 +405,7 @@ The resulting dataset will look similar to the following:
 To support both gridded and non-gridded data, we use {doc}`Xarray <xarray:index>` using only `Data Variables` and `Coordinates` **with a single** `Dimension` (corresponding to the order of the setpoints).
 
 This is necessary as in the non-gridded case the dataset will be a perfect sparse array, usability of which is cumbersome.
-A prominent example of non-gridded use-cases can be found {ref}`adaptive_tutorial`.
+A prominent example of non-gridded use-cases can be found {ref}`adaptive-tutorial`.
 
 To allow for some of Xarray's more advanced functionality, such as the in-built graphing or query system we provide a dataset conversion utility {func}`~quantify_core.data.handling.to_gridded_dataset`.
 This function reshapes the data and associates dimensions to the dataset \[which can also be used for 1D datasets\].
@@ -453,7 +436,7 @@ The idea behind the analysis class is that most analyses follow a common structu
 
 To showcase the analysis usage we generates a dataset that we would like to analyze.
 
-:::{admonition} Generate a dataset labeled "Cosine experiment"
+``````{admonition} Generate a dataset labeled "Cosine experiment"
 :class: dropdown, note
 
 ```{eval-rst}
@@ -474,7 +457,7 @@ To showcase the analysis usage we generates a dataset that we would like to anal
     dataset = meas_ctrl.run("Cosine experiment")
     dataset
 ```
-:::
+``````
 
 ### Using an analysis class
 
@@ -517,7 +500,7 @@ The analysis object contains several useful methods and attributes such as the {
 
 ```
 
-The use of these methods and attributes is described in more detail in {ref}`analysis_framework_tutorial`.
+The use of these methods and attributes is described in more detail in {ref}`analysis-framework-tutorial`.
 
 ### Creating a custom analysis class
 
@@ -528,7 +511,7 @@ The simplest example of an analysis class is the {class}`~quantify_core.analysis
 
 Take a look at the source code (also available in the API reference):
 
-:::{admonition} BasicAnalysis source code
+``````{admonition} BasicAnalysis source code
 :class: dropdown, note
 
 ```{eval-rst}
@@ -536,15 +519,15 @@ Take a look at the source code (also available in the API reference):
 
     display_source_code(ba.BasicAnalysis)
 ```
-:::
+``````
 
 A slightly more complex use case is the {class}`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis` that implements {meth}`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.process_data` to cast the data to a complex-valued array, {meth}`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.run_fitting` where a fit is performed using a model (from the {mod}`quantify_core.analysis.fitting_models` library), and {meth}`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis.create_figures` where the data and the fitted curve are plotted together.
 
-Creating a custom analysis for a particular type of dataset is showcased in the {ref}`analysis_framework_tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
+Creating a custom analysis for a particular type of dataset is showcased in the {ref}`analysis-framework-tutorial`. There you will also learn some other capabilities of the analysis and practical productivity tips.
 
-:::{seealso}
-{ref}`Analysis API documentation <analysis_api>` and {ref}`analysis_framework_tutorial`.
-:::
+```{seealso}
+{ref}`Analysis API documentation <analysis-api>` and {ref}`analysis-framework-tutorial`.
+```
 
 ## Examples: Settables and Gettables
 
@@ -557,7 +540,7 @@ Below we give several examples of experiment using Settables and Gettables in di
 - Each settable accepts a single float value.
 - Gettables return a single float value.
 
-:::{admonition} 1D
+``````{admonition} 1D
 :class: dropdown
 
 ```{eval-rst}
@@ -579,9 +562,9 @@ Below we give several examples of experiment using Settables and Gettables in di
     dset_grid.y0.plot(marker="o")
     dset_grid
 ```
-:::
+``````
 
-:::{admonition} 2D
+``````{admonition} 2D
 :class: dropdown
 
 ```{eval-rst}
@@ -609,15 +592,15 @@ Below we give several examples of experiment using Settables and Gettables in di
     dset_grid.y0.plot(cmap="viridis")
     dset_grid
 ```
-:::
+``````
 
-:::{admonition} ND
+```{admonition} ND
 :class: dropdown
 
 For more dimensions you only need to pass more settables and the corresponding setpoints.
-:::
+```
 
-:::{admonition} 1D adaptive
+``````{admonition} 1D adaptive
 :class: dropdown
 
 ```{eval-rst}
@@ -640,7 +623,7 @@ For more dimensions you only need to pass more settables and the corresponding s
     plt.plot(x, y, c="grey", ls="--")
     _ = dset_ad.y0.plot(marker="o")
 ```
-:::
+``````
 
 #### Single-float-valued settable(s) with multiple float-valued gettable(s)
 
@@ -649,7 +632,7 @@ For more dimensions you only need to pass more settables and the corresponding s
 
 We exemplify a 2D case, however there is no limitation on the number of settables.
 
-:::{admonition} 2D
+``````{admonition} 2D
 :class: dropdown
 
 ```{eval-rst}
@@ -695,7 +678,7 @@ We exemplify a 2D case, however there is no limitation on the number of settable
         plt.show()
     dset_grid
 ```
-:::
+``````
 
 ### Batched control mode
 
@@ -703,7 +686,7 @@ We exemplify a 2D case, however there is no limitation on the number of settable
 
 - Gettables return a 1D array of float values with each element corresponding to a datapoint *in a single Y dimension*.
 
-:::{admonition} 1D
+``````{admonition} 1D
 :class: dropdown
 
 - Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
@@ -735,9 +718,9 @@ We exemplify a 2D case, however there is no limitation on the number of settable
     print(f"\nNOTE: The gettable returns an array:\n\n{signal.get()}")
     dset_grid
 ```
-:::
+``````
 
-:::{admonition} 2D (1D batch with iterative outer loop)
+``````{admonition} 2D (1D batch with iterative outer loop)
 :class: dropdown
 
 - One settable (at least) accepts a 1D array of float values corresponding to all setpoints for the corresponding *X dimension*.
@@ -777,14 +760,14 @@ We exemplify a 2D case, however there is no limitation on the number of settable
     dset_grid.y0.plot(cmap="viridis")
     dset_grid
 ```
-:::
+``````
 
 #### Float-valued array settable(s) with multi-return float-valued array gettable(s)
 
 - Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
 - Gettables return a 2D array of float values with each row representing a *different Y dimension*, i.e. each column is a datapoint corresponding to each setpoint.
 
-:::{admonition} 1D
+``````{admonition} 1D
 :class: dropdown
 
 ```{eval-rst}
@@ -828,4 +811,4 @@ We exemplify a 2D case, however there is no limitation on the number of settable
     dset_grid.y1.plot(marker="s", label="y1", ax=ax)
     _ = ax.legend()
 ```
-:::
+``````

@@ -1,7 +1,6 @@
 # Welcome to Quantify's documentation!
 
-```{eval-rst}
-.. include:: readme.rst
+```{include} ../README.md
 ```
 
 ```{toctree}

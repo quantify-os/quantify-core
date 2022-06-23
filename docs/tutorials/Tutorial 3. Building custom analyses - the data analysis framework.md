@@ -1,31 +1,13 @@
-```{eval-rst}
-.. jupyter-execute::
-    :hide-code:
-
-    # pylint: disable=line-too-long
-    # pylint: disable=wrong-import-order
-    # pylint: disable=wrong-import-position
-    # pylint: disable=pointless-string-statement
-    # pylint: disable=pointless-statement
-    # pylint: disable=invalid-name
-    # pylint: disable=duplicate-code
-    # pylint: disable=abstract-method
-    # pylint: disable=too-few-public-methods
-
-
-```
-
 (analysis-framework-tutorial)=
-
 # Tutorial 3. Building custom analyses - the data analysis framework
 
-:::{seealso}
+```{seealso}
 The complete source code of this tutorial can be found in
 
 {jupyter-download:notebook}`Tutorial 3. Building custom analyses - the data analysis framework`
 
 {jupyter-download:script}`Tutorial 3. Building custom analyses - the data analysis framework`
-:::
+```
 
 Quantify provides an analysis framework in the form of a {class}`~quantify_core.analysis.base_analysis.BaseAnalysis` class and several subclasses for simple cases (e.g., {class}`~quantify_core.analysis.base_analysis.BasicAnalysis`, {class}`~quantify_core.analysis.base_analysis.Basic2DAnalysis`, {class}`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`). The framework provides a structured, yet flexible, flow of the analysis steps. We encourage all users to adopt the framework by sub-classing the {class}`~quantify_core.analysis.base_analysis.BaseAnalysis`.
 
@@ -88,7 +70,7 @@ We conclude by showing how the same class is implemented much more easily by ext
 
 We mock an experiment in order to generate a toy dataset to use in this tutorial.
 
-:::{admonition} Create dataset with mock experiment
+``````{admonition} Create dataset with mock experiment
 :class: dropdown
 
 ```{eval-rst}
@@ -122,7 +104,7 @@ We mock an experiment in order to generate a toy dataset to use in this tutorial
     dataset = meas_ctrl.run("Cosine experiment")
     plotmon.main_QtPlot
 ```
-:::
+``````
 
 ## Manual analysis steps
 
@@ -130,7 +112,7 @@ We mock an experiment in order to generate a toy dataset to use in this tutorial
 
    > The {class}`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment.
    > We can alternatively load the dataset from disk based on it's {class}`~quantify_core.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using {meth}`~quantify_core.data.handling.get_latest_tuid`.
-   > See the {ref}`data_storage` documentation for more details on the folder structure and files contained in the data directory.
+   > See the {ref}`data-storage` documentation for more details on the folder structure and files contained in the data directory.
    >
    > ```{eval-rst}
    > .. jupyter-execute::
@@ -410,11 +392,11 @@ Some of the advantages of OOP are:
 
 Let's now observe how such a class could look like.
 
-:::{warning}
+```{warning}
 This analysis class is intended for educational purposes only.
 It is not intended to be used as a template!
 See the end of the tutorial for the recommended usage of the analysis framework.
-:::
+```
 
 ```{eval-rst}
 .. jupyter-execute::

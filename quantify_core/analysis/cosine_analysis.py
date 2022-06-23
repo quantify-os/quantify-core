@@ -3,7 +3,7 @@
 """
 Module containing an education example of an analysis subclass.
 
-See :ref:`analysis_framework_tutorial` that guides you through the process of building
+See :ref:`analysis-framework-tutorial` that guides you through the process of building
 this analysis.
 """
 
