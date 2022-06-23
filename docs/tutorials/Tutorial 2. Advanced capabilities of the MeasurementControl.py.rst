@@ -97,7 +97,7 @@ Defining a simple model
 In this example, we want to find the resonance of some device. We expect to find it's resonance somewhere in the low 6 GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
 
 
-We first create `freq`: a :class:`.Settable` with a :class:`~qcodes.instrument.parameter.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :class:`.Gettable` to mock (i.e. emulate) the resonator.
+We first create `freq`: a :class:`.Settable` with a :class:`~qcodes.parameters.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom :class:`.Gettable` to mock (i.e. emulate) the resonator.
 The :class:`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our :class:`.Gettable` will read the setpoints from `freq`, in this case a 1D array.
 
 

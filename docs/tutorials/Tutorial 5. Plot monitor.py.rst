@@ -43,8 +43,7 @@ We will create a fictional device and showcase how the plot monitor can be used.
 
     import numpy as np
     from IPython.core.interactiveshell import InteractiveShell
-    from qcodes.instrument.base import Instrument
-    from qcodes.instrument.parameter import ManualParameter
+    from qcodes import Instrument, ManualParameter
 
     from quantify_core.data.handling import get_tuids_containing, set_datadir
     from quantify_core.measurement import MeasurementControl

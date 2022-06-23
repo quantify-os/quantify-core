@@ -8,8 +8,7 @@ from threading import Event, Lock, Thread
 import pyqtgraph as pg
 import pyqtgraph.multiprocess as pgmp
 from pyqtgraph.multiprocess.remoteproxy import ClosedError
-from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import ManualParameter, Parameter
+from qcodes import Instrument, ManualParameter, Parameter
 from qcodes.utils import validators as vals
 from qcodes.utils.helpers import strip_attrs
 

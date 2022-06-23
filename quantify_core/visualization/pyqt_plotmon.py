@@ -4,9 +4,8 @@
 import warnings
 
 import pyqtgraph.multiprocess as pgmp
+from qcodes import Instrument, Parameter
 from qcodes import validators as vals
-from qcodes.instrument.base import Instrument
-from qcodes.instrument.parameter import Parameter
 from qcodes.utils.helpers import strip_attrs
 
 from quantify_core.data.handling import get_datadir

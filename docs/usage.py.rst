@@ -102,8 +102,8 @@ A parameter represents a state variable of the system.
 
     - A parameter can be get and/or set able.
     - Contains metadata such as units and labels.
-    - Commonly implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class.
-    - A parameter implemented using the QCoDeS :class:`~qcodes.instrument.parameter.Parameter` class is a valid :class:`.Settable` and :class:`.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
+    - Commonly implemented using the QCoDeS :class:`~qcodes.parameters.Parameter` class.
+    - A parameter implemented using the QCoDeS :class:`~qcodes.parameters.Parameter` class is a valid :class:`.Settable` and :class:`.Gettable` and as such can be used directly in an experiment loop in the `Measurement Control`_. (see subsequent sections)
 
 
 Instrument
@@ -118,8 +118,8 @@ Instruments provide the following functionality.
 
 - Container for parameters.
 - A standardized interface.
-- Provide logging of parameters through the :meth:`~qcodes.instrument.base.Instrument.snapshot` method.
-- All instruments inherit from the QCoDeS :class:`~qcodes.instrument.base.Instrument` class.
+- Provide logging of parameters through the :meth:`~qcodes.instrument.Instrument.snapshot` method.
+- All instruments inherit from the QCoDeS :class:`~qcodes.instrument.Instrument` class.
 - Are shown by default in the :class:`.InstrumentMonitor`
 
 
@@ -238,7 +238,7 @@ These classes define a set of mandatory and optional attributes the :class:`.Mea
 
 
 For ease of use, we do not require users to inherit from a Gettable/Settable class, and instead provide contracts in the form of JSON schemas to which these classes must fit (see :class:`.Settable` and :class:`.Gettable` docs for these schemas).
-In addition to using a library which fits these contracts (such as the :class:`~qcodes.instrument.parameter.Parameter` family of classes) we can define our own Settables and Gettables.
+In addition to using a library which fits these contracts (such as the :class:`~qcodes.parameters.Parameter` family of classes) we can define our own Settables and Gettables.
 
 
 .. jupyter-execute::
@@ -393,7 +393,7 @@ Data storage
 ============
 
 
-Along with the produced dataset, every :class:`~qcodes.instrument.parameter.Parameter` attached to QCoDeS :class:`~qcodes.instrument.base.Instrument` in an experiment run through the :class:`.MeasurementControl` of Quantify is stored in the `snapshot`_.
+Along with the produced dataset, every :class:`~qcodes.parameters.Parameter` attached to QCoDeS :class:`~qcodes.instrument.Instrument` in an experiment run through the :class:`.MeasurementControl` of Quantify is stored in the `snapshot`_.
 
 
 This is intended to aid with reproducibility, as settings from a past experiment can easily be reloaded [see :func:`~quantify_core.utilities.experiment_helpers.load_settings_onto_instrument`].
@@ -515,8 +515,8 @@ Snapshot
 --------
 
 
-The configuration for each QCoDeS :class:`~qcodes.instrument.base.Instrument` used in this experiment. This information is automatically collected for all Instruments in use.
-It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.instrument.parameter.Parameter` objects are as expected.
+The configuration for each QCoDeS :class:`~qcodes.instrument.Instrument` used in this experiment. This information is automatically collected for all Instruments in use.
+It is useful for quickly reconstructing a complex set-up or verifying that :class:`~qcodes.parameters.Parameter` objects are as expected.
 
 
 .. _analysis_usage:
