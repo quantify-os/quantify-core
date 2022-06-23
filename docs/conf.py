@@ -66,7 +66,6 @@ extensions = [
     # however the smart_resolver seems to fail for external packages like `zhinst`
     "scanpydoc.elegant_typehints",
     "sphinxcontrib.bibtex",
-    "quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx",
     # documents parameters that are defined in the __init__ of `Instrument`s as
     # instance attributes
     "qcodes.sphinx_extensions.parse_parameter_attr",
