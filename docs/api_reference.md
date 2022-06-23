@@ -1,213 +1,243 @@
+```{eval-rst}
 .. jupyter-kernel:: python3
     :id: quantify_core_all_docs
+```
 
+```{eval-rst}
 .. jupyter-execute::
     :hide-code:
 
     # Prettify the outputs in the entire API reference
     from rich import pretty
     pretty.install()
+```
 
-=============
-quantify_core
-=============
+# quantify_core
 
+```{eval-rst}
 .. automodule:: quantify_core
    :members:
+```
 
-.. _analysis_api:
+(analysis-api)=
 
-analysis
-========
+## analysis
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis
     :members:
 
+```
 
-base_analysis
--------------
+### base_analysis
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.base_analysis
     :members:
     :show-inheritance:
+```
 
-cosine_analysis
----------------
+### cosine_analysis
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.cosine_analysis
     :members:
     :show-inheritance:
+```
 
-spectroscopy_analysis
----------------------
+### spectroscopy_analysis
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.spectroscopy_analysis
     :members:
     :show-inheritance:
+```
 
-single_qubit_timedomain
------------------------
+### single_qubit_timedomain
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.single_qubit_timedomain
     :members:
     :show-inheritance:
 
+```
 
-interpolation_analysis
-----------------------
+### interpolation_analysis
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.interpolation_analysis
     :members:
     :show-inheritance:
+```
 
-optimization_analysis
----------------------
+### optimization_analysis
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.optimization_analysis
     :members:
     :show-inheritance:
 
+```
 
-fitting_models
---------------
+### fitting_models
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.fitting_models
     :members:
     :show-inheritance:
 
+```
 
-calibration
------------
+### calibration
 
+```{eval-rst}
 .. automodule:: quantify_core.analysis.calibration
     :members:
     :show-inheritance:
 
+```
 
-data
-====
+## data
 
-types
------
+### types
 
+```{eval-rst}
 .. automodule:: quantify_core.data.types
     :members:
+```
 
-handling
---------
+### handling
 
+```{eval-rst}
 .. automodule:: quantify_core.data.handling
     :members:
+```
 
-dataset_adapters
-----------------
+### dataset_adapters
 
+```{eval-rst}
 .. automodule:: quantify_core.data.dataset_adapters
     :members:
+```
 
-dataset_attrs
--------------
+### dataset_attrs
 
+```{eval-rst}
 .. automodule:: quantify_core.data.dataset_attrs
     :members:
+```
 
-experiment
--------------
+### experiment
 
+```{eval-rst}
 .. automodule:: quantify_core.data.experiment
     :members:
 
+```
 
-measurement
-===========
+## measurement
 
+```{eval-rst}
 .. automodule:: quantify_core.measurement
     :members:
+```
 
-types
------
+### types
 
+```{eval-rst}
 .. automodule:: quantify_core.measurement.types
     :members:
+```
 
-control
--------
+### control
 
+```{eval-rst}
 .. automodule:: quantify_core.measurement.control
     :members:
 
+```
 
-utilities
-=========
+## utilities
 
-experiment_helpers
-------------------
+### experiment_helpers
 
+```{eval-rst}
 .. automodule:: quantify_core.utilities.experiment_helpers
     :members:
+```
 
-dataset_examples
-----------------
+### dataset_examples
 
+```{eval-rst}
 .. automodule:: quantify_core.utilities.dataset_examples
     :members:
+```
 
-examples_support
-----------------
+### examples_support
 
+```{eval-rst}
 .. automodule:: quantify_core.utilities.examples_support
     :members:
+```
 
-deprecation
------------
+### deprecation
 
+```{eval-rst}
 .. automodule:: quantify_core.utilities.deprecation
    :members:
+```
 
-visualization
-=============
+## visualization
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization
     :members:
+```
 
-instrument_monitor
-------------------
+### instrument_monitor
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization.instrument_monitor
     :members:
+```
 
-pyqt_plotmon
-------------
+### pyqt_plotmon
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization.pyqt_plotmon
     :members:
+```
 
-color_utilities
----------------
+### color_utilities
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization.color_utilities
     :members:
+```
 
-mpl_plotting
-------------
+### mpl_plotting
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization.mpl_plotting
     :members:
+```
 
-plot_interpolation
-------------------
+### plot_interpolation
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization.plot_interpolation
     :members:
+```
 
-SI Utilities
-------------
+### SI Utilities
 
+```{eval-rst}
 .. automodule:: quantify_core.visualization.SI_utilities
     :members:
+```
 
-============
-bibliography
-============
+# bibliography
 
+```{eval-rst}
 .. bibliography::
+```
