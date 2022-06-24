@@ -145,13 +145,14 @@ If you are familiar with software development (package manager, git, terminal, P
 
 ### Other systems
 
-Confirm that you have a working python 3.7+ and run the following in your terminal of choice:
+
+Confirm that you have a compatible working python interpreter by running the following in your terminal of choice:
 
 ```
 $ python --version
-# Expected output similar to:
-# Python 3.7.6
+Python 3.8.10
 ```
+Exact version may be different, check the list of supported versions in the `setup.py` file.
 
 Install Quantify:
 
