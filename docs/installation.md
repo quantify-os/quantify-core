@@ -282,7 +282,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
 
 10. Review the {ref}`Merge Request Guidelines` and submit a merge request through the GitLab website.
 
-11. Add short entry in the `CHANGELOG.rst` under `Unreleased`, commit and push.
+11. Add short entry in the `CHANGELOG.md` under `Unreleased`, commit and push.
 
 ## Troubleshooting
 
