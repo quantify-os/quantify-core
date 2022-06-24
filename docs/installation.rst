@@ -142,11 +142,11 @@ Detailed instructions
 Other systems
 ~~~~~~~~~~~~~
 
-Confirm that you have a working python 3.7+ and run the following in your terminal of choice::
+Confirm that you have a compatible working python interpreter (Please check the list of supported versions in the setup.py file) and run the following in your terminal of choice::
 
     $ python --version
     # Expected output similar to:
-    # Python 3.7.6
+    # Python 3.8.10
 
 Install Quantify::
 
