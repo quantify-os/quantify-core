@@ -1,17 +1,16 @@
-```{eval-rst}
-.. jupyter-kernel:: python3
-    :id: quantify_core_all_docs
+```{jupyter-kernel} python3
+:id: quantify_core_all_docs
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-    :hide-code:
+```{jupyter-execute}
+:hide-code:
 
-    # Prettify the outputs in the entire API reference
-    from rich import pretty
-    pretty.install()
+# Prettify the outputs in the entire API reference
+from rich import pretty
+pretty.install()
 ```
 
+% autodoc does not play nicely with myst-parser, so it must be used within RST context
 # quantify_core
 
 ```{eval-rst}

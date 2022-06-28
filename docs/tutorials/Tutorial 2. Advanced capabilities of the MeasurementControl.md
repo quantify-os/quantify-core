@@ -1,20 +1,3 @@
-```{eval-rst}
-.. jupyter-execute::
-    :hide-code:
-
-    # pylint: disable=line-too-long
-    # pylint: disable=wrong-import-order
-    # pylint: disable=wrong-import-position
-    # pylint: disable=pointless-string-statement
-    # pylint: disable=pointless-statement
-    # pylint: disable=invalid-name
-    # pylint: disable=duplicate-code
-    # pylint: disable=no-self-use
-    # pylint: disable=too-few-public-methods
-
-
-```
-
 # Tutorial 2. Advanced capabilities of the MeasurementControl
 
 ```{seealso}
@@ -35,53 +18,39 @@ In this tutorial, we will explore the more advanced features of Quantify. By the
 - Software averaging
 - Interrupting an experiment
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+import os
+import signal
+import sys
+import time
 
-    import os
-    import signal
-    import sys
-    import time
+import numpy as np
+from lmfit import Model
+from qcodes import ManualParameter
 
-    import numpy as np
-    from lmfit import Model
-    from qcodes import ManualParameter
+import quantify_core.visualization.pyqt_plotmon as pqm
+from quantify_core.data.handling import set_datadir
+from quantify_core.measurement.control import MeasurementControl
+from quantify_core.utilities.examples_support import default_datadir
+from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 
-    import quantify_core.visualization.pyqt_plotmon as pqm
-    from quantify_core.data.handling import set_datadir
-    from quantify_core.measurement.control import MeasurementControl
-    from quantify_core.utilities.examples_support import default_datadir
-    from quantify_core.visualization.instrument_monitor import InstrumentMonitor
+rng = np.random.default_rng(seed=222222)  # random number generator
 
-    rng = np.random.default_rng(seed=222222)  # random number generator
-
-    %matplotlib inline
-
-
+%matplotlib inline
 ```
 
-```{eval-rst}
-.. include:: /tutorials/set_data_dir_notes.rst.txt
-
+```{include} set_data_dir_notes.md.txt
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    set_datadir(default_datadir())  # change me!
-
-
+```{jupyter-execute}
+set_datadir(default_datadir())  # change me!
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl = MeasurementControl("meas_ctrl")
-    plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
-    meas_ctrl.instr_plotmon(plotmon.name)
-    insmon = InstrumentMonitor("Instruments Monitor")
-
-
+```{jupyter-execute}
+meas_ctrl = MeasurementControl("meas_ctrl")
+plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
+meas_ctrl.instr_plotmon(plotmon.name)
+insmon = InstrumentMonitor("Instruments Monitor")
 ```
 
 ## A 1D Batched loop: Resonator Spectroscopy
@@ -97,57 +66,53 @@ The {class}`!Resonator` will return a Lorentzian shape centered on the resonant 
 The `Resonator` {class}`.Gettable` has a new attribute `.batched` set to `True`. This property informs the {class}`.MeasurementControl` that it will not be in charge of iterating over the setpoints, instead the `Resonator` manages its own data acquisition. Similarly, the `freq` {class}`.Settable` must have a `.batched=True` so that the {class}`.MeasurementControl` hands over the setpoints correctly.
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # Note that in an actual experimental setup `freq` will be a QCoDeS parameter
-    # contained in a QCoDeS Instrument
-    freq = ManualParameter(name="frequency", unit="Hz", label="Frequency")
-    freq.batched = True  # Tells meas_ctrl that the setpoints are to be passed in batches
+```{jupyter-execute}
+# Note that in an actual experimental setup `freq` will be a QCoDeS parameter
+# contained in a QCoDeS Instrument
+freq = ManualParameter(name="frequency", unit="Hz", label="Frequency")
+freq.batched = True  # Tells meas_ctrl that the setpoints are to be passed in batches
 
 
-    def lorenz(amplitude: float, fwhm: float, x: int, x_0: float):
-        """Model of the frequency response."""
-        return amplitude * ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.0) ** 2)
+def lorenz(amplitude: float, fwhm: float, x: int, x_0: float):
+    """Model of the frequency response."""
+    return amplitude * ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (fwhm / 2.0) ** 2)
 
 
-    class Resonator:
-        """
-        Note that the Resonator is a valid Gettable not because of inheritance,
-        but because it has the expected attributes and methods.
-        """
+class Resonator:
+    """
+    Note that the Resonator is a valid Gettable not because of inheritance,
+    but because it has the expected attributes and methods.
+    """
 
-        def __init__(self) -> None:
-            self.name = "resonator"
-            self.unit = "V"
-            self.label = "Amplitude"
-            self.batched = True
-            self.delay = 0.0
+    def __init__(self) -> None:
+        self.name = "resonator"
+        self.unit = "V"
+        self.label = "Amplitude"
+        self.batched = True
+        self.delay = 0.0
 
-            # hidden variables specifying the resonance
-            self._test_resonance = 6.0001048e9  # in Hz
-            self._test_width = 300  # FWHM in Hz
+        # hidden variables specifying the resonance
+        self._test_resonance = 6.0001048e9  # in Hz
+        self._test_width = 300  # FWHM in Hz
 
-        def get(self) -> float:
-            """Emulation of the frequency response."""
-            time.sleep(self.delay)
-            _lorenz = lambda x: lorenz(1, self._test_width, x, self._test_resonance)
-            return 1 - np.array(list(map(_lorenz, freq())))
+    def get(self) -> float:
+        """Emulation of the frequency response."""
+        time.sleep(self.delay)
+        _lorenz = lambda x: lorenz(1, self._test_width, x, self._test_resonance)
+        return 1 - np.array(list(map(_lorenz, freq())))
 
-        def prepare(self) -> None:
-            """Adding this print statement is not required but added for illustrative
-            purposes."""
-            print("\nPrepared Resonator...")
+    def prepare(self) -> None:
+        """Adding this print statement is not required but added for illustrative
+        purposes."""
+        print("\nPrepared Resonator...")
 
-        def finish(self) -> None:
-            """Adding this print statement is not required but added for illustrative
-            purposes."""
-            print("\nFinished Resonator...")
-
-
-    gettable_res = Resonator()
+    def finish(self) -> None:
+        """Adding this print statement is not required but added for illustrative
+        purposes."""
+        print("\nFinished Resonator...")
 
 
+gettable_res = Resonator()
 ```
 
 ### Running the experiment
@@ -157,32 +122,20 @@ Just like our Iterative 1D loop, our complete experiment is expressed in just fo
 The main difference is defining the `batched` property of our {class}`.Gettable` to `True`.
 The {class}`.MeasurementControl` will detect these settings and run in the appropriate mode.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # At this point the `freq` parameter is empty
-    print(freq())
-
-
+```{jupyter-execute}
+# At this point the `freq` parameter is empty
+print(freq())
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl.settables(freq)
-    meas_ctrl.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
-    meas_ctrl.gettables(gettable_res)
-    dset = meas_ctrl.run()
-
-
+```{jupyter-execute}
+meas_ctrl.settables(freq)
+meas_ctrl.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
+meas_ctrl.gettables(gettable_res)
+dset = meas_ctrl.run()
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+plotmon.main_QtPlot
 ```
 
 As expected, we find a Lorentzian spike in the readout at the resonant frequency, finding the peak of which is trivial.
@@ -194,27 +147,19 @@ When an experiment is comprised of more datapoints than the instrument can handl
 
 By default the {class}`.MeasurementControl` assumes no limitations and passes all setpoints to the `batched` settable. However, as a best practice, the instrument limitation must be reflected by the `.batch_size` attribute of the `batched` settables. This is illustrated below.
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# Tells meas_ctrl that only 256 datapoints can be processed at once
+freq.batch_size = 256
 
-    # Tells meas_ctrl that only 256 datapoints can be processed at once
-    freq.batch_size = 256
-
-    gettable_res.delay = 0.05  # short delay for plotting
-    meas_ctrl.settables(freq)
-    meas_ctrl.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
-    meas_ctrl.gettables(gettable_res)
-    dset = meas_ctrl.run()
-
-
+gettable_res.delay = 0.05  # short delay for plotting
+meas_ctrl.settables(freq)
+meas_ctrl.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
+meas_ctrl.gettables(gettable_res)
+dset = meas_ctrl.run()
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+plotmon.main_QtPlot
 ```
 
 ## Software Averaging: T1 Experiment
@@ -228,78 +173,62 @@ The mock Qubit returns the expected decay sweep but with a small amount of noise
 
 Note that in this example meas_ctrl is still running in Batched mode.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    def decay(t, tau):
-        """T1 experiment decay model."""
-        return np.exp(-t / tau)
+```{jupyter-execute}
+def decay(t, tau):
+    """T1 experiment decay model."""
+    return np.exp(-t / tau)
 
 
-    time_par = ManualParameter(name="time", unit="s", label="Measurement Time")
-    # Tells meas_ctrl that the setpoints are to be passed in batches
-    time_par.batched = True
+time_par = ManualParameter(name="time", unit="s", label="Measurement Time")
+# Tells meas_ctrl that the setpoints are to be passed in batches
+time_par.batched = True
 
 
-    class MockQubit:
-        """A mock qubit."""
+class MockQubit:
+    """A mock qubit."""
 
-        def __init__(self):
-            self.name = "qubit"
-            self.unit = "%"
-            self.label = "High V"
-            self.batched = True
+    def __init__(self):
+        self.name = "qubit"
+        self.unit = "%"
+        self.label = "High V"
+        self.batched = True
 
-            self.delay = 0.01  # sleep time in secs
-            self.test_relaxation_time = 60e-6
+        self.delay = 0.01  # sleep time in secs
+        self.test_relaxation_time = 60e-6
 
-        def get(self):
-            """Adds a delay to be able to appreciate the data acquisition."""
-            time.sleep(self.delay)
-            rel_time = self.test_relaxation_time
-            _func = lambda x: decay(x, rel_time) + rng.uniform(-0.1, 0.1)
-            return np.array(list(map(_func, time_par())))
-
-
+    def get(self):
+        """Adds a delay to be able to appreciate the data acquisition."""
+        time.sleep(self.delay)
+        rel_time = self.test_relaxation_time
+        _func = lambda x: decay(x, rel_time) + rng.uniform(-0.1, 0.1)
+        return np.array(list(map(_func, time_par())))
 ```
 
 We will then sweep through 0 to 300 ms, getting our data from the mock Qubit. Let's first observe what a single run looks like:
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl.settables(time_par)
-    meas_ctrl.setpoints(np.linspace(0.0, 300.0e-6, 300))
-    meas_ctrl.gettables(MockQubit())
-    meas_ctrl.run("noisy")  # by default `.run` uses `soft_avg=1`
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+meas_ctrl.settables(time_par)
+meas_ctrl.setpoints(np.linspace(0.0, 300.0e-6, 300))
+meas_ctrl.gettables(MockQubit())
+meas_ctrl.run("noisy")  # by default `.run` uses `soft_avg=1`
+plotmon.main_QtPlot
 ```
 
 Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` argument of the {meth}`.MeasurementControl.run` to 100, averaging the results and hopefully filtering out the noise.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dset = meas_ctrl.run("averaged", soft_avg=100)
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+dset = meas_ctrl.run("averaged", soft_avg=100)
+plotmon.main_QtPlot
 ```
 
 Success! We now have a smooth decay curve based on the characteristics of our qubit. All that remains is to run a fit against the expected values and we can solve for T1.
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+model = Model(decay, independent_vars=["t"])
+fit_res = model.fit(dset["y0"].values, t=dset["x0"].values, tau=1)
 
-    model = Model(decay, independent_vars=["t"])
-    fit_res = model.fit(dset["y0"].values, t=dset["x0"].values, tau=1)
-
-    fit_res.plot_fit(show_init=True)
-    fit_res.values
-
-
+fit_res.plot_fit(show_init=True)
+fit_res.values
 ```
 
 ## Interrupting
@@ -317,43 +246,40 @@ The exact means of triggering an interrupt will differ depending on your platfor
 ``````{warning}
 In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times `ctrl` + `c`). Mind that performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
 
-```{eval-rst}
-.. jupyter-execute::
-    :raises: KeyboardInterrupt
+```{jupyter-execute}
+:raises: KeyboardInterrupt
 
 
-    class SlowGettable:
-        """A mock slow gettables."""
+class SlowGettable:
+    """A mock slow gettables."""
 
-        def __init__(self):
-            self.name = "slow"
-            self.label = "Amplitude"
-            self.unit = "V"
+    def __init__(self):
+        self.name = "slow"
+        self.label = "Amplitude"
+        self.unit = "V"
 
-        def get(self):
-            """Get method."""
-            time.sleep(1.0)
-            if time_par() == 4:
-                # This same exception rises when pressing `ctrl` + `c`
-                # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
-                if sys.platform == "win32":
-                    # Emulating the kernel interrupt on windows might have side effects
-                    raise KeyboardInterrupt
-                os.kill(os.getpid(), signal.SIGINT)
-            return time_par()
+    def get(self):
+        """Get method."""
+        time.sleep(1.0)
+        if time_par() == 4:
+            # This same exception rises when pressing `ctrl` + `c`
+            # or the "Stop kernel" button is pressed in a Jupyter(Lab) notebook
+            if sys.platform == "win32":
+                # Emulating the kernel interrupt on windows might have side effects
+                raise KeyboardInterrupt
+            os.kill(os.getpid(), signal.SIGINT)
+        return time_par()
 
 
-    time_par.batched = False
-    meas_ctrl.settables(time_par)
-    meas_ctrl.setpoints(np.arange(10))
-    meas_ctrl.gettables(SlowGettable())
-    # Try interrupting me!
-    dset = meas_ctrl.run("slow")
+time_par.batched = False
+meas_ctrl.settables(time_par)
+meas_ctrl.setpoints(np.arange(10))
+meas_ctrl.gettables(SlowGettable())
+# Try interrupting me!
+dset = meas_ctrl.run("slow")
 ```
 ``````
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
+```{jupyter-execute}
+plotmon.main_QtPlot
 ```

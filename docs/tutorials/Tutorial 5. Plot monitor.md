@@ -1,19 +1,3 @@
-```{eval-rst}
-.. jupyter-execute::
-    :hide-code:
-
-    # pylint: disable=line-too-long
-    # pylint: disable=wrong-import-order
-    # pylint: disable=wrong-import-position
-    # pylint: disable=pointless-string-statement
-    # pylint: disable=pointless-statement
-    # pylint: disable=invalid-name
-    # pylint: disable=duplicate-code
-    # pylint: disable=too-few-public-methods
-
-
-```
-
 (plotmon-tutorial)=
 
 # Tutorial 5. Plot monitor
@@ -29,78 +13,59 @@ The complete source code of this tutorial can be found in
 In this tutorial we dive into the capabilities of the plot monitor.
 We will create a fictional device and showcase how the plot monitor can be used. Enjoy!
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+import numpy as np
+from IPython.core.interactiveshell import InteractiveShell
+from qcodes import Instrument, ManualParameter
 
+from quantify_core.data.handling import get_tuids_containing, set_datadir
+from quantify_core.measurement import MeasurementControl
+from quantify_core.utilities.examples_support import default_datadir
+from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
-    import numpy as np
-    from IPython.core.interactiveshell import InteractiveShell
-    from qcodes import Instrument, ManualParameter
+rng = np.random.default_rng(seed=555555)  # random number generator
 
-    from quantify_core.data.handling import get_tuids_containing, set_datadir
-    from quantify_core.measurement import MeasurementControl
-    from quantify_core.utilities.examples_support import default_datadir
-    from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
-
-    rng = np.random.default_rng(seed=555555)  # random number generator
-
-    # Display any variable or statement on its own line
-    InteractiveShell.ast_node_interactivity = "all"
-
-
+# Display any variable or statement on its own line
+InteractiveShell.ast_node_interactivity = "all"
 ```
 
-```{eval-rst}
-.. include:: /tutorials/set_data_dir_notes.rst.txt
-
+```{include} set_data_dir_notes.md.txt
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    set_datadir(default_datadir())
-
-
+```{jupyter-execute}
+set_datadir(default_datadir())
 ```
 
 ## QCoDeS drivers for our instruments
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+class Device(Instrument):
+    """A dummy instrument."""
 
-    class Device(Instrument):
-        """A dummy instrument."""
+    def __init__(self, name: str):
+        super().__init__(name=name)
 
-        def __init__(self, name: str):
-            super().__init__(name=name)
+        self.add_parameter(name="amp_0", unit="A", parameter_class=ManualParameter)
+        self.add_parameter(name="amp_1", unit="A", parameter_class=ManualParameter)
+        self.add_parameter(name="offset", unit="A", parameter_class=ManualParameter)
 
-            self.add_parameter(name="amp_0", unit="A", parameter_class=ManualParameter)
-            self.add_parameter(name="amp_1", unit="A", parameter_class=ManualParameter)
-            self.add_parameter(name="offset", unit="A", parameter_class=ManualParameter)
+        self.add_parameter(
+            name="adc", label="ADC input", unit="V", get_cmd=self._get_dac_value
+        )
 
-            self.add_parameter(
-                name="adc", label="ADC input", unit="V", get_cmd=self._get_dac_value
-            )
-
-        def _get_dac_value(self):
-            s1 = np.exp(-3 * self.amp_0()) * np.sin(self.amp_0() * 2 * np.pi * 3)
-            s2 = np.cos(self.amp_1() * 2 * np.pi * 2)
-            return s1 + s2 + rng.uniform(0, 0.2) + self.offset()
-
-
+    def _get_dac_value(self):
+        s1 = np.exp(-3 * self.amp_0()) * np.sin(self.amp_0() * 2 * np.pi * 3)
+        s2 = np.cos(self.amp_1() * 2 * np.pi * 2)
+        return s1 + s2 + rng.uniform(0, 0.2) + self.offset()
 ```
 
 ## Instantiate the instruments
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl = MeasurementControl("meas_ctrl")
-    plotmon = PlotMonitor_pyqt("Plot Monitor")
-    meas_ctrl.instr_plotmon(plotmon.name)
-    device = Device("Device")
-
-
+```{jupyter-execute}
+meas_ctrl = MeasurementControl("meas_ctrl")
+plotmon = PlotMonitor_pyqt("Plot Monitor")
+meas_ctrl.instr_plotmon(plotmon.name)
+device = Device("Device")
 ```
 
 ## Overview
@@ -109,25 +74,17 @@ There are 3 parameters in the {class}`.PlotMonitor_pyqt` that control the datase
 
 Two main parameters determine the datasets being displayed: *tuids* and *tuids_extra*.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.tuids()
-    plotmon.tuids_extra()
-
-
+```{jupyter-execute}
+plotmon.tuids()
+plotmon.tuids_extra()
 ```
 
 The interface is the same for both. The parameters accept a list of tuids or an empty list to reset.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # Example of loading datasets onto the plot
-    # plotmon.tuids(["20201124-184709-137-8a5112", "20201124-184716-237-918bee"])
-    # plotmon.tuids_extra(["20201124-184722-988-0463d4", "20201124-184729-618-85970f"])
-
-
+```{jupyter-execute}
+# Example of loading datasets onto the plot
+# plotmon.tuids(["20201124-184709-137-8a5112", "20201124-184716-237-918bee"])
+# plotmon.tuids_extra(["20201124-184722-988-0463d4", "20201124-184729-618-85970f"])
 ```
 
 The difference is that the {class}`.MeasurementControl` uses `tuids` and overrides them when running measurements.
@@ -138,12 +95,8 @@ All the datasets must have matching data variables (settables and gettables).
 
 The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the {class}`.MeasurementControl` is running.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.tuids_max_num()
-
-
+```{jupyter-execute}
+plotmon.tuids_max_num()
 ```
 
 ```{note}
@@ -152,243 +105,190 @@ This parameter has no effect when setting the *tuids* manually.
 
 ## Usage examples
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# set initial values to emulate the instrument state
+device.amp_0(0.0)
+device.amp_1(0.0)
+device.offset(0.0)
 
-    # set initial values to emulate the instrument state
-    device.amp_0(0.0)
-    device.amp_1(0.0)
-    device.offset(0.0)
+n_pnts = 50
 
-    n_pnts = 50
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+n_pnts = 20
 
-    n_pnts = 20
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+n_pnts = 30
 
-    n_pnts = 30
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
 Now the oldest dataset will vanish from the plot:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# Now the oldest dataset will vanish from the plot
 
-    # Now the oldest dataset will vanish from the plot
+n_pnts = 40
 
-    n_pnts = 40
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
 We can accumulate more datasets on the plot if we want to:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# We can accumulate more datasets on the plot if we want to
+plotmon.tuids_max_num(4)
+n_pnts = 40
 
-    # We can accumulate more datasets on the plot if we want to
-    plotmon.tuids_max_num(4)
-    n_pnts = 40
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
 Or we can disable the accumulation and plot a single dataset:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# Or we can disable the accumulation and plot a single dataset
+plotmon.tuids_max_num(1)
 
-    # Or we can disable the accumulation and plot a single dataset
-    plotmon.tuids_max_num(1)
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
 This can also be reset:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# This can also be reset with
+plotmon.tuids([])
 
-    # This can also be reset with
-    plotmon.tuids([])
-
-    plotmon.main_QtPlot  # The plotting window will vanish, it is supposed to
-
-
+plotmon.main_QtPlot  # The plotting window will vanish, it is supposed to
 ```
 
 For now, we will allow two datasets on the plot monitor.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # For now we will allow two datasets on the plot monitor
-    plotmon.tuids_max_num(2)
-
-
+```{jupyter-execute}
+# For now we will allow two datasets on the plot monitor
+plotmon.tuids_max_num(2)
 ```
 
 Now let's imagine that something strange is happening with our setup...
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# Now let's imagine that something strange is happening with our setup
+device.offset(1.5)
 
-    # Now let's imagine that something strange is happening with our setup
-    device.offset(1.5)
+n_pnts = 40
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan problem")
 
-    n_pnts = 40
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan problem")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
 We would like to compare if the current behavior matches for example what we got a few minutes ago:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# We would like to compare if the current behavior matches for example
+# what we got a few minutes ago
 
-    # We would like to compare if the current behavior matches for example
-    # what we got a few minutes ago
+reference_tuids = sorted(get_tuids_containing("ADC"))[-3:-1]
 
-    reference_tuids = sorted(get_tuids_containing("ADC"))[-3:-1]
-
-    plotmon.tuids_extra(reference_tuids)
-    plotmon.main_QtPlot
-
-
+plotmon.tuids_extra(reference_tuids)
+plotmon.main_QtPlot
 ```
 
 OK... that cable was not connected in the right place...
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+device.offset(0.0)  # OK... that cable was not connected in the right place...
 
-    device.offset(0.0)  # OK... that cable was not connected in the right place...
+# Now let's run again our experiments while we compare it to the previous one in realtime
 
-    # Now let's run again our experiments while we compare it to the previous one in realtime
+n_pnts = 30
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    n_pnts = 30
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
+n_pnts = 40
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    n_pnts = 40
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    print("Yey! We have recovered our setup!")
-    plotmon.main_QtPlot
-
-
+print("Yey! We have recovered our setup!")
+plotmon.main_QtPlot
 ```
 
 We do not need the reference datasets anymore
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # We do not need the reference datasets anymore
-    plotmon.tuids_extra([])
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+# We do not need the reference datasets anymore
+plotmon.tuids_extra([])
+plotmon.main_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+# Note: both plotmon.tuids_extra and plotmon.tuids can be used
+# but keep in mind that meas_ctrl also uses the plotmon.tuids
 
-    # Note: both plotmon.tuids_extra and plotmon.tuids can be used
-    # but keep in mind that meas_ctrl also uses the plotmon.tuids
+tuids = get_tuids_containing("problem")[0:1]
+tuids
+plotmon.tuids(tuids)
 
-    tuids = get_tuids_containing("problem")[0:1]
-    tuids
-    plotmon.tuids(tuids)
+n_pnts = 40
+meas_ctrl.settables(device.amp_0)
+meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan")
 
-    n_pnts = 40
-    meas_ctrl.settables(device.amp_0)
-    meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan")
-
-    plotmon.main_QtPlot
-
-
+plotmon.main_QtPlot
 ```
 
 When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tuids_extra` will be plotted in the secondary window, in that order of priority.
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
 
-    # When we have 2D plots only the first dataset from plotmon.tuids or
-    # plotmon.tuids_extra, in that order of priority, will be plotted in the
-    # secondary window
+# When we have 2D plots only the first dataset from plotmon.tuids or
+# plotmon.tuids_extra, in that order of priority, will be plotted in the
+# secondary window
 
-    meas_ctrl.settables([device.amp_0, device.amp_1])
-    meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan 2D")
-    reference_tuid_2D = dset.attrs["tuid"]
+meas_ctrl.settables([device.amp_0, device.amp_1])
+meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan 2D")
+reference_tuid_2D = dset.attrs["tuid"]
 
-    plotmon.main_QtPlot
-    plotmon.secondary_QtPlot
+plotmon.main_QtPlot
+plotmon.secondary_QtPlot
 
 
 ```
@@ -401,58 +301,42 @@ Mind that the data on the secondary window does not always display data correspo
 
 We still have the persistence of the previous dataset on the main window:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+meas_ctrl.settables([device.amp_0, device.amp_1])
+meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan 2D")
 
-    meas_ctrl.settables([device.amp_0, device.amp_1])
-    meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan 2D")
-
-    plotmon.main_QtPlot
-    plotmon.secondary_QtPlot
-
-
+plotmon.main_QtPlot
+plotmon.secondary_QtPlot
 ```
 
 We can still have a permanent dataset as a reference in the main window:
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+device.offset(2.03)
+plotmon.tuids_extra([reference_tuid_2D])
 
-    device.offset(2.03)
-    plotmon.tuids_extra([reference_tuid_2D])
+meas_ctrl.settables([device.amp_0, device.amp_1])
+meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
+meas_ctrl.gettables(device.adc)
+dset = meas_ctrl.run("ADC scan 2D")
 
-    meas_ctrl.settables([device.amp_0, device.amp_1])
-    meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
-    meas_ctrl.gettables(device.adc)
-    dset = meas_ctrl.run("ADC scan 2D")
-
-    plotmon.main_QtPlot
-    plotmon.secondary_QtPlot
-
-
+plotmon.main_QtPlot
+plotmon.secondary_QtPlot
 ```
 
 But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.tuids([])
-    plotmon.tuids_extra([reference_tuid_2D])
-    plotmon.main_QtPlot
-    plotmon.secondary_QtPlot
-
-
+```{jupyter-execute}
+plotmon.tuids([])
+plotmon.tuids_extra([reference_tuid_2D])
+plotmon.main_QtPlot
+plotmon.secondary_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.tuids()
-
-
+```{jupyter-execute}
+plotmon.tuids()
 ```
 
 Now your life will never be the same again ;)

@@ -70,33 +70,24 @@ from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 
 ```
 
-```{eval-rst}
-.. include:: /tutorials/set_data_dir_notes.rst.txt
-
+```{include} set_data_dir_notes.md.txt
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    set_datadir(default_datadir())  # change me!
-
-
+```{jupyter-execute}
+set_datadir(default_datadir())  # change me!
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+meas_ctrl = MeasurementControl("meas_ctrl")
 
-    meas_ctrl = MeasurementControl("meas_ctrl")
-    # Create the live plotting intrument which handles the graphical interface
-    # Two windows will be created, the main will feature 1D plots and any 2D plots will go to the secondary
-    plotmon = pqm.PlotMonitor_pyqt("plotmon")
-    # Connect the live plotting monitor to the measurement control
-    meas_ctrl.instr_plotmon(plotmon.name)
+# Create the live plotting intrument which handles the graphical interface
+# Two windows will be created, the main will feature 1D plots and any 2D plots will go to the secondary
+plotmon = pqm.PlotMonitor_pyqt("plotmon")
+# Connect the live plotting monitor to the measurement control
+meas_ctrl.instr_plotmon(plotmon.name)
 
-    # The instrument monitor will give an overview of all parameters of all instruments
-    insmon = InstrumentMonitor("Instruments Monitor")
-
-
+# The instrument monitor will give an overview of all parameters of all instruments
+insmon = InstrumentMonitor("Instruments Monitor")
 ```
 
 ### Define a simple model
@@ -104,36 +95,23 @@ from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
 We will be generating a cosine with some normally distributed noise added on top of it.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # We create an instrument to contain all the parameters of our model to ensure
-    # we have proper data logging.
-
-    display_source_code(mk_cosine_instrument)
-
-
+```{jupyter-execute}
+# We create an instrument to contain all the parameters of our model to ensure
+# we have proper data logging.
+display_source_code(mk_cosine_instrument)
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    pars = mk_cosine_instrument()
-
-
+```{jupyter-execute}
+pars = mk_cosine_instrument()
 ```
 
 Many experiments involving physical instruments are much slower than the time it takes to simulate our `cosine_model`, that is why we added a `sleep()` controlled by the `acq_delay`.
 
 This allows us to exemplify (later in the tutorial) some of the features of the meas_ctrl that would be imperceptible otherwise.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # by setting this to a non-zero value we can see the live plotting in action for a slower experiment
-    pars.acq_delay(0.0)
-
-
+```{jupyter-execute}
+# by setting this to a non-zero value we can see the live plotting in action for a slower experiment
+pars.acq_delay(0.0)
 ```
 
 ## A 1D Iterative loop
@@ -145,37 +123,25 @@ We then tell the {ref}`MeasurementControl<Measurement Control>` `meas_ctrl` to r
 
 We use the {class}`.Settable` and {class}`.Gettable` helper classes to ensure our parameters contain the correct attributes.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl.settables(
-        pars.t
-    )  # as a QCoDeS parameter, 't' obeys the JSON schema for a valid Settable and can be passed to the meas_ctrl directly.
-    meas_ctrl.setpoints(np.linspace(0, 2, 50))
-    meas_ctrl.gettables(
-        pars.sig
-    )  # as a QCoDeS parameter, 'sig' obeys the JSON schema for a valid Gettable and can be passed to the meas_ctrl directly.
-    dataset = meas_ctrl.run("Cosine test")
-
-
+```{jupyter-execute}
+meas_ctrl.settables(
+    pars.t
+)  # as a QCoDeS parameter, 't' obeys the JSON schema for a valid Settable and can be passed to the meas_ctrl directly.
+meas_ctrl.setpoints(np.linspace(0, 2, 50))
+meas_ctrl.gettables(
+    pars.sig
+)  # as a QCoDeS parameter, 'sig' obeys the JSON schema for a valid Gettable and can be passed to the meas_ctrl directly.
+dataset = meas_ctrl.run("Cosine test")
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+plotmon.main_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    # The dataset has a time-based unique identifier automatically assigned to it
-    # The name of the experiment is stored as well
-    dataset.attrs["tuid"], dataset.attrs["name"]
-
-
+```{jupyter-execute}
+# The dataset has a time-based unique identifier automatically assigned to it
+# The name of the experiment is stored as well
+dataset.attrs["tuid"], dataset.attrs["name"]
 ```
 
 The {ref}`dataset<Dataset>` is stored as an {class}`xarray.Dataset` (you can read more about xarray project at <http://xarray.pydata.org/>).
@@ -184,54 +150,37 @@ As shown below, a **Data variable** is assigned to each dimension of the settabl
 
 See {ref}`data-storage` in the {ref}`User guide` for details.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    dataset
-
-
+```{jupyter-execute}
+dataset
 ```
 
 We can play with some live plotting options to see how the meas_ctrl behaves when changing the update interval.
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
 
-    # By default the meas_ctrl updates the datafile and live plot every 0.1 seconds (and not faster) to reduce overhead.
-    meas_ctrl.update_interval(
-        0.1
-    )  # Setting it even to 0.01 creates a dramatic slowdown, try it out!
+# By default the meas_ctrl updates the datafile and live plot every 0.1 seconds (and not faster) to reduce overhead.
+meas_ctrl.update_interval(
+    0.1
+)  # Setting it even to 0.01 creates a dramatic slowdown, try it out!
 
 
 ```
 
 In order to avoid an experiment being bottlenecked by the `update_interval` we recommend setting it between ~0.1-1.0 s for a comfortable refresh rate and good performance.
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl.settables(pars.t)
-    meas_ctrl.setpoints(np.linspace(0, 50, 1000))
-    meas_ctrl.gettables(pars.sig)
-    dataset = meas_ctrl.run("Many points live plot test")
-
-
+```{jupyter-execute}
+meas_ctrl.settables(pars.t)
+meas_ctrl.setpoints(np.linspace(0, 50, 1000))
+meas_ctrl.gettables(pars.sig)
+dataset = meas_ctrl.run("Many points live plot test")
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.main_QtPlot
-
-
+```{jupyter-execute}
+plotmon.main_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    pars.noise_level(0)  # let's disable noise from here on to get prettier figures
-
-
+```{jupyter-execute}
+pars.noise_level(0)  # let's disable noise from here on to get prettier figures
 ```
 
 ## Analyzing the experiment
@@ -242,13 +191,9 @@ It also provides a base data-analysis class ({class}`~quantify_core.analysis.bas
 
 The {class}`~xarray.Dataset` generated by the meas_ctrl contains all the information required to perform basic analysis of the experiment. Running an analysis can be as simple as:
 
-```{eval-rst}
-.. jupyter-execute::
-
-    a_obj = ca.CosineAnalysis(label="Cosine test").run()
-    a_obj.display_figs_mpl()
-
-
+```{jupyter-execute}
+a_obj = ca.CosineAnalysis(label="Cosine test").run()
+a_obj.display_figs_mpl()
 ```
 
 Here the analysis loads the latest dataset on disk matching a search based on the {code}`label`. See {class}`~quantify_core.analysis.base_analysis.BaseAnalysis` for alternative dataset specification.
@@ -270,108 +215,73 @@ The setpoints of the grid can be specified in two ways.
 
 ### Method 1 - a quick grid
 
-```{eval-rst}
-.. jupyter-execute::
-
-    pars.acq_delay(0.0001)
-    meas_ctrl.update_interval(2.0)
-
-
+```{jupyter-execute}
+pars.acq_delay(0.0001)
+meas_ctrl.update_interval(2.0)
 ```
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
+times = np.linspace(0, 5, 500)
+amps = np.linspace(-1, 1, 31)
 
-    times = np.linspace(0, 5, 500)
-    amps = np.linspace(-1, 1, 31)
-
-    meas_ctrl.settables([pars.t, pars.amp])
-    # meas_ctrl takes care of creating a meshgrid
-    meas_ctrl.setpoints_grid([times, amps])
-    meas_ctrl.gettables(pars.sig)
-    dataset = meas_ctrl.run("2D Cosine test")
-
-
+meas_ctrl.settables([pars.t, pars.amp])
+# meas_ctrl takes care of creating a meshgrid
+meas_ctrl.setpoints_grid([times, amps])
+meas_ctrl.gettables(pars.sig)
+dataset = meas_ctrl.run("2D Cosine test")
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.secondary_QtPlot
-
-
+```{jupyter-execute}
+plotmon.secondary_QtPlot
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    a_obj = ba.Basic2DAnalysis(label="2D Cosine test").run()
-    a_obj.display_figs_mpl()
-
-
+```{jupyter-execute}
+a_obj = ba.Basic2DAnalysis(label="2D Cosine test").run()
+a_obj.display_figs_mpl()
 ```
 
 ### Method 2 - custom tuples in 2D
 
 N.B. it is also possible to do this for higher dimensional loops
 
-```{eval-rst}
-.. jupyter-execute::
+```{jupyter-execute}
 
-    r = np.linspace(0, 1.2, 200)
-    dt = np.linspace(0, 0.5, 200)
-    f = 3
-    theta = np.cos(2 * np.pi * f * dt)
-
-
-    def polar_coords(r_, theta_):
-        x_ = r_ * np.cos(2 * np.pi * theta_)
-        y_ = r_ * np.sin(2 * np.pi * theta_)
-        return x_, y_
+r = np.linspace(0, 1.2, 200)
+dt = np.linspace(0, 0.5, 200)
+f = 3
+theta = np.cos(2 * np.pi * f * dt)
 
 
-    x, y = polar_coords(r, theta)
-    setpoints = np.column_stack([x, y])
-    setpoints[:5]  # show a few points
+def polar_coords(r_, theta_):
+    x_ = r_ * np.cos(2 * np.pi * theta_)
+    y_ = r_ * np.sin(2 * np.pi * theta_)
+    return x_, y_
 
 
+x, y = polar_coords(r, theta)
+setpoints = np.column_stack([x, y])
+setpoints[:5]  # show a few points
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    pars.acq_delay(0.0001)
-    meas_ctrl.update_interval(2.0)
-
-
+```{jupyter-execute}
+pars.acq_delay(0.0001)
+meas_ctrl.update_interval(2.0)
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    meas_ctrl.settables([pars.t, pars.amp])
-    meas_ctrl.setpoints(setpoints)
-    meas_ctrl.gettables(pars.sig)
-    dataset = meas_ctrl.run("2D radial setpoints")
-
-
+```{jupyter-execute}
+meas_ctrl.settables([pars.t, pars.amp])
+meas_ctrl.setpoints(setpoints)
+meas_ctrl.gettables(pars.sig)
+dataset = meas_ctrl.run("2D radial setpoints")
 ```
 
-```{eval-rst}
-.. jupyter-execute::
-
-    plotmon.secondary_QtPlot
-
-
+```{jupyter-execute}
+plotmon.secondary_QtPlot
 ```
 
 In this case running a simple (non-interpolated) 2D analysis will not be meaningful. Nevertheless the dataset can be loaded back using the {func}`~quantify_core.utilities.experiment_helpers.create_plotmon_from_historical`
 
-```{eval-rst}
-.. jupyter-execute::
-
-
-    plotmon_loaded = create_plotmon_from_historical(label="2D radial setpoints")
-
-    plotmon_loaded.secondary_QtPlot
+```{jupyter-execute}
+plotmon_loaded = create_plotmon_from_historical(label="2D radial setpoints")
+plotmon_loaded.secondary_QtPlot
 ```

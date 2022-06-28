@@ -261,19 +261,21 @@ _ = dataset_gridded.pop_q0.sel(repetitions="D").plot(x="amp")
 The required attributes of the Quantify dataset are defined by the following dataclass.
 It can be used to generate a default dictionary that is attached to a dataset under the {attr}`xarray.Dataset.attrs` attribute.
 
-```{autoclass} quantify_core.data.dataset_attrs.QDatasetAttrs
-:members:
-:noindex:
-:show-inheritance:
+```{eval-rst}
+.. autoclass:: quantify_core.data.dataset_attrs.QDatasetAttrs
+    :members:
+    :noindex:
+    :show-inheritance:
 ```
 
 Additionally in order to express relationships between coordinates and/or variables the
 the following template is provided:
 
-```{autoclass} quantify_core.data.dataset_attrs.QDatasetIntraRelationship
-:members:
-:noindex:
-:show-inheritance:
+```{eval-rst}
+.. autoclass:: quantify_core.data.dataset_attrs.QDatasetIntraRelationship
+    :members:
+    :noindex:
+    :show-inheritance:
 ```
 
 ```{jupyter-execute}
@@ -296,20 +298,22 @@ dataset.quantify_dataset_version, dataset.tuid
 
 Similar to the dataset attributes ({attr}`xarray.Dataset.attrs`), the main coordinates and variables have each their own required attributes attached to them as dictionary under the {attr}`xarray.DataArray.attrs` attribute.
 
-```{autoclass} quantify_core.data.dataset_attrs.QCoordAttrs
-:members:
-:noindex:
-:show-inheritance:
+```{eval-rst}
+.. autoclass:: quantify_core.data.dataset_attrs.QCoordAttrs
+    :members:
+    :noindex:
+    :show-inheritance:
 ```
 
 ```{jupyter-execute}
 dataset.amp.attrs
 ```
 
-```{autoclass} quantify_core.data.dataset_attrs.QVarAttrs
-:members:
-:noindex:
-:show-inheritance:
+```{eval-rst}
+.. autoclass:: quantify_core.data.dataset_attrs.QVarAttrs
+    :members:
+    :noindex:
+    :show-inheritance:
 ```
 
 ```{jupyter-execute}
