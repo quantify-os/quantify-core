@@ -151,31 +151,24 @@
 ### Breaking changes
 
 - Analysis steps execution refactored and added optional arguments through `.run` (#184, !158)
-  : - Any analysis class now requires explicit execution of the steps with `.run()`.
-    - One-liner still available `a_obj = MyAnalysisClass().run()`
+  - Any analysis class now requires explicit execution of the steps with `.run()`.
+  - One-liner still available `a_obj = MyAnalysisClass().run()`
 - Analysis dataset variables and filename changed for consistency (!171):
-  : - `BaseAnalysis.dataset_raw` renamed to `BaseAnalysis.dataset`
-    - `BaseAnalysis.dataset` renamed to `BaseAnalysis.dataset_processed`
-    - "processed_dataset.hdf5" renamed to "dataset_processed.hdf5"
+  - `BaseAnalysis.dataset_raw` renamed to `BaseAnalysis.dataset`
+  - `BaseAnalysis.dataset` renamed to `BaseAnalysis.dataset_processed`
+  - "processed_dataset.hdf5" renamed to "dataset_processed.hdf5"
 - The MeasurementControl soft_avg parameter has been removed. The same fucntionality is now available through MC.run(soft_avg=n) (!144)
 
 ## 0.3.2 (2021-03-17)
 
 - Analysis framework beta version (limited documentation).
-
 - Measurement control supports an inner loop in batched mode with outer iterative loops.
-
 - Improvements to the dataset format (potentially breaking changes, see notes below).
-
-  > - Support of complex numbers and arrays in the dataset storage through `h5netcdf` engine.
-  > - Proper use of the coordinate property of xarray in quantify datasets.
-
+  - Support of complex numbers and arrays in the dataset storage through `h5netcdf` engine.
+  - Proper use of the coordinate property of xarray in quantify datasets.
 - New data handling utilities: `load_dataset_from_path`, `locate_experiment_container`, `write_dataset`.
-
 - Keyboard interrupt and Jupyter kernel interrupts are handled safely in MeasurementControl.
-
 - Improved and more extensive documentation.
-
 - Various bug fixes.
 
 ### Merged branches and closed issues
