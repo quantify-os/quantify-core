@@ -7,6 +7,7 @@
 - Require lmfit >= 1.0.3 due to a typo within lmfit for the `guess_from_peak2d` function. (!346)
 - Fixed calling `super().create_figures()` when inheriting analysis classes (issue was introduced by merge request !337). (#313)
 - PlotMonitor - Fix crash in secondary plotmon when data is one-dimensional. (!349)
+- Documentation sources are converted from restructured text format to MyST markdown. (!350)
 
 ## 0.6.0 (2022-05-25)
 
