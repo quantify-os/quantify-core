@@ -52,7 +52,7 @@ Usage
 
             *.rst.ipynb
             *.py.rst
-            *.py.rst.txt
+            *.rst.txt
 
     .. tip::
 
@@ -62,7 +62,7 @@ Usage
         .. code-block:: console
 
             $ find . -iname "*.py.rst" -exec rm -f -i {} +
-            $ find . -iname "*.py.rst.txt" -exec rm -f -i {} +
+            $ find . -iname "*.rst.txt" -exec rm -f -i {} +
 
         Remove the ``-i`` option to remove files without confirmation.
 

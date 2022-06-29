@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import itertools
-import json
 import signal
 import tempfile
 import threading
@@ -19,10 +18,16 @@ import adaptive
 import numpy as np
 import xarray as xr
 from filelock import FileLock
-from qcodes import Instrument
+from qcodes import Instrument, ManualParameter
 from qcodes import validators as vals
-from qcodes.instrument.parameter import InstrumentRefParameter, ManualParameter
-from qcodes.utils.helpers import NumpyJSONEncoder
+
+try:
+    # Backwards compatibility with qcodes<0.35
+    from qcodes.instrument.parameter import InstrumentRefParameter
+except ModuleNotFoundError:
+    # Future compatibility with qcodes-0.35.
+    # This should be the only one when we depend on it.
+    from qcodes.parameters import InstrumentRefParameter
 
 from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
@@ -33,7 +38,6 @@ from quantify_core.data.handling import (
     initialize_dataset,
     snapshot,
     trim_dataset,
-    write_dataset,
 )
 from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
@@ -815,7 +819,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             order.
 
 
-        .. include:: examples/measurement.control.setpoints_grid.py.rst.txt
+        .. include:: examples/measurement.control.setpoints_grid.rst.txt
         """  # pylint: disable=line-too-long
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints

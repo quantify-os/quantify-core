@@ -26,6 +26,7 @@ import sys
 import lmfit  # related to quantify-core#218 and quantify-core#221
 import marshmallow
 import qcodes
+import quantify_core
 
 package_path = os.path.abspath("..")
 sys.path.insert(0, package_path)
@@ -49,6 +50,7 @@ if os.environ.get("READTHEDOCS", "False") == "True":
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    "myst_parser",
     "sphinx.ext.autodoc",  # auto document docstrings
     "sphinx.ext.napoleon",  # autodoc understands numpy docstrings
     # load after napoleon, improved compatibility with type hints annotations
@@ -66,7 +68,6 @@ extensions = [
     # however the smart_resolver seems to fail for external packages like `zhinst`
     "scanpydoc.elegant_typehints",
     "sphinxcontrib.bibtex",
-    "quantify_core.sphinx_extensions.notebook_to_jupyter_sphinx",
     # documents parameters that are defined in the __init__ of `Instrument`s as
     # instance attributes
     "qcodes.sphinx_extensions.parse_parameter_attr",
@@ -101,8 +102,7 @@ bibtex_reference_style = "author_year"
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = [".rst", ".md"]
 
 # The master toctree document.
 master_doc = "index"
@@ -117,7 +117,7 @@ author = "The Quantify consortium"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

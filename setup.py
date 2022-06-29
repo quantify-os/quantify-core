@@ -21,13 +21,13 @@ def get_version_and_cmdclass(pkg_path):
 
 version, cmdclass = get_version_and_cmdclass(r"quantify_core")
 
-with open("README.rst") as readme_file:
+with open("README.md") as readme_file:
     readme = readme_file.read()
 
-with open("CHANGELOG.rst") as history_file:
+with open("CHANGELOG.md") as history_file:
     history = history_file.read()
 
-with open("AUTHORS.rst") as authors_file:
+with open("AUTHORS.md") as authors_file:
     authors = authors_file.read()
 
 with open("requirements.txt") as installation_requirements_file:
@@ -58,7 +58,7 @@ setup(
     install_requires=requirements,
     license="BSD-4 license",
     long_description=readme + "\n\n" + authors + "\n\n" + history,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     include_package_data=True,
     keywords="quantify-core",
     name="quantify-core",

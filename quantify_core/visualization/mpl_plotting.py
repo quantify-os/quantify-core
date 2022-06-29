@@ -317,7 +317,7 @@ def set_cyclic_colormap(
         The colormap limit.
 
 
-    .. include:: examples/visualization.mpl_plotting.set_cyclic_colormap.py.rst.txt
+    .. include:: examples/visualization.mpl_plotting.set_cyclic_colormap.rst.txt
     """  # pylint: disable=line-too-long
     shifted = bool(shifted)  # in case xarray min() is used
     if unit in {"deg", "rad"}:
@@ -397,7 +397,8 @@ def plot_fit(
 
     Returns
     -------
-    list of matplotlib pyplot Line2D objects
+    :
+        list of matplotlib pyplot Line2D objects
     """
 
     # Handle default values

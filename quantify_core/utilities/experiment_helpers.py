@@ -19,13 +19,13 @@ def load_settings_onto_instrument(
 ) -> None:
     """
     Loads settings from a previous experiment onto a current
-    :class:`~qcodes.instrument.base.Instrument`. This information
+    :class:`~qcodes.instrument.Instrument`. This information
     is loaded from the 'snapshot.json' file in the provided experiment
     directory.
 
     Parameters
     ----------
-    instrument : :class:`~qcodes.instrument.base.Instrument`
+    instrument : :class:`~qcodes.instrument.Instrument`
         the instrument to be configured.
     tuid : :class:`~quantify_core.data.types.TUID`
         the TUID of the experiment. If None use latest TUID.

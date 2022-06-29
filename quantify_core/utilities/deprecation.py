@@ -26,7 +26,7 @@ def deprecated(
     .. admonition:: Example
         :class: dropdown, tip
 
-        .. include:: examples/utilities.deprecated.py.rst.txt
+        .. include:: examples/utilities.deprecated.rst.txt
 
     Parameters
     ----------

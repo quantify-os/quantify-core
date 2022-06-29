@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 import xarray as xr
 from qcodes import ManualParameter, Parameter
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 from qcodes.utils import validators as vals
 from scipy import optimize
 

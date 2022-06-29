@@ -17,7 +17,7 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
 - [ ] Merge request made onto appropriate branch (main for most MRs).
 - [ ] New code is fully tested.
 - [ ] New code is documented and docstrings use [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html).
-- [ ] `CHANGELOG.rst` and `AUTHORS.rst` have been updated (when applicable).
+- [ ] `CHANGELOG.md` and `AUTHORS.md` have been updated (when applicable).
 - [ ] CI pipelines pass
     - `pre-commit run --all-files --hook-stage commit` passes (gitlab-ci),
     - test suite passes (gitlab-ci),
