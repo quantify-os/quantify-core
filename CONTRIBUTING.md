@@ -33,9 +33,23 @@ Please see the [Merge Request Guidelines] for details on best developmental prac
 
 ### Documentation
 
-Quantify could always use more documentation, whether as part of the official quantify docs, in docstrings, tutorials and even on the web in blog posts, articles and such.
+Quantify could always use more documentation, whether as part of the official Quantify
+docs, in docstrings, tutorials and even on the web in blog posts, articles and such.
 
-For docstrings, please use the [numpy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html). The only exception is that parameter's type(s) should not be specified in the docstrings but instead by using [type hints](https://docs.python.org/3/library/typing.html).
+`quantify-core` documentation is generated using [Sphinx](https://www.sphinx-doc.org/en/master/),
+and written in MyST Markdown flavour.
+MyST is a superset of Markdown that can be mapped directly to reStructuredText.
+It provides the same features as reStructuredText, but its Markdown-like syntax
+is usually considered more convenient.
+Refer to [`myst-parser` documentation](https://myst-parser.readthedocs.io/) for
+the details of MyST syntax and user guide.
+
+Docstrings have to be still written in reStructuredText, because parsing them from MyST
+is not yet supported in `myst-parser`.
+Use the [numpy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html)
+for them.
+The only exception is that parameter's type(s) should not be specified in the docstrings
+but instead by using [type hints](https://docs.python.org/3/library/typing.html).
 
 ## Working on issues
 
