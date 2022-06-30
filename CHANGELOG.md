@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 (2022-06-30)
+
+- Sanitize Markdown for proper display on PyPi.
+
 ## 0.6.1 (2022-06-30)
 
 ### Merged branches and closed issues
@@ -295,7 +299,7 @@ Please see merge request !101 for a python snippet that will make all previous d
 - CI hardening, base python version for tests is 3.7 (minimum version) !50.
 - New data folder structure (Breaking change!) #76 (!48).
 - Updated installation guide #77 (!49).
-- Minor changes to RTD displaying issues !51.
+- Minor changes to RTD displaying issues (!51).
 - Convert jupyter notebooks to .rst files with jupyter-execute (!52).
 - Cleanup before opening repo #86 and #82 (!53)
 
@@ -307,7 +311,12 @@ Please see merge request !101 for a python snippet that will make all previous d
 
 - First release on PyPI.
 
-```{note}
-- \# denotes a closed issue.
+
+
+---
+
+🗈 **Note**
+- \#  denotes a closed issue.
 - ! denotes a merge request.
-```
+
+---
