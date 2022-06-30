@@ -28,9 +28,8 @@ Quantify-core is the core module that contains all basic functionality to contro
 - Data storage and analysis.
 - Parameter monitoring and live visualization of experiments.
 
-> ⚠️**Caution!**
->
-> This is a pre-release **beta version**, changes and improvements are expected.
+⚠️**Caution!**
+This is a pre-release **beta version**, changes and improvements are expected.
 
 ## Overview
 
