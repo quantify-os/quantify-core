@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.1 (2022-06-30)
 
 ### Merged branches and closed issues
 
