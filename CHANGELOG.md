@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 (2022-06-30)
+
+- Sanitize Markdown for proper display on PyPi.
+
 ## 0.6.1 (2022-06-30)
 
 ### Merged branches and closed issues
