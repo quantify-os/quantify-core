@@ -307,7 +307,6 @@ Please see merge request !101 for a python snippet that will make all previous d
 
 - First release on PyPI.
 
-```{note}
-- \# denotes a closed issue.
-- ! denotes a merge request.
-```
+> 🗈 **Note**
+> - \# denotes a closed issue.
+> - ! denotes a merge request.
