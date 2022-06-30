@@ -41,9 +41,13 @@ by Adriaan Rol gives a good general overview of Quantify.
 
 Quantify-core is maintained by The Quantify consortium consisting of Qblox and Orange Quantum Systems.
 
-<img src="https://cdn.sanity.io/images/ostxzp7d/production/f9ab429fc72aea1b31c4b2c7fab5e378b67d75c3-132x31.svg" target="https://qblox.com" alt="Qblox logo" width=200px align="left" style="margin: 20px" />
-<img src="https://orangeqs.com/OQS_logo_with_text.svg" target="https://orangeqs.com" alt="Orange Quantum Systems logo" width=200px align="left" style="margin: 20px" />
+[<img src="https://cdn.sanity.io/images/ostxzp7d/production/f9ab429fc72aea1b31c4b2c7fab5e378b67d75c3-132x31.svg" alt="Qblox logo" width=200px/>](https://qblox.com)
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+[<img src="https://orangeqs.com/OQS_logo_with_text.svg" alt="Orange Quantum Systems logo" width=200px/>](https://orangeqs.com)
 
-<div style="margin-top: 150px">
+&nbsp;
+
 The software is free to use under the conditions specified in the license.
-</div>
