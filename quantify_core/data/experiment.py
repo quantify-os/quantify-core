@@ -16,7 +16,10 @@ from quantify_core.data.handling import (
 )
 from quantify_core.data.handling import snapshot as create_snapshot
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import save_json, load_json
+from quantify_core.utilities.general import save_json, load_json_safe
+
+SNAPSHOT_FILENAME = "snapshot.json"
+METADATA_FILENAME = "metadata.json"
 
 
 class QuantifyExperiment:
@@ -115,7 +118,7 @@ class QuantifyExperiment:
         path = self._get_or_create_experiment_directory() / DATASET_NAME
         write_dataset(path, dataset)
 
-    def load_snapshot(self) -> Dict[str, Any]:
+    def load_snapshot(self) -> Optional[Dict[str, Any]]:
         """
         Loads the snapshot from the directory specified by
         `~.experiment_directory`.
@@ -126,7 +129,7 @@ class QuantifyExperiment:
             The loaded snapshot from disk
 
         """
-        return load_json(full_path=self.experiment_directory / "snapshot.json")
+        return load_json_safe(full_path=self.experiment_directory / SNAPSHOT_FILENAME)
 
     def save_snapshot(self, snapshot: Optional[Dict[str, Any]] = None):
         """
@@ -143,8 +146,38 @@ class QuantifyExperiment:
             snapshot = create_snapshot()
         save_json(
             directory=self._get_or_create_experiment_directory(),
-            filename="snapshot.json",
+            filename=SNAPSHOT_FILENAME,
             data=snapshot,
+        )
+
+    def load_metadata(self) -> Optional[Dict[str, Any]]:
+        """
+        Loads the metadata from the directory specified by
+        `~.experiment_directory`.
+
+        Returns
+        -------
+        :
+            The loaded metadata from disk. None if no file is found.
+
+        """
+        return load_json_safe(full_path=self.experiment_directory / METADATA_FILENAME)
+
+    def save_metadata(self, metadata: Dict[str, Any] = None):
+        """
+        Writes the metadata to disk as specified by
+        `~.experiment_directory`.
+
+        Parameters
+        ----------
+        metadata
+            The metadata to be written to the directory
+
+        """
+        save_json(
+            directory=self._get_or_create_experiment_directory(),
+            filename=METADATA_FILENAME,
+            data=metadata,
         )
 
     def load_text(self, rel_path: str) -> str:
