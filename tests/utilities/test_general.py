@@ -104,4 +104,6 @@ def test_save_load_json(tmp_test_data_dir) -> None:
 def test_load_not_existing_json(tmp_test_data_dir) -> None:
     with pytest.raises(FileNotFoundError):
         _ = load_json(full_path=tmp_test_data_dir / "non_existing_file.json")
-    assert load_json(full_path=tmp_test_data_dir / "non_existing_file.json") is None
+    assert (
+        load_json_safe(full_path=tmp_test_data_dir / "non_existing_file.json") is None
+    )
