@@ -123,7 +123,7 @@ class QuantifyExperiment:
         path = self._get_or_create_experiment_directory() / DATASET_NAME
         write_dataset(path, dataset)
 
-    def load_snapshot(self) -> Optional[Dict[str, Any]]:
+    def load_snapshot(self) -> Dict[str, Any]:
         """
         Loads the snapshot from the directory specified by
         `~.experiment_directory`.
@@ -160,7 +160,7 @@ class QuantifyExperiment:
             data=snapshot,
         )
 
-    def load_metadata(self) -> Optional[Dict[str, Any]]:
+    def load_metadata(self) -> Dict[str, Any]:
         """
         Loads the metadata from the directory specified by
         `~.experiment_directory`.
