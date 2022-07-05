@@ -7,7 +7,7 @@ import json
 import pathlib
 import warnings
 from collections.abc import MutableMapping
-from typing import Any, Union, Iterator, Type, TypeVar
+from typing import Any, Optional, Union, Iterator, Type, TypeVar
 
 import numpy as np
 import xxhash
@@ -169,9 +169,32 @@ def load_json(full_path: pathlib.Path) -> dict:
     full_path
         The full path to the json file which needs to be loaded
 
+    Raises
+    ------
+    FileNotFoundError
+        If no file can be found at `full_path`
     """
     with open(full_path, encoding="utf-8") as file:
         return json.load(file)
+
+
+def load_json_safe(full_path: pathlib.Path) -> Optional[dict]:
+    """
+    Utility function to load from a json file to dict.
+
+    Parameters
+    ----------
+    full_path
+        The full path to the json file which needs to be loaded
+
+    Returns
+    :
+        Content of file. If file not found, returns ``None``.
+    """
+    try:
+        return load_json(full_path=full_path)
+    except FileNotFoundError:
+        return None
 
 
 def load_json_schema(relative_to: Union[str, pathlib.Path], filename: str):

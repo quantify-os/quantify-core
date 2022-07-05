@@ -18,6 +18,9 @@ from quantify_core.data.handling import snapshot as create_snapshot
 from quantify_core.data.types import TUID
 from quantify_core.utilities.general import save_json, load_json
 
+SNAPSHOT_FILENAME = "snapshot.json"
+METADATA_FILENAME = "metadata.json"
+
 
 class QuantifyExperiment:
     """
@@ -97,6 +100,11 @@ class QuantifyExperiment:
         -------
         :
 
+        Raises
+        ------
+        FileNotFoundError
+            If no file with a dataset can be found
+
         """
         self.dataset = load_dataset(self.tuid)
         return self.dataset
@@ -125,8 +133,13 @@ class QuantifyExperiment:
         :
             The loaded snapshot from disk
 
+        Raises
+        ------
+        FileNotFoundError
+            If no file with a snapshot can be found
+
         """
-        return load_json(full_path=self.experiment_directory / "snapshot.json")
+        return load_json(full_path=self.experiment_directory / SNAPSHOT_FILENAME)
 
     def save_snapshot(self, snapshot: Optional[Dict[str, Any]] = None):
         """
@@ -143,8 +156,43 @@ class QuantifyExperiment:
             snapshot = create_snapshot()
         save_json(
             directory=self._get_or_create_experiment_directory(),
-            filename="snapshot.json",
+            filename=SNAPSHOT_FILENAME,
             data=snapshot,
+        )
+
+    def load_metadata(self) -> Dict[str, Any]:
+        """
+        Loads the metadata from the directory specified by
+        `~.experiment_directory`.
+
+        Returns
+        -------
+        :
+            The loaded metadata from disk. None if no file is found.
+
+        Raises
+        ------
+        FileNotFoundError
+            If no file with metadata can be found
+
+        """
+        return load_json(full_path=self.experiment_directory / METADATA_FILENAME)
+
+    def save_metadata(self, metadata: Dict[str, Any] = None):
+        """
+        Writes the metadata to disk as specified by
+        `~.experiment_directory`.
+
+        Parameters
+        ----------
+        metadata
+            The metadata to be written to the directory
+
+        """
+        save_json(
+            directory=self._get_or_create_experiment_directory(),
+            filename=METADATA_FILENAME,
+            data=metadata,
         )
 
     def load_text(self, rel_path: str) -> str:
@@ -162,6 +210,11 @@ class QuantifyExperiment:
         -------
         :
             The loaded text from disk
+
+        Raises
+        ------
+        FileNotFoundError
+            If no file can be found at `rel_path`
 
         """
         file_path = self.experiment_directory / rel_path
