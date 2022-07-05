@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+
+- Can save metadata with `QuantifyExperiment` (!315)
 ## 0.6.2 (2022-06-30)
 
 - Sanitize Markdown for proper display on PyPi.
