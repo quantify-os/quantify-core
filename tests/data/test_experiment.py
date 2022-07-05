@@ -3,6 +3,8 @@
 # pylint: disable=missing-function-docstring
 
 
+import pytest
+
 from quantify_core.data import handling as dh
 from quantify_core.data.experiment import QuantifyExperiment
 
@@ -44,7 +46,8 @@ def test_quantify_experiment_load_and_save_metadata(tmp_test_data_dir):
     tuid = TUID_1D_1PLOT
     dh.create_exp_folder(tuid)
     experiment = QuantifyExperiment(tuid)
-    assert experiment.load_metadata() is None
+    with pytest.raises(FileNotFoundError):
+        _ = experiment.load_metadata()
 
     dictionary = {"key": "entry to be saved"}
     experiment.save_metadata(dictionary)

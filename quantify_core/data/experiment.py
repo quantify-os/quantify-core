@@ -16,7 +16,7 @@ from quantify_core.data.handling import (
 )
 from quantify_core.data.handling import snapshot as create_snapshot
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import save_json, load_json_safe
+from quantify_core.utilities.general import save_json, load_json
 
 SNAPSHOT_FILENAME = "snapshot.json"
 METADATA_FILENAME = "metadata.json"
@@ -100,6 +100,11 @@ class QuantifyExperiment:
         -------
         :
 
+        Raises
+        ------
+        FileNotFoundError
+            If no file with a dataset can be found
+
         """
         self.dataset = load_dataset(self.tuid)
         return self.dataset
@@ -128,8 +133,13 @@ class QuantifyExperiment:
         :
             The loaded snapshot from disk
 
+        Raises
+        ------
+        FileNotFoundError
+            If no file with a snapshot can be found
+
         """
-        return load_json_safe(full_path=self.experiment_directory / SNAPSHOT_FILENAME)
+        return load_json(full_path=self.experiment_directory / SNAPSHOT_FILENAME)
 
     def save_snapshot(self, snapshot: Optional[Dict[str, Any]] = None):
         """
@@ -160,8 +170,13 @@ class QuantifyExperiment:
         :
             The loaded metadata from disk. None if no file is found.
 
+        Raises
+        ------
+        FileNotFoundError
+            If no file with metadata can be found
+
         """
-        return load_json_safe(full_path=self.experiment_directory / METADATA_FILENAME)
+        return load_json(full_path=self.experiment_directory / METADATA_FILENAME)
 
     def save_metadata(self, metadata: Dict[str, Any] = None):
         """
@@ -195,6 +210,11 @@ class QuantifyExperiment:
         -------
         :
             The loaded text from disk
+
+        Raises
+        ------
+        FileNotFoundError
+            If no file can be found at `rel_path`
 
         """
         file_path = self.experiment_directory / rel_path
