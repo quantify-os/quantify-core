@@ -56,7 +56,7 @@ setup(
     description="""Unified quantum computing, solid-state and pulse sequencing physical
     experimentation framework.""",
     install_requires=requirements,
-    license="BSD-4 license",
+    license="BSD-3 license",
     long_description=readme + "\n\n" + authors + "\n\n" + history,
     long_description_content_type="text/markdown",
     include_package_data=True,
