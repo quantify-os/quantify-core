@@ -13,7 +13,7 @@
 ![Quantify logo](https://orangeqs.com/logos/QUANTIFY_LANDSCAPE.svg)
 
 Quantify is a python based data acquisition platform focused on Quantum Computing and
-solid-state physics experiments. It is build on top of [QCoDeS](https://qcodes.github.io/Qcodes/)
+solid-state physics experiments. It is built on top of [QCoDeS](https://qcodes.github.io/Qcodes/)
 and is a spiritual successor of [PycQED](https://github.com/DiCarloLab-Delft/PycQED_py3).
 Quantify currently consists of [quantify-core](https://pypi.org/project/quantify-core/)
 and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/).
