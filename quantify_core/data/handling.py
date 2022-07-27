@@ -10,8 +10,9 @@ import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Dict, Any
 from uuid import uuid4
+from copy import deepcopy
 
 import numpy as np
 import xarray as xr
@@ -709,6 +710,48 @@ def get_varying_parameter_values(
     values = np.array(value)
 
     return values
+
+
+# pylint: disable=redefined-outer-name
+def extract_parameter_from_snapshot(snapshot: Dict[str, Any], parameter: str):
+    """
+    A function which takes a parameter and extracts its value from a snapshot,
+    including in the case where the parameter is part of a nested submodule
+    within a QCoDeS instrument
+
+    Parameters
+    -----------
+    snapshot:
+        The snapshot
+    parameter:
+        The full address of the QCoDeS parameter as a string, in the format
+        :code:`instrument.submodule.submodule.parameter` (an arbitrary
+        number of nested submodules is a allowed).
+
+    Returns
+    -----------
+    The parameter value
+    """
+    parameter_address = parameter.split(".")
+    if len(parameter_address) < 2:
+        raise ValueError(
+            "parameter must be a string of the form 'instrument.submodule.parameter'"
+        )
+
+    sub_snapshot = deepcopy(snapshot)
+
+    try:
+        sub_snapshot = sub_snapshot["instrument"][parameter_address[0]]
+        for submodule in parameter_address[1:-1]:
+            sub_snapshot = sub_snapshot["submodules"][submodule]
+
+        value = sub_snapshot["parameters"][parameter_address[-1]]["value"]
+    except KeyError as key_error:
+        raise KeyError(
+            f"Parameter {parameter} not found in snapshot.\n{key_error}"
+        ) from key_error
+
+    return value
 
 
 # pylint: disable=too-many-arguments
