@@ -6,6 +6,7 @@
 ## 0.6.2 (2022-06-30)
 
 - Sanitize Markdown for proper display on PyPi.
+- Data Handling - New function to extract parameters from snapshot, including submodules (!360)
 
 ## 0.6.1 (2022-06-30)
 
