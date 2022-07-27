@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 import uncertainties
 import xarray as xr
-from qcodes import Instrument, ManualParameter
+from qcodes import Instrument, ManualParameter, InstrumentChannel
 from qcodes.utils.helpers import NumpyJSONEncoder
 
 import quantify_core.data.handling as dh
@@ -704,6 +704,70 @@ def test_concat_dataset(tmp_test_data_dir):
     assert isinstance(new_dataset["ref_tuids"], xr.DataArray)
     assert len(new_dataset["ref_tuids"]) == 720
     assert new_dataset["ref_tuids"].is_dataset_ref
+
+
+# pylint: disable=redefined-outer-name
+@pytest.fixture(scope="function", autouse=False)
+def mock_instr_nested(request):
+    """
+    Set up an instrument with a sub module with the following structure
+
+    instr
+    -> a
+    -> mod_a
+        -> b
+    -> mod_b
+        -> mod_c
+            -> c
+    """
+
+    instr = Instrument("DummyInstrument")
+
+    instr.add_parameter("a", parameter_class=ManualParameter)
+
+    mod_a = InstrumentChannel(instr, "mod_a")
+    mod_a.add_parameter("b", parameter_class=ManualParameter)
+    instr.add_submodule("mod_a", mod_a)
+
+    mod_b = InstrumentChannel(instr, "mod_b")
+    mod_c = InstrumentChannel(instr, "mod_b")
+    mod_b.add_submodule("mod_c", mod_c)
+    mod_c.add_parameter("c", parameter_class=ManualParameter)
+
+    instr.add_submodule("mod_b", mod_b)
+
+    def cleanup_instruments():
+        instr.close()
+
+    request.addfinalizer(cleanup_instruments)
+
+    return instr
+
+
+# pylint: disable=invalid-name
+def test_extract_parameter_from_snapshot(tmp_test_data_dir, mock_instr_nested):
+    """
+    Test that we can extract parameters from a snapshot, including those
+    which are contained within submodules
+    """
+    # Always set datadir before instruments
+    dh.set_datadir(tmp_test_data_dir)
+
+    # set some random values
+    mock_instr_nested.a(23)
+    mock_instr_nested.mod_a.b(42)
+    mock_instr_nested.mod_b.mod_c.c(23.1)
+
+    # create snapshot
+    snap = dh.snapshot()
+
+    a = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.a")
+    b = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_a.b")
+    c = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_b.mod_c.c")
+
+    assert a == 23
+    assert b == 42
+    assert c == 23.1
 
 
 def test_get_varying_parameter(tmp_test_data_dir):

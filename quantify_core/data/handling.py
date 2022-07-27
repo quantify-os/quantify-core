@@ -741,14 +741,14 @@ def extract_parameter_from_snapshot(snapshot: Dict[str, Any], parameter: str):
     sub_snapshot = deepcopy(snapshot)
 
     try:
-        sub_snapshot = sub_snapshot["instrument"][parameter_address[0]]
+        sub_snapshot = sub_snapshot["instruments"][parameter_address[0]]
         for submodule in parameter_address[1:-1]:
             sub_snapshot = sub_snapshot["submodules"][submodule]
 
         value = sub_snapshot["parameters"][parameter_address[-1]]["value"]
     except KeyError as key_error:
         raise KeyError(
-            f"Parameter {parameter} not found in snapshot.\n{key_error}"
+            f"Parameter {parameter} not found in snapshot. {key_error} not found."
         ) from key_error
 
     return value
