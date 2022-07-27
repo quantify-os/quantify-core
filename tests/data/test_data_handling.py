@@ -772,9 +772,8 @@ def test_extract_parameter_from_snapshot(tmp_test_data_dir, mock_instr_nested):
 
 def test_get_varying_parameter(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    instrument = "fluxcurrent"
-    parameter = "FBL_4"
-    non_existing_parameter = "FBL_5"
+    parameter = "fluxcurrent.FBL_4"
+    non_existing_parameter = "fluxcurrent.FBL_5"
     correct_tuids = dh.get_tuids_containing(
         "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
     )
@@ -788,22 +787,18 @@ def test_get_varying_parameter(tmp_test_data_dir):
     values = np.array([-0.00100625, -0.000996875, -0.0009875])
 
     with pytest.raises(ValueError):
-        dh.get_varying_parameter_values(tuid_string, instrument, parameter)
+        dh.get_varying_parameter_values(tuid_string, parameter)
 
     with pytest.raises(TypeError):
-        dh.get_varying_parameter_values(tuid_wrong_list, instrument, parameter)
+        dh.get_varying_parameter_values(tuid_wrong_list, parameter)
 
     with pytest.raises(ValueError):
-        dh.get_varying_parameter_values(tuid_wrong_values, instrument, parameter)
+        dh.get_varying_parameter_values(tuid_wrong_values, parameter)
 
     with pytest.raises(KeyError):
-        dh.get_varying_parameter_values(
-            correct_tuids, instrument, non_existing_parameter
-        )
+        dh.get_varying_parameter_values(correct_tuids, non_existing_parameter)
 
-    varying_parameter_values = dh.get_varying_parameter_values(
-        correct_tuids, instrument, parameter
-    )
+    varying_parameter_values = dh.get_varying_parameter_values(correct_tuids, parameter)
     assert isinstance(varying_parameter_values, np.ndarray)
     assert len(varying_parameter_values) == len(correct_tuids)
     assert varying_parameter_values == pytest.approx(values)
@@ -814,8 +809,7 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     dh.set_datadir(tmp_test_data_dir)
     t_start = "20211029"
     t_stop = "20211030"
-    instrument = "fluxcurrent"
-    parameter = "FBL_4"
+    parameter = "fluxcurrent.FBL_4"
     experiment = "Pulsed spectroscopy"
     experiment_wrong_type = 5
     expected_varying_parameter_values = np.array(
