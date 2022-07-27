@@ -723,7 +723,7 @@ def mock_instr_nested(request):
 
     instr = Instrument("DummyInstrument")
 
-    instr.add_parameter("a", parameter_class=ManualParameter)
+    instr.add_parameter("a", parameter_class=ManualParameter, unit="Hz")
 
     mod_a = InstrumentChannel(instr, "mod_a")
     mod_a.add_parameter("b", parameter_class=ManualParameter)
@@ -761,11 +761,15 @@ def test_extract_parameter_from_snapshot(tmp_test_data_dir, mock_instr_nested):
     # create snapshot
     snap = dh.snapshot()
 
-    a = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.a")
-    b = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_a.b")
-    c = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_b.mod_c.c")
+    a = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.a")["value"]
+    a_unit = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.a")["unit"]
+    b = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_a.b")["value"]
+    c = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_b.mod_c.c")[
+        "value"
+    ]
 
     assert a == 23
+    assert a_unit == "Hz"
     assert b == 42
     assert c == 23.1
 
@@ -819,7 +823,6 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     with pytest.raises(TypeError):
         dh.multi_experiment_data_extractor(
             experiment_wrong_type,
-            instrument,
             parameter,
             new_name=new_name,
             t_start=t_start,
@@ -829,7 +832,6 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     # Test filling in all parameters and new_name=None
     new_dataset = dh.multi_experiment_data_extractor(
         experiment,
-        instrument,
         parameter,
         new_name=new_name,
         t_start=t_start,
@@ -842,6 +844,6 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
         np.repeat(expected_varying_parameter_values, 240)
     )
     if new_name is None:
-        assert new_dataset.name == f"{experiment} vs {instrument}"
+        assert new_dataset.name == f"{experiment} vs {parameter}"
     else:
         assert new_dataset.name == new_name
