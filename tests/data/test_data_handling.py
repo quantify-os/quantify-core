@@ -777,6 +777,20 @@ def test_extract_parameter_from_snapshot(tmp_test_data_dir, mock_instr_nested):
 def test_get_varying_parameter(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     parameter = "fluxcurrent.FBL_4"
+    correct_tuids = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    )
+    values = np.array([-0.00100625, -0.000996875, -0.0009875])
+
+    varying_parameter_values = dh.get_varying_parameter_values(correct_tuids, parameter)
+    assert isinstance(varying_parameter_values, np.ndarray)
+    assert len(varying_parameter_values) == len(correct_tuids)
+    assert varying_parameter_values == pytest.approx(values)
+
+
+def test_get_varying_parameter_error(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    parameter = "fluxcurrent.FBL_4"
     non_existing_parameter = "fluxcurrent.FBL_5"
     correct_tuids = dh.get_tuids_containing(
         "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
@@ -788,7 +802,6 @@ def test_get_varying_parameter(tmp_test_data_dir):
     tuid_wrong_values = dh.get_tuids_containing(
         "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
     ) + ["test"]
-    values = np.array([-0.00100625, -0.000996875, -0.0009875])
 
     with pytest.raises(ValueError):
         dh.get_varying_parameter_values(tuid_string, parameter)
@@ -801,11 +814,6 @@ def test_get_varying_parameter(tmp_test_data_dir):
 
     with pytest.raises(KeyError):
         dh.get_varying_parameter_values(correct_tuids, non_existing_parameter)
-
-    varying_parameter_values = dh.get_varying_parameter_values(correct_tuids, parameter)
-    assert isinstance(varying_parameter_values, np.ndarray)
-    assert len(varying_parameter_values) == len(correct_tuids)
-    assert varying_parameter_values == pytest.approx(values)
 
 
 @pytest.mark.parametrize("new_name", [None, "concat"])
