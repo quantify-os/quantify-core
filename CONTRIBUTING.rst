@@ -177,7 +177,7 @@ Therefore we define the following policies:
 2. We guarantee backwards-compatible behaviour for all public API elements for three minor releases forward,
    unless this element is deprecated.
 3. Each deprecation must issue a ``DeprecationWarning``, mentioning the release when this part of the API is dropped
-   and if possible, a (short) explanation how to port the code.
+   and if possible, a (short) explanation on how to port the code.
 4. Violation of backwards compatibility is considered an issue
    and a bugfix release fixing it must be done as soon as possible.
 5. If some part of the API is not declared as public, but is important for some use-cases,
