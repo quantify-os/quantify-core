@@ -8,14 +8,14 @@ import sys
 import tempfile
 import time
 from collections.abc import Iterable
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import adaptive
 import numpy as np
 import pytest
 import xarray as xr
 from qcodes import ManualParameter, Parameter
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 from qcodes.utils import validators as vals
 from scipy import optimize
 
@@ -209,6 +209,16 @@ class TestMeasurementControl:
     def test_MeasurementControl_name(self):
         assert self.meas_ctrl.name == "meas_ctrl"
 
+    def test_MeasurementControl_save_data(self):
+        self.meas_ctrl.settables(t)
+        self.meas_ctrl.setpoints(np.array([0, 1, 2, 3]))
+        self.meas_ctrl.gettables(sig)
+
+        with patch.object(self.meas_ctrl, "_safe_write_dataset") as mock:
+            _ = self.meas_ctrl.run(save_data=False)
+
+        assert mock.call_count == 0
+
     def test_repr(self):
         number_points = 5
         xvals = np.linspace(0, 2, number_points)
@@ -367,7 +377,7 @@ class TestMeasurementControl:
         # Must be specified otherwise all setpoints will be passed to the settable
         gettable.batch_size = 10
         self.meas_ctrl.gettables(gettable)
-        dset = self.meas_ctrl.run()
+        dset = self.meas_ctrl.run(save_data=False)
 
         expected_vals = batched_mock_values(x)
         assert np.array_equal(dset["x0"].values, x)
@@ -380,7 +390,7 @@ class TestMeasurementControl:
         self.meas_ctrl.settables(p_param)
         self.meas_ctrl.setpoints(np.linspace(-50, 0, 13))
         self.meas_ctrl.gettables(amplitude)
-        _ = self.meas_ctrl.run("1D test")
+        _ = self.meas_ctrl.run("1D test", save_data=False)
 
         measurement_description = self.meas_ctrl.measurement_description()
         assert isinstance(measurement_description, dict)
@@ -395,7 +405,7 @@ class TestMeasurementControl:
         self.meas_ctrl.settables(settable)
         self.meas_ctrl.setpoints(setpoints)
         self.meas_ctrl.gettables(gettable)
-        noisy_dset = self.meas_ctrl.run("noisy")
+        noisy_dset = self.meas_ctrl.run("noisy", save_data=False)
         xn_0 = noisy_dset["x0"].values
         expected_vals = batched_mock_values(xn_0)
         yn_0 = abs(noisy_dset["y0"].values - expected_vals)
@@ -583,6 +593,26 @@ class TestMeasurementControl:
         assert np.array_equal(dset["x1"].values, y)
         assert np.array_equal(dset["y0"].values, expected_vals)
 
+    @pytest.mark.parametrize(
+        "setpoints_x,setpoints_y,is_uniformly_spaced",
+        [
+            (np.linspace(0, 10, 101), np.linspace(10, 20, 101), True),
+            (np.linspace(0, 10, 101) ** 2, np.linspace(10, 20, 101), False),
+            (np.linspace(0, 10, 101) ** 2, np.linspace(10, 20, 101) ** 2, False),
+        ],
+    )
+    def test_iterative_1D_with_two_settables_signals_plotmon_of_spacing(
+        self, setpoints_x, setpoints_y, is_uniformly_spaced
+    ):
+        setpoints = np.column_stack((setpoints_x, setpoints_y))
+
+        self.meas_ctrl.settables([freq, other_freq])
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
+
+        assert dset.attrs["1d_2_settables_uniformly_spaced"] == is_uniformly_spaced
+
     def test_batched_2D_grid(self):
         times = np.linspace(10, 20, 3)
         amps = np.linspace(0, 10, 5)
@@ -593,7 +623,7 @@ class TestMeasurementControl:
         self.meas_ctrl.settables(settables)
         self.meas_ctrl.setpoints_grid([times, amps])
         self.meas_ctrl.gettables(gettable)
-        dset = self.meas_ctrl.run("2D batched")
+        dset = self.meas_ctrl.run("2D batched", save_data=False)
 
         exp_sp = grid_setpoints([times, amps])
         assert np.array_equal(exp_sp, self.meas_ctrl._setpoints)
@@ -1180,10 +1210,8 @@ class TestMeasurementControl:
 
     def test_meas_ctrl_insmon_integration(self):
         inst_mon = InstrumentMonitor("insmon_meas_ctrl")
-        self.meas_ctrl.instrument_monitor(inst_mon.name)
-        assert self.meas_ctrl.instrument_monitor.get_instr().widget.getNodes()
+        assert inst_mon.widget.getNodes()
         inst_mon.close()
-        self.meas_ctrl.instrument_monitor("")
 
     def test_instrument_settings_from_disk(self, tmp_test_data_dir):
         load_settings_onto_instrument(

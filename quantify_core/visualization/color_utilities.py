@@ -20,7 +20,7 @@ def set_hlsa(
     with the specified HLS values plus an optional alpha
 
 
-    .. include:: examples/visualization.color_utilities.set_hlsa.py.rst.txt
+    .. include:: examples/visualization.color_utilities.set_hlsa.rst.txt
     """
     clip = lambda x: np.clip(x, 0, 1)
     rgb = mplc.to_rgb(color)

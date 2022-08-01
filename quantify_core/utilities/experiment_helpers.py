@@ -2,12 +2,15 @@
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Any, Optional
+from typing import Any, Optional, Union, Dict
 
-from qcodes import Instrument
+import numpy as np
+
+from qcodes.instrument import Instrument, InstrumentChannel
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
+from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
@@ -16,13 +19,13 @@ def load_settings_onto_instrument(
 ) -> None:
     """
     Loads settings from a previous experiment onto a current
-    :class:`~qcodes.instrument.base.Instrument`. This information
+    :class:`~qcodes.instrument.Instrument`. This information
     is loaded from the 'snapshot.json' file in the provided experiment
     directory.
 
     Parameters
     ----------
-    instrument : :class:`~qcodes.instrument.base.Instrument`
+    instrument : :class:`~qcodes.instrument.Instrument`
         the instrument to be configured.
     tuid : :class:`~quantify_core.data.types.TUID`
         the TUID of the experiment. If None use latest TUID.
@@ -38,6 +41,9 @@ def load_settings_onto_instrument(
         tuid = get_latest_tuid()
 
     instruments = load_snapshot(tuid, datadir)["instruments"]
+    instruments_numpy_array = load_snapshot(tuid, datadir, list_to_ndarray=True)[
+        "instruments"
+    ]
     if instrument.name not in instruments:
         raise ValueError(
             'Instrument "{}" not found in snapshot {}:{}'.format(
@@ -45,37 +51,69 @@ def load_settings_onto_instrument(
             )
         )
 
-    def _try_to_set_par(instrument: Instrument, parname: str, value: Any):
+    instr_snap = instruments[instrument.name]
+    instr_snap_numpy_array = instruments_numpy_array[instrument.name]
+
+    def _try_to_set_par_safe(
+        instr_mod: Union[Instrument, InstrumentChannel],
+        parname: str,
+        value: Any,
+    ):
         """Tries to set a parameter and emits a warning if not successful."""
+        # do not try to set parameters that are not settable
+        if not "set" in dir(instr_mod.parameters[parname]):
+            return
+        # do not set to None if value is already None
+        if instr_mod.parameters[parname]() is None and value is None:
+            return
 
         # Make sure the parameter is actually a settable
         try:
-            instrument.set(parname, value)
+            instr_mod.set(parname, value)
         except (RuntimeError, KeyError, ValueError, TypeError) as exc:
             warnings.warn(
-                f"Parameter {parname} of instrument {instrument.name} "
-                f"could not be set to {value} due to error:\n{exc}"
+                f'Parameter "{parname}" of "{instr_mod.name}" '
+                f'could not be set to "{value}" due to error:\n{exc}'
             )
 
-    for parname, par in instruments[instrument.name]["parameters"].items():
-        # Check that the parameter exists in this instrument
-        if parname in instrument.parameters:
-            if "set" in dir(instrument.parameters[parname]):
+    def _set_params_instr_mod(
+        instr_mod_snap: Dict,
+        instr_mod_snap_np: Dict,
+        instr_mod: Union[Instrument, InstrumentChannel],
+    ):
+        """
+        private function to set parameters and recursively set parameters of submodules.
+        """
+        # iterate over top-level parameters
+        for parname, par in instr_mod_snap["parameters"].items():
+            # Check that the parameter exists in this instrument
+            if parname in instr_mod.parameters:
                 value = par["value"]
-                if value is None:
-                    if instrument.parameters[parname]() is None:
-                        # Don't try to set a parameter to None if its value is
-                        # already None
-                        pass
-                    else:
-                        _try_to_set_par(instrument, parname, value)
-                else:
-                    _try_to_set_par(instrument, parname, value)
-        else:
-            warnings.warn(
-                f"Could not set parameter {parname} in {instrument.name}. "
-                f"{instrument.name} does not possess a parameter named {parname}."
-            )
+                if isinstance(instr_mod.parameters[parname](), np.ndarray):
+                    value = instr_mod_snap_np["parameters"][parname]["value"]
+                _try_to_set_par_safe(instr_mod, parname, value)
+            else:
+                warnings.warn(
+                    f"Could not set parameter {parname} in {instr_mod.name}. "
+                    f"{instr_mod.name} does not possess a parameter named {parname}."
+                )
+        # recursively call this function for all submodules
+        if "submodules" in instr_mod_snap.keys():
+            for module_name, module_snap in instr_mod_snap["submodules"].items():
+                submodule = instr_mod.submodules[module_name]
+                module_snap_np = instr_mod_snap_np["submodules"][module_name]
+                _set_params_instr_mod(
+                    instr_mod_snap=module_snap,
+                    instr_mod_snap_np=module_snap_np,
+                    instr_mod=submodule,
+                )
+
+    # set the top-level parameters and then recursively set parameters of submodules
+    _set_params_instr_mod(
+        instr_mod_snap=instr_snap,
+        instr_mod_snap_np=instr_snap_numpy_array,
+        instr_mod=instrument,
+    )
 
 
 def create_plotmon_from_historical(
@@ -107,8 +145,10 @@ def create_plotmon_from_historical(
     name_str = str(name)
     i = 0
 
-    while name_str in PlotMonitor_pyqt._all_instruments:
-        name_str += f"_{i}"
+    for plotmon_class in get_subclasses(PlotMonitor_pyqt, include_base=True):
+        for plotmon in plotmon_class.instances():
+            if name_str == plotmon.name:
+                name_str += f"_{i}"
 
     plotmon = PlotMonitor_pyqt(name)
     plotmon.tuids_append(tuid)

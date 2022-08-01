@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import itertools
-import json
 import signal
 import tempfile
 import threading
@@ -19,10 +18,16 @@ import adaptive
 import numpy as np
 import xarray as xr
 from filelock import FileLock
-from qcodes import Instrument
+from qcodes import Instrument, ManualParameter
 from qcodes import validators as vals
-from qcodes.instrument.parameter import InstrumentRefParameter, ManualParameter
-from qcodes.utils.helpers import NumpyJSONEncoder
+
+try:
+    # Backwards compatibility with qcodes<0.35
+    from qcodes.instrument.parameter import InstrumentRefParameter
+except ModuleNotFoundError:
+    # Future compatibility with qcodes-0.35.
+    # This should be the only one when we depend on it.
+    from qcodes.parameters import InstrumentRefParameter
 
 from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
@@ -33,7 +38,6 @@ from quantify_core.data.handling import (
     initialize_dataset,
     snapshot,
     trim_dataset,
-    write_dataset,
 )
 from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
@@ -124,14 +128,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """Instrument responsible for live plotting. Can be set to ``None`` to disable
         live plotting."""
 
-        self.instrument_monitor = InstrumentRefParameter(
-            vals=vals.MultiType(vals.Strings(), vals.Enum(None)),
-            instrument=self,
-            name="instrument_monitor",
-        )
-        """Instrument responsible for live monitoring summarized snapshot. Can be set to
-        ``None`` to disable monitoring of snapshot."""
-
         self.update_interval = ManualParameter(
             initial_value=0.5,
             vals=vals.Numbers(min_value=0.1),
@@ -157,6 +153,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._begintime = time.time()
         self._last_upd = time.time()
         self._batch_size_last = None
+        self._dataarray_cache: Optional[Dict[str, Any]] = None
 
         # variables used for persistence, plotting and data handling
         self._dataset = None
@@ -164,7 +161,11 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._experiment = None
         self._plotmon_name = ""
         # attributes named as if they are python attributes, e.g. dset.drid_2d == True
-        self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
+        self._plot_info = {
+            "grid_2d": False,
+            "grid_2d_uniformly_spaced": False,
+            "1d_2_settables_uniformly_spaced": False,
+        }
 
         # properly handling KeyboardInterrupts
         self._thread_data = threading.local()
@@ -212,7 +213,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     # Methods used to control the measurements #
     ############################################
 
-    def _reset(self):
+    def _reset(self, save_data=True):
         """
         Resets all experiment specific variables for a new run.
         """
@@ -224,12 +225,18 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._thread_data.events_num = 0
         # Assign handler to interrupt signal
         signal.signal(signal.SIGINT, self._interrupt_handler)
+        self._save_data = save_data
+        self._dataarray_cache = None
 
     def _reset_post(self):
         """
         Resets specific variables that can change before `.run()`.
         """
-        self._plot_info = {"grid_2d": False, "grid_2d_uniformly_spaced": False}
+        self._plot_info = {
+            "grid_2d": False,
+            "grid_2d_uniformly_spaced": False,
+            "1d_2_settables_uniformly_spaced": False,
+        }
         # Reset to default interrupt handler
         signal.signal(signal.SIGINT, signal.default_int_handler)
 
@@ -252,19 +259,26 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         tuid = self._dataset.attrs["tuid"]
 
-        self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
         self._experiment = QuantifyExperiment(tuid=tuid)
-        self._safe_write_dataset()  # Write the empty dataset
+        if self._save_data:
+            self._exp_folder = Path(create_exp_folder(tuid=tuid, name=name))
+            self._safe_write_dataset()  # Write the empty dataset
+
+            snap = snapshot(update=False, clean=True)  # Save a snapshot of all
+            self._experiment.save_snapshot(snap)
+        else:
+            self._exp_folder = None
 
         if self.instr_plotmon():
             # Tell plotmon to start monitoring the new dataset
             self.instr_plotmon.get_instr().update(tuid=tuid)
 
-        snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-        self._experiment.save_snapshot(snap)
-
     def run(
-        self, name: str = "", soft_avg: int = 1, lazy_set: Optional[bool] = None
+        self,
+        name: str = "",
+        soft_avg: int = 1,
+        lazy_set: Optional[bool] = None,
+        save_data: bool = True,
     ) -> xr.Dataset:
         """
         Starts a data acquisition loop.
@@ -285,11 +299,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             instead (which by default is ``False``).
 
             .. warning:: This feature is not available yet when running in batched mode.
+        save_data
+            If ``True`` that the measurement data is stored.
         """
         lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
         self._soft_avg_validator(soft_avg)  # validate first
         self._soft_avg = soft_avg
-        self._reset()
+        self._reset(save_data=save_data)
         self._init(name)
 
         self._prepare_settables()
@@ -306,7 +322,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         except KeyboardInterrupt:
             print("\nInterrupt signaled, exiting gracefully...")
 
-        self._safe_write_dataset()  # Wrap up experiment and store data
+        if self._save_data:
+            self._safe_write_dataset()  # Wrap up experiment and store data
         self._finish()
         self._reset_post()
 
@@ -392,6 +409,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             np.empty((64, len(self._settable_pars)))
         )  # block out some space in the dataset
         self._init(name)
+
         try:
             print("Running adaptively...")
             subroutine()
@@ -409,11 +427,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     def _run_iterative(self, lazy_set: bool = False):
         while self._get_fracdone() < 1.0:
             self._prepare_gettables()
+
+            self._dataarray_cache = {}
             for row in self._setpoints:
                 self._iterative_set_and_get(row, self._curr_setpoint_idx(), lazy_set)
                 self._nr_acquired_values += 1
                 self._update()
                 self._check_interrupt()
+            self._dataarray_cache = None
             self._loop_count += 1
 
     def _run_batched(self):  # pylint: disable=too-many-locals
@@ -503,10 +524,19 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 - in sweep, the x dimensions are already filled
                 - in adaptive, soft_avg is always 1
         """
+        assert self._dataset is not None
+
         # set all individual setparams
         for setpar_idx, (spar, spt) in enumerate(zip(self._settable_pars, setpoints)):
-            self._dataset[f"x{setpar_idx}"].values[idx] = spt
-            prev_spt = self._dataset[f"x{setpar_idx}"].values[idx - 1] if idx else None
+            xi_name = f"x{setpar_idx}"
+            if self._dataarray_cache is None:
+                xi_dataarray_values = self._dataset[xi_name].values
+            else:
+                if not xi_name in self._dataarray_cache:
+                    self._dataarray_cache[xi_name] = self._dataset[xi_name].values
+                xi_dataarray_values = self._dataarray_cache[xi_name]
+            xi_dataarray_values[idx] = spt
+            prev_spt = xi_dataarray_values[idx - 1] if idx else None
             # if lazy_set==True and the setpoint equals the previous setpoint, do not
             # set the setpoint.
             if not (lazy_set and spt == prev_spt):
@@ -523,14 +553,20 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             # x coordinates
             for val in new_data:
                 yi_name = f"y{y_offset}"
-                old_val = self._dataset[yi_name].values[idx]
+                if self._dataarray_cache is None:
+                    yi_dataarray_values = self._dataset[yi_name].values
+                else:
+                    if not yi_name in self._dataarray_cache:
+                        self._dataarray_cache[yi_name] = self._dataset[yi_name].values
+                    yi_dataarray_values = self._dataarray_cache[yi_name]
+                old_val = yi_dataarray_values[idx]
                 if self._soft_avg == 1 or np.isnan(old_val):
-                    self._dataset[yi_name].values[idx] = val
+                    yi_dataarray_values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
                         1 + self._loop_count
                     )
-                    self._dataset[yi_name].values[idx] = averaged
+                    yi_dataarray_values[idx] = averaged
                 y_offset += 1
 
     ############################################
@@ -576,10 +612,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if update:
             self.print_progress(print_message)
 
-            self._safe_write_dataset()
-
-            if self.instrument_monitor():
-                self.instrument_monitor.get_instr().update()
+            if self._save_data:
+                self._safe_write_dataset()
 
             self._last_upd = time.time()
 
@@ -758,6 +792,13 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         if len(np.shape(setpoints)) == 1:
             setpoints = setpoints.reshape((len(setpoints), 1))
+        elif len(np.shape(setpoints)) == 2:
+            # used in plotmon to detect need for interpolation in 2d plot
+            is_uniform = all(
+                _is_uniformly_spaced_array(setpoints_i) for setpoints_i in setpoints.T
+            )
+            self._plot_info["1d_2_settables_uniformly_spaced"] = is_uniform
+
         self._setpoints = setpoints
         # `.setpoints()` and `.setpoints_grid()` cannot be used at the same time
         self._setpoints_input = None
@@ -778,7 +819,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             order.
 
 
-        .. include:: examples/measurement.control.setpoints_grid.py.rst.txt
+        .. include:: examples/measurement.control.setpoints_grid.rst.txt
         """  # pylint: disable=line-too-long
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints

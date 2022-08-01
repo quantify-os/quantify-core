@@ -55,6 +55,13 @@
                     "name": "obsolete_param",
                     "label": "obsolete_param",
                     "unit": ""
+                },
+                "numpy_array_param": {
+                    "value": [0,1,2,3],
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "numpy_array_param",
+                    "label": "numpy_array_param",
+                    "unit": ""
                 }
             },
             "name": "DummyInstrument"

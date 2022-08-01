@@ -53,3 +53,36 @@ def test_fft_freq_phase_guess(tmp_test_data_dir):
         guess_tolerance = 0.3
 
         assert freq_guess == pytest.approx(real_freqs[idx], rel=guess_tolerance)
+
+
+def test_cosine_model():
+    """
+    Test for CosineModel guessing and fitting
+    """
+
+    # Generate some random cosine data
+    x_data = np.linspace(0, 4, 100)
+
+    test_freq = np.random.uniform(low=0.5, high=4, size=1)
+    test_amp = np.random.uniform(low=1, high=4, size=1)
+    test_phs = np.random.uniform(low=0, high=2 * np.pi, size=1)
+    test_cos = test_amp * np.cos(2 * np.pi * test_freq * x_data + test_phs)
+    test_noise = np.random.normal(loc=0, scale=0.1, size=len(x_data))
+
+    y_data = test_cos + test_noise
+
+    # Fit a cosine to it
+    model = fm.CosineModel()
+    guess = model.guess(data=y_data, x=x_data)
+    fit = model.fit(data=y_data, x=x_data, params=guess)
+
+    # Test guessing, freq and phs already tested for
+    assert guess["offset"] == pytest.approx(np.average(y_data))
+    assert guess["amplitude"] == pytest.approx((y_data.max() - y_data.min()) / 2)
+
+    # Test fitting
+    fit_tolerance = 0.1
+    assert fit.best_values["offset"] == pytest.approx(0, abs=fit_tolerance)
+    assert fit.best_values["amplitude"] == pytest.approx(test_amp, rel=fit_tolerance)
+    assert fit.best_values["frequency"] == pytest.approx(test_freq, rel=fit_tolerance)
+    assert fit.best_values["phase"] == pytest.approx(test_phs, rel=fit_tolerance)

@@ -2,18 +2,20 @@
 # Licensed according to the LICENCE file on the main branch
 """Module containing the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
+from dataclasses import dataclass
 
 import inspect
 import json
 import logging
 import os
 import warnings
-from abc import ABC
+from abc import ABCMeta
 from copy import deepcopy
 from enum import Enum
+from functools import lru_cache, wraps
 from pathlib import Path
 from textwrap import wrap
-from typing import List, Union
+from typing import Dict, List, Union
 
 import lmfit
 import matplotlib
@@ -42,6 +44,20 @@ from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_cbarlabel
 
 from .types import AnalysisSettings
+
+
+@dataclass
+class _FiguresMplCache:
+    __slots__ = ["figs", "axes", "initialized"]
+    figs: Dict[str, matplotlib.figure.Figure]
+    axes: Dict[str, matplotlib.axes.Axes]
+    initialized: bool
+
+
+@lru_cache(maxsize=8)
+def _analyses_figures_cache(_: BaseAnalysis):
+    return _FiguresMplCache({}, {}, False)
+
 
 # global configurations at the level of the analysis module
 settings = AnalysisSettings(
@@ -81,7 +97,7 @@ class AnalysisSteps(Enum):
         from quantify_core.analysis import base_analysis as ba
         print(ba.analysis_steps_to_str(ba.AnalysisSteps))
 
-    .. include:: examples/analysis.base_analysis.AnalysisSteps.py.rst.txt
+    .. include:: examples/analysis.base_analysis.AnalysisSteps.rst.txt
 
     .. tip::
 
@@ -103,7 +119,56 @@ class AnalysisSteps(Enum):
     STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
 
 
-class BaseAnalysis(ABC):
+class AnalysisMeta(ABCMeta):
+    """Metaclass, whose purpose is to avoid storing large amount of figure in memory.
+
+    By convention, analysis object stores figures in ``self.figs_mpl`` and
+    ``self.axs_mpl`` dictionaries. This causes troubles for long-running operations,
+    because figures are all in memory and eventually this uses all available memory of
+    the PC. In order to avoid it, :meth:`BaseAnalysis.create_figures` and its
+    derivatives are patched so that all the figures are put in LRU cache and
+    reconstructed upon request to :attr:`BaseAnalysis.figs_mpl` or
+    :attr:`BaseAnalysis.axs_mpl` if they were removed from the cache.
+
+    Provided that analyses subclasses follow convention of figures being created in
+    :meth:`BaseAnalysis.create_figures`, this approach should solve the memory issue
+    and preserve reverse compatibility with present code.
+    """
+
+    def __new__(cls, name, bases, namespace, /, **kwargs):
+        if "create_figures" in namespace.keys():
+            namespace = dict(namespace)
+            create_figures_orig = namespace.pop("create_figures")
+
+            @wraps(create_figures_orig)
+            def create_figures_patched(self):
+                _analyses_figures_cache(self).initialized = True
+                self._creating_figures = True
+                create_figures_orig(self)
+                self._creating_figures = False
+
+            def _figs_axs_mpl(self):
+                cache = _analyses_figures_cache(self)
+                if not cache.initialized and not self._creating_figures:
+                    create_figures_patched(self)
+                return cache
+
+            def figs_mpl(self):
+                return self._figs_axs_mpl.figs
+
+            def axs_mpl(self):
+                return self._figs_axs_mpl.axes
+
+            namespace["_creating_figures"] = False
+            namespace["_figs_axs_mpl"] = property(_figs_axs_mpl)
+            namespace["figs_mpl"] = property(figs_mpl)
+            namespace["axs_mpl"] = property(axs_mpl)
+            namespace["create_figures"] = create_figures_patched
+
+        return super().__new__(cls, name, bases, namespace, **kwargs)
+
+
+class BaseAnalysis(metaclass=AnalysisMeta):
     """A template for analysis classes."""
 
     # pylint: disable=too-many-instance-attributes
@@ -194,8 +259,6 @@ class BaseAnalysis(ABC):
         self.analysis_result = {}
 
         # To be populated by a subclass
-        self.figs_mpl = {}
-        self.axs_mpl = {}
         self.quantities_of_interest = {}
 
         self.fit_results = {}
@@ -240,7 +303,7 @@ class BaseAnalysis(ABC):
 
         This function is typically called right after instantiating an analysis class.
 
-        .. include:: examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.py.rst.txt
+        .. include:: examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
 
         Returns
         -------

@@ -3,12 +3,11 @@
 """Module containing analyses for common single qubit timedomain experiments."""
 from __future__ import annotations
 
-from typing import Union
+from typing import Literal, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from typing_extensions import Literal
 
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import fitting_models as fm
@@ -559,12 +558,12 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
                 )
             ),
             name="ideal_data",
-            dims="dim_0",
+            coords={"x0": self.dataset_processed.coords["x0"]},
         )
         self.dataset_processed["ideal_data"] = ideal_data
 
         ### Analyzing Data ###
-        deviation = np.mean(self.dataset_processed.pop_exc - ideal_data).item()
+        deviation = np.mean(np.abs(self.dataset_processed.pop_exc - ideal_data)).item()
         self.quantities_of_interest["deviation"] = deviation
 
     def create_figures(self):

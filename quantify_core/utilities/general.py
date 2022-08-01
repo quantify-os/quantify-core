@@ -1,15 +1,13 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """General utilities."""
-from __future__ import annotations
-
 import copy
 import importlib
 import json
 import pathlib
 import warnings
 from collections.abc import MutableMapping
-from typing import Any, Union
+from typing import Any, Optional, Union, Iterator, Type, TypeVar
 
 import numpy as np
 import xxhash
@@ -50,7 +48,7 @@ def traverse_dict(obj: dict, convert_to_string: bool = True):
     We modify this function so that at the lowest hierarchy,
     we convert the element to a string.
 
-    From https://nvie.com/posts/modifying-deeply-nested-structures/
+    From: `<https://nvie.com/posts/modifying-deeply-nested-structures/>`_
     """
     if isinstance(obj, dict):
         out_dict = {}
@@ -100,7 +98,7 @@ def make_hash(obj: Any):
     only other hashable types (including any lists, tuples, sets, and
     dictionaries).
 
-    From: https://stackoverflow.com/questions/5884066/hashing-a-dictionary
+    From: `<https://stackoverflow.com/questions/5884066/hashing-a-dictionary>`_.
     """
 
     new_hash = xxhash.xxh64()
@@ -171,9 +169,32 @@ def load_json(full_path: pathlib.Path) -> dict:
     full_path
         The full path to the json file which needs to be loaded
 
+    Raises
+    ------
+    FileNotFoundError
+        If no file can be found at `full_path`
     """
     with open(full_path, encoding="utf-8") as file:
         return json.load(file)
+
+
+def load_json_safe(full_path: pathlib.Path) -> Optional[dict]:
+    """
+    Utility function to load from a json file to dict.
+
+    Parameters
+    ----------
+    full_path
+        The full path to the json file which needs to be loaded
+
+    Returns
+    :
+        Content of file. If file not found, returns ``None``.
+    """
+    try:
+        return load_json(full_path=full_path)
+    except FileNotFoundError:
+        return None
 
 
 def load_json_schema(relative_to: Union[str, pathlib.Path], filename: str):
@@ -233,3 +254,33 @@ def last_modified(path: pathlib.Path) -> float:
     path = pathlib.Path(path)
 
     return path.stat().st_mtime
+
+
+T = TypeVar("T")
+
+
+def get_subclasses(base: Type[T], include_base: bool = False) -> Iterator[Type[T]]:
+    """
+    Obtain all subclasses of a class.
+    From: `<https://stackoverflow.com/a/33607093>`_.
+
+    Parameters
+    ----------
+    base
+        base class for which subclasses will be returned.
+    include_base
+        include the base class in the iterator.
+
+    Yields
+    ------
+    subclass : Type[T]
+        Next subclass for a class.
+    base : Type[T]
+        Optionally, base class itself included in the iterator.
+    """
+    for subclass in base.__subclasses__():
+        yield from get_subclasses(subclass)
+        yield subclass
+
+    if include_base:
+        yield base

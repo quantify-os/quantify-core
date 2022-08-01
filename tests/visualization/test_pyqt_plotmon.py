@@ -3,6 +3,7 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import tempfile
+import sys
 from distutils.dir_util import copy_tree
 from pathlib import Path
 
@@ -39,6 +40,9 @@ def test_validator_accepts_tuid_objects(plotmon_instance):
     plotmon_instance.tuids([])  # reset for next tests
 
 
+@pytest.mark.xfail(
+    sys.platform.startswith("win"), reason="Plotmon test fails regularly on Windows"
+)
 def test_basic_1d_plot(plotmon_instance):
     plotmon_instance.tuids_max_num(1)
     # Test 1D plotting using an example dataset
@@ -81,6 +85,17 @@ def test_basic_2d_plot(plotmon_instance):
     assert cfg["yunit"] == "V"
     assert cfg["zlabel"] == "Signal level"
     assert cfg["zunit"] == "V"
+    plotmon_instance.tuids([])  # reset for next tests
+
+
+def test_2d_plot_from_1d_scan_with_two_uniformly_spaced_settables(plotmon_instance):
+    plotmon_instance.tuids_max_num(1)
+    tuid = "20220409-095654-698-b2dc1f"
+    plotmon_instance.tuids_append(tuid)
+    plotmon_instance.update()
+
+    cfg = plotmon_instance._get_traces_config(which="secondary_QtPlot")[0]["config"]
+    assert np.shape(cfg["z"]) == (101, 101)
     plotmon_instance.tuids([])  # reset for next tests
 
 

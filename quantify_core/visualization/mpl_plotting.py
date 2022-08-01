@@ -6,7 +6,7 @@ Naming convention: plotting functions that require Xarray object(s) as inputs ar
 ``plot_xr_...``.
 """
 # pylint: disable=too-many-arguments, too-many-locals
-from typing import Tuple, Union
+from typing import List, Literal, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +19,6 @@ from matplotlib.image import AxesImage
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from typing_extensions import Literal
 
 from quantify_core.visualization.SI_utilities import (
     set_cbarlabel,
@@ -318,7 +317,7 @@ def set_cyclic_colormap(
         The colormap limit.
 
 
-    .. include:: examples/visualization.mpl_plotting.set_cyclic_colormap.py.rst.txt
+    .. include:: examples/visualization.mpl_plotting.set_cyclic_colormap.rst.txt
     """  # pylint: disable=line-too-long
     shifted = bool(shifted)  # in case xarray min() is used
     if unit in {"deg", "rad"}:
@@ -369,7 +368,9 @@ def plot_fit(
     plot_init: bool = True,
     plot_numpoints: int = 1000,
     range_casting: Literal["abs", "angle", "real", "imag"] = "real",
-) -> None:
+    fit_kwargs: dict = None,
+    init_kwargs: dict = None,
+) -> List[plt.Line2D]:
     """
     Plot a fit of an lmfit model with a real domain.
 
@@ -387,7 +388,25 @@ def plot_fit(
         how to plot fit functions that have a complex range.
         Casting of values happens using :obj:`~numpy.absolute`, :obj:`~numpy.angle`,
         :obj:`~numpy.real` and :obj:`~numpy.imag`. Angle is in degrees.
+    fit_kwargs, optional
+        Matplotlib pyplot formatting and label keyword arguments for the fit plot.
+        default value is {"color": "C3", "label": "Fit"}
+    init_kwargs, optional
+        Matplotlib pyplot formatting and label keyword arguments for the init plot.
+        default value is {"color": "grey", "linestyle": "--", "label": "Guess"}
+
+    Returns
+    -------
+    :
+        list of matplotlib pyplot Line2D objects
     """
+
+    # Handle default values
+    if fit_kwargs is None:
+        fit_kwargs = {"color": "C3", "label": "Fit"}
+    if init_kwargs is None:
+        init_kwargs = {"color": "grey", "linestyle": "--", "label": "Guess"}
+
     model = fit_res.model
 
     if len(model.independent_vars) == 1:
@@ -409,7 +428,7 @@ def plot_fit(
     else:
         fit_y = np.angle(fit_y, deg=True)
 
-    ax.plot(x, fit_y, label="Fit", c="C3")
+    lines = ax.plot(x, fit_y, **fit_kwargs)
 
     if plot_init:
         if range_casting != "angle":
@@ -417,7 +436,10 @@ def plot_fit(
             init_y = range_cast_func(init_y)
         else:
             init_y = np.angle(init_y, deg=True)
-        ax.plot(x, init_y, ls="--", c="grey", label="Guess")
+
+        lines += ax.plot(x, init_y, **init_kwargs)
+
+    return lines
 
 
 def plot_fit_complex_plane(
