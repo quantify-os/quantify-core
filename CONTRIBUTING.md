@@ -62,7 +62,9 @@ An issue does not need to go through all the steps. But we differentiate this ma
 
 *Progress captain* denotes the person who is ultimately responsible if any progress is to be made on a specific issue or Merge Request. Note that it can be as simple as asking someone for help/review/merge, or doing these requests again (we are all bandwidth-limited).
 
-> Hovering the mouse over each label in GitLab will show these descriptions.
+```{tip}
+Hovering the mouse over each label in GitLab will show these descriptions.
+```
 
 - `State | 1. Needs refinement`
   : - *Progress captain*: creator of the issue.
@@ -92,12 +94,13 @@ Before you submit a merge request, check that it meets these guidelines:
 
 3. The CI pipelines should pass for all merge requests.
 
-   > - Check the status of the CI pipelines, the status is also reported in the merge request:
-   >     - [black](https://github.com/psf/black) formatter should pass (we use default settings).
-   >     - The test suite passes.
-   >     - Any reasonable code-quality issues raised by [pylint](https://pylint.readthedocs.io/en/latest/index.html) should be addressed.
-   >     - No degradation in code coverage.
-   >     - Documentation should build.
+```{note} Check the status of the CI pipelines, the status is also reported in the merge request:
+- [black](https://github.com/psf/black) formatter should pass (we use default settings).
+- The test suite passes.
+- Any reasonable code-quality issues raised by [pylint](https://pylint.readthedocs.io/en/latest/index.html) should be addressed.
+- No degradation in code coverage.
+- Documentation should build.
+```
 
 4. Ensure your merge request contains a clear description of the changes made and how it addresses the issue. If useful, add a screenshot to showcase your work to facilitate an easier review. There is a template that you can use when creating a new merge request that you can select in the GitLab interface.
 
@@ -108,28 +111,28 @@ If no changes are required, a maintainer will "approve" the merge request.
 When your merge request is approved, feel free to add yourself to the list of contributors.
 Thank you very much for your hard work in improving quantify!
 
+``````{tip} [Maintainers and developers] In order to commit and push to the original branch of the merge request, you will need:
+```
+$ # 1. Create and checkout a local branch with the changes of the merge request
+$ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
+$ git checkout -b thedude-awesome-project-update-docs FETCH_HEAD
 
-> (Maintainers and developers)
-> In order to commit and push to the original branch of the merge request, you will need:
->
-> ```
-> 1. Create and checkout a local branch with the changes of the merge request
-> $ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
-> $ git checkout -b thedude-awesome-project-update-docs FETCH_HEAD
->
-> 2. Make changes and commit them
->
-> 3. Push to the forked project
-> $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
-> ```
->
-> N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
+$ # 2. Make changes and commit them
+
+$ # 3. Push to the forked project
+$ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
+```
+
+N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
+``````
 
 ### Merge Requests Workflow
 
 The workflow of the Merge Requests (MRs) is managed using the `MR State | <state>` labels that specifies the current state of the MR as described below, and the *progress captain* denotes the same as in the [Issues workflow].
 
-> Hovering the mouse over each label in GitLab will show these descriptions.
+```{tip}
+Hovering the mouse over each label in GitLab will show these descriptions.
+```
 
 - `MR State | 1. In progress...` *Progress captain*: assignee.
     - MR not ready for complete review. Equivalent to Draft/WIP. The assignee is responsible for asking help/advice by tagging relevant people.
@@ -151,7 +154,9 @@ When moving the MRs between states, the next *progress captain* should be tagged
 
 ### Versioning, Backward Compatibility and Deprecation Policy
 
-> This policy is valid from the `1.0` release of `quantify-core` and any project that adopts it.
+```{note}
+This policy is valid from the `1.0` release of `quantify-core` and any project that adopts it.
+```
 
 We adopt a semantic versioning scheme for all subprojects of Quantify.
 Version numbers consist of three numbers: a major, minor and patch version consequently.
@@ -181,7 +186,7 @@ For example, if some function is deprecated in the `quantify-core-1.2` release,
 it should be marked for removal in the `quantify-core-1.5` using a ``DeprecationWarning``,
 mentioning the version of removal (in this case `1.5`)
 and an instruction for the user on how to port the code to the new versions of Quantify.
-The recommended way to do it is through the `quantify_core.utilities.deprecated` decorator.
+The recommended way to do it is through the :func:`~quantify_core.utilities.deprecated` decorator.
 
 If there is doubt about whether the API change is considered major (requiring major version bump) or minor,
 it must be discussed during a developers meeting.
