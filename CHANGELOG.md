@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Can save metadata with `QuantifyExperiment` (!315)
+- Contribution guidelines updated, added: Versioning, Backward Compatibility and Deprecation Policy (!282)
+
 ## 0.6.2 (2022-06-30)
 
 - Sanitize Markdown for proper display on PyPi.
