@@ -1,15 +1,12 @@
-```{highlight} console
-```
-
 # Contributing
 
 Contributions are welcome and greatly appreciated! Every little bit helps, and credit will always be given.
 
 In order to contribute to the documentation and/or code please follow the {ref}`Setting up for local development` instructions.
 
-You can also find us in our public [Slack workspace through this link](https://quantify-hq.slack.com/archives/C01ETDK6P97/p1630597303007700). There you can join the [software for users](https://quantify-hq.slack.com/archives/C01ETDK6P97) and the [software for developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channels.
+You can also find us in our public [Slack workspace through this link](https://quantify-hq.slack.com/archives/C01ETDK6P97/p1630597303007700). There you can join the [software-for-users](https://quantify-hq.slack.com/archives/C01ETDK6P97) and the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channels.
 
-You are also welcome to the public weekly maintainers meeting for which you can find the link in the [software for developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channel.
+You are also welcome to the public weekly maintainers meeting for which you can find the link in the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channel.
 
 ## Types of Contributions
 
@@ -19,17 +16,17 @@ You can contribute in many ways:
 
 A defect is any variance between actual and expected result, this can include bugs in the code or defects in the documentation or visualization.
 
-Please report defects to the [the GitLab Tracker](https://gitlab.com/quantify-os/quantify-core/-/issues)
+Please report defects to [the GitLab Tracker](https://gitlab.com/quantify-os/quantify-core/-/issues)
 using the **Defect** description template.
 
-[Merge Request Guidelines] for details on best developmental practices.
+[Merge Request Guidelines](#merge-request-guidelines) for details on best developmental practices.
 
 ### Features
 
 If you wish to propose a feature, please file an issue on [the GitLab Tracker](https://gitlab.com/quantify-os/quantify-core/-/issues) using the **Feature** description template. Community members will help refine and design your idea until it is ready for implementation.
 Via these early reviews, we hope to steer contributors away from producing work outside of the project boundaries.
 
-Please see the [Merge Request Guidelines] for details on best developmental practices.
+Please see the [Merge Request Guidelines](#merge-request-guidelines) for details on best developmental practices.
 
 ### Documentation
 
@@ -51,23 +48,21 @@ for them.
 The only exception is that parameter's type(s) should not be specified in the docstrings
 but instead by using [type hints](https://docs.python.org/3/library/typing.html).
 
-## Working on issues
+## Working on Issues
 
 After an issue is created, the progress of the issues is tracked on the [GitLab issue board](https://gitlab.com/quantify-os/quantify-core/-/boards).
 The maintainers will update the state using [labels](https://gitlab.com/quantify-os/quantify-core/-/labels) .
 Once an issue is ready for review a Merge Request can be opened.
 
-### Issues workflow
+### Issues Workflow
 
 The workflow of the issues is managed using the `State | <state>` labels that specifies the current state of the issue. These are intended to be used for issues only, and in *exceptional* cases for Merge Requests that have no associated issue.
 
 An issue does not need to go through all the steps. But we differentiate this many to accommodate for the more nuanced cases.
 
-*Progress captain* denotes the the person who is ultimately responsible if any progress is to be made on a specific issue or Merge Request. Note that it can be as simple as asking someone for help/review/merge, or doing these requests again (we are all bandwidth-limited).
+*Progress captain* denotes the person who is ultimately responsible if any progress is to be made on a specific issue or Merge Request. Note that it can be as simple as asking someone for help/review/merge, or doing these requests again (we are all bandwidth-limited).
 
-```{tip}
-Hovering the mouse over each label in GitLab will show these descriptions.
-```
+> Hovering the mouse over each label in GitLab will show these descriptions.
 
 - `State | 1. Needs refinement`
   : - *Progress captain*: creator of the issue.
@@ -97,8 +92,8 @@ Before you submit a merge request, check that it meets these guidelines:
 
 3. The CI pipelines should pass for all merge requests.
 
-   > - Check the status of the CI pipelines, the status is also reported in the merge request.
-   >   : - [black](https://github.com/psf/black) linter should pass (we use default settings).
+   > - Check the status of the CI pipelines, the status is also reported in the merge request:
+   >     - [black](https://github.com/psf/black) formatter should pass (we use default settings).
    >     - The test suite passes.
    >     - Any reasonable code-quality issues raised by [pylint](https://pylint.readthedocs.io/en/latest/index.html) should be addressed.
    >     - No degradation in code coverage.
@@ -113,31 +108,28 @@ If no changes are required, a maintainer will "approve" the merge request.
 When your merge request is approved, feel free to add yourself to the list of contributors.
 Thank you very much for your hard work in improving quantify!
 
-``````{tip}
-(Maintainers and developers)
-In order to commit and push to the original branch of the merge request, you will need:
 
-```
-$ # 1. Create and checkout a local branch with the changes of the merge request
-$ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
-$ git checkout -b thedude-awesome-project-update-docs FETCH_HEAD
+> (Maintainers and developers)
+> In order to commit and push to the original branch of the merge request, you will need:
+>
+> ```
+> 1. Create and checkout a local branch with the changes of the merge request
+> $ git fetch git@gitlab.com:thedude/awesome-project.git update-docs
+> $ git checkout -b thedude-awesome-project-update-docs FETCH_HEAD
+>
+> 2. Make changes and commit them
+>
+> 3. Push to the forked project
+> $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
+> ```
+>
+> N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 
-$ # 2. Make changes and commit them
-
-$ # 3. Push to the forked project
-$ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-update-docs:update-docs
-```
-
-N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
-``````
-
-### Merge Requests workflow
+### Merge Requests Workflow
 
 The workflow of the Merge Requests (MRs) is managed using the `MR State | <state>` labels that specifies the current state of the MR as described below, and the *progress captain* denotes the same as in the [Issues workflow].
 
-```{tip}
-Hovering the mouse over each label in GitLab will show these descriptions.
-```
+> Hovering the mouse over each label in GitLab will show these descriptions.
 
 - `MR State | 1. In progress...` *Progress captain*: assignee.
     - MR not ready for complete review. Equivalent to Draft/WIP. The assignee is responsible for asking help/advice by tagging relevant people.
@@ -156,3 +148,41 @@ Hovering the mouse over each label in GitLab will show these descriptions.
     - Next state: Merged or `4. Change requested`.
 
 When moving the MRs between states, the next *progress captain* should be tagged in the comments. This is the only reliable way for them to get notified.
+
+### Versioning, Backward Compatibility and Deprecation Policy
+
+> This policy is valid from the `1.0` release of `quantify-core` and any project that adopts it.
+
+We adopt a semantic versioning scheme for all subprojects of Quantify.
+Version numbers consist of three numbers: a major, minor and patch version consequently.
+A major version bump is performed, when the API of a project has changed significantly
+and requires a rewrite of significant parts of user code.
+A minor version bump is done for the new features, and a patch version bump is for bugfixes in the released version.
+
+We aim to provide backward compatibility for the future releases of Quantify within the same major version.
+This means that code that uses `quantify-core-1.1` should be also executable using `quantify-core-1.2`.
+It is not realistic to keep this policy for *every* minor breaking change,
+for example renaming of a method or a change of its location.
+For such minor changes, we may deprecate some parts of API with a warning and remove it after three minor version releases.
+Therefore, we define the following policies:
+
+1. If a function is a part of the public API, it should be declared in the ``__all__`` list of a module.
+2. We guarantee backwards-compatible behaviour for all public API elements for three minor releases forward,
+   unless this element is deprecated.
+3. Each deprecation must issue a ``DeprecationWarning``, mentioning the release when this part of the API is dropped
+   and if possible, a (short) explanation on how to port the code.
+4. Violation of backwards compatibility is considered an issue
+   and a bugfix release fixing it must be done as soon as possible.
+5. If some part of the API is not declared as public, but is important for some use-cases,
+   a user can (and is encouraged) to request stabilizing it using an issue.
+   If this proposal is accepted, this part of the API should be stabilized in the next minor release.
+
+For example, if some function is deprecated in the `quantify-core-1.2` release,
+it should be marked for removal in the `quantify-core-1.5` using a ``DeprecationWarning``,
+mentioning the version of removal (in this case `1.5`)
+and an instruction for the user on how to port the code to the new versions of Quantify.
+The recommended way to do it is through the `quantify_core.utilities.deprecated` decorator.
+
+If there is doubt about whether the API change is considered major (requiring major version bump) or minor,
+it must be discussed during a developers meeting.
+Changes to this policy should also be discussed and approved during a developers meeting.
