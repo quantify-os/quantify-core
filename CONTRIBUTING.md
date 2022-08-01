@@ -186,7 +186,7 @@ For example, if some function is deprecated in the `quantify-core-1.2` release,
 it should be marked for removal in the `quantify-core-1.5` using a ``DeprecationWarning``,
 mentioning the version of removal (in this case `1.5`)
 and an instruction for the user on how to port the code to the new versions of Quantify.
-The recommended way to do it is through the :func:`~quantify_core.utilities.deprecated` decorator.
+The recommended way to do it is through the `quantify_core.utilities.deprecated` decorator.
 
 If there is doubt about whether the API change is considered major (requiring major version bump) or minor,
 it must be discussed during a developers meeting.
