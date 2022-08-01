@@ -1,3 +1,4 @@
+# pylint: disable=django-not-configured
 from . import utilities
 from ._version import __version__
 
