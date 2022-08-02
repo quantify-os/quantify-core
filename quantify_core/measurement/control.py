@@ -361,7 +361,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             function (often a minimization algorithm) to be evaluated many times.
 
             Although the measure function acquires (and stores) all gettable parameters,
-            only the first value is returned so as to have the
+            only the first value is returned to match the function signature for a valid
+            measurement function.
             """
             if len(self._dataset["y0"]) == self._nr_acquired_values:
                 self._dataset = grow_dataset(self._dataset)
@@ -712,21 +713,30 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         callback specified by `on_progress_callback`.
         Printing can be suppressed with `.verbose(False)`.
         """
+
+        # There are no points initialized, progress does not make sense
+        if self._get_max_setpoints() == 0:
+            if self.verbose():
+                print("No setpoints, progress cannot be defined")
+            return
+
         progress_percent = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime
         if self.verbose() and progress_message is None:
             t_left = (
                 round((100.0 - progress_percent) / progress_percent * elapsed_time, 1)
                 if progress_percent != 0
-                else ""
+                else None
             )
             progress_message = (
                 f"\r{int(progress_percent):#3d}% completed | elapsed time: "
-                f"{int(round(elapsed_time, 1)):#6d}s | "
-                f"time left: {int(round(t_left, 1)):#6d}s  "
+                f"{int(round(elapsed_time, 1)):#6d}s"
             )
+            if t_left is not None:
+                progress_message += f" | time left: {int(round(t_left, 1)):#6d}s"
             if self._batch_size_last is not None:
-                progress_message += f"last batch size: {self._batch_size_last:#6d}  "
+                progress_message += f"  last batch size: {self._batch_size_last:#6d}"
+            progress_message += "  "
 
             print(progress_message, end="" if progress_percent < 100 else "\n")
 

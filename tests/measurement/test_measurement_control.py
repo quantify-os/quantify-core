@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
+# pylint: disable=too-many-arguments
 import os
 import random
 import signal
@@ -1465,3 +1466,54 @@ def test_grid_setpoints():
     assert all(e in sp[:, 0] for e in x)
     assert all(e in sp[:, 1] for e in y)
     assert all(e in sp[:, 2] for e in z)
+
+
+@pytest.mark.parametrize(
+    "verbose, number_setpoints, fracdone, expected_progress_message",
+    [
+        (False, 0, 0, ""),
+        (
+            True,
+            0,
+            0,
+            "No setpoints, progress cannot be defined\n",
+        ),
+        (
+            True,
+            10,
+            0,
+            "\r  0% completed | elapsed time:      0s  "
+            "\r  0% completed | elapsed time:      0s  ",
+        ),
+        (
+            True,
+            10,
+            0.1,
+            "\r 10% completed | elapsed time:      0s | time left:      0s  "
+            "\r 10% completed | elapsed time:      0s | time left:      0s  ",
+        ),
+    ],
+)
+def test_print_progress(
+    capsys,
+    mocker,
+    verbose,
+    number_setpoints,
+    fracdone,
+    expected_progress_message,
+):
+    meas_ctrl = MeasurementControl("meas_ctrl")
+    meas_ctrl.verbose(verbose)
+
+    xvals = np.linspace(0, 1, number_setpoints)
+    meas_ctrl.setpoints(xvals)
+
+    with mocker.patch(
+        "quantify_core.measurement.control.MeasurementControl._get_fracdone",
+        side_effect=[fracdone],
+    ):
+        meas_ctrl.print_progress()
+        out, _ = capsys.readouterr()
+        assert out == expected_progress_message
+
+    meas_ctrl.close()
