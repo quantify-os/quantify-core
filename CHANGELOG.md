@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Can save metadata with `QuantifyExperiment` (!315)
+- Can save metadata with `QuantifyExperiment` (!355)
 - Contribution guidelines updated, added: Versioning, Backward Compatibility and Deprecation Policy (!282)
 
 ## 0.6.2 (2022-06-30)
