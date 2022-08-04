@@ -52,10 +52,10 @@ def test_si_scale_factors() -> None:
     assert scale_factor == 1
     assert "Gunknown" == post_unit
 
-    unit = "m$\Phi_0$"
+    unit = "m$\\Phi_0$"
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=1000.0, unit=unit)
     assert scale_factor == 1e-3
-    assert "$\Phi_0$" == post_unit
+    assert "$\\Phi_0$" == post_unit
 
     unit = None
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000.4, unit=unit)
