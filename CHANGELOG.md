@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.6.3 (2022-08-05)
 
+- Changes to InstrumentMonitor and PlotMonitor to fix errors due to racing conditions. (!358)
 - Can save metadata with `QuantifyExperiment` (!355)
 - Contribution guidelines updated, added: Versioning, Backward Compatibility and Deprecation Policy (!282)
 
