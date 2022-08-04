@@ -42,6 +42,11 @@ def test_si_scale_factors() -> None:
     assert scale_factor == 1000
     assert "m" + unit == post_unit
 
+    unit = "ns"
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000.4, unit=unit)
+    assert scale_factor == 1e-3
+    assert "μs" == post_unit
+
 
 def test_label_scaling() -> None:
     """

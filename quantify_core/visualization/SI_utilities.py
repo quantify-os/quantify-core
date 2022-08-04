@@ -144,6 +144,12 @@ SI_UNITS = (
     r"Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
 )  # noqa: W605
 
+SI_PREFIXES_REVERSE = {v: key for key, v in SI_PREFIXES.items()}
+SI_PREFIXES_REVERSE["u"] = -6
+SI_UNITS_PLUS = [f"{p}s" for p in ["p", "n", "u", "m"]] + [
+    f"{p}s" for p in ["T", "G", "M", "k"]
+]
+
 
 def SI_prefix_and_scale_factor(val, unit=None):
     """
@@ -167,6 +173,12 @@ def SI_prefix_and_scale_factor(val, unit=None):
     scaled_unit : str
         unit including the prefix
     """
+    if unit in SI_UNITS_PLUS:
+        plus_scale = 10 ** (SI_PREFIXES_REVERSE[unit[0]])
+        unit = unit[1:]
+        scale_factor, scaled_unit = SI_prefix_and_scale_factor(val * plus_scale, unit)
+        return plus_scale * scale_factor, scaled_unit
+
     if unit in SI_UNITS:
         try:
             with np.errstate(all="ignore"):
