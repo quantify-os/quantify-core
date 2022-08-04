@@ -16,7 +16,6 @@ pytest
 pytest-runner
 pytest-cov
 pytest-xdist # run parallel tests
-pygments==2.6.1
 
 black
 pylint
@@ -25,7 +24,6 @@ pre-commit-hooks # common hooks for git repos
 isort>=5.10.0 # sort python imports
 
 scanpydoc >=0.7.1, <=0.7.3 # ensures latest typing_extensions is used in sphinx (https://github.com/theislab/scanpydoc/issues/31)
-docutils<0.17 # pinned due to issue #175
 rich[jupyter]
 jupytext
 
