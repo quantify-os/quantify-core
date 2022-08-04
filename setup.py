@@ -21,7 +21,7 @@ def get_version_and_cmdclass(pkg_path):
 
 version, cmdclass = get_version_and_cmdclass(r"quantify_core")
 
-with open("README.md") as readme_file:
+with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 with open("CHANGELOG.md") as history_file:
