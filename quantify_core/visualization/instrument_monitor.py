@@ -79,7 +79,6 @@ class InstrumentMonitor(Instrument):
 
         self._update_lock = Lock()
         self._update_thread = RepeatTimer(update_interval, self._update)
-        self._update_thread.start()
 
         for i in range(10):
             try:
@@ -92,6 +91,8 @@ class InstrumentMonitor(Instrument):
                 self._init_qt()
             else:
                 break
+
+        self._update_thread.start()  # Only start updating after widget is created
 
     def _get_update_interval(self):
         return self._update_thread.interval
@@ -175,16 +176,19 @@ class InstrumentMonitor(Instrument):
         resources to close.
         """
         self._update_thread.cancel()
+        self._update_thread.join()
 
         if hasattr(self, "connection") and hasattr(self.connection, "close"):
             self.connection.close()
 
         # Essential!!!
         # Close the process
-        self.__class__.proc.join()
+        # Although _update_thread is cancelled, _update may still be running; wait for it to finish
+        with self._update_lock:
+            self.proc.join()
 
-        strip_attrs(self, whitelist=["_name"])
-        self.remove_instance(self)
+            strip_attrs(self, whitelist=["_name"])
+            self.remove_instance(self)
 
 
 class RepeatTimer(Thread):

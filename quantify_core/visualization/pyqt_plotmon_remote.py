@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import itertools
 import os
+import warnings
 from collections import deque
 from collections.abc import Iterable
-from multiprocessing import Queue
-import warnings
+from multiprocessing import Queue, Event
 
 import numpy as np
 from filelock import FileLock
@@ -29,7 +29,6 @@ from quantify_core.utilities.general import last_modified
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
-
 
 warnings.filterwarnings(
     action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
@@ -119,6 +118,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         # This line requires the QtPlot's to be created with `remote=False`
         self.timer_queue = QtCore.QTimer(self.main_QtPlot.win)
         self.timer_queue.timeout.connect(self._exec_queue)
+        self.timer_queue.setSingleShot(True)  # Explicitly reload later for robustness
+        self.is_stopped = Event()
+        self.to_be_stopped = Event()
         self.timer_queue.start(self._update_interval_ms)
 
         if _appnope.requires_appnope():
@@ -138,8 +140,6 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         To be called periodically by `_run` in order to execute the pending
         commands in `self.queue`
         """
-        # Do not call again while processing
-        self.timer_queue.stop()
         unique_updates = {}
         while not self.queue.empty():
             attr_name, args = self.queue.get()
@@ -157,7 +157,18 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         for attr_name, args in unique_updates.keys():
             getattr(self, attr_name)(*args)
 
-        self.timer_queue.start(self._update_interval_ms)
+        if self.to_be_stopped.is_set():
+            self.is_stopped.set()
+        else:  # Reload timer
+            self.timer_queue.start(self._update_interval_ms)
+
+    def stop(self) -> None:
+        """
+        To be called by main process to stop timer_queue QTimer before closing the remote process.
+        """
+        # It would be nicer to wait for is_stopped in this function, but this also blocks the QEventloop / QTimer and
+        # results in a deadlock. This may be solved by putting QTimer in a separate thread.
+        self.to_be_stopped.set()
 
     # ##################################################################
 
@@ -299,8 +310,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         Can also be used to recreate these when plotting has crashed.
         """
         if hasattr(self, "main_QtPlot"):
+            self.main_QtPlot.win.close()  # Close window to prevent having multiple windows open
             del self.main_QtPlot
         if hasattr(self, "secondary_QtPlot"):
+            self.secondary_QtPlot.win.close()  # Close window to prevent having multiple windows open
             del self.secondary_QtPlot
 
         self.secondary_QtPlot = QtPlot(
@@ -570,7 +583,11 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 key = xi + yi
                 self.curves[tuid][key]["config"]["x"] = dset[xi].values
                 self.curves[tuid][key]["config"]["y"] = dset[yi].values
-        self.main_QtPlot.update_plot()
+
+        try:
+            self.main_QtPlot.update_plot()
+        except RuntimeError:  # Suppress RuntimeError: wrapped C/C++ object of type PlotDataItem has been deleted
+            return
 
         ################# SECONDARY PLOT ############################
         # Add a square heatmap

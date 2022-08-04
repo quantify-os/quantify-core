@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.6.3 (2022-08-05)
 
-- Can save metadata with `QuantifyExperiment` (!315)
+- Changes to InstrumentMonitor and PlotMonitor to fix errors due to racing conditions. (!358)
+- Can save metadata with `QuantifyExperiment` (!355)
+- Contribution guidelines updated, added: Versioning, Backward Compatibility and Deprecation Policy (!282)
+- MeasurementControl - Fix `print_progress` for 0 progress (!363)
+
 ## 0.6.2 (2022-06-30)
 
 - Sanitize Markdown for proper display on PyPi.

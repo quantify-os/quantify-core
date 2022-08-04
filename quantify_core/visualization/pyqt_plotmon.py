@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph based plotting monitor."""
+import time
 import warnings
 
 import pyqtgraph.multiprocess as pgmp
@@ -207,6 +208,14 @@ class PlotMonitor_pyqt(Instrument):
         Subclasses should override this if they have other specific
         resources to close.
         """
+        # Stop the RemotePlotmon, so the timer_queue QTimer is stopped before closing the process
+        self._remote_plotmon.stop()
+        # is_stopped.wait() cannot be used (here or in .stop()) because it blocks the QTimer and causes a deadlock. For
+        # the same reason, this sleep loop can also not be in .stop().
+        # To solve this, the QTimer could be put in a separate thread.
+        while not self._remote_plotmon.is_stopped.is_set():
+            time.sleep(self._remote_plotmon._update_interval_ms / 1000 / 10)
+
         if hasattr(self, "connection") and hasattr(self.connection, "close"):
             self.connection.close()
 

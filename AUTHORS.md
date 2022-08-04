@@ -16,6 +16,7 @@
 - [Edgar Reehuis](mailto:ereehuis@qblox.com)
 - [Konstantin Lehmann](mailto:konstantin@orangeqs.com)
 - [Tim Vroomans](mailto:tim@orangeqs.com)
+- [Gabor Oszkar Denes](mailto:gdenes@qblox.com)
 
 ## Contributors
 
