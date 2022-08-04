@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Remove various old temp requirement pins (counterpart of quantify-scheduler!447) (!368)
+
 ## 0.6.3 (2022-08-05)
 
 - Changes to InstrumentMonitor and PlotMonitor to fix errors due to racing conditions. (!358)
