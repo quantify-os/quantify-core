@@ -55,7 +55,14 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
             sub_snap = snapshot[instrument]
             # Name of the node in the self.nodes dictionary
             instrument_name = sub_snap["name"]
-            node = self._add_node(parent, instrument_name, instrument_name)
+
+            # Default to instrument_name for backwards compatibility.
+            # "label" is not present in qcodes<0.36.
+            instrument_label = instrument_name
+            if "label" in sub_snap:
+                instrument_label = sub_snap["label"]
+
+            node = self._add_node(parent, instrument_label, instrument_name)
             self._fill_node_recursively(sub_snap, node, instrument_name)
 
     def _add_node(self, parent, display_string, node_key):
@@ -66,6 +73,17 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
         return node
 
     def _fill_node_recursively(self, snapshot, node, node_key):
+        """Takes an existing ``node``. Fills it with new nodes based on ``snapshot``.
+
+        Parameters
+        ----------
+        snapshot
+            Snapshot with information about content of ``node``
+        node
+            Node to be filled with information
+        node_key
+            Key of the existing ``node``
+        """
         sub_snaps = {}
         for key in ["submodules", "channels"]:
             sub_snaps.update(snapshot.get(key, {}))
@@ -78,7 +96,14 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
                     sub_snapshot_key, node_key_part
                 )
             sub_node_key = f"{node_key}.{sub_snapshot_key}"
-            sub_node = self._add_node(node, sub_snapshot_key, sub_node_key)
+
+            # Default to sub_snapshot_key for backwards compatibility.
+            # "label" is not present in qcodes<0.36.
+            instrument_label = sub_snapshot_key
+            if "label" in sub_snap:
+                instrument_label = sub_snap["label"]
+
+            sub_node = self._add_node(node, instrument_label, sub_node_key)
             self._fill_node_recursively(sub_snap, sub_node, sub_node_key)
 
         # Don't sort keys if we encounter an OrderedDict

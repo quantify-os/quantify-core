@@ -112,24 +112,27 @@ class TestQcSnapshotWidget:
             "name": "string_representation",
             "value": 1,
         }
+        ins = {
+            "parameters": {"param1": param},
+            "name": "ins",
+            "label": "Instrument label",
+        }
         test_snapshot = {
             "test_snapshot": {
                 "name": "test_snapshot",
                 "parameters": {"snapshot": param},
-                "submodules": {"sub1": {"parameters": {"param1": param}}},
+                "submodules": {"ins": ins},
                 "channels": {"ch1": {"parameters": {"param1": param}}},
                 "others": {"other1": {"parameters": {"param1": param}}},
             }
         }
         self.widget.buildTreeSnapshot(test_snapshot)
         nodes_str = self.widget.getNodes()
-        assert (
-            "test_snapshot" in nodes_str
-            and "QTreeWidgetItem" in nodes_str
-            and "test_snapshot.sub1.param1" in nodes_str
-            and "test_snapshot.ch1.param1" in nodes_str
-            and "test_snapshot.other1.param1" not in nodes_str
-        )
+        assert "test_snapshot" in nodes_str
+        assert "QTreeWidgetItem" in nodes_str
+        assert "test_snapshot.ins.param1" in nodes_str
+        assert "test_snapshot.ch1.param1" in nodes_str
+        assert "test_snapshot.other1.param1" not in nodes_str
 
 
 def test_parameter_conversion():
