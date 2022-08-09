@@ -1471,13 +1471,7 @@ def test_grid_setpoints():
 @pytest.mark.parametrize(
     "verbose, number_setpoints, fracdone, expected_progress_message",
     [
-        (False, 0, 0, ""),
-        (
-            True,
-            0,
-            0,
-            "No setpoints, progress cannot be defined\n",
-        ),
+        (False, 10, 0, ""),
         (
             True,
             10,
@@ -1515,5 +1509,20 @@ def test_print_progress(
         meas_ctrl.print_progress()
         out, _ = capsys.readouterr()
         assert out == expected_progress_message
+
+    meas_ctrl.close()
+
+
+def test_print_progress_no_setpoints(mocker):
+    meas_ctrl = MeasurementControl("meas_ctrl_no_setpoints")
+
+    with mocker.patch(
+        "quantify_core.measurement.control.MeasurementControl._get_fracdone",
+        side_effect=[0],
+    ):
+        with pytest.raises(
+            ValueError, match="No setpoints available, progress cannot be defined"
+        ):
+            meas_ctrl.print_progress()
 
     meas_ctrl.close()
