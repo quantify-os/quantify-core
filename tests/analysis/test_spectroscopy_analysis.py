@@ -49,7 +49,8 @@ def analyses(tmp_test_data_dir):
     return analysis
 
 
-def test_load_fit_results(analyses):
+def test_load_fit_results(analyses, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
     for analysis in analyses:
         for fit_name, fit_result in analysis.fit_results.items():
 

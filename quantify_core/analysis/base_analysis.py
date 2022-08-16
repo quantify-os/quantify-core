@@ -296,14 +296,18 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         :
             The lmfit model result object.
         """
-
-        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{cls.__name__}"
+        analysis_dir = cls._get_analysis_dir(
+            tuid=tuid, name=cls.__name__, create_missing=False
+        )
 
         if not analysis_dir.is_dir():
-            raise FileNotFoundError("Analysis not found in current experiment.")
+            raise FileNotFoundError(
+                f"Analysis not found for this experiment ({analysis_dir} not found)."
+            )
 
-        results_dir = analysis_dir / "fit_results"
+        results_dir = cls._get_results_dir(
+            analysis_dir=analysis_dir, create_missing=False
+        )
 
         if not results_dir.is_dir():
             raise FileNotFoundError("No fit results found for this analysis.")
@@ -322,21 +326,67 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         # used to store data and figures resulting from the analysis. Can be overwritten
         return self.__class__.__name__
 
+    @staticmethod
+    def _get_analysis_dir(tuid: TUID, name: str, create_missing: bool = True):
+        """
+        Generate an analysis dir based on a given tuid and analysis class name.
+
+        Parameters
+        ------------
+        tuid:
+            TUID of the analysis dir.
+        name:
+            The name of the analysis class.
+        create_missing:
+            If True, create the analysis dir if it does not already exist.
+
+        """
+        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+        analysis_dir = exp_folder / f"analysis_{name}"
+        if create_missing:
+            if not os.path.isdir(analysis_dir):
+                os.makedirs(analysis_dir)
+
+        return analysis_dir
+
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. Will create a directory if it does not exist
-        yet.
+        Analysis dir based on the tuid of the analysis class instance.
+        Will create a directory if it does not exist.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
-        # This is a property as it depends
-        exp_folder = Path(locate_experiment_container(self.tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{self.name}"
-        if not os.path.isdir(analysis_dir):
-            os.makedirs(analysis_dir)
 
-        return analysis_dir
+        return self._get_analysis_dir(tuid=self.tuid, name=self.name)
+
+    @staticmethod
+    def _get_results_dir(analysis_dir: str, create_missing: bool = True):
+        """
+        Generate an results dir based on a given analysis dir path.
+
+        Parameters
+        ------------
+        analysis_dir:
+            The path of the analysis directory.
+        create_missing:
+            If True, create the analysis dir if it does not already exist.
+
+        """
+        results_dir = analysis_dir / "fit_results"
+        if create_missing:
+            if not os.path.isdir(results_dir):
+                os.makedirs(results_dir)
+
+        return results_dir
+
+    @property
+    def results_dir(self):
+        """
+        Analysis dirrectory for this analysis.
+        Will create a directory if it does not exist.
+        """
+        return self._get_results_dir(analysis_dir=self.analysis_dir)
 
     def run(self) -> BaseAnalysis:
         """
@@ -579,13 +629,10 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         Saves the :code:`lmfit.model.model_result` objects for each fit in a
         sub-directory within the analysis directory
         """
-        results_dir = self.analysis_dir / "fit_results"
-        if not os.path.isdir(results_dir):
-            os.makedirs(results_dir)
 
         for fr_name, fit_result in self.fit_results.items():
             filename = f"{fr_name}.txt"
-            path = os.path.join(self.analysis_dir, "fit_results", filename)
+            path = os.path.join(self.results_dir, filename)
 
             lmfit.model.save_modelresult(fit_result, path)
 

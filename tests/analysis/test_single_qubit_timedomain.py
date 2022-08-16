@@ -29,7 +29,8 @@ def t1_analysis_no_cal_points(tmp_test_data_dir):
     return T1Analysis(tuid=tuid).run()
 
 
-def test_t1_load_fit_results(t1_analysis_no_cal_points):
+def test_t1_load_fit_results(t1_analysis_no_cal_points, tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
     for fit_name, fit_result in t1_analysis_no_cal_points.fit_results.items():
 
         loaded_fit_result = T1Analysis.load_fit_result(
@@ -210,7 +211,8 @@ def ramsey_analysis_qubit_freq(tmp_test_data_dir):
     return analysis
 
 
-def test_ramsey_load_fit_results(ramsey_analysis_qubit_freq):
+def test_ramsey_load_fit_results(ramsey_analysis_qubit_freq, tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
     for fit_name, fit_result in ramsey_analysis_qubit_freq.fit_results.items():
 
         loaded_fit_result = RamseyAnalysis.load_fit_result(
@@ -392,7 +394,8 @@ def rabi_analysis_obj(tmp_test_data_dir):
     return rabi_analysis_obj
 
 
-def test_rabi_load_fit_results(rabi_analysis_obj):
+def test_rabi_load_fit_results(rabi_analysis_obj, tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
     for fit_name, fit_result in rabi_analysis_obj.fit_results.items():
 
         loaded_fit_result = RabiAnalysis.load_fit_result(
