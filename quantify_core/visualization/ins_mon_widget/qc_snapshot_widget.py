@@ -1,12 +1,15 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph based plotting monitor."""
+import json
 from enum import Enum
 import pprint
 from typing import Any, Optional, Tuple
 from collections import OrderedDict
 
+import PyQt5
 from pyqtgraph.Qt import QtCore, QtGui
+from qcodes.utils.helpers import NumpyJSONEncoder
 
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
@@ -199,4 +202,16 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
         return in_string
 
     def getNodes(self):
-        return pprint.pformat(self.nodes)
+        class QTreeWidgetEncoder(NumpyJSONEncoder):
+            def default(self, obj: Any) -> Any:
+                if isinstance(obj, PyQt5.QtWidgets.QTreeWidgetItem):
+                    return {
+                        f"{key}{col}": getattr(obj, key)(col)
+                        for key in ["text"]
+                        for col in range(obj.columnCount())
+                    }
+
+                return super().default(obj)
+
+        return json.dumps(self.nodes, cls=QTreeWidgetEncoder)
+        # return pprint.pformat(self.nodes)

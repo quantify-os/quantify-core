@@ -128,8 +128,9 @@ class TestQcSnapshotWidget:
         }
         self.widget.buildTreeSnapshot(test_snapshot)
         nodes_str = self.widget.getNodes()
+        print(f"\n{nodes_str=}")
         assert "test_snapshot" in nodes_str
-        assert "QTreeWidgetItem" in nodes_str
+        assert "Instrument label" in nodes_str
         assert "test_snapshot.ins.param1" in nodes_str
         assert "test_snapshot.ch1.param1" in nodes_str
         assert "test_snapshot.other1.param1" not in nodes_str
