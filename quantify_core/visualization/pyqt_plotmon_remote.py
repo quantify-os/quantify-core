@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import itertools
 import os
+import warnings
 from collections import deque
 from collections.abc import Iterable
-from multiprocessing import Queue
-import warnings
+from multiprocessing import Queue, Event
 
 import numpy as np
 from filelock import FileLock
@@ -30,7 +30,6 @@ from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
-
 warnings.filterwarnings(
     action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
 )
@@ -45,6 +44,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
     A plot monitor is intended to provide a real-time visualization of datasets.
     """
+
+    color_map = "viridis"
+    """The color_map to use for the secondary plot."""
 
     def __init__(self, instr_name: str, dataset_locks_dir: str):
         # Used to mirror the name of the instrument in the windows titles
@@ -116,6 +118,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         # This line requires the QtPlot's to be created with `remote=False`
         self.timer_queue = QtCore.QTimer(self.main_QtPlot.win)
         self.timer_queue.timeout.connect(self._exec_queue)
+        self.timer_queue.setSingleShot(True)  # Explicitly reload later for robustness
+        self.is_stopped = Event()
+        self.to_be_stopped = Event()
         self.timer_queue.start(self._update_interval_ms)
 
         if _appnope.requires_appnope():
@@ -135,8 +140,6 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         To be called periodically by `_run` in order to execute the pending
         commands in `self.queue`
         """
-        # Do not call again while processing
-        self.timer_queue.stop()
         unique_updates = {}
         while not self.queue.empty():
             attr_name, args = self.queue.get()
@@ -154,7 +157,18 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         for attr_name, args in unique_updates.keys():
             getattr(self, attr_name)(*args)
 
-        self.timer_queue.start(self._update_interval_ms)
+        if self.to_be_stopped.is_set():
+            self.is_stopped.set()
+        else:  # Reload timer
+            self.timer_queue.start(self._update_interval_ms)
+
+    def stop(self) -> None:
+        """
+        To be called by main process to stop timer_queue QTimer before closing the remote process.
+        """
+        # It would be nicer to wait for is_stopped in this function, but this also blocks the QEventloop / QTimer and
+        # results in a deadlock. This may be solved by putting QTimer in a separate thread.
+        self.to_be_stopped.set()
 
     # ##################################################################
 
@@ -296,8 +310,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         Can also be used to recreate these when plotting has crashed.
         """
         if hasattr(self, "main_QtPlot"):
+            self.main_QtPlot.win.close()  # Close window to prevent having multiple windows open
             del self.main_QtPlot
         if hasattr(self, "secondary_QtPlot"):
+            self.secondary_QtPlot.win.close()  # Close window to prevent having multiple windows open
             del self.secondary_QtPlot
 
         self.secondary_QtPlot = QtPlot(
@@ -329,7 +345,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         self.curves = {}
 
-        if not len(self._dsets):
+        if not self._dsets:
             # Nothing to be done
             return
 
@@ -338,7 +354,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         set_parnames = _get_parnames(a_dset, par_type="x")
         get_parnames = _get_parnames(a_dset, par_type="y")
 
-        #############################################################
+        ################# MAIN PLOT #################################
 
         fadded_colors = make_fadded_colors(
             num=len(self._tuids), color=color_cycle[0], to_hex=True
@@ -351,10 +367,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         # We reserve "o" symbol for the latest dataset
         symbols = tuple(
             self.symbols[i % len(self.symbols)]
-            for i in range(len(all_colors) - bool(len(fadded_colors)))
+            for i in range(len(all_colors) - bool(fadded_colors))
         )
         # In case only extra datasets are present
-        symbols = (symbols + ("o",)) if len(fadded_colors) else symbols
+        symbols = (symbols + ("o",)) if fadded_colors else symbols
         symbols_brush = fadded_colors + ((0, 0, 0, 0),) * len(self._tuids_extra)
         symbols_brush = tuple(reversed(symbols_brush))
 
@@ -385,7 +401,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     )
 
                     # Keep track of all traces so that any curves can be updated
-                    if tuid not in self.curves.keys():
+                    if tuid not in self.curves:
                         self.curves[tuid] = {}
                     self.curves[tuid][xi + yi] = self.main_QtPlot.traces[-1]
 
@@ -396,8 +412,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         self.main_QtPlot.update_plot()
 
-        #############################################################
-
+        ################# SECONDARY PLOT ############################
         # On the secondary window we plot the first dset that is 2D
         # Below are some "extra" checks that are not currently strictly required
 
@@ -410,6 +425,13 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self._tuid_2d = self._tuids_2d[0] if self._tuids_2d else None
 
         dset = self._dsets[self._tuid_2d] if self._tuid_2d else None
+        if dset is not None:
+            plot_info_xy = {
+                "xlabel": dset["x0"].attrs["long_name"],
+                "xunit": dset["x0"].attrs["units"],
+                "ylabel": dset["x1"].attrs["long_name"],
+                "yunit": dset["x1"].attrs["units"],
+            }
 
         # Add a square heatmap
 
@@ -419,14 +441,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         is_uniformly_spaced = dset and dset.attrs.get(
             "grid_2d_uniformly_spaced", dset.attrs.get("2D-grid", False)
-        )  # "2D-grid" is for legacy datasets support"
+        )  # "2D-grid" is for legacy datasets support
         if is_uniformly_spaced:
             plot_idx = 1
             for yi in get_parnames:
-
-                cmap = "viridis"
-                zrange = None
-
                 x = dset["x0"].values[: dset.attrs["xlen"]]
                 y = dset["x1"].values[:: dset.attrs["xlen"]]
                 z = np.reshape(dset[yi].values, (len(x), len(y)), order="F").T
@@ -434,46 +452,63 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     "x": x,
                     "y": y,
                     "z": z,
-                    "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["units"],
-                    "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["units"],
+                    **plot_info_xy,
                     "zlabel": dset[yi].attrs["long_name"],
                     "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
-                    "cmap": cmap,
+                    "cmap": self.color_map,
                 }
-                if zrange is not None:
-                    config_dict["zrange"] = zrange
                 self.secondary_QtPlot.add(**config_dict)
                 plot_idx += 1
 
         #############################################################
+        # if data has two uniformly spaced settables in 1D, do not interpolate
+        # (because it fails) and just put the values on the diagonal
+        elif (
+            dset
+            and len(set_parnames) == 2
+            and dset.attrs["1d_2_settables_uniformly_spaced"]
+        ):
+            plot_idx = 1
+            x = dset["x0"].values
+            y = dset["x1"].values
+            shape = (len(x), len(y))
+            for yi in get_parnames:
+                # the background values of z_matrix are filled to be np.nan. Note that
+                # qcodes.plots.pyqtgraph.QtPlot._update_image converts np.nan to the
+                # minimum value though it should be possible to have NaNs in pyqtgraph
+                z_matrix = np.full(shape, np.nan)
+                np.fill_diagonal(z_matrix, dset[yi].values)
+                z = np.reshape(z_matrix, shape, order="F").T
+                config_dict = {
+                    "x": x,
+                    "y": y,
+                    "z": z,
+                    **plot_info_xy,
+                    "zlabel": dset[yi].attrs["long_name"],
+                    "zunit": dset[yi].attrs["units"],
+                    "subplot": plot_idx,
+                    "cmap": self.color_map,
+                }
+                self.secondary_QtPlot.add(**config_dict)
+                self._im_curves.append(self.secondary_QtPlot.traces[-1])
+                plot_idx += 1
 
+        #############################################################
         # if data is not on a uniformly spaced grid but is 2D then interpolate
-
         elif dset and len(set_parnames) == 2:
             plot_idx = 1
             for yi in get_parnames:
-
-                cmap = "viridis"
-                zrange = None
-
                 config_dict = {
                     "x": [0, 1],
                     "y": [0, 1],
                     "z": np.zeros([2, 2]),
-                    "xlabel": dset["x0"].attrs["long_name"],
-                    "xunit": dset["x0"].attrs["units"],
-                    "ylabel": dset["x1"].attrs["long_name"],
-                    "yunit": dset["x1"].attrs["units"],
+                    **plot_info_xy,
                     "zlabel": dset[yi].attrs["long_name"],
                     "zunit": dset[yi].attrs["units"],
                     "subplot": plot_idx,
-                    "cmap": cmap,
+                    "cmap": self.color_map,
                 }
-                if zrange is not None:
-                    config_dict["zrange"] = zrange
                 self.secondary_QtPlot.add(**config_dict)
                 self._im_curves.append(self.secondary_QtPlot.traces[-1])
 
@@ -487,10 +522,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     symbol="o",
                     symbolSize=4,
                     subplot=plot_idx,
-                    xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["units"],
-                    ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["units"],
+                    **plot_info_xy,
                 )
                 self._im_scatters.append(self.secondary_QtPlot.traces[-1])
 
@@ -503,13 +535,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     symbol="o",
                     symbolSize=7,
                     subplot=plot_idx,
-                    xlabel=dset["x0"].attrs["long_name"],
-                    xunit=dset["x0"].attrs["units"],
-                    ylabel=dset["x1"].attrs["long_name"],
-                    yunit=dset["x1"].attrs["units"],
+                    **plot_info_xy,
                 )
                 self._im_scatters_last.append(self.secondary_QtPlot.traces[-1])
-
                 plot_idx += 1
 
         self.secondary_QtPlot.update_plot()
@@ -520,7 +548,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         Updates the plots to reflect the latest data.
         """
 
-        if tuid is not None and tuid not in self._dsets.keys():
+        if tuid is not None and tuid not in self._dsets:
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
             self.tuids_append(tuid, datadir)
@@ -549,16 +577,19 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         update_2d = tuid is not None and tuid == self._tuid_2d
 
-        #############################################################
-
+        ################# MAIN PLOT #################################
         for yi in get_parnames:
             for xi in set_parnames:
                 key = xi + yi
                 self.curves[tuid][key]["config"]["x"] = dset[xi].values
                 self.curves[tuid][key]["config"]["y"] = dset[yi].values
-        self.main_QtPlot.update_plot()
 
-        #############################################################
+        try:
+            self.main_QtPlot.update_plot()
+        except RuntimeError:  # Suppress RuntimeError: wrapped C/C++ object of type PlotDataItem has been deleted
+            return
+
+        ################# SECONDARY PLOT ############################
         # Add a square heatmap
         is_uniformly_spaced = dset.attrs.get(
             "grid_2d_uniformly_spaced", dset.attrs.get("2D-grid", False)
@@ -571,7 +602,25 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                     order="F",
                 ).T
                 self.secondary_QtPlot.traces[yidx]["config"]["z"] = z_data
-            self.secondary_QtPlot.update_plot()
+
+        #############################################################
+        # if data has two uniformly spaced settables in 1D, do not interpolate
+        # (because it fails) and just put the values on the diagonal
+        elif (
+            update_2d
+            and len(set_parnames) == 2
+            and dset.attrs["1d_2_settables_uniformly_spaced"]
+        ):
+            for yidx, yi in enumerate(get_parnames):
+                # the background values of z_matrix are filled to be np.nan.
+                # Note that qcodes.plots.pyqtgraph.QtPlot._update_image converts
+                # np.nan to the minimum value although it _should_ be possible to
+                # have NaNs in pyqtgraph.
+                shape = (len(dset["x0"].values), len(dset["x1"].values))
+                z_matrix = np.full(shape, np.nan)
+                np.fill_diagonal(z_matrix, dset[yi].values)
+                z_data = np.reshape(z_matrix, shape, order="F").T
+                self.secondary_QtPlot.traces[yidx]["config"]["z"] = z_data
 
         #############################################################
         # if data is not on a grid but is 2D it makes sense to interpolate
@@ -586,29 +635,33 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
                 # interpolation needs to be meaningful
                 if len(z) < 8:
                     break
+
+                # If data is one-dimensional, skip plotting.
+                # Scipy's LinearNDInterpolator cannot interpolate 1d data
+                # (used in interpolate_heatmap).
+                all_x_equal = (x == x[0]).all()
+                all_y_equal = (y == y[0]).all()
+                if all_x_equal or all_y_equal:
+                    break
+
                 x_grid, y_grid, z_grid = interpolate_heatmap(
                     x=x, y=y, z=z, interp_method="linear"
                 )
 
                 trace = self._im_curves[yidx]
-                trace["config"]["x"] = x_grid
-                trace["config"]["y"] = y_grid
-                trace["config"]["z"] = z_grid
-                # force rescale axis so marking datapoints works
-                trace["plot_object"]["scales"]["x"] = new_sc
-                trace["plot_object"]["scales"]["y"] = new_sc
+                trace["config"].update({"x": x_grid, "y": y_grid, "z": z_grid})
 
-                # Mark all measured points on which the interpolation
-                # is based
+                # force rescale axis so marking datapoints works
+                trace["plot_object"]["scales"].update({"x": new_sc, "y": new_sc})
+
+                # Mark all measured points on which the interpolation is based
                 trace = self._im_scatters[yidx]
-                trace["config"]["x"] = x
-                trace["config"]["y"] = y
+                trace["config"].update({"x": x, "y": y})
 
                 trace = self._im_scatters_last[yidx]
-                trace["config"]["x"] = x[-5:]
-                trace["config"]["y"] = y[-5:]
+                trace["config"].update({"x": x[-5:], "y": y[-5:]})
 
-            self.secondary_QtPlot.update_plot()
+        self.secondary_QtPlot.update_plot()
 
     def _get_curves_config(self):
         """

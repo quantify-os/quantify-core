@@ -1,0 +1,94 @@
+{
+    "instruments": {
+        "meas_ctrl": {
+            "submodules": {},
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "name": "IDN",
+                    "label": "IDN"
+                },
+                "lazy_set": {
+                    "value": false,
+                    "ts": "2022-04-09 09:56:54",
+                    "unit": "",
+                    "name": "lazy_set",
+                    "label": "lazy_set"
+                },
+                "verbose": {
+                    "value": true,
+                    "ts": "2022-04-09 09:56:47",
+                    "unit": "",
+                    "name": "verbose",
+                    "label": "verbose"
+                },
+                "on_progress_callback": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "name": "on_progress_callback",
+                    "label": "on_progress_callback"
+                },
+                "instr_plotmon": {
+                    "value": "Plot Monitor",
+                    "ts": "2022-04-09 09:56:54",
+                    "unit": "",
+                    "name": "instr_plotmon",
+                    "label": "instr_plotmon"
+                },
+                "instrument_monitor": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "name": "instrument_monitor",
+                    "label": "instrument_monitor"
+                },
+                "update_interval": {
+                    "value": 0.5,
+                    "ts": "2022-04-09 09:56:47",
+                    "unit": "",
+                    "name": "update_interval",
+                    "label": "update_interval"
+                }
+            },
+            "name": "meas_ctrl"
+        },
+        "Plot Monitor": {
+            "submodules": {},
+            "parameters": {
+                "IDN": {
+                    "value": null,
+                    "ts": null,
+                    "unit": "",
+                    "name": "IDN",
+                    "label": "IDN"
+                },
+                "tuids_max_num": {
+                    "value": 3,
+                    "ts": "2022-04-09 09:56:54",
+                    "unit": "",
+                    "name": "tuids_max_num",
+                    "label": "tuids_max_num"
+                },
+                "tuids": {
+                    "value": [],
+                    "ts": "2022-04-09 09:56:54",
+                    "unit": "",
+                    "name": "tuids",
+                    "label": "tuids"
+                },
+                "tuids_extra": {
+                    "value": [],
+                    "ts": "2022-04-09 09:56:54",
+                    "unit": "",
+                    "name": "tuids_extra",
+                    "label": "tuids_extra"
+                }
+            },
+            "name": "Plot Monitor"
+        }
+    },
+    "parameters": {}
+}

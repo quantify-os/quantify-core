@@ -3,7 +3,7 @@
 """
 Module containing an education example of an analysis subclass.
 
-See :ref:`analysis_framework_tutorial` that guides you through the process of building
+See :ref:`analysis-framework-tutorial` that guides you through the process of building
 this analysis.
 """
 
@@ -40,7 +40,7 @@ class CosineAnalysis(ba.BaseAnalysis):
         """
         # create a fitting model based on a cosine function
         model = CosineModel()
-        guess = model.guess(self.dataset.y0.values)
+        guess = model.guess(self.dataset.y0.values, x=self.dataset.x0.values)
         result = model.fit(
             self.dataset.y0.values, x=self.dataset.x0.values, params=guess
         )

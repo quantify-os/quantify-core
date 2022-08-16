@@ -10,7 +10,13 @@ import pytest
 
 
 def test_header() -> None:
-    skipfiles = {"__init__.py", "conftest.py", "setup.py"}
+    skipfiles = {
+        "__init__.py",
+        "conftest.py",
+        "setup.py",
+        "_version.py",
+        "_static_version.py",
+    }
     skipdirs = {"docs", ".", "tests", "__pycache__", "venv"}
     failures = []
     quantify_core_path = Path(__file__).resolve().parent.parent.resolve()

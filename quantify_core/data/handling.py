@@ -10,8 +10,9 @@ import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Dict, Any
 from uuid import uuid4
+from copy import deepcopy
 
 import numpy as np
 import xarray as xr
@@ -19,6 +20,7 @@ from dateutil.parser import parse
 from qcodes import Instrument
 
 import quantify_core.data.dataset_adapters as da
+import quantify_core.data.handling as dh
 from quantify_core.data.types import TUID
 from quantify_core.utilities.general import delete_keys_from_dict, get_subclasses
 
@@ -29,6 +31,53 @@ this._datadir = None
 DATASET_NAME = "dataset.hdf5"
 QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
 PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
+
+
+class DecodeToNumpy(json.JSONDecoder):
+    def __init__(self, list_to_ndarray: bool = False, *args, **kwargs):
+        """Decodes a JSON object to Python/Numpy's objects.
+
+        Example
+        -------
+        json.loads(json_string, cls=DecodeToNumpy, list_to_numpy=True)
+
+        Parameters
+        ----------
+        list_to_numpy
+            If True, will try to convert python lists to a numpy array.
+
+        """
+        self.list_to_ndarray = list_to_ndarray
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+    def object_hook(self, obj):
+        for key, val in obj.items():
+            if self.list_to_ndarray:
+                if isinstance(val, list):
+                    obj[key] = np.array(val)
+        return obj
+
+
+def default_datadir(verbose: bool = True) -> Path:
+    """Returns (and optionally print) a default datadir path.
+
+    Intended for fast prototyping, tutorials, examples, etc..
+
+    Parameters
+    ----------
+    verbose
+        If ``True`` prints the returned datadir.
+
+    Returns
+    -------
+    :
+        The ``Path.home() / "quantify-data"`` path.
+    """
+    datadir = (Path.home() / "quantify-data").resolve()
+    if verbose:
+        print(f"Data will be saved in:\n{datadir}")
+
+    return datadir
 
 
 def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
@@ -84,7 +133,7 @@ def get_datadir() -> str:
     return this._datadir
 
 
-def set_datadir(datadir: str) -> None:
+def set_datadir(datadir: Union[str, None]) -> None:
     """
     Sets the data directory.
 
@@ -94,6 +143,9 @@ def set_datadir(datadir: str) -> None:
         Path of the data directory. If set to ``None``, resets the datadir to the
         default datadir (``<top_level>/data``).
     """
+    if datadir is None:
+        datadir = default_datadir()
+
     if not os.path.isdir(datadir):
         os.mkdir(datadir)
     this._datadir = datadir
@@ -345,7 +397,12 @@ def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
     dataset.to_netcdf(path, engine="h5netcdf", invalid_netcdf=True)
 
 
-def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") -> dict:
+def load_snapshot(
+    tuid: TUID,
+    datadir: str = None,
+    list_to_ndarray: bool = False,
+    file: str = "snapshot.json",
+) -> dict:
     """
     Loads a snapshot specified by a tuid.
 
@@ -357,6 +414,9 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
     datadir
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
+    list_to_ndarray
+        Uses an internal DecodeToNumpy decoder which allows a user to automatically
+        convert a list to numpy array during deserialization of the snapshot.
     file
         Filename to load.
     Returns
@@ -369,7 +429,7 @@ def load_snapshot(tuid: TUID, datadir: str = None, file: str = "snapshot.json") 
         No data found for specified date.
     """
     with open(_locate_experiment_file(tuid, datadir, file)) as snap:
-        return json.load(snap)
+        return json.load(snap, cls=dh.DecodeToNumpy, list_to_ndarray=list_to_ndarray)
 
 
 def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
@@ -606,7 +666,6 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
 
 def get_varying_parameter_values(
     tuids: List[TUID],
-    instrument: str,
     parameter: str,
 ) -> np.ndarray:
     """
@@ -617,12 +676,10 @@ def get_varying_parameter_values(
     ----------
     tuids:
         The list of TUIDs from which to get the varying parameter.
-    instrument:
-        The name of the instrument from which to get the value. For example
-        "fluxcurrent"
     parameter:
-        The name of the parameter from which to get the value. For example "FBL_0"
-
+        The name and address of the QCoDeS parameter from which to get the
+        value, including the instrument name and all submodules. For example
+        :code:`"current_source.module0.dac0.current"`.
     Returns
     -------
     :
@@ -636,9 +693,7 @@ def get_varying_parameter_values(
         try:
             _tuid = TUID(tuid)
             _snapshot = load_snapshot(_tuid)
-            value.append(
-                _snapshot["instruments"][instrument]["parameters"][parameter]["value"]
-            )
+            value.append(extract_parameter_from_snapshot(_snapshot, parameter)["value"])
         except FileNotFoundError as fnf_error:
             raise FileNotFoundError(fnf_error) from fnf_error
         except ValueError as vl_error:
@@ -652,10 +707,55 @@ def get_varying_parameter_values(
     return values
 
 
+# pylint: disable=redefined-outer-name
+def extract_parameter_from_snapshot(
+    snapshot: Dict[str, Any], parameter: str
+) -> Dict[str, Any]:
+    """
+    A function which takes a parameter and extracts it from a snapshot,
+    including in the case where the parameter is part of a nested submodule
+    within a QCoDeS instrument
+
+    Parameters
+    -----------
+    snapshot:
+        The snapshot
+    parameter:
+        The full address of the QCoDeS parameter as a string, in the format
+        :code:`"instrument.submodule.submodule.parameter"` (an arbitrary
+        number of nested submodules is a allowed).
+
+    Returns
+    -----------
+    parameter_dict
+        The dict specifying the parameter properties which was extracted from the
+        snapshot
+    """
+    parameter_address = parameter.split(".")
+    if len(parameter_address) < 2:
+        raise ValueError(
+            "parameter must be a string of the form 'instrument.submodule.parameter'"
+        )
+
+    sub_snapshot = deepcopy(snapshot)
+
+    try:
+        sub_snapshot = sub_snapshot["instruments"][parameter_address[0]]
+        for submodule in parameter_address[1:-1]:
+            sub_snapshot = sub_snapshot["submodules"][submodule]
+
+        parameter_dict = sub_snapshot["parameters"][parameter_address[-1]]
+    except KeyError as key_error:
+        raise KeyError(
+            f"Parameter {parameter} not found in snapshot. {key_error} not found."
+        ) from key_error
+
+    return parameter_dict
+
+
 # pylint: disable=too-many-arguments
 def multi_experiment_data_extractor(
     experiment: str,
-    instrument: str,
     parameter: str,
     *,
     new_name: Optional[str] = None,
@@ -676,7 +776,9 @@ def multi_experiment_data_extractor(
         The name of the instrument from which to get the value. For example
         "fluxcurrent"
     parameter:
-        The name of the parameter from which to get the value. For example "FBL_0"
+        The name and address of the QCoDeS parameter from which to get the
+        value, including the instrument name and all submodules. For example
+        :code:`"current_source.module0.dac0.current"`.
     new_name:
         The name of the new multifile dataset. If no new name is given, it will
         create a new name as `experiment` vs `instrument`.
@@ -701,7 +803,7 @@ def multi_experiment_data_extractor(
         )
     tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
     if new_name is None:
-        new_name = f"{experiment} vs {instrument}"
+        new_name = f"{experiment} vs {parameter}"
 
     # Necessary to correctly extend the varying_parameter_values
     tuids.sort()
@@ -710,9 +812,7 @@ def multi_experiment_data_extractor(
     new_dataset = concat_dataset(tuids)
 
     # Get the varying parameter from the snapshot.json file
-    varying_parameter_values = get_varying_parameter_values(
-        tuids, instrument, parameter
-    )
+    varying_parameter_values = get_varying_parameter_values(tuids, parameter)
 
     # This counts the number of unique tuids to extend the varying parameter with. This
     # assumes the ref_tuids are sorted.
@@ -722,6 +822,7 @@ def multi_experiment_data_extractor(
         varying_parameter_values, repeats=counts
     )
     _snapshot = load_snapshot(tuids[0])
+    _parameter_dict = extract_parameter_from_snapshot(_snapshot, parameter)
     # Set the varying parameter as a new coordinate
     nr_existing_coords = len(new_dataset.coords)
     coords = {
@@ -730,10 +831,8 @@ def multi_experiment_data_extractor(
             varying_parameter_values_extended,
             dict(
                 is_main_coord=True,
-                long_name=instrument,
-                units=_snapshot["instruments"][instrument]["parameters"][parameter][
-                    "unit"
-                ],
+                long_name=_parameter_dict["label"],
+                units=_parameter_dict["unit"],
                 uniformly_spaced=_is_uniformly_spaced_array(varying_parameter_values),
             ),
         ),
@@ -796,7 +895,7 @@ def to_gridded_dataset(
         The new dataset.
 
 
-    .. include:: examples/data.handling.to_gridded_dataset.py.rst.txt
+    .. include:: examples/data.handling.to_gridded_dataset.rst.txt
     """
     if dimension not in quantify_dataset.dims:
         dims = tuple(quantify_dataset.dims.keys())
@@ -837,6 +936,8 @@ def to_gridded_dataset(
     for name, attrs in zip(coords_names, attrs_coords):
         dataset[name].attrs = attrs
 
+    if "grid_2d" in dataset.attrs:
+        dataset.attrs["grid_2d"] = False
     return dataset
 
 

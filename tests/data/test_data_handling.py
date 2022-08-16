@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 import uncertainties
 import xarray as xr
-from qcodes import Instrument, ManualParameter
+from qcodes import Instrument, ManualParameter, InstrumentChannel
 from qcodes.utils.helpers import NumpyJSONEncoder
 
 import quantify_core.data.handling as dh
@@ -98,8 +98,12 @@ def test_getset_datadir(tmp_test_data_dir):
     os.rmdir(new_dir_path)
 
     # Test setting to None
+    dh.set_datadir(None)
+    assert dh.get_datadir() == dh.default_datadir()
+
+    # Test setting invalid type (not a directory)
     with pytest.raises(TypeError):
-        dh.set_datadir(None)
+        dh.set_datadir(5)
 
     # Test setting to empty str
     with pytest.raises(FileNotFoundError):
@@ -424,6 +428,29 @@ def test_snapshot():
     test_MC.close()
 
 
+def test_snapshot_list(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    tuid = "20200430-170837-001-315f36"
+
+    experiment_directory = dh.locate_experiment_container(tuid=tuid)
+    snap = dh.snapshot()
+
+    snap["instruments"]["test_instrument"] = {"parameters": {"test_list": [1, 2, 3]}}
+
+    full_path_to_file = f"{experiment_directory}/test_snapshot_list.json"
+    with open(full_path_to_file, "w", encoding="utf-8") as file:
+        json.dump(snap, file, cls=NumpyJSONEncoder, indent=4)
+    decoded_snapshot = dh.load_snapshot(
+        tuid=tuid,
+        list_to_ndarray=True,
+        file="test_snapshot_list.json",
+    )
+    assert isinstance(
+        decoded_snapshot["instruments"]["test_instrument"]["parameters"]["test_list"],
+        np.ndarray,
+    )
+
+
 def test_snapshot_dead_instruments():
     """Ensure that the snapshot does not attempt to access dead instruments."""
     instrument_a = Instrument("a")
@@ -548,7 +575,7 @@ def test_qcodes_numpyjsonencoder():
     }
 
     encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
-    decoded = json.loads(encoded)
+    decoded = json.loads(encoded, cls=dh.DecodeToNumpy)
 
     assert isinstance(decoded["python_tuple"], list)
     assert isinstance(decoded["python_list"], list)
@@ -563,6 +590,45 @@ def test_qcodes_numpyjsonencoder():
         {"__dtype__": "complex", "re": 1.0, "im": 0.0},
         {"__dtype__": "complex", "re": 2.0, "im": 0.0},
     ]
+    assert np.isnan(decoded["nan_value"])
+    assert decoded["inf_value"] == float("inf")
+    assert decoded["-inf_value"] == float("-inf")
+
+
+def test_decode_list_to_numpy():
+    quantities_of_interest = {
+        "python_tuple": (1, 2, 3, 4),
+        "python_list": [1, 2, 3, 4],
+        "numpy_array": np.array([1, 2, 3, 4]),
+        "numpy_array_complex": np.array([1, 2], dtype=complex),
+        "uncertainties_ufloat": uncertainties.ufloat(1.0, 2.0),
+        "complex": complex(1.0, 2.0),
+        "nan_value": float("nan"),
+        "inf_value": float("inf"),
+        "-inf_value": float("-inf"),
+    }
+
+    encoded = json.dumps(quantities_of_interest, cls=NumpyJSONEncoder, indent=4)
+    decoded = json.loads(encoded, cls=dh.DecodeToNumpy, list_to_ndarray=True)
+
+    assert isinstance(decoded["python_tuple"], np.ndarray)
+    assert isinstance(decoded["python_list"], np.ndarray)
+    assert isinstance(decoded["numpy_array"], np.ndarray)
+    assert decoded["uncertainties_ufloat"] == {
+        "__dtype__": "UFloat",
+        "nominal_value": 1.0,
+        "std_dev": 2.0,
+    }
+    assert decoded["complex"] == {"__dtype__": "complex", "re": 1.0, "im": 2.0}
+    assert (
+        decoded["numpy_array_complex"]
+        == np.array(
+            [
+                {"__dtype__": "complex", "re": 1.0, "im": 0.0},
+                {"__dtype__": "complex", "re": 2.0, "im": 0.0},
+            ]
+        )
+    ).all()
     assert np.isnan(decoded["nan_value"])
     assert decoded["inf_value"] == float("inf")
     assert decoded["-inf_value"] == float("-inf")
@@ -640,11 +706,92 @@ def test_concat_dataset(tmp_test_data_dir):
     assert new_dataset["ref_tuids"].is_dataset_ref
 
 
+# pylint: disable=redefined-outer-name
+@pytest.fixture(scope="function", autouse=False)
+def mock_instr_nested(request):
+    """
+    Set up an instrument with a sub module with the following structure
+
+    instr
+    -> a
+    -> mod_a
+        -> b
+    -> mod_b
+        -> mod_c
+            -> c
+    """
+
+    instr = Instrument("DummyInstrument")
+
+    instr.add_parameter("a", parameter_class=ManualParameter, unit="Hz")
+
+    mod_a = InstrumentChannel(instr, "mod_a")
+    mod_a.add_parameter("b", parameter_class=ManualParameter)
+    instr.add_submodule("mod_a", mod_a)
+
+    mod_b = InstrumentChannel(instr, "mod_b")
+    mod_c = InstrumentChannel(instr, "mod_b")
+    mod_b.add_submodule("mod_c", mod_c)
+    mod_c.add_parameter("c", parameter_class=ManualParameter)
+
+    instr.add_submodule("mod_b", mod_b)
+
+    def cleanup_instruments():
+        instr.close()
+
+    request.addfinalizer(cleanup_instruments)
+
+    return instr
+
+
+# pylint: disable=invalid-name
+def test_extract_parameter_from_snapshot(tmp_test_data_dir, mock_instr_nested):
+    """
+    Test that we can extract parameters from a snapshot, including those
+    which are contained within submodules
+    """
+    # Always set datadir before instruments
+    dh.set_datadir(tmp_test_data_dir)
+
+    # set some random values
+    mock_instr_nested.a(23)
+    mock_instr_nested.mod_a.b(42)
+    mock_instr_nested.mod_b.mod_c.c(23.1)
+
+    # create snapshot
+    snap = dh.snapshot()
+
+    a = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.a")["value"]
+    a_unit = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.a")["unit"]
+    b = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_a.b")["value"]
+    c = dh.extract_parameter_from_snapshot(snap, "DummyInstrument.mod_b.mod_c.c")[
+        "value"
+    ]
+
+    assert a == 23
+    assert a_unit == "Hz"
+    assert b == 42
+    assert c == 23.1
+
+
 def test_get_varying_parameter(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
-    instrument = "fluxcurrent"
-    parameter = "FBL_4"
-    non_existing_parameter = "FBL_5"
+    parameter = "fluxcurrent.FBL_4"
+    correct_tuids = dh.get_tuids_containing(
+        "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
+    )
+    values = np.array([-0.00100625, -0.000996875, -0.0009875])
+
+    varying_parameter_values = dh.get_varying_parameter_values(correct_tuids, parameter)
+    assert isinstance(varying_parameter_values, np.ndarray)
+    assert len(varying_parameter_values) == len(correct_tuids)
+    assert varying_parameter_values == pytest.approx(values)
+
+
+def test_get_varying_parameter_error(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    parameter = "fluxcurrent.FBL_4"
+    non_existing_parameter = "fluxcurrent.FBL_5"
     correct_tuids = dh.get_tuids_containing(
         "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
     )
@@ -655,28 +802,18 @@ def test_get_varying_parameter(tmp_test_data_dir):
     tuid_wrong_values = dh.get_tuids_containing(
         "Pulsed spectroscopy", t_start="2021-10-29", t_stop="2021-10-30"
     ) + ["test"]
-    values = np.array([-0.00100625, -0.000996875, -0.0009875])
 
     with pytest.raises(ValueError):
-        dh.get_varying_parameter_values(tuid_string, instrument, parameter)
+        dh.get_varying_parameter_values(tuid_string, parameter)
 
     with pytest.raises(TypeError):
-        dh.get_varying_parameter_values(tuid_wrong_list, instrument, parameter)
+        dh.get_varying_parameter_values(tuid_wrong_list, parameter)
 
     with pytest.raises(ValueError):
-        dh.get_varying_parameter_values(tuid_wrong_values, instrument, parameter)
+        dh.get_varying_parameter_values(tuid_wrong_values, parameter)
 
     with pytest.raises(KeyError):
-        dh.get_varying_parameter_values(
-            correct_tuids, instrument, non_existing_parameter
-        )
-
-    varying_parameter_values = dh.get_varying_parameter_values(
-        correct_tuids, instrument, parameter
-    )
-    assert isinstance(varying_parameter_values, np.ndarray)
-    assert len(varying_parameter_values) == len(correct_tuids)
-    assert varying_parameter_values == pytest.approx(values)
+        dh.get_varying_parameter_values(correct_tuids, non_existing_parameter)
 
 
 @pytest.mark.parametrize("new_name", [None, "concat"])
@@ -684,8 +821,7 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     dh.set_datadir(tmp_test_data_dir)
     t_start = "20211029"
     t_stop = "20211030"
-    instrument = "fluxcurrent"
-    parameter = "FBL_4"
+    parameter = "fluxcurrent.FBL_4"
     experiment = "Pulsed spectroscopy"
     experiment_wrong_type = 5
     expected_varying_parameter_values = np.array(
@@ -695,7 +831,6 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     with pytest.raises(TypeError):
         dh.multi_experiment_data_extractor(
             experiment_wrong_type,
-            instrument,
             parameter,
             new_name=new_name,
             t_start=t_start,
@@ -705,7 +840,6 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
     # Test filling in all parameters and new_name=None
     new_dataset = dh.multi_experiment_data_extractor(
         experiment,
-        instrument,
         parameter,
         new_name=new_name,
         t_start=t_start,
@@ -718,6 +852,6 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
         np.repeat(expected_varying_parameter_values, 240)
     )
     if new_name is None:
-        assert new_dataset.name == f"{experiment} vs {instrument}"
+        assert new_dataset.name == f"{experiment} vs {parameter}"
     else:
         assert new_dataset.name == new_name

@@ -3,12 +3,11 @@
 """Module containing analyses for common single qubit timedomain experiments."""
 from __future__ import annotations
 
-from typing import Union
+from typing import Literal, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from typing_extensions import Literal
 
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import fitting_models as fm

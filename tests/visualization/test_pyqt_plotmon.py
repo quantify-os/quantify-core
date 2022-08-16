@@ -2,8 +2,8 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
-import tempfile
 import sys
+import tempfile
 from distutils.dir_util import copy_tree
 from pathlib import Path
 
@@ -36,7 +36,7 @@ def test_attributes_created_during_init(plotmon_instance):
 
 
 def test_validator_accepts_tuid_objects(plotmon_instance):
-    plotmon_instance.tuids_append(TUID("20200430-170837-001-315f36"))
+    plotmon_instance.tuids_append(TUID("20200504-191556-002-4209ee"))
     plotmon_instance.tuids([])  # reset for next tests
 
 
@@ -47,6 +47,9 @@ def test_basic_1d_plot(plotmon_instance):
     plotmon_instance.tuids_max_num(1)
     # Test 1D plotting using an example dataset
     tuid = "20200430-170837-001-315f36"
+    # FIXME: This dataset gives (under Windows, but not if pytest executes only this module):
+    # ValueError: unrecognized engine netcdf4 must be one of: ['h5netcdf', 'scipy', 'store'],
+    # although the file type is netCDF3 like the other ones
     plotmon_instance.tuids_append(tuid)
     plotmon_instance.update()
 
@@ -63,7 +66,7 @@ def test_basic_1d_plot(plotmon_instance):
 
 def test_basic_2d_plot(plotmon_instance):
     plotmon_instance.tuids_max_num(1)
-    # Test 1D plotting using an example dataset
+    # Test 2D plotting using an example dataset
     tuid = "20200504-191556-002-4209ee"
     plotmon_instance.tuids_append(tuid)
     plotmon_instance.update()
@@ -85,6 +88,17 @@ def test_basic_2d_plot(plotmon_instance):
     assert cfg["yunit"] == "V"
     assert cfg["zlabel"] == "Signal level"
     assert cfg["zunit"] == "V"
+    plotmon_instance.tuids([])  # reset for next tests
+
+
+def test_2d_plot_from_1d_scan_with_two_uniformly_spaced_settables(plotmon_instance):
+    plotmon_instance.tuids_max_num(1)
+    tuid = "20220409-095654-698-b2dc1f"
+    plotmon_instance.tuids_append(tuid)
+    plotmon_instance.update()
+
+    cfg = plotmon_instance._get_traces_config(which="secondary_QtPlot")[0]["config"]
+    assert np.shape(cfg["z"]) == (101, 101)
     plotmon_instance.tuids([])  # reset for next tests
 
 

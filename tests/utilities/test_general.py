@@ -4,6 +4,7 @@
 # pylint: disable=too-few-public-methods
 
 import numpy as np
+import pytest
 
 from quantify_core.utilities.general import (
     delete_keys_from_dict,
@@ -11,6 +12,7 @@ from quantify_core.utilities.general import (
     make_hash,
     save_json,
     load_json,
+    load_json_safe,
 )
 
 
@@ -97,3 +99,10 @@ def test_save_load_json(tmp_test_data_dir) -> None:
             np.testing.assert_array_almost_equal(value, loaded_data.get("dat"))
         else:
             assert value == loaded_data.get(key)
+
+
+def test_load_not_existing_json(tmp_test_data_dir) -> None:
+    non_existing_file = tmp_test_data_dir / "non_existing_file.json"
+    with pytest.raises(FileNotFoundError):
+        _ = load_json(full_path=non_existing_file)
+    assert load_json_safe(full_path=non_existing_file) is None

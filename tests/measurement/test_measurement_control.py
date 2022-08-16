@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
+# pylint: disable=too-many-arguments
 import os
 import random
 import signal
@@ -15,7 +16,7 @@ import numpy as np
 import pytest
 import xarray as xr
 from qcodes import ManualParameter, Parameter
-from qcodes.instrument.base import Instrument
+from qcodes.instrument import Instrument
 from qcodes.utils import validators as vals
 from scipy import optimize
 
@@ -592,6 +593,26 @@ class TestMeasurementControl:
         assert np.array_equal(dset["x0"].values, x)
         assert np.array_equal(dset["x1"].values, y)
         assert np.array_equal(dset["y0"].values, expected_vals)
+
+    @pytest.mark.parametrize(
+        "setpoints_x,setpoints_y,is_uniformly_spaced",
+        [
+            (np.linspace(0, 10, 101), np.linspace(10, 20, 101), True),
+            (np.linspace(0, 10, 101) ** 2, np.linspace(10, 20, 101), False),
+            (np.linspace(0, 10, 101) ** 2, np.linspace(10, 20, 101) ** 2, False),
+        ],
+    )
+    def test_iterative_1D_with_two_settables_signals_plotmon_of_spacing(
+        self, setpoints_x, setpoints_y, is_uniformly_spaced
+    ):
+        setpoints = np.column_stack((setpoints_x, setpoints_y))
+
+        self.meas_ctrl.settables([freq, other_freq])
+        self.meas_ctrl.setpoints(setpoints)
+        self.meas_ctrl.gettables(sig)
+        dset = self.meas_ctrl.run()
+
+        assert dset.attrs["1d_2_settables_uniformly_spaced"] == is_uniformly_spaced
 
     def test_batched_2D_grid(self):
         times = np.linspace(10, 20, 3)
@@ -1190,10 +1211,8 @@ class TestMeasurementControl:
 
     def test_meas_ctrl_insmon_integration(self):
         inst_mon = InstrumentMonitor("insmon_meas_ctrl")
-        self.meas_ctrl.instrument_monitor(inst_mon.name)
-        assert self.meas_ctrl.instrument_monitor.get_instr().widget.getNodes()
+        assert inst_mon.widget.getNodes()
         inst_mon.close()
-        self.meas_ctrl.instrument_monitor("")
 
     def test_instrument_settings_from_disk(self, tmp_test_data_dir):
         load_settings_onto_instrument(
@@ -1447,3 +1466,63 @@ def test_grid_setpoints():
     assert all(e in sp[:, 0] for e in x)
     assert all(e in sp[:, 1] for e in y)
     assert all(e in sp[:, 2] for e in z)
+
+
+@pytest.mark.parametrize(
+    "verbose, number_setpoints, fracdone, expected_progress_message",
+    [
+        (False, 10, 0, ""),
+        (
+            True,
+            10,
+            0,
+            "\r  0% completed | elapsed time:      0s  "
+            "\r  0% completed | elapsed time:      0s  ",
+        ),
+        (
+            True,
+            10,
+            0.1,
+            "\r 10% completed | elapsed time:      0s | time left:      0s  "
+            "\r 10% completed | elapsed time:      0s | time left:      0s  ",
+        ),
+    ],
+)
+def test_print_progress(
+    capsys,
+    mocker,
+    verbose,
+    number_setpoints,
+    fracdone,
+    expected_progress_message,
+):
+    meas_ctrl = MeasurementControl("meas_ctrl")
+    meas_ctrl.verbose(verbose)
+
+    xvals = np.linspace(0, 1, number_setpoints)
+    meas_ctrl.setpoints(xvals)
+
+    with mocker.patch(
+        "quantify_core.measurement.control.MeasurementControl._get_fracdone",
+        side_effect=[fracdone],
+    ):
+        meas_ctrl.print_progress()
+        out, _ = capsys.readouterr()
+        assert out == expected_progress_message
+
+    meas_ctrl.close()
+
+
+def test_print_progress_no_setpoints(mocker):
+    meas_ctrl = MeasurementControl("meas_ctrl_no_setpoints")
+
+    with mocker.patch(
+        "quantify_core.measurement.control.MeasurementControl._get_fracdone",
+        side_effect=[0],
+    ):
+        with pytest.raises(
+            ValueError, match="No setpoints available, progress cannot be defined"
+        ):
+            meas_ctrl.print_progress()
+
+    meas_ctrl.close()

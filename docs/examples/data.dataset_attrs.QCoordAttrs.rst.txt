@@ -1,0 +1,22 @@
+.. jupyter-execute::
+    :hide-code:
+
+    # pylint: disable=line-too-long
+    # pylint: disable=wrong-import-order
+    # pylint: disable=wrong-import-position
+    # pylint: disable=pointless-string-statement
+    # pylint: disable=duplicate-code
+
+
+
+.. jupyter-execute::
+
+    from quantify_core.utilities import examples_support
+
+    examples_support.mk_main_coord_attrs()
+
+
+
+.. jupyter-execute::
+
+    examples_support.mk_secondary_coord_attrs()
