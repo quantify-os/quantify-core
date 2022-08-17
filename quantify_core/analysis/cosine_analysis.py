@@ -10,7 +10,7 @@ this analysis.
 import matplotlib.pyplot as plt
 
 import quantify_core.analysis.base_analysis as ba
-from quantify_core.analysis.fitting_models import CosineModel, cos_func
+from quantify_core.analysis.fitting_models import CosineModel
 from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import (
     adjust_axeslabels_SI,

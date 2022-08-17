@@ -15,7 +15,7 @@ from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
 from textwrap import wrap
-from typing import List, Union, Callable, Dict
+from typing import List, Union, Dict
 
 import lmfit
 import matplotlib
