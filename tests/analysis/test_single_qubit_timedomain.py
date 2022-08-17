@@ -387,6 +387,17 @@ def test_allxy_analysis_invalid_data(tmp_test_data_dir):
         AllXYAnalysis(tuid="20210422-104958-297-7d6034").run()
 
 
+def test_allxy_load_fit_results_missing(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+
+    with pytest.raises(
+        FileNotFoundError, match="No fit results found for this analysis."
+    ):
+        AllXYAnalysis.load_fit_result(
+            tuid="20210419-173649-456-23c5f3", fit_name="fit_name"
+        )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def rabi_analysis_obj(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)

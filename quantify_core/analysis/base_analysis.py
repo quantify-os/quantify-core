@@ -177,7 +177,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
     # Dictionary containing definitions of all fitting functions used in analysis
     # (to be overridden in subclasses)
-    fit_function_definitions: Dict[str, Callable] = {}
 
     def __init__(
         self,
@@ -314,16 +313,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         file = results_dir / f"{fit_name}.txt"
 
-        try:
-            fit_function_definitions = cls.fit_function_definitions
-        except AttributeError as err:
-            raise AttributeError(
-                f"{cls.__name__}.fit_function_definitions not found. This "
-                "dictionary is required to define all fit functions used by the "
-                "analysis class."
-            ) from err
-
-        result = lmfit.model.load_modelresult(file, funcdefs=fit_function_definitions)
+        result = lmfit.model.load_modelresult(file)
 
         return result
 

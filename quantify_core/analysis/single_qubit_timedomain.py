@@ -190,8 +190,6 @@ class T1Analysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     which fits an exponential decay and extracts the T1 time.
     """
 
-    fit_function_definitions = {"exp_decay_func": fm.exp_decay_func}
-
     def run_fitting(self):
         """
         Fit the data to :class:`~quantify_core.analysis.fitting_models.ExpDecayModel`.
@@ -265,8 +263,6 @@ class EchoAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     Analysis class for a qubit spin-echo experiment,
     which fits an exponential decay and extracts the T2_echo time.
     """
-
-    fit_function_definitions = {"exp_decay_func": fm.exp_decay_func}
 
     def run_fitting(self):
         """
@@ -342,8 +338,6 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     Fits a decaying cosine curve to Ramsey data (possibly with artificial detuning)
     and finds the true detuning, qubit frequency and T2* time.
     """
-
-    fit_function_definitions = {"exp_damp_osc_func": fm.exp_damp_osc_func}
 
     def __init__(
         self,
@@ -638,8 +632,6 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
     The analysis will automatically rotate the data so that the data lies along the
     axis with the best SNR.
     """
-
-    fit_function_definitions = {"cos_func": fm.cos_func}
 
     def run(self, calibration_points: bool = True):
         """

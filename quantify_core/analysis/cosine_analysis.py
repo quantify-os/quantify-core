@@ -23,8 +23,6 @@ class CosineAnalysis(ba.BaseAnalysis):
     Exemplary analysis subclass that fits a cosine to a dataset.
     """
 
-    fit_function_definitions = {"cos_func": cos_func}
-
     def process_data(self):
         """
         In some cases, you might need to process the data, e.g., reshape, filter etc.,
