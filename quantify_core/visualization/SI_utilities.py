@@ -150,15 +150,20 @@ _SI_PREFIX_TO_FACTOR_MAPPING["u"] = 10**-6
 
 _prefix_regexp = "(" + "|".join(list("yzafpnμmkMGTPEZY")) + ")"
 _si_regex = "(" + "|".join(map(re.escape, SI_UNITS)) + ")"
-_full_si_regexp = re.compile(f"{_prefix_regexp}{_si_regex}$")
+_prefixed_si_regex = re.compile(f"{_prefix_regexp}{_si_regex}$")
 
 
 def SI_prefix_and_scale_factor(
     val: float, unit: Optional[str] = None
 ) -> Tuple[float, str]:
     """
-    Takes in a value and unit. If the unit is a unscaled SI unit or scaled SI unit
-    (eg. 'mT'), the proper scale factor and SI prefix are returned.
+    Takes in a value and unit, returns a scale factor and scaled unit.
+    It returns a scale factor to convert the input value to a value in the
+    range [1.0, 1000.0), plus the corresponding scaled SI unit (e.g. 'mT', 'kV'),
+    deduced from the input unit, to represent the input value in those scaled units.
+
+    The scaling is only applied if the unit is an unscaled or scaled unit present in
+    the variable :data::`SI_UNITS`.
 
     If the unit is None, no scaling is done.
     If the unit is "SI_PREFIX_ONLY", the value is scaled and an SI prefix is applied
@@ -177,7 +182,7 @@ def SI_prefix_and_scale_factor(
     scaled_unit : str
         unit including the prefix
     """
-    if unit and (match := _full_si_regexp.match(unit)):
+    if unit and (match := _prefixed_si_regex.match(unit)):
         scale_part = match.group(1)
         unit_part = match.group(2)
         plus_scale = _SI_PREFIX_TO_FACTOR_MAPPING[scale_part]
