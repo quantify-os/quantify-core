@@ -4,8 +4,9 @@
 """
 Utilities for managing SI units with plotting systems.
 """
+import re
 import string
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import lmfit
 import matplotlib
@@ -141,14 +142,28 @@ SI_PREFIXES[0] = ""
 # N.B. not all of these are SI units, however, all of these support SI prefixes
 SI_UNITS = (
     "SI_PREFIX_ONLY,m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
-    r"Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
+    r"Vpeak,Vpp,Vp,Vrms,A/s,$\Phi_0$".split(",")
 )  # noqa: W605
 
+_SI_PREFIX_TO_FACTOR_MAPPING = {v: 10**key for key, v in SI_PREFIXES.items()}
+_SI_PREFIX_TO_FACTOR_MAPPING["u"] = 10**-6
 
-def SI_prefix_and_scale_factor(val, unit=None):
+_prefix_regexp = "(" + "|".join(list("yzafpnμmkMGTPEZY")) + ")"
+_si_regex = "(" + "|".join(map(re.escape, SI_UNITS)) + ")"
+_prefixed_si_regex = re.compile(f"{_prefix_regexp}{_si_regex}$")
+
+
+def SI_prefix_and_scale_factor(
+    val: float, unit: Optional[str] = None
+) -> Tuple[float, str]:
     """
-    Takes in a value and unit. If the unit is an unscaled SI unit (eg. 'm', but not
-    'mm'), the proper scale factor and SI prefix are returned.
+    Takes in a value and unit, returns a scale factor and scaled unit.
+    It returns a scale factor to convert the input value to a value in the
+    range [1.0, 1000.0), plus the corresponding scaled SI unit (e.g. 'mT', 'kV'),
+    deduced from the input unit, to represent the input value in those scaled units.
+
+    The scaling is only applied if the unit is an unscaled or scaled unit present in
+    the variable :data::`SI_UNITS`.
 
     If the unit is None, no scaling is done.
     If the unit is "SI_PREFIX_ONLY", the value is scaled and an SI prefix is applied
@@ -167,6 +182,15 @@ def SI_prefix_and_scale_factor(val, unit=None):
     scaled_unit : str
         unit including the prefix
     """
+    if unit and (match := _prefixed_si_regex.match(unit)):
+        scale_part = match.group(1)
+        unit_part = match.group(2)
+        plus_scale = _SI_PREFIX_TO_FACTOR_MAPPING[scale_part]
+        scale_factor, scaled_unit = SI_prefix_and_scale_factor(
+            plus_scale * val, unit_part
+        )
+        return plus_scale * scale_factor, scaled_unit
+
     if unit in SI_UNITS:
         try:
             with np.errstate(all="ignore"):

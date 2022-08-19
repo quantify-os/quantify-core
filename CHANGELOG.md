@@ -4,11 +4,12 @@
 
 ### Breaking changes
 
-- MeasurementControl -  and raise a `ValueError` exception if there are no setpoints (!370)
+- MeasurementControl -  raise a `ValueError` exception if there are no setpoints (!370)
 
 ### Merged branches and closed issues
 
 - Remove various old temp requirement pins (counterpart of quantify-scheduler!447) (!368)
+- Added support to SI_prefix_and_scale_factor for scaled units such as ns or GHz (!365)
 
 ## 0.6.3 (2022-08-05)
 
