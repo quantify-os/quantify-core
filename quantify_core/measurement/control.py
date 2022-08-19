@@ -716,9 +716,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         # There are no points initialized, progress does not make sense
         if self._get_max_setpoints() == 0:
-            if self.verbose():
-                print("No setpoints, progress cannot be defined")
-            return
+            raise ValueError("No setpoints available, progress cannot be defined")
 
         progress_percent = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime

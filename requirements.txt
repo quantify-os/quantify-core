@@ -20,7 +20,3 @@ uncertainties
 directory-tree>=0.0.2
 pendulum  # used for timestamps formatting in the dataset attributes
 dataclasses_json # used in dataset_attrs
-
-# tmp fixes
-funcparserlib==1.0.0a0 # https://github.com/vlasovskikh/funcparserlib/issues/69
-Jinja2==3.0.3 # due to old sphinx incompatibility with newer API of Jinja2 #304
