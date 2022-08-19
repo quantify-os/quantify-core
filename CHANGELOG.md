@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+- None
+
+### Merged branches and closed issues
+
+- Added support to SI_prefix_and_scale_factor for scaled units such as ns or GHz (!365)
+
 ## 0.6.3 (2022-08-05)
 
 - Changes to InstrumentMonitor and PlotMonitor to fix errors due to racing conditions. (!358)
