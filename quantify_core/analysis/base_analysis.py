@@ -310,7 +310,9 @@ class BaseAnalysis(metaclass=AnalysisMeta):
                 f"No fit results found for this analysis ({results_dir} not found)."
             )
 
-        result = lmfit.model.load_modelresult(os.path.join(results_dir, f"{fit_name}.txt"))
+        result = lmfit.model.load_modelresult(
+            os.path.join(results_dir, f"{fit_name}.txt")
+        )
         return result
 
     @property
