@@ -29,6 +29,17 @@ def t1_analysis_no_cal_points(tmp_test_data_dir):
     return T1Analysis(tuid=tuid).run()
 
 
+def test_t1_load_fit_results(t1_analysis_no_cal_points, tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    for fit_name, fit_result in t1_analysis_no_cal_points.fit_results.items():
+
+        loaded_fit_result = T1Analysis.load_fit_result(
+            tuid=t1_analysis_no_cal_points.tuid, fit_name=fit_name
+        )
+
+        assert loaded_fit_result.params == fit_result.params
+
+
 def test_t1_figures_generated(t1_analysis_no_cal_points):
     """
     Test that the right figures get created.
@@ -107,6 +118,15 @@ def test_echo_analysis_no_cal(tmp_test_data_dir):
 
     # accurate to < 1 %
     assert meas_echo == approx(exp_t2_echo, rel=0.01)
+
+    # Test loading and saving fit result object
+    for fit_name, fit_result in analysis_obj.fit_results.items():
+
+        loaded_fit_result = EchoAnalysis.load_fit_result(
+            tuid=analysis_obj.tuid, fit_name=fit_name
+        )
+
+        assert loaded_fit_result.params == fit_result.params
 
 
 def test_echo_analysis_with_cal(tmp_test_data_dir):
@@ -189,6 +209,17 @@ def ramsey_analysis_qubit_freq(tmp_test_data_dir):
         qubit_frequency=4.7149e9,
     )
     return analysis
+
+
+def test_ramsey_load_fit_results(ramsey_analysis_qubit_freq, tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    for fit_name, fit_result in ramsey_analysis_qubit_freq.fit_results.items():
+
+        loaded_fit_result = RamseyAnalysis.load_fit_result(
+            tuid=ramsey_analysis_qubit_freq.tuid, fit_name=fit_name
+        )
+
+        assert loaded_fit_result.params == fit_result.params
 
 
 def test_figures_generated_qubit_freq_qubit_freq(ramsey_analysis_qubit_freq):
@@ -356,11 +387,33 @@ def test_allxy_analysis_invalid_data(tmp_test_data_dir):
         AllXYAnalysis(tuid="20210422-104958-297-7d6034").run()
 
 
+def test_allxy_load_fit_results_missing(tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+
+    with pytest.raises(
+        FileNotFoundError, match="No fit results found for this analysis."
+    ):
+        AllXYAnalysis.load_fit_result(
+            tuid="20210419-173649-456-23c5f3", fit_name="fit_name"
+        )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def rabi_analysis_obj(tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
     rabi_analysis_obj = RabiAnalysis(tuid="20210419-153127-883-fa4508").run()
     return rabi_analysis_obj
+
+
+def test_rabi_load_fit_results(rabi_analysis_obj, tmp_test_data_dir):
+    set_datadir(tmp_test_data_dir)
+    for fit_name, fit_result in rabi_analysis_obj.fit_results.items():
+
+        loaded_fit_result = RabiAnalysis.load_fit_result(
+            tuid=rabi_analysis_obj.tuid, fit_name=fit_name
+        )
+
+        assert loaded_fit_result.params == fit_result.params
 
 
 def test_figures_generated(rabi_analysis_obj):

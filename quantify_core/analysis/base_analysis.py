@@ -15,7 +15,7 @@ from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
 from textwrap import wrap
-from typing import Dict, List, Union
+from typing import List, Union, Dict
 
 import lmfit
 import matplotlib
@@ -117,6 +117,7 @@ class AnalysisSteps(Enum):
     STEP_6_SAVE_FIGURES = "save_figures"
     STEP_7_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
     STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    STEP_9_SAVE_FIT_RESULTS = "save_fit_results"
 
 
 class AnalysisMeta(ABCMeta):
@@ -272,27 +273,115 @@ class BaseAnalysis(metaclass=AnalysisMeta):
     See :class:`~quantify_core.analysis.base_analysis.AnalysisSteps` for a template.
     """
 
+    @classmethod
+    def load_fit_result(cls, tuid: TUID, fit_name: str) -> lmfit.model.ModelResult:
+        """
+        Load a saved :code:`lmfit.model.ModelResult` object from file. For analyses
+        that use custom fit functions, the :code:`cls.fit_function_definitions` object
+        must be defined in the subclass for that analysis.
+
+        Parameters
+        ------------
+        tuid:
+            The TUID reference of the saved analysis.
+        fit_name:
+            The name of the fit result to be loaded.
+
+        Returns
+        ------------
+        :
+            The lmfit model result object.
+        """
+        analysis_dir = cls._get_analysis_dir(
+            tuid=tuid, name=cls.__name__, create_missing=False
+        )
+
+        if not os.path.isdir(analysis_dir):
+            raise FileNotFoundError(
+                f"Analysis not found for this experiment ({analysis_dir} not found)."
+            )
+
+        results_dir = cls._get_results_dir(
+            analysis_dir=analysis_dir, create_missing=False
+        )
+
+        if not os.path.isdir(results_dir):
+            raise FileNotFoundError(
+                f"No fit results found for this analysis ({results_dir} not found)."
+            )
+
+        result = lmfit.model.load_modelresult(
+            os.path.join(results_dir, f"{fit_name}.txt")
+        )
+        return result
+
     @property
     def name(self):
         """The name of the analysis, used in data saving."""
         # used to store data and figures resulting from the analysis. Can be overwritten
         return self.__class__.__name__
 
+    @staticmethod
+    def _get_analysis_dir(tuid: TUID, name: str, create_missing: bool = True):
+        """
+        Generate an analysis dir based on a given tuid and analysis class name.
+
+        Parameters
+        ------------
+        tuid:
+            TUID of the analysis dir.
+        name:
+            The name of the analysis class.
+        create_missing:
+            If True, create the analysis dir if it does not already exist.
+
+        """
+        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+        analysis_dir = os.path.join(exp_folder, f"analysis_{name}")
+        if create_missing:
+            if not os.path.isdir(analysis_dir):
+                os.makedirs(analysis_dir)
+
+        return analysis_dir
+
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. Will create a directory if it does not exist
-        yet.
+        Analysis dir based on the tuid of the analysis class instance.
+        Will create a directory if it does not exist.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
-        # This is a property as it depends
-        exp_folder = Path(locate_experiment_container(self.tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{self.name}"
-        if not os.path.isdir(analysis_dir):
-            os.makedirs(analysis_dir)
 
-        return analysis_dir
+        return self._get_analysis_dir(tuid=self.tuid, name=self.name)
+
+    @staticmethod
+    def _get_results_dir(analysis_dir: str, create_missing: bool = True):
+        """
+        Generate an results dir based on a given analysis dir path.
+
+        Parameters
+        ------------
+        analysis_dir:
+            The path of the analysis directory.
+        create_missing:
+            If True, create the analysis dir if it does not already exist.
+
+        """
+        results_dir = os.path.join(analysis_dir, "fit_results")
+        if create_missing:
+            if not os.path.isdir(results_dir):
+                os.makedirs(results_dir)
+
+        return results_dir
+
+    @property
+    def results_dir(self):
+        """
+        Analysis dirrectory for this analysis.
+        Will create a directory if it does not exist.
+        """
+        return self._get_results_dir(analysis_dir=self.analysis_dir)
 
     def run(self) -> BaseAnalysis:
         """
@@ -529,6 +618,16 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             encoding="utf-8",
         ) as file:
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
+
+    def save_fit_results(self):
+        """
+        Saves the :code:`lmfit.model.model_result` objects for each fit in a
+        sub-directory within the analysis directory
+        """
+
+        for fr_name, fit_result in self.fit_results.items():
+            path = os.path.join(self.results_dir, f"{fr_name}.txt")
+            lmfit.model.save_modelresult(fit_result, path)
 
     def save_figures(self):
         """

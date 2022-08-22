@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add functions to load and save lmfit fit results from file (!286)
+
 ### Breaking changes
 
 - MeasurementControl -  raise a `ValueError` exception if there are no setpoints (!370)
