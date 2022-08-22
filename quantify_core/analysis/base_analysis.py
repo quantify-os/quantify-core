@@ -175,9 +175,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
     # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-public-methods
 
-    # Dictionary containing definitions of all fitting functions used in analysis
-    # (to be overridden in subclasses)
-
     def __init__(
         self,
         dataset: xr.Dataset = None,
@@ -630,8 +627,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         """
 
         for fr_name, fit_result in self.fit_results.items():
-            filename = f"{fr_name}.txt"
-            path = os.path.join(self.results_dir, filename)
+            path = os.path.join(self.results_dir, f"{fr_name}.txt")
 
             lmfit.model.save_modelresult(fit_result, path)
 
