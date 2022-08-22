@@ -299,7 +299,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             tuid=tuid, name=cls.__name__, create_missing=False
         )
 
-        if not analysis_dir.is_dir():
+        if not os.path.isdir(analysis_dir):
             raise FileNotFoundError(
                 f"Analysis not found for this experiment ({analysis_dir} not found)."
             )
@@ -308,10 +308,12 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             analysis_dir=analysis_dir, create_missing=False
         )
 
-        if not results_dir.is_dir():
-            raise FileNotFoundError("No fit results found for this analysis.")
+        if not os.path.isdir(results_dir):
+            raise FileNotFoundError(
+                f"No fit results found for this analysis ({results_dir} not found)."
+            )
 
-        file = results_dir / f"{fit_name}.txt"
+        file = os.path.join(results_dir, f"{fit_name}.txt")
 
         result = lmfit.model.load_modelresult(file)
 
@@ -339,7 +341,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         """
         exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{name}"
+        analysis_dir = os.path.join(exp_folder, f"analysis_{name}")
         if create_missing:
             if not os.path.isdir(analysis_dir):
                 os.makedirs(analysis_dir)
@@ -370,7 +372,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             If True, create the analysis dir if it does not already exist.
 
         """
-        results_dir = analysis_dir / "fit_results"
+        results_dir = os.path.join(analysis_dir, "fit_results")
         if create_missing:
             if not os.path.isdir(results_dir):
                 os.makedirs(results_dir)
