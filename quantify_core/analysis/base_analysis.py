@@ -310,10 +310,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
                 f"No fit results found for this analysis ({results_dir} not found)."
             )
 
-        file = os.path.join(results_dir, f"{fit_name}.txt")
-
-        result = lmfit.model.load_modelresult(file)
-
+        result = lmfit.model.load_modelresult(os.path.join(results_dir, f"{fit_name}.txt"))
         return result
 
     @property
@@ -628,7 +625,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         for fr_name, fit_result in self.fit_results.items():
             path = os.path.join(self.results_dir, f"{fr_name}.txt")
-
             lmfit.model.save_modelresult(fit_result, path)
 
     def save_figures(self):
