@@ -1,16 +1,12 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """General utilities."""
-import copy
 import importlib
 import json
 import pathlib
 import warnings
 from collections.abc import MutableMapping
 from typing import Any, Optional, Union, Iterator, Type, TypeVar
-
-import numpy as np
-import xxhash
 
 from qcodes.utils.helpers import NumpyJSONEncoder
 
@@ -90,36 +86,6 @@ def get_keys_containing(obj: Union[dict, Any], key) -> set:
         a new set containing the keys that match the search
     """
     return set(filter(lambda k: key in k, obj.keys()))
-
-
-def make_hash(obj: Any):
-    """
-    Makes a hash from a dictionary, list, tuple or set to any level, that contains
-    only other hashable types (including any lists, tuples, sets, and
-    dictionaries).
-
-    From: `<https://stackoverflow.com/questions/5884066/hashing-a-dictionary>`_.
-    """
-
-    new_hash = xxhash.xxh64()
-    if isinstance(obj, (set, tuple, list)):
-        return tuple(make_hash(e) for e in obj)
-
-    if isinstance(obj, np.ndarray):
-        # numpy arrays behave funny for hashing
-        new_hash.update(obj)
-        val = new_hash.intdigest()
-        new_hash.reset()
-        return val
-
-    if not isinstance(obj, dict):
-        return hash(obj)
-
-    new_o = copy.deepcopy(obj)
-    for key, val in new_o.items():
-        new_o[key] = make_hash(val)
-
-    return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
 def import_func_from_string(function_string: str) -> Any:
