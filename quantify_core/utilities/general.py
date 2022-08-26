@@ -1,12 +1,10 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """General utilities."""
-import importlib
 import json
 import pathlib
-import warnings
 from collections.abc import MutableMapping
-from typing import Any, Optional, Union, Iterator, Type, TypeVar
+from typing import Any, Iterator, Optional, Type, TypeVar, Union
 
 from qcodes.utils.helpers import NumpyJSONEncoder
 
@@ -86,25 +84,6 @@ def get_keys_containing(obj: Union[dict, Any], key) -> set:
         a new set containing the keys that match the search
     """
     return set(filter(lambda k: key in k, obj.keys()))
-
-
-def import_func_from_string(function_string: str) -> Any:
-    """A deprecated alias for :func:`~.import_python_object_from_string`."""
-    warnings.warn(
-        "This functions is deprecated. Use `import_python_object_from_string` instead.",
-        category=DeprecationWarning,
-    )
-    return import_python_object_from_string(function_string)
-
-
-def import_python_object_from_string(function_string: str) -> Any:
-    """
-    Based on https://stackoverflow.com/questions/3061/calling-a-function-of-a-module-by-using-its-name-a-string
-    """  # pylint: disable=line-too-long
-    mod_name, func_name = function_string.rsplit(".", 1)
-    mod = importlib.import_module(mod_name)
-    func = getattr(mod, func_name)
-    return func
 
 
 def save_json(directory: pathlib.Path, filename: str, data) -> None:
