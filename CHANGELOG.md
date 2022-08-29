@@ -7,6 +7,7 @@
 ### Breaking changes
 
 - MeasurementControl -  raise a `ValueError` exception if there are no setpoints (!370)
+- Utilities - `make_hash` and `import_python_object_from_string` were removed, because they are not used in `quantify-core`. Use their counterparts from `quantify-scheduler`. (!371, quantify-os/quantify-scheduler!357)
 
 ### Merged branches and closed issues
 
