@@ -12,7 +12,7 @@
 ### Merged branches and closed issues
 
 - Remove various old temp requirement pins (counterpart of quantify-scheduler!447) (!368)
-- Added support to SI_prefix_and_scale_factor for scaled units such as ns or GHz (!365)
+- Added support to SI_prefix_and_scale_factor for scaled units such as ns or GHz (!365, !373)
 
 ## 0.6.3 (2022-08-05)
 

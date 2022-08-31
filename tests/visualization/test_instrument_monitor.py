@@ -148,6 +148,7 @@ def test_parameter_conversion():
     assert convert(100, "mm") == ("100", "mm")
     assert convert(0.08, "mm") == ("80.0", "μm")
     assert convert(1234, "nm") == ("1.234", "μm")
+    assert convert(None, "nm") == ("None", "nm")
 
     # Test value formatting without unit
     assert convert(None, "") == ("None", "")

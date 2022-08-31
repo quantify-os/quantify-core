@@ -182,7 +182,7 @@ def SI_prefix_and_scale_factor(
     scaled_unit : str
         unit including the prefix
     """
-    if unit and (match := _prefixed_si_regex.match(unit)):
+    if unit and val is not None and (match := _prefixed_si_regex.match(unit)):
         scale_part = match.group(1)
         unit_part = match.group(2)
         plus_scale = _SI_PREFIX_TO_FACTOR_MAPPING[scale_part]
