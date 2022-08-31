@@ -50,10 +50,17 @@ class InstrumentMonitor(Instrument):
             Interval in seconds between two updates
         """
         super().__init__(name=name)
+
+        self._update_lock = Lock()
+        self._update_thread = RepeatTimer(
+            interval=update_interval, function=self._update
+        )
+
         self.update_interval = Parameter(
             get_cmd=self._get_update_interval,
             set_cmd=self._set_update_interval,
             unit="s",
+            initial_value=update_interval,
             vals=vals.Numbers(min_value=0.001),
             name="update_interval",
             instrument=self,
@@ -76,9 +83,6 @@ class InstrumentMonitor(Instrument):
             # overrule the remote modules
             self.rpg = pg
             self.rwidget = qc_snapshot_widget
-
-        self._update_lock = Lock()
-        self._update_thread = RepeatTimer(update_interval, self._update)
 
         for i in range(10):
             try:
