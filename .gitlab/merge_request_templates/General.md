@@ -12,7 +12,7 @@ Motivate why the particular solution was chosen.
 ## Merge checklist
 See also [merge request guidelines](https://quantify-quantify-core.readthedocs-hosted.com/en/main/contributing.html#merge-request-guidelines)
 
-- [ ] Merge request has been reviewed (in-depth by a knowledgable contributor), and is approved by a project maintainer.
+- [ ] Merge request has been reviewed (in-depth by a knowledgeable contributor), and is approved by a project maintainer.
 - [ ] New code is covered by unit tests (or N/A).
 - [ ] New code is documented and docstrings use [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html) (or N/A).
 - [ ] New functionality: considered making private instead of extending public API (or N/A).
