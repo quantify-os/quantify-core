@@ -110,14 +110,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.plot_fit(
             ax=axs[0],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="real",
         )
 
         qpl.plot_fit(
             ax=axs[1],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="imag",
         )
 
@@ -153,14 +153,14 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.plot_fit(
             ax=axs[0],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="abs",
         )
 
         qpl.plot_fit(
             ax=axs[1],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="angle",
         )
 
@@ -190,7 +190,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.plot_fit_complex_plane(
             ax=ax,
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
         )
 
         qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset_processed.S21.units)
