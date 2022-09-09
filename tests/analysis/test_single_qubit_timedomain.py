@@ -375,16 +375,24 @@ def test_allxy_dataset_processed(allxy_analysis_obj):
 
 # Test that the analysis returns an error when the number of datapoints
 # is not a multiple of 21
-def test_allxy_analysis_invalid_data(tmp_test_data_dir):
+def test_allxy_analysis_invalid_data(caplog, tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
-    with pytest.raises(
-        ValueError,
-        match=(
-            "Invalid dataset. The number of calibration points in an "
-            "AllXY experiment must be a multiple of 21"
-        ),
-    ):
-        AllXYAnalysis(tuid="20210422-104958-297-7d6034").run()
+    analysis = AllXYAnalysis(tuid="20210422-104958-297-7d6034").run()
+    assert isinstance(analysis, AllXYAnalysis)
+
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert (
+        'Exception was raised while executing analysis step 1 ("<bound method '
+        "AllXYAnalysis.process_data of "
+        "<quantify_core.analysis.single_qubit_timedomain.AllXYAnalysis object at"
+        in record.msg
+    )
+    exception = record.exc_info[1]
+    assert isinstance(exception, ValueError)
+    assert exception.args[0].startswith(
+        "Invalid dataset. The number of calibration points"
+    )
 
 
 def test_allxy_load_fit_results_missing(tmp_test_data_dir):
