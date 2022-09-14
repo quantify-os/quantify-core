@@ -34,9 +34,9 @@ def test_figures_generated(analyses: Iterable) -> None:
     """
     for analysis in analyses:
         assert set(analysis.figs_mpl.keys()) == {
-            "Line plot sequencer0_offset_awg_path0 vs iteration",
-            "Line plot sequencer0_offset_awg_path1 vs iteration",
-            "Line plot SignalHound_fixed_frequency vs iteration",
+            "Line plot Sequencer 0 offset for AWG path 0. vs iteration",
+            "Line plot Sequencer 0 offset for AWG path 1. vs iteration",
+            "Line plot Signalhound Power vs iteration",
         }
 
 
