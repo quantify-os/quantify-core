@@ -73,8 +73,6 @@ extensions = [
     "qcodes.sphinx_extensions.parse_parameter_attr",
 ]
 
-notebook_to_jupyter_sphinx_always_rebuild = False
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
