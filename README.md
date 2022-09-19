@@ -19,7 +19,7 @@ Quantify currently consists of [quantify-core](https://pypi.org/project/quantify
 and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/).
 
 Take a look at the  [latest documentation for quantify-core](https://quantify-quantify-core.readthedocs-hosted.com/)
-or use the switch in the bottom of left panel to read the documentation for older releases.
+or use the switch in the bottom at the left panel to read the documentation for older releases.
 
 Quantify-core is the core module that contains all basic functionality to control experiments. This includes:
 
