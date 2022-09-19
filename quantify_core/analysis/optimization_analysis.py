@@ -52,7 +52,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         y_variable = "y0"
 
         text_msg += "\n"
-        variable_name = self.dataset[y_variable].attrs["name"]
+        variable_name = self.dataset[y_variable].attrs["long_name"]
         text_msg += f"{variable_name} {optimum_text}:\n"
 
         # Find the optimum for each x coordinate
@@ -68,7 +68,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
             ] = optimum
 
             text_msg += format_value_string(
-                self.dataset[x_variable].attrs["name"],
+                self.dataset[x_variable].attrs["long_name"],
                 optimum,
                 end_char="\n",
                 unit=self.dataset[x_variable].units,
@@ -80,7 +80,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest[self.dataset[y_variable].attrs["name"]] = optimum
 
         text_msg += format_value_string(
-            self.dataset[y_variable].attrs["name"],
+            self.dataset[y_variable].attrs["long_name"],
             optimum,
             end_char="\n",
             unit=self.dataset[y_variable].units,
@@ -107,7 +107,7 @@ def iteration_plots(dataset, quantities_of_interest):
     axs = {}
     all_variables = list(dataset.coords.items()) + list(dataset.data_vars.items())
     for variable, values in all_variables:
-        variable_name = dataset[variable].attrs["name"]
+        variable_name = dataset[variable].attrs["long_name"]
 
         fig, ax = plt.subplots()
         fig_id = f"Line plot {variable_name} vs iteration"
