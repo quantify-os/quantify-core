@@ -182,8 +182,8 @@ plotmon.main_QtPlot
    > ax.legend()
    >
    > # set units-aware tick labels
-   > set_xlabel(ax, dataset.x0.long_name, dataset.x0.units)
-   > set_ylabel(ax, dataset.y0.long_name, dataset.y0.units)
+   > set_xlabel(dataset.x0.long_name, dataset.x0.units)
+   > set_ylabel(dataset.y0.long_name, dataset.y0.units)
    >
    > # add a reference to the origal dataset in the figure title
    > fig.suptitle(f"{dataset.attrs['name']}\ntuid: {dataset.attrs['tuid']}")
@@ -276,8 +276,8 @@ def plot_fit(
     ax_.legend()
 
     # set units-aware tick labels
-    set_xlabel(ax_, dataset_.x0.long_name, dataset_.x0.units)
-    set_ylabel(ax_, dataset_.y0.long_name, dataset_.y0.units)
+    set_xlabel(dataset_.x0.long_name, dataset_.x0.units, ax_)
+    set_ylabel(dataset_.y0.long_name, dataset_.y0.units, ax_)
 
     # add a reference to the original dataset_ in the figure title
     fig_.suptitle(f"{dataset_.attrs['name']}\ntuid: {dataset_.attrs['tuid']}")
@@ -409,8 +409,8 @@ class MyCosineAnalysis:
         ax_.legend()
 
         # set units-aware tick labels
-        set_xlabel(ax_, self.dataset.x0.long_name, self.dataset.x0.attrs["units"])
-        set_ylabel(ax_, self.dataset.y0.long_name, self.dataset.y0.attrs["units"])
+        set_xlabel(self.dataset.x0.long_name, self.dataset.x0.attrs["units"], ax_)
+        set_ylabel(self.dataset.y0.long_name, self.dataset.y0.attrs["units"], ax_)
 
         # add a reference to the original dataset in the figure title
         fig_.suptitle(f"{dataset.attrs['name']}\ntuid: {dataset.attrs['tuid']}")

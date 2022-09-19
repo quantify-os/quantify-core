@@ -679,8 +679,8 @@ def plot_2d_grid(
 
     if title is not None:
         ax.set_title(title)
-    set_xlabel(ax, xlabel, xunit)
-    set_ylabel(ax, ylabel, yunit)
+    set_xlabel(xlabel, xunit, ax)
+    set_ylabel(ylabel, yunit, ax)
 
     if add_cbar:
         if cax is None:

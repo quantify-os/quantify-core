@@ -121,11 +121,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             range_casting="imag",
         )
 
-        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset_processed.S21.units)
-        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset_processed.S21.units)
+        qpl.set_ylabel(r"Re$(S_{21})$", self.dataset_processed.S21.units, axs[0])
+        qpl.set_ylabel(r"Im$(S_{21})$", self.dataset_processed.S21.units, axs[1])
         axs[0].set_xlabel("")
         qpl.set_xlabel(
-            axs[1], self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, axs[1]
         )
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
@@ -164,11 +164,11 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             range_casting="angle",
         )
 
-        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset_processed.S21.units)
-        qpl.set_ylabel(axs[1], r"$\angle S_{21}$", "deg")
+        qpl.set_ylabel(r"$|S_{21}|$", self.dataset_processed.S21.units, axs[0])
+        qpl.set_ylabel(r"$\angle S_{21}$", "deg", axs[1])
         axs[0].set_xlabel("")
         qpl.set_xlabel(
-            axs[1], self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, axs[1]
         )
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
@@ -193,7 +193,7 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
             plot_init=False,
         )
 
-        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset_processed.S21.units)
-        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset_processed.S21.units)
+        qpl.set_xlabel(r"Re$(S_{21})$", self.dataset_processed.S21.units, ax)
+        qpl.set_ylabel(r"Im$(S_{21})$", self.dataset_processed.S21.units, ax)
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")

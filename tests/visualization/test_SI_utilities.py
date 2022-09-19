@@ -73,8 +73,8 @@ def test_label_scaling() -> None:
     y = np.cos(x)
     ax.plot(x * 1000, y / 1e5)
 
-    set_xlabel(ax, "Distance", "m")
-    set_ylabel(ax, "Amplitude", "V")
+    set_xlabel("Distance", "m", axis=ax)
+    set_ylabel("Amplitude", "V")
 
     xlab = ax.get_xlabel()
     ylab = ax.get_ylabel()
