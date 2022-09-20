@@ -6,20 +6,20 @@ import pprint
 from typing import Any, Optional, Tuple
 from collections import OrderedDict
 
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtWidgets
 
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
 
 
-class QcSnapshotWidget(QtGui.QTreeWidget):
+class QcSnapshotWidget(QtWidgets.QTreeWidget):
     """
     Widget for displaying QcoDes instrument snapshots.
     Heavily inspired by the DataTreeWidget.
     """
 
     def __init__(self, parent=None, data=None):
-        QtGui.QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setData(data)
         self.setColumnCount(4)
@@ -60,7 +60,7 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
 
     def _add_node(self, parent, display_string, node_key):
         if node_key not in self.nodes:
-            self.nodes[node_key] = QtGui.QTreeWidgetItem([display_string, "", ""])
+            self.nodes[node_key] = QtWidgets.QTreeWidgetItem([display_string, "", ""])
             parent.addChild(self.nodes[node_key])
         node = self.nodes[node_key]
         return node
@@ -148,7 +148,7 @@ class QcSnapshotWidget(QtGui.QTreeWidget):
         param_node_key = f"{node_key}.{param_name}"
         # If node does not yet exist, create a node
         if param_node_key not in self.nodes:
-            param_node = QtGui.QTreeWidgetItem(
+            param_node = QtWidgets.QTreeWidgetItem(
                 [param_name, value_str, unit, latest_str]
             )
             node.addChild(param_node)
