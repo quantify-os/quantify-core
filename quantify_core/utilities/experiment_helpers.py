@@ -2,11 +2,11 @@
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Any, Optional, Union, Dict
+from typing import Any, Optional, Union, Dict, List
 
 import numpy as np
 
-from qcodes.instrument import Instrument, InstrumentChannel
+from qcodes.instrument import Instrument, InstrumentChannel, Parameter
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
@@ -15,18 +15,22 @@ from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
 def load_settings_onto_instrument(
-    instrument: Instrument, tuid: TUID = None, datadir: str = None
+    instrument: Union[Instrument, InstrumentChannel, Parameter],
+    tuid: TUID = None,
+    datadir: str = None,
 ) -> None:
     """
     Loads settings from a previous experiment onto a current
-    :class:`~qcodes.instrument.Instrument`. This information
-    is loaded from the 'snapshot.json' file in the provided experiment
-    directory.
+    :class:`~qcodes.instrument.Instrument`, or any of its submodules or
+    parameters. This information is loaded from the 'snapshot.json' file in
+    the provided experiment directory.
 
     Parameters
     ----------
-    instrument : :class:`~qcodes.instrument.Instrument`
-        the instrument to be configured.
+    instrument :
+        the :class:`~qcodes.instrument.Instrument`,
+        :class:`~qcodes.instrument.InstrumentChannel` or
+        :class:`~qcodes.instrument.Parameter` to be configured.
     tuid : :class:`~quantify_core.data.types.TUID`
         the TUID of the experiment. If None use latest TUID.
     datadir : str
@@ -44,15 +48,21 @@ def load_settings_onto_instrument(
     instruments_numpy_array = load_snapshot(tuid, datadir, list_to_ndarray=True)[
         "instruments"
     ]
-    if instrument.name not in instruments:
-        raise ValueError(
-            'Instrument "{}" not found in snapshot {}:{}'.format(
-                instrument.name, datadir, tuid
-            )
-        )
 
-    instr_snap = instruments[instrument.name]
-    instr_snap_numpy_array = instruments_numpy_array[instrument.name]
+    # Get a list of all the parent submodules and instruments
+    def _get_all_parents(
+        instr_mod: Union[Instrument, InstrumentChannel, Parameter]
+    ) -> List:
+        if hasattr(instr_mod, "_parent"):
+            parents = _get_all_parents(instr_mod._parent)
+            parents.append(instr_mod)
+        elif hasattr(instr_mod, "_instrument"):
+            parents = _get_all_parents(instr_mod._instrument)
+            parents.append(instr_mod)
+        else:
+            parents = [instr_mod]
+
+        return parents
 
     def _try_to_set_par_safe(
         instr_mod: Union[Instrument, InstrumentChannel],
@@ -75,6 +85,41 @@ def load_settings_onto_instrument(
                 f'Parameter "{parname}" of "{instr_mod.name}" '
                 f'could not be set to "{value}" due to error:\n{exc}'
             )
+
+    parents = _get_all_parents(instrument)
+
+    # Find the snapshot for this instrument, submodule or parameter
+    for parent in parents:
+        if isinstance(parent, Instrument):
+            if parent.name not in instruments:
+                raise ValueError(
+                    f'Instrument "{parent.name}" not found in snapshot {datadir}:{tuid}'
+                )
+            instr_mod_snap = instruments[parent.name]
+            instr_mod_snap_numpy_array = instruments_numpy_array[parent.name]
+
+        if isinstance(parent, InstrumentChannel):
+            if parent._short_name not in instr_mod_snap["submodules"]:
+                raise ValueError(
+                    f'Submodule "{parent._short_name}" not found in snapshot {datadir}:{tuid}'
+                )
+            instr_mod_snap = instr_mod_snap["submodules"][parent._short_name]
+            instr_mod_snap_numpy_array = instr_mod_snap_numpy_array["submodules"][
+                parent._short_name
+            ]
+
+        # If we are only setting one parameter, try to set this immediately
+        if isinstance(parent, Parameter):
+            if parent.name not in instr_mod_snap["parameters"]:
+                address = ".".join([p._short_name for p in parents])
+                raise ValueError(
+                    f'Parameter "{address}" not found in snapshot {datadir}:{tuid}'
+                )
+            value = instr_mod_snap["parameters"][parent.name]["value"]
+            if isinstance(parent(), np.ndarray):
+                value = instr_mod_snap_numpy_array["parameters"][parent.name]["value"]
+            _try_to_set_par_safe(parents[-2], parent.name, value)
+            return
 
     def _set_params_instr_mod(
         instr_mod_snap: Dict,
@@ -110,8 +155,8 @@ def load_settings_onto_instrument(
 
     # set the top-level parameters and then recursively set parameters of submodules
     _set_params_instr_mod(
-        instr_mod_snap=instr_snap,
-        instr_mod_snap_np=instr_snap_numpy_array,
+        instr_mod_snap=instr_mod_snap,
+        instr_mod_snap_np=instr_mod_snap_numpy_array,
         instr_mod=instrument,
     )
 
