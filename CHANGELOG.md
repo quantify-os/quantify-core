@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add functions to load and save lmfit fit results from file (!286)
+* Enable loading of settings of individual QCoDeS submodules and parameters from the saved snapshot (!384) 
 
 ### Breaking changes
 

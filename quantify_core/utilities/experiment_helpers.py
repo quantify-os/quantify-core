@@ -6,7 +6,8 @@ from typing import Any, Optional, Union, Dict, List
 
 import numpy as np
 
-from qcodes.instrument import Instrument, InstrumentChannel, Parameter
+from qcodes.instrument import Instrument, Parameter
+from qcodes.instrument.channel import InstrumentChannel
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
