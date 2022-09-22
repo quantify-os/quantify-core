@@ -101,7 +101,7 @@ def load_settings_onto_instrument(
         if isinstance(parent, InstrumentChannel):
             if parent._short_name not in instr_mod_snap["submodules"]:
                 raise ValueError(
-                    f'Submodule "{parent._short_name}" not found in snapshot {datadir}:{tuid}'
+                    f'Submodule "{parent.name}" not found in snapshot {datadir}:{tuid}'
                 )
             instr_mod_snap = instr_mod_snap["submodules"][parent._short_name]
             instr_mod_snap_numpy_array = instr_mod_snap_numpy_array["submodules"][
