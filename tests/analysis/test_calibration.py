@@ -85,10 +85,7 @@ def test_has_calibration_points_points_only_single_cluster(angles):
 def test_has_calibration_points_datasets(tmp_test_data_dir, angles, tuid, has_cal):
     set_datadir(tmp_test_data_dir)
 
-    a_obj = SingleQubitTimedomainAnalysis(tuid=tuid).run_until(
-        interrupt_before="run_fitting",  # avoid writing to disk
-        calibration_points=False,
-    )
+    a_obj = SingleQubitTimedomainAnalysis(tuid=tuid).run(calibration_points=False)
     # test many rotations on IQ plane
     data = a_obj.dataset_processed.S21.values
     for angle in angles:

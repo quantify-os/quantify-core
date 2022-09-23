@@ -4,7 +4,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-import inspect
 import json
 import logging
 import os
@@ -108,7 +107,6 @@ class AnalysisSteps(Enum):
 
     # Variables must start with a letter but we want them to have sorted names
     # for auto-complete to indicate the execution order
-    STEP_0_EXTRACT_DATA = "extract_data"
     STEP_1_PROCESS_DATA = "process_data"
     STEP_2_RUN_FITTING = "run_fitting"
     STEP_3_ANALYZE_FIT_RESULTS = "analyze_fit_results"
@@ -192,30 +190,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run()` should be
             overridden and extended (see its docstring for an example).
 
-        .. tip::
-
-            For scripting/development/debugging purposes the
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run_until` can be used
-            for a partial execution of the analysis. E.g.,
-
-            .. jupyter-execute::
-
-                from quantify_core.analysis.base_analysis import BasicAnalysis
-
-                a_obj = BasicAnalysis(label="my experiment").run_until(
-                    interrupt_before="extract_data"
-                )
-
-            **OR** use the corresponding members of the
-            :attr:`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps`:
-
-            .. jupyter-execute::
-
-                a_obj = BasicAnalysis(label="my experiment").run_until(
-                    interrupt_before=BasicAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
-                )
-
-
         .. rubric:: Settings schema:
 
         .. jsonschema:: schemas/AnalysisSettings.json#/configurations
@@ -263,8 +237,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         self.quantities_of_interest = {}
 
         self.fit_results = {}
-
-        self._interrupt_before = None
 
     analysis_steps = AnalysisSteps
     """
@@ -388,7 +360,13 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         This function is at the core of all analysis. It calls
         :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
         which executes all the methods defined in the
+
+        First step of any analysis is always extracting data, that is not configurable.
+        Errors in `extract_data()` are considered fatal for analysis.
+        Later steps are configurable by overriding
         :attr:`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps`.
+        Exceptions in these steps are logged and suppressed and analysis is considered
+        partially successful.
 
         This function is typically called right after instantiating an analysis class.
 
@@ -417,76 +395,20 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         passing analysis configuration arguments to
         :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
         """
-        flow_methods = _get_modified_flow(
-            flow_functions=self.get_flow(),
-            step_stop=self._interrupt_before,  # can be set by .run_until
-            step_stop_inclusive=False,
-        )
-
-        # Always reset so that it only has an effect when set by .run_until
-        self._interrupt_before = None
-
         self.logger.info(f"Executing `.analysis_steps` of {self.name}")
-        for i, method in enumerate(flow_methods):
+        self.logger.info(f"extracting data: {self.extract_data}")
+        self.extract_data()
+
+        for i, method in enumerate(self.get_flow(), start=1):
             self.logger.info(f"executing step {i}: {method}")
-            method()
-
-    def run_from(self, step: Union[str, AnalysisSteps]):
-        """
-        Runs the analysis starting from the specified method.
-
-        The methods are called in the same order as in
-        :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
-        Useful when first running a partial analysis and continuing again.
-        """
-        flow_methods = _get_modified_flow(
-            flow_functions=self.get_flow(),
-            step_start=step,
-            step_start_inclusive=True,  # self.step will be executed
-        )
-
-        for method in flow_methods:
-            method()
-
-    def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
-        """
-        Executes the analysis partially by calling
-        :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run` and
-        stopping before the specified step.
-
-        .. warning::
-
-            This method is not intended to be overwritten/extended.
-            See the examples below on passing arguments to
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
-
-        .. note::
-
-            Any code inside :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`
-            is still executed. Only the
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
-            [which is called by
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run` ] is affected.
-
-        Parameters
-        ----------
-        interrupt_before:
-            Stops the analysis before executing the specified step. For convenience
-            the analysis step can be specified either as a string or as the member of
-            the :attr:`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps`
-            enumerate member.
-        **kwargs:
-            Any other keyword arguments will be passed to
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`
-        """  # pylint: disable=line-too-long
-
-        # Used by `execute_analysis_steps` to stop
-        self._interrupt_before = interrupt_before
-
-        run_params = dict(inspect.signature(self.run).parameters)
-        run_params.update(kwargs)
-
-        return self.run(**run_params)
+            try:
+                method()
+            except Exception:  # pylint: disable=broad-except
+                self.logger.exception(
+                    f"Exception was raised while executing analysis step {i} "
+                    f'("{method}"). Terminating analysis and returning partial result.'
+                )
+                return
 
     def get_flow(self) -> tuple:
         """
@@ -1034,35 +956,3 @@ def analysis_steps_to_str(
     )
 
     return string
-
-
-def _get_modified_flow(
-    flow_functions: tuple,
-    step_start: Union[str, AnalysisSteps] = None,
-    step_start_inclusive: bool = True,
-    step_stop: Union[str, AnalysisSteps] = None,
-    step_stop_inclusive: bool = True,
-):
-    step_names = [meth.__name__ for meth in flow_functions]
-
-    if step_start:
-        if not issubclass(type(step_start), str):
-            step_start = step_start.value
-        start_idx = step_names.index(step_start)
-        if not step_start_inclusive:
-            start_idx += 1
-    else:
-        start_idx = 0
-
-    if step_stop:
-        if not issubclass(type(step_stop), str):
-            step_stop = step_stop.value
-        stop_idx = step_names.index(step_stop)
-        if step_stop_inclusive:
-            stop_idx += 1
-    else:
-        stop_idx = None
-
-    flow_functions = flow_functions[start_idx:stop_idx]
-
-    return flow_functions
