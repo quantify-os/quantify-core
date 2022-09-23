@@ -20,4 +20,5 @@ ENV PATH="/home/quantify/.local/bin:${PATH}"
 RUN pip install --upgrade --no-cache \
         pip \
         pytest \
+        pytest-mock \
         twine
