@@ -16,7 +16,7 @@ RUN apt-get update \
 
 RUN useradd --create-home --shell /bin/bash quantify
 USER quantify
-ENV PATH="/home/orangeqs/.local/bin:${PATH}"
+ENV PATH="/home/quantify/.local/bin:${PATH}"
 RUN pip install --upgrade --no-cache \
         pip \
         pytest \
