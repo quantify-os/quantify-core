@@ -189,8 +189,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
 
     ```
     $ cd quantify-core/
-    $ pip install -e .
-    $ pip install -r requirements_dev.txt
+    $ pip install -e ".[dev]"
     ```
 
 04. (Optional) Install `pre-commit` which will automatically format the code using [black](https://github.com/psf/black):
@@ -299,8 +298,7 @@ If for some reason you are not able to install or use Quantify using the prescri
 
    ```
    $ git clone https://gitlab.com/quantify-os/quantify-core.git; cd quantify-core
-   $ pip install --upgrade --upgrade-strategy eager .
-   $ pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+   $ pip install --upgrade --upgrade-strategy eager ".[dev]"
    $ pytest -v
    ```
 
