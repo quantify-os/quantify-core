@@ -19,3 +19,4 @@ uncertainties
 directory-tree>=0.0.2
 pendulum  # used for timestamps formatting in the dataset attributes
 dataclasses_json # used in dataset_attrs
+dill  # Without dill some tests are failing
