@@ -11,6 +11,7 @@ from quantify_core.data.experiment import QuantifyExperiment
 
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
+TUID_TEST_DATASET = "20220929-160100-080-f76ffd"
 
 
 def test_quantify_experiment(tmp_test_data_dir):
@@ -61,8 +62,9 @@ def test_quantify_experiment_save_and_load_dataset(tmp_test_data_dir):
     dataset = mk_dataset_complex_array(
         complex_float=complex_float, complex_int=complex_int
     )
-    dataset.attrs["name"] = "test_dataset"
-    tuid = TUID_1D_1PLOT
+    label = "test_dataset"
+    dataset.attrs["name"] = label
+    tuid = TUID_TEST_DATASET
 
     dh.set_datadir(tmp_test_data_dir)
 
@@ -71,9 +73,13 @@ def test_quantify_experiment_save_and_load_dataset(tmp_test_data_dir):
     experiment.write_dataset(dataset)
 
     load_dataset = experiment.load_dataset()
+    path = dh.locate_experiment_container(tuid)
+    load_label = path[-len(label) :]
+
     assert load_dataset.y0.values[0] == complex_int
     assert load_dataset.y1.values[0] == complex_float
-    assert load_dataset.name == "test_dataset"
+    assert load_dataset.name == label
+    assert load_label == label
 
 
 def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
