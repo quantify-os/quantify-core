@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add functions to load and save lmfit fit results from file (!286)
+* Allow concatenation of datasets with different names (!389)
 
 ### Breaking changes
 
