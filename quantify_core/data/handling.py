@@ -613,7 +613,9 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
     return dataset
 
 
-def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
+def concat_dataset(
+    tuids: List[TUID], dim: str = "dim_0", name: str = None
+) -> xr.Dataset:
     """
     This function takes in a list of TUIDs and concatenates the corresponding
     datasets. It adds the TUIDs as a coordinate in the new dataset.
@@ -624,6 +626,9 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         List of TUIDs.
     dim:
         Dimension along which to concatenate the datasets.
+    name:
+        The name of the concatenated dataset. If None, use the name of the
+        first dataset in the list.
 
     Returns
     -------
@@ -638,8 +643,12 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
     extended_tuids = []
     # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can
     # be made
-    for tuid in tuids:
+    for i, tuid in enumerate(tuids):
         dataset = load_dataset(tuid)
+        # Ensure dataset names are consistent
+        if i == 0 and not name:
+            name = dataset.name
+        dataset.attrs["name"] = name
         # Set dataset attribute 'tuid' to None to resolve conflicting tuids between
         # the loaded datasets
         dataset.attrs["tuid"] = None

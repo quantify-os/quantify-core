@@ -715,12 +715,10 @@ def test_concat_dataset_different_names(tmp_test_data_dir):
     )
 
     new_dataset = dh.concat_dataset(tuids, name="Pulsed spectroscopy concat")
-    assert isinstance(new_dataset, xr.Dataset)
-    assert len(new_dataset.dim_0) == 720
-    assert isinstance(new_dataset["ref_tuids"], xr.DataArray)
-    assert len(new_dataset["ref_tuids"]) == 720
-    assert new_dataset["ref_tuids"].is_dataset_ref
     assert new_dataset.name == "Pulsed spectroscopy concat"
+
+    new_dataset = dh.concat_dataset(tuids)
+    assert new_dataset.name == "Pulsed spectroscopy 0"
 
 
 # pylint: disable=redefined-outer-name
