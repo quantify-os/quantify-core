@@ -2,7 +2,7 @@
 
 1. [ ] Review `CHANGELOG.md` and `AUTHORS.md` have been updated.
 1. [ ] Update `Unreleased` chapter title in `CHANGELOG.md` to `X.Y.Z (YYYY-MM-DD)`. Commit it.
-1. [ ] Review deprecation warnings that can be cleaned up now.
+1. [ ] Review `@deprecated` and `DeprecationWarnings` that can be cleaned up now.
 
 1. CI pipeline:
     - [ ] Automated pipeline passes.
