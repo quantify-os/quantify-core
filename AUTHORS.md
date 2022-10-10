@@ -22,4 +22,4 @@
 - [Tim Vroomans](mailto:tim@orangeqs.com)
 - [Tobias Bonsen](mailto:tobias@orangeqs.com)
 - [Viacheslav Ostroukh](mailto:viacheslav@orangeqs.com)
-- [Victor Negîrneac](mailto:vnegirneac@qblox.com)
+- [Victor Negirneac](mailto:vnegirneac@qblox.com)
