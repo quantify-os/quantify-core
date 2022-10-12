@@ -4,6 +4,7 @@
 
 * Add functions to load and save lmfit fit results from file (!286)
 * Allow concatenation of datasets with different names (!389)
+* Fix a memory leak due to BaseAnalysis lru_cache (!390)
 
 ### Breaking changes
 
