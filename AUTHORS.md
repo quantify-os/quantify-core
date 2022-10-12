@@ -26,3 +26,4 @@
 - [Tobias Bonsen](mailto:tobias@orangeqs.com)
 - [Michiel Dubbelman](mailto:michiel@orangeqs.com)
 - [Michiel Haye](mailto:michiel.haye@tno.nl)
+- [Matteo Pompili](mailto:matpompili@gmail.com)

@@ -19,3 +19,4 @@ uncertainties
 directory-tree>=0.0.2
 pendulum  # used for timestamps formatting in the dataset attributes
 dataclasses_json # used in dataset_attrs
+methodtools  # used in base_analysis for self-bound lru_cache
