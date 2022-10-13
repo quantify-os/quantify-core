@@ -6,8 +6,7 @@
 
 1. CI pipeline:
     - [ ] Automated pipeline passes.
-    - [ ] `Test (py3.8, Windows, manual)` passes (trigger manually!).
-    - [ ] `Test (py3.10, Windows, manual)` passes (trigger manually!).
+    - [ ] All `Test (py3.x, Windows, manual)` pass (trigger manually!).
 
 1. [ ] Commit pip frozen requirements for future reference:
     - Go to the `Test (py3.9, Linux)` pipeline job and download the `artifacts` (right side "Job artifacts" `-->` "Download").
@@ -47,18 +46,18 @@
         - `Active`=True
         - `Hidden`=False
         - `Privacy Level`=Public
-   - [ ] Change both the `Default version` and `Default branch` of the docs to the tag that was released [over here](https://readthedocs.com/dashboard/quantify-quantify-core/advanced/).
-   - [ ] Make sure the docs build.
+   - [ ] Change both the `Default version` and `Default branch` of the docs to the tag that was released [over here](https://readthedocs.com/dashboard/quantify-quantify-core/advanced/). Hit Save!
+   - [ ] Make sure the docs build and check on RTD.
+      - Manually rebuild `latest` by hitting `Build version:` [over here](https://readthedocs.com/projects/quantify-quantify-core/builds/).
+      - Check both the `latest` and the new version links on RTD work by clicking through to Changelog (hit Ctrl+F5).
 
 1. [ ] Create [new release on GitLab](https://gitlab.com/quantify-os/quantify-core/-/releases).
     - Meaningful title
     - List of highlights followed by changelog.
     - Add a few images or animated GIFs showcasing the new exciting features.
 
-1. [ ] When `Release to test.pypi.org` job of a tag pipeline succeeds,
-       install a package from test.pypi.org in an empty test virtual environment and validate it
-       (e.g., run a quick notebook, pytest, etc.).
-
+1. When `Release to test.pypi.org` job of the tag pipeline succeeds:
+    - [ ] Install package in (test) env and validate (e.g., run a quick notebook).
        ```bash
        pip install quantify-core==x.x.x --extra-index-url=https://test.pypi.org/simple/
        ```
