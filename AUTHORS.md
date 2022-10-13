@@ -14,6 +14,7 @@
 - [Kelvin Loh](mailto:kelvin@orangeqs.com)
 - [Konstantin Lehmann](mailto:konstantin@orangeqs.com)
 - [Luis Miguens Fernandez](mailto:lmiguens@qblox.com)
+- [Matteo Pompili](mailto:matpompili@gmail.com)
 - [Michiel Dubbelman](mailto:michiel@orangeqs.com)
 - [Michiel Haye](mailto:michiel.haye@tno.nl)
 - [Pieter Eendebak](mailto:pieter.eendebak@tno.nl)

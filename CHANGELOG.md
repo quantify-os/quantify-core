@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add functions to load and save lmfit fit results from file (!286)
+- Fix a memory leak due to BaseAnalysis lru_cache (!390)
+
 ## 0.6.4 (2022-10-13)
 
 ### Breaking changes
