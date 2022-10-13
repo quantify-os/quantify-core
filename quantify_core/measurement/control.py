@@ -28,6 +28,7 @@ except ModuleNotFoundError:
     # Future compatibility with qcodes-0.35.
     # This should be the only one when we depend on it.
     from qcodes.parameters import InstrumentRefParameter
+from qcodes.instrument import InstrumentChannel
 
 from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
@@ -138,6 +139,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         :attr:`.update_interval` time has elapsed when acquiring new data points, data
         is written to file (and the live monitoring detects updated)."""
 
+        # Add metadata submodule to allow user to save custom metadata
+        metadata = InstrumentChannel(self, "metadata")
+        self.add_submodule("metadata", metadata)
+
         self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
 
         # variables that are set before the start of any experiment.
@@ -208,6 +213,35 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     def show(self):
         """Print short representation of the object to stdout."""
         print(self.__repr__full__())
+
+    def set_metadata(self, metadata: Dict[str, Any], overwrite: bool = True):
+        """
+        Populates the metadata submodule with metadata parameters
+
+        metadata:
+            Dict specifying the names of the metadata parameters and their values.
+        overwrite:
+            If True, clear all previously saved metadata parameters and save new
+            ones.
+            If False, keep all previously saved metadata parameters and change
+            their values if necessary
+        """
+        if overwrite:
+            self.clear_metadata()
+
+        for parameter, value in metadata.items():
+            if parameter not in self.metadata.parameters:
+                self.metadata.add_parameter(
+                    name=parameter, parameter_class=ManualParameter
+                )
+
+            self.metadata.parameters[parameter](value)
+
+    def clear_metadata(self):
+        """
+        Remove all metadata parameters from the metadata submodule
+        """
+        self.metadata.parameters = {}
 
     ############################################
     # Methods used to control the measurements #
