@@ -2,12 +2,14 @@
 
 ## Unreleased
 
-* Add functions to load and save lmfit fit results from file (!286)
-* Fix a memory leak due to BaseAnalysis lru_cache (!390)
+- Add functions to load and save lmfit fit results from file (!286)
+- Fix a memory leak due to BaseAnalysis lru_cache (!390)
+
+## 0.6.4 (2022-10-13)
 
 ### Breaking changes
 
-- MeasurementControl -  raise a `ValueError` exception if there are no setpoints (!370)
+- MeasurementControl - Raise a `ValueError` exception if there are no setpoints (!370)
 - Utilities - `make_hash` and `import_python_object_from_string` were removed, because they are not used in `quantify-core`. Use their counterparts from `quantify-scheduler`. (!371, quantify-os/quantify-scheduler!357)
 - Docs - `notebook_to_jupyter_sphinx` sphinx extension has been removed (!378)
 - Removed `BaseAnalysis.run_from()` and `BaseAnalysis.run_until()` functionality, which is almost unused by an average user. (!379)
@@ -16,10 +18,12 @@
 
 ### Merged branches and closed issues
 
+- Add functions to load and save lmfit fit results from file (!286)
 - Remove various old temp requirement pins (counterpart of quantify-scheduler!447) (!368)
 - Added support to SI_prefix_and_scale_factor for scaled units such as ns or GHz (!365, !373)
 - InstrumentMonitor - Restore `initial_value` of `update_interval` param (removed in !324) (!375)
 - Analysis - Use `long_name` instead of `name` XArray attribute as default for axis labels and plot messages (!380)
+- Reduce quantify-core import time (!366)
 
 ## 0.6.3 (2022-08-05)
 
