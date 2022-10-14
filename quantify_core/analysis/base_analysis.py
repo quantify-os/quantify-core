@@ -11,7 +11,7 @@ import warnings
 from abc import ABCMeta
 from copy import deepcopy
 from enum import Enum
-from functools import lru_cache, wraps
+from functools import wraps
 from pathlib import Path
 from textwrap import wrap
 from typing import List, Union, Dict
@@ -23,6 +23,7 @@ import numpy as np
 import xarray as xr
 from IPython.display import display
 from matplotlib.collections import QuadMesh
+from methodtools import lru_cache
 from qcodes.utils.helpers import NumpyJSONEncoder
 from uncertainties import ufloat
 
@@ -44,6 +45,8 @@ from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_c
 
 from .types import AnalysisSettings
 
+FIGURES_LRU_CACHE_SIZE = 8
+
 
 @dataclass
 class _FiguresMplCache:
@@ -51,11 +54,6 @@ class _FiguresMplCache:
     figs: Dict[str, matplotlib.figure.Figure]
     axes: Dict[str, matplotlib.axes.Axes]
     initialized: bool
-
-
-@lru_cache(maxsize=8)
-def _analyses_figures_cache(_: BaseAnalysis):
-    return _FiguresMplCache({}, {}, False)
 
 
 # global configurations at the level of the analysis module
@@ -141,13 +139,13 @@ class AnalysisMeta(ABCMeta):
 
             @wraps(create_figures_orig)
             def create_figures_patched(self):
-                _analyses_figures_cache(self).initialized = True
+                self._analyses_figures_cache().initialized = True
                 self._creating_figures = True
                 create_figures_orig(self)
                 self._creating_figures = False
 
             def _figs_axs_mpl(self):
-                cache = _analyses_figures_cache(self)
+                cache = self._analyses_figures_cache()
                 if not cache.initialized and not self._creating_figures:
                     create_figures_patched(self)
                 return cache
@@ -346,6 +344,10 @@ class BaseAnalysis(metaclass=AnalysisMeta):
                 os.makedirs(results_dir)
 
         return results_dir
+
+    @lru_cache(maxsize=FIGURES_LRU_CACHE_SIZE)
+    def _analyses_figures_cache(self):
+        return _FiguresMplCache({}, {}, False)
 
     @property
     def results_dir(self):
