@@ -53,8 +53,8 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
     ],
-    description="""Unified quantum computing, solid-state and pulse sequencing physical
-    experimentation framework.""",
+    description="""Unified quantum computing, solid-state and pulse sequencing """
+    """physical experimentation framework.""",
     install_requires=requirements,
     license="BSD-3 license",
     long_description=readme + "\n\n" + authors + "\n\n" + history,
