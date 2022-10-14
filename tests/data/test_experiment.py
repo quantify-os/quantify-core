@@ -14,6 +14,17 @@ TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_TEST_DATASET = "20220929-160100-080-f76ffd"
 
 
+def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
+    dataset = xr.Dataset(
+        data_vars={
+            "y0": ("dim_0", np.array([complex_int] * 5)),
+            "y1": ("dim_0", np.array([complex_float] * 5)),
+        },
+        coords={"x0": np.linspace(0, 5, 5)},
+    )
+    return dataset
+
+
 def test_quantify_experiment(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     tuid = TUID_1D_1PLOT
@@ -80,14 +91,3 @@ def test_quantify_experiment_save_and_load_dataset(tmp_test_data_dir):
     assert load_dataset.y1.values[0] == complex_float
     assert load_dataset.name == label
     assert load_label == label
-
-
-def mk_dataset_complex_array(complex_float=1.0 + 5.0j, complex_int=1 + 4j):
-    dataset = xr.Dataset(
-        data_vars={
-            "y0": ("dim_0", np.array([complex_int] * 5)),
-            "y1": ("dim_0", np.array([complex_float] * 5)),
-        },
-        coords={"x0": np.linspace(0, 5, 5)},
-    )
-    return dataset
