@@ -1335,51 +1335,102 @@ class TestMeasurementControl:
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
 
-    def test_metadata(self):
-        assert set(self.meas_ctrl.metadata.parameters) == {}
+    def test_experiment_data(self):
+        assert self.meas_ctrl.experiment_data.parameters == {}
 
-        # Create some metadata
-        metadata_1 = {
-            "param_a": 0.02,
-            "param_b": 50,
+        # Create some experiment_data
+        experiment_data_1 = {
+            "param_a": {
+                "value": 0.25,
+                "label": "parameter a",
+                "unit": "Hz",
+            },
+            "param_b": {
+                "value": -10,
+            },
         }
 
-        self.meas_ctrl.set_metadata(metadata_1)
+        self.meas_ctrl.set_experiment_data(experiment_data_1)
 
-        assert self.meas_ctrl.metadata.keys() == metadata_1.keys()
-        assert self.meas_ctrl.metadata.param_a == metadata_1["param_a"]
-        assert self.meas_ctrl.metadata.param_b == metadata_1["param_b"]
+        assert (
+            self.meas_ctrl.experiment_data.parameters.keys() == experiment_data_1.keys()
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_a()
+            == experiment_data_1["param_a"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_a.unit
+            == experiment_data_1["param_a"]["unit"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_a.label
+            == experiment_data_1["param_a"]["label"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_b()
+            == experiment_data_1["param_b"]["value"]
+        )
 
-        # Set some new metadata, overwriting the previously saved values
-        metadata_2 = {
-            "param_b": 60,
-            "param_c": 12.4,
+        # Set some new experiment_data, overwriting the previously saved values
+        experiment_data_2 = {
+            "param_b": {
+                "value": 60,
+            },
+            "param_c": {
+                "value": 12.4,
+            },
         }
 
-        self.meas_ctrl.set_metadata(metadata_2)
+        self.meas_ctrl.set_experiment_data(experiment_data_2)
 
-        assert self.meas_ctrl.metadata.keys() == metadata_2.keys()
-        assert self.meas_ctrl.metadata.param_b == metadata_2["param_b"]
-        assert self.meas_ctrl.metadata.param_c == metadata_2["param_c"]
+        assert (
+            self.meas_ctrl.experiment_data.parameters.keys() == experiment_data_2.keys()
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_b()
+            == experiment_data_2["param_b"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_c()
+            == experiment_data_2["param_c"]["value"]
+        )
 
-        # Set some new metadata, keeping the old parameters and changing
+        # Set some new experiment_data, keeping the old parameters and changing
         # them if necessary
-        metadata_3 = {
-            "param_b": 70,
-            "param_d": 1.1,
+        experiment_data_3 = {
+            "param_b": {
+                "value": 70,
+            },
+            "param_d": {
+                "value": 1.1,
+            },
         }
 
-        self.meas_ctrl.set_metadata(metadata_3, overwrite=False)
+        self.meas_ctrl.set_experiment_data(experiment_data_3, overwrite=False)
 
-        assert set(self.meas_ctrl.metadata.keys()) == {"param_b", "param_c", "param_d"}
-        assert self.meas_ctrl.metadata.param_b == metadata_3["param_b"]
-        assert self.meas_ctrl.metadata.param_c == metadata_2["param_c"]
-        assert self.meas_ctrl.metadata.param_d == metadata_3["param_d"]
+        assert set(self.meas_ctrl.experiment_data.parameters.keys()) == {
+            "param_b",
+            "param_c",
+            "param_d",
+        }
+        assert (
+            self.meas_ctrl.experiment_data.param_b()
+            == experiment_data_3["param_b"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_c()
+            == experiment_data_2["param_c"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_d()
+            == experiment_data_3["param_d"]["value"]
+        )
 
-        # Clear all metadata
-        self.meas_ctrl.clear_metadata()
+        # Clear all experiment_data
+        self.meas_ctrl.clear_experiment_data()
 
-        assert set(self.meas_ctrl.metadata.parameters) == {}
+        assert self.meas_ctrl.experiment_data.parameters == {}
 
 
 def test_repr_new_and_closed():
