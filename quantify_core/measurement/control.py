@@ -220,16 +220,21 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         Populates the experiment_data submodule with experiment_data parameters
 
+        Parameters
+        -----------
         experiment_data:
             Dict specifying the names of the experiment_data parameters and their
             values. Follows the format:
-            {
-            "parameter_name": {
-                    "value": 10.2
-                    "label": "parameter label"
-                    "unit": "Hz"
+
+            .. code-block:: python
+                {
+                "parameter_name": {
+                        "value": 10.2
+                        "label": "parameter label"
+                        "unit": "Hz"
+                    }
                 }
-            }
+
         overwrite:
             If True, clear all previously saved experiment_data parameters and save new
             ones.
