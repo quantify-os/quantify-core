@@ -705,6 +705,16 @@ def test_concat_dataset(tmp_test_data_dir):
     assert len(new_dataset["ref_tuids"]) == 720
     assert new_dataset["ref_tuids"].is_dataset_ref
 
+    # Concatenate the processed datasets
+    new_dataset = dh.concat_dataset(
+        correct_tuids, analysis_name="QubitSpectroscopyAnalysis", dim="x0"
+    )
+    assert isinstance(new_dataset, xr.Dataset)
+    assert len(new_dataset.x0) == 720
+    assert isinstance(new_dataset["ref_tuids"], xr.DataArray)
+    assert len(new_dataset["ref_tuids"]) == 720
+    assert new_dataset["ref_tuids"].is_dataset_ref
+
 
 # pylint: disable=redefined-outer-name
 @pytest.fixture(scope="function", autouse=False)
@@ -844,6 +854,27 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
         new_name=new_name,
         t_start=t_start,
         t_stop=t_stop,
+    )
+    assert len(new_dataset.dim_0) == 720
+    assert TUID.is_valid(new_dataset.attrs["tuid"])
+    assert isinstance(new_dataset.attrs["tuid"], str)
+    assert new_dataset.x1.values == pytest.approx(
+        np.repeat(expected_varying_parameter_values, 240)
+    )
+    if new_name is None:
+        assert new_dataset.name == f"{experiment} vs {parameter}"
+    else:
+        assert new_dataset.name == new_name
+
+    # Try concatenating the processed datasets
+    new_dataset = dh.multi_experiment_data_extractor(
+        experiment,
+        parameter,
+        new_name=new_name,
+        t_start=t_start,
+        t_stop=t_stop,
+        analysis_name="QubitSpectroscopyAnalysis",
+        dimension="x0",
     )
     assert len(new_dataset.dim_0) == 720
     assert TUID.is_valid(new_dataset.attrs["tuid"])

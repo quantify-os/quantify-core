@@ -613,10 +613,16 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
     return dataset
 
 
-def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
+def concat_dataset(
+    tuids: List[TUID], dim: str = "dim_0", analysis_name: str = None
+) -> xr.Dataset:
     """
     This function takes in a list of TUIDs and concatenates the corresponding
     datasets. It adds the TUIDs as a coordinate in the new dataset.
+
+    By default, we will extract the unprocessed dataset from each directory, but if
+    analysis_name is specified, we will extract the processed dataset for that
+    analysis.
 
     Parameters
     ----------
@@ -624,6 +630,9 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
         List of TUIDs.
     dim:
         Dimension along which to concatenate the datasets.
+    analysis_name:
+        In the case that we want to extract the processed dataset for give
+        analysis, this is the name of the analysis.
 
     Returns
     -------
@@ -639,7 +648,10 @@ def concat_dataset(tuids: List[TUID], dim: str = "dim_0") -> xr.Dataset:
     # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can
     # be made
     for tuid in tuids:
-        dataset = load_dataset(tuid)
+        if analysis_name:
+            dataset = load_processed_dataset(tuid, analysis_name=analysis_name)
+        else:
+            dataset = load_dataset(tuid)
         # Set dataset attribute 'tuid' to None to resolve conflicting tuids between
         # the loaded datasets
         dataset.attrs["tuid"] = None
@@ -761,11 +773,17 @@ def multi_experiment_data_extractor(
     new_name: Optional[str] = None,
     t_start: Optional[str] = None,
     t_stop: Optional[str] = None,
+    analysis_name: Optional[str] = None,
+    dimension: Optional[str] = "dim_0",
 ) -> xr.Dataset:
     """
     A data extraction function which loops through multiple quantify data directories
     and extracts the selected varying parameter value and corresponding datasets, then
     compiles this data into a single dataset for further analysis.
+
+    By default, we will extract the unprocessed dataset from each directory, but if
+    analysis_name is specified, we will extract the processed dataset for that
+    analysis.
 
     Parameters
     -----------
@@ -790,6 +808,11 @@ def multi_experiment_data_extractor(
         Datetime to search until, exclusive. If a string is specified, it will be
         converted to a datetime object using :obj:`~dateutil.parser.parse`.
         If no value is specified, will use the current time as a reference t_stop.
+    analysis_name:
+        In the case that we want to extract the processed dataset for give
+        analysis, this is the name of the analysis.
+    dimension:
+        The name of the dataset dimension to concatenate over
 
     Returns
     -----------
@@ -809,7 +832,7 @@ def multi_experiment_data_extractor(
     tuids.sort()
 
     # Get the new dataset containing all selected experiments
-    new_dataset = concat_dataset(tuids)
+    new_dataset = concat_dataset(tuids, analysis_name=analysis_name, dim=dimension)
 
     # Get the varying parameter from the snapshot.json file
     varying_parameter_values = get_varying_parameter_values(tuids, parameter)
