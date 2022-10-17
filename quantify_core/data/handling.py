@@ -614,7 +614,7 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
 
 def concat_dataset(
-    tuids: List[TUID], dim: str = "dim_0", analysis_name: str = None
+    tuids: List[TUID], dim: str = "dim_0", name: str = None, analysis_name: str = None
 ) -> xr.Dataset:
     """
     This function takes in a list of TUIDs and concatenates the corresponding
@@ -633,6 +633,9 @@ def concat_dataset(
     analysis_name:
         In the case that we want to extract the processed dataset for give
         analysis, this is the name of the analysis.
+    name:
+        The name of the concatenated dataset. If None, use the name of the
+        first dataset in the list.
 
     Returns
     -------
@@ -647,11 +650,16 @@ def concat_dataset(
     extended_tuids = []
     # loop over the TUIDs to get all dataset. Reversed so the extended tuid list can
     # be made
-    for tuid in tuids:
+    for i, tuid in enumerate(tuids):
         if analysis_name:
             dataset = load_processed_dataset(tuid, analysis_name=analysis_name)
         else:
             dataset = load_dataset(tuid)
+        # Ensure dataset names are consistent
+        if i == 0 and not name:
+            name = dataset.name
+        dataset.attrs["name"] = name
+
         # Set dataset attribute 'tuid' to None to resolve conflicting tuids between
         # the loaded datasets
         dataset.attrs["tuid"] = None
