@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add experiments_data submodule to measurement control (!393)
+- Allow concatenation of datasets with different names (!389)
 - Add functions to load and save lmfit fit results from file (!286)
 - Fix a memory leak due to BaseAnalysis lru_cache (!390)
 
