@@ -48,7 +48,7 @@ class QuantifyExperiment:
         else:
             self.tuid = tuid
             self.dataset = None
-        self.tuid = TUID(tuid)
+        self.tuid = TUID(self.tuid)
 
     def __repr__(self) -> str:
         classname = ".".join([self.__module__, self.__class__.__qualname__])
