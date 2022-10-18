@@ -1335,6 +1335,103 @@ class TestMeasurementControl:
         # we stop right away
         assert sum(np.isnan(dset.y0) ^ 1) == 3
 
+    def test_experiment_data(self):
+        assert self.meas_ctrl.experiment_data.parameters == {}
+
+        # Create some experiment_data
+        experiment_data_1 = {
+            "param_a": {
+                "value": 0.25,
+                "label": "parameter a",
+                "unit": "Hz",
+            },
+            "param_b": {
+                "value": -10,
+            },
+        }
+
+        self.meas_ctrl.set_experiment_data(experiment_data_1)
+
+        assert (
+            self.meas_ctrl.experiment_data.parameters.keys() == experiment_data_1.keys()
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_a()
+            == experiment_data_1["param_a"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_a.unit
+            == experiment_data_1["param_a"]["unit"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_a.label
+            == experiment_data_1["param_a"]["label"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_b()
+            == experiment_data_1["param_b"]["value"]
+        )
+
+        # Set some new experiment_data, overwriting the previously saved values
+        experiment_data_2 = {
+            "param_b": {
+                "value": 60,
+            },
+            "param_c": {
+                "value": 12.4,
+            },
+        }
+
+        self.meas_ctrl.set_experiment_data(experiment_data_2)
+
+        assert (
+            self.meas_ctrl.experiment_data.parameters.keys() == experiment_data_2.keys()
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_b()
+            == experiment_data_2["param_b"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_c()
+            == experiment_data_2["param_c"]["value"]
+        )
+
+        # Set some new experiment_data, keeping the old parameters and changing
+        # them if necessary
+        experiment_data_3 = {
+            "param_b": {
+                "value": 70,
+            },
+            "param_d": {
+                "value": 1.1,
+            },
+        }
+
+        self.meas_ctrl.set_experiment_data(experiment_data_3, overwrite=False)
+
+        assert set(self.meas_ctrl.experiment_data.parameters.keys()) == {
+            "param_b",
+            "param_c",
+            "param_d",
+        }
+        assert (
+            self.meas_ctrl.experiment_data.param_b()
+            == experiment_data_3["param_b"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_c()
+            == experiment_data_2["param_c"]["value"]
+        )
+        assert (
+            self.meas_ctrl.experiment_data.param_d()
+            == experiment_data_3["param_d"]["value"]
+        )
+
+        # Clear all experiment_data
+        self.meas_ctrl.clear_experiment_data()
+
+        assert self.meas_ctrl.experiment_data.parameters == {}
+
 
 def test_repr_new_and_closed():
 
