@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Allow concatenation of processed datasets (!394)
 - Add experiments_data submodule to measurement control (!393)
 - Allow concatenation of datasets with different names (!389)
 - Add functions to load and save lmfit fit results from file (!286)
