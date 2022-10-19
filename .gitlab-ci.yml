@@ -7,15 +7,14 @@ workflow:
 
 variables:
   COV_MODULE: quantify_core
-  CI_DEFAULT_BRANCH_TEST: release_064
 
 include:
   - project: "quantify-os/ci"
-    ref: staging
+    ref: main
     file: "/python-vanilla.yml"
   - project: "quantify-os/ci"
-    ref: staging
+    ref: main
     file: "/python-windows.yml"
   - project: "quantify-os/ci"
-    ref: staging
+    ref: main
     file: "/python-packaging-pypi.yml"
