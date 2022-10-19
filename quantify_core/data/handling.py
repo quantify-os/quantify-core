@@ -657,7 +657,7 @@ def concat_dataset(
             dataset = load_dataset(tuid)
         # Ensure dataset names are consistent
         if i == 0 and not name:
-            name = dataset.name
+            name = dataset.attrs.get("name")
         dataset.attrs["name"] = name
 
         # Set dataset attribute 'tuid' to None to resolve conflicting tuids between

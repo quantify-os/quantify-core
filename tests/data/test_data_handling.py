@@ -722,7 +722,7 @@ def test_concat_dataset_different_names(tmp_test_data_dir):
 
     # Concatenate the processed datasets
     new_dataset = dh.concat_dataset(
-        correct_tuids, analysis_name="QubitSpectroscopyAnalysis", dim="x0"
+        tuids, analysis_name="QubitSpectroscopyAnalysis", dim="x0"
     )
     assert isinstance(new_dataset, xr.Dataset)
     assert len(new_dataset.x0) == 720
