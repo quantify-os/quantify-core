@@ -18,6 +18,7 @@
 - Removed `BaseAnalysis.run_from()` and `BaseAnalysis.run_until()` functionality, which is almost unused by an average user. (!379)
 - `BaseAnalysis.run()` function will return analysis object even if analysis has failed. Exceptions raised by analysis
   will be logged and not raised. (!379)
+- The order of the arguments of `set_xlabel` and `set_ylabel` has been modified so that the `ax` is now optional argument (!376)
 
 ### Merged branches and closed issues
 

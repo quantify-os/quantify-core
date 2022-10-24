@@ -62,10 +62,10 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
             )
 
             qpl.set_xlabel(
-                ax, self.dataset["x0"].attrs["long_name"], self.dataset["x0"].units
+                self.dataset["x0"].attrs["long_name"], self.dataset["x0"].units, ax
             )
             qpl.set_ylabel(
-                ax, self.dataset["x1"].attrs["long_name"], self.dataset["x1"].units
+                self.dataset["x1"].attrs["long_name"], self.dataset["x1"].units, ax
             )
             qpl.set_cbarlabel(cbar, variable_name, unit)
             qpl.set_suptitle_from_dataset(

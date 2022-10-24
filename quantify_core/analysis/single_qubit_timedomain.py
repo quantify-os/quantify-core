@@ -158,9 +158,9 @@ class _DecayFigMixin:
                 ls="",
             )
             set_ylabel(
-                ax,
                 self.dataset_processed.pop_exc.long_name,
                 self.dataset_processed.pop_exc.units,
+                ax,
             )
         else:
             ax.plot(
@@ -170,13 +170,13 @@ class _DecayFigMixin:
                 ls="",
             )
             set_ylabel(
-                ax,
                 r"Magnitude |$S_{21}|$",
                 self.dataset_processed.S21.units,
+                ax,
             )
 
         set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, ax
         )
 
         set_suptitle_from_dataset(fig, self.dataset)
@@ -615,9 +615,9 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         ax.xaxis.set_ticks(np.arange(21))
         ax.set_xticklabels(labels, rotation=60)
         set_ylabel(
-            ax,
             self.dataset_processed.pop_exc.long_name,
             self.dataset_processed.pop_exc.units,
+            ax,
         )
         ax.legend(loc=4)
 
@@ -762,9 +762,9 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
             )
 
             set_ylabel(
-                ax,
                 self.dataset_processed.S21_rot.long_name,
                 self.dataset_processed.S21_rot.units,
+                ax,
             )
         else:
             ax.plot(
@@ -774,9 +774,9 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
                 linestyle="",
             )
             set_ylabel(
-                ax,
                 self.dataset_processed.S21.long_name,
                 self.dataset_processed.S21.units,
+                ax,
             )
 
         plot_fit(
@@ -787,7 +787,7 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         )
 
         set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, ax
         )
 
         set_suptitle_from_dataset(fig, self.dataset)

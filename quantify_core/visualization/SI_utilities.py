@@ -7,6 +7,7 @@ Utilities for managing SI units with plotting systems.
 import re
 import string
 from typing import Optional, Tuple, Union
+import warnings
 
 import lmfit
 import matplotlib
@@ -20,21 +21,33 @@ double_col_figsize = (6.9, golden_mean * 6.9)
 thesis_col_figsize = (12.2 / 2.54, golden_mean * 12.2 / 2.54)
 
 
-def set_xlabel(axis, label, unit=None, **kw):
+def set_xlabel(label, unit=None, axis=None, **kw):
     """
     Add a unit aware x-label to an axis object.
 
     Parameters
     ----------
-    axis
-        matplotlib axis object to set label on
     label
         the desired label
     unit
         the unit
+    axis
+        matplotlib axis object to set label on
     **kw
         keyword argument to be passed to matplotlib.set_xlabel
     """
+    if isinstance(label, plt.Axes):
+        warnings.warn(
+            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
+            " Please use the new syntax set_xlabel(label, unit = None, axis = None)",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        axis, label, unit = label, unit, axis
+
+    if axis is None:
+        axis = plt.gca()
+
     if unit is not None and unit != "":
         xticks = axis.get_xticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
@@ -49,21 +62,33 @@ def set_xlabel(axis, label, unit=None, **kw):
     return axis
 
 
-def set_ylabel(axis, label, unit=None, **kw):
+def set_ylabel(label, unit=None, axis=None, **kw):
     """
     Add a unit aware y-label to an axis object.
 
     Parameters
     ----------
-    axis
-        matplotlib axis object to set label on
     label
         the desired label
     unit
         the unit
+    axis
+        matplotlib axis object to set label on
     **kw
         keyword argument to be passed to matplotlib.set_ylabel
     """
+    if isinstance(label, plt.Axes):
+        warnings.warn(
+            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
+            " Please use the new syntax set_ylabel(label, unit = None, axis = None)",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        axis, label, unit = label, unit, axis
+
+    if axis is None:
+        axis = plt.gca()
+
     if unit is not None and unit != "":
         yticks = axis.get_yticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(yticks)), unit=unit)
@@ -123,7 +148,7 @@ def adjust_axeslabels_SI(ax) -> None:
         xunit = xlabel[idxl + 1 : idxr]
         xlabel = xlabel[: -(len(xunit) + 3)]
         # replace by a unit aware label formatter
-        set_xlabel(ax, xlabel, xunit)
+        set_xlabel(xlabel, xunit, ax)
 
     ylabel = ax.get_ylabel()
     idxl = ylabel.find("[")
@@ -133,7 +158,7 @@ def adjust_axeslabels_SI(ax) -> None:
         yunit = ylabel[idxl + 1 : idxr]
         ylabel = ylabel[: -(len(yunit) + 3)]
         # replace by a unit aware label formatter
-        set_ylabel(ax, ylabel, yunit)
+        set_ylabel(ylabel, yunit, ax)
 
 
 SI_PREFIXES = dict(zip(range(-24, 25, 3), "yzafpnμm kMGTPEZY"))
