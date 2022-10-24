@@ -38,7 +38,8 @@ def set_xlabel(label, unit=None, axis=None, **kw):
     """
     if isinstance(label, plt.Axes):
         warnings.warn(
-            "the syntax of set_xlabel has been changed to set_xlabel(label, unit = None, axis = None)",
+            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
+            " Please use the new syntax set_xlabel(label, unit = None, axis = None)",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -78,7 +79,8 @@ def set_ylabel(label, unit=None, axis=None, **kw):
     """
     if isinstance(label, plt.Axes):
         warnings.warn(
-            "the syntax of set_ylabel has been changed to set_ylabel(label, unit = None, axis = None)",
+            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
+            " Please use the new syntax set_ylabel(label, unit = None, axis = None)",
             DeprecationWarning,
             stacklevel=2,
         )
