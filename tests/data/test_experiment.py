@@ -93,6 +93,9 @@ def test_quantify_experiment_save_and_load_dataset(tmp_test_data_dir):
     assert load_label == label
 
 
+@pytest.mark.xfail(
+    reason="The test is randomly failing due to issues with test suite setup/teardown."
+)
 def test_quantify_experiment_no_tuid(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     tuid = TUID_1D_1PLOT
