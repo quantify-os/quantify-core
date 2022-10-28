@@ -798,9 +798,6 @@ def multi_experiment_data_extractor(
     experiment:
         The experiment to be included in the new dataset. For example "Pulsed
         spectroscopy"
-    instrument:
-        The name of the instrument from which to get the value. For example
-        "fluxcurrent"
     parameter:
         The name and address of the QCoDeS parameter from which to get the
         value, including the instrument name and all submodules. For example
