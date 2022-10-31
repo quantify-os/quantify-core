@@ -1223,9 +1223,9 @@ class TestMeasurementControl:
         assert self.dummy_parabola.z() == -20.0
         assert self.dummy_parabola.delay() == 10.0
 
-        non_existing = DummyParHolder("the mac")
+        non_existing = DummyParHolder("the_mac")
         with pytest.raises(
-            ValueError, match='Instrument "the mac" not found in snapshot'
+            ValueError, match='Instrument "the_mac" not found in snapshot'
         ):
             load_settings_onto_instrument(
                 non_existing, TUID("20200814-134652-492-fbf254"), tmp_test_data_dir
