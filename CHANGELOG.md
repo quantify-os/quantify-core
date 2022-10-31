@@ -10,6 +10,7 @@
 - Fix a memory leak due to BaseAnalysis lru_cache (!390)
 - Fix bug in QuantifyExperiment when tuid is None (!396)
 - Git - Changed git merge strategy to "union" for CHANGELOG.md and AUTHORS.md to reduce amount of merge conflicts (!399)
+- QCoDeS - Quantify now supports qcodes>=0.34.0 (!382)
 
 ## 0.6.4 (2022-10-13)
 

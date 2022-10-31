@@ -10,6 +10,7 @@
 - [Edgar Reehuis](mailto:ereehuis@qblox.com)
 - [Gabor Oszkar Denes](mailto:gdenes@qblox.com)
 - [Harold Meerwaldt](mailto:h.b.meerwaldt@tudelft.nl)
+- [Hiresh Jadoenathmissier](hiresh@orangeqs.com)
 - [Jules van Oven](mailto:jules@qblox.com)
 - [Kelvin Loh](mailto:kelvin@orangeqs.com)
 - [Konstantin Lehmann](mailto:konstantin@orangeqs.com)

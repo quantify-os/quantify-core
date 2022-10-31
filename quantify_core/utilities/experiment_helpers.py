@@ -187,14 +187,15 @@ def create_plotmon_from_historical(
         the plotmon
     """
     # avoid creating a plotmon with the same name
-    name = tuid = tuid or get_latest_tuid(contains=label)
-    name_str = str(name)
-    i = 0
+    if tuid is None:
+        tuid = get_latest_tuid(contains=label)
 
-    for plotmon_class in get_subclasses(PlotMonitor_pyqt, include_base=True):
-        for plotmon in plotmon_class.instances():
-            if name_str == plotmon.name:
-                name_str += f"_{i}"
+    tuid_str = str(tuid)
+    # python attributes can't start with a number
+    name = "_" + tuid_str
+
+    # hyphens not allowed in instrument names for qcodes v0.34 and up
+    name = name.replace("-", "_")
 
     plotmon = PlotMonitor_pyqt(name)
     plotmon.tuids_append(tuid)

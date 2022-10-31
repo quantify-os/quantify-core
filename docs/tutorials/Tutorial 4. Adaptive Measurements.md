@@ -44,7 +44,7 @@ set_datadir(default_datadir())
 
 ```{jupyter-execute}
 meas_ctrl = MeasurementControl("meas_ctrl")
-insmon = InstrumentMonitor("Instruments Monitor")
+insmon = InstrumentMonitor("InstrumentMonitor")
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
 meas_ctrl.instr_plotmon(plotmon.name)
 ```

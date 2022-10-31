@@ -63,7 +63,7 @@ class Device(Instrument):
 
 ```{jupyter-execute}
 meas_ctrl = MeasurementControl("meas_ctrl")
-plotmon = PlotMonitor_pyqt("Plot Monitor")
+plotmon = PlotMonitor_pyqt("PlotMonitor")
 meas_ctrl.instr_plotmon(plotmon.name)
 device = Device("Device")
 ```
