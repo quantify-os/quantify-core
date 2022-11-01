@@ -50,21 +50,6 @@ def load_settings_onto_instrument(
         "instruments"
     ]
 
-    # Get a list of all the parent submodules and instruments
-    def _get_all_parents(
-        instr_mod: Union[Instrument, InstrumentChannel, Parameter]
-    ) -> List:
-        if hasattr(instr_mod, "_parent"):
-            parents = _get_all_parents(instr_mod._parent)
-            parents.append(instr_mod)
-        elif hasattr(instr_mod, "_instrument"):
-            parents = _get_all_parents(instr_mod._instrument)
-            parents.append(instr_mod)
-        else:
-            parents = [instr_mod]
-
-        return parents
-
     def _try_to_set_par_safe(
         instr_mod: Union[Instrument, InstrumentChannel],
         parname: str,
@@ -87,7 +72,7 @@ def load_settings_onto_instrument(
                 f'could not be set to "{value}" due to error:\n{exc}'
             )
 
-    parents = _get_all_parents(instrument)
+    parents = get_all_parents(instrument)
 
     # Find the snapshot for this instrument, submodule or parameter
     for parent in parents:
@@ -160,6 +145,32 @@ def load_settings_onto_instrument(
         instr_mod_snap_np=instr_mod_snap_numpy_array,
         instr_mod=instrument,
     )
+
+
+def get_all_parents(instr_mod: Union[Instrument, InstrumentChannel, Parameter]) -> List:
+    """
+    Get a list of all the parent submodules and instruments of a given QCodes
+    instrument, submodule or parameter.
+
+    Parameters
+    -----------
+    instr_mod:
+        The QCodes instrument, submodule or parameter whose parents we wish to find
+
+    Returns
+    -----------
+    A list of all the parents of that object (and the object itself)
+    """
+    if hasattr(instr_mod, "_parent"):
+        parents = get_all_parents(instr_mod._parent)
+        parents.append(instr_mod)
+    elif hasattr(instr_mod, "_instrument"):
+        parents = get_all_parents(instr_mod._instrument)
+        parents.append(instr_mod)
+    else:
+        parents = [instr_mod]
+
+    return parents
 
 
 def create_plotmon_from_historical(
