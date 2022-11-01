@@ -4,6 +4,8 @@
 # this file is added to ensure the tests helpers are discovered by pytest
 # see also https://stackoverflow.com/questions/10253826/path-issue-with-pytest-importerror-no-module-named-yadayadayada
 
+import os
+
 import pytest
 
 from quantify_core.utilities._tests_helpers import (
@@ -11,6 +13,10 @@ from quantify_core.utilities._tests_helpers import (
     remove_target_then_copy_from,
     rmdir_recursive,
 )
+
+# Setting QT_QPA_PLATFORM to offscreen will disable insmon and plotmon popping up
+# during pytest running. Comment this string out if you want to see them.
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 
 @pytest.fixture(scope="session", autouse=True)
