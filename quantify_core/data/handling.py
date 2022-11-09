@@ -15,6 +15,7 @@ from uuid import uuid4
 from copy import deepcopy
 
 import numpy as np
+import h5netcdf
 import xarray as xr
 from dateutil.parser import parse
 from qcodes import Instrument
@@ -27,6 +28,10 @@ from quantify_core.utilities.general import delete_keys_from_dict, get_subclasse
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
 this._datadir = None
+
+# FIXME: This environment variable is needed to avoid locking when loading a dataset.
+# Remove when dataset v2 gets implemented and merged!
+os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 DATASET_NAME = "dataset.hdf5"
 QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
