@@ -6,12 +6,12 @@
 - Add experiments_data submodule to measurement control (!393)
 - Allow concatenation of datasets with different names (!389)
 - Add functions to load and save lmfit fit results from file (!286)
-- Enable loading of settings of individual QCoDeS submodules and parameters from the saved snapshot (!384) 
+- Enable loading of settings of individual QCoDeS submodules and parameters from the saved snapshot (!384)
 - Fix a memory leak due to BaseAnalysis lru_cache (!390)
 - Fix bug in QuantifyExperiment when tuid is None (!396)
 - Git - Changed git merge strategy to "union" for CHANGELOG.md and AUTHORS.md to reduce amount of merge conflicts (!399)
 - QCoDeS - Quantify now supports qcodes>=0.34.0 (!382)
-- Data - Update OS environment to disable HDF5 file locking (!404)
+- Data - Update OS environment to disable HDF5 file locking (!404, !405)
 
 ## 0.6.4 (2022-10-13)
 
