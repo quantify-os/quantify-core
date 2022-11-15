@@ -6,6 +6,7 @@ from quantify_core.data.handling import set_datadir
 from quantify_core.utilities.experiment_helpers import (
     create_plotmon_from_historical,
     load_settings_onto_instrument,
+    get_all_parents,
 )
 
 
@@ -167,6 +168,30 @@ def mock_instr_nested(request):
     request.addfinalizer(cleanup_instruments)
 
     return instr
+
+
+def test_get_all_parents(mock_instr_nested):
+    """
+    Test that we can get all the parent objects of a qcodes instrument, submodule
+    or parameter
+    """
+    parents = get_all_parents(mock_instr_nested.mod_b.mod_c)
+    assert parents == [
+        mock_instr_nested,
+        mock_instr_nested.mod_b,
+        mock_instr_nested.mod_b.mod_c,
+    ]
+
+    parents = get_all_parents(mock_instr_nested.mod_b.mod_c.c)
+    assert parents == [
+        mock_instr_nested,
+        mock_instr_nested.mod_b,
+        mock_instr_nested.mod_b.mod_c,
+        mock_instr_nested.mod_b.mod_c.c,
+    ]
+
+    parents = get_all_parents(mock_instr_nested)
+    assert parents == [mock_instr_nested]
 
 
 def test_load_settings_onto_instrument_submodules(tmp_test_data_dir, mock_instr_nested):
