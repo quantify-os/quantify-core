@@ -12,6 +12,7 @@
 - Git - Changed git merge strategy to "union" for CHANGELOG.md and AUTHORS.md to reduce amount of merge conflicts (!399)
 - QCoDeS - Quantify now supports qcodes>=0.34.0 (!382)
 - Data - Update OS environment to disable HDF5 file locking (!404, !405)
+- Documentation - Building sphinx documentation will now raise an error if one of the code cells fails to run (!407)
 
 ## 0.6.4 (2022-10-13)
 
