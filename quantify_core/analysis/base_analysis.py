@@ -177,6 +177,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         tuid: Union[TUID, str] = None,
         label: str = "",
         settings_overwrite: dict = None,
+        plot_figures: bool = True,
     ):
         """
         Initializes the variables used in the analysis and to which data is stored.
@@ -206,6 +207,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
             See `Settings schema` above for available settings.
+        plot_figures:
+            Option to create and save figures for analysis.
         """
         # NB at least logging.basicConfig() needs to be called in the python kernel
         # in order to see the logger messages
@@ -235,6 +238,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         self.quantities_of_interest = {}
 
         self.fit_results = {}
+
+        self.plot_figures = plot_figures
 
     analysis_steps = AnalysisSteps
     """
@@ -412,11 +417,20 @@ class BaseAnalysis(metaclass=AnalysisMeta):
                 )
                 return
 
+    # pylint: disable=no-member
     def get_flow(self) -> tuple:
         """
         Returns a tuple with the ordered methods to be called by run analysis.
+        Only return the figures methods if :code:`self.plot_figures` is :code:`True`.
         """
-        return tuple(getattr(self, elm.value) for elm in self.analysis_steps)
+        if self.plot_figures:
+            return tuple(getattr(self, elm.value) for elm in self.analysis_steps)
+
+        return tuple(
+            getattr(self, elm.value)
+            for elm in self.analysis_steps
+            if "figures" not in elm.value
+        )
 
     def extract_data(self):
         """

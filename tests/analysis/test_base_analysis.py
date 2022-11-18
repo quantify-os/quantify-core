@@ -72,6 +72,42 @@ def test_basic_analysis_settings_validation(tmp_test_data_dir):
     assert "'png' is not of type 'array'" in str(excinfo.value)
 
 
+def test_basic_analysis_skip_figs(caplog, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    tuid = TUID_1D_1PLOT
+    a_obj = ba.BasicAnalysis(tuid=tuid, plot_figures=False).run()
+
+    tuid = TUID_1D_2PLOTS
+    # here we see if figures are created
+    ba.settings["mpl_fig_formats"] = [
+        "png",
+        "svg",
+    ]
+    a_obj = ba.BasicAnalysis(tuid=tuid, plot_figures=False).run()
+    ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
+
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    assert "analysis_BasicAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_BasicAnalysis")
+    assert "figs_mpl" not in analysis_dir
+
+    log_msgs = [
+        "Executing",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
+        "<bound method BaseAnalysis.run_fitting of",
+        "<bound method BaseAnalysis.analyze_fit_results of",
+        "<bound method BaseAnalysis.save_quantities_of_interest of",
+    ]
+
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
+
+    # It should create the figs on the fly if you run figs_mpl
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
+
+
 def test_basic_analysis(caplog, tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
 
