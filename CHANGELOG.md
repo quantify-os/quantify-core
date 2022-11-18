@@ -14,6 +14,7 @@
 - Data - Update OS environment to disable HDF5 file locking (!404, !405)
 - Create function to find all parents of QCoDeS submodule (!401)
 - Documentation - Building sphinx documentation will now raise an error if one of the code cells fails to run (!407)
+- Added ability to skip figure creation in analysis classes to prevent memory leaks in long-running nested experiments (!406)
 
 ## 0.6.4 (2022-10-13)
 
