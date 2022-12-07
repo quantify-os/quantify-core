@@ -81,7 +81,7 @@ def deprecated(
 
             @functools.wraps(orig_init)
             def __init__(self, *args, **kwargs):
-                warnings.warn(message, DeprecationWarning)
+                warnings.warn(message, FutureWarning)
                 orig_init(self, *args, **kwargs)
 
             # Here we patch only __init__ method. For completeness, we should also patch
@@ -108,7 +108,7 @@ def deprecated(
                 setattr(owner, name, wrapper)
 
             def __call__(self, *args, **kwargs):
-                warnings.warn(message, DeprecationWarning)
+                warnings.warn(message, FutureWarning)
                 return func(*args, **kwargs)
 
         return _FnDeprecator()
