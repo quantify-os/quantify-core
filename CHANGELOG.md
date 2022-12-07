@@ -15,6 +15,7 @@
 - Create function to find all parents of QCoDeS submodule (!401)
 - Documentation - Building sphinx documentation will now raise an error if one of the code cells fails to run (!407)
 - Added ability to skip figure creation in analysis classes to prevent memory leaks in long-running nested experiments (!406)
+- Deprecation warnings are now shown to end-users by default (!411)
 
 ## 0.6.4 (2022-10-13)
 
