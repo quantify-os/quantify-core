@@ -16,7 +16,8 @@ def test_deprecated_message():
     def give_me_foo():
         return "foo"
 
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match=r"Function .*give_me_foo\(\) is deprecated and will be removed .*-1.0. "
         "Can't you just type foo?",
     ):
@@ -35,7 +36,8 @@ def test_deprecated_message():
 
     new_class_instance = SomeClass()
 
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match=r"Function .*SomeClass.get_foo\(\) is deprecated and will be removed "
         "in .*-1.1. Use SomeClass.foo directly.",
     ):
@@ -48,7 +50,8 @@ def test_deprecated_message():
         def __init__(self, foo):
             self.foo = foo
 
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match="Class .*OldClass is deprecated and will be removed "
         "in .*-0.9. Read our awesome new documentation!",
     ):
@@ -74,7 +77,8 @@ def test_deprecated_alias():
         warnings.simplefilter("error")
         new_result = new_function(37)
 
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match=r"Function .*old_function\(\) is deprecated and will be removed "
         "in .*-0.7. Use .*new_function\(\) instead.",
     ):
@@ -102,9 +106,10 @@ def test_deprecated_alias():
         warnings.simplefilter("error")
         new_instance = NewClass(val)
 
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match="Class .*OldClass is deprecated and will be removed in .*-1.1. "
-        "Use .*NewClass instead."
+        "Use .*NewClass instead.",
     ):
         old_instance = OldClass(val)
 
@@ -115,9 +120,10 @@ def test_deprecated_alias():
         warnings.simplefilter("error")
         assert new_instance.val() == old_instance.val()
 
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match=r"Function .*NewClass.get_val\(\) is deprecated and will be removed in "
-        ".*-0.7. Use .*NewClass.val\(\) instead."
+        ".*-0.7. Use .*NewClass.val\(\) instead.",
     ):
         new_val = new_instance.get_val()
 
@@ -125,15 +131,16 @@ def test_deprecated_alias():
     # I don't think it is a huge issue, because fixing this will take really a lot
     # of time ¯\_(ツ)_/¯
     # This is an edge case: deprecated method of a deprecated class will refer to
-    # a new class. Preferably it shoudl be fixed and message should look like:
+    # a new class. Preferably it should be fixed and message should look like:
     #
     #   "Function .*OldClass.get_val\(\) is deprecated and will be removed in "
     #   ".*-0.7. Use .*OldClass.val\(\) instead."
     #
     # Hopefully this will not confuse anyone because of its rareness ;)
-    with pytest.deprecated_call(
+    with pytest.warns(
+        FutureWarning,
         match=r"Function .*NewClass.get_val\(\) is deprecated and will be removed in "
-        ".*-0.7. Use .*NewClass.val\(\) instead."
+        ".*-0.7. Use .*NewClass.val\(\) instead.",
     ):
         old_val = old_instance.get_val()
 
