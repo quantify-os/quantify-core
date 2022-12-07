@@ -742,7 +742,7 @@ class Basic1DAnalysis(BasicAnalysis):
     """
 
     def run(self) -> BaseAnalysis:
-        warnings.warn("Use `BasicAnalysis`", category=DeprecationWarning)
+        warnings.warn("Use `BasicAnalysis`", category=FutureWarning)
         return super().run()
 
 

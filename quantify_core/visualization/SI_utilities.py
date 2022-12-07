@@ -81,7 +81,7 @@ def set_ylabel(label, unit=None, axis=None, **kw):
         warnings.warn(
             "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
             " Please use the new syntax set_ylabel(label, unit = None, axis = None)",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         axis, label, unit = label, unit, axis

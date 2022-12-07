@@ -27,7 +27,7 @@
         get_foo()  # issues deprecation warning.
 
     assert len(w) == 1
-    assert w[0].category is DeprecationWarning
+    assert w[0].category is FutureWarning
     print(w[0].message)
 
 
@@ -56,7 +56,7 @@
         obj = OldClass(42)  # type: ignore
 
     assert len(w) == 1
-    assert w[0].category is DeprecationWarning
+    assert w[0].category is FutureWarning
     print(w[0].message)
     print("obj.val() =", obj.val())  # type: ignore
 
@@ -85,6 +85,6 @@
         val = SomeClass(42).get_val()  # issues deprecation warning.
 
     assert len(w) == 1
-    assert w[0].category is DeprecationWarning
+    assert w[0].category is FutureWarning
     print(w[0].message)
     print("obj.get_val() =", val)
