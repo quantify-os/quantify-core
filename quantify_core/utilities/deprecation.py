@@ -16,6 +16,7 @@ def _find_stack_level() -> int:
 
     (adopted from pandas.util._exceptions.find_stack_level)
     """
+    # pylint: disable=import-outside-toplevel,invalid-name
 
     import quantify_core
 
