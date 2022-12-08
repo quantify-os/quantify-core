@@ -38,6 +38,16 @@ class TUID(str):
         return datetime.datetime.strptime(tuid[:18], "%Y%m%d-%H%M%S-%f")
 
     @classmethod
+    def datetime_seconds(cls, tuid: str) -> datetime.datetime:
+        """
+        Returns
+        -------
+        :class:`~python:datetime.datetime`
+            object corresponding to the TUID with microseconds discarded
+        """
+        return datetime.datetime.strptime(tuid[:15], "%Y%m%d-%H%M%S")
+
+    @classmethod
     def uuid(cls, tuid: str) -> str:
         """
         Returns
