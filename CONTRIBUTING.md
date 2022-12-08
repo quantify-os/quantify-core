@@ -174,7 +174,7 @@ Therefore, we define the following policies:
 1. If a function is a part of the public API, it should be declared in the ``__all__`` list of a module.
 2. We guarantee backwards-compatible behaviour for all public API elements for three minor releases forward,
    unless this element is deprecated.
-3. Each deprecation must issue a ``DeprecationWarning``, mentioning the release when this part of the API is dropped
+3. Each deprecation must issue a ``FutureWarning``, mentioning the release when this part of the API is dropped
    and if possible, a (short) explanation on how to port the code.
 4. Violation of backwards compatibility is considered an issue
    and a bugfix release fixing it must be done as soon as possible.
@@ -183,7 +183,7 @@ Therefore, we define the following policies:
    If this proposal is accepted, this part of the API should be stabilized in the next minor release.
 
 For example, if some function is deprecated in the `quantify-core-1.2` release,
-it should be marked for removal in the `quantify-core-1.5` using a ``DeprecationWarning``,
+it should be marked for removal in the `quantify-core-1.5` using a ``FutureWarning``,
 mentioning the version of removal (in this case `1.5`)
 and an instruction for the user on how to port the code to the new versions of Quantify.
 The recommended way to do it is through the `quantify_core.utilities.deprecated` decorator.
