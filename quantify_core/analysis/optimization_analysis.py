@@ -46,7 +46,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
 
         arg_optimum_function = np.argmin if self.minimize else np.argmax
         optimum_function = np.min if self.minimize else np.max
-        optimum_text = "mimimum" if self.minimize else "maximum"
+        optimum_text = "minimum" if self.minimize else "maximum"
 
         # Go through every y variable and find the optimal point
         y_variable = "y0"
