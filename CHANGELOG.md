@@ -1,22 +1,23 @@
 # Changelog
 
-## Unreleased
+## 0.6.5 (2022-12-13)
 
-- Allow concatenation of processed datasets (!394)
-- Add experiments_data submodule to measurement control (!393)
-- Allow concatenation of datasets with different names (!389)
-- Add functions to load and save lmfit fit results from file (!286)
-- Enable loading of settings of individual QCoDeS submodules and parameters from the saved snapshot (!384)
-- Fix a memory leak due to BaseAnalysis lru_cache (!390)
-- Fix bug in QuantifyExperiment when tuid is None (!396)
-- Git - Changed git merge strategy to "union" for CHANGELOG.md and AUTHORS.md to reduce amount of merge conflicts (!399)
-- QCoDeS - Quantify now supports qcodes>=0.34.0 (!382)
+### Merged branches and closed issues
+- Data - Allow concatenation of datasets with different names (!389)
+- Data - Allow concatenation of processed datasets (!394)
 - Data - Update OS environment to disable HDF5 file locking (!404, !405)
-- Create function to find all parents of QCoDeS submodule (!401)
 - Documentation - Building sphinx documentation will now raise an error if one of the code cells fails to run (!407)
-- Added ability to skip figure creation in analysis classes to prevent memory leaks in long-running nested experiments (!406)
-- Deprecation warnings are now shown to end-users by default (by changing to `FutureWarning`) (!411)
-- Fixed a typo in the figure text of the optimization analysis class. (!413)
+- Documentation - Fixed a typo in the figure text of the optimization analysis class. (!413)
+- Fit - Add functions to load and save lmfit fit results from file (!286)
+- Git - Changed git merge strategy to "union" for CHANGELOG.md and AUTHORS.md to reduce amount of merge conflicts (!399)
+- Measurement Control - Add experiments_data submodule to measurement control (!393)
+- Memory leak - Added ability to skip figure creation in analysis classes to prevent memory leaks in long-running nested experiments (!406)
+- Memory leak - Fix a memory leak due to BaseAnalysis lru_cache (!390)
+- QCoDeS - Create function `quantify_core.utilities.experiment_helpers.get_all_parents` to find all parents of QCoDeS submodule (!401)
+- QCoDeS - Quantify now supports qcodes>=0.34.0 (!382)
+- QuantifyFix - Bug in QuantifyExperiment when tuid is None (!396)
+- Snapshots - Enable loading of settings of individual QCoDeS submodules and parameters from the saved snapshot (!384)
+- Warnings - Deprecation warnings are now shown to end-users by default (by changing to `FutureWarning`) (!411)
 
 ## 0.6.4 (2022-10-13)
 
