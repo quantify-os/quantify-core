@@ -1006,7 +1006,7 @@ def get_latest_tuid(contains: str = "") -> TUID:
 
 # pylint: disable=too-many-locals
 def get_tuids_containing(
-    contains: str,
+    contains: str = "",
     t_start: Union[datetime.datetime, str] = None,
     t_stop: Union[datetime.datetime, str] = None,
     max_results: int = sys.maxsize,
@@ -1089,8 +1089,7 @@ def get_tuids_containing(
                     len(x) > 25
                     and TUID.is_valid(x[:26])  # tuid is valid
                     and (contains in x)  # label is part of exp_name
-                    and (t_start <= parse(x[:15]))  # tuid is after t_start
-                    and (parse(x[:15]) < t_stop)  # tuid is before t_stop
+                    and (t_start <= TUID.datetime_seconds(x) < t_stop)
                 ),
                 os.listdir(os.path.join(datadir, daydir)),
             )
