@@ -5,7 +5,7 @@
 ### Breaking Changes
 
 ### Merged branches and closed issues
-- Documentation - Documentation build now compatible with qcodes==0.36.0 (!416)
+- Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
 
 ## 0.6.5 (2022-12-13)
 
