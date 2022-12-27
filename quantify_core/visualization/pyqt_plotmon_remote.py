@@ -563,13 +563,19 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         last_modified_prev = self._last_modified.get(tuid, 0)
         self._last_modified[tuid] = _last_modified(tuid)
         if last_modified_prev < self._last_modified[tuid]:
-            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+            try:
+                dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+            except (ValueError, KeyError, OSError) as e:
+                return
             self._dsets[tuid] = dset
         else:
             # Nothing to be done here, skip any plot updates
             return
 
-        dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+        try:
+            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+        except (ValueError, KeyError, OSError) as e:
+            return
         self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")

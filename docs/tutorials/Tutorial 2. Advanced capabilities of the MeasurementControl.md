@@ -50,7 +50,7 @@ set_datadir(default_datadir())  # change me!
 meas_ctrl = MeasurementControl("meas_ctrl")
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
 meas_ctrl.instr_plotmon(plotmon.name)
-insmon = InstrumentMonitor("Instruments Monitor")
+insmon = InstrumentMonitor("InstrumentMonitor")
 ```
 
 ## A 1D Batched loop: Resonator Spectroscopy

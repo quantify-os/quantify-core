@@ -53,126 +53,11 @@ class DummyAnalysisSubclassArgs(ba.BasicAnalysis):
         return self
 
 
-def test_run_partial(caplog, tmp_test_data_dir):
-    dh.set_datadir(tmp_test_data_dir)
-    _ = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
-        interrupt_before=DummyAnalysisSubclassRaisesA.analysis_steps.STEP_2_RUN_FITTING
-    )
-
-    log_msgs = [
-        "Executing",
-        "<bound method BaseAnalysis.extract_data of",
-        "<bound method BaseAnalysis.process_data of",
-    ]
-
-    for log_msg, rec in zip(log_msgs, caplog.records):
-        assert log_msg in str(rec.msg)
-
-
-def test_flow_skip_step_continue_manually(caplog, tmp_test_data_dir):
-    dh.set_datadir(tmp_test_data_dir)
-    # test both string or Enum member specification of the analysis steps
-    with caplog.at_level(logging.INFO):
-        a_obj = DummyAnalysisSubclassRaisesA(tuid=TUID_1D_1PLOT).run_until(
-            interrupt_before="run_fitting"
-        )
-
-    log_msgs = [
-        "Executing",
-        "<bound method BaseAnalysis.extract_data of",
-        "<bound method BaseAnalysis.process_data of",
-    ]
-
-    for log_msg, rec in zip(log_msgs, caplog.records):
-        assert log_msg in str(rec.msg)
-
-    a_obj.run_from(step="create_figures")
-
-    log_msgs = [
-        "Executing",
-        "<bound method BaseAnalysis.extract_data of",
-        "<bound method BaseAnalysis.process_data of",
-        # New steps:
-        "<bound method BaseAnalysis.create_figures of",
-        "<bound method BaseAnalysis.adjust_figures of",
-        "<bound method BaseAnalysis.save_figures_mpl of",
-        "<bound method BaseAnalysis.save_quantities_of_interest of",
-        "<bound method BaseAnalysis.save_processed_dataset of",
-    ]
-
-    for log_msg, rec in zip(log_msgs, caplog.records):
-        assert log_msg in str(rec.msg)
-
-
 def test_pass_options(tmp_test_data_dir):
     """How to change default arguments of the methods in the analysis flow."""
     dh.set_datadir(tmp_test_data_dir)
     a_obj = DummyAnalysisSubclassArgs(tuid=TUID_1D_1PLOT).run(var=7)
     assert a_obj.var == 7
-
-
-def test_flow_xlim_all(tmp_test_data_dir):
-    dh.set_datadir(tmp_test_data_dir)
-    xlim = (0.0, 4.0)
-    step = ba.BasicAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
-    a_obj = ba.BasicAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
-    a_obj.adjust_xlim(*xlim)
-    a_obj.run_from(step)
-
-    for ax in a_obj.axs_mpl.values():
-        assert ax.get_xlim() == xlim
-
-
-def test_flow_ylim_all(caplog, tmp_test_data_dir):
-    dh.set_datadir(tmp_test_data_dir)
-    ylim = (0.0, 0.8)
-    step = ba.BasicAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
-    a_obj = ba.BasicAnalysis(tuid=TUID_1D_2PLOTS).run_until(interrupt_before=step)
-    a_obj.adjust_ylim(*ylim)
-    a_obj.run_from(step)
-
-    for ax in a_obj.axs_mpl.values():
-        assert ax.get_ylim() == ylim
-
-    log_msgs = [
-        "Executing",
-        "<bound method BaseAnalysis.extract_data of",
-        "<bound method BaseAnalysis.process_data of",
-        "<bound method BaseAnalysis.run_fitting of",
-        "<bound method BaseAnalysis.analyze_fit_results of",
-        "<bound method BaseAnalysis.create_figures of",
-        "<bound method BaseAnalysis.adjust_figures of",
-    ]
-
-    for log_msg, rec in zip(log_msgs, caplog.records):
-        assert log_msg in str(rec.msg)
-
-
-@pytest.mark.xfail(reason="Randomly fails, issue #308.")
-def test_flow_clim_all(tmp_test_data_dir):
-    dh.set_datadir(tmp_test_data_dir)
-    clim = (1.0, 2.0)
-    step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
-    a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS).run_until(interrupt_before=step)
-    a_obj.adjust_clim(*clim)
-    a_obj.run_from(step)
-
-    ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
-    assert ax.collections[0].get_clim() == clim
-    ax = a_obj.axs_mpl["Heatmap x0x1-y0"]
-    assert ax.collections[0].get_clim() == clim
-
-
-def test_flow_clim_specific(tmp_test_data_dir):
-    dh.set_datadir(tmp_test_data_dir)
-    clim = (0.0, 180.0)
-    step = ba.Basic2DAnalysis.analysis_steps.STEP_6_SAVE_FIGURES
-    a_obj = ba.Basic2DAnalysis(tuid=TUID_2D_2PLOTS).run_until(interrupt_before=step)
-    a_obj.adjust_clim(*clim, ax_ids=["Heatmap x0x1-y1"])
-    a_obj.run_from(step)
-
-    ax = a_obj.axs_mpl["Heatmap x0x1-y1"]
-    assert ax.collections[0].get_clim() == clim
 
 
 def test_basic_analysis_settings_validation(tmp_test_data_dir):
@@ -185,6 +70,42 @@ def test_basic_analysis_settings_validation(tmp_test_data_dir):
         ).run()
 
     assert "'png' is not of type 'array'" in str(excinfo.value)
+
+
+def test_basic_analysis_skip_figs(caplog, tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    tuid = TUID_1D_1PLOT
+    a_obj = ba.BasicAnalysis(tuid=tuid, plot_figures=False).run()
+
+    tuid = TUID_1D_2PLOTS
+    # here we see if figures are created
+    ba.settings["mpl_fig_formats"] = [
+        "png",
+        "svg",
+    ]
+    a_obj = ba.BasicAnalysis(tuid=tuid, plot_figures=False).run()
+    ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
+
+    exp_dir = dh.locate_experiment_container(a_obj.tuid, dh.get_datadir())
+    assert "analysis_BasicAnalysis" in os.listdir(exp_dir)
+    analysis_dir = os.listdir(Path(exp_dir) / "analysis_BasicAnalysis")
+    assert "figs_mpl" not in analysis_dir
+
+    log_msgs = [
+        "Executing",
+        "<bound method BaseAnalysis.extract_data of",
+        "<bound method BaseAnalysis.process_data of",
+        "<bound method BaseAnalysis.run_fitting of",
+        "<bound method BaseAnalysis.analyze_fit_results of",
+        "<bound method BaseAnalysis.save_quantities_of_interest of",
+    ]
+
+    for log_msg, rec in zip(log_msgs, caplog.records):
+        assert log_msg in str(rec.msg)
+
+    # It should create the figs on the fly if you run figs_mpl
+    assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0", "Line plot x0-y1"}
 
 
 def test_basic_analysis(caplog, tmp_test_data_dir):
@@ -233,7 +154,7 @@ def test_basic1d_analysis(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
 
     tuid = TUID_1D_1PLOT
-    with pytest.warns(DeprecationWarning, match="Use `BasicAnalysis`"):
+    with pytest.warns(FutureWarning, match="Use `BasicAnalysis`"):
         a_obj = ba.Basic1DAnalysis(tuid=tuid).run()
 
     # test that the right figures get created.

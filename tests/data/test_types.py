@@ -13,7 +13,19 @@ from quantify_core.data.types import TUID
 def test_TUID() -> None:
     tuid = TUID("20200409-123015-123-abcdef")
 
+    dt = TUID.datetime_seconds(tuid)
+    assert isinstance(dt, datetime)
+    assert dt.year == 2020
+    assert dt.month == 4
+    assert dt.day == 9
+
+    assert dt.hour == 12
+    assert dt.minute == 30
+    assert dt.second == 15
+    assert dt.microsecond == 0
+
     dt = TUID.datetime(tuid)
+
     assert isinstance(dt, datetime)
     assert isinstance(tuid, str)
 

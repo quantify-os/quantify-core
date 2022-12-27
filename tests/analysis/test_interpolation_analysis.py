@@ -33,5 +33,5 @@ def test_figures_generated(analysis: Iterable) -> None:
     """
     for a_obj in analysis:
         assert set(a_obj.figs_mpl.keys()) == {
-            "SignalHound_fixed_frequency interpolating",
+            "Signalhound Power interpolating",
         }

@@ -28,6 +28,7 @@ except ModuleNotFoundError:
     # Future compatibility with qcodes-0.35.
     # This should be the only one when we depend on it.
     from qcodes.parameters import InstrumentRefParameter
+from qcodes.instrument import InstrumentChannel
 
 from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
@@ -138,6 +139,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         :attr:`.update_interval` time has elapsed when acquiring new data points, data
         is written to file (and the live monitoring detects updated)."""
 
+        # Add experiment_data submodule to allow user to save custom metadata
+        experiment_data = InstrumentChannel(self, "experiment_data")
+        self.add_submodule("experiment_data", experiment_data)
+
         self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
 
         # variables that are set before the start of any experiment.
@@ -208,6 +213,52 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     def show(self):
         """Print short representation of the object to stdout."""
         print(self.__repr__full__())
+
+    def set_experiment_data(
+        self, experiment_data: Dict[str, Any], overwrite: bool = True
+    ):
+        """
+        Populates the experiment_data submodule with experiment_data parameters
+
+        Parameters
+        -----------
+        experiment_data:
+            Dict specifying the names of the experiment_data parameters and their
+            values. Follows the format:
+
+            .. code-block:: python
+                {
+                "parameter_name": {
+                        "value": 10.2
+                        "label": "parameter label"
+                        "unit": "Hz"
+                    }
+                }
+
+        overwrite:
+            If True, clear all previously saved experiment_data parameters and save new
+            ones.
+            If False, keep all previously saved experiment_data parameters and change
+            their values if necessary
+        """
+        if overwrite:
+            self.clear_experiment_data()
+
+        for name, parameter in experiment_data.items():
+            if name not in self.experiment_data.parameters:
+                self.experiment_data.add_parameter(
+                    name=name, parameter_class=ManualParameter
+                )
+
+            self.experiment_data.parameters[name](parameter.get("value"))
+            self.experiment_data.parameters[name].label = parameter.get("label", name)
+            self.experiment_data.parameters[name].unit = parameter.get("unit", "")
+
+    def clear_experiment_data(self):
+        """
+        Remove all experiment_data parameters from the experiment_data submodule
+        """
+        self.experiment_data.parameters = {}
 
     ############################################
     # Methods used to control the measurements #
@@ -716,9 +767,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         # There are no points initialized, progress does not make sense
         if self._get_max_setpoints() == 0:
-            if self.verbose():
-                print("No setpoints, progress cannot be defined")
-            return
+            raise ValueError("No setpoints available, progress cannot be defined")
 
         progress_percent = self._get_fracdone() * 100
         elapsed_time = time.time() - self._begintime

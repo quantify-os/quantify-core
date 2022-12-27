@@ -46,13 +46,13 @@ class OptimizationAnalysis(ba.BaseAnalysis):
 
         arg_optimum_function = np.argmin if self.minimize else np.argmax
         optimum_function = np.min if self.minimize else np.max
-        optimum_text = "mimimum" if self.minimize else "maximum"
+        optimum_text = "minimum" if self.minimize else "maximum"
 
         # Go through every y variable and find the optimal point
         y_variable = "y0"
 
         text_msg += "\n"
-        variable_name = self.dataset[y_variable].attrs["name"]
+        variable_name = self.dataset[y_variable].attrs["long_name"]
         text_msg += f"{variable_name} {optimum_text}:\n"
 
         # Find the optimum for each x coordinate
@@ -68,7 +68,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
             ] = optimum
 
             text_msg += format_value_string(
-                self.dataset[x_variable].attrs["name"],
+                self.dataset[x_variable].attrs["long_name"],
                 optimum,
                 end_char="\n",
                 unit=self.dataset[x_variable].units,
@@ -80,7 +80,7 @@ class OptimizationAnalysis(ba.BaseAnalysis):
         self.quantities_of_interest[self.dataset[y_variable].attrs["name"]] = optimum
 
         text_msg += format_value_string(
-            self.dataset[y_variable].attrs["name"],
+            self.dataset[y_variable].attrs["long_name"],
             optimum,
             end_char="\n",
             unit=self.dataset[y_variable].units,
@@ -107,7 +107,7 @@ def iteration_plots(dataset, quantities_of_interest):
     axs = {}
     all_variables = list(dataset.coords.items()) + list(dataset.data_vars.items())
     for variable, values in all_variables:
-        variable_name = dataset[variable].attrs["name"]
+        variable_name = dataset[variable].attrs["long_name"]
 
         fig, ax = plt.subplots()
         fig_id = f"Line plot {variable_name} vs iteration"
@@ -115,8 +115,8 @@ def iteration_plots(dataset, quantities_of_interest):
         ax.plot(values, marker=".", linewidth="0.5", markersize="4.5")
         adjust_axeslabels_SI(ax)
 
-        qpl.set_ylabel(ax, variable_name, dataset[variable].units)
-        qpl.set_xlabel(ax, "iteration index")
+        qpl.set_ylabel(variable_name, dataset[variable].units, axis=ax)
+        qpl.set_xlabel("iteration index", axis=ax)
 
         qpl.set_suptitle_from_dataset(
             fig, dataset, f"{variable_name} vs iteration number:"

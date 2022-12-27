@@ -87,7 +87,7 @@ plotmon = pqm.PlotMonitor_pyqt("plotmon")
 meas_ctrl.instr_plotmon(plotmon.name)
 
 # The instrument monitor will give an overview of all parameters of all instruments
-insmon = InstrumentMonitor("Instruments Monitor")
+insmon = InstrumentMonitor("InstrumentMonitor")
 ```
 
 ### Define a simple model

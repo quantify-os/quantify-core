@@ -31,24 +31,7 @@ class SingleQubitTimedomainAnalysis(ba.BaseAnalysis):
     Base Analysis class for single-qubit timedomain experiments.
     """
 
-    def __init__(
-        self,
-        dataset: xr.Dataset = None,
-        tuid: Union[TUID, str] = None,
-        label: str = "",
-        settings_overwrite: dict = None,
-    ):
-        self.calibration_points: bool = "auto"
-        """Indicates if the data analyzed includes calibration points."""
-
-        super().__init__(
-            dataset=dataset,
-            tuid=tuid,
-            label=label,
-            settings_overwrite=settings_overwrite,
-        )
-
-    # pylint: disable=arguments-differ, line-too-long
+    # pylint: disable=attribute-defined-outside-init, arguments-differ, line-too-long
     def run(self, calibration_points: Union[bool, Literal["auto"]] = "auto"):
         r"""
         Parameters
@@ -158,9 +141,9 @@ class _DecayFigMixin:
                 ls="",
             )
             set_ylabel(
-                ax,
                 self.dataset_processed.pop_exc.long_name,
                 self.dataset_processed.pop_exc.units,
+                ax,
             )
         else:
             ax.plot(
@@ -170,13 +153,13 @@ class _DecayFigMixin:
                 ls="",
             )
             set_ylabel(
-                ax,
                 r"Magnitude |$S_{21}|$",
                 self.dataset_processed.S21.units,
+                ax,
             )
 
         set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, ax
         )
 
         set_suptitle_from_dataset(fig, self.dataset)
@@ -338,27 +321,6 @@ class RamseyAnalysis(SingleQubitTimedomainAnalysis, _DecayFigMixin):
     Fits a decaying cosine curve to Ramsey data (possibly with artificial detuning)
     and finds the true detuning, qubit frequency and T2* time.
     """
-
-    def __init__(
-        self,
-        dataset: xr.Dataset = None,
-        tuid: Union[TUID, str] = None,
-        label: str = "",
-        settings_overwrite: dict = None,
-    ):
-        self.artificial_detuning: float = 0
-        """The detuning in Hz that will be emulated by adding an extra phase in
-        software."""
-        self.qubit_frequency: Union[float, None] = None
-        """The initial recorded value of the qubit frequency (before accurate fitting
-        is done) in Hz."""
-
-        super().__init__(
-            dataset=dataset,
-            tuid=tuid,
-            label=label,
-            settings_overwrite=settings_overwrite,
-        )
 
     # Override the run method so that we can add the new optional arguments
     # pylint: disable=attribute-defined-outside-init, arguments-differ
@@ -615,9 +577,9 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         ax.xaxis.set_ticks(np.arange(21))
         ax.set_xticklabels(labels, rotation=60)
         set_ylabel(
-            ax,
             self.dataset_processed.pop_exc.long_name,
             self.dataset_processed.pop_exc.units,
+            ax,
         )
         ax.legend(loc=4)
 
@@ -762,9 +724,9 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
             )
 
             set_ylabel(
-                ax,
                 self.dataset_processed.S21_rot.long_name,
                 self.dataset_processed.S21_rot.units,
+                ax,
             )
         else:
             ax.plot(
@@ -774,9 +736,9 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
                 linestyle="",
             )
             set_ylabel(
-                ax,
                 self.dataset_processed.S21.long_name,
                 self.dataset_processed.S21.units,
+                ax,
             )
 
         plot_fit(
@@ -787,7 +749,7 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         )
 
         set_xlabel(
-            ax, self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, ax
         )
 
         set_suptitle_from_dataset(fig, self.dataset)

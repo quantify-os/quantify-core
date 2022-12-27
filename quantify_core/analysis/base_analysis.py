@@ -4,7 +4,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-import inspect
 import json
 import logging
 import os
@@ -12,10 +11,10 @@ import warnings
 from abc import ABCMeta
 from copy import deepcopy
 from enum import Enum
-from functools import lru_cache, wraps
+from functools import wraps
 from pathlib import Path
 from textwrap import wrap
-from typing import Dict, List, Union
+from typing import List, Union, Dict
 
 import lmfit
 import matplotlib
@@ -24,6 +23,7 @@ import numpy as np
 import xarray as xr
 from IPython.display import display
 from matplotlib.collections import QuadMesh
+from methodtools import lru_cache
 from qcodes.utils.helpers import NumpyJSONEncoder
 from uncertainties import ufloat
 
@@ -45,6 +45,8 @@ from quantify_core.visualization.SI_utilities import adjust_axeslabels_SI, set_c
 
 from .types import AnalysisSettings
 
+FIGURES_LRU_CACHE_SIZE = 8
+
 
 @dataclass
 class _FiguresMplCache:
@@ -52,11 +54,6 @@ class _FiguresMplCache:
     figs: Dict[str, matplotlib.figure.Figure]
     axes: Dict[str, matplotlib.axes.Axes]
     initialized: bool
-
-
-@lru_cache(maxsize=8)
-def _analyses_figures_cache(_: BaseAnalysis):
-    return _FiguresMplCache({}, {}, False)
 
 
 # global configurations at the level of the analysis module
@@ -108,7 +105,6 @@ class AnalysisSteps(Enum):
 
     # Variables must start with a letter but we want them to have sorted names
     # for auto-complete to indicate the execution order
-    STEP_0_EXTRACT_DATA = "extract_data"
     STEP_1_PROCESS_DATA = "process_data"
     STEP_2_RUN_FITTING = "run_fitting"
     STEP_3_ANALYZE_FIT_RESULTS = "analyze_fit_results"
@@ -117,6 +113,7 @@ class AnalysisSteps(Enum):
     STEP_6_SAVE_FIGURES = "save_figures"
     STEP_7_SAVE_QUANTITIES_OF_INTEREST = "save_quantities_of_interest"
     STEP_8_SAVE_PROCESSED_DATASET = "save_processed_dataset"
+    STEP_9_SAVE_FIT_RESULTS = "save_fit_results"
 
 
 class AnalysisMeta(ABCMeta):
@@ -142,13 +139,13 @@ class AnalysisMeta(ABCMeta):
 
             @wraps(create_figures_orig)
             def create_figures_patched(self):
-                _analyses_figures_cache(self).initialized = True
+                self._analyses_figures_cache().initialized = True
                 self._creating_figures = True
                 create_figures_orig(self)
                 self._creating_figures = False
 
             def _figs_axs_mpl(self):
-                cache = _analyses_figures_cache(self)
+                cache = self._analyses_figures_cache()
                 if not cache.initialized and not self._creating_figures:
                     create_figures_patched(self)
                 return cache
@@ -180,6 +177,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         tuid: Union[TUID, str] = None,
         label: str = "",
         settings_overwrite: dict = None,
+        plot_figures: bool = True,
     ):
         """
         Initializes the variables used in the analysis and to which data is stored.
@@ -190,30 +188,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             If the analysis requires the user passing in any arguments, the
             :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run()` should be
             overridden and extended (see its docstring for an example).
-
-        .. tip::
-
-            For scripting/development/debugging purposes the
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run_until` can be used
-            for a partial execution of the analysis. E.g.,
-
-            .. jupyter-execute::
-
-                from quantify_core.analysis.base_analysis import BasicAnalysis
-
-                a_obj = BasicAnalysis(label="my experiment").run_until(
-                    interrupt_before="extract_data"
-                )
-
-            **OR** use the corresponding members of the
-            :attr:`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps`:
-
-            .. jupyter-execute::
-
-                a_obj = BasicAnalysis(label="my experiment").run_until(
-                    interrupt_before=BasicAnalysis.analysis_steps.STEP_0_EXTRACT_DATA
-                )
-
 
         .. rubric:: Settings schema:
 
@@ -233,6 +207,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             A dictionary containing overrides for the global
             `base_analysis.settings` for this specific instance.
             See `Settings schema` above for available settings.
+        plot_figures:
+            Option to create and save figures for analysis.
         """
         # NB at least logging.basicConfig() needs to be called in the python kernel
         # in order to see the logger messages
@@ -263,7 +239,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         self.fit_results = {}
 
-        self._interrupt_before = None
+        self.plot_figures = plot_figures
 
     analysis_steps = AnalysisSteps
     """
@@ -272,34 +248,132 @@ class BaseAnalysis(metaclass=AnalysisMeta):
     See :class:`~quantify_core.analysis.base_analysis.AnalysisSteps` for a template.
     """
 
+    @classmethod
+    def load_fit_result(cls, tuid: TUID, fit_name: str) -> lmfit.model.ModelResult:
+        """
+        Load a saved :code:`lmfit.model.ModelResult` object from file. For analyses
+        that use custom fit functions, the :code:`cls.fit_function_definitions` object
+        must be defined in the subclass for that analysis.
+
+        Parameters
+        ------------
+        tuid:
+            The TUID reference of the saved analysis.
+        fit_name:
+            The name of the fit result to be loaded.
+
+        Returns
+        ------------
+        :
+            The lmfit model result object.
+        """
+        analysis_dir = cls._get_analysis_dir(
+            tuid=tuid, name=cls.__name__, create_missing=False
+        )
+
+        if not os.path.isdir(analysis_dir):
+            raise FileNotFoundError(
+                f"Analysis not found for this experiment ({analysis_dir} not found)."
+            )
+
+        results_dir = cls._get_results_dir(
+            analysis_dir=analysis_dir, create_missing=False
+        )
+
+        if not os.path.isdir(results_dir):
+            raise FileNotFoundError(
+                f"No fit results found for this analysis ({results_dir} not found)."
+            )
+
+        result = lmfit.model.load_modelresult(
+            os.path.join(results_dir, f"{fit_name}.txt")
+        )
+        return result
+
     @property
     def name(self):
         """The name of the analysis, used in data saving."""
         # used to store data and figures resulting from the analysis. Can be overwritten
         return self.__class__.__name__
 
+    @staticmethod
+    def _get_analysis_dir(tuid: TUID, name: str, create_missing: bool = True):
+        """
+        Generate an analysis dir based on a given tuid and analysis class name.
+
+        Parameters
+        ------------
+        tuid:
+            TUID of the analysis dir.
+        name:
+            The name of the analysis class.
+        create_missing:
+            If True, create the analysis dir if it does not already exist.
+
+        """
+        exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
+        analysis_dir = os.path.join(exp_folder, f"analysis_{name}")
+        if create_missing:
+            if not os.path.isdir(analysis_dir):
+                os.makedirs(analysis_dir)
+
+        return analysis_dir
+
     @property
     def analysis_dir(self):
         """
-        Analysis dir based on the tuid. Will create a directory if it does not exist
-        yet.
+        Analysis dir based on the tuid of the analysis class instance.
+        Will create a directory if it does not exist.
         """
         if self.tuid is None:
             raise ValueError("Unknown TUID, cannot determine the analysis directory.")
-        # This is a property as it depends
-        exp_folder = Path(locate_experiment_container(self.tuid, get_datadir()))
-        analysis_dir = exp_folder / f"analysis_{self.name}"
-        if not os.path.isdir(analysis_dir):
-            os.makedirs(analysis_dir)
 
-        return analysis_dir
+        return self._get_analysis_dir(tuid=self.tuid, name=self.name)
+
+    @staticmethod
+    def _get_results_dir(analysis_dir: str, create_missing: bool = True):
+        """
+        Generate an results dir based on a given analysis dir path.
+
+        Parameters
+        ------------
+        analysis_dir:
+            The path of the analysis directory.
+        create_missing:
+            If True, create the analysis dir if it does not already exist.
+
+        """
+        results_dir = os.path.join(analysis_dir, "fit_results")
+        if create_missing:
+            if not os.path.isdir(results_dir):
+                os.makedirs(results_dir)
+
+        return results_dir
+
+    @lru_cache(maxsize=FIGURES_LRU_CACHE_SIZE)
+    def _analyses_figures_cache(self):
+        return _FiguresMplCache({}, {}, False)
+
+    @property
+    def results_dir(self):
+        """
+        Analysis dirrectory for this analysis.
+        Will create a directory if it does not exist.
+        """
+        return self._get_results_dir(analysis_dir=self.analysis_dir)
 
     def run(self) -> BaseAnalysis:
         """
         This function is at the core of all analysis. It calls
         :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
         which executes all the methods defined in the
+
+        First step of any analysis is always extracting data, that is not configurable.
+        Errors in `extract_data()` are considered fatal for analysis.
+        Later steps are configurable by overriding
         :attr:`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps`.
+        Exceptions in these steps are logged and suppressed and analysis is considered
+        partially successful.
 
         This function is typically called right after instantiating an analysis class.
 
@@ -328,82 +402,35 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         passing analysis configuration arguments to
         :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
         """
-        flow_methods = _get_modified_flow(
-            flow_functions=self.get_flow(),
-            step_stop=self._interrupt_before,  # can be set by .run_until
-            step_stop_inclusive=False,
-        )
-
-        # Always reset so that it only has an effect when set by .run_until
-        self._interrupt_before = None
-
         self.logger.info(f"Executing `.analysis_steps` of {self.name}")
-        for i, method in enumerate(flow_methods):
+        self.logger.info(f"extracting data: {self.extract_data}")
+        self.extract_data()
+
+        for i, method in enumerate(self.get_flow(), start=1):
             self.logger.info(f"executing step {i}: {method}")
-            method()
+            try:
+                method()
+            except Exception:  # pylint: disable=broad-except
+                self.logger.exception(
+                    f"Exception was raised while executing analysis step {i} "
+                    f'("{method}"). Terminating analysis and returning partial result.'
+                )
+                return
 
-    def run_from(self, step: Union[str, AnalysisSteps]):
-        """
-        Runs the analysis starting from the specified method.
-
-        The methods are called in the same order as in
-        :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
-        Useful when first running a partial analysis and continuing again.
-        """
-        flow_methods = _get_modified_flow(
-            flow_functions=self.get_flow(),
-            step_start=step,
-            step_start_inclusive=True,  # self.step will be executed
-        )
-
-        for method in flow_methods:
-            method()
-
-    def run_until(self, interrupt_before: Union[str, AnalysisSteps], **kwargs):
-        """
-        Executes the analysis partially by calling
-        :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run` and
-        stopping before the specified step.
-
-        .. warning::
-
-            This method is not intended to be overwritten/extended.
-            See the examples below on passing arguments to
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
-
-        .. note::
-
-            Any code inside :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`
-            is still executed. Only the
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
-            [which is called by
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run` ] is affected.
-
-        Parameters
-        ----------
-        interrupt_before:
-            Stops the analysis before executing the specified step. For convenience
-            the analysis step can be specified either as a string or as the member of
-            the :attr:`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps`
-            enumerate member.
-        **kwargs:
-            Any other keyword arguments will be passed to
-            :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`
-        """  # pylint: disable=line-too-long
-
-        # Used by `execute_analysis_steps` to stop
-        self._interrupt_before = interrupt_before
-
-        run_params = dict(inspect.signature(self.run).parameters)
-        run_params.update(kwargs)
-
-        return self.run(**run_params)
-
+    # pylint: disable=no-member
     def get_flow(self) -> tuple:
         """
         Returns a tuple with the ordered methods to be called by run analysis.
+        Only return the figures methods if :code:`self.plot_figures` is :code:`True`.
         """
-        return tuple(getattr(self, elm.value) for elm in self.analysis_steps)
+        if self.plot_figures:
+            return tuple(getattr(self, elm.value) for elm in self.analysis_steps)
+
+        return tuple(
+            getattr(self, elm.value)
+            for elm in self.analysis_steps
+            if "figures" not in elm.value
+        )
 
     def extract_data(self):
         """
@@ -529,6 +556,16 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             encoding="utf-8",
         ) as file:
             json.dump(self.quantities_of_interest, file, cls=NumpyJSONEncoder, indent=4)
+
+    def save_fit_results(self):
+        """
+        Saves the :code:`lmfit.model.model_result` objects for each fit in a
+        sub-directory within the analysis directory
+        """
+
+        for fr_name, fit_result in self.fit_results.items():
+            path = os.path.join(self.results_dir, f"{fr_name}.txt")
+            lmfit.model.save_modelresult(fit_result, path)
 
     def save_figures(self):
         """
@@ -705,7 +742,7 @@ class Basic1DAnalysis(BasicAnalysis):
     """
 
     def run(self) -> BaseAnalysis:
-        warnings.warn("Use `BasicAnalysis`", category=DeprecationWarning)
+        warnings.warn("Use `BasicAnalysis`", category=FutureWarning)
         return super().run()
 
 
@@ -935,35 +972,3 @@ def analysis_steps_to_str(
     )
 
     return string
-
-
-def _get_modified_flow(
-    flow_functions: tuple,
-    step_start: Union[str, AnalysisSteps] = None,
-    step_start_inclusive: bool = True,
-    step_stop: Union[str, AnalysisSteps] = None,
-    step_stop_inclusive: bool = True,
-):
-    step_names = [meth.__name__ for meth in flow_functions]
-
-    if step_start:
-        if not issubclass(type(step_start), str):
-            step_start = step_start.value
-        start_idx = step_names.index(step_start)
-        if not step_start_inclusive:
-            start_idx += 1
-    else:
-        start_idx = 0
-
-    if step_stop:
-        if not issubclass(type(step_stop), str):
-            step_stop = step_stop.value
-        stop_idx = step_names.index(step_stop)
-        if step_stop_inclusive:
-            stop_idx += 1
-    else:
-        stop_idx = None
-
-    flow_functions = flow_functions[start_idx:stop_idx]
-
-    return flow_functions

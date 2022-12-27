@@ -73,8 +73,6 @@ extensions = [
     "qcodes.sphinx_extensions.parse_parameter_attr",
 ]
 
-notebook_to_jupyter_sphinx_always_rebuild = False
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -309,6 +307,8 @@ if os.environ.get("GITLAB_CI", "false") == "true":
 
 set_type_checking_flag = True  # this will run `typing.TYPE_CHECKING = True`
 
+# The following fails the build when one of the notebooks has an execution error.
+nb_execution_raise_on_error = True
 
 # Enable nitpicky mode - warns about all references where the target cannot be found
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-nitpicky
@@ -328,3 +328,6 @@ with open("nitpick-exceptions.txt", encoding="utf-8") as nitpick_exceptions:
 # We need to import xarray here to prevent sphinx import failing on that line in
 # quantify_core/data/dataset_attrs.py (see https://gitlab.com/quantify-os/quantify-core/-/issues/296#note_883869694)
 import xarray as xr
+
+# qcodes0.36.0 lazy loads h5py which causes build failures
+import h5py

@@ -110,22 +110,22 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.plot_fit(
             ax=axs[0],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="real",
         )
 
         qpl.plot_fit(
             ax=axs[1],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="imag",
         )
 
-        qpl.set_ylabel(axs[0], r"Re$(S_{21})$", self.dataset_processed.S21.units)
-        qpl.set_ylabel(axs[1], r"Im$(S_{21})$", self.dataset_processed.S21.units)
+        qpl.set_ylabel(r"Re$(S_{21})$", self.dataset_processed.S21.units, axs[0])
+        qpl.set_ylabel(r"Im$(S_{21})$", self.dataset_processed.S21.units, axs[1])
         axs[0].set_xlabel("")
         qpl.set_xlabel(
-            axs[1], self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, axs[1]
         )
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
@@ -153,22 +153,22 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.plot_fit(
             ax=axs[0],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="abs",
         )
 
         qpl.plot_fit(
             ax=axs[1],
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
             range_casting="angle",
         )
 
-        qpl.set_ylabel(axs[0], r"$|S_{21}|$", self.dataset_processed.S21.units)
-        qpl.set_ylabel(axs[1], r"$\angle S_{21}$", "deg")
+        qpl.set_ylabel(r"$|S_{21}|$", self.dataset_processed.S21.units, axs[0])
+        qpl.set_ylabel(r"$\angle S_{21}$", "deg", axs[1])
         axs[0].set_xlabel("")
         qpl.set_xlabel(
-            axs[1], self.dataset_processed.x0.long_name, self.dataset_processed.x0.units
+            self.dataset_processed.x0.long_name, self.dataset_processed.x0.units, axs[1]
         )
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
@@ -190,10 +190,10 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.plot_fit_complex_plane(
             ax=ax,
             fit_res=self.fit_results["hanger_func_complex_SI"],
-            plot_init=True,
+            plot_init=False,
         )
 
-        qpl.set_xlabel(ax, r"Re$(S_{21})$", self.dataset_processed.S21.units)
-        qpl.set_ylabel(ax, r"Im$(S_{21})$", self.dataset_processed.S21.units)
+        qpl.set_xlabel(r"Re$(S_{21})$", self.dataset_processed.S21.units, ax)
+        qpl.set_ylabel(r"Im$(S_{21})$", self.dataset_processed.S21.units, ax)
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")

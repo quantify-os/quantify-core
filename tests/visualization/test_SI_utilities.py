@@ -32,7 +32,7 @@ def test_si_scale_factors() -> None:
     unit = "V"
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5, unit=unit)
     assert scale_factor == 1
-    assert "" + unit == post_unit
+    assert unit == post_unit
 
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000, unit=unit)
     assert scale_factor, 1 == 1000
@@ -41,6 +41,26 @@ def test_si_scale_factors() -> None:
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=0.05, unit=unit)
     assert scale_factor == 1000
     assert "m" + unit == post_unit
+
+    unit = "ns"
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000.4, unit=unit)
+    assert scale_factor == 1e-3
+    assert "μs" == post_unit
+
+    unit = "Gunknown"
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=126, unit=unit)
+    assert scale_factor == 1
+    assert "Gunknown" == post_unit
+
+    unit = "m$\\Phi_0$"
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=1000.0, unit=unit)
+    assert scale_factor == 1e-3
+    assert "$\\Phi_0$" == post_unit
+
+    unit = None
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000.4, unit=unit)
+    assert scale_factor == 1
+    assert "" == post_unit
 
 
 def test_label_scaling() -> None:
@@ -53,8 +73,8 @@ def test_label_scaling() -> None:
     y = np.cos(x)
     ax.plot(x * 1000, y / 1e5)
 
-    set_xlabel(ax, "Distance", "m")
-    set_ylabel(ax, "Amplitude", "V")
+    set_xlabel("Distance", "m", axis=ax)
+    set_ylabel("Amplitude", "V")
 
     xlab = ax.get_xlabel()
     ylab = ax.get_ylabel()

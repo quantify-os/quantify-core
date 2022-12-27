@@ -48,7 +48,7 @@ class QuantifyExperiment:
         else:
             self.tuid = tuid
             self.dataset = None
-        self.tuid = TUID(tuid)
+        self.tuid = TUID(self.tuid)
 
     def __repr__(self) -> str:
         classname = ".".join([self.__module__, self.__class__.__qualname__])
@@ -69,7 +69,7 @@ class QuantifyExperiment:
         experiment_directory = locate_experiment_container(tuid=self.tuid)
         return Path(experiment_directory)
 
-    def _get_or_create_experiment_directory(self) -> Path:
+    def _get_or_create_experiment_directory(self, name: str = None) -> Path:
         """
         Create the experiment directory containing the TUID set within the class,
         if it does not exist already.
@@ -77,6 +77,9 @@ class QuantifyExperiment:
         To be used by methods that write/save. The experiment directory will be
         created on the first write/save, not before. Methods that load should not
         create an experiment directory.
+
+        name:
+            Readable name given to the datafile
 
         Returns
         -------
@@ -87,7 +90,7 @@ class QuantifyExperiment:
         try:
             experiment_directory = self.experiment_directory
         except FileNotFoundError:
-            experiment_directory = create_exp_folder(tuid=self.tuid)
+            experiment_directory = create_exp_folder(tuid=self.tuid, name=name)
 
         return Path(experiment_directory)
 
@@ -120,7 +123,8 @@ class QuantifyExperiment:
             The dataset to be written to the directory
 
         """
-        path = self._get_or_create_experiment_directory() / DATASET_NAME
+        name = dataset.attrs.get("name")
+        path = self._get_or_create_experiment_directory(name=name) / DATASET_NAME
         write_dataset(path, dataset)
 
     def load_snapshot(self) -> Dict[str, Any]:

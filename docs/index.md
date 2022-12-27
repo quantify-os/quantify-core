@@ -30,13 +30,6 @@ technical_notes/dataset_design/index
 api_reference
 ```
 
-```{toctree}
-:caption: Sphinx extensions
-:maxdepth: 2
-
-sphinx_extensions
-```
-
 # Indices and tables
 
 - {ref}`genindex`

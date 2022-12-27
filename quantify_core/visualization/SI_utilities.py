@@ -4,8 +4,10 @@
 """
 Utilities for managing SI units with plotting systems.
 """
+import re
 import string
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
+import warnings
 
 import lmfit
 import matplotlib
@@ -19,21 +21,33 @@ double_col_figsize = (6.9, golden_mean * 6.9)
 thesis_col_figsize = (12.2 / 2.54, golden_mean * 12.2 / 2.54)
 
 
-def set_xlabel(axis, label, unit=None, **kw):
+def set_xlabel(label, unit=None, axis=None, **kw):
     """
     Add a unit aware x-label to an axis object.
 
     Parameters
     ----------
-    axis
-        matplotlib axis object to set label on
     label
         the desired label
     unit
         the unit
+    axis
+        matplotlib axis object to set label on
     **kw
         keyword argument to be passed to matplotlib.set_xlabel
     """
+    if isinstance(label, plt.Axes):
+        warnings.warn(
+            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
+            " Please use the new syntax set_xlabel(label, unit = None, axis = None)",
+            FutureWarning,
+            stacklevel=2,
+        )
+        axis, label, unit = label, unit, axis
+
+    if axis is None:
+        axis = plt.gca()
+
     if unit is not None and unit != "":
         xticks = axis.get_xticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
@@ -48,21 +62,33 @@ def set_xlabel(axis, label, unit=None, **kw):
     return axis
 
 
-def set_ylabel(axis, label, unit=None, **kw):
+def set_ylabel(label, unit=None, axis=None, **kw):
     """
     Add a unit aware y-label to an axis object.
 
     Parameters
     ----------
-    axis
-        matplotlib axis object to set label on
     label
         the desired label
     unit
         the unit
+    axis
+        matplotlib axis object to set label on
     **kw
         keyword argument to be passed to matplotlib.set_ylabel
     """
+    if isinstance(label, plt.Axes):
+        warnings.warn(
+            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
+            " Please use the new syntax set_ylabel(label, unit = None, axis = None)",
+            FutureWarning,
+            stacklevel=2,
+        )
+        axis, label, unit = label, unit, axis
+
+    if axis is None:
+        axis = plt.gca()
+
     if unit is not None and unit != "":
         yticks = axis.get_yticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(yticks)), unit=unit)
@@ -122,7 +148,7 @@ def adjust_axeslabels_SI(ax) -> None:
         xunit = xlabel[idxl + 1 : idxr]
         xlabel = xlabel[: -(len(xunit) + 3)]
         # replace by a unit aware label formatter
-        set_xlabel(ax, xlabel, xunit)
+        set_xlabel(xlabel, xunit, ax)
 
     ylabel = ax.get_ylabel()
     idxl = ylabel.find("[")
@@ -132,7 +158,7 @@ def adjust_axeslabels_SI(ax) -> None:
         yunit = ylabel[idxl + 1 : idxr]
         ylabel = ylabel[: -(len(yunit) + 3)]
         # replace by a unit aware label formatter
-        set_ylabel(ax, ylabel, yunit)
+        set_ylabel(ylabel, yunit, ax)
 
 
 SI_PREFIXES = dict(zip(range(-24, 25, 3), "yzafpnμm kMGTPEZY"))
@@ -141,14 +167,28 @@ SI_PREFIXES[0] = ""
 # N.B. not all of these are SI units, however, all of these support SI prefixes
 SI_UNITS = (
     "SI_PREFIX_ONLY,m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
-    r"Vpeak,Vpp,Vp,Vrms,$\Phi_0$,A/s".split(",")
+    r"Vpeak,Vpp,Vp,Vrms,A/s,$\Phi_0$".split(",")
 )  # noqa: W605
 
+_SI_PREFIX_TO_FACTOR_MAPPING = {v: 10**key for key, v in SI_PREFIXES.items()}
+_SI_PREFIX_TO_FACTOR_MAPPING["u"] = 10**-6
 
-def SI_prefix_and_scale_factor(val, unit=None):
+_prefix_regexp = "(" + "|".join(list("yzafpnμmkMGTPEZY")) + ")"
+_si_regex = "(" + "|".join(map(re.escape, SI_UNITS)) + ")"
+_prefixed_si_regex = re.compile(f"{_prefix_regexp}{_si_regex}$")
+
+
+def SI_prefix_and_scale_factor(
+    val: float, unit: Optional[str] = None
+) -> Tuple[float, str]:
     """
-    Takes in a value and unit. If the unit is an unscaled SI unit (eg. 'm', but not
-    'mm'), the proper scale factor and SI prefix are returned.
+    Takes in a value and unit, returns a scale factor and scaled unit.
+    It returns a scale factor to convert the input value to a value in the
+    range [1.0, 1000.0), plus the corresponding scaled SI unit (e.g. 'mT', 'kV'),
+    deduced from the input unit, to represent the input value in those scaled units.
+
+    The scaling is only applied if the unit is an unscaled or scaled unit present in
+    the variable :data::`SI_UNITS`.
 
     If the unit is None, no scaling is done.
     If the unit is "SI_PREFIX_ONLY", the value is scaled and an SI prefix is applied
@@ -167,6 +207,15 @@ def SI_prefix_and_scale_factor(val, unit=None):
     scaled_unit : str
         unit including the prefix
     """
+    if unit and val is not None and (match := _prefixed_si_regex.match(unit)):
+        scale_part = match.group(1)
+        unit_part = match.group(2)
+        plus_scale = _SI_PREFIX_TO_FACTOR_MAPPING[scale_part]
+        scale_factor, scaled_unit = SI_prefix_and_scale_factor(
+            plus_scale * val, unit_part
+        )
+        return plus_scale * scale_factor, scaled_unit
+
     if unit in SI_UNITS:
         try:
             with np.errstate(all="ignore"):

@@ -4,8 +4,36 @@
 
 import functools
 import inspect
+import os
 import warnings
 from typing import Callable, Type, Union
+
+
+def _find_stack_level() -> int:
+    """
+    Find the first place in the stack that is not inside quantify-core
+    (tests notwithstanding).
+
+    (adopted from pandas.util._exceptions.find_stack_level)
+    """
+    # pylint: disable=import-outside-toplevel,invalid-name
+
+    import quantify_core
+
+    pkg_dir = os.path.dirname(quantify_core.__file__)
+    test_dir = os.path.join(pkg_dir, "tests")
+
+    # https://stackoverflow.com/questions/17407119/python-inspect-stack-is-slow
+    frame = inspect.currentframe()
+    n = 0
+    while frame:
+        fname = inspect.getfile(frame)
+        if fname.startswith(pkg_dir) and not fname.startswith(test_dir):
+            frame = frame.f_back
+            n += 1
+        else:
+            break
+    return n
 
 
 def deprecated(
@@ -81,7 +109,7 @@ def deprecated(
 
             @functools.wraps(orig_init)
             def __init__(self, *args, **kwargs):
-                warnings.warn(message, DeprecationWarning)
+                warnings.warn(message, FutureWarning, stacklevel=_find_stack_level())
                 orig_init(self, *args, **kwargs)
 
             # Here we patch only __init__ method. For completeness, we should also patch
@@ -108,7 +136,7 @@ def deprecated(
                 setattr(owner, name, wrapper)
 
             def __call__(self, *args, **kwargs):
-                warnings.warn(message, DeprecationWarning)
+                warnings.warn(message, FutureWarning, stacklevel=_find_stack_level())
                 return func(*args, **kwargs)
 
         return _FnDeprecator()

@@ -6,6 +6,7 @@ from quantify_core.data.handling import set_datadir
 from quantify_core.utilities.experiment_helpers import (
     create_plotmon_from_historical,
     load_settings_onto_instrument,
+    get_all_parents,
 )
 
 
@@ -108,6 +109,30 @@ def test_load_settings_onto_instrument(tmp_test_data_dir, mock_instr):
 
 
 # pylint: disable=redefined-outer-name
+def test_load_settings_onto_numpy_param(tmp_test_data_dir, mock_instr):
+    """
+    Test that we can successfully load the settings of a dummy instrument
+    """
+    # Always set datadir before instruments
+    set_datadir(tmp_test_data_dir)
+
+    instr = mock_instr
+
+    tuid = "20210319-094728-327-69b211"
+
+    # The snapshot also contains an 'obsolete_param', that is not included here.
+    # This represents a parameter which is no longer in the qcodes driver.
+
+    load_settings_onto_instrument(instr.numpy_array_param, tuid)
+
+    assert isinstance(instr.get("numpy_array_param"), np.ndarray)
+    assert instr.get("numpy_array_param").shape[0] == 4
+    assert (instr.get("numpy_array_param") == np.array([0, 1, 2, 3])).all()
+
+    instr.close()
+
+
+# pylint: disable=redefined-outer-name
 @pytest.fixture(scope="function", autouse=False)
 def mock_instr_nested(request):
     """
@@ -131,7 +156,7 @@ def mock_instr_nested(request):
     instr.add_submodule("mod_a", mod_a)
 
     mod_b = InstrumentChannel(instr, "mod_b")
-    mod_c = InstrumentChannel(instr, "mod_b")
+    mod_c = InstrumentChannel(mod_b, "mod_c")
     mod_b.add_submodule("mod_c", mod_c)
     mod_c.add_parameter("c", parameter_class=ManualParameter)
 
@@ -143,6 +168,30 @@ def mock_instr_nested(request):
     request.addfinalizer(cleanup_instruments)
 
     return instr
+
+
+def test_get_all_parents(mock_instr_nested):
+    """
+    Test that we can get all the parent objects of a qcodes instrument, submodule
+    or parameter
+    """
+    parents = get_all_parents(mock_instr_nested.mod_b.mod_c)
+    assert parents == [
+        mock_instr_nested,
+        mock_instr_nested.mod_b,
+        mock_instr_nested.mod_b.mod_c,
+    ]
+
+    parents = get_all_parents(mock_instr_nested.mod_b.mod_c.c)
+    assert parents == [
+        mock_instr_nested,
+        mock_instr_nested.mod_b,
+        mock_instr_nested.mod_b.mod_c,
+        mock_instr_nested.mod_b.mod_c.c,
+    ]
+
+    parents = get_all_parents(mock_instr_nested)
+    assert parents == [mock_instr_nested]
 
 
 def test_load_settings_onto_instrument_submodules(tmp_test_data_dir, mock_instr_nested):
@@ -164,6 +213,48 @@ def test_load_settings_onto_instrument_submodules(tmp_test_data_dir, mock_instr_
     assert mock_instr_nested.a() == 5
     assert mock_instr_nested.mod_a.b() == 3
 
+    assert mock_instr_nested.mod_b.mod_c.c() == 2
+
+
+def test_load_settings_onto_one_submodule(tmp_test_data_dir, mock_instr_nested):
+    """
+    Test that we can successfully load the settings of a dummy instrument
+    """
+    # Always set datadir before instruments
+    set_datadir(tmp_test_data_dir)
+
+    # set some random values
+    mock_instr_nested.a(23)
+    mock_instr_nested.mod_a.b(42)
+    mock_instr_nested.mod_b.mod_c.c(23.1)
+
+    # load settings from a dataset
+    tuid = "20220509-204728-327-69b211"
+    load_settings_onto_instrument(mock_instr_nested.mod_a, tuid)
+
+    assert mock_instr_nested.a() == 23
+    assert mock_instr_nested.mod_a.b() == 3
+    assert mock_instr_nested.mod_b.mod_c.c() == 23.1
+
+
+def test_load_settings_onto_one_parameter(tmp_test_data_dir, mock_instr_nested):
+    """
+    Test that we can successfully load the settings of a dummy instrument
+    """
+    # Always set datadir before instruments
+    set_datadir(tmp_test_data_dir)
+
+    # set some random values
+    mock_instr_nested.a(23)
+    mock_instr_nested.mod_a.b(42)
+    mock_instr_nested.mod_b.mod_c.c(23.1)
+
+    # load settings from a dataset
+    tuid = "20220509-204728-327-69b211"
+    load_settings_onto_instrument(mock_instr_nested.mod_b.mod_c.c, tuid)
+
+    assert mock_instr_nested.a() == 23
+    assert mock_instr_nested.mod_a.b() == 42
     assert mock_instr_nested.mod_b.mod_c.c() == 2
 
 

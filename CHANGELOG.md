@@ -1,11 +1,63 @@
 # Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+### Merged branches and closed issues
+- Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
+
+## 0.6.5 (2022-12-13)
+
+### Merged branches and closed issues
+- Data - Allow concatenation of datasets with different names (!389)
+- Data - Allow concatenation of processed datasets (!394)
+- Data - Update OS environment to disable HDF5 file locking (!404, !405)
+- Documentation - Building sphinx documentation will now raise an error if one of the code cells fails to run (!407)
+- Documentation - Fixed a typo in the figure text of the optimization analysis class. (!413)
+- Fit - Add functions to load and save lmfit fit results from file (!286)
+- Git - Changed git merge strategy to "union" for CHANGELOG.md and AUTHORS.md to reduce amount of merge conflicts (!399)
+- Measurement Control - Add experiments_data submodule to measurement control (!393)
+- Memory leak - Added ability to skip figure creation in analysis classes to prevent memory leaks in long-running nested experiments (!406)
+- Memory leak - Fix a memory leak due to BaseAnalysis lru_cache (!390)
+- QCoDeS - Create function `quantify_core.utilities.experiment_helpers.get_all_parents` to find all parents of QCoDeS submodule (!401)
+- QCoDeS - Quantify now supports qcodes>=0.34.0 (!382)
+- QuantifyFix - Bug in QuantifyExperiment when tuid is None (!396)
+- Snapshots - Enable loading of settings of individual QCoDeS submodules and parameters from the saved snapshot (!384)
+- Warnings - Deprecation warnings are now shown to end-users by default (by changing to `FutureWarning`) (!411)
+
+## 0.6.4 (2022-10-13)
+
+### Breaking changes
+
+- MeasurementControl - Raise a `ValueError` exception if there are no setpoints (!370)
+- Utilities - `make_hash` and `import_python_object_from_string` were removed, because they are not used in `quantify-core`. Use their counterparts from `quantify-scheduler`. (!371, quantify-os/quantify-scheduler!357)
+- Docs - `notebook_to_jupyter_sphinx` sphinx extension has been removed (!378)
+- Removed `BaseAnalysis.run_from()` and `BaseAnalysis.run_until()` functionality, which is almost unused by an average user. (!379)
+- `BaseAnalysis.run()` function will return analysis object even if analysis has failed. Exceptions raised by analysis
+  will be logged and not raised. (!379)
+- The order of the arguments of `set_xlabel` and `set_ylabel` has been modified so that the `ax` is now optional argument (!376)
+
+### Merged branches and closed issues
+
+- Add functions to load and save lmfit fit results from file (!286)
+- Remove various old temp requirement pins (counterpart of quantify-scheduler!447) (!368)
+- Added support to SI_prefix_and_scale_factor for scaled units such as ns or GHz (!365, !373)
+- InstrumentMonitor - Restore `initial_value` of `update_interval` param (removed in !324) (!375)
+- Analysis - Use `long_name` instead of `name` XArray attribute as default for axis labels and plot messages (!380)
+- Reduce quantify-core import time (!366)
+
 ## 0.6.3 (2022-08-05)
+
+### Breaking changes
+
+- MeasurementControl - Fix `print_progress` for 0 progress and do not raise when no setpoints (!363)
+
+### Merged branches and closed issues
 
 - Changes to InstrumentMonitor and PlotMonitor to fix errors due to racing conditions. (!358)
 - Can save metadata with `QuantifyExperiment` (!355)
 - Contribution guidelines updated, added: Versioning, Backward Compatibility and Deprecation Policy (!282)
-- MeasurementControl - Fix `print_progress` for 0 progress (!363)
 
 ## 0.6.2 (2022-06-30)
 

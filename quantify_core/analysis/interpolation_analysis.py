@@ -17,7 +17,7 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
         """Create a 2D interpolating figure for each yi."""
 
         for y_variable in self.dataset.data_vars:
-            variable_name = self.dataset[y_variable].attrs["name"]
+            variable_name = self.dataset[y_variable].attrs["long_name"]
             unit = self.dataset[y_variable].units
             fig_id = f"{variable_name} interpolating"
 
@@ -62,10 +62,10 @@ class InterpolationAnalysis2D(ba.BaseAnalysis):
             )
 
             qpl.set_xlabel(
-                ax, self.dataset["x0"].attrs["name"], self.dataset["x0"].units
+                self.dataset["x0"].attrs["long_name"], self.dataset["x0"].units, ax
             )
             qpl.set_ylabel(
-                ax, self.dataset["x1"].attrs["name"], self.dataset["x1"].units
+                self.dataset["x1"].attrs["long_name"], self.dataset["x1"].units, ax
             )
             qpl.set_cbarlabel(cbar, variable_name, unit)
             qpl.set_suptitle_from_dataset(
