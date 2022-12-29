@@ -25,7 +25,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setData(data)
         self.setColumnCount(4)
-        self.setHeaderLabels(["Name", "Value", "Unit", "Last update"])
+        self.setHeaderLabels(["Name/Label", "Value", "Unit", "Last update"])
         self.nodes = {}
         self.timer_appnope = None
 
