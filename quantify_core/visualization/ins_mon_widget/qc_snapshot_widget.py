@@ -60,9 +60,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
             # Default to instrument_name for backwards compatibility.
             # "label" is not present in qcodes<0.36.
-            instrument_label = instrument_name
-            if "label" in sub_snap:
-                instrument_label = sub_snap["label"]
+            instrument_label = sub_snap.get("label", instrument_name)
 
             node = self._add_node(parent, instrument_label, instrument_name)
             self._fill_node_recursively(sub_snap, node, instrument_name)
