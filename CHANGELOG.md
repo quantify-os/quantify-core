@@ -6,6 +6,7 @@
 
 ### Merged branches and closed issues
 - Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
+- Visualization - If provided, InstrumentMonitor displays instrument label (!369)
 
 ## 0.6.5 (2022-12-13)
 
