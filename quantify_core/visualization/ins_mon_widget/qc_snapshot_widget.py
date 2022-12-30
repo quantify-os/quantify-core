@@ -206,12 +206,12 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
     @deprecated(
         "0.10.0",
-        "The function _get_nodes_json provides similar functionality.",
+        "The function _get_entries_json provides similar functionality.",
     )
     def getNodes(self):
         return pprint.pformat(self.nodes)
 
-    def _get_nodes_json(self):
+    def _get_entries_json(self):
         """Get json encoding of entries of instrument monitor."""
 
         # pylint: disable-next=too-few-public-methods

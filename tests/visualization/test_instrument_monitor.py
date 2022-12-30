@@ -136,7 +136,7 @@ class TestQcSnapshotWidget:
         """Default snapshot gets added to widget correctly."""
         test_snapshot = self.get_snapshot()
         self.widget.buildTreeSnapshot(test_snapshot)
-        nodes_str = self.widget._get_nodes_json()
+        nodes_str = self.widget._get_entries_json()
         print(f"\n{nodes_str=}")
         assert "test_instrument" in nodes_str
         assert "Instrument label" in nodes_str
@@ -155,7 +155,7 @@ class TestQcSnapshotWidget:
         self.widget.buildTreeSnapshot(test_snapshot)
 
         # Assert
-        nodes = json.loads(self.widget._get_nodes_json())
+        nodes = json.loads(self.widget._get_entries_json())
         assert "test_instrument" in nodes
         assert "text0" in nodes["test_instrument"]
         assert nodes["test_instrument"]["text0"] == "Test Instrument Label"
@@ -166,7 +166,7 @@ class TestQcSnapshotWidget:
         test_snapshot = self.get_snapshot()
         instrument_name = test_snapshot["test_instrument"]["name"]
         self.widget.buildTreeSnapshot(test_snapshot)
-        nodes = json.loads(self.widget._get_nodes_json())
+        nodes = json.loads(self.widget._get_entries_json())
         assert nodes["test_instrument"]["text0"] == instrument_name
         test_snapshot["test_instrument"]["label"] = "New Instrument Label"
 
@@ -174,7 +174,7 @@ class TestQcSnapshotWidget:
         self.widget.buildTreeSnapshot(test_snapshot)
 
         # Assert
-        nodes = json.loads(self.widget._get_nodes_json())
+        nodes = json.loads(self.widget._get_entries_json())
         assert nodes["test_instrument"]["text0"] == "New Instrument Label"
 
 
