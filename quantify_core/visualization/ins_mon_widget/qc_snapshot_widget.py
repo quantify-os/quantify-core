@@ -203,9 +203,12 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
         return in_string
 
+
     def getNodes(self):
-        class QTreeWidgetEncoder(NumpyJSONEncoder):
+        """Get json encoding of entries of instrument monitor."""
+        class _QTreeWidgetEncoder(NumpyJSONEncoder):
             def default(self, obj: Any) -> Any:
+                """Dedicated encoding method for QTreeWidgetItem"""
                 if isinstance(obj, QtWidgets.QTreeWidgetItem):
                     return {
                         f"{key}{col}": getattr(obj, key)(col)
@@ -215,5 +218,4 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
                 return super().default(obj)
 
-        return json.dumps(self.nodes, cls=QTreeWidgetEncoder)
-        # return pprint.pformat(self.nodes)
+        return json.dumps(self.nodes, cls=_QTreeWidgetEncoder)

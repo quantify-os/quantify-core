@@ -107,6 +107,7 @@ class TestQcSnapshotWidget:
 
     @staticmethod
     def get_snapshot():
+        """Returns basic snapshot for tests."""
         param = {
             "ts": "latest",
             "label": "",
@@ -130,6 +131,7 @@ class TestQcSnapshotWidget:
         }
         return test_snapshot
 
+    # pylint: disable-next=invalid-name
     def test_buildTreeSnapshot(self):
         """Default snapshot gets added to widget correctly."""
         test_snapshot = self.get_snapshot()
