@@ -10,6 +10,7 @@ from collections import OrderedDict
 from pyqtgraph.Qt import QtCore, QtWidgets
 from qcodes.utils.helpers import NumpyJSONEncoder
 
+from quantify_core.utilities import deprecated
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
 
@@ -203,9 +204,16 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
         return in_string
 
-
+    @deprecated(
+        "0.10.0",
+        "The function _get_nodes_json provides similar functionality.",
+    )
     def getNodes(self):
+        return pprint.pformat(self.nodes)
+
+    def _get_nodes_json(self):
         """Get json encoding of entries of instrument monitor."""
+
         class _QTreeWidgetEncoder(NumpyJSONEncoder):
             def default(self, obj: Any) -> Any:
                 """Dedicated encoding method for QTreeWidgetItem"""
