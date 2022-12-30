@@ -214,6 +214,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
     def _get_nodes_json(self):
         """Get json encoding of entries of instrument monitor."""
 
+        # pylint: disable-next=too-few-public-methods
         class _QTreeWidgetEncoder(NumpyJSONEncoder):
             def default(self, obj: Any) -> Any:
                 """Dedicated encoding method for QTreeWidgetItem"""
