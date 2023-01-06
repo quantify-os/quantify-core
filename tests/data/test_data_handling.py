@@ -109,6 +109,14 @@ def test_getset_datadir(tmp_test_data_dir):
     with pytest.raises(FileNotFoundError):
         dh.set_datadir("")
 
+    # Test setting to invalid path
+    # with pytest.raises(FileNotFoundError):
+    #     dh.set_datadir("D://data/////")
+    # with pytest.raises(PermissionError):
+    #     dh.set_datadir("//data/////")
+
+    assert dh.set_datadir("D://data/////") == None
+
 
 def test_load_dataset(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)

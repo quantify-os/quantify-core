@@ -153,6 +153,8 @@ def set_datadir(datadir: Union[str, None]) -> None:
 
     if not os.path.isdir(datadir):
         os.mkdir(datadir)
+        if not os.access(datadir, os.R_OK, os.W_OK):
+            raise NotADirectoryError(f"{datadir} is not a valid directory name.")
     this._datadir = datadir
 
 
