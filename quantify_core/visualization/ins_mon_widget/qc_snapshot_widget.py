@@ -69,14 +69,12 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
     def _add_node(self, parent, display_string, node_key):
         if node_key in self.nodes:
             # if node exists, update its string
-            node = self.nodes[node_key]
-            node.setData(0, 0, display_string)
+            self.nodes[node_key].setData(0, 0, display_string)
         else:
             # if node doesn't exist create a new one
             self.nodes[node_key] = QtWidgets.QTreeWidgetItem([display_string, "", ""])
             parent.addChild(self.nodes[node_key])
-            node = self.nodes[node_key]
-        return node
+        return self.nodes[node_key]
 
     def _fill_node_recursively(self, snapshot, node, node_key):
         """Takes an existing ``node``. Fills it with new nodes based on ``snapshot``.
