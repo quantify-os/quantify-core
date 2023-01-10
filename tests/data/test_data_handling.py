@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import tempfile
+import platform
 from datetime import datetime
 from pathlib import Path
 
@@ -82,21 +83,7 @@ def test_initialize_dataset_2d():
     assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
-def test_getset_datadir(tmp_test_data_dir):
-    # here to ensure we always start with default datadir
-    dh._datadir = None
-
-    with pytest.raises(NotADirectoryError):
-        # Ensure users are forced to pick a datadir in order to avoid
-        # potential dataloss
-        dh.get_datadir()
-
-    new_dir_path = os.path.join(tmp_test_data_dir, "test_datadir2")
-    os.mkdir(new_dir_path)
-    dh.set_datadir(new_dir_path)
-    assert os.path.split(dh.get_datadir())[-1] == "test_datadir2"
-    os.rmdir(new_dir_path)
-
+def test_set_datadir(tmp_test_data_dir):
     # Test setting to None
     dh.set_datadir(None)
     assert dh.get_datadir() == dh.default_datadir()
@@ -111,10 +98,27 @@ def test_getset_datadir(tmp_test_data_dir):
 
     # Test setting to invalid path
     with pytest.raises(FileNotFoundError):
-        dh.set_datadir("D://data/////")
+        dh.set_datadir("D://data")
 
-    with pytest.raises(PermissionError):
-        dh.set_datadir("/data/////")
+    if platform.system() == "Linux":
+        with pytest.raises(PermissionError):
+            dh.set_datadir("/data")
+
+
+def test_get_datadir(tmp_test_data_dir):
+    # here to ensure we always start with default datadir
+    dh._datadir = None
+
+    with pytest.raises(NotADirectoryError):
+        # Ensure users are forced to pick a datadir in order to avoid
+        # potential dataloss
+        dh.get_datadir()
+
+    new_dir_path = os.path.join(tmp_test_data_dir, "test_datadir2")
+    os.mkdir(new_dir_path)
+    dh.set_datadir(new_dir_path)
+    assert os.path.split(dh.get_datadir())[-1] == "test_datadir2"
+    os.rmdir(new_dir_path)
 
 
 def test_load_dataset(tmp_test_data_dir):
