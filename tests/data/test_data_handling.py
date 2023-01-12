@@ -6,7 +6,6 @@ import json
 import os
 import shutil
 import tempfile
-import platform
 from datetime import datetime
 from pathlib import Path
 
