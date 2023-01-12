@@ -6,6 +6,7 @@
 - [Adriaan Rol](mailto:adriaan@orangeqs.com)
 - [Callum Attryde](mailto:cattryde@qblox.com)
 - [Damien Crielaard](mailto:dcrielaard@qblox.com)
+- [Daniel Jonathan Weigand](mailto:dweigand@qblox.com)
 - [Diogo Valada](mailto:dvalada@qblox.com)
 - [Edgar Reehuis](mailto:ereehuis@qblox.com)
 - [Gabor Oszkar Denes](mailto:gdenes@qblox.com)
