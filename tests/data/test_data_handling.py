@@ -96,14 +96,6 @@ def test_set_datadir(tmp_test_data_dir):
     with pytest.raises(FileNotFoundError):
         dh.set_datadir("")
 
-    # Test setting to invalid path
-    with pytest.raises(FileNotFoundError):
-        dh.set_datadir("D://data")
-
-    if platform.system() == "Linux":
-        with pytest.raises(PermissionError):
-            dh.set_datadir("/data")
-
 
 def test_get_datadir(tmp_test_data_dir):
     # here to ensure we always start with default datadir

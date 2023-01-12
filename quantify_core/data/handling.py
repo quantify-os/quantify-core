@@ -138,7 +138,7 @@ def get_datadir() -> str:
     return this._datadir
 
 
-def set_datadir(datadir: Union[str, None]) -> None:
+def set_datadir(datadir: Optional[str] = None) -> None:
     """
     Sets the data directory.
 
@@ -153,6 +153,7 @@ def set_datadir(datadir: Union[str, None]) -> None:
 
     if not os.path.isdir(datadir):
         os.mkdir(datadir)
+
     this._datadir = datadir
 
 
