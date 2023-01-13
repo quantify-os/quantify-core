@@ -7,6 +7,7 @@
 ### Merged branches and closed issues
 - Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
 - Analysis - Make all analysis classes available from `quantify_core.analysis` (!418)
+- Data - Improve `set_datadir` and `test_getset_datadir` style and readability (!419)
 
 ## 0.6.5 (2022-12-13)
 

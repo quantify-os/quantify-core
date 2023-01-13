@@ -24,5 +24,6 @@
 - [Thomas Reynders](mailto:thomas@orangeqs.com)
 - [Tim Vroomans](mailto:tim@orangeqs.com)
 - [Tobias Bonsen](mailto:tobias@orangeqs.com)
+- [Victor Gervilla Palomar](mailto:vpalomar@qblox.com)
 - [Viacheslav Ostroukh](mailto:viacheslav@orangeqs.com)
 - [Victor Negirneac](mailto:vnegirneac@qblox.com)
