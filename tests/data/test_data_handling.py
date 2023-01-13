@@ -82,7 +82,7 @@ def test_initialize_dataset_2d():
     assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
-def test_set_datadir(tmp_test_data_dir):
+def test_set_datadir():
     # Test setting to None
     dh.set_datadir(None)
     assert dh.get_datadir() == dh.default_datadir()
