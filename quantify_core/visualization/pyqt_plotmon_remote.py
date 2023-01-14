@@ -565,7 +565,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         if last_modified_prev < self._last_modified[tuid]:
             try:
                 dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
-            except (ValueError, KeyError, OSError) as e:
+            # a range of exceptions can be raised when trying to load a
+            # dataset. As this is a remote process, this process should not
+            # crash, hence the exception handling.
+            except (ValueError, KeyError, OSError, AttributeError) as e:
                 return
             self._dsets[tuid] = dset
         else:
@@ -574,7 +577,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         try:
             dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
-        except (ValueError, KeyError, OSError) as e:
+        # a range of exceptions can be raised when trying to load a
+        # dataset. As this is a remote process, this process should not
+        # crash, hence the exception handling.
+        except (ValueError, KeyError, OSError, AttributeError) as e:
             return
         self._dsets[tuid] = dset
 
