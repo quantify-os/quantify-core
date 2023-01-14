@@ -404,8 +404,15 @@ def value_precision(val, stderr=None) -> Tuple[str, str]:
     if stderr is None or stderr == 0:
         return "{:.5g}", "{:.1f}"
 
-    value_mag = np.floor(np.log10(abs(val))) + 1
-    err_mag = np.floor(np.log10(abs(stderr))) + 1
+    # if statement to catch edge case of log10(0) being undefined.
+    if val == 0:
+        value_mag = 1
+    else:
+        value_mag = np.floor(np.log10(abs(val))) + 1
+    if stderr == 0:
+        err_mag = 1
+    else:
+        err_mag = np.floor(np.log10(abs(stderr))) + 1
     # pylint: disable=no-else-return
     if err_mag == 2:
         return "{:.0f}", "{:.0f}"
