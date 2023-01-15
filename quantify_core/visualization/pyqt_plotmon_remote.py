@@ -198,17 +198,26 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             if discard_tuid not in self._tuids_extra:
                 self._pop_dset(discard_tuid)
 
-    def tuids_append(self, tuid: str, datadir: str):
-        """Appends a tuid to be plotted"""
+    def tuids_append(self, tuid: str, datadir: str) -> bool:
+        """
+        Appends a tuid to be plotted.
+
+        Returns
+        -------
+        :
+            success, True if tuid was appended, False if it failed.
+        """
         # ensures the same datadir as in the main process
         set_datadir(datadir)
         # verify tuid
         TUID(tuid)
 
+        # loading the dataset can fail, if this happens return False
+        # otherwise continue.
         dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
         if dset is None:
             # Nothing to be added to the tuids
-            return
+            return False
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -232,6 +241,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self._pop_old_dsets(self._tuids_max_num)
 
         self._initialize_plot_monitor()
+        return True
 
     def _get_tuids(self):
         return list(self._tuids)
@@ -556,7 +566,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         if tuid is not None and tuid not in self._dsets:
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
-            self.tuids_append(tuid, datadir)
+            success = self.tuids_append(tuid, datadir)
+            if not success:
+                # Nothing to update as appending dataset to tuid failed
+                return
 
         if not self._dsets:
             # Nothing to update
