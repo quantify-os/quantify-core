@@ -11,6 +11,7 @@ from collections.abc import Iterable
 from multiprocessing import Queue, Event
 
 import numpy as np
+import xarray as xr
 from filelock import FileLock
 from pyqtgraph.Qt import QtCore
 from qcodes.plots.colors import color_cycle
