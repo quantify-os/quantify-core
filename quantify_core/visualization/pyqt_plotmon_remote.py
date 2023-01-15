@@ -9,8 +9,10 @@ import warnings
 from collections import deque
 from collections.abc import Iterable
 from multiprocessing import Queue, Event
+from typing import Union
 
 import numpy as np
+import xarray as xr
 from filelock import FileLock
 from pyqtgraph.Qt import QtCore
 from qcodes.plots.colors import color_cycle
@@ -30,8 +32,14 @@ from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
 
+# warning that is send out when a dataset is empty.
 warnings.filterwarnings(
     action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
+)
+# warning that is send out when xarray cannot find the right data backend.
+# this can happen when data loading fails.
+warnings.filterwarnings(
+    action="ignore", category=RuntimeWarning, message=r".*fails while guessing.*"
 )
 
 
@@ -196,14 +204,26 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             if discard_tuid not in self._tuids_extra:
                 self._pop_dset(discard_tuid)
 
-    def tuids_append(self, tuid: str, datadir: str):
-        """Appends a tuid to be plotted"""
+    def tuids_append(self, tuid: str, datadir: str) -> bool:
+        """
+        Appends a tuid to be plotted.
+
+        Returns
+        -------
+        :
+            success, True if tuid was appended, False if it failed.
+        """
         # ensures the same datadir as in the main process
         set_datadir(datadir)
         # verify tuid
         TUID(tuid)
 
+        # loading the dataset can fail, if this happens return False
+        # otherwise continue.
         dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+        if dset is None:
+            # Nothing to be added to the tuids
+            return False
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -227,6 +247,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         self._pop_old_dsets(self._tuids_max_num)
 
         self._initialize_plot_monitor()
+        return True
 
     def _get_tuids(self):
         return list(self._tuids)
@@ -551,7 +572,10 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         if tuid is not None and tuid not in self._dsets:
             # makes it easy to directly add a dataset and monitor it
             # this avoids having to set the tuid before the file was created
-            self.tuids_append(tuid, datadir)
+            success = self.tuids_append(tuid, datadir)
+            if not success:
+                # Nothing to update as appending dataset to tuid failed
+                return
 
         if not self._dsets:
             # Nothing to update
@@ -563,20 +587,14 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         last_modified_prev = self._last_modified.get(tuid, 0)
         self._last_modified[tuid] = _last_modified(tuid)
         if last_modified_prev < self._last_modified[tuid]:
-            try:
-                dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
-            except (ValueError, KeyError, OSError) as e:
+            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+            if dset is None:
+                # Nothing to be done here, skip any plot updates
                 return
             self._dsets[tuid] = dset
         else:
             # Nothing to be done here, skip any plot updates
             return
-
-        try:
-            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
-        except (ValueError, KeyError, OSError) as e:
-            return
-        self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")
         get_parnames = _get_parnames(dset, "y")
@@ -708,10 +726,27 @@ def _last_modified(tuid) -> float:
     return last_modified(_locate_experiment_file(tuid))
 
 
-def _safe_load_dataset(tuid, dataset_locks_dir):
+def _safe_load_dataset(tuid, dataset_locks_dir) -> Union[xr.Dataset, None]:
+    """
+    Attempts to safely load a dataset. Uses FileLock and exception
+    handling for common exceptions that should not crash the remote process.
+
+    Returns
+    -------
+    :
+        the dataset if loading was successful, and None if loading fails.
+
+    """
     lockfile = os.path.join(dataset_locks_dir, tuid[:26] + "-" + DATASET_NAME + ".lock")
-    with FileLock(lockfile, 5):
-        dset = load_dataset(tuid)
+
+    try:
+        with FileLock(lockfile, 5):
+            dset = load_dataset(tuid)
+    # a range of exceptions can be raised when trying to load a
+    # dataset. As this is a remote process, this process should not
+    # crash, hence the exception handling.
+    except (ValueError, KeyError, OSError, AttributeError, RuntimeError):
+        dset = None
 
     return dset
 

@@ -5,12 +5,16 @@
 ### Breaking Changes
 
 ### Merged branches and closed issues
+
 - Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
 - Analysis - Make all analysis classes available from `quantify_core.analysis` (!418)
+- Added AttributeError to the exceptions explictly handled in loading of datasets for the remote plotmon (#352, !442)
+- Added exception handling for SI_utilities.value_precision (#350, !442)
 
 ## 0.6.5 (2022-12-13)
 
 ### Merged branches and closed issues
+
 - Data - Allow concatenation of datasets with different names (!389)
 - Data - Allow concatenation of processed datasets (!394)
 - Data - Update OS environment to disable HDF5 file locking (!404, !405)
@@ -372,11 +376,10 @@ Please see merge request !101 for a python snippet that will make all previous d
 
 - First release on PyPI.
 
-
-
 ---
 
 🗈 **Note**
+
 - \#  denotes a closed issue.
 - ! denotes a merge request.
 

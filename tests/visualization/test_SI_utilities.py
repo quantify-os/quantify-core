@@ -3,6 +3,7 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -261,6 +262,18 @@ def test_value_precision() -> None:
 
     format_specifier = value_precision(930, stderr=31)
     assert format_specifier == ("{:.0f}", "{:.0f}")
+
+
+def test_value_precision_raises_no_warnings():
+    # There was a warning that was raised due to a log10(0) line
+    # here we test that this does not raise a warning
+    with warnings.catch_warnings():
+        # we filter for warnings with the word error in them.
+        # if any of them is caught, this test will fail.
+        warnings.simplefilter("error")
+        _ = value_precision(0, stderr=0)
+        _ = value_precision(1, stderr=0)
+        _ = value_precision(0, stderr=5)
 
 
 def test_format_value_ufloat() -> None:
