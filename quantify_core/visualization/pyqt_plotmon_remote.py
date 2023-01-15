@@ -39,7 +39,7 @@ warnings.filterwarnings(
 # warning that is send out when xarray cannot find the right data backend.
 # this can happen when data loading fails.
 warnings.filterwarnings(
-    action="ignore", category=RuntimeWarning, message=r"fails while guessing"
+    action="ignore", category=RuntimeWarning, message=r".*fails while guessing.*"
 )
 
 
