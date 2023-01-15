@@ -29,6 +29,7 @@ from quantify_core.utilities.general import last_modified
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
+from typing import Union
 
 warnings.filterwarnings(
     action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
@@ -204,6 +205,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         TUID(tuid)
 
         dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+        if dset is None:
+            # Nothing to be added to the tuids
+            return
 
         # Now we ensure all datasets are compatible to be plotted together
 
@@ -563,26 +567,14 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         last_modified_prev = self._last_modified.get(tuid, 0)
         self._last_modified[tuid] = _last_modified(tuid)
         if last_modified_prev < self._last_modified[tuid]:
-            try:
-                dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
-            # a range of exceptions can be raised when trying to load a
-            # dataset. As this is a remote process, this process should not
-            # crash, hence the exception handling.
-            except (ValueError, KeyError, OSError, AttributeError) as e:
+            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
+            if dset is None:
+                # Nothing to be done here, skip any plot updates
                 return
             self._dsets[tuid] = dset
         else:
             # Nothing to be done here, skip any plot updates
             return
-
-        try:
-            dset = _safe_load_dataset(tuid, self.dataset_locks_dir)
-        # a range of exceptions can be raised when trying to load a
-        # dataset. As this is a remote process, this process should not
-        # crash, hence the exception handling.
-        except (ValueError, KeyError, OSError, AttributeError) as e:
-            return
-        self._dsets[tuid] = dset
 
         set_parnames = _get_parnames(dset, "x")
         get_parnames = _get_parnames(dset, "y")
@@ -714,10 +706,27 @@ def _last_modified(tuid) -> float:
     return last_modified(_locate_experiment_file(tuid))
 
 
-def _safe_load_dataset(tuid, dataset_locks_dir):
+def _safe_load_dataset(tuid, dataset_locks_dir) -> Union[xr.Dataset, None]:
+    """
+    Attempts to safely load a dataset. Uses FileLock and exception
+    handling for common exceptions that should not crash the remote process.
+
+    Returns
+    -------
+    :
+        the dataset if loading was successful, and None if loading fails.
+
+    """
     lockfile = os.path.join(dataset_locks_dir, tuid[:26] + "-" + DATASET_NAME + ".lock")
-    with FileLock(lockfile, 5):
-        dset = load_dataset(tuid)
+
+    try:
+        with FileLock(lockfile, 5):
+            dset = load_dataset(tuid)
+    # a range of exceptions can be raised when trying to load a
+    # dataset. As this is a remote process, this process should not
+    # crash, hence the exception handling.
+    except (ValueError, KeyError, OSError, AttributeError, RuntimeError):
+        dset = None
 
     return dset
 
