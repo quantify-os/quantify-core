@@ -9,6 +9,7 @@ import warnings
 from collections import deque
 from collections.abc import Iterable
 from multiprocessing import Queue, Event
+from typing import Union
 
 import numpy as np
 import xarray as xr
@@ -30,10 +31,15 @@ from quantify_core.utilities.general import last_modified
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.color_utilities import make_fadded_colors
 from quantify_core.visualization.plot_interpolation import interpolate_heatmap
-from typing import Union
 
+# warning that is send out when a dataset is empty.
 warnings.filterwarnings(
     action="ignore", category=RuntimeWarning, message=r"All-NaN slice"
+)
+# warning that is send out when xarray cannot find the right data backend.
+# this can happen when data loading fails.
+warnings.filterwarnings(
+    action="ignore", category=RuntimeWarning, message=r"fails while guessing"
 )
 
 
