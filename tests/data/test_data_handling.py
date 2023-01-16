@@ -82,7 +82,12 @@ def test_initialize_dataset_2d():
     assert set(dataset.coords.keys()) == {"x0", "x1"}
 
 
-def test_set_datadir():
+def test_set_datadir(tmp_test_data_dir):
+    # Test valid directory creation
+    new_dir_path = os.path.join(tmp_test_data_dir, "test_datadir")
+    dh.set_datadir(new_dir_path)
+    assert os.access(new_dir_path, os.W_OK)
+
     # Test setting to None
     dh.set_datadir(None)
     assert dh.get_datadir() == dh.default_datadir()
@@ -109,7 +114,6 @@ def test_get_datadir(tmp_test_data_dir):
     os.mkdir(new_dir_path)
     dh.set_datadir(new_dir_path)
     assert os.path.split(dh.get_datadir())[-1] == "test_datadir2"
-    os.rmdir(new_dir_path)
 
 
 def test_load_dataset(tmp_test_data_dir):
