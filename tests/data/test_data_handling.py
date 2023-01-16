@@ -102,7 +102,6 @@ def test_set_datadir(tmp_test_data_dir):
 
 
 def test_get_datadir(tmp_test_data_dir):
-    # here to ensure we always start with default datadir
     dh._datadir = None
 
     with pytest.raises(NotADirectoryError):
