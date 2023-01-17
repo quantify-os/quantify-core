@@ -18,17 +18,9 @@ import adaptive
 import numpy as np
 import xarray as xr
 from filelock import FileLock
-from qcodes import Instrument, ManualParameter
 from qcodes import validators as vals
-
-try:
-    # Backwards compatibility with qcodes<0.35
-    from qcodes.instrument.parameter import InstrumentRefParameter
-except ModuleNotFoundError:
-    # Future compatibility with qcodes-0.35.
-    # This should be the only one when we depend on it.
-    from qcodes.parameters import InstrumentRefParameter
-from qcodes.instrument import InstrumentChannel
+from qcodes.instrument import Instrument, InstrumentChannel
+from qcodes.parameters import InstrumentRefParameter, ManualParameter
 
 from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
@@ -227,8 +219,9 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             values. Follows the format:
 
             .. code-block:: python
+
                 {
-                "parameter_name": {
+                    "parameter_name": {
                         "value": 10.2
                         "label": "parameter label"
                         "unit": "Hz"

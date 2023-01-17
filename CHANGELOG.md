@@ -4,6 +4,8 @@
 
 ### Breaking Changes
 
+- Requirements - `quantify-core` requires `qcodes>=0.35` now. (!427)
+
 ### Merged branches and closed issues
 
 - Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
