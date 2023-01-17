@@ -63,7 +63,11 @@ def load_settings_onto_instrument(
         # error when getting the parameter, do not try to set the parameter.
         try:
             get_val = instr_mod.parameters[parname]()
-        except RuntimeError:
+        except Exception as exc:
+            warnings.warn(
+                f"Could not get value of {parname} parameter due to {exc}. "
+                "We will not try to set this parameter."
+            )
             return
         if get_val is None and value is None:
             return
@@ -129,7 +133,11 @@ def load_settings_onto_instrument(
                 # set the parameter
                 try:
                     get_val = instr_mod.parameters[parname]()
-                except RuntimeError:
+                except Exception as exc:
+                    warnings.warn(
+                        f"Could not get value of {parname} parameter due to {exc}. "
+                        "We will not try to set this parameter."
+                    )
                     continue
                 if isinstance(get_val, np.ndarray):
                     value = instr_mod_snap_np["parameters"][parname]["value"]

@@ -95,6 +95,12 @@ def test_load_settings_onto_instrument(tmp_test_data_dir, mock_instr):
     ):
         load_settings_onto_instrument(instr, tuid)
 
+    with pytest.warns(
+        UserWarning,
+        match=("Could not get value of error_param parameter due to"),
+    ):
+        load_settings_onto_instrument(instr, tuid)
+
     assert instr.get("IDN") == {
         "vendor": None,
         "model": "DummyInstrument",
