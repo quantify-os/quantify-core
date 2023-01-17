@@ -13,8 +13,8 @@ The utilities to find/search/extract data only work if all the experiment contai
 are located within the same directory.
 ```
 
-```{jupyter-execute}
-:hide-code:
+```{code-cell} ipython3
+:tags: [hide-cell]
 
 # We recommend to always set the directory at the start of the python kernel
 # and stick to a single common data directory for all

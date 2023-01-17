@@ -18,7 +18,7 @@ import numpy as np
 import h5netcdf
 import xarray as xr
 from dateutil.parser import parse
-from qcodes import Instrument
+from qcodes.instrument import Instrument
 
 import quantify_core.data.dataset_adapters as da
 import quantify_core.data.handling as dh
@@ -753,7 +753,7 @@ def extract_parameter_from_snapshot(
 
     Returns
     -----------
-    parameter_dict
+    :
         The dict specifying the parameter properties which was extracted from the
         snapshot
     """
@@ -912,6 +912,62 @@ def to_gridded_dataset(
 
     .. seealso:: :meth:`.MeasurementControl.setpoints_grid`
 
+    .. admonition:: Example
+
+        .. jupyter-execute::
+            :hide-code:
+            :hide-output:
+
+            from qcodes import Instrument
+            Instrument.close_all()
+
+        .. admonition:: Examples
+            :class: dropdown, tip
+
+
+            .. jupyter-execute::
+
+                from pathlib import Path
+
+                import numpy as np
+                from qcodes import ManualParameter, Parameter, validators
+
+                from quantify_core.data.handling import set_datadir, to_gridded_dataset
+                from quantify_core.measurement import MeasurementControl
+
+                set_datadir(Path.home() / "quantify-data")
+
+                time_a = ManualParameter(
+                    name="time_a",
+                    label="Time A",
+                    unit="s",
+                    vals=validators.Numbers(),
+                    initial_value=1,
+                )
+                time_b = ManualParameter(
+                    name="time_b",
+                    label="Time B",
+                    unit="s",
+                    vals=validators.Numbers(),
+                    initial_value=1,
+                )
+                signal = Parameter(
+                    name="sig_a",
+                    label="Signal A",
+                    unit="V",
+                    get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()),
+                )
+
+                meas_ctrl = MeasurementControl("meas_ctrl")
+                meas_ctrl.settables([time_a, time_b])
+                meas_ctrl.gettables(signal)
+                meas_ctrl.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
+                dset = meas_ctrl.run("2D-single-float-valued-settable-gettable")
+
+                dset_grid = to_gridded_dataset(dset)
+
+                dset_grid.y0.plot(cmap="viridis")
+
     Parameters
     ----------
     quantify_dataset
@@ -929,7 +985,6 @@ def to_gridded_dataset(
         The new dataset.
 
 
-    .. include:: examples/data.handling.to_gridded_dataset.rst.txt
     """
     if dimension not in quantify_dataset.dims:
         dims = tuple(quantify_dataset.dims.keys())
@@ -1114,7 +1169,7 @@ def get_tuids_containing(
 def snapshot(update: bool = False, clean: bool = True) -> dict:
     """
     State of all instruments setup as a JSON-compatible dictionary (everything that the
-    custom JSON encoder class :class:`qcodes.utils.helpers.NumpyJSONEncoder` supports).
+    custom JSON encoder class :class:`~qcodes.utils.NumpyJSONEncoder` supports).
 
     Parameters
     ----------

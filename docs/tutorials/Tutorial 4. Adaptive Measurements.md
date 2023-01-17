@@ -1,24 +1,35 @@
-(adaptive-tutorial)=
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+---
 
+(adaptive-tutorial)=
 # Tutorial 4. Adaptive Measurements
 
 ```{seealso}
 The complete source code of this tutorial can be found in
 
-{jupyter-download:notebook}`Tutorial 4. Adaptive Measurements`
-
-{jupyter-download:script}`Tutorial 4. Adaptive Measurements`
+{nb-download}`Tutorial 4. Adaptive Measurements.ipynb`
 ```
 
-Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) {ref}`usage`. If you have some difficulties following the tutorial it might be worth reviewing the *User guide*!
-
-We **highly recommended** to first follow {ref}`Tutorial 1. Controlling a basic experiment using MeasurementControl` and {ref}`Tutorial 2. Advanced capabilities of the MeasurementControl`.
+This tutorial requires familiarity with the **core concepts** of Quantify.
+We **highly recommended** to read the {ref}`user guide <user-guide>` and follow {ref}`Tutorial 1. Controlling a basic experiment using MeasurementControl` and {ref}`Tutorial 2. Advanced capabilities of the MeasurementControl` first.
 
 In this tutorial, we explore the adaptive functionality of the {class}`.MeasurementControl`.
 With this mode, instead of predefining a grid of values to sweep through, we provide an optimization function and an initial state to the `meas_ctrl`.
 The `meas_ctrl` will then use this function to build the sweep. We import our usual modules and setup an `meas_ctrl` with visualization:
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: ['hide-cell']
+mystnb:
+  code_prompt_show: Imports and auxiliary utilities
+---
 import time
 
 import adaptive
@@ -29,20 +40,19 @@ from scipy import optimize
 import quantify_core.analysis.optimization_analysis as oa
 import quantify_core.visualization.pyqt_plotmon as pqm
 from quantify_core.analysis.interpolation_analysis import InterpolationAnalysis2D
-from quantify_core.data.handling import set_datadir
+from quantify_core.data.handling import set_datadir, default_datadir
 from quantify_core.measurement.control import MeasurementControl
-from quantify_core.utilities.examples_support import default_datadir
 from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 ```
 
 ```{include} set_data_dir_notes.md.txt
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 set_datadir(default_datadir())
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 meas_ctrl = MeasurementControl("meas_ctrl")
 insmon = InstrumentMonitor("InstrumentMonitor")
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
@@ -53,7 +63,7 @@ meas_ctrl.instr_plotmon(plotmon.name)
 
 We will create a mock Instrument our `meas_ctrl` will interact with. In this case, it is a simple parabola centered at the origin.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 para = Instrument("parabola")
 
 para.add_parameter("x", unit="m", label="X", parameter_class=ManualParameter)
@@ -90,9 +100,10 @@ We will use the `optimize.minimize` function (note this is passed by reference a
 In this case, we are starting at `[-50, -50]` and hope to minimize these values relative to our parabola function.
 Of course, this parabola has it's global minimum at the origin, thus these values will tend towards 0 as our algorithm progresses.
 
-```{jupyter-execute}
-:hide-output:
-
+```{code-cell} ipython3
+---
+tags: [hide-output]
+---
 meas_ctrl.settables([para.x, para.y])
 af_pars = {
     "adaptive_function": optimize.minimize,  # used by meas_ctrl
@@ -105,15 +116,15 @@ meas_ctrl.gettables(para.amp)
 dset = meas_ctrl.run_adaptive("nelder_mead_optimization", af_pars)
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dset
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.secondary_QtPlot
 ```
 
@@ -125,7 +136,7 @@ There are several analysis classes available in quantify which can be used to vi
 
 The {class}`~quantify_core.analysis.optimization_analysis.OptimizationAnalysis` class searches the dataset for the optimal datapoint and provides a number of useful plots to visualize the convergence of the measurement result around the minimum.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 a_obj = oa.OptimizationAnalysis(dset)
 a_obj.run()
 a_obj.display_figs_mpl()
@@ -135,7 +146,7 @@ The analysis generates plots of each of the variables versus the number of itera
 
 The {class}`~quantify_core.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap which interpolates between a set of irregularly spaced datapoints.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 a_obj = InterpolationAnalysis2D(dset)
 a_obj.run()
 a_obj.display_figs_mpl()
@@ -149,7 +160,7 @@ Let's see what the same experiment looks like with this module. Note the fields 
 As a practical example, let's revisit a Resonator Spectroscopy experiment. This time we only know our device has a resonance in 6-7 GHz range.
 We really don't want to sweep through a million points, so instead let's use an adaptive sampler to quickly locate our peak.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 res = Instrument("Resonator")
 
 res.add_parameter("freq", unit="Hz", label="Frequency", parameter_class=ManualParameter)
@@ -176,9 +187,10 @@ def lorenz():
 res.add_parameter("S21", unit="V", label="Transmission amp. S21", get_cmd=lorenz)
 ```
 
-```{jupyter-execute}
-:hide-output:
-
+```{code-cell} ipython3
+---
+tags: [hide-output]
+---
 _noise_level = 0.0
 res.amp(1)
 meas_ctrl.settables([res.freq])
@@ -191,11 +203,11 @@ meas_ctrl.gettables(res.S21)
 dset = meas_ctrl.run_adaptive("adaptive sample", af_pars)
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dset
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 

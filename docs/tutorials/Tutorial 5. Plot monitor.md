@@ -1,26 +1,41 @@
-(plotmon-tutorial)=
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+---
 
+(plotmon-tutorial)=
 # Tutorial 5. Plot monitor
 
 ```{seealso}
 The complete source code of this tutorial can be found in
 
-{jupyter-download:notebook}`Tutorial 5. Plot monitor`
-
-{jupyter-download:script}`Tutorial 5. Plot monitor`
+{nb-download}`Tutorial 5. Plot monitor.ipynb`
 ```
 
 In this tutorial we dive into the capabilities of the plot monitor.
 We will create a fictional device and showcase how the plot monitor can be used. Enjoy!
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: ['hide-cell']
+mystnb:
+  code_prompt_show: Imports and auxiliary utilities
+---
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
 from qcodes import Instrument, ManualParameter
 
-from quantify_core.data.handling import get_tuids_containing, set_datadir
+from quantify_core.data.handling import (
+    get_tuids_containing,
+    set_datadir,
+    default_datadir,
+)
 from quantify_core.measurement import MeasurementControl
-from quantify_core.utilities.examples_support import default_datadir
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 rng = np.random.default_rng(seed=555555)  # random number generator
@@ -32,13 +47,13 @@ InteractiveShell.ast_node_interactivity = "all"
 ```{include} set_data_dir_notes.md.txt
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 set_datadir(default_datadir())
 ```
 
 ## QCoDeS drivers for our instruments
 
-```{jupyter-execute}
+```{code-cell} ipython3
 class Device(Instrument):
     """A dummy instrument."""
 
@@ -61,7 +76,7 @@ class Device(Instrument):
 
 ## Instantiate the instruments
 
-```{jupyter-execute}
+```{code-cell} ipython3
 meas_ctrl = MeasurementControl("meas_ctrl")
 plotmon = PlotMonitor_pyqt("PlotMonitor")
 meas_ctrl.instr_plotmon(plotmon.name)
@@ -74,17 +89,17 @@ There are 3 parameters in the {class}`.PlotMonitor_pyqt` that control the datase
 
 Two main parameters determine the datasets being displayed: *tuids* and *tuids_extra*.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.tuids()
 plotmon.tuids_extra()
 ```
 
 The interface is the same for both. The parameters accept a list of tuids or an empty list to reset.
 
-```{jupyter-execute}
-# Example of loading datasets onto the plot
-# plotmon.tuids(["20201124-184709-137-8a5112", "20201124-184716-237-918bee"])
-# plotmon.tuids_extra(["20201124-184722-988-0463d4", "20201124-184729-618-85970f"])
+```{code-cell} ipython3
+### Example of loading datasets onto the plot
+#plotmon.tuids(["20201124-184709-137-8a5112", "20201124-184716-237-918bee"])
+#plotmon.tuids_extra(["20201124-184722-988-0463d4", "20201124-184729-618-85970f"])
 ```
 
 The difference is that the {class}`.MeasurementControl` uses `tuids` and overrides them when running measurements.
@@ -95,7 +110,7 @@ All the datasets must have matching data variables (settables and gettables).
 
 The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the {class}`.MeasurementControl` is running.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.tuids_max_num()
 ```
 
@@ -105,7 +120,7 @@ This parameter has no effect when setting the *tuids* manually.
 
 ## Usage examples
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # set initial values to emulate the instrument state
 device.amp_0(0.0)
 device.amp_1(0.0)
@@ -121,7 +136,7 @@ dset = meas_ctrl.run("ADC scan")
 plotmon.main_QtPlot
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 n_pnts = 20
 
 meas_ctrl.settables(device.amp_0)
@@ -132,7 +147,7 @@ dset = meas_ctrl.run("ADC scan")
 plotmon.main_QtPlot
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 n_pnts = 30
 
 meas_ctrl.settables(device.amp_0)
@@ -145,7 +160,7 @@ plotmon.main_QtPlot
 
 Now the oldest dataset will vanish from the plot:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # Now the oldest dataset will vanish from the plot
 
 n_pnts = 40
@@ -160,7 +175,7 @@ plotmon.main_QtPlot
 
 We can accumulate more datasets on the plot if we want to:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # We can accumulate more datasets on the plot if we want to
 plotmon.tuids_max_num(4)
 n_pnts = 40
@@ -175,7 +190,7 @@ plotmon.main_QtPlot
 
 Or we can disable the accumulation and plot a single dataset:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # Or we can disable the accumulation and plot a single dataset
 plotmon.tuids_max_num(1)
 
@@ -184,7 +199,7 @@ plotmon.main_QtPlot
 
 This can also be reset:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # This can also be reset with
 plotmon.tuids([])
 
@@ -193,14 +208,14 @@ plotmon.main_QtPlot  # The plotting window will vanish, it is supposed to
 
 For now, we will allow two datasets on the plot monitor.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # For now we will allow two datasets on the plot monitor
 plotmon.tuids_max_num(2)
 ```
 
 Now let's imagine that something strange is happening with our setup...
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # Now let's imagine that something strange is happening with our setup
 device.offset(1.5)
 
@@ -215,7 +230,7 @@ plotmon.main_QtPlot
 
 We would like to compare if the current behavior matches for example what we got a few minutes ago:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # We would like to compare if the current behavior matches for example
 # what we got a few minutes ago
 
@@ -227,7 +242,7 @@ plotmon.main_QtPlot
 
 OK... that cable was not connected in the right place...
 
-```{jupyter-execute}
+```{code-cell} ipython3
 device.offset(0.0)  # OK... that cable was not connected in the right place...
 
 # Now let's run again our experiments while we compare it to the previous one in realtime
@@ -250,13 +265,13 @@ plotmon.main_QtPlot
 
 We do not need the reference datasets anymore
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # We do not need the reference datasets anymore
 plotmon.tuids_extra([])
 plotmon.main_QtPlot
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # Note: both plotmon.tuids_extra and plotmon.tuids can be used
 # but keep in mind that meas_ctrl also uses the plotmon.tuids
 
@@ -275,8 +290,7 @@ plotmon.main_QtPlot
 
 When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tuids_extra` will be plotted in the secondary window, in that order of priority.
 
-```{jupyter-execute}
-
+```{code-cell} ipython3
 # When we have 2D plots only the first dataset from plotmon.tuids or
 # plotmon.tuids_extra, in that order of priority, will be plotted in the
 # secondary window
@@ -289,8 +303,6 @@ reference_tuid_2D = dset.attrs["tuid"]
 
 plotmon.main_QtPlot
 plotmon.secondary_QtPlot
-
-
 ```
 
 ```{note}
@@ -301,7 +313,7 @@ Mind that the data on the secondary window does not always display data correspo
 
 We still have the persistence of the previous dataset on the main window:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 meas_ctrl.settables([device.amp_0, device.amp_1])
 meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
 meas_ctrl.gettables(device.adc)
@@ -313,7 +325,7 @@ plotmon.secondary_QtPlot
 
 We can still have a permanent dataset as a reference in the main window:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 device.offset(2.03)
 plotmon.tuids_extra([reference_tuid_2D])
 
@@ -328,14 +340,14 @@ plotmon.secondary_QtPlot
 
 But if we want to see the 2D plot we need to reset `plotmon.tuids`.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.tuids([])
 plotmon.tuids_extra([reference_tuid_2D])
 plotmon.main_QtPlot
 plotmon.secondary_QtPlot
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plotmon.tuids()
 ```
 
