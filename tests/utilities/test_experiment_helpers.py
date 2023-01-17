@@ -19,6 +19,9 @@ def mock_instr(request):
     def get_func():
         return 20
 
+    def _error_param_get():
+        raise RuntimeError("An error occured when getting the parameter")
+
     instr = Instrument("DummyInstrument")
 
     # A parameter that is both settable and gettable
@@ -52,6 +55,8 @@ def mock_instr(request):
         parameter_class=ManualParameter,
         vals=validators.Arrays(),
     )
+    # A parameter that always returns an error when you try to get it
+    instr.add_parameter("error_param", get_cmd=_error_param_get)
 
     def cleanup_instruments():
         instr.close()
