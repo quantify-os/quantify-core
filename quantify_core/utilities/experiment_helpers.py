@@ -2,16 +2,14 @@
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Any, Optional, Union, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
-
-from qcodes.instrument import Instrument, Parameter
-from qcodes.instrument.channel import InstrumentChannel
+from qcodes.instrument import Instrument, InstrumentChannel
+from qcodes.parameters import Parameter
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
@@ -31,7 +29,7 @@ def load_settings_onto_instrument(
     instrument :
         the :class:`~qcodes.instrument.Instrument`,
         :class:`~qcodes.instrument.InstrumentChannel` or
-        :class:`~qcodes.instrument.Parameter` to be configured.
+        :class:`~qcodes.parameters.Parameter` to be configured.
     tuid : :class:`~quantify_core.data.types.TUID`
         the TUID of the experiment. If None use latest TUID.
     datadir : str
