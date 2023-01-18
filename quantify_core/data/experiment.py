@@ -69,7 +69,7 @@ class QuantifyExperiment:
         experiment_directory = locate_experiment_container(tuid=self.tuid)
         return Path(experiment_directory)
 
-    def _get_or_create_experiment_directory(self, name: str = None) -> Path:
+    def _get_or_create_experiment_directory(self, name: str = "") -> Path:
         """
         Create the experiment directory containing the TUID set within the class,
         if it does not exist already.
@@ -123,7 +123,7 @@ class QuantifyExperiment:
             The dataset to be written to the directory
 
         """
-        name = dataset.attrs.get("name")
+        name = dataset.attrs.get("name", "")
         path = self._get_or_create_experiment_directory(name=name) / DATASET_NAME
         write_dataset(path, dataset)
 
