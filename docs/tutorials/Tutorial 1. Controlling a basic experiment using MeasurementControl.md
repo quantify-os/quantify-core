@@ -45,9 +45,6 @@ We then execute an analysis on the data from this experiment.
 %matplotlib inline
 import numpy as np
 
-```
-```{code-cell} ipython3
-
 import quantify_core.visualization.pyqt_plotmon as pqm
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import cosine_analysis as ca
@@ -59,16 +56,30 @@ from quantify_core.measurement import MeasurementControl
 from quantify_core.utilities.examples_support import mk_cosine_instrument
 from quantify_core.utilities.experiment_helpers import create_plotmon_from_historical
 
-```
-```{code-cell} ipython3
-
 from quantify_core.utilities.inspect_utils import display_source_code
 from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 
 ```
 
-```{include} set_data_dir_notes.md.txt
-```
+Before instantiating any instruments or starting a measurement we change the
+directory in which the experiments are saved using the
+{meth}`~quantify_core.data.handling.set_datadir`
+\[{meth}`~quantify_core.data.handling.get_datadir`\] functions.
+
+----------------------------------------------------------------------------------------
+
+⚠️ **Warning!**
+
+We recommend to always set the directory at the start of the python kernel and stick
+to a single common data directory for all notebooks/experiments within your
+measurement setup/PC.
+
+Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+`$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
+desired data directory. The utilities to find/search/extract data only work if
+all the experiment containers are located within the same directory.
+
+----------------------------------------------------------------------------------------
 
 ```{code-cell} ipython3
 

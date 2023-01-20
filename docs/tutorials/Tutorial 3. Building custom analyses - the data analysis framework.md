@@ -62,8 +62,26 @@ from quantify_core.utilities.inspect_utils import display_source_code
 from quantify_core.visualization.SI_utilities import set_xlabel, set_ylabel
 ```
 
-```{include} set_data_dir_notes.md.txt
-```
+Before instantiating any instruments or starting a measurement we change the
+directory in which the experiments are saved using the
+{meth}`~quantify_core.data.handling.set_datadir`
+\[{meth}`~quantify_core.data.handling.get_datadir`\] functions.
+
+----------------------------------------------------------------------------------------
+
+⚠️ **Warning!**
+
+We recommend to always set the directory at the start of the python kernel and stick
+to a single common data directory for all notebooks/experiments within your
+measurement setup/PC.
+
+Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+`$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
+desired data directory. The utilities to find/search/extract data only work if
+all the experiment containers are located within the same directory.
+
+----------------------------------------------------------------------------------------
+
 
 ```{code-cell} ipython3
 set_datadir(default_datadir())  # change me!
