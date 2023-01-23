@@ -170,9 +170,9 @@ def mk_trace_time(sampling_rate: float = 1e9, duration: float = 0.3e-6) -> np.nd
 
 def mk_trace_for_iq_shot(
     iq_point: complex,
-    time_values: np.ndarray = mk_trace_time(),
+    time_values: None | NDArray = None,
     intermediate_freq: float = 50e6,
-) -> np.ndarray:
+) -> NDArray:
     """
     Generates mock "traces" that a physical instrument would digitize for the readout of
     a transmon qubit when using a down-converting IQ mixer.
@@ -196,7 +196,8 @@ def mk_trace_for_iq_shot(
     :
         An array of complex numbers.
     """  # pylint: disable=line-too-long
-
+    if time_values is None:
+        time_values = mk_trace_time()
     return iq_point * np.exp(2.0j * np.pi * intermediate_freq * time_values)
 
 
