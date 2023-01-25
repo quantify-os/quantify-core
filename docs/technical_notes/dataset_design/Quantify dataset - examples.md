@@ -1,18 +1,28 @@
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+---
+
 (sec-dataset-examples)=
 # Quantify dataset - examples
 
 ```{seealso}
 The complete source code of this tutorial can be found in
 
-{jupyter-download:notebook}`Quantify dataset - examples`
-
-{jupyter-download:script}`Quantify dataset - examples`
+{nb-download}`Quantify dataset - examples.ipynb`
 ```
 
-``````{admonition} Imports and auxiliary utilities
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: ['hide-cell']
+mystnb:
+  code_prompt_show: Imports and auxiliary utilities
+---
 
 from pathlib import Path
 
@@ -43,7 +53,6 @@ pretty.install()
 
 dh.set_datadir(Path.home() / "quantify-data")  # change me!
 ```
-``````
 
 In this page we explore a series of datasets that comply with the {ref}`Quantify dataset specification <dataset-spec>`.
 
@@ -51,17 +60,18 @@ In this page we explore a series of datasets that comply with the {ref}`Quantify
 
 We use the {func}`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset`
 to generate our exemplary dataset. Its source code is conveniently displayed in the
-drop down below.
+drop-down below.
 
-``````{admonition} Generate a 2D dataset
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating mock Chevron dataset
+---
 display_source_code(dataset_examples.mk_two_qubit_chevron_dataset)
 ```
-``````
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset = dataset_examples.mk_two_qubit_chevron_dataset()
 
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
@@ -69,13 +79,13 @@ dataset
 ```
 
 The data within this dataset can be easily visualized using xarray facilities,
-however we first need to convert the Quantify dataset to a "gridded" version with as
+however, we first need to convert the Quantify dataset to a "gridded" version with the {func}`~quantify_core.data.handling.to_gridded_dataset` function as 
 shown below.
 
 Since our dataset contains multiple repetitions of the same experiment, it is convenient
 to visualize them on different plots.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
@@ -88,7 +98,7 @@ _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetitions")
 In xarray, among other features, it is possible to average along a dimension which can
 be very convenient to average out some of the noise:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 _ = dataset_gridded.pop_q0.mean(dim="repetitions").plot(x="amp")
 ```
 
@@ -96,7 +106,7 @@ A repetitions dimension can be indexed by a coordinate such that we can have som
 specific label for each of our repetitions. To showcase this, we will modify the previous
 dataset by merging it with a dataset containing the relevant extra information.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 coord_dims = ("repetitions",)
 coord_values = ["A", "B", "C", "D", "E"]
 dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_values)))
@@ -104,7 +114,7 @@ dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_valu
 dataset_indexed_rep
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # merge with the previous dataset
 dataset_rep = dataset_gridded.merge(dataset_indexed_rep, combine_attrs="drop_conflicts")
 
@@ -115,7 +125,7 @@ dataset_rep
 
 Now we can select a specific repetition by its coordinate, in this case a string label.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 _ = dataset_rep.pop_q0.sel(repetitions="E").plot(x="amp")
 ```
 
@@ -129,9 +139,6 @@ We start with the most simple format that contains only processed (averaged) mea
 and finish with a dataset containing the raw digitized signals from the transmon readout
 during a T1 experiment.
 
-``````{admonition} Mock data utilities
-:class: dropdown
-
 We use a few auxiliary functions to generate, manipulate and plot the data of the
 examples that follow:
 
@@ -143,12 +150,17 @@ examples that follow:
 Below you can find the source-code of the most important ones and a few usage
 examples in order to gain some intuition for the mock data.
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating mock data
+---
 for func in (mk_iq_shots, mk_trace_time, mk_trace_for_iq_shot):
     display_source_code(func)
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 ground = -0.2 + 0.65j
 excited = 0.7 - 0.4j
 centers = ground, excited
@@ -167,7 +179,7 @@ plt.ylabel("Q")
 _ = plot_complex_points(centers, ax=plt.gca())
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 time = mk_trace_time()
 trace = mk_trace_for_iq_shot(shots[0])
 
@@ -178,11 +190,10 @@ ax.set_xlabel("Time [µs]")
 ax.set_ylabel("Amplitude [V]")
 _ = ax.legend()
 ```
-``````
 
 First we define a few parameters of our mock qubit and mock data acquisition.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # parameters of our qubit model
 tau = 30e-6
 ground = -0.2 + 0.65j  # ground state on the IQ-plane
@@ -207,7 +218,7 @@ plt.plot(t1_times * 1e6, probabilities, ".-")
 _ = plt.xlabel("Time [µs]")
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # convenience dict with the mock parameters
 mock_conf = dict(
     num_shots=num_shots,
@@ -220,32 +231,33 @@ mock_conf = dict(
 
 ### T1 experiment averaged
 
-In this first example we generate the individual measurement shots and average it,
-similar to what some instrument are capable of doing directly in the hardware.
+In this first example we generate the individual measurement shots and average them,
+similar to what some instruments are capable of doing directly in the hardware.
 
 Here is how we store this data in the dataset along with the coordinates of these
 datapoints:
 
-``````{admonition} Generate dataset
-:class: dropdown, toggle-shown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating the dataset below
+---
 display_source_code(dataset_examples.mk_t1_av_dataset)
 ```
-``````
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset = dataset_examples.mk_t1_av_dataset(**mock_conf)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset.q0_iq_av.shape, dataset.q0_iq_av.dtype
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
@@ -254,16 +266,17 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded
 ```
 
-``````{admonition} Plotting utilities
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for plotting utilities
+---
 display_source_code(plot_xr_complex)
 display_source_code(plot_xr_complex_on_plane)
 ```
-``````
 
-```{jupyter-execute}
+```{code-cell} ipython3
 plot_xr_complex(dataset_gridded.q0_iq_av)
 fig, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
 _ = plot_complex_points(centers, ax=ax)
@@ -271,48 +284,49 @@ _ = plot_complex_points(centers, ax=ax)
 
 ### T1 experiment averaged with calibration points
 
-It is common for many experiment to require calibration data in order to interpret the
-results. Often, these calibration datapoints have different array shapes. E.g. it can be
-just two simple datapoints corresponding to the ground and excited states of our
+It is common for many experiments to require calibration data in order to interpret the
+results. Often, these calibration data points have different array shapes. E.g. it can be
+just two simple data points corresponding to the ground and excited states of our
 transmon.
 
-To accommodate this data in the dataset we make use of a secondary dimensions along which
+To accommodate this data in the dataset we make use of a secondary dimension along which
 the variables and its coordinate will lie along.
 
 Additionally, since the secondary variable and coordinate used for calibration can have
-arbitrary names and relate to other variable in more complex ways, we specify this
+arbitrary names and relate to other variables in more complex ways, we specify this
 relationship in the dataset attributes
 (see {class}`~quantify_core.data.dataset_attrs.QDatasetIntraRelationship`).
 This information can be used later, for example, to run an appropriate analysis on this
 dataset.
 
-``````{admonition} Generate dataset
-:class: dropdown, toggle-shown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating the dataset below
+---
 display_source_code(dataset_examples.mk_t1_av_with_cal_dataset)
 ```
-``````
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset = dataset_examples.mk_t1_av_with_cal_dataset(**mock_conf)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dattrs.get_main_dims(dataset), dattrs.get_secondary_dims(dataset)
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset.relationships
 ```
 
 As before the coordinates can be set to index the variables that lie along the same
 dimensions:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
@@ -326,7 +340,7 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 fig = plt.figure(figsize=(8, 5))
 
 ax = plt.subplot2grid((1, 10), (0, 0), colspan=9, fig=fig)
@@ -351,17 +365,16 @@ _ = plot_complex_points(dataset_gridded.q0_iq_av_cal.values, ax=ax)
 
 We can use the calibration points to normalize the data and obtain the typical T1 decay.
 
-``````{admonition} Data rotation and normalization utilities
-:class: dropdown
+### Data rotation and normalization utilities
 
-The normalization to the calibration points can be achieved as follows.
+The normalization of the calibration points can be achieved as follows.
 Several of the
 {mod}`single-qubit time-domain analyses <quantify_core.analysis.single_qubit_timedomain>`
 provided use this under the hood.
 The result is that most of the information will now be contained within the same
 quadrature.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 rotated_and_normalized = rotate_to_calibrated_axis(
     dataset_gridded.q0_iq_av.values, *dataset_gridded.q0_iq_av_cal.values
 )
@@ -371,27 +384,27 @@ rotated_and_normalized_da.attrs["long_name"] = "|1> Population"
 rotated_and_normalized_da.attrs["units"] = ""
 _ = plot_xr_complex(rotated_and_normalized_da)
 ```
-``````
 
 ### T1 experiment storing all shots
 
 Now we will include in the dataset all the single qubit states (shot) for each
 individual measurement.
 
-``````{admonition} Generate dataset
-:class: dropdown, toggle-shown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating the dataset below
+---
 display_source_code(dataset_examples.mk_t1_shots_dataset)
 ```
-``````
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset = dataset_examples.mk_t1_shots_dataset(**mock_conf)
 dataset
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
@@ -408,7 +421,7 @@ dataset_gridded
 In this dataset we have both the averaged values and all the shots. The averaged values
 can be plotted in the same way as before.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 _ = plot_xr_complex(dataset_gridded.q0_iq_av)
 _, ax = plot_xr_complex_on_plane(dataset_gridded.q0_iq_av)
 _ = plot_complex_points(dataset_gridded.q0_iq_av_cal.values, ax=ax)
@@ -419,7 +432,7 @@ for some particular `Time` values.
 
 Note that we are plotting the calibration points as well.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 chosen_time_values = [
     t1_times[1],  # second value selected otherwise we won't see both centers
     t1_times[len(t1_times) // 5],  # a value close to the end of the experiment
@@ -441,7 +454,7 @@ for t_example in chosen_time_values:
 
 We can collapse (average along) the `repetitions` dimension:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 q0_iq_shots_mean = dataset_gridded.q0_iq_shots.mean(dim="repetitions", keep_attrs=True)
 plot_xr_complex(q0_iq_shots_mean)
 _, ax = plot_xr_complex_on_plane(q0_iq_shots_mean)
@@ -455,26 +468,27 @@ _ = plot_complex_points(centers, ax=ax)
 Finally, in addition to the individual shots we will store all the digitized readout
 signals that are required to obtain the previous measurement results.
 
-``````{admonition} Generate dataset
-:class: dropdown, toggle-shown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating the dataset below
+---
 display_source_code(dataset_examples.mk_t1_traces_dataset)
 ```
-``````
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset = dataset_examples.mk_t1_traces_dataset(**mock_conf)
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 
 dataset
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset.q0_traces.shape, dataset.q0_traces_cal.shape
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
     dimension="main_dim",
@@ -491,25 +505,25 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded.q0_traces.shape, dataset_gridded.q0_traces.dims
 ```
 
 All the previous data is also present, but in this dataset we can inspect the IQ signal
-for each individual shot. Let's inspect the signal of the shot number 123 of the last
+for each individual shot. Let's inspect the signal of shot number 123 of the last
 "point" of the T1 experiment:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 trace_example = dataset_gridded.q0_traces.sel(
     repetitions=123, t1_time=dataset_gridded.t1_time[-1]
 )
 trace_example.shape, trace_example.dtype
 ```
 
-Now we can plot this digitized signals for each quadrature. For clarity we plot only
+Now we can plot these digitized signals for each quadrature. For clarity, we plot only
 part of the signal.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 trace_example_plt = trace_example[:200]
 trace_example_plt.real.plot(figsize=(15, 5), marker=".", label="I-quadrature")
 trace_example_plt.imag.plot(marker=".", label="Q-quadrature")

@@ -156,8 +156,9 @@ def get_all_parents(instr_mod: Union[Instrument, InstrumentChannel, Parameter]) 
         The QCodes instrument, submodule or parameter whose parents we wish to find
 
     Returns
-    -----------
-    A list of all the parents of that object (and the object itself)
+    -------
+    :
+        A list of all the parents of that object (and the object itself)
     """
     if hasattr(instr_mod, "_parent"):
         parents = get_all_parents(instr_mod._parent)

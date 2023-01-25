@@ -1,5 +1,14 @@
-(user-guide)=
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+---
 
+(user-guide)=
 # User guide
 
 ## Introduction
@@ -20,14 +29,15 @@ The core of Quantify can be understood by understanding the following concepts:
 ```{seealso}
 The complete source code of the examples on this page can be found in
 
-{jupyter-download:notebook}`usage`
-
-{jupyter-download:script}`usage`
+{nb-download}`usage.ipynb`
 ```
 
-Bellow we import common utilities used in the examples.
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: "Import common utilities used in the examples"
+---
 import tempfile
 from pathlib import Path
 
@@ -43,13 +53,10 @@ from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import cosine_analysis as ca
 from quantify_core.measurement import Gettable, MeasurementControl
 from quantify_core.utilities.dataset_examples import mk_2d_dataset_v1
-from quantify_core.utilities.examples_support import (
-    default_datadir,
-    mk_cosine_instrument,
-)
+from quantify_core.utilities.examples_support import mk_cosine_instrument
 from quantify_core.utilities.inspect_utils import display_source_code
 
-dh.set_datadir(default_datadir())
+dh.set_datadir(dh.default_datadir())
 meas_ctrl = MeasurementControl("meas_ctrl")
 ```
 
@@ -57,12 +64,13 @@ meas_ctrl = MeasurementControl("meas_ctrl")
 
 ### Parameter
 
-A parameter represents a state variable of the system.
+A parameter represents a state variable of the system. Parameters:
 
-> - A parameter can be get and/or set able.
-> - Contains metadata such as units and labels.
-> - Commonly implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class.
-> - A parameter implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class
+- can be get- and/or settable;
+- contain metadata such as units and labels;
+- are commonly implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class.
+
+A parameter implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class
 is a valid {class}`.Settable` and {class}`.Gettable` and as such can be used directly in
 an experiment loop in the [Measurement Control]. (see subsequent sections)
 
@@ -71,13 +79,14 @@ an experiment loop in the [Measurement Control]. (see subsequent sections)
 An Instrument is a container for parameters that typically (but not necessarily)
 corresponds to a physical piece of hardware.
 
-Instruments provide the following functionality.
+Instruments provide the following functionality:
 
 - Container for parameters.
 - A standardized interface.
-- Provide logging of parameters through the {meth}`~qcodes.instrument.Instrument.snapshot` method.
-- All instruments inherit from the QCoDeS {class}`~qcodes.instrument.Instrument` class.
-- Are shown by default in the {class}`.InstrumentMonitor`
+- Logging of parameters through the {meth}`~qcodes.instrument.Instrument.snapshot` method.
+
+All instruments inherit from the QCoDeS {class}`~qcodes.instrument.Instrument` class.
+They are displayed by default in the {class}`.InstrumentMonitor`
 
 ## Measurement Control
 
@@ -92,14 +101,14 @@ three steps:
 Quantify provides two helper classes, {class}`.Settable` and {class}`.Gettable` to aid
 in these steps, which are explored further in later sections of this article.
 
-{class}`.MeasurementControl` provides the following functionality
+{class}`.MeasurementControl` provides the following functionality:
 
-- Enforce standardization of experiments
-- Standardized data storage
-- {ref}`Live plotting of the experiment <plotmon-tutorial>`
-- n-dimensional sweeps
-- Data acquisition controlled iteratively or in batches
-- Adaptive sweeps (measurement points are not predetermined at the beginning of an experiment)
+- standardization of experiments;
+- standardization data storage;
+- {ref}`live plotting of the experiment <plotmon-tutorial>`;
+- {math}`n`-dimensional sweeps;
+- data acquisition controlled iteratively or in batches;
+- adaptive sweeps (measurement points are not predetermined at the beginning of an experiment).
 
 ### Basic example, a 1D iterative measurement loop
 
@@ -107,12 +116,16 @@ Running an experiment is simple!
 Simply define what parameters to set, and get, and what points to loop over.
 
 In the example below we want to set frequencies on a microwave source and acquire the
-signal from the pulsar readout module.
+signal from the Qblox Pulsar readout module:
 
-```{jupyter-execute}
-:hide-code:
-
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: "Initialize (mock) instruments"
+---
 mw_source1 = Instrument("mw_source1")
+
 # NB: for brevity only, this not the proper way of adding parameters to QCoDeS instruments
 mw_source1.freq = ManualParameter(
     name="freq",
@@ -129,7 +142,7 @@ pulsar_QRM.signal = Parameter(
 )
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 meas_ctrl.settables(
     mw_source1.freq
 )  # We want to set the frequency of a microwave source
@@ -149,11 +162,10 @@ usage and application.
 
 Batched mode can be used to deal with constraints imposed by (hardware) resources or to reduce overhead.
 
-In **Iterative** mode, the meas_ctrl steps through each setpoint one at a time,
+In **iterative mode** , the measurement control steps through each setpoint one at a time,
 processing them one by one.
 
-In **Batched** mode, the meas_ctrl vectorizes the setpoints such that they are processed
-in batches.
+In **batched mode** , the measurement control vectorizes the setpoints such that they are processed in batches.
 The size of these batches is automatically calculated but usually dependent on resource
 constraints; you may have a device which can hold 100 samples but you wish to sweep over 2000 points.
 
@@ -180,7 +192,51 @@ Only when all gettables have `.batched=True`, settables are allowed to have mixe
 `.batched` attribute (e.g. `settable_A.batched=True`, `settable_B.batched=False`).
 ```
 
+Depending on which control mode the {class}`.MeasurementControl` is running in,
+the interfaces for Settables (their input interface) and Gettables
+(their output interface) are slightly different.
+
+It is also possible for batched gettables to return an array with length less
+than the length of the setpoints, and similarly for the input of the Settables.
+This is often the case when working with resource constrained devices,
+for example if you have *n* setpoints but your device can load only less than *n*
+datapoints into memory.
+In this scenario, measurement control tracks how many datapoints were actually
+processed, automatically adjusting the size of the next batch.
+
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Example
+---
+
+time = ManualParameter(
+    name="time",
+    label="Time",
+    unit="s",
+    vals=validators.Arrays(),  # accepts an array of values
+)
+signal = Parameter(
+    name="sig_a", label="Signal", unit="V", get_cmd=lambda: np.cos(time())
+)
+
+time.batched = True
+time.batch_size = 5
+signal.batched = True
+signal.batch_size = 10
+
+meas_ctrl.settables(time)
+meas_ctrl.gettables(signal)
+meas_ctrl.setpoints(np.linspace(0, 7, 23))
+dset = meas_ctrl.run("my experiment")
+dset_grid = dh.to_gridded_dataset(dset)
+
+dset_grid.y0.plot()
+```
+
 ## Settables and Gettables
+
 Experiments typically involve varying some parameters and reading others.
 In Quantify we encapsulate these concepts as the {class}`.Settable`
 and {class}`.Gettable` respectively.
@@ -201,7 +257,10 @@ In addition to using a library which fits these contracts
 (such as the {class}`~qcodes.parameters.Parameter` family of classes)
 we can define our own Settables and Gettables.
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-output]
+---
 t = ManualParameter("time", label="Time", unit="s")
 
 
@@ -231,12 +290,13 @@ wave_gettable = WaveGettable()
 Gettable(wave_gettable)
 ```
 
-``````{admonition} Note: "Grouped" gettable(s) are also allowed.
-:class: dropdown
-
+"Grouped" gettable(s) are also allowed.
 Below we create a Gettable which returns two distinct quantities at once:
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-output]
+---
 t = ManualParameter(
     "time",
     label="Time",
@@ -264,61 +324,17 @@ class DualWave1D:
 wave_gettable = DualWave1D()
 Gettable(wave_gettable)
 ```
-``````
-
-Depending on which Control Mode the {class}`.MeasurementControl` is running in,
-the interfaces for Settables (their input interface) and Gettables
-(their output interface) are slightly different.
-
-`````{note}
-It is also possible for batched Gettables return an array with length less than then
-the length of the setpoints, and similarly for the input of the Settables.
-This is often the case when working with resource constrained devices,
-for example if you have *n* setpoints but your device can load only less than *n*
-datapoints into memory.
-In this scenario, the meas_ctrl tracks how many datapoints were actually processed,
-automatically adjusting the size of the next batch.
-
-````{admonition} Example
-:class: dropdown, note
-
-```{jupyter-execute}
-time = ManualParameter(
-    name="time",
-    label="Time",
-    unit="s",
-    vals=validators.Arrays(),  # accepts an array of values
-)
-signal = Parameter(
-    name="sig_a", label="Signal", unit="V", get_cmd=lambda: np.cos(time())
-)
-
-time.batched = True
-time.batch_size = 5
-signal.batched = True
-signal.batch_size = 10
-
-meas_ctrl.settables(time)
-meas_ctrl.gettables(signal)
-meas_ctrl.setpoints(np.linspace(0, 7, 23))
-dset = meas_ctrl.run("my experiment")
-dset_grid = dh.to_gridded_dataset(dset)
-
-dset_grid.y0.plot()
-```
-````
-`````
 
 (sec-batched-and-batch-size)=
-
 ### .batched and .batch_size
 
 The {py:class}`.Gettable` and {py:class}`.Settable` objects can have a `bool` property
 `.batched` (defaults to `False` if not present); and a `int` property `.batch_size`.
 
-Setting the `.batched` property to `True` enables the batch Control Mode in the
-{class}`.MeasurementControl`. In this mode, if present, the `.batch_size` attribute
-is used to determine the maximum size of a batch of setpoints.
+Setting the `.batched` property to `True` enables the *batched control code**
+in the {class}`.MeasurementControl`. In this mode, if present,
+the `.batch_size` attribute is used to determine the maximum size of a batch of
+setpoints, that can be set .
 
 ```{admonition} Heterogeneous batch size and effective batch size
 :class: dropdown, note
@@ -346,7 +362,6 @@ soft-averages \[controlled by {meth}`!meas_ctrl.soft_avg()` which resets to `1`
 at the end of each experiment\].
 
 (data-storage)=
-
 ## Data storage
 
 Along with the produced dataset, every {class}`~qcodes.parameters.Parameter`
@@ -397,9 +412,10 @@ storing all data in one location.
 An experiment container within a data directory with the name `"quantify-data"`
 thus will look similar to:
 
-```{jupyter-execute}
-:hide-code:
-
+```{code-cell} ipython3
+---
+tags: [hide-input]
+---
 with tempfile.TemporaryDirectory() as tmpdir:
     old_dir = dh.get_datadir()
     dh.set_datadir(Path(tmpdir) / "quantify-data")
@@ -437,7 +453,7 @@ generated from.
 For example, consider an experiment varying time and amplitude against a Cosine function.
 The resulting dataset will look similar to the following:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # plot the columns of the dataset
 _, axs = plt.subplots(3, 1, sharex=True)
 xr.plot.line(quantify_dataset.x0[:54], label="x0", ax=axs[0], marker=".")
@@ -464,9 +480,7 @@ such as the in-built graphing or query system we provide a dataset conversion ut
 This function reshapes the data and associates dimensions to the dataset
 \[which can also be used for 1D datasets\].
 
-```{jupyter-execute}
-:emphasize-lines: 1
-
+```{code-cell} ipython3
 gridded_dset = dh.to_gridded_dataset(quantify_dataset)
 gridded_dset.y0.plot()
 gridded_dset
@@ -497,16 +511,23 @@ The idea behind the analysis class is that most analyses follow a common structu
 consisting of steps such as data extraction, data processing, fitting to some model,
 creating figures, and saving the analysis results.
 
-To showcase the analysis usage we generates a dataset that we would like to analyze.
+To showcase the analysis usage we generate a dataset that we would like to analyze.
 
-``````{admonition} Generate a dataset labeled "Cosine experiment"
-:class: dropdown, note
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: "Example cosine instrument source code"
+---
 display_source_code(mk_cosine_instrument)
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Generating a dataset labeled "Cosine experiment"
+---
 pars = mk_cosine_instrument()
 meas_ctrl.settables(pars.t)
 meas_ctrl.setpoints(np.linspace(0, 2, 50))
@@ -514,13 +535,12 @@ meas_ctrl.gettables(pars.sig)
 dataset = meas_ctrl.run("Cosine experiment")
 dataset
 ```
-``````
 
 ### Using an analysis class
 
 Running an analysis is very simple:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 a_obj = ca.CosineAnalysis(label="Cosine experiment")
 a_obj.run()  # execute the analysis.
 a_obj.display_figs_mpl()  # displays the figures created in previous step.
@@ -531,7 +551,7 @@ The analysis was executed against the last dataset that has the label
 
 After the analysis the experiment container will look similar to the following:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 experiment_container_path = dh.locate_experiment_container(tuid=dataset.tuid)
 print(display_tree(experiment_container_path, string_rep=True), end="")
 ```
@@ -539,9 +559,8 @@ print(display_tree(experiment_container_path, string_rep=True), end="")
 The analysis object contains several useful methods and attributes such as the
 {code}`quantities_of_interest`, intended to store relevant quantities extracted
 during analysis, and the processed dataset.
-
-```{jupyter-execute}
-# for example, the fitted frequency and amplitude are stored
+For example, the fitted frequency and amplitude are saved as:
+```{code-cell} ipython3
 freq = a_obj.quantities_of_interest["frequency"]
 amp = a_obj.quantities_of_interest["amplitude"]
 print(f"frequency {freq}")
@@ -571,13 +590,14 @@ and relies on the base class for data extraction and saving of the figures.
 
 Take a look at the source code (also available in the API reference):
 
-``````{admonition} BasicAnalysis source code
-:class: dropdown, note
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: BasicAnalysis source code
+---
 display_source_code(ba.BasicAnalysis)
 ```
-``````
 
 A slightly more complex use case is the
 {class}`~quantify_core.analysis.spectroscopy_analysis.ResonatorSpectroscopyAnalysis`
@@ -611,10 +631,12 @@ Below we give several examples of experiment using Settables and Gettables in di
 - Each settable accepts a single float value.
 - Gettables return a single float value.
 
-``````{admonition} 1D
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 1D example
+---
 time = ManualParameter(
     name="time", label="Time", unit="s", vals=validators.Numbers(), initial_value=1
 )
@@ -631,12 +653,13 @@ dset_grid = dh.to_gridded_dataset(dset)
 dset_grid.y0.plot(marker="o")
 dset_grid
 ```
-``````
 
-``````{admonition} 2D
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 2D example
+---
 time_a = ManualParameter(
 name="time_a", label="Time A", unit="s", vals=validators.Numbers(), initial_value=1
 )
@@ -659,18 +682,15 @@ dset_grid = dh.to_gridded_dataset(dset)
 dset_grid.y0.plot(cmap="viridis")
 dset_grid
 ```
-``````
-
-```{admonition} ND
-:class: dropdown
 
 For more dimensions you only need to pass more settables and the corresponding setpoints.
-```
 
-``````{admonition} 1D adaptive
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 1D adaptive example
+---
 time = ManualParameter(
     name="time", label="Time", unit="s", vals=validators.Numbers(), initial_value=1
 )
@@ -688,7 +708,6 @@ y = np.cos(x)
 plt.plot(x, y, c="grey", ls="--")
 _ = dset_ad.y0.plot(marker="o")
 ```
-``````
 
 #### Single-float-valued settable(s) with multiple float-valued gettable(s)
 
@@ -697,10 +716,12 @@ _ = dset_ad.y0.plot(marker="o")
 
 We exemplify a 2D case, however there is no limitation on the number of settables.
 
-``````{admonition} 2D
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 2D example
+---
 time_a = ManualParameter(
     name="time_a", label="Time A", unit="s", vals=validators.Numbers(), initial_value=1
 )
@@ -740,22 +761,22 @@ for yi, cmap in zip(("y0", "y1", "y2"), ("viridis", "inferno", "plasma")):
     dset_grid[yi].plot(cmap=cmap)
     plt.show()
 dset_grid
+
 ```
-``````
 
 ### Batched control mode
 
 #### Float-valued array settable(s) and gettable(s)
 
-- Gettables return a 1D array of float values with each element corresponding to a
-  datapoint *in a single Y dimension*.
-
-``````{admonition} 1D
-:class: dropdown
-
 - Each settable accepts a 1D array of float values corresponding to all setpoints for a single *X dimension*.
+- Gettables return a 1D array of float values with each element corresponding to a datapoint *in a single Y dimension*.
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 2D example
+---
 time = ManualParameter(
     name="time",
     label="Time",
@@ -780,17 +801,22 @@ dset_grid.y0.plot(marker="o")
 print(f"\nNOTE: The gettable returns an array:\n\n{signal.get()}")
 dset_grid
 ```
-``````
 
-``````{admonition} 2D (1D batch with iterative outer loop)
-:class: dropdown
+#### Mixing iterative and batched settables
 
-- One settable (at least) accepts a 1D array of float values corresponding to all
-  setpoints for the corresponding *X dimension*.
-- One settable (at least) accepts a float value corresponding to its *X dimension*.
-  The meas_ctrl will set the value of each of these iterative settables before each batch.
+In this case:
 
-```{jupyter-execute}
+- One or more settables accept a 1D array of float values corresponding to all setpoints for the corresponding *X dimension*.
+- One or more settables accept a float value corresponding to its *X dimension*.
+
+Measurement control will set the value of each of these iterative settables before each batch.
+
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 2D (1D batch with iterative outer loop) example
+---
 time_a = ManualParameter(
     name="time_a", label="Time A", unit="s", vals=validators.Numbers(), initial_value=1
 )
@@ -822,7 +848,6 @@ dset_grid = dh.to_gridded_dataset(dset)
 dset_grid.y0.plot(cmap="viridis")
 dset_grid
 ```
-``````
 
 #### Float-valued array settable(s) with multi-return float-valued array gettable(s)
 
@@ -832,10 +857,12 @@ dset_grid
   *different Y dimension*, i.e. each column is a datapoint corresponding
   to each setpoint.
 
-``````{admonition} 1D
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 1D example
+---
 time = ManualParameter(
     name="time",
     label="Time",
@@ -874,4 +901,3 @@ dset_grid.y0.plot(marker="o", label="y0", ax=ax)
 dset_grid.y1.plot(marker="s", label="y1", ax=ax)
 _ = ax.legend()
 ```
-``````
