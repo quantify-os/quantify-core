@@ -912,7 +912,8 @@ def to_gridded_dataset(
 
     .. seealso:: :meth:`.MeasurementControl.setpoints_grid`
 
-    .. admonition:: Example
+    .. admonition:: Examples
+        :class: dropdown, tip
 
         .. jupyter-execute::
             :hide-code:
@@ -921,52 +922,48 @@ def to_gridded_dataset(
             from qcodes import Instrument
             Instrument.close_all()
 
-        .. admonition:: Examples
-            :class: dropdown, tip
+        .. jupyter-execute::
 
+            from pathlib import Path
 
-            .. jupyter-execute::
+            import numpy as np
+            from qcodes import ManualParameter, Parameter, validators
 
-                from pathlib import Path
+            from quantify_core.data.handling import set_datadir, to_gridded_dataset
+            from quantify_core.measurement import MeasurementControl
 
-                import numpy as np
-                from qcodes import ManualParameter, Parameter, validators
+            set_datadir(Path.home() / "quantify-data")
 
-                from quantify_core.data.handling import set_datadir, to_gridded_dataset
-                from quantify_core.measurement import MeasurementControl
+            time_a = ManualParameter(
+                name="time_a",
+                label="Time A",
+                unit="s",
+                vals=validators.Numbers(),
+                initial_value=1,
+            )
+            time_b = ManualParameter(
+                name="time_b",
+                label="Time B",
+                unit="s",
+                vals=validators.Numbers(),
+                initial_value=1,
+            )
+            signal = Parameter(
+                name="sig_a",
+                label="Signal A",
+                unit="V",
+                get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()),
+            )
 
-                set_datadir(Path.home() / "quantify-data")
+            meas_ctrl = MeasurementControl("meas_ctrl")
+            meas_ctrl.settables([time_a, time_b])
+            meas_ctrl.gettables(signal)
+            meas_ctrl.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
+            dset = meas_ctrl.run("2D-single-float-valued-settable-gettable")
 
-                time_a = ManualParameter(
-                    name="time_a",
-                    label="Time A",
-                    unit="s",
-                    vals=validators.Numbers(),
-                    initial_value=1,
-                )
-                time_b = ManualParameter(
-                    name="time_b",
-                    label="Time B",
-                    unit="s",
-                    vals=validators.Numbers(),
-                    initial_value=1,
-                )
-                signal = Parameter(
-                    name="sig_a",
-                    label="Signal A",
-                    unit="V",
-                    get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()),
-                )
+            dset_grid = to_gridded_dataset(dset)
 
-                meas_ctrl = MeasurementControl("meas_ctrl")
-                meas_ctrl.settables([time_a, time_b])
-                meas_ctrl.gettables(signal)
-                meas_ctrl.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
-                dset = meas_ctrl.run("2D-single-float-valued-settable-gettable")
-
-                dset_grid = to_gridded_dataset(dset)
-
-                dset_grid.y0.plot(cmap="viridis")
+            dset_grid.y0.plot(cmap="viridis")
 
     Parameters
     ----------

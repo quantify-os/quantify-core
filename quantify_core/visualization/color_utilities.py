@@ -60,6 +60,7 @@ def set_hlsa(
 
             psm = ax.pcolormesh(data, cmap=cmap, rasterized=True, vmin=-4, vmax=4)
             fig.colorbar(psm, ax=ax)
+            plt.show()
     """
     clip = lambda x: np.clip(x, 0, 1)
     rgb = mplc.to_rgb(color)

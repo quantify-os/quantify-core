@@ -70,11 +70,11 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend to always set the directory at the start of the python kernel and stick
+We recommend always setting the directory at the start of the python kernel and stick
 to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
-Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
 `$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
 desired data directory. The utilities to find/search/extract data only work if
 all the experiment containers are located within the same directory.
@@ -90,7 +90,7 @@ set_datadir(default_datadir())  # change me!
 
 meas_ctrl = MeasurementControl("meas_ctrl")
 
-# Create the live plotting intrument which handles the graphical interface
+# Create the live plotting instrument which handles the graphical interface
 # Two windows will be created, the main will feature 1D plots and any 2D plots will go to the secondary
 plotmon = pqm.PlotMonitor_pyqt("plotmon")
 # Connect the live plotting monitor to the measurement control
@@ -103,7 +103,7 @@ insmon = InstrumentMonitor("InstrumentMonitor")
 
 ### Define a simple model
 
-We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purpose).
+We start by defining a simple model to mock our experiment setup (i.e. emulate physical setup for demonstration purposes).
 We will be generating a cosine with some normally distributed noise added on top of it.
 
 ```{code-cell} ipython3
@@ -166,7 +166,7 @@ dataset.attrs["tuid"], dataset.attrs["name"]
 
 The {ref}`dataset<Dataset>` is stored as an {class}`xarray.Dataset` (you can read more about xarray project at <http://xarray.pydata.org/>).
 
-As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable take the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
+As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable takes the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 
 See {ref}`data-storage` in the {ref}`User guide` for details.
 
@@ -213,7 +213,7 @@ pars.noise_level(0)  # let's disable noise from here on to get prettier figures
 
 ## Analyzing the experiment
 
-Plotting the data and saving the plots for a simple 1D case can be achieve in a few lines using a standard analysis from the {mod}`quantify_core.analysis.base_analysis` module.
+Plotting the data and saving the plots for a simple 1D case can be achieved in a few lines using a standard analysis from the {mod}`quantify_core.analysis.base_analysis` module.
 In the same module you can find several common analyses that might fit your needs.
 It also provides a base data-analysis class ({class}`~quantify_core.analysis.base_analysis.BaseAnalysis`) -- a flexible framework for building custom analyses, which we explore in detail in {ref}`a dedicated tutorial <analysis-framework-tutorial>`.
 
@@ -228,10 +228,10 @@ a_obj.display_figs_mpl()
 
 Here the analysis loads the latest dataset on disk matching a search based on the {code}`label`. See {class}`~quantify_core.analysis.base_analysis.BaseAnalysis` for alternative dataset specification.
 
-After loading the data, it executes the different steps of the analysis and saves the  results into a directory within the experiment container.
+After loading the data, it executes the different steps of the analysis and saves the results into a directory within the experiment container.
 
 The {ref}`data-storage` contains more details on the folder structure and
-files contained in the data directory. The the {mod}`quantify_core.data.handling` module provides
+files contained in the data directory. The {mod}`quantify_core.data.handling` module provides
 convenience data searching and handling utilities like {meth}`~quantify_core.data.handling.get_latest_tuid`.
 
 For guidance on creating custom analyses, e.g., fitting a model to the data, see
@@ -299,12 +299,12 @@ setpoints[:5]  # show a few points
 
 ```
 ```{code-cell} ipython3
-
+---
+mystnb:
+    remove-output: true
+---
 pars.acq_delay(0.0001)
 meas_ctrl.update_interval(2.0)
-
-```
-```{code-cell} ipython3
 
 meas_ctrl.settables([pars.t, pars.amp])
 meas_ctrl.setpoints(setpoints)

@@ -60,11 +60,11 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend to always set the directory at the start of the python kernel and stick
+We recommend always setting the directory at the start of the python kernel and stick
 to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
-Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
 `$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
 desired data directory. The utilities to find/search/extract data only work if
 all the experiment containers are located within the same directory.
@@ -76,6 +76,10 @@ set_datadir(default_datadir())  # change me!
 ```
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 meas_ctrl = MeasurementControl("meas_ctrl")
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
 meas_ctrl.instr_plotmon(plotmon.name)
@@ -86,7 +90,7 @@ insmon = InstrumentMonitor("InstrumentMonitor")
 
 ### Defining a simple model
 
-In this example, we want to find the resonance of some device. We expect to find it's resonance somewhere in the low 6 GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
+In this example, we want to find the resonance of some devices. We expect to find it's resonance somewhere in the low 6 GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
 
 We first create `freq`: a {class}`.Settable` with a {class}`~qcodes.parameters.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom {class}`.Gettable` to mock (i.e. emulate) the resonator.
 The {class}`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our {class}`.Gettable` will read the setpoints from `freq`, in this case a 1D array.
@@ -157,6 +161,10 @@ print(freq())
 ```
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 meas_ctrl.settables(freq)
 meas_ctrl.setpoints(np.arange(6.0001e9, 6.00011e9, 5))
 meas_ctrl.gettables(gettable_res)
@@ -172,11 +180,15 @@ As expected, we find a Lorentzian spike in the readout at the resonant frequency
 #### Memory-limited Settables/Gettables
 
 Instruments (either physical or virtual) operating in `batched` mode have an upper limit on how many datapoints can be processed at once.
-When an experiment is comprised of more datapoints than the instrument can handle, the {class}`.MeasurementControl` takes care of fulfilling the measurement of all the requested setpoints by running and internal loop.
+When an experiment is comprised of more datapoints than the instrument can handle, the {class}`.MeasurementControl` takes care of fulfilling the measurement of all the requested setpoints by running and an internal loop.
 
 By default the {class}`.MeasurementControl` assumes no limitations and passes all setpoints to the `batched` settable. However, as a best practice, the instrument limitation must be reflected by the `.batch_size` attribute of the `batched` settables. This is illustrated below.
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 # Tells meas_ctrl that only 256 datapoints can be processed at once
 freq.batch_size = 256
 
@@ -236,17 +248,31 @@ class MockQubit:
 We will then sweep through 0 to 300 ms, getting our data from the mock Qubit. Let's first observe what a single run looks like:
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output:true
+---
 meas_ctrl.settables(time_par)
 meas_ctrl.setpoints(np.linspace(0.0, 300.0e-6, 300))
 meas_ctrl.gettables(MockQubit())
 meas_ctrl.run("noisy")  # by default `.run` uses `soft_avg=1`
+```
+
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
 Alas, the noise in the signal has made this result unusable! Let's set the `soft_avg` argument of the {meth}`.MeasurementControl.run` to 100, averaging the results and hopefully filtering out the noise.
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 dset = meas_ctrl.run("averaged", soft_avg=100)
+```
+
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
@@ -266,13 +292,13 @@ Sometimes experiments unfortunately do not go as planned and it is desirable to 
 Rather than waiting for this experiment to complete, instead we can interrupt any {class}`.MeasurementControl` loop using the standard interrupt signal.
 In a terminal environment this is usually achieved with a `ctrl` + `c` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel (stop button) will cause the same result.
 
-When the {class}`.MeasurementControl` is interrupted, it will wait to obtain the results of current iteration (or batch) and perform a final save of the data it has gathered, call the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
+When the {class}`.MeasurementControl` is interrupted, it will wait to obtain the results of the current iteration (or batch) and perform a final save of the data it has gathered, calling the `finish()` method on Settables & Gettables (if it exists) and return the partially completed dataset.
 
 ```{note}
 The exact means of triggering an interrupt will differ depending on your platform and environment; the important part is to cause a `KeyboardInterrupt` exception to be raised in the Python process.
 ```
 
-In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times `ctrl` + `c`). Mind that performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupt the dataset!
+In case the current iteration is taking too long to complete (e.g. instruments not responding), you may force the execution of any python code to stop by signaling the same interrupt 5 times (e.g. pressing 5 times `ctrl` + `c`). Mind that performing this too fast might result in the `KeyboardInterrupt` not being properly handled and corrupting the dataset!
 
 ```{code-cell} ipython3
 ---

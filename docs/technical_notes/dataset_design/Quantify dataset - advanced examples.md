@@ -95,7 +95,7 @@ How do we store all the shots for this measurement?
 We might want this because, e.g., we know we have an issue with leakage to the second
 excited state of a transmon and we would like to be able to store and inspect raw data.
 
-To support such use-case we will have a dimension in dataset for the repeating cycles
+To support such use-cases we will have a dimension in the dataset for the repeating cycles
 and one extra dimension for the final measurement.
 
 ```{code-cell} ipython3
@@ -207,7 +207,7 @@ dataset
 ```
 
 In this case the four main coordinates are not orthogonal coordinates, but instead
-just different label for the same data points, also known as a "multi-index".
+just different labels for the same data points, also known as a "multi-index".
 
 ```{code-cell} ipython3
 fig, axs = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
@@ -253,7 +253,7 @@ except NotImplementedError as exp:
     print(exp)
 ```
 
-We could make our load/write utilities to take care of setting and resetting the index
+We could make our load/write utilities take care of setting and resetting the index
 under the hood. Though there are some nuances there as well. If we would do that then
 some extra metadata needs to be stored in order to store/restore the multi-index.
 At the moment, the MultiIndex is not supported when writing a Quantify dataset to

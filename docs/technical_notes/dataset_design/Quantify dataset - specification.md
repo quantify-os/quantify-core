@@ -86,7 +86,7 @@ The Quantify dataset is an xarray dataset that follows certain conventions. We d
 
 ### Secondary variables(s)
 
-- Again, the ubiquitous example are "calibration" datapoints.
+- Again, the ubiquitous example is "calibration" datapoints.
 - Similar to {ref}`main variables <sec-main-variables>`, but intended to serve as reference data for other main variables (e.g., calibration data).
 - Xarray **Variables** that have an attribute {attr}`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to `False`.
 - The "assignment" of secondary variables to main variables should be done using {attr}`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
@@ -98,8 +98,8 @@ However, for completeness, we always show a valid Quantify dataset with all the 
 ```
 
 In order to follow the rest of this specification more easily have a look at the example below.
-It should give you a more concrete feeling of the details that are exposed afterwards.
-See {ref}`sec-dataset-examples` for exemplary dataset.
+It should give you a more concrete feeling of the details that are exposed afterward.
+See {ref}`sec-dataset-examples` for an exemplary dataset.
 
 We use the
 {func}`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset` to
@@ -131,13 +131,10 @@ dataset
 ```
 
 **Please note** how the underlying arrays for the coordinates are structured!
-As the figure below depicts, even for "gridded" data the coordinates are
-"unrolled" into arrays the specify the value of that coordinate for the
-corresponding index in the variables that lie along the same xarray
-dimensions (here `main_dim`). This is intentional in order to support, in a
-uniform manner, more complex use-cases such as arbitrarily sparse sampling of the
-coordinates domain and adaptive measurements in which the points to be measured are
-not known before a measurement is executed.
+Even for "gridded" data, the coordinates are arranged in arrays
+that match the dimensions of the variables in the xarray. This is
+done so that the data can support more complex scenarios, such as
+irregularly spaced samples and measurements taken at unknown locations.
 
 ```{code-cell} ipython3
 n_points = 110  # only plot a few points for clarity
@@ -218,7 +215,7 @@ Repetition dimensions comply with the following:
 
 #### Examples datasets with repetition
 
-As shown in the {ref}`xarray-intro` an xarray dimension can be indexed by a `coordinate` variable. In this example the `repetitions` dimension is indexed by the `repetitions` xarray coordinate. Note that in an xarray dataset, a dimension and a data variables or a coordinate can share the same name. This might be confusing at first. It takes just a bit of dataset manipulation practice to gain the intuition for how it works.
+As shown in the {ref}`xarray-intro` an xarray dimension can be indexed by a `coordinate` variable. In this example the `repetitions` dimension is indexed by the `repetitions` xarray coordinate. Note that in an xarray dataset, a dimension and a data variable or a coordinate can share the same name. This might be confusing at first. It takes just a bit of dataset manipulation practice to gain an intuition for how it works.
 
 ```{code-cell} ipython3
 coord_dims = ("repetitions",)
@@ -268,7 +265,7 @@ It can be used to generate a default dictionary that is attached to a dataset un
     :show-inheritance:
 ```
 
-Additionally in order to express relationships between coordinates and/or variables the
+Additionally in order to express relationships between coordinates and/or variables
 the following template is provided:
 
 ```{eval-rst}
@@ -294,7 +291,7 @@ dataset.quantify_dataset_version, dataset.tuid
 
 ## Main coordinates and variables attributes
 
-Similar to the dataset attributes ({attr}`xarray.Dataset.attrs`), the main coordinates and variables have each their own required attributes attached to them as dictionary under the {attr}`xarray.DataArray.attrs` attribute.
+Similar to the dataset attributes ({attr}`xarray.Dataset.attrs`), the main coordinates and variables have each their own required attributes attached to them as a dictionary under the {attr}`xarray.DataArray.attrs` attribute.
 
 ```{eval-rst}
 .. autoclass:: quantify_core.data.dataset_attrs.QCoordAttrs
@@ -328,7 +325,7 @@ display_source_code(dh.write_dataset)
 display_source_code(dh.load_dataset)
 ```
 
-Note that we use the `h5netcdf` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers.
+Note that we use the `h5netcdf` engine which is more permissive than the default NetCDF engine to accommodate arrays of complex numbers.
 
 ```{note}
 Furthermore, in order to support a variety of attribute types (e.g. the `None` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below that implements the two-way conversion adapter used by the functions shown above.

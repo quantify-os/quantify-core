@@ -71,11 +71,11 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend to always set the directory at the start of the python kernel and stick
+We recommend always setting the directory at the start of the python kernel and stick
 to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
-Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
 `$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
 desired data directory. The utilities to find/search/extract data only work if
 all the experiment containers are located within the same directory.
@@ -100,6 +100,10 @@ display_source_code(mk_cosine_instrument)
 ```
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 meas_ctrl = MeasurementControl("meas_ctrl")
 plotmon = pqm.PlotMonitor_pyqt("plotmon")
 meas_ctrl.instr_plotmon(plotmon.name)
@@ -109,6 +113,9 @@ meas_ctrl.settables(pars.t)
 meas_ctrl.setpoints(np.linspace(0, 2, 30))
 meas_ctrl.gettables(pars.sig)
 dataset = meas_ctrl.run("Cosine experiment")
+```
+
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
@@ -116,8 +123,8 @@ plotmon.main_QtPlot
 
 ### Loading the data
 
-The {class}`~xarray.Dataset` contains all the information required to perform basic analysis of the experiment.
-We can alternatively load the dataset from disk based on it's {class}`~quantify_core.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using {meth}`~quantify_core.data.handling.get_latest_tuid`.
+The {class}`~xarray.Dataset` contains all the information required to perform a basic analysis of the experiment.
+We can alternatively load the dataset from disk based on its {class}`~quantify_core.data.types.TUID`, a timestamp-based unique identifier. If you do not know the tuid of the experiment you can find the latest tuid containing a certain string in the experiment name using {meth}`~quantify_core.data.handling.get_latest_tuid`.
 See the {ref}`data-storage` documentation for more details on the folder structure and files contained in the data directory.
 
 ```{code-cell} ipython3
@@ -177,7 +184,7 @@ exp_folder = Path(locate_experiment_container(dataset.tuid))
 exp_folder
 ```
 
-Then, we save the the quantities of interest to disk in the human-readable JSON format.
+Then, we save the quantities of interest to disk in the human-readable JSON format.
 
 ```{code-cell} ipython3
 with open(exp_folder / "quantities_of_interest.json", "w", encoding="utf-8") as file:
@@ -189,7 +196,7 @@ with open(exp_folder / "quantities_of_interest.json", "w", encoding="utf-8") as 
 We would like to save a plot of our data and fit in our lab logbook but the figure above is not fully satisfactory: there are no units and no reference to the original dataset.
 
 Below we create our own plot for full control over the appearance and we store it on disk in the same `experiment directory`.
-For plotting we use the ubiquitous matplolib and some visualization utilities.
+For plotting, we use the ubiquitous matplotlib and some visualization utilities.
 
 ```{code-cell} ipython3
 # create matplotlib figure
@@ -218,7 +225,7 @@ fig.savefig(exp_folder / "Cosine fit.png", dpi=300, bbox_inches="tight")
 ## Reusable fitting model and analysis steps
 
 The previous steps achieve our goal, however, the code above is not easily reusable and hard to maintain or debug.
-We can do better then this! We can package our code in functions that perform specific tasks.
+We can do better than this! We can package our code in functions that perform specific tasks.
 In addition, we will use the objected-oriented interface of `lmfit` to further structure our code.
 We explore the details of the object-oriented approach later in this tutorial.
 
@@ -469,11 +476,11 @@ print(display_tree(locate_experiment_container(a_obj.dataset.tuid), string_rep=T
 
 ## Extending the BaseAnalysis
 
-While the above stand-alone class provides the gist of an analysis, we can do even better by defining a structured framework that all analysis need to adhere to and factoring out the pieces of code that are common to most analyses.
+While the above stand-alone class provides the gist of an analysis, we can do even better by defining a structured framework that all analyses need to adhere to and factoring out the pieces of code that are common to most analyses.
 Beside that, the overall functionality can be improved.
 
 Here is where the {class}`~quantify_core.analysis.base_analysis.BaseAnalysis` enters the scene.
-It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented where we are making use of the analysis framework. For completeness, a fully documented {class}`~quantify_core.analysis.fitting_models.CosineModel` that can serve as a template is shown as well.
+It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented where we are making use of the analysis framework. For completeness, a fully documented {class}`~quantify_core.analysis.fitting_models.CosineModel` which can serve as a template is shown as well.
 
 ```{code-cell} ipython3
 display_source_code(CosineModel)
@@ -495,7 +502,7 @@ print(display_tree(locate_experiment_container(a_obj.dataset.tuid), string_rep=T
 
 As you can conclude from the {class}`!CosineAnalysis` code, we did not implement quite a few methods in there.
 These are provided by the {class}`~quantify_core.analysis.base_analysis.BaseAnalysis`.
-To gain some insight on what exactly is being executed we can enable the logging module and use the internal logger of the analysis instance:
+To gain some insight into what exactly is being executed we can enable the logging module and use the internal logger of the analysis instance:
 
 ```{code-cell} ipython3
 ---

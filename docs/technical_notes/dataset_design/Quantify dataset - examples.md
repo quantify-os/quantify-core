@@ -60,7 +60,7 @@ In this page we explore a series of datasets that comply with the {ref}`Quantify
 
 We use the {func}`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset`
 to generate our exemplary dataset. Its source code is conveniently displayed in the
-drop down below.
+drop-down below.
 
 ```{code-cell} ipython3
 ---
@@ -79,7 +79,7 @@ dataset
 ```
 
 The data within this dataset can be easily visualized using xarray facilities,
-however we first need to convert the Quantify dataset to a "gridded" version with as
+however, we first need to convert the Quantify dataset to a "gridded" version with the {func}`~quantify_core.data.handling.to_gridded_dataset` function as 
 shown below.
 
 Since our dataset contains multiple repetitions of the same experiment, it is convenient
@@ -231,8 +231,8 @@ mock_conf = dict(
 
 ### T1 experiment averaged
 
-In this first example we generate the individual measurement shots and average it,
-similar to what some instrument are capable of doing directly in the hardware.
+In this first example we generate the individual measurement shots and average them,
+similar to what some instruments are capable of doing directly in the hardware.
 
 Here is how we store this data in the dataset along with the coordinates of these
 datapoints:
@@ -284,16 +284,16 @@ _ = plot_complex_points(centers, ax=ax)
 
 ### T1 experiment averaged with calibration points
 
-It is common for many experiment to require calibration data in order to interpret the
-results. Often, these calibration datapoints have different array shapes. E.g. it can be
-just two simple datapoints corresponding to the ground and excited states of our
+It is common for many experiments to require calibration data in order to interpret the
+results. Often, these calibration data points have different array shapes. E.g. it can be
+just two simple data points corresponding to the ground and excited states of our
 transmon.
 
-To accommodate this data in the dataset we make use of a secondary dimensions along which
+To accommodate this data in the dataset we make use of a secondary dimension along which
 the variables and its coordinate will lie along.
 
 Additionally, since the secondary variable and coordinate used for calibration can have
-arbitrary names and relate to other variable in more complex ways, we specify this
+arbitrary names and relate to other variables in more complex ways, we specify this
 relationship in the dataset attributes
 (see {class}`~quantify_core.data.dataset_attrs.QDatasetIntraRelationship`).
 This information can be used later, for example, to run an appropriate analysis on this
@@ -367,7 +367,7 @@ We can use the calibration points to normalize the data and obtain the typical T
 
 ### Data rotation and normalization utilities
 
-The normalization to the calibration points can be achieved as follows.
+The normalization of the calibration points can be achieved as follows.
 Several of the
 {mod}`single-qubit time-domain analyses <quantify_core.analysis.single_qubit_timedomain>`
 provided use this under the hood.
@@ -510,7 +510,7 @@ dataset_gridded.q0_traces.shape, dataset_gridded.q0_traces.dims
 ```
 
 All the previous data is also present, but in this dataset we can inspect the IQ signal
-for each individual shot. Let's inspect the signal of the shot number 123 of the last
+for each individual shot. Let's inspect the signal of shot number 123 of the last
 "point" of the T1 experiment:
 
 ```{code-cell} ipython3
@@ -520,7 +520,7 @@ trace_example = dataset_gridded.q0_traces.sel(
 trace_example.shape, trace_example.dtype
 ```
 
-Now we can plot this digitized signals for each quadrature. For clarity we plot only
+Now we can plot these digitized signals for each quadrature. For clarity, we plot only
 part of the signal.
 
 ```{code-cell} ipython3

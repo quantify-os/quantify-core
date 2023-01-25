@@ -21,22 +21,24 @@ class InstrumentMonitor(Instrument):
     """
     Creates a pyqtgraph widget that displays the instrument monitor window.
 
-    .. jupyter-execute::
-        :hide-code:
+    .. admonition:: Example
 
-        from qcodes import Instrument
-        Instrument.close_all()
+        .. jupyter-execute::
+            :hide-code:
 
-    .. jupyter-execute::
+            from qcodes import Instrument
+            Instrument.close_all()
 
-        from quantify_core.measurement import MeasurementControl
-        from quantify_core.visualization import InstrumentMonitor
+        .. jupyter-execute::
 
-        meas_ctrl = MeasurementControl("meas_ctrl")
-        instrument_monitor = InstrumentMonitor("instrument_monitor")
-        # Set True if you want to query the instruments about each parameter
-        # before updating the window. Can be slow due to communication overhead.
-        instrument_monitor.update_snapshot(False)
+            from quantify_core.measurement import MeasurementControl
+            from quantify_core.visualization import InstrumentMonitor
+
+            meas_ctrl = MeasurementControl("meas_ctrl")
+            instrument_monitor = InstrumentMonitor("instrument_monitor")
+            # Set True if you want to query the instruments about each parameter
+            # before updating the window. Can be slow due to communication overhead.
+            instrument_monitor.update_snapshot(False)
     """
 
     proc = None

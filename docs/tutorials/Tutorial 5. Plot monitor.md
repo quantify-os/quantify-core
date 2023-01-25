@@ -53,11 +53,11 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend to always set the directory at the start of the python kernel and stick
+We recommend always setting the directory at the start of the python kernel and stick
 to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
-Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
 `$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
 desired data directory. The utilities to find/search/extract data only work if
 all the experiment containers are located within the same directory.
@@ -94,6 +94,10 @@ class Device(Instrument):
 ## Instantiate the instruments
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 meas_ctrl = MeasurementControl("meas_ctrl")
 plotmon = PlotMonitor_pyqt("PlotMonitor")
 meas_ctrl.instr_plotmon(plotmon.name)
@@ -107,6 +111,10 @@ There are 3 parameters in the {class}`.PlotMonitor_pyqt` that control the datase
 Two main parameters determine the datasets being displayed: *tuids* and *tuids_extra*.
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 plotmon.tuids()
 plotmon.tuids_extra()
 ```
@@ -125,19 +133,23 @@ The difference is that the {class}`.MeasurementControl` uses `tuids` and overrid
 All the datasets must have matching data variables (settables and gettables).
 ```
 
-The third relevant parameter is the *tuids_max_num*. It accepts an integer which determines the maximum number of dataset that will be stored in *tuids* when the {class}`.MeasurementControl` is running.
+The third relevant parameter is the `tuids_max_num`. It accepts an integer that determines the maximum number of datasets that will be stored in `tuids` when the {class}`.MeasurementControl` is running.
 
 ```{code-cell} ipython3
 plotmon.tuids_max_num()
 ```
 
 ```{note}
-This parameter has no effect when setting the *tuids* manually.
+This parameter has no effect when setting the `tuids` manually.
 ```
 
 ## Usage examples
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 # set initial values to emulate the instrument state
 device.amp_0(0.0)
 device.amp_1(0.0)
@@ -149,35 +161,53 @@ meas_ctrl.settables(device.amp_0)
 meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 n_pnts = 20
 
 meas_ctrl.settables(device.amp_0)
 meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 n_pnts = 30
 
 meas_ctrl.settables(device.amp_0)
 meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
 Now the oldest dataset will vanish from the plot:
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 # Now the oldest dataset will vanish from the plot
 
 n_pnts = 40
@@ -186,13 +216,19 @@ meas_ctrl.settables(device.amp_0)
 meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
 We can accumulate more datasets on the plot if we want to:
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 # We can accumulate more datasets on the plot if we want to
 plotmon.tuids_max_num(4)
 n_pnts = 40
@@ -201,7 +237,9 @@ meas_ctrl.settables(device.amp_0)
 meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
@@ -233,6 +271,10 @@ plotmon.tuids_max_num(2)
 Now let's imagine that something strange is happening with our setup...
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 # Now let's imagine that something strange is happening with our setup
 device.offset(1.5)
 
@@ -241,7 +283,9 @@ meas_ctrl.settables(device.amp_0)
 meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan problem")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
@@ -260,6 +304,10 @@ plotmon.main_QtPlot
 OK... that cable was not connected in the right place...
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 device.offset(0.0)  # OK... that cable was not connected in the right place...
 
 # Now let's run again our experiments while we compare it to the previous one in realtime
@@ -276,7 +324,9 @@ meas_ctrl.setpoints(np.linspace(0, 1, n_pnts))
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan")
 
-print("Yey! We have recovered our setup!")
+```
+
+```{code-cell} ipython3
 plotmon.main_QtPlot
 ```
 
@@ -308,6 +358,10 @@ plotmon.main_QtPlot
 When we have 2D plots only the first dataset from `plotmon.tuids` or `plotmon.tuids_extra` will be plotted in the secondary window, in that order of priority.
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 # When we have 2D plots only the first dataset from plotmon.tuids or
 # plotmon.tuids_extra, in that order of priority, will be plotted in the
 # secondary window
@@ -317,7 +371,9 @@ meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan 2D")
 reference_tuid_2D = dset.attrs["tuid"]
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 plotmon.secondary_QtPlot
 ```
@@ -331,11 +387,17 @@ Mind that the data on the secondary window does not always display data correspo
 We still have the persistence of the previous dataset on the main window:
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 meas_ctrl.settables([device.amp_0, device.amp_1])
 meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan 2D")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 plotmon.secondary_QtPlot
 ```
@@ -343,6 +405,10 @@ plotmon.secondary_QtPlot
 We can still have a permanent dataset as a reference in the main window:
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 device.offset(2.03)
 plotmon.tuids_extra([reference_tuid_2D])
 
@@ -350,7 +416,9 @@ meas_ctrl.settables([device.amp_0, device.amp_1])
 meas_ctrl.setpoints_grid([np.linspace(0, 1, 20), np.linspace(0, 0.5, 15)])
 meas_ctrl.gettables(device.adc)
 dset = meas_ctrl.run("ADC scan 2D")
+```
 
+```{code-cell} ipython3
 plotmon.main_QtPlot
 plotmon.secondary_QtPlot
 ```

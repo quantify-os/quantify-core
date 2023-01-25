@@ -22,7 +22,7 @@ We **highly recommended** to read the {ref}`user guide <user-guide>` and follow 
 
 In this tutorial, we explore the adaptive functionality of the {class}`.MeasurementControl`.
 With this mode, instead of predefining a grid of values to sweep through, we provide an optimization function and an initial state to the `meas_ctrl`.
-The `meas_ctrl` will then use this function to build the sweep. We import our usual modules and setup an `meas_ctrl` with visualization:
+The `meas_ctrl` will then use this function to build the sweep. We import our usual modules and set up a `meas_ctrl` with visualization:
 
 ```{code-cell} ipython3
 ---
@@ -54,11 +54,11 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend to always set the directory at the start of the python kernel and stick
+We recommend always setting the directory at the start of the python kernel and stick
 to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
-Cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
+The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
 `$env:USERPROFILE\\quantify-data` on Windows) for tutorial purposes. Change it to your
 desired data directory. The utilities to find/search/extract data only work if
 all the experiment containers are located within the same directory.
@@ -70,6 +70,10 @@ set_datadir(default_datadir())
 ```
 
 ```{code-cell} ipython3
+---
+mystnb:
+    remove-output: true
+---
 meas_ctrl = MeasurementControl("meas_ctrl")
 insmon = InstrumentMonitor("InstrumentMonitor")
 plotmon = pqm.PlotMonitor_pyqt("plotmon_meas_ctrl")
@@ -108,14 +112,14 @@ Next, we will use the `optimize` package from `scipy` to provide our adaptive fu
 You can of course implement your own functions for this purpose, but for brevity we will use something standard and easily available.
 
 Then, we set our {ref}`Settables and Gettables<Settables and Gettables>` as usual, and define a new dictionary `af_pars`.
-The only required key in this object is "adaptive_function", the value of which being the adaptive function to use.
+The only required key in this object is `adaptive_function`, the value to be used by the adaptive function.
 The remaining fields in this dictionary are the arguments to the adaptive function itself. We also add some noise into the parabola to stress our adaptive function.
 
 **As such, it is highly recommended to thoroughly read the documentation around the adaptive function you are using.**
 
 We will use the `optimize.minimize` function (note this is passed by reference as opposed to calling the `minimize` function), which requires an initial state named `"x0"` and an algorithm to use named `"method"`.
 In this case, we are starting at `[-50, -50]` and hope to minimize these values relative to our parabola function.
-Of course, this parabola has it's global minimum at the origin, thus these values will tend towards 0 as our algorithm progresses.
+Of course, this parabola has its global minimum at the origin, thus these values will tend towards 0 as our algorithm progresses.
 
 ```{code-cell} ipython3
 ---
@@ -149,7 +153,7 @@ We can see from the graphs that the values of the settables in the dataset snake
 
 ### Analysis
 
-There are several analysis classes available in quantify which can be used to visualize and extract relevant information from the results of these adaptive measurements.
+There are several analysis classes available in `quantify-core` that can be used to visualize and extract relevant information from the results of these adaptive measurements.
 
 The {class}`~quantify_core.analysis.optimization_analysis.OptimizationAnalysis` class searches the dataset for the optimal datapoint and provides a number of useful plots to visualize the convergence of the measurement result around the minimum.
 
@@ -161,7 +165,7 @@ a_obj.display_figs_mpl()
 
 The analysis generates plots of each of the variables versus the number of iteration steps completed. The figures show the data converging on the optimal value.
 
-The {class}`~quantify_core.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap which interpolates between a set of irregularly spaced datapoints.
+The {class}`~quantify_core.analysis.interpolation_analysis.InterpolationAnalysis2D` class can be used to generate a 2-dimensional heatmap that interpolates between a set of irregularly spaced datapoints.
 
 ```{code-cell} ipython3
 a_obj = InterpolationAnalysis2D(dset)
@@ -171,8 +175,8 @@ a_obj.display_figs_mpl()
 
 ## Adaptive Sampling
 
-Quantify is designed to be modular and the adaptive functions support is no different. To this end, the `meas_ctrl` has first class support for the `adaptive` package.
-Let's see what the same experiment looks like with this module. Note the fields of the `af_pars` dictionary have changed to be compatible with the different adaptive function we are using.
+Quantify is designed to be modular and the adaptive functions support is no different. To this end, the `meas_ctrl` has first-class support for the `adaptive` package.
+Let's see what the same experiment looks like with this module. Note the fields of the `af_pars` dictionary have changed to be compatible with the different adaptive function that we are using.
 
 As a practical example, let's revisit a Resonator Spectroscopy experiment. This time we only know our device has a resonance in 6-7 GHz range.
 We really don't want to sweep through a million points, so instead let's use an adaptive sampler to quickly locate our peak.
@@ -232,5 +236,5 @@ plotmon.main_QtPlot
 
 ### Can I return multi-dimensional data from a Gettable in Adaptive Mode?
 
-Yes, but only first dimension (y0) will be considered by the adaptive function;
+Yes, but only the first dimension (`y0`) will be considered by the adaptive function;
 the remaining dimensions will merely be saved to the dataset.
