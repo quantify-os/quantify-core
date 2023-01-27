@@ -44,7 +44,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from directory_tree import display_tree
 from qcodes import Instrument, ManualParameter, Parameter, validators
 from scipy.optimize import minimize_scalar
 
@@ -409,9 +408,6 @@ Dataset in hdf5 format and a JSON format file describing Parameters, Instruments
 Furthermore, additional analysis such as fits can also be written to this directory,
 storing all data in one location.
 
-An experiment container within a data directory with the name `"quantify-data"`
-thus will look similar to:
-
 ```{code-cell} ipython3
 ---
 tags: [hide-input]
@@ -425,9 +421,27 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
     quantify_dataset = mk_2d_dataset_v1()
     ba.BasicAnalysis(dataset=quantify_dataset).run()
-    # to make sure the full path is displayed
-    print(display_tree(dh.get_datadir(), string_rep=True), end="")
     dh.set_datadir(old_dir)
+```
+
+An experiment container within a data directory with the name `"quantify-data"`
+thus will look similar to:
+
+```{code-block}
+quantify-data/
+├── 20210301/
+├── 20210428/
+└── 20230125/
+    └── 20230125-172802-085-874812-my experiment/
+        ├── analysis_BasicAnalysis/
+        │   ├── dataset_processed.hdf5
+        │   ├── figs_mpl/
+        │   │   ├── Line plot x0-y0.png
+        │   │   ├── Line plot x0-y0.svg
+        │   │   ├── Line plot x1-y0.png
+        │   │   └── Line plot x1-y0.svg
+        │   └── quantities_of_interest.json
+        └── dataset.hdf5
 ```
 
 ### Dataset
@@ -551,9 +565,18 @@ The analysis was executed against the last dataset that has the label
 
 After the analysis the experiment container will look similar to the following:
 
-```{code-cell} ipython3
-experiment_container_path = dh.locate_experiment_container(tuid=dataset.tuid)
-print(display_tree(experiment_container_path, string_rep=True), end="")
+```{code-block}
+20230125-172804-537-f4f73e-Cosine experiment/
+├── analysis_CosineAnalysis/
+│   ├── dataset_processed.hdf5
+│   ├── figs_mpl/
+│   │   ├── cos_fit.png
+│   │   └── cos_fit.svg
+│   ├── fit_results/
+│   │   └── cosine.txt
+│   └── quantities_of_interest.json
+├── dataset.hdf5
+└── snapshot.json
 ```
 
 The analysis object contains several useful methods and attributes such as the

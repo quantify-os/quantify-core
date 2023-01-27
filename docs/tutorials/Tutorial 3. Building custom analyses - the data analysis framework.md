@@ -44,7 +44,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from directory_tree import display_tree
 
 import quantify_core.visualization.pyqt_plotmon as pqm
 from quantify_core.analysis.cosine_analysis import CosineAnalysis
@@ -335,10 +334,14 @@ plot_fit(fig_=fig, ax_=ax, dataset_=dataset, fit_result_=fit_result)
 save_mpl_figure(dataset.tuid, fig)
 ```
 
-We can inspect the `experiment directory` which now contains the analysis results as expected:
+If we inspect the experiment directory, we will find a structure that looks like the following:
 
-```{code-cell} ipython3
-print(display_tree(locate_experiment_container(dataset.tuid), string_rep=True))
+```{code-block}
+20230125-172712-018-87b9bf-Cosine experiment/
+├── Cosine fit.png
+├── dataset.hdf5
+├── quantities_of_interest.json
+└── snapshot.json
 ```
 
 ## Creating a simple analysis class
@@ -470,8 +473,13 @@ The first line will instantiate the class by calling the {code}`.__init__()` met
 
 As expected this will save similar files into the `experiment directory`:
 
-```{code-cell} ipython3
-print(display_tree(locate_experiment_container(a_obj.dataset.tuid), string_rep=True))
+```{code-block}
+20230125-172712-018-87b9bf-Cosine experiment/
+├── cos-data-and-fit.png
+├── Cosine fit.png
+├── dataset.hdf5
+├── quantities_of_interest.json
+└── snapshot.json
 ```
 
 ## Extending the BaseAnalysis
@@ -494,10 +502,23 @@ a_obj = CosineAnalysis(label="Cosine experiment").run()
 a_obj.display_figs_mpl()
 ```
 
-Inspecting the `experiment directory` yields:
+Inspecting the `experiment directory` will show something like:
 
-```{code-cell} ipython3
-print(display_tree(locate_experiment_container(a_obj.dataset.tuid), string_rep=True))
+```{code-block}
+20230125-172712-018-87b9bf-Cosine experiment/
+├── analysis_CosineAnalysis/
+│   ├── dataset_processed.hdf5
+│   ├── figs_mpl/
+│   │   ├── cos_fit.png
+│   │   └── cos_fit.svg
+│   ├── fit_results/
+│   │   └── cosine.txt
+│   └── quantities_of_interest.json
+├── cos-data-and-fit.png
+├── Cosine fit.png
+├── dataset.hdf5
+├── quantities_of_interest.json
+└── snapshot.json
 ```
 
 As you can conclude from the {class}`!CosineAnalysis` code, we did not implement quite a few methods in there.
