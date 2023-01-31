@@ -1060,8 +1060,8 @@ def get_latest_tuid(contains: str = "") -> TUID:
 # pylint: disable=too-many-locals
 def get_tuids_containing(
     contains: str = "",
-    t_start: Union[datetime.datetime, str] = None,
-    t_stop: Union[datetime.datetime, str] = None,
+    t_start: Optional[Union[datetime.datetime, str]] = None,
+    t_stop: Optional[Union[datetime.datetime, str]] = None,
     max_results: int = sys.maxsize,
     reverse: bool = False,
 ) -> list[TUID]:
