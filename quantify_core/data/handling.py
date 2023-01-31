@@ -438,7 +438,7 @@ def load_snapshot(
         return json.load(snap, cls=dh.DecodeToNumpy, list_to_ndarray=list_to_ndarray)
 
 
-def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
+def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None) -> str:
     """
     Creates an empty folder to store an experiment container.
 
@@ -1064,7 +1064,7 @@ def get_tuids_containing(
     t_stop: Union[datetime.datetime, str] = None,
     max_results: int = sys.maxsize,
     reverse: bool = False,
-) -> list:
+) -> list[TUID]:
     """
     Returns a list of tuids containing a specific label.
 
