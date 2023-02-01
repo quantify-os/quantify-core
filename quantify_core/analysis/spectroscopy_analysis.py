@@ -94,7 +94,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         self._create_fig_s21_complex()
 
     def _create_fig_s21_real_imag(self):
-
         fig_id = "S21-RealImag"
         fig, axs = plt.subplots(2, 1, sharex=True)
         self.figs_mpl[fig_id] = fig
@@ -131,7 +130,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
 
     def _create_fig_s21_magn_phase(self):
-
         fig_id = "S21-MagnPhase"
         fig, axs = plt.subplots(2, 1, sharex=True)
         self.figs_mpl[fig_id] = fig
@@ -174,7 +172,6 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
 
     def _create_fig_s21_complex(self):
-
         fig_id = "S21-complex"
         fig, ax = plt.subplots()
         self.figs_mpl[fig_id] = fig

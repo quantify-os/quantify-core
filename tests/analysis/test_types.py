@@ -21,7 +21,6 @@ def test_analysis_settings_valid() -> None:
 
 
 def test_analysis_settings_invalid() -> None:
-
     with pytest.raises(ValidationError):
         _ = AnalysisSettings(
             {
