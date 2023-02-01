@@ -487,7 +487,6 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
 
     # pylint: disable=arguments-differ
     def _rotate_to_calibrated_axis(self):
-
         if len(self.dataset.x0) == 21:
             ref_idx_1 = 17
         elif len(self.dataset.x0) == 21 * 2:
@@ -496,7 +495,6 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         super()._rotate_to_calibrated_axis(ref_idx_0=0, ref_idx_1=ref_idx_1)
 
     def process_data(self):
-
         # Raise an exception if we do not have the correct number of points for a
         # complete ALLXY experiment
         number_points = len(self.dataset.x0)
@@ -529,7 +527,6 @@ class AllXYAnalysis(SingleQubitTimedomainAnalysis):
         self.quantities_of_interest["deviation"] = deviation
 
     def create_figures(self):
-
         fig, ax = plt.subplots()
         fig_id = "AllXY"
         self.figs_mpl[fig_id] = fig

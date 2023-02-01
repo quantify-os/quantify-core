@@ -772,7 +772,6 @@ class Basic2DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
-
         gridded_dataset = to_gridded_dataset(self.dataset)
 
         # plot heatmaps of the data
