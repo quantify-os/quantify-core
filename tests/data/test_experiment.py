@@ -6,6 +6,8 @@ import numpy as np
 import xarray as xr
 import pytest
 
+from qcodes import ManualParameter
+
 from quantify_core.data import handling as dh
 from quantify_core.data.experiment import QuantifyExperiment
 
@@ -102,3 +104,14 @@ def test_quantify_experiment_no_tuid(tmp_test_data_dir):
     ds = dh.load_dataset(tuid)
     experiment = QuantifyExperiment(tuid=None, dataset=ds)
     assert experiment.tuid == ds.tuid
+
+
+def test_quantify_experiment_write_dataset_with_no_name_attribute_succeeds(
+    tmp_test_data_dir,
+):
+    dh.set_datadir(tmp_test_data_dir)
+    x = ManualParameter("x", unit="m", label="X position")
+    z = ManualParameter("z", unit="V", label="Signal amplitude")
+    dset = dh.initialize_dataset([x], np.empty((5, 1)), [z])
+    e = QuantifyExperiment(tuid=None, dataset=dset)
+    e.write_dataset(dset)  # Raises exception in 0.6.5

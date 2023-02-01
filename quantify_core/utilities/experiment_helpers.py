@@ -5,13 +5,11 @@ import warnings
 from typing import Any, Optional, Union, Dict, List, Literal
 
 import numpy as np
-
-from qcodes.instrument import Instrument, Parameter
-from qcodes.instrument.channel import InstrumentChannel
+from qcodes.instrument import Instrument, InstrumentChannel
+from qcodes.parameters import Parameter
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 # pylint: disable=broad-except
@@ -32,7 +30,7 @@ def load_settings_onto_instrument(
     instrument :
         the :class:`~qcodes.instrument.Instrument`,
         :class:`~qcodes.instrument.InstrumentChannel` or
-        :class:`~qcodes.instrument.Parameter` to be configured.
+        :class:`~qcodes.parameters.Parameter` to be configured.
     tuid : :class:`~quantify_core.data.types.TUID`
         the TUID of the experiment. If None use latest TUID.
     datadir : str
@@ -185,8 +183,9 @@ def get_all_parents(instr_mod: Union[Instrument, InstrumentChannel, Parameter]) 
         The QCodes instrument, submodule or parameter whose parents we wish to find
 
     Returns
-    -----------
-    A list of all the parents of that object (and the object itself)
+    -------
+    :
+        A list of all the parents of that object (and the object itself)
     """
     if hasattr(instr_mod, "_parent"):
         parents = get_all_parents(instr_mod._parent)

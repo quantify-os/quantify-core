@@ -6,3 +6,6 @@
 # A type hint that sphinx and its extensions do not handle well
 py:class Literal[None, running, interrupted (safety), interrupted (forced), done]
 py:class dataclasses_json.api.DataClassJsonMixin
+py:class quantify_core.analysis.single_qubit_timedomain._DecayFigMixin
+py:class numpy.complex128
+py:class numpy.float64

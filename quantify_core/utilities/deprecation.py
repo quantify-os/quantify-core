@@ -54,7 +54,69 @@ def deprecated(
     .. admonition:: Example
         :class: dropdown, tip
 
-        .. include:: examples/utilities.deprecated.rst.txt
+        .. jupyter-execute::
+
+            import warnings
+            from quantify_core.utilities import deprecated
+
+        .. jupyter-execute::
+
+            @deprecated("99.99", 'Initialize the "foo" literal directly.')
+            def get_foo():
+                return "foo"
+
+
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                get_foo()  # issues deprecation warning.
+
+            assert len(w) == 1
+            assert w[0].category is FutureWarning
+            print(w[0].message)
+
+        .. jupyter-execute::
+
+            class NewClass:
+                def __init__(self, val):
+                    self._val = val
+
+                def val(self):
+                    return self._val
+
+            @deprecated("99.99", NewClass)
+            class OldClass:
+                pass
+
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                obj = OldClass(42)  # type: ignore
+
+            assert len(w) == 1
+            assert w[0].category is FutureWarning
+            print(w[0].message)
+            print("obj.val() =", obj.val())  # type: ignore
+
+        .. jupyter-execute::
+
+            class SomeClass:
+                def __init__(self, val):
+                    self._val = val
+
+                def val(self):
+                    return self._val
+
+                @deprecated("7.77", val)
+                def get_val(self):
+                    '''Deprecated alias'''
+
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                val = SomeClass(42).get_val()  # issues deprecation warning.
+
+            assert len(w) == 1
+            assert w[0].category is FutureWarning
+            print(w[0].message)
+            print("obj.get_val() =", val)
 
     Parameters
     ----------
