@@ -14,7 +14,7 @@ from quantify_core.data.types import TUID
 from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
-
+# pylint: disable=broad-except
 def load_settings_onto_instrument(
     instrument: Union[Instrument, InstrumentChannel, Parameter],
     tuid: TUID = None,
