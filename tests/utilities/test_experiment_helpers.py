@@ -86,20 +86,20 @@ def test_load_settings_onto_instrument(tmp_test_data_dir, mock_instr):
         match='Parameter "none_param_warning" of "DummyInstrument" could not be '
         'set to "None" due to error',
     ):
-        load_settings_onto_instrument(instr, tuid)
+        load_settings_onto_instrument(instr, tuid, exception_handling="warn")
 
     with pytest.warns(
         UserWarning,
         match="Could not set parameter obsolete_param in DummyInstrument. "
         "DummyInstrument does not possess a parameter named obsolete_param.",
     ):
-        load_settings_onto_instrument(instr, tuid)
+        load_settings_onto_instrument(instr, tuid, exception_handling="warn")
 
     with pytest.warns(
         UserWarning,
         match=("Could not get value of error_param parameter due to"),
     ):
-        load_settings_onto_instrument(instr, tuid)
+        load_settings_onto_instrument(instr, tuid, exception_handling="warn")
 
     assert instr.get("IDN") == {
         "vendor": None,

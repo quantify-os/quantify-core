@@ -2,7 +2,7 @@
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Any, Optional, Union, Dict, List
+from typing import Any, Optional, Union, Dict, List, Literal
 
 import numpy as np
 
@@ -19,6 +19,7 @@ def load_settings_onto_instrument(
     instrument: Union[Instrument, InstrumentChannel, Parameter],
     tuid: TUID = None,
     datadir: str = None,
+    exception_handling: Literal["raise", "warn"] = "raise",
 ) -> None:
     """
     Loads settings from a previous experiment onto a current
@@ -37,6 +38,9 @@ def load_settings_onto_instrument(
     datadir : str
         path of the data directory. If `None`, uses `get_datadir()` to
         determine the data directory.
+    exception_handling:
+        desired behaviour if error occurs when trying to get parameter:
+        raise exception or give warning.
     Raises
     ------
     ValueError
@@ -64,8 +68,10 @@ def load_settings_onto_instrument(
         try:
             get_val = instr_mod.parameters[parname]()
         except Exception as exc:
+            if exception_handling == "raise":
+                raise exc
             warnings.warn(
-                f"Could not get value of {parname} parameter due to {exc}. "
+                f"Could not get value of {parname} parameter due to '{exc}'. "
                 "We will not try to set this parameter."
             )
             return
@@ -134,6 +140,8 @@ def load_settings_onto_instrument(
                 try:
                     get_val = instr_mod.parameters[parname]()
                 except Exception as exc:
+                    if exception_handling == "raise":
+                        raise exc
                     warnings.warn(
                         f"Could not get value of {parname} parameter due to {exc}. "
                         "We will not try to set this parameter."
