@@ -15,7 +15,7 @@
 - Data - Improve `set_datadir` and test style and readability (!419)
 - Added AttributeError to the exceptions explictly handled in loading of datasets for the remote plotmon (#352, !442)
 - Added exception handling for SI_utilities.value_precision (#350, !442)
-- Installation - Refactor of setup configuration (!386)
+- Installation - Refactor of setup configuration (!386, !433)
 
 ## 0.6.5 (2022-12-13)
 
