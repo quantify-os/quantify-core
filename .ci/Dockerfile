@@ -22,7 +22,7 @@ RUN pip install --upgrade --upgrade-strategy eager \
         pip \
         setuptools \
         twine \
-    && find /root/wheel -name quantify_core-*-py2.py3-none-any.whl -exec pip install {}[dev] \; \
+    && find /root/wheel -name quantify_core-*-py3-none-any.whl -exec pip install {}[dev] \; \
     # It must always be installed in before_script, because wheel package may be updated later
     && pip uninstall -y quantify-core \
     && pip freeze --all > /frozen-requirements.txt
