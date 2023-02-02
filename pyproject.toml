@@ -62,7 +62,6 @@ test = [
 docs = [
     "jupyter-sphinx >=0.3.2",
     "myst-nb",
-    "quantify-scheduler",  # used to generate schedule example in the dataset design docs
     "rich[jupyter]",
     "scanpydoc",
     "sphinx-autobuild",

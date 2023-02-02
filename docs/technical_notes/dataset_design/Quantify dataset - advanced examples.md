@@ -44,7 +44,6 @@ from quantify_core.utilities.dataset_examples import (
 )
 from quantify_core.utilities.examples_support import (
     mk_iq_shots,
-    mk_surface7_sched,
     round_trip_dataset,
 )
 from quantify_core.utilities.inspect_utils import display_source_code
@@ -68,28 +67,83 @@ overall dataset "unstructured".
 :width: 100%
 ```
 
-```{code-cell} ipython3
----
-tags: [hide-cell]
-mystnb:
-  code_prompt_show: Source code for generating this schedule and visualizing it
----
-display_source_code(mk_surface7_sched)
-```
+``````{admonition} Source code for generating this schedule and visualizing it
+:class: dropdown, info
 
-```{code-cell} ipython3
-# If Quantify-Scheduler is installed you can create the schedule and visualize it
-num_cycles = 3
-try:
-    import quantify_scheduler.visualization.circuit_diagram as qscd
+If you want to create and visualize the schedule above using `quantify-scheduler`,
+you can use this code:
 
-    sched = mk_surface7_sched(num_cycles=num_cycles)
-    f, ax = qscd.circuit_diagram_matplotlib(sched)
-    f.set_figwidth(30)
-except ImportError as exc:
-    print("Quantify-Scheduler not installed.")
-    print(exc)
+```{code-block} python
+from quantify_scheduler import Schedule
+from quantify_scheduler.operations.gate_library import CZ, Y90, Measure, Reset, X
+from quantify_scheduler.visualization.circuit_diagram import circuit_diagram_matplotlib
+
+def mk_surface7_sched(num_cycles: int = 3):
+    """Generates a schedule with some of the feature of a Surface 7 experiment as
+    portrayed in Fig. 4b of :cite:`marques_logical_qubit_2021`.
+
+    Parameters
+    ----------
+    num_cycles
+        The number of times to repeat the main cycle.
+
+    Returns
+    -------
+    :
+        A schedule similar to a Surface 7 dance.
+    """
+
+    sched = Schedule("S7 dance")
+
+    q_d1, q_d2, q_d3, q_d4 = [f"D{i}" for i in range(1, 5)]
+    q_a1, q_a2, q_a3 = [f"A{i}" for i in range(1, 4)]
+    all_qubits = q_d1, q_d2, q_d3, q_d4, q_a1, q_a2, q_a3
+
+    sched.add(Reset(*all_qubits))
+
+    for cycle in range(num_cycles):
+        sched.add(Y90(q_d1))
+        for qubit in [q_d2, q_d3, q_d4]:
+            sched.add(Y90(qubit), ref_pt="start", rel_time=0)
+        sched.add(Y90(q_a2), ref_pt="start", rel_time=0)
+
+        for qubit in [q_d2, q_d1, q_d4, q_d3]:
+            sched.add(CZ(qC=qubit, qT=q_a2))
+
+        sched.add(Y90(q_d1))
+        for qubit in [q_d2, q_d3, q_d4]:
+            sched.add(Y90(qubit), ref_pt="start", rel_time=0)
+        sched.add(Y90(q_a2), ref_pt="start", rel_time=0)
+
+        sched.add(Y90(q_a1), ref_pt="end", rel_time=0)
+        sched.add(Y90(q_a3), ref_pt="start", rel_time=0)
+
+        sched.add(CZ(qC=q_d1, qT=q_a1))
+        sched.add(CZ(qC=q_d2, qT=q_a3))
+        sched.add(CZ(qC=q_d3, qT=q_a1))
+        sched.add(CZ(qC=q_d4, qT=q_a3))
+
+        sched.add(Y90(q_a1), ref_pt="end", rel_time=0)
+        sched.add(Y90(q_a3), ref_pt="start", rel_time=0)
+
+        sched.add(Measure(q_a2, acq_index=cycle))
+        for qubit in (q_a1, q_a3):
+            sched.add(Measure(qubit, acq_index=cycle), ref_pt="start", rel_time=0)
+
+        for qubit in [q_d1, q_d2, q_d3, q_d4]:
+            sched.add(X(qubit), ref_pt="start", rel_time=0)
+
+    # final measurements
+
+    sched.add(Measure(*all_qubits[:4], acq_index=0), ref_pt="end", rel_time=0)
+
+    return sched
+
+sched = mk_surface7_sched(num_cycles=3)
+f, ax = circuit_diagram_matplotlib(sched)
+f.set_figwidth(30)
 ```
+``````
 
 How do we store all the shots for this measurement?
 We might want this because, e.g., we know we have an issue with leakage to the second
