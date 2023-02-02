@@ -89,7 +89,6 @@ dev = [
     "black",
     "pre-commit",
     "pre-commit-hooks",
-    "prospector",
     "pylint",
 ]
 
