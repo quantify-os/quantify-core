@@ -94,7 +94,7 @@ dev = [
 "Source" = "https://gitlab.com/quantify-os/quantify-core"
 "Issue tracker" = "https://gitlab.com/quantify-os/quantify-core/-/issues"
 "Changelog" = "https://gitlab.com/quantify-os/quantify-core/-/blob/main/CHANGELOG.md"
-"Slack" = "https://join.slack.com/t/quantify-hq/shared_invite/zt-vao45946-f_NaRc4mvYQDQE_oYB8xSw"
+"Slack" = "https://join.slack.com/t/quantify-hq/shared_invite/zt-1nd78r4e9-rbWdna53cW4DO_YbtMhVuA"
 "Authors" = "https://gitlab.com/quantify-os/quantify-core/-/blob/main/AUTHORS.md"
 
 [tool.setuptools]
