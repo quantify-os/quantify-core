@@ -16,7 +16,6 @@ from quantify_core.utilities.general import (
 
 
 def test_delete_keys_from_dict() -> None:
-
     test_dict = {"a": 5, "b": 6, "c": {"D": 4, "E": 8}}
 
     assert "a" in test_dict.keys()

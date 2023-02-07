@@ -17,7 +17,6 @@ from quantify_core.visualization import PlotMonitor_pyqt
 
 @pytest.fixture(scope="function")
 def plotmon_instance(request, tmp_test_data_dir):
-
     dh.set_datadir(tmp_test_data_dir)
     plotmon = PlotMonitor_pyqt(name="plotmon")
 

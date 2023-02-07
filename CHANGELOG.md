@@ -2,9 +2,12 @@
 
 ## Unreleased
 
+## 0.7.0 (2022-02-03)
+
 ### Breaking Changes
 
 - Requirements - `quantify-core` requires `qcodes>=0.35` now. (!427)
+- Installation - Instead of `requirements.txt` and `requirements_dev.txt` `quantify-core` uses optional requirements. Use `pip install quantify-core[dev]` to install all of them. (!386)
 
 ### Merged branches and closed issues
 
@@ -14,6 +17,8 @@
 - Data - Improve `set_datadir` and test style and readability (!419)
 - Added AttributeError to the exceptions explictly handled in loading of datasets for the remote plotmon (#352, !442)
 - Added exception handling for SI_utilities.value_precision (#350, !442)
+- Installation - Refactor of setup configuration (!386, !433)
+- Utilities - Remove `quantify_core.utilities.examples_support.mk_surface7_sched()` function that was used only for generating one non-essential figure in documentation, but caused dependency on `quantify-scheduler` to build it. This function is inlined in the documentation as an example. (!434)
 
 ## 0.6.5 (2022-12-13)
 

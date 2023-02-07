@@ -1,0 +1,117 @@
+[build-system]
+requires = ["setuptools>=66.1"]
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = "quantify-core"
+description="""\
+    Unified quantum computing, solid-state and pulse sequencing \
+    physical experimentation framework.\
+"""
+maintainers = [
+    {name = "Edgar Reehuis", email = "ereehuis@qblox.com"},
+    {name = "Robert Sokolewicz", email = "rsokolewicz@qblox.com"},
+    {name = "Tobias Bonsen", email = "tobias@orangeqs.com"},
+    {name = "Viacheslav Ostroukh", email = "viacheslav@orangeqs.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+]
+keywords = [
+    "quantum",
+    "quantify",
+]
+license = { text = "BSD-3-Clause" }
+dynamic = ["version", "readme"]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy !=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
+    "qcodes >=0.35.0", # 0.35.0 introduced qcodes.parameters module
+    "scipy >=1.5.0, !=1.6.0",
+    "h5netcdf",
+    "xarray >=0.19.0",
+    "matplotlib !=3.5.0",
+    "lmfit >=1.0.3", # Bugfix for lmfit (https://github.com/lmfit/lmfit-py/pull/758)
+    "pyqt5 >5.15.2",  # 5.15.2 has known bug, #170, https://bugreports.qt.io/browse/PYSIDE-1473
+    "pyqtgraph ==0.12.4",
+    "jsonschema",
+    "adaptive",
+    "filelock",
+    "appnope",
+    "uncertainties",
+    "pendulum",  # used for timestamps formatting in the dataset attributes
+    "dataclasses_json", # used in dataset_attrs
+    "dill",  # Tests fail without dill installed, likely for a good reason
+    "methodtools",  # used in base_analysis for self-bound lru_cache
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock",
+]
+docs = [
+    # sphinx-6 and sphinx-rtd-theme-1.1.1 have incompatible docutils requirements.
+    # This should be fixed by sphinx-rtd-theme-1.2. docutils recuirement below is a tip
+    # for dependency resolver, and should be altered together with removing sphinx<6
+    # and adding sphinx-rtd-theme>=1.2 requirements.
+    "docutils <0.18",
+    "sphinx >=4.5.0, <6",
+    "sphinx-rtd-theme >=1.0",
+    "myst-nb",
+    "jupyter-sphinx >=0.3.2",
+    "rich[jupyter]",
+    "scanpydoc",
+    "sphinx-autobuild",
+    "sphinx-autodoc-typehints",  # required by either sphinx.ext.autodoc or sphinx.ext.napoleon (sphinx==4.5.0)
+    "sphinx-jsonschema >=1.15",
+    "sphinx-togglebutton",
+    "sphinxcontrib-bibtex",
+]
+dev = [
+    "quantify-core[docs,test]",
+    # Pytest-cov is used to generage test coverage reports, which is rather a development than testing requirement
+    "pytest-cov",
+    # Run tests in parallel
+    "pytest-xdist",
+    # Scikit-optimize is used in one optional test
+    "scikit-optimize",
+    # Linting, code style, static analysis
+    "black",
+    "pre-commit",
+    "pre-commit-hooks",
+    "pylint",
+]
+
+[project.urls]
+"Documentation" = "https://quantify-quantify-core.readthedocs-hosted.com"
+"Source" = "https://gitlab.com/quantify-os/quantify-core"
+"Issue tracker" = "https://gitlab.com/quantify-os/quantify-core/-/issues"
+"Changelog" = "https://gitlab.com/quantify-os/quantify-core/-/blob/main/CHANGELOG.md"
+"Slack" = "https://join.slack.com/t/quantify-hq/shared_invite/zt-1nd78r4e9-rbWdna53cW4DO_YbtMhVuA"
+"Authors" = "https://gitlab.com/quantify-os/quantify-core/-/blob/main/AUTHORS.md"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["quantify_core", "quantify_core.*"]
+
+[tool.setuptools.package-data]
+quantify_core = ["py.typed", "**/schemas/*.json"]
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"], content-type = "text/markdown" }
+
+[tool.isort]
+profile = "black"

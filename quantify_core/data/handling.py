@@ -438,7 +438,7 @@ def load_snapshot(
         return json.load(snap, cls=dh.DecodeToNumpy, list_to_ndarray=list_to_ndarray)
 
 
-def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None):
+def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None) -> str:
     """
     Creates an empty folder to store an experiment container.
 
@@ -1060,11 +1060,11 @@ def get_latest_tuid(contains: str = "") -> TUID:
 # pylint: disable=too-many-locals
 def get_tuids_containing(
     contains: str = "",
-    t_start: Union[datetime.datetime, str] = None,
-    t_stop: Union[datetime.datetime, str] = None,
+    t_start: Optional[Union[datetime.datetime, str]] = None,
+    t_stop: Optional[Union[datetime.datetime, str]] = None,
     max_results: int = sys.maxsize,
     reverse: bool = False,
-) -> list:
+) -> list[TUID]:
     """
     Returns a list of tuids containing a specific label.
 
