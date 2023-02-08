@@ -19,6 +19,7 @@
 - Added exception handling for SI_utilities.value_precision (#350, !442)
 - Installation - Refactor of setup configuration (!386, !433)
 - Utilities - Remove `quantify_core.utilities.examples_support.mk_surface7_sched()` function that was used only for generating one non-essential figure in documentation, but caused dependency on `quantify-scheduler` to build it. This function is inlined in the documentation as an example. (!434)
+- Utilities - Improved error handling for `quantify_core.utilities.experiment_helpers.load_settings_onto_instrument` (#351, #348, !425)
 
 ## 0.6.5 (2022-12-13)
 
