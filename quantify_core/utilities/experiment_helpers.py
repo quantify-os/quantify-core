@@ -142,7 +142,7 @@ def load_settings_onto_instrument(
                     if exception_handling == "raise":
                         raise exc
                     warnings.warn(
-                        f"Could not get value of {parname} parameter due to {exc}. "
+                        f"Could not get value of {parname} parameter due to '{exc}'. "
                         "We will not try to set this parameter."
                     )
                     continue
