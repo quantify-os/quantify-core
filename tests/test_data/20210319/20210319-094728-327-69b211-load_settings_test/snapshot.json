@@ -62,6 +62,13 @@
                     "name": "numpy_array_param",
                     "label": "numpy_array_param",
                     "unit": ""
+                },
+                "error_param": {
+                    "value": 1,
+                    "ts": "2021-03-21 14:47:52",
+                    "name": "error_param",
+                    "label": "error_param",
+                    "unit": ""
                 }
             },
             "name": "DummyInstrument"
