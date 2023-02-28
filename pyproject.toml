@@ -35,14 +35,14 @@ dynamic = ["version", "readme"]
 requires-python = ">=3.8"
 dependencies = [
     "numpy !=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
-    "qcodes >=0.35.0", # 0.35.0 introduced qcodes.parameters module
+    "qcodes >=0.37.0", # 0.37.0 replaces deprecated pyqtgraph functionality
     "scipy >=1.5.0, !=1.6.0",
     "h5netcdf",
     "xarray >=0.19.0",
     "matplotlib !=3.5.0",
     "lmfit >=1.0.3", # Bugfix for lmfit (https://github.com/lmfit/lmfit-py/pull/758)
     "pyqt5 >5.15.2",  # 5.15.2 has known bug, #170, https://bugreports.qt.io/browse/PYSIDE-1473
-    "pyqtgraph ==0.12.4",
+    "pyqtgraph",
     "jsonschema",
     "adaptive",
     "filelock",
