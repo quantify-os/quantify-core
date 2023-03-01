@@ -176,8 +176,7 @@ def without(dict_in: dict, keys: list):
         keys = [keys]
     new_d = dict_in.copy()
     for key in keys:
-        if key in new_d:
-            new_d.pop(key)
+        new_d.pop(key, None)
     return new_d
 
 
