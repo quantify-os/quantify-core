@@ -203,14 +203,26 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
         return in_string
 
     @deprecated(
-        "0.10.0",
+        "0.15.0",
         "The function _get_entries_json provides similar functionality.",
     )
     def getNodes(self):
         return pprint.pformat(self.nodes)
 
     def _get_entries_json(self):
-        """Get json encoding of entries of instrument monitor."""
+        """Get json encoding of entries of instrument monitor.
+
+        This method is only used for testing. ``self.node`` cannot be returned
+        to the test directly, because it lives in a different process. So this
+        method provides a way to check the content of the available nodes. Not
+        intended to be used for actual functionality.
+
+        The dictionary returns one key-value pair for every entry in the table.
+        The key has the format ``instrument.submodule.parameter``. Submodules
+        and parameters are optional. Submodules can be nested (but only the key
+        is nested, not the dictionary). The values are dictionaries with keys
+        ``text0``, ``text1``, etc. for each column of the monitor.
+        """
 
         # pylint: disable-next=too-few-public-methods
         class _QTreeWidgetEncoder(NumpyJSONEncoder):

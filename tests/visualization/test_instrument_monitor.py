@@ -137,7 +137,6 @@ class TestQcSnapshotWidget:
         test_snapshot = self.get_snapshot()
         self.widget.buildTreeSnapshot(test_snapshot)
         nodes_str = self.widget._get_entries_json()
-        print(f"\n{nodes_str=}")
         assert "test_instrument" in nodes_str
         assert "Instrument label" in nodes_str
         assert "test_instrument.ins.param1" in nodes_str
