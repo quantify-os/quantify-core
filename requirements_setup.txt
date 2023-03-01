@@ -1,3 +1,0 @@
-# Quantify setup requirements
-
-pytest-runner

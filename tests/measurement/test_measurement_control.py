@@ -470,7 +470,6 @@ def test_iterative_set_batched_get_1d_raises(meas_ctrl, parameters):
 
 
 def test_iterative_2d_grid(meas_ctrl, parameters):
-
     times = np.linspace(0, 5, 20)
     amps = np.linspace(-1, 1, 5)
 
@@ -599,7 +598,6 @@ def test_iterative_2d_grid_with_lazy_set(
 
 
 def test_iterative_2d_arbitrary(meas_ctrl, parameters):
-
     r = np.linspace(0, 1.5, 50)
     dt = np.linspace(0, 1, 50)
 
@@ -609,7 +607,6 @@ def test_iterative_2d_arbitrary(meas_ctrl, parameters):
     theta = np.cos(2 * np.pi * f * dt)
 
     def polar_coords(r, theta):
-
         x = r * np.cos(2 * np.pi * theta)
         y = r * np.sin(2 * np.pi * theta)
         return x, y

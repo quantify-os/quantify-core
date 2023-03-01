@@ -6,20 +6,20 @@ from __future__ import annotations
 
 from pathlib import Path
 from time import sleep
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Tuple, Union
 
 import numpy as np
 import xarray as xr
-from qcodes.instrument import Instrument, ManualParameter
+from qcodes.instrument import Instrument
+from qcodes.parameters import ManualParameter
 
 import quantify_core.data.dataset_attrs as dd
 import quantify_core.data.handling as dh
 from quantify_core.analysis.fitting_models import cos_func
-from quantify_core.data.types import TUID
 
-# import is here because docs use method from this location.
-# pylint: disable=unused-import
-from quantify_core.data.handling import default_datadir
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+    from quantify_core.data.types import TUID
 
 # ######################################################################################
 # Tutorial utilities
@@ -90,11 +90,11 @@ def mk_cosine_instrument() -> Instrument:
 
 def mk_iq_shots(
     num_shots: int = 128,
-    sigmas: Union[Tuple[float], np.ndarray] = (0.1, 0.1),
-    centers: Union[Tuple[complex], np.ndarray] = (-0.2 + 0.65j, 0.7 + 4j),
-    probabilities: Union[Tuple[float], np.ndarray] = (0.4, 0.6),
+    sigmas: Union[Tuple[float], NDArray[np.float_]] = (0.1, 0.1),
+    centers: Union[Tuple[complex], NDArray[np.complex_]] = (-0.2 + 0.65j, 0.7 + 4j),
+    probabilities: Union[Tuple[float], NDArray[np.float_]] = (0.4, 0.6),
     seed: Union[int, None] = 112233,
-) -> np.ndarray:
+) -> NDArray:
     """
     Generates clusters of (I + 1j*Q) points with a Gaussian distribution with the
     specified sigmas and centers according to the probabilities of each cluster
@@ -102,7 +102,40 @@ def mk_iq_shots(
     .. admonition:: Examples
         :class: dropdown
 
-        .. include:: examples/utilities.examples_support.mk_iq_shots.rst.txt
+        .. jupyter-execute::
+
+            import matplotlib.pyplot as plt
+
+            from quantify_core.utilities.examples_support import mk_iq_shots
+
+            center_0, center_1, center_2 = 0.6 + 1.2j, -0.2 + 0.5j, 0 + 1.5j
+
+            data = mk_iq_shots(
+                100,
+                sigmas=[0.1] * 2,
+                centers=(center_0, center_1),
+                probabilities=(0.3, 1 - 0.3),
+            )
+
+            fig, ax = plt.subplots()
+            ax.plot(data.real, data.imag, "o", label="Shots")
+            ax.plot(center_0.real, center_0.imag, "^", label="|0>", markersize=10)
+            ax.plot(center_1.real, center_1.imag, "d", label="|1>", markersize=10)
+            _ = ax.legend()
+
+            data = mk_iq_shots(
+                200,
+                sigmas=[0.1] * 3,
+                centers=(center_0, center_1, center_2),
+                probabilities=[0.35, 0.35, 1 - 0.35 - 0.35],
+            )
+
+            fig, ax = plt.subplots()
+            ax.plot(data.real, data.imag, "o", label="Shots")
+            ax.plot(center_0.real, center_0.imag, "^", label="|0>", markersize=10)
+            ax.plot(center_1.real, center_1.imag, "d", label="|1>", markersize=10)
+            ax.plot(center_2.real, center_2.imag, "*", label="|2>", markersize=10)
+            _ = ax.legend()
 
     Parameters
     ----------
@@ -145,7 +178,7 @@ def mk_iq_shots(
     return np.concatenate(shots)
 
 
-def mk_trace_time(sampling_rate: float = 1e9, duration: float = 0.3e-6) -> np.ndarray:
+def mk_trace_time(sampling_rate: float = 1e9, duration: float = 0.3e-6) -> NDArray:
     """
     Generates a :obj:`~numpy.arange` in which the entries correspond to time instants
     up to ``duration`` seconds sampled according to ``sampling_rate`` in Hz.
@@ -170,7 +203,11 @@ def mk_trace_time(sampling_rate: float = 1e9, duration: float = 0.3e-6) -> np.nd
 
 def mk_trace_for_iq_shot(
     iq_point: complex,
+<<<<<<< HEAD
     time_values: None | NDArray = None,
+=======
+    time_values: NDArray = mk_trace_time(),
+>>>>>>> origin
     intermediate_freq: float = 50e6,
 ) -> NDArray:
     """
@@ -180,7 +217,23 @@ def mk_trace_for_iq_shot(
     .. admonition:: Examples
         :class: dropdown
 
-        .. include:: /examples/utilities.examples_support.mk_trace_for_iq_shot.rst.txt
+        .. jupyter-execute::
+
+            import matplotlib.pyplot as plt
+
+            from quantify_core.utilities.examples_support import mk_trace_for_iq_shot, mk_trace_time
+
+            SHOT = 0.6 + 1.2j
+
+            time = mk_trace_time()
+            trace = mk_trace_for_iq_shot(SHOT)
+
+            fig, ax = plt.subplots(1, 1, figsize=(12, 12 / 1.61 / 2))
+            _ = ax.plot(time * 1e6, trace.imag, ".-", label="I-quadrature")
+            _ = ax.plot(time * 1e6, trace.real, ".-", label="Q-quadrature")
+            _ = ax.set_xlabel("Time [µs]")
+            _ = ax.set_ylabel("Amplitude [V]")
+            _ = ax.legend()
 
     Parameters
     ----------
@@ -362,70 +415,3 @@ def round_trip_dataset(dataset: xr.Dataset) -> xr.Dataset:
     assert tuid != ""
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, dataset)
     return dh.load_dataset(tuid)
-
-
-# to avoid dependency in scheduler, import only inside the function
-# pylint: disable=import-outside-toplevel, too-many-locals
-def mk_surface7_sched(num_cycles: int = 3):
-    """Generates a schedule with some of the feature of a Surface 7 experiment as
-    portrayed in Fig. 4b of :cite:`marques_logical_qubit_2021`.
-
-    Parameters
-    ----------
-    num_cycles
-        The number of times to repeat the main cycle.
-
-    Returns
-    -------
-    :
-        A schedule similar to a Surface 7 dance.
-    """
-
-    from quantify_scheduler import Schedule
-    from quantify_scheduler.operations.gate_library import CZ, Y90, Measure, Reset, X
-
-    sched = Schedule("S7 dance")
-
-    q_d1, q_d2, q_d3, q_d4 = [f"D{i}" for i in range(1, 5)]
-    q_a1, q_a2, q_a3 = [f"A{i}" for i in range(1, 4)]
-    all_qubits = q_d1, q_d2, q_d3, q_d4, q_a1, q_a2, q_a3
-
-    sched.add(Reset(*all_qubits))
-
-    for cycle in range(num_cycles):
-        sched.add(Y90(q_d1))
-        for qubit in [q_d2, q_d3, q_d4]:
-            sched.add(Y90(qubit), ref_pt="start", rel_time=0)
-        sched.add(Y90(q_a2), ref_pt="start", rel_time=0)
-
-        for qubit in [q_d2, q_d1, q_d4, q_d3]:
-            sched.add(CZ(qC=qubit, qT=q_a2))
-
-        sched.add(Y90(q_d1))
-        for qubit in [q_d2, q_d3, q_d4]:
-            sched.add(Y90(qubit), ref_pt="start", rel_time=0)
-        sched.add(Y90(q_a2), ref_pt="start", rel_time=0)
-
-        sched.add(Y90(q_a1), ref_pt="end", rel_time=0)
-        sched.add(Y90(q_a3), ref_pt="start", rel_time=0)
-
-        sched.add(CZ(qC=q_d1, qT=q_a1))
-        sched.add(CZ(qC=q_d2, qT=q_a3))
-        sched.add(CZ(qC=q_d3, qT=q_a1))
-        sched.add(CZ(qC=q_d4, qT=q_a3))
-
-        sched.add(Y90(q_a1), ref_pt="end", rel_time=0)
-        sched.add(Y90(q_a3), ref_pt="start", rel_time=0)
-
-        sched.add(Measure(q_a2, acq_index=cycle))
-        for qubit in (q_a1, q_a3):
-            sched.add(Measure(qubit, acq_index=cycle), ref_pt="start", rel_time=0)
-
-        for qubit in [q_d1, q_d2, q_d3, q_d4]:
-            sched.add(X(qubit), ref_pt="start", rel_time=0)
-
-    # final measurements
-
-    sched.add(Measure(*all_qubits[:4], acq_index=0), ref_pt="end", rel_time=0)
-
-    return sched

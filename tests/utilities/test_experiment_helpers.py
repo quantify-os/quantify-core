@@ -19,6 +19,9 @@ def mock_instr(request):
     def get_func():
         return 20
 
+    def _error_param_get():
+        raise RuntimeError("An error occured when getting the parameter")
+
     instr = Instrument("DummyInstrument")
 
     # A parameter that is both settable and gettable
@@ -52,6 +55,8 @@ def mock_instr(request):
         parameter_class=ManualParameter,
         vals=validators.Arrays(),
     )
+    # A parameter that always returns an error when you try to get it
+    instr.add_parameter("error_param", get_cmd=_error_param_get)
 
     def cleanup_instruments():
         instr.close()
@@ -81,14 +86,20 @@ def test_load_settings_onto_instrument(tmp_test_data_dir, mock_instr):
         match='Parameter "none_param_warning" of "DummyInstrument" could not be '
         'set to "None" due to error',
     ):
-        load_settings_onto_instrument(instr, tuid)
+        load_settings_onto_instrument(instr, tuid, exception_handling="warn")
 
     with pytest.warns(
         UserWarning,
         match="Could not set parameter obsolete_param in DummyInstrument. "
         "DummyInstrument does not possess a parameter named obsolete_param.",
     ):
-        load_settings_onto_instrument(instr, tuid)
+        load_settings_onto_instrument(instr, tuid, exception_handling="warn")
+
+    with pytest.warns(
+        UserWarning,
+        match=("Could not get value of error_param parameter due to"),
+    ):
+        load_settings_onto_instrument(instr, tuid, exception_handling="warn")
 
     assert instr.get("IDN") == {
         "vendor": None,

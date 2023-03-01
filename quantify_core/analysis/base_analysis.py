@@ -24,7 +24,7 @@ import xarray as xr
 from IPython.display import display
 from matplotlib.collections import QuadMesh
 from methodtools import lru_cache
-from qcodes.utils.helpers import NumpyJSONEncoder
+from qcodes.utils import NumpyJSONEncoder
 from uncertainties import ufloat
 
 from quantify_core.data.handling import (
@@ -94,8 +94,6 @@ class AnalysisSteps(Enum):
         from quantify_core.analysis import base_analysis as ba
         print(ba.analysis_steps_to_str(ba.AnalysisSteps))
 
-    .. include:: examples/analysis.base_analysis.AnalysisSteps.rst.txt
-
     .. tip::
 
         A custom analysis flow (e.g. inserting new steps) can be created by implementing
@@ -117,22 +115,22 @@ class AnalysisSteps(Enum):
 
 
 class AnalysisMeta(ABCMeta):
-    """Metaclass, whose purpose is to avoid storing large amount of figure in memory.
+    r"""Metaclass, whose purpose is to avoid storing large amount of figure in memory.
 
     By convention, analysis object stores figures in ``self.figs_mpl`` and
     ``self.axs_mpl`` dictionaries. This causes troubles for long-running operations,
     because figures are all in memory and eventually this uses all available memory of
     the PC. In order to avoid it, :meth:`BaseAnalysis.create_figures` and its
     derivatives are patched so that all the figures are put in LRU cache and
-    reconstructed upon request to :attr:`BaseAnalysis.figs_mpl` or
-    :attr:`BaseAnalysis.axs_mpl` if they were removed from the cache.
+    reconstructed upon request to :code:`BaseAnalysis.figs_mpl` or
+    :code:`BaseAnalysis.axs_mpl` if they were removed from the cache.
 
     Provided that analyses subclasses follow convention of figures being created in
     :meth:`BaseAnalysis.create_figures`, this approach should solve the memory issue
     and preserve reverse compatibility with present code.
     """
 
-    def __new__(cls, name, bases, namespace, /, **kwargs):
+    def __new__(cls, name, bases, namespace, /, **kwargs) -> AnalysisMeta:
         if "create_figures" in namespace.keys():
             namespace = dict(namespace)
             create_figures_orig = namespace.pop("create_figures")
@@ -377,7 +375,28 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         This function is typically called right after instantiating an analysis class.
 
-        .. include:: examples/analysis.base_analysis.BaseAnalysis.run_custom_analysis_args.rst.txt
+        .. admonition:: Implementing a custom analysis that requires user input
+            :class: dropdown, note
+
+            When implementing your own custom analysis you might need to pass in a few
+            configuration arguments. That should be achieved by overriding this
+            function as show below.
+
+            .. code-block:: python
+
+                from quantify_core.analysis.base_analysis import BaseAnalysis
+
+                class MyAnalysis(BaseAnalysis):
+                    def run(self, optional_argument_one: float = 3.5e9):
+                        # Save the value to be used in some step of the analysis
+                        self.optional_argument_one = optional_argument_one
+
+                        # Execute the analysis steps
+                        self.execute_analysis_steps()
+                        # Return the analysis object
+                        return self
+
+                    # ... other relevant methods ...
 
         Returns
         -------
@@ -546,7 +565,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         directory.
 
         The file is written using :func:`json.dump` with the
-        :class:`qcodes.utils.helpers.NumpyJSONEncoder` custom encoder.
+        :class:`qcodes.utils.NumpyJSONEncoder` custom encoder.
         """
         self._add_fit_res_to_qoi()
 
@@ -753,7 +772,6 @@ class Basic2DAnalysis(BaseAnalysis):
     """
 
     def create_figures(self):
-
         gridded_dataset = to_gridded_dataset(self.dataset)
 
         # plot heatmaps of the data

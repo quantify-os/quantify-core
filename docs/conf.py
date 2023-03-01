@@ -50,7 +50,7 @@ if os.environ.get("READTHEDOCS", "False") == "True":
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    "myst_parser",
+    "myst_nb",
     "sphinx.ext.autodoc",  # auto document docstrings
     "sphinx.ext.napoleon",  # autodoc understands numpy docstrings
     # load after napoleon, improved compatibility with type hints annotations
@@ -61,7 +61,6 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx_rtd_theme",
     "sphinx.ext.mathjax",
-    "jupyter_sphinx",
     "sphinx_togglebutton",
     # fancy type hints in docs and
     # solves the same issue as "sphinx_automodapi.smart_resolver"
@@ -71,6 +70,7 @@ extensions = [
     # documents parameters that are defined in the __init__ of `Instrument`s as
     # instance attributes
     "qcodes.sphinx_extensions.parse_parameter_attr",
+    "jupyter_sphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -331,3 +331,9 @@ import xarray as xr
 
 # qcodes0.36.0 lazy loads h5py which causes build failures
 import h5py
+
+# Automatically generate anchors for MyST headers
+myst_heading_anchors = 3
+
+# Cache myst_nb execution results by default
+nb_execution_mode = "cache"

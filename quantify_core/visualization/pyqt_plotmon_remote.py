@@ -610,7 +610,9 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
 
         try:
             self.main_QtPlot.update_plot()
-        except RuntimeError:  # Suppress RuntimeError: wrapped C/C++ object of type PlotDataItem has been deleted
+        except (
+            RuntimeError
+        ):  # Suppress RuntimeError: wrapped C/C++ object of type PlotDataItem has been deleted
             return
 
         ################# SECONDARY PLOT ############################

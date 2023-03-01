@@ -53,7 +53,6 @@ def test_set_cyclic_colormap() -> None:
 
 
 def test_plot_fit() -> None:
-
     # Create some sinusoid data arrays
     noise_ampl = 0.05
     x = np.linspace(0, 2 * np.pi, 25)

@@ -2,18 +2,35 @@
 
 ## Unreleased
 
-### Breaking Changes
+### Breaking changes
 
-- Requirements - `quantify-core` requires `qcodes>=0.35` now. (!427)
+- Requirements - `quantify-core` requires `qcodes>=0.37` (!439)
 
 ### Merged branches and closed issues
 
+### Merged branches and closed issues
+
+- Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError`
+
+## 0.7.0 (2022-02-03)
+
+### Breaking changes
+
+- Requirements - `quantify-core` requires `qcodes>=0.35` now. (!427)
+- Installation - Instead of `requirements.txt` and `requirements_dev.txt` `quantify-core` uses optional requirements. Use `pip install quantify-core[dev]` to install all of them. (!386)
+
+### Merged branches and closed issues
+
+- Documentation - Remove dependency on directory-tree (!431)
 - Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
 - Analysis - Make all analysis classes available from `quantify_core.analysis` (!418)
 - Data - Improve `set_datadir` and test style and readability (!419)
 - Added AttributeError to the exceptions explictly handled in loading of datasets for the remote plotmon (#352, !442)
 - Added exception handling for SI_utilities.value_precision (#350, !442)
 - `mk_trace_for_iq_shot` now renders nicely in documentation (!429)
+- Installation - Refactor of setup configuration (!386, !433)
+- Utilities - Remove `quantify_core.utilities.examples_support.mk_surface7_sched()` function that was used only for generating one non-essential figure in documentation, but caused dependency on `quantify-scheduler` to build it. This function is inlined in the documentation as an example. (!434)
+- Utilities - Improved error handling for `quantify_core.utilities.experiment_helpers.load_settings_onto_instrument` (#351, #348, !425)
 
 ## 0.6.5 (2022-12-13)
 
@@ -387,4 +404,3 @@ Please see merge request !101 for a python snippet that will make all previous d
 - \#  denotes a closed issue.
 - ! denotes a merge request.
 
----

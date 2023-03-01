@@ -132,7 +132,6 @@ fmt = SafeFormatter()
 
 
 def test_safe_formatter() -> None:
-
     fmt_string = fmt.format(BASE_STR, 4, 4.32497)
     assert fmt_string == "my_test_values_4.00_4.325"
 

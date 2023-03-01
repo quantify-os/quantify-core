@@ -12,11 +12,11 @@ from quantify_core.utilities.general import (
     save_json,
     load_json,
     load_json_safe,
+    without,
 )
 
 
 def test_delete_keys_from_dict() -> None:
-
     test_dict = {"a": 5, "b": 6, "c": {"D": 4, "E": 8}}
 
     assert "a" in test_dict.keys()
@@ -78,3 +78,19 @@ def test_load_not_existing_json(tmp_test_data_dir) -> None:
     with pytest.raises(FileNotFoundError):
         _ = load_json(full_path=non_existing_file)
     assert load_json_safe(full_path=non_existing_file) is None
+
+
+def test_without():
+    input_dict = {"foo": 1, "bar": 2, "baz": 3}
+
+    actual = without(input_dict, "foo")
+    expected = {"bar": 2, "baz": 3}
+    assert actual == expected
+
+    actual = without(input_dict, ["foo", "bar"])
+    expected = {"baz": 3}
+    assert actual == expected
+
+    actual = without(input_dict, ["foo", "bax"])
+    expected = {"bar": 2, "baz": 3}
+    assert actual == expected

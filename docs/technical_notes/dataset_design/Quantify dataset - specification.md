@@ -1,19 +1,24 @@
-(dataset-spec)=
+---
+file_format: mystnb
+kernelspec:
+  name: python3
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+---
 
+(dataset-spec)=
 # Quantify dataset specification
 
 ```{seealso}
 The complete source code of this tutorial can be found in
 
-{jupyter-download:notebook}`Quantify dataset - specification`
-
-{jupyter-download:script}`Quantify dataset - specification`
+{nb-download}`Quantify dataset - specification.ipynb`
 ```
 
-``````{admonition} Imports and auxiliary utilities
-:class: dropdown
-
-```{jupyter-execute}
+```{code-cell} ipython3
+:tags: [hide-cell]
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -31,7 +36,6 @@ pretty.install()
 
 dh.set_datadir(Path.home() / "quantify-data")  # change me!
 ```
-``````
 
 This document describes the Quantify dataset specification.
 Here we focus on the concepts and terminology specific to the Quantify dataset.
@@ -82,7 +86,7 @@ The Quantify dataset is an xarray dataset that follows certain conventions. We d
 
 ### Secondary variables(s)
 
-- Again, the ubiquitous example are "calibration" datapoints.
+- Again, the ubiquitous example is "calibration" datapoints.
 - Similar to {ref}`main variables <sec-main-variables>`, but intended to serve as reference data for other main variables (e.g., calibration data).
 - Xarray **Variables** that have an attribute {attr}`~quantify_core.data.dataset_attrs.QVarAttrs.is_main_var` set to `False`.
 - The "assignment" of secondary variables to main variables should be done using {attr}`~quantify_core.data.dataset_attrs.QDatasetAttrs.relationships`.
@@ -94,49 +98,45 @@ However, for completeness, we always show a valid Quantify dataset with all the 
 ```
 
 In order to follow the rest of this specification more easily have a look at the example below.
-It should give you a more concrete feeling of the details that are exposed afterwards.
-See {ref}`sec-dataset-examples` for exemplary dataset.
-
-``````{admonition} Generate dataset
-:class: dropdown
+It should give you a more concrete feeling of the details that are exposed afterward.
+See {ref}`sec-dataset-examples` for an exemplary dataset.
 
 We use the
 {func}`~quantify_core.utilities.dataset_examples.mk_two_qubit_chevron_dataset` to
 generate our dataset.
 
-```{jupyter-execute}
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: Source code for generating the dataset below
+---
 display_source_code(dataset_examples.mk_two_qubit_chevron_dataset)
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset = dataset_examples.mk_two_qubit_chevron_dataset()
-
 assert dataset == round_trip_dataset(dataset)  # confirm read/write
 ```
-``````
 
-``````{admonition} Quantify dataset: 2D example
-:class: dropdown, toggle-shown
+### 2D example
 
 In the dataset below we have two main coordinates `amp` and `time`; and two main
 variables `pop_q0` and `pop_q1`.
 Both main coordinates "lie" along a single xarray dimension, `main_dim`.
 Both main variables lie along two xarray dimensions `main_dim` and `repetitions`.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset
 ```
 
 **Please note** how the underlying arrays for the coordinates are structured!
-As the figure below depicts, even for "gridded" data the coordinates are
-"unrolled" into arrays the specify the value of that coordinate for the
-corresponding index in the variables that lie along the same xarray
-dimensions (here `main_dim`). This is intentional in order to support, in a
-uniform manner, more complex use-cases such as arbitrarily sparse sampling of the
-coordinates domain and adaptive measurements in which the points to be measured are
-not known before a measurement is executed.
+Even for "gridded" data, the coordinates are arranged in arrays
+that match the dimensions of the variables in the xarray. This is
+done so that the data can support more complex scenarios, such as
+irregularly spaced samples and measurements taken at unknown locations.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 n_points = 110  # only plot a few points for clarity
 _, axs = plt.subplots(4, 1, sharex=True, figsize=(10, 10))
 dataset.amp[:n_points].plot(
@@ -156,14 +156,15 @@ for ax in axs:
     ax.grid()
 ```
 
-As seen above, in the Quantify dataset the main coordinates do not explicitly index the main variables because not all use-cases fit within this paradigm.
-However, when possible, the Quantify dataset can be reshaped to take advantage of the xarray built-in utilities.
+As seen above, in the Quantify dataset the main coordinates do not explicitly index
+the main variables because not all use-cases fit within this paradigm.
+However, when possible, the Quantify dataset can be reshaped to take advantage of the
+xarray built-in utilities.
 
-% FIXME when a Quantify dataset has a class re-evaluate the need for following sentence or some equivalent:
+<!-- FIXME when a Quantify dataset has a class re-evaluate the need for following sentence or some equivalent: -->
+<!-- Note, however, that this reshaping will produce an xarray dataset that does not comply with the Quantify dataset specification. -->
 
-% Note, however, that this reshaping will produce an xarray dataset that does not comply with the Quantify dataset specification.
-
-```{jupyter-execute}
+```{code-cell} ipython3
 
 dataset_gridded = dh.to_gridded_dataset(
     dataset,
@@ -173,7 +174,6 @@ dataset_gridded = dh.to_gridded_dataset(
 dataset_gridded.pop_q0.plot.pcolormesh(x="amp", col="repetitions")
 _ = dataset_gridded.pop_q1.plot.pcolormesh(x="amp", col="repetitions")
 ```
-``````
 
 ## Dimensions
 
@@ -203,7 +203,6 @@ The secondary dimensions comply with the following:
 - Do not require to be explicitly specified in any metadata attributes, instead utilities for extracting them are provided. See {func}`~quantify_core.data.dataset_attrs.get_secondary_dims` which simply applies the rule above while inspecting all the secondary coordinates and variables present in the dataset.
 
 (sec-repetitions-dimensions)=
-
 ### Repetitions dimension(s) \[Optional\]
 
 Repetition dimensions comply with the following:
@@ -214,12 +213,11 @@ Repetition dimensions comply with the following:
 - Can be the outermost dimension of the main (and secondary) variables.
 - Variables can lie along one (and only one) repetitions outermost dimension.
 
-``````{admonition} Examples datasets with repetition
-:class: dropdown
+#### Examples datasets with repetition
 
-As shown in the {ref}`xarray-intro` an xarray dimension can be indexed by a `coordinate` variable. In this example the `repetitions` dimension is indexed by the `repetitions` xarray coordinate. Note that in an xarray dataset, a dimension and a data variables or a coordinate can share the same name. This might be confusing at first. It takes just a bit of dataset manipulation practice to gain the intuition for how it works.
+As shown in the {ref}`xarray-intro` an xarray dimension can be indexed by a `coordinate` variable. In this example the `repetitions` dimension is indexed by the `repetitions` xarray coordinate. Note that in an xarray dataset, a dimension and a data variable or a coordinate can share the same name. This might be confusing at first. It takes just a bit of dataset manipulation practice to gain an intuition for how it works.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 coord_dims = ("repetitions",)
 coord_values = ["A", "B", "C", "D", "E"]
 dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_values)))
@@ -227,7 +225,7 @@ dataset_indexed_rep = xr.Dataset(coords=dict(repetitions=(coord_dims, coord_valu
 dataset_indexed_rep
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 # merge with the previous dataset
 dataset_rep = dataset.merge(dataset_indexed_rep, combine_attrs="drop_conflicts")
 
@@ -238,7 +236,7 @@ dataset_rep
 
 And as before, we can reshape the dataset to take advantage of the xarray builtin utilities.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(
     dataset_rep,
     dimension="main_dim",
@@ -249,12 +247,11 @@ dataset_gridded
 
 It is now possible to retrieve (select) a specific entry along the `repetitions` dimension:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 _ = dataset_gridded.pop_q0.sel(repetitions="A").plot(x="amp")
 plt.show()
 _ = dataset_gridded.pop_q0.sel(repetitions="D").plot(x="amp")
 ```
-``````
 
 ## Dataset attributes
 
@@ -268,7 +265,7 @@ It can be used to generate a default dictionary that is attached to a dataset un
     :show-inheritance:
 ```
 
-Additionally in order to express relationships between coordinates and/or variables the
+Additionally in order to express relationships between coordinates and/or variables
 the following template is provided:
 
 ```{eval-rst}
@@ -278,7 +275,7 @@ the following template is provided:
     :show-inheritance:
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 from quantify_core.data.dataset_attrs import QDatasetAttrs
 
 # tip: to_json and from_dict, from_json  are also available
@@ -286,17 +283,15 @@ dataset.attrs = QDatasetAttrs().to_dict()
 dataset.attrs
 ```
 
-``````{tip}
 Note that xarray automatically provides the entries of the dataset attributes as python attributes. And similarly for the xarray coordinates and data variables.
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset.quantify_dataset_version, dataset.tuid
 ```
-``````
 
 ## Main coordinates and variables attributes
 
-Similar to the dataset attributes ({attr}`xarray.Dataset.attrs`), the main coordinates and variables have each their own required attributes attached to them as dictionary under the {attr}`xarray.DataArray.attrs` attribute.
+Similar to the dataset attributes ({attr}`xarray.Dataset.attrs`), the main coordinates and variables have each their own required attributes attached to them as a dictionary under the {attr}`xarray.DataArray.attrs` attribute.
 
 ```{eval-rst}
 .. autoclass:: quantify_core.data.dataset_attrs.QCoordAttrs
@@ -305,7 +300,7 @@ Similar to the dataset attributes ({attr}`xarray.Dataset.attrs`), the main coord
     :show-inheritance:
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset.amp.attrs
 ```
 
@@ -316,7 +311,7 @@ dataset.amp.attrs
     :show-inheritance:
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 dataset.pop_q0.attrs
 ```
 
@@ -325,17 +320,17 @@ dataset.pop_q0.attrs
 The Quantify dataset is written to disk and loaded back making use of xarray-supported facilities.
 Internally we write and load to/from disk using:
 
-```{jupyter-execute}
+```{code-cell} ipython3
 display_source_code(dh.write_dataset)
 display_source_code(dh.load_dataset)
 ```
 
-Note that we use the `h5netcdf` engine that is more permissive than the default NetCDF engine to accommodate for arrays of complex numbers.
+Note that we use the `h5netcdf` engine which is more permissive than the default NetCDF engine to accommodate arrays of complex numbers.
 
 ```{note}
 Furthermore, in order to support a variety of attribute types (e.g. the `None` type) and shapes (e.g. nested dictionaries) in a seamless dataset round trip, some additional tooling is required. See source codes below that implements the two-way conversion adapter used by the functions shown above.
 ```
 
-```{jupyter-execute}
+```{code-cell} ipython3
 display_source_code(dadapters.AdapterH5NetCDF)
 ```
