@@ -32,7 +32,6 @@ def t1_analysis_no_cal_points(tmp_test_data_dir):
 def test_t1_load_fit_results(t1_analysis_no_cal_points, tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
     for fit_name, fit_result in t1_analysis_no_cal_points.fit_results.items():
-
         loaded_fit_result = T1Analysis.load_fit_result(
             tuid=t1_analysis_no_cal_points.tuid, fit_name=fit_name
         )
@@ -121,7 +120,6 @@ def test_echo_analysis_no_cal(tmp_test_data_dir):
 
     # Test loading and saving fit result object
     for fit_name, fit_result in analysis_obj.fit_results.items():
-
         loaded_fit_result = EchoAnalysis.load_fit_result(
             tuid=analysis_obj.tuid, fit_name=fit_name
         )
@@ -214,7 +212,6 @@ def ramsey_analysis_qubit_freq(tmp_test_data_dir):
 def test_ramsey_load_fit_results(ramsey_analysis_qubit_freq, tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
     for fit_name, fit_result in ramsey_analysis_qubit_freq.fit_results.items():
-
         loaded_fit_result = RamseyAnalysis.load_fit_result(
             tuid=ramsey_analysis_qubit_freq.tuid, fit_name=fit_name
         )
@@ -416,7 +413,6 @@ def rabi_analysis_obj(tmp_test_data_dir):
 def test_rabi_load_fit_results(rabi_analysis_obj, tmp_test_data_dir):
     set_datadir(tmp_test_data_dir)
     for fit_name, fit_result in rabi_analysis_obj.fit_results.items():
-
         loaded_fit_result = RabiAnalysis.load_fit_result(
             tuid=rabi_analysis_obj.tuid, fit_name=fit_name
         )
@@ -454,7 +450,6 @@ def test_quantities_of_interest(rabi_analysis_obj):
 
 
 def test_quantities_of_interest_negative_amp(tmp_test_data_dir):
-
     set_datadir(tmp_test_data_dir)
     x_data = np.linspace(-0.5, 0.5, 31)
     y_data = np.cos(x_data * 4 * np.pi) * 0.31 + 0.05

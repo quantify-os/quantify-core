@@ -27,7 +27,7 @@
 
 1. [ ] Create tag for bumped version:
     - Merge this MR into `main`.
-    - Create an **annotated** tag `vX.Y.Z`:.
+    - Create and push an **annotated** tag `vX.Y.Z` pointing to the merge commit:
 
       ```bash
       echo $NEW_VERSION
@@ -39,6 +39,14 @@
     <!-- - Future TODO: finish automation of this step in `.gitlab-ci.yml`. -->
     <!-- 1. [ ] Run **one** of the major/minor/patch version bump (manual) jobs in the CI pipeline of the MR. -->
     <!--     - NB this can only be done after unix and windows test & docs jobs pass. -->
+
+1. [ ] Add `Unreleased` chapter back to `CHANGELOG.md`. Commit and push it to `main` directly (no need to review it). Commit message could be, for example, `start development of vX.Y.(Z+1)`.
+
+1. [ ] Create and push an **annotated** tag `vX.Y.(Z+1).dev` pointing to the commit above.  Commit annotation could be, for example, `Start development of vX.Y.Z+1`.
+    <!-- Note: if we are following semver, this should be rather vX.(Y+1).0.dev, and bugfixes need to go into a separate bugfix branch for each minor release a-la `stable/vX.Y`.
+    Since we are not so strict with that and releasing minor and bugfix from the same branch, to avoid situation of having previous commit having version v0.7.0.dev19+abcdef and
+    next commit version v0.6.5 (which is less than v0.7.0.devN, which should not be the case) we must bump a bugfix version (the most minor version we bump in main)
+    and later we may decide that we are releasing a minor instad of a bugfix.-->
 
 1. Read-the-Docs setup:
    - [ ] Enable docs build for the new tag [over here](https://readthedocs.com/projects/quantify-quantify-core/versions/).

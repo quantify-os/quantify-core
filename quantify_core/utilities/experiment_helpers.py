@@ -2,23 +2,23 @@
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
 import warnings
-from typing import Any, Optional, Union, Dict, List
+from typing import Any, Optional, Union, Dict, List, Literal
 
 import numpy as np
-
-from qcodes.instrument import Instrument, Parameter
-from qcodes.instrument.channel import InstrumentChannel
+from qcodes.instrument import Instrument, InstrumentChannel
+from qcodes.parameters import Parameter
 
 from quantify_core.data.handling import get_latest_tuid, load_snapshot
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import get_subclasses
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
 
+# pylint: disable=broad-except
 def load_settings_onto_instrument(
     instrument: Union[Instrument, InstrumentChannel, Parameter],
     tuid: TUID = None,
     datadir: str = None,
+    exception_handling: Literal["raise", "warn"] = "raise",
 ) -> None:
     """
     Loads settings from a previous experiment onto a current
@@ -31,12 +31,15 @@ def load_settings_onto_instrument(
     instrument :
         the :class:`~qcodes.instrument.Instrument`,
         :class:`~qcodes.instrument.InstrumentChannel` or
-        :class:`~qcodes.instrument.Parameter` to be configured.
+        :class:`~qcodes.parameters.Parameter` to be configured.
     tuid : :class:`~quantify_core.data.types.TUID`
         the TUID of the experiment. If None use latest TUID.
     datadir : str
         path of the data directory. If `None`, uses `get_datadir()` to
         determine the data directory.
+    exception_handling:
+        desired behaviour if error occurs when trying to get parameter:
+        raise exception or give warning.
     Raises
     ------
     ValueError
@@ -59,8 +62,19 @@ def load_settings_onto_instrument(
         # do not try to set parameters that are not settable
         if not "set" in dir(instr_mod.parameters[parname]):
             return
-        # do not set to None if value is already None
-        if instr_mod.parameters[parname]() is None and value is None:
+        # do not set to None if value is already None. If there is a runtime
+        # error when getting the parameter, do not try to set the parameter.
+        try:
+            get_val = instr_mod.parameters[parname]()
+        except Exception as exc:
+            if exception_handling == "raise":
+                raise exc
+            warnings.warn(
+                f"Could not get value of {parname} parameter due to '{exc}'. "
+                "We will not try to set this parameter."
+            )
+            return
+        if get_val is None and value is None:
             return
 
         # Make sure the parameter is actually a settable
@@ -120,7 +134,19 @@ def load_settings_onto_instrument(
             # Check that the parameter exists in this instrument
             if parname in instr_mod.parameters:
                 value = par["value"]
-                if isinstance(instr_mod.parameters[parname](), np.ndarray):
+                # If we get a runtime error when getting the parameter, don't try to
+                # set the parameter
+                try:
+                    get_val = instr_mod.parameters[parname]()
+                except Exception as exc:
+                    if exception_handling == "raise":
+                        raise exc
+                    warnings.warn(
+                        f"Could not get value of {parname} parameter due to '{exc}'. "
+                        "We will not try to set this parameter."
+                    )
+                    continue
+                if isinstance(get_val, np.ndarray):
                     value = instr_mod_snap_np["parameters"][parname]["value"]
                 _try_to_set_par_safe(instr_mod, parname, value)
             else:
@@ -158,8 +184,9 @@ def get_all_parents(instr_mod: Union[Instrument, InstrumentChannel, Parameter]) 
         The QCodes instrument, submodule or parameter whose parents we wish to find
 
     Returns
-    -----------
-    A list of all the parents of that object (and the object itself)
+    -------
+    :
+        A list of all the parents of that object (and the object itself)
     """
     if hasattr(instr_mod, "_parent"):
         parents = get_all_parents(instr_mod._parent)

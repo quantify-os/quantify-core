@@ -5,8 +5,9 @@ repos:
       # git commit ... --no-verify
       # git push ... --no-verify
 
-      # NB if `requirements_dev.txt` are installed in a virtual env, then
-      # the git commit/push must be executed in the same env (applies to IDEs as well!)
+      # If quantify-core is installed in a virtual environment, then
+      # the git commit/push must be executed in the same environment
+      # (applies to IDEs as well!)
 
       # ################################################################################
       # Static analysis before committing

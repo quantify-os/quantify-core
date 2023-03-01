@@ -26,15 +26,34 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QDatasetIntraRelationship.rst.txt
+        This is how the attributes of a dataset containing a ``q0`` main variable and
+        ``q0_cal`` secondary variables would look like.
+        The ``q0_cal`` corresponds to calibrations datapoints.
+        See :ref:`sec-dataset-examples` for examples with more context.
+
+        .. jupyter-execute::
+
+            from quantify_core.data.dataset_attrs import QDatasetIntraRelationship
+            from quantify_core.utilities import examples_support
+
+            attrs = examples_support.mk_dataset_attrs(
+                relationships=[
+                    QDatasetIntraRelationship(
+                        item_name="q0",
+                        relation_type="calibration",
+                        related_names=["q0_cal"],
+                    ).to_dict()
+                ]
+            )
     """
 
-    item_name: str = None
+    item_name: str | None = None
     """
     The name of the coordinate/variable to which we want to relate other
     coordinates/variables.
     """
-    relation_type: str = None
+
+    relation_type: str | None = None
     """A string specifying the type of relationship.
 
     Reserved relation types:
@@ -42,8 +61,10 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
     ``"calibration"`` - Specifies a list of main variables used as calibration
     data for the main variables whose name is specified by the ``item_name``.
     """
+
     related_names: List[str] = field(default_factory=list)
     """A list of names related to the ``item_name``."""
+
     relation_metadata: Dict[str, Any] = field(default_factory=dict)
     """
     A free-form dictionary to store additional information relevant to this
@@ -61,7 +82,15 @@ class QCoordAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QCoordAttrs.rst.txt
+        .. jupyter-execute::
+
+            from quantify_core.utilities import examples_support
+            examples_support.mk_main_coord_attrs()
+
+        .. jupyter-execute::
+
+            examples_support.mk_secondary_coord_attrs()
+
     """
 
     unit: str = ""
@@ -93,17 +122,27 @@ class QVarAttrs(DataClassJsonMixin):
 
     .. admonition:: Examples
 
-        .. include:: /examples/data.dataset_attrs.QVarAttrs.rst.txt
+        .. jupyter-execute::
+
+            from quantify_core.utilities import examples_support
+            examples_support.mk_main_var_attrs(coords=["time"])
+
+        .. jupyter-execute::
+
+            examples_support.mk_secondary_var_attrs(coords=["cal"])
     """
 
     unit: str = ""
     """The units of the values."""
+
     long_name: str = ""
     """A long name for this coordinate."""
-    is_main_var: bool = None
+
+    is_main_var: bool | None = None
     """When set to ``True``, flags this xarray data variable to correspond to a main
     variable, otherwise (``False``) it corresponds to a secondary variable."""
-    uniformly_spaced: Union[bool, None] = None
+
+    uniformly_spaced: bool | None = None
     """Indicates if the values are uniformly spaced.
     This does not apply to 'true' main variables but, because a MultiIndex is not
     supported yet by xarray when writing to disk, some coordinate variables have to be
@@ -113,7 +152,7 @@ class QVarAttrs(DataClassJsonMixin):
     # This attribute only makes sense to have for each main variable instead of
     # attaching it to the full dataset.
     # In case we later make use of more dimensions this will be specially relevant.
-    grid: Union[bool, None] = None
+    grid: bool | None = None
     """Indicates if the variables data are located on a grid, which does not need to be
     uniformly spaced along all dimensions. In other words, specifies if the
     corresponding main coordinates are the 'unrolled' points (also known as
@@ -123,9 +162,11 @@ class QVarAttrs(DataClassJsonMixin):
     :func:`quantify_core.data.handling.to_gridded_dataset()` to convert the variables to
     a 'stacked' version.
     """
+
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset. See also :ref:`sec-nested-mc-example`."""
+
     has_repetitions: bool = False
     """Indicates that the outermost dimension of this variable is a repetitions
     dimension. This attribute is intended to allow easy programmatic detection of such
@@ -149,44 +190,74 @@ class QDatasetAttrs(DataClassJsonMixin):
 
     .. admonition:: Example
 
-        .. include:: /examples/data.dataset_attrs.QDatasetAttrs.rst.txt
+        .. jupyter-execute::
+
+            import pendulum
+            from quantify_core.utilities import examples_support
+
+            examples_support.mk_dataset_attrs(
+                dataset_name="Bias scan",
+                timestamp_start=pendulum.now().to_iso8601_string(),
+                timestamp_end=pendulum.now().add(minutes=2).to_iso8601_string(),
+                dataset_state="done",
+            )
     """
 
     tuid: Union[str, None] = None
     """The time-based unique identifier of the dataset.
     See :class:`quantify_core.data.types.TUID`."""
+
     dataset_name: str = ""
     """The dataset name, usually same as the the experiment name included in the name of
     the experiment container."""
+
     dataset_state: Literal[
         None, "running", "interrupted (safety)", "interrupted (forced)", "done"
     ] = None
     """Denotes the last known state of the experiment/data acquisition that served to
     'build' this dataset. Can be used later to filter 'bad' datasets.
     """
+
     timestamp_start: Union[str, None] = None
     """Human-readable timestamp (ISO8601) as returned by
     :code:`pendulum.now().to_iso8601_string()`
     (`docs <https://pendulum.eustace.io/docs/>`_).
     Specifies when the experiment/data acquisition started.
     """
+
     timestamp_end: Union[str, None] = None
     """Human-readable timestamp (ISO8601) as returned by
     :code:`pendulum.now().to_iso8601_string()`
     (`docs <https://pendulum.eustace.io/docs/>`_).
     Specifies when the experiment/data acquisition ended.
     """
+
     quantify_dataset_version: str = "2.0.0"
     """A string identifying the version of this Quantify dataset for backwards
     compatibility."""
+
     software_versions: Dict[str, str] = field(default_factory=dict)
     """A mapping of other relevant software packages that are relevant to log for this
     dataset. Another example is the git tag or hash of a commit of a lab repository.
 
     .. admonition:: Example
 
-        .. include:: /examples/data.dataset_attrs.QDatasetAttrs.software_versions.rst.txt
+        .. jupyter-execute::
+
+            import pendulum
+            from quantify_core.utilities import examples_support
+
+            examples_support.mk_dataset_attrs(
+                dataset_name="My experiment",
+                timestamp_start=pendulum.now().to_iso8601_string(),
+                timestamp_end=pendulum.now().add(minutes=2).to_iso8601_string(),
+                software_versions={
+                    "lab_fridge_magnet_driver": "v1.4.2",  # software version/tag
+                    "my_lab_repo": "9d8acf63f48c469c1b9fa9f2c3cf230845f67b18",  # git commit hash
+                },
+            )
     """  # pylint: disable=line-too-long
+
     relationships: List[QDatasetIntraRelationship] = field(default_factory=list)
     """A list of relationships within the dataset specified as list of dictionaries
     that comply with the :class:`~.QDatasetIntraRelationship`."""

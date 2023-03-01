@@ -302,6 +302,44 @@ def set_cyclic_colormap(
     """
     Sets a cyclic colormap on a matplolib 2D color plot if cyclic units are detected.
 
+    .. admonition:: Example
+        :class: dropdown, tip
+
+        .. jupyter-execute::
+
+            import matplotlib.pyplot as plt
+            import numpy as np
+            import xarray as xr
+
+            from quantify_core.visualization.mpl_plotting import set_cyclic_colormap
+
+            zvals = xr.DataArray(np.random.rand(6, 10) * 360)
+            zvals.attrs["units"] = "deg"
+            zvals.plot()
+
+            fig, ax = plt.subplots(1, 1)
+            color_plot = zvals.plot(ax=ax)
+            set_cyclic_colormap(color_plot)
+
+            zvals_shifted = zvals - 180
+
+            fig, ax = plt.subplots(1, 1)
+            color_plot = zvals_shifted.plot(ax=ax)
+            ax.set_title("Shifted cyclic colormap")
+            set_cyclic_colormap(color_plot, shifted=zvals_shifted.min() < 0)
+
+            fig, ax = plt.subplots(1, 1)
+            color_plot = (zvals / 2).plot(ax=ax)
+            ax.set_title("Overwrite clim")
+            set_cyclic_colormap(color_plot, clim=(0, 180), unit="deg")
+
+            fig, ax = plt.subplots(1, 1)
+            zvals_rad = zvals / 180 * np.pi
+            zvals_rad.attrs["units"] = "rad"
+            color_plot = zvals_rad.plot(ax=ax)
+            ax.set_title("Radians")
+            set_cyclic_colormap(color_plot, unit=zvals_rad.units)
+
     Parameters
     ----------
     image_or_collection
@@ -315,9 +353,6 @@ def set_cyclic_colormap(
         Used to fix the colormap range.
     clim
         The colormap limit.
-
-
-    .. include:: examples/visualization.mpl_plotting.set_cyclic_colormap.rst.txt
     """  # pylint: disable=line-too-long
     shifted = bool(shifted)  # in case xarray min() is used
     if unit in {"deg", "rad"}:
