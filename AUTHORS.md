@@ -21,6 +21,7 @@
 - [Michiel Haye](mailto:michiel.haye@tno.nl)
 - [Pieter Eendebak](mailto:pieter.eendebak@tno.nl)
 - [Sander de Snoo](mailto:S.L.deSnoo@tudelft.nl)
+- [Thomas Middelburg](mailto:tmiddelburg@qblox.com)
 - [Thomas Reynders](mailto:thomas@orangeqs.com)
 - [Tim Vroomans](mailto:tim@orangeqs.com)
 - [Tobias Bonsen](mailto:tobias@orangeqs.com)

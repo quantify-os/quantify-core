@@ -8,6 +8,10 @@
 
 ### Merged branches and closed issues
 
+### Merged branches and closed issues
+
+- Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError`
+
 ## 0.7.0 (2022-02-03)
 
 ### Breaking changes
