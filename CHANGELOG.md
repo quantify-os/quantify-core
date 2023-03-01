@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+### Breaking changes
+
+- Requirements - `quantify-core` requires `qcodes>=0.37` (!439)
+
+### Merged branches and closed issues
+
 ## 0.7.0 (2022-02-03)
 
-### Breaking Changes
+### Breaking changes
 
 - Requirements - `quantify-core` requires `qcodes>=0.35` now. (!427)
 - Installation - Instead of `requirements.txt` and `requirements_dev.txt` `quantify-core` uses optional requirements. Use `pip install quantify-core[dev]` to install all of them. (!386)
