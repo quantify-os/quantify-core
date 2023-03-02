@@ -5,6 +5,8 @@
 ### Breaking changes
 
 - Requirements - `quantify-core` requires `qcodes>=0.37` (!439)
+- `mk_trace_for_iq_shot` now renders nicely in documentation (!429)
+
 
 ### Merged branches and closed issues
 
@@ -27,7 +29,6 @@
 - Data - Improve `set_datadir` and test style and readability (!419)
 - Added AttributeError to the exceptions explictly handled in loading of datasets for the remote plotmon (#352, !442)
 - Added exception handling for SI_utilities.value_precision (#350, !442)
-- `mk_trace_for_iq_shot` now renders nicely in documentation (!429)
 - Installation - Refactor of setup configuration (!386, !433)
 - Utilities - Remove `quantify_core.utilities.examples_support.mk_surface7_sched()` function that was used only for generating one non-essential figure in documentation, but caused dependency on `quantify-scheduler` to build it. This function is inlined in the documentation as an example. (!434)
 - Utilities - Improved error handling for `quantify_core.utilities.experiment_helpers.load_settings_onto_instrument` (#351, #348, !425)
