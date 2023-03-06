@@ -9,8 +9,8 @@
 ### Merged branches and closed issues
 
 ### Merged branches and closed issues
-
-- Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError`
+- Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError` (!438)
+- Visualization - If provided, InstrumentMonitor displays instrument label (!369)
 
 ## 0.7.0 (2022-02-03)
 
@@ -23,7 +23,6 @@
 
 - Documentation - Remove dependency on directory-tree (!431)
 - Documentation - Sphinx build now compatible with qcodes==0.36.0 (!416, counterpart of quantify-scheduler!552)
-- Visualization - If provided, InstrumentMonitor displays instrument label (!369)
 - Analysis - Make all analysis classes available from `quantify_core.analysis` (!418)
 - Data - Improve `set_datadir` and test style and readability (!419)
 - Added AttributeError to the exceptions explictly handled in loading of datasets for the remote plotmon (#352, !442)
