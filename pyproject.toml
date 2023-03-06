@@ -90,6 +90,8 @@ dev = [
     "pre-commit",
     "pre-commit-hooks",
     "pylint",
+    "pyright",
+    "ruff",
 ]
 
 [project.urls]
@@ -115,3 +117,205 @@ readme = { file = ["README.md"], content-type = "text/markdown" }
 
 [tool.isort]
 profile = "black"
+
+
+[tool.ruff]
+line-length = 88
+select = [
+    "F",  # pyflakes
+    "E",  # pycodestyle
+    "W",  # pycodestyle
+    "D",  # pydocstyle
+    "I",  # isort
+    "N",  # flake8-naming
+    "UP", # pyupgrade
+    "TID",  # flake8-tidy-imports
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "Q", #flake8-quotes
+    "ARG", #flake8-unused-arguments
+    "ANN",  # flake8-annotations
+    #Pylint (PLC, PLE, PLR, PLW)
+    "PLC",
+    "PLE",
+    "PLR",
+    "PLW",
+]
+
+# ignore:
+# D203: 1 blank line required before class docstring
+# D212: Multi-line docstring summary should start at the first line
+# E741:   Ambiguous variable name
+# N806:   Variable `...` in function should be lowercase
+# PLR0913: Too many arguments to function call (.../5)
+# A003: Class attribute `compile` is shadowing a python builtin
+# ANN101: Missing type annotation for `self` in method
+# PLR2004: Magic value used in comparison, consider replacing `...` with a constant variable
+ignore = ["D203", "D212", "E741", "N806", "PLR0913", "A003", "ANN101", "PLR2004"]
+
+exclude = [
+    "docs",
+]
+
+[tool.ruff.isort]
+known-first-party = ["quantify_core", "quantify_scheduler"]
+
+[tool.ruff.per-file-ignores]
+"setup.py" = ["D", "ANN"]
+"conftest.py" = ["D", "ANN"]
+"tests/*" = ["D", "ANN"]
+
+# - E402: Module level import not at top of file
+# - F401: Multiple imports on one line
+"*/docs/conf.py" = ["E402", "F401"]
+"__init__.py" = ["F401"]
+
+"quantify_core/_static_version.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/cosine_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/interpolation_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/schemas/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/optimization_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/types.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/calibration.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/spectroscopy_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/base_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/single_qubit_timedomain.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/fitting_models.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/data/dataset_adapters.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/data/types.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/data/experiment.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/data/handling.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/data/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/data/dataset_attrs.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/measurement/gettables.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/measurement/schemas/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/measurement/types.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/measurement/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/measurement/control.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/_docs_helpers.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/_tests_helpers.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/dataset_examples.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/inspect_utils.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/deprecation.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/experiment_helpers.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/examples_support.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/utilities/general.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/_appnope.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/ins_mon_widget/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/ins_mon_widget/qc_snapshot_widget.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR", "PLW"]
+"quantify_core/visualization/plot_interpolation.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/SI_utilities.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/color_utilities.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/instrument_monitor.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/mpl_plotting.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/pyqt_plotmon_remote.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/visualization/pyqt_plotmon.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/_version.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/__init__.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_fitting_models.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_interpolation_analysis.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_optimization_analysis.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_spectroscopy_analysis.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_calibration.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_types.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_base_analysis.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/analysis/test_single_qubit_timedomain.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/data/__init__.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/data/test_types.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/data/test_data_handling.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/data/test_experiment.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/measurement/__init__.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/measurement/test_types.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/measurement/test_measurement_control.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/test_data/__init__.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/test_headers_and_copyright.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/utilities/__init__.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/utilities/test_inspect_utils.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/utilities/test_deprecation.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/utilities/test_experiment_helpers.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/utilities/test_general.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/visualization/test_instrument_monitor.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/visualization/test_SI_utilities.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/visualization/test_mpl_plotting.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"tests/visualization/test_pyqt_plotmon.py" = ["I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+
+[tool.pyright]
+exclude = [
+    "setup.py",
+    "quantify_core/_static_version.py",
+    "quantify_core/analysis/cosine_analysis.py",
+    "quantify_core/analysis/interpolation_analysis.py",
+    "quantify_core/analysis/schemas/__init__.py",
+    "quantify_core/analysis/optimization_analysis.py",
+    "quantify_core/analysis/types.py",
+    "quantify_core/analysis/calibration.py",
+    "quantify_core/analysis/spectroscopy_analysis.py",
+    "quantify_core/analysis/__init__.py",
+    "quantify_core/analysis/base_analysis.py",
+    "quantify_core/analysis/single_qubit_timedomain.py",
+    "quantify_core/analysis/fitting_models.py",
+    "quantify_core/data/dataset_adapters.py",
+    "quantify_core/data/types.py",
+    "quantify_core/data/experiment.py",
+    "quantify_core/data/handling.py",
+    "quantify_core/data/__init__.py",
+    "quantify_core/data/dataset_attrs.py",
+    "quantify_core/measurement/gettables.py",
+    "quantify_core/measurement/schemas/__init__.py",
+    "quantify_core/measurement/types.py",
+    "quantify_core/measurement/__init__.py",
+    "quantify_core/measurement/control.py",
+    "quantify_core/utilities/_docs_helpers.py",
+    "quantify_core/utilities/_tests_helpers.py",
+    "quantify_core/utilities/dataset_examples.py",
+    "quantify_core/utilities/inspect_utils.py",
+    "quantify_core/utilities/deprecation.py",
+    "quantify_core/utilities/experiment_helpers.py",
+    "quantify_core/utilities/__init__.py",
+    "quantify_core/utilities/examples_support.py",
+    "quantify_core/utilities/general.py",
+    "quantify_core/visualization/_appnope.py",
+    "quantify_core/visualization/ins_mon_widget/__init__.py",
+    "quantify_core/visualization/ins_mon_widget/qc_snapshot_widget.py",
+    "quantify_core/visualization/plot_interpolation.py",
+    "quantify_core/visualization/SI_utilities.py",
+    "quantify_core/visualization/color_utilities.py",
+    "quantify_core/visualization/instrument_monitor.py",
+    "quantify_core/visualization/mpl_plotting.py",
+    "quantify_core/visualization/pyqt_plotmon_remote.py",
+    "quantify_core/visualization/__init__.py",
+    "quantify_core/visualization/pyqt_plotmon.py",
+    "quantify_core/__init__.py",
+    "quantify_core/_version.py",
+    "tests/__init__.py",
+    "tests/analysis/test_fitting_models.py",
+    "tests/analysis/test_interpolation_analysis.py",
+    "tests/analysis/test_optimization_analysis.py",
+    "tests/analysis/test_spectroscopy_analysis.py",
+    "tests/analysis/test_calibration.py",
+    "tests/analysis/test_types.py",
+    "tests/analysis/test_base_analysis.py",
+    "tests/analysis/test_single_qubit_timedomain.py",
+    "tests/data/__init__.py",
+    "tests/data/test_types.py",
+    "tests/data/test_data_handling.py",
+    "tests/data/test_experiment.py",
+    "tests/measurement/__init__.py",
+    "tests/measurement/test_types.py",
+    "tests/measurement/test_measurement_control.py",
+    "tests/test_data/__init__.py",
+    "tests/test_headers_and_copyright.py",
+    "tests/utilities/__init__.py",
+    "tests/utilities/test_inspect_utils.py",
+    "tests/utilities/test_deprecation.py",
+    "tests/utilities/test_experiment_helpers.py",
+    "tests/utilities/test_general.py",
+    "tests/visualization/test_instrument_monitor.py",
+    "tests/visualization/test_SI_utilities.py",
+    "tests/visualization/test_mpl_plotting.py",
+    "tests/visualization/test_pyqt_plotmon.py",
+]

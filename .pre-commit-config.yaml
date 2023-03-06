@@ -30,20 +30,14 @@ repos:
         language: python
         types: [python]
 
-      # ################################################################################
-      # Run tests before pushing
-      # ################################################################################
-
-      # To install this hook run:
-      # pre-commit install --hook-type pre-push
-      # To execute it manually run:
-      # pre-commit run --hook-stage push
-
-      - id: pytest
-        name: Run tests
-        entry: pytest
-        args: ["-n", "auto"]  # run in parallel, requires pytest-xdist
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [push]
+      # pip install ruff
+      - id: ruff
+        name: Linter [ruff]
+        description: "Run 'ruff' for extremely fast Python linting"
+        entry: ruff --force-exclude
+        language: python
+        'types_or': [python, pyi]
+        args: []
+        require_serial: true
+        additional_dependencies: []
+        minimum_pre_commit_version: '2.9.2'
