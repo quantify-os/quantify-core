@@ -8,7 +8,6 @@
 
 ### Merged branches and closed issues
 
-### Merged branches and closed issues
 - Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError` (!438)
 - Visualization - If provided, InstrumentMonitor displays instrument label (!369)
 
