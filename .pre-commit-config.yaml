@@ -13,12 +13,14 @@ repos:
       # Static analysis before committing
       # ################################################################################
 
-      # To install these hooks run:
+      # To install the hooks run:
       # pre-commit install --hook-type pre-commit
-      # To execute them manually run:
-      # pre-commit run --all-files --hook-stage commit
 
-      # pip install pre-commit-hooks  # provides the utilities below
+      # To uninstall the hooks run:
+      # pre-commit uninstall --hook-type pre-commit
+
+      # To execute the hooks manually run:
+      # pre-commit run --all-files --hook-stage commit
 
       # pip install black
       - id: black
