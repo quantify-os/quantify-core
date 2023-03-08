@@ -19,7 +19,7 @@ If you are familiar with software development (package manager, git, terminal, P
 
 2. Install Quantify (and JupyterLab) in a new conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
 
-   > N.B. If you are interested to contribute to Quantify-core and/or Quantify-scheduler you should {ref}`set them up for local development instead <Setting up for local development>`.
+   > N.B. If you are interested to contribute to quantify-core and/or quantify-scheduler you should {ref}`set them up for local development instead <Setting up for local development>`.
    >
    > ```
    > $ # run the following commands step by step!
@@ -134,7 +134,7 @@ If you are familiar with software development (package manager, git, terminal, P
 
 7. (Optionally) install quantify-scheduler
 
-   > If you are interested to contribute to Quantify-scheduler you should {ref}`set it up for local development instead <Setting up for local development>`. You only need to replace {code}`quantify-core` with {code}`quantify-scheduler` in the provided commands.
+   > If you are interested to contribute to quantify-scheduler you should {ref}`set it up for local development instead <Setting up for local development>`. You only need to replace {code}`quantify-core` with {code}`quantify-scheduler` in the provided commands.
    >
    > ```
    > $ pip install quantify-scheduler
