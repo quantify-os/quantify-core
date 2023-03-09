@@ -103,9 +103,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
             # Default to sub_snapshot_key for backwards compatibility.
             # "label" is not present in qcodes<0.36.
-            instrument_label = sub_snapshot_key
-            if "label" in sub_snap:
-                instrument_label = sub_snap["label"]
+            instrument_label = sub_snap.get("label", sub_snapshot_key)
 
             sub_node = self._add_node(node, instrument_label, sub_node_key)
             self._fill_node_recursively(sub_snap, sub_node, sub_node_key)
@@ -203,7 +201,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
         return in_string
 
     @deprecated(
-        "0.15.0",
+        "0.10.0",
         "The function _get_entries_json provides similar functionality.",
     )
     def getNodes(self):
