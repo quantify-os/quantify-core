@@ -17,4 +17,7 @@ include:
     file: "/python-windows-v2.yml"
   - project: "quantify-os/ci"
     ref: main
+    file: "/python-linting-vanilla.yml"
+  - project: "quantify-os/ci"
+    ref: main
     file: "/python-packaging-pypi.yml"

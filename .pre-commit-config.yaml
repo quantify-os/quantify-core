@@ -13,12 +13,14 @@ repos:
       # Static analysis before committing
       # ################################################################################
 
-      # To install these hooks run:
+      # To install the hooks run:
       # pre-commit install --hook-type pre-commit
-      # To execute them manually run:
-      # pre-commit run --all-files --hook-stage commit
 
-      # pip install pre-commit-hooks  # provides the utilities below
+      # To uninstall the hooks run:
+      # pre-commit uninstall --hook-type pre-commit
+
+      # To execute the hooks manually run:
+      # pre-commit run --all-files --hook-stage commit
 
       # pip install black
       - id: black
@@ -30,20 +32,14 @@ repos:
         language: python
         types: [python]
 
-      # ################################################################################
-      # Run tests before pushing
-      # ################################################################################
-
-      # To install this hook run:
-      # pre-commit install --hook-type pre-push
-      # To execute it manually run:
-      # pre-commit run --hook-stage push
-
-      - id: pytest
-        name: Run tests
-        entry: pytest
-        args: ["-n", "auto"]  # run in parallel, requires pytest-xdist
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [push]
+      # pip install ruff
+      - id: ruff
+        name: Linter [ruff]
+        description: "Run 'ruff' for extremely fast Python linting"
+        entry: ruff --force-exclude
+        language: python
+        'types_or': [python, pyi]
+        args: []
+        require_serial: true
+        additional_dependencies: []
+        minimum_pre_commit_version: '2.9.2'

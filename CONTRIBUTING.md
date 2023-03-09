@@ -48,6 +48,56 @@ for them.
 The only exception is that parameter's type(s) should not be specified in the docstrings
 but instead by using [type hints](https://docs.python.org/3/library/typing.html).
 
+## Code style
+
+We are using several tools that help us ensure consistent code style and code quality.
+
+### [Ruff](https://beta.ruff.rs/docs/)
+
+`ruff` is our current primary linter.
+It is configured using `pyproject.toml`, refer to it for the exact enabled rule set.
+
+If `ruff` rule needs to be locally suppressed, you can do it either globally or per file using `pyproject.toml`,
+or locally using `# noqa: RULE_ID` comments.
+
+### [Black](https://black.readthedocs.io/en/stable/index.html)
+
+We use `black` as our code formatter.
+Before commiting, we suggest calling `black .` in the root of the repository to ensure that the code is correctly formatted.
+
+If a part of the code is not formatted nicely with black (for example, if it contains a matrix with manually aligned columns),
+`black` [can be locally suppressed](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#code-style)
+by wrapping the desired section with `# fmt: off` and `# fmt: on`.
+
+### [Pyright](https://github.com/microsoft/pyright)
+
+We use `pyright` to ensure typing consistency along the code.
+It is generally suggested to write strictly typed code and use `isinstance()` checks if needed
+to utilize [`pyright`'s type narrowing](https://github.com/microsoft/pyright/blob/main/docs/type-concepts-advanced.md#type-narrowing),
+but if you really need to suppress type checks locally, use `# pyright: ignore` magic comments.
+
+### [Pylint](https://pylint.org/) and [Codacy](https://www.codacy.com/)
+
+We are still using Pylint and Codacy, but aiming to fully replace them with `ruff`.
+If the file is passing `ruff`, you may fully disable `pylint` on this file by adding the file to ignore list in `.pylintrc`.
+
+### [pre-commit](https://pre-commit.com/)
+
+`pre-commit` helps to always run necessary tools (in our case `ruff` and `black`) before commiting.
+We recommend setting it up by calling `pre-commit install` once in the root of the repository.
+To execute manually, call `pre-commit run --all-files`.
+
+A known pitfall when using `pre-commit` is that you must always activate a correct virtual environment
+in your shell or IDE before calling `git commit` to make `black` and `ruff` executables available.
+If you need to disable the pre-commit hooks, simply call `pre-commit uninstall`.
+
+### Suggested IDE configuration
+
+We recommend to configure your IDE to assist you with writing code that respects our code style.
+For example, if you are using Visual Studio Code, we recommend to set `python.analysis.typeCheckingMode` to `basic`,
+`python.formatting.provider` to `black`, `editor.formatOnSave` to `true` and to enable
+[official Ruff extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
+
 ## Working on Issues
 
 After an issue is created, the progress of the issues is tracked on the [GitLab issue board](https://gitlab.com/quantify-os/quantify-core/-/boards).
