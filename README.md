@@ -19,7 +19,7 @@ and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/) ([git rep
 It is built on top of [QCoDeS](https://qcodes.github.io/Qcodes/)
 and is a spiritual successor of [PycQED](https://github.com/DiCarloLab-Delft/PycQED_py3).
 
-Quantify-core is the core module that contains all basic functionality to control experiments. This includes:
+`quantify-core` is the core module that contains all basic functionality to control experiments. This includes:
 
 - A framework to control instruments.
 - A data-acquisition loop.
