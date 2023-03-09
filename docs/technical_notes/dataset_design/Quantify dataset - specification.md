@@ -68,7 +68,7 @@ The Quantify dataset is an xarray dataset that follows certain conventions. We d
 
 ### Secondary coordinate(s)
 
-- An ubiquitous example are the coordinates that are used by "calibration" points.
+- A ubiquitous example is the coordinates that are used by "calibration" points.
 - Similar to {ref}`main coordinates <sec-main-coordinates>`, but intended to serve as the coordinates of {ref}`secondary variables <sec-secondary-variables>`.
 - Xarray **Coordinates** that have an attribute {attr}`~quantify_core.data.dataset_attrs.QCoordAttrs.is_main_coord` set to `False`.
 - See also {func}`~quantify_core.data.dataset_attrs.get_secondary_coords`.
@@ -213,7 +213,7 @@ Repetition dimensions comply with the following:
 - Can be the outermost dimension of the main (and secondary) variables.
 - Variables can lie along one (and only one) repetitions outermost dimension.
 
-#### Examples datasets with repetition
+#### Example datasets with repetition
 
 As shown in the {ref}`xarray-intro` an xarray dimension can be indexed by a `coordinate` variable. In this example the `repetitions` dimension is indexed by the `repetitions` xarray coordinate. Note that in an xarray dataset, a dimension and a data variable or a coordinate can share the same name. This might be confusing at first. It takes just a bit of dataset manipulation practice to gain an intuition for how it works.
 
@@ -234,7 +234,7 @@ assert dataset_rep == round_trip_dataset(dataset_rep)  # confirm read/write
 dataset_rep
 ```
 
-And as before, we can reshape the dataset to take advantage of the xarray builtin utilities.
+And as before, we can reshape the dataset to take advantage of the xarray built-in utilities.
 
 ```{code-cell} ipython3
 dataset_gridded = dh.to_gridded_dataset(

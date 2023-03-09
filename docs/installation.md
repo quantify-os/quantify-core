@@ -6,11 +6,11 @@
 ## Stable release
 
 This is the preferred method to install Quantify, as it will always install the most recent stable release.
-If you want to contribute to quantify, see [Setting up for local development].
+If you want to contribute to Quantify, see [Setting up for local development].
 
 ### On Windows and macOS (Anaconda)
 
-Quantify-core has third party dependencies that can have environment-specific problems.
+{mod}`quantify-core` has third party dependencies that can have environment-specific problems.
 We recommend using the [Anaconda](https://www.anaconda.com/products/individual#Downloads) Python distribution which works out of the box on most systems.
 
 If you are familiar with software development (package manager, git, terminal, Python, etc.) the following should get you running in no time. Otherwise, follow the [Detailed instructions] and learn a few productivity tips on your way.
@@ -112,7 +112,7 @@ If you are familiar with software development (package manager, git, terminal, P
    > ```
    > ``````
 
-5. Install jupyter-lab in the new environment using:
+5. Install `jupyter-lab` in the new environment using:
 
    ```
    $ conda install -c conda-forge jupyterlab  # install jupyter lab
@@ -120,7 +120,7 @@ If you are familiar with software development (package manager, git, terminal, P
    $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
    ```
 
-6. Install quantify-core pypi
+6. Install {mod}`quantify-core` from pypi
 
    > If you are interested to contribute to Quantify-core you should {ref}`set it up for local development instead <Setting up for local development>`.
    >
@@ -132,7 +132,7 @@ If you are familiar with software development (package manager, git, terminal, P
    > We currently do not have a conda recipe for installation, instead we refer to the default pip installation within a conda environment.
    > ```
 
-7. (Optionally) install quantify-scheduler
+7. (Optionally) install {mod}`quantify-scheduler`
 
    > If you are interested to contribute to quantify-scheduler you should {ref}`set it up for local development instead <Setting up for local development>`. You only need to replace {code}`quantify-core` with {code}`quantify-scheduler` in the provided commands.
    >
@@ -163,9 +163,9 @@ $ pip install quantify-core
 If you don't have [pip] installed, this [Python installation guide] can guide
 you through the process.
 
-## Update to latest version
+## Update to the latest version
 
-To update quantify to the latest version:
+To update Quantify to the latest version:
 
 ```
 $ pip install --upgrade quantify-core
@@ -185,7 +185,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
     $ git clone git@gitlab.com:your_name_here/quantify-core.git
     ```
 
-03. Install quantify locally:
+03. Install {mod}`quantify-core` locally:
 
     ```
     $ cd quantify-core/
@@ -282,13 +282,13 @@ Ready to contribute? Here's how to set up Quantify for local development.
 
 10. Review the {ref}`Merge Request Guidelines` and submit a merge request through the GitLab website.
 
-11. Add short entry in the `CHANGELOG.md` under `Unreleased`, commit and push.
+11. Add a short entry in the `CHANGELOG.md` under `Unreleased`, commit and push.
 
 ## Troubleshooting
 
-If for some reason you are not able to install or use Quantify using the prescribed ways indicated above, make sure you have working python environment (e.g. you are able to run an `IPyhon` terminal). Follow the next steps that aim at installing Quantify from source and running its tests.
+If for some reason you are not able to install or use Quantify using the prescribed ways indicated above, make sure you have a working python environment (e.g. you can run an `IPython` terminal). Follow the next steps that aim at installing Quantify from source and running its tests.
 
-0. Uninstall Quantify:
+0. Uninstall {mod}`quantify-core`:
 
    ```
    $ pip uninstall quantify-core
@@ -304,7 +304,7 @@ If for some reason you are not able to install or use Quantify using the prescri
 
 2. The tests will either pass or not. In any case, please report your experience and which test do not pass by creating a `New issue` on the [issue tracker](https://gitlab.com/quantify-os/quantify-core/-/issues), your efforts are much appreciated and will help us to understand the problems you might be facing.
 
-### Downgrade to specific version
+### Downgrade to a specific version
 
 If for any reason you require a specific version of the package, e.g. 0.3.0, run:
 
@@ -314,7 +314,7 @@ $ pip install --upgrade quantify-core==0.3.0
 
 ### Potential issues: PyQtGraph and PyQt5
 
-Quantify-core has a dependency on the PyQt5 package, which itself has a dependency on the Qt5 runtime.
+{mod}`quantify-core` has a dependency on the `PyQt5  package, which itself has a dependency on the Qt5 runtime.
 On most systems, the standard installation process will correctly install Qt.
 The Anaconda installation should resolve issues with installation on Windows or macOS.
 You may need to consult a search engine if you have a more exotic system.

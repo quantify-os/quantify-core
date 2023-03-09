@@ -191,7 +191,7 @@ ax.set_ylabel("Amplitude [V]")
 _ = ax.legend()
 ```
 
-First we define a few parameters of our mock qubit and mock data acquisition.
+First, we define a few parameters of our mock qubit and mock data acquisition.
 
 ```{code-cell} ipython3
 # parameters of our qubit model
@@ -231,7 +231,7 @@ mock_conf = dict(
 
 ### T1 experiment averaged
 
-In this first example we generate the individual measurement shots and average them,
+In this first example, we generate the individual measurement shots and average them,
 similar to what some instruments are capable of doing directly in the hardware.
 
 Here is how we store this data in the dataset along with the coordinates of these

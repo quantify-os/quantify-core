@@ -17,7 +17,7 @@ The complete source code of this tutorial can be found in
 {nb-download}`Quantify dataset - advanced examples.ipynb`
 ```
 
-Here we will explore a few advanced usages of the quantify dataset and how it can
+Here we will explore a few advanced usages of the Quantify dataset and how it can
 accommodate them.
 
 ```{code-cell} ipython3
