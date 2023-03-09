@@ -10,9 +10,7 @@
 
 - Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError` (!438)
 - Visualization - If provided, InstrumentMonitor displays instrument label (!369)
-- `mk_trace_for_iq_shot` now renders nicely in documentation (!429)
-
-- Utilities - Fix bug where calling `without` to remove a key from a dict that did not have that key in the first place raises a `KeyError`
+- Docs - `mk_trace_for_iq_shot` now renders nicely in documentation (!429)
 
 ## 0.7.0 (2022-02-03)
 
