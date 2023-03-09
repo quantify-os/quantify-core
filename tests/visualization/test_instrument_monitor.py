@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 import time
 from unittest.mock import Mock
 
@@ -104,7 +105,9 @@ class TestQcSnapshotWidget:
     def teardown_class(cls):
         cls.widget.close()
 
-    def test_buildTreeSnapshot(self):
+    @staticmethod
+    def get_snapshot():
+        """Returns basic snapshot for tests."""
         param = {
             "ts": "latest",
             "label": "",
@@ -112,24 +115,66 @@ class TestQcSnapshotWidget:
             "name": "string_representation",
             "value": 1,
         }
+        ins = {
+            "parameters": {"param1": param},
+            "name": "ins",
+            "label": "Instrument label",
+        }
         test_snapshot = {
-            "test_snapshot": {
-                "name": "test_snapshot",
+            "test_instrument": {
+                "name": "test_instrument",
                 "parameters": {"snapshot": param},
-                "submodules": {"sub1": {"parameters": {"param1": param}}},
+                "submodules": {"ins": ins},
                 "channels": {"ch1": {"parameters": {"param1": param}}},
                 "others": {"other1": {"parameters": {"param1": param}}},
             }
         }
+        return test_snapshot
+
+    # pylint: disable-next=invalid-name
+    def test_buildTreeSnapshot(self):
+        """Default snapshot gets added to widget correctly."""
+        test_snapshot = self.get_snapshot()
         self.widget.buildTreeSnapshot(test_snapshot)
-        nodes_str = self.widget.getNodes()
-        assert (
-            "test_snapshot" in nodes_str
-            and "QTreeWidgetItem" in nodes_str
-            and "test_snapshot.sub1.param1" in nodes_str
-            and "test_snapshot.ch1.param1" in nodes_str
-            and "test_snapshot.other1.param1" not in nodes_str
-        )
+        nodes_str = self.widget._get_entries_json()
+        assert "test_instrument" in nodes_str
+        assert "Instrument label" in nodes_str
+        assert "test_instrument.ins.param1" in nodes_str
+        assert "test_instrument.ch1.param1" in nodes_str
+        assert "test_instrument.other1.param1" not in nodes_str
+
+    # pylint: disable-next=invalid-name
+    def test_buildTreeSnapshot_label(self):
+        """If instrument contains a label, the label is displayed."""
+        # Arrange
+        test_snapshot = self.get_snapshot()
+        test_snapshot["test_instrument"]["label"] = "Test Instrument Label"
+
+        # Act
+        self.widget.buildTreeSnapshot(test_snapshot)
+
+        # Assert
+        nodes = json.loads(self.widget._get_entries_json())
+        assert "test_instrument" in nodes
+        assert "text0" in nodes["test_instrument"]
+        assert nodes["test_instrument"]["text0"] == "Test Instrument Label"
+
+    def test_instrument_label_update(self):
+        """If instrument label gets updated, the displayed string is updated."""
+        # Arrange (build snapshot, update label, build snapshot again)
+        test_snapshot = self.get_snapshot()
+        instrument_name = test_snapshot["test_instrument"]["name"]
+        self.widget.buildTreeSnapshot(test_snapshot)
+        nodes = json.loads(self.widget._get_entries_json())
+        assert nodes["test_instrument"]["text0"] == instrument_name
+        test_snapshot["test_instrument"]["label"] = "New Instrument Label"
+
+        # Act
+        self.widget.buildTreeSnapshot(test_snapshot)
+
+        # Assert
+        nodes = json.loads(self.widget._get_entries_json())
+        assert nodes["test_instrument"]["text0"] == "New Instrument Label"
 
 
 def test_parameter_conversion():

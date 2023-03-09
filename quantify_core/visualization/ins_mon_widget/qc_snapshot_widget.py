@@ -1,13 +1,16 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph based plotting monitor."""
+import json
 from enum import Enum
 import pprint
 from typing import Any, Optional, Tuple
 from collections import OrderedDict
 
 from pyqtgraph.Qt import QtCore, QtWidgets
+from qcodes.utils.helpers import NumpyJSONEncoder
 
+from quantify_core.utilities import deprecated
 from quantify_core.visualization import _appnope
 from quantify_core.visualization.SI_utilities import SI_val_to_msg_str
 
@@ -23,7 +26,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setData(data)
         self.setColumnCount(4)
-        self.setHeaderLabels(["Name", "Value", "Unit", "Last update"])
+        self.setHeaderLabels(["Name/Label", "Value", "Unit", "Last update"])
         self.nodes = {}
         self.timer_appnope = None
 
@@ -55,17 +58,36 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
             sub_snap = snapshot[instrument]
             # Name of the node in the self.nodes dictionary
             instrument_name = sub_snap["name"]
-            node = self._add_node(parent, instrument_name, instrument_name)
+
+            # Default to instrument_name for backwards compatibility.
+            # "label" is not present in qcodes<0.36.
+            instrument_label = sub_snap.get("label", instrument_name)
+
+            node = self._add_node(parent, instrument_label, instrument_name)
             self._fill_node_recursively(sub_snap, node, instrument_name)
 
     def _add_node(self, parent, display_string, node_key):
-        if node_key not in self.nodes:
+        if node_key in self.nodes:
+            # if node exists, update its string
+            self.nodes[node_key].setData(0, 0, display_string)
+        else:
+            # if node doesn't exist create a new one
             self.nodes[node_key] = QtWidgets.QTreeWidgetItem([display_string, "", ""])
             parent.addChild(self.nodes[node_key])
-        node = self.nodes[node_key]
-        return node
+        return self.nodes[node_key]
 
     def _fill_node_recursively(self, snapshot, node, node_key):
+        """Takes an existing ``node``. Fills it with new nodes based on ``snapshot``.
+
+        Parameters
+        ----------
+        snapshot
+            Snapshot with information about content of ``node``
+        node
+            Node to be filled with information
+        node_key
+            Key of the existing ``node``
+        """
         sub_snaps = {}
         for key in ["submodules", "channels"]:
             sub_snaps.update(snapshot.get(key, {}))
@@ -78,7 +100,12 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
                     sub_snapshot_key, node_key_part
                 )
             sub_node_key = f"{node_key}.{sub_snapshot_key}"
-            sub_node = self._add_node(node, sub_snapshot_key, sub_node_key)
+
+            # Default to sub_snapshot_key for backwards compatibility.
+            # "label" is not present in qcodes<0.36.
+            instrument_label = sub_snap.get("label", sub_snapshot_key)
+
+            sub_node = self._add_node(node, instrument_label, sub_node_key)
             self._fill_node_recursively(sub_snap, sub_node, sub_node_key)
 
         # Don't sort keys if we encounter an OrderedDict
@@ -173,5 +200,39 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
         return in_string
 
+    @deprecated(
+        "0.10.0",
+        "The function _get_entries_json provides similar functionality.",
+    )
     def getNodes(self):
         return pprint.pformat(self.nodes)
+
+    def _get_entries_json(self):
+        """Get json encoding of entries of instrument monitor.
+
+        This method is only used for testing. ``self.node`` cannot be returned
+        to the test directly, because it lives in a different process. So this
+        method provides a way to check the content of the available nodes. Not
+        intended to be used for actual functionality.
+
+        The dictionary returns one key-value pair for every entry in the table.
+        The key has the format ``instrument.submodule.parameter``. Submodules
+        and parameters are optional. Submodules can be nested (but only the key
+        is nested, not the dictionary). The values are dictionaries with keys
+        ``text0``, ``text1``, etc. for each column of the monitor.
+        """
+
+        # pylint: disable-next=too-few-public-methods
+        class _QTreeWidgetEncoder(NumpyJSONEncoder):
+            def default(self, obj: Any) -> Any:
+                """Dedicated encoding method for QTreeWidgetItem"""
+                if isinstance(obj, QtWidgets.QTreeWidgetItem):
+                    return {
+                        f"{key}{col}": getattr(obj, key)(col)
+                        for key in ["text"]
+                        for col in range(obj.columnCount())
+                    }
+
+                return super().default(obj)
+
+        return json.dumps(self.nodes, cls=_QTreeWidgetEncoder)
