@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Breaking changes
+
+### Merged branches and closed issues
+
 ## 0.7.1 (2023-03-09)
 
 ### Breaking changes
