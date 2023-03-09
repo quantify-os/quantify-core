@@ -65,13 +65,13 @@ meas_ctrl = MeasurementControl("meas_ctrl")
 
 A parameter represents a state variable of the system. Parameters:
 
-- can be get- and/or settable;
+- can be gettable and/or settable;
 - contain metadata such as units and labels;
 - are commonly implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class.
 
 A parameter implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class
 is a valid {class}`.Settable` and {class}`.Gettable` and as such can be used directly in
-an experiment loop in the [Measurement Control]. (see subsequent sections)
+an experiment loop in the {class}`.MeasurementControl` (see subsequent sections).
 
 ### Instrument
 
@@ -97,7 +97,7 @@ three steps:
 2. Measure (get) some parameter(s),
 3. Store the data.
 
-Quantify provides two helper classes, {class}`.Settable` and {class}`.Gettable` to aid
+{mod}`quantify-core` provides two helper classes, {class}`.Settable` and {class}`.Gettable` to aid
 in these steps, which are explored further in later sections of this article.
 
 {class}`.MeasurementControl` provides the following functionality:
@@ -166,7 +166,7 @@ processing them one by one.
 
 In **batched mode** , the measurement control vectorizes the setpoints such that they are processed in batches.
 The size of these batches is automatically calculated but usually dependent on resource
-constraints; you may have a device which can hold 100 samples but you wish to sweep over 2000 points.
+constraints; you may have a device that can hold 100 samples but you wish to sweep over 2000 points.
 
 ```{note}
 The maximum batch size of the settable(s)/gettable(s) should be specified using the
@@ -195,13 +195,13 @@ Depending on which control mode the {class}`.MeasurementControl` is running in,
 the interfaces for Settables (their input interface) and Gettables
 (their output interface) are slightly different.
 
-It is also possible for batched gettables to return an array with length less
+It is also possible for batched gettables to return an array with a length less
 than the length of the setpoints, and similarly for the input of the Settables.
-This is often the case when working with resource constrained devices,
-for example if you have *n* setpoints but your device can load only less than *n*
-datapoints into memory.
-In this scenario, measurement control tracks how many datapoints were actually
-processed, automatically adjusting the size of the next batch.
+This is often the case when working with resource-constrained devices, for
+example, if you have *n* setpoints but your device can load only less than *n*
+datapoints into memory. In this scenario, measurement control tracks how many
+datapoints were actually processed, automatically adjusting the size of the next
+batch.
 
 ```{code-cell} ipython3
 ---
@@ -237,7 +237,7 @@ dset_grid.y0.plot()
 ## Settables and Gettables
 
 Experiments typically involve varying some parameters and reading others.
-In Quantify we encapsulate these concepts as the {class}`.Settable`
+In {mod}`quantify-core` we encapsulate these concepts as the {class}`.Settable`
 and {class}`.Gettable` respectively.
 As their name implies, a Settable is a parameter you set values to,
 and a Gettable is a parameter you get values from.
@@ -252,8 +252,8 @@ which are expanded up in the API Reference.
 For ease of use, we do not require users to inherit from a Gettable/Settable class,
 and instead provide contracts in the form of JSON schemas to which these classes
 must fit (see {class}`.Settable` and {class}`.Gettable` docs for these schemas).
-In addition to using a library which fits these contracts
-(such as the {class}`~qcodes.parameters.Parameter` family of classes)
+In addition to using a library that fits these contracts
+(such as the {class}`~qcodes.parameters.Parameter` family of classes).
 we can define our own Settables and Gettables.
 
 ```{code-cell} ipython3
@@ -328,12 +328,12 @@ Gettable(wave_gettable)
 ### .batched and .batch_size
 
 The {py:class}`.Gettable` and {py:class}`.Settable` objects can have a `bool` property
-`.batched` (defaults to `False` if not present); and a `int` property `.batch_size`.
+`.batched` (defaults to `False` if not present); and an `int` property `.batch_size`.
 
 Setting the `.batched` property to `True` enables the *batched control code**
 in the {class}`.MeasurementControl`. In this mode, if present,
 the `.batch_size` attribute is used to determine the maximum size of a batch of
-setpoints, that can be set .
+setpoints, that can be set.
 
 ```{admonition} Heterogeneous batch size and effective batch size
 :class: dropdown, note
@@ -347,7 +347,7 @@ to comply to the setpoints grid and/or total number of setpoints.
 ### .prepare() and .finish()
 
 Optionally the {meth}`!.prepare` and {meth}`!.finish` can be added.
-These methods can be used to setup and teardown work.
+These methods can be used to set up and teardown work.
 For example, arming a piece of hardware with data and then closing a connection upon
 completion.
 
@@ -371,17 +371,15 @@ This is intended to aid with reproducibility, as settings from a past experiment
 easily be reloaded \[see {func}`~quantify_core.utilities.experiment_helpers.load_settings_onto_instrument`\].
 
 ### Data Directory
-
-The top level directory in the file system where output is saved to.
+The top-level directory in the file system where output is saved to.
 This directory can be controlled using the {meth}`~quantify_core.data.handling.get_datadir`
 and {meth}`~quantify_core.data.handling.set_datadir` functions.
-
-We recommend to change the default directory when starting the python kernel
-(after importing Quantify) and to settle for a single common data directory
+We recommend changing the default directory when starting the python kernel
+(after importing {mod}`quantify-core) and settling for a single common data directory
 for all notebooks/experiments within your measurement setup/PC
 (e.g., {code}`D:\\quantify-data`).
 
-Quantify provides utilities to find/search and extract data,
+{mod}`quantify-core` provides utilities to find/search and extract data,
 which expects all your experiment containers to be located within the same directory
 (under the corresponding date subdirectory).
 
@@ -402,10 +400,10 @@ names take the form
 {code}`YYYYmmDD-HHMMSS-sss-<random 6 character string><-experiment name (if any)>`.
 ```
 
-These subdirectories are termed 'Experiment Containers', typical output being the
+These subdirectories are termed 'Experiment Containers', with a typical output being the
 Dataset in hdf5 format and a JSON format file describing Parameters, Instruments and such.
 
-Furthermore, additional analysis such as fits can also be written to this directory,
+Furthermore, additional analyses such as fits can also be written to this directory,
 storing all data in one location.
 
 ```{code-cell} ipython3
@@ -449,7 +447,7 @@ quantify-data/
 The Dataset is implemented with a **specific** convention using the
 {class}`xarray.Dataset` class.
 
-Quantify arranges data along two types of axes: `X` and `Y`.
+{mod}`quantify-core` arranges data along two types of axes: `X` and `Y`.
 In each dataset there will be *n* `X`-type axes and *m* `Y`-type axes.
 For example, the dataset produced in an experiment where we sweep 2 parameters (settables)
 and measure 3 other parameters (all 3 returned by a Gettable),
@@ -484,8 +482,7 @@ To support both gridded and non-gridded data, we use {doc}`Xarray <xarray:index>
 using only `Data Variables` and `Coordinates` **with a single** `Dimension`
 (corresponding to the order of the setpoints).
 
-This is necessary as in the non-gridded case the dataset will be a perfect sparse array,
-usability of which is cumbersome.
+This is necessary as in the non-gridded case the dataset will be a perfect sparse array, the usability of which is cumbersome.
 A prominent example of non-gridded use-cases can be found {ref}`adaptive-tutorial`.
 
 To allow for some of Xarray's more advanced functionality,
@@ -595,7 +592,7 @@ The use of these methods and attributes is described in more detail in
 
 ### Creating a custom analysis class
 
-The analysis steps and their order of execution is determined by the
+The analysis steps and their order of execution are determined by the
 {attr}`~quantify_core.analysis.base_analysis.BaseAnalysis.analysis_steps` attribute
 as an {class}`~enum.Enum` ({class}`~quantify_core.analysis.base_analysis.AnalysisSteps`).
 The corresponding steps are implemented as methods of the analysis class.
@@ -645,7 +642,7 @@ productivity tips.
 
 ## Examples: Settables and Gettables
 
-Below we give several examples of experiment using Settables and Gettables in different control modes.
+Below we give several examples of experiments that use Settables and Gettables in different control modes.
 
 ### Iterative control mode
 
@@ -706,7 +703,7 @@ dset_grid.y0.plot(cmap="viridis")
 dset_grid
 ```
 
-For more dimensions you only need to pass more settables and the corresponding setpoints.
+For more dimensions, you only need to pass more settables and the corresponding setpoints.
 
 ```{code-cell} ipython3
 ---
@@ -737,7 +734,7 @@ _ = dset_ad.y0.plot(marker="o")
 - Each settable accepts a single float value.
 - Gettables return a 1D array of floats, with each element corresponding to a *different Y dimension*.
 
-We exemplify a 2D case, however there is no limitation on the number of settables.
+We exemplify a 2D case, however, there is no limitation on the number of settables.
 
 ```{code-cell} ipython3
 ---

@@ -192,7 +192,7 @@ with open(exp_folder / "quantities_of_interest.json", "w", encoding="utf-8") as 
 
 ### Plotting and saving figures
 
-We would like to save a plot of our data and fit in our lab logbook but the figure above is not fully satisfactory: there are no units and no reference to the original dataset.
+We would like to save a plot of our data and the fit in our lab logbook but the figure above is not fully satisfactory: there are no units and no reference to the original dataset.
 
 Below we create our own plot for full control over the appearance and we store it on disk in the same `experiment directory`.
 For plotting, we use the ubiquitous matplotlib and some visualization utilities.
@@ -357,7 +357,7 @@ Some of the advantages of OOP are:
 - all the methods have access to all the data (attributes) associated with a particular instance of the class;
 - subclasses can inherit from other classes and extend their functionalities.
 
-Let's now observe how such a class could look like.
+Let's now observe what such a class could look like.
 
 ```{warning}
 This analysis class is intended for educational purposes only.
@@ -485,7 +485,7 @@ As expected this will save similar files into the `experiment directory`:
 ## Extending the BaseAnalysis
 
 While the above stand-alone class provides the gist of an analysis, we can do even better by defining a structured framework that all analyses need to adhere to and factoring out the pieces of code that are common to most analyses.
-Beside that, the overall functionality can be improved.
+Besides that, the overall functionality can be improved.
 
 Here is where the {class}`~quantify_core.analysis.base_analysis.BaseAnalysis` enters the scene.
 It allows us to focus only on the particular aspect of our custom analysis by implementing only the relevant methods. Take a look at how the above class is implemented where we are making use of the analysis framework. For completeness, a fully documented {class}`~quantify_core.analysis.fitting_models.CosineModel` which can serve as a template is shown as well.
@@ -502,7 +502,7 @@ a_obj = CosineAnalysis(label="Cosine experiment").run()
 a_obj.display_figs_mpl()
 ```
 
-Inspecting the `experiment directory` will show something like:
+Inspecting the `experiment directory` will show something like this:
 
 ```{code-block}
 20230125-172712-018-87b9bf-Cosine experiment/

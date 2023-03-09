@@ -1,4 +1,4 @@
-* Quantify-Core version:
+* Quantify-core version:
 * Python version:
 * Python install method (anaconda/virtualenv/other?):
 * Operating System:

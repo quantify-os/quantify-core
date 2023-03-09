@@ -5,7 +5,7 @@ build-backend = 'setuptools.build_meta'
 [project]
 name = "quantify-core"
 description="""\
-    Unified quantum computing, solid-state and pulse sequencing \
+    Quantify-core is a unified quantum computing, solid-state and pulse sequencing \
     physical experimentation framework.\
 """
 maintainers = [

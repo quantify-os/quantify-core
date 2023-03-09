@@ -20,7 +20,7 @@ The complete source code of this tutorial can be found in
 
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) {ref}`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the {ref}`User guide` !
 
-This tutorial covers basic usage of Quantify focusing on running basic experiments using {class}`.MeasurementControl`.
+This tutorial covers the basic usage of Quantify focusing on running basic experiments using {class}`.MeasurementControl`.
 The {class}`.MeasurementControl` is the main {class}`~qcodes.instrument.Instrument` in charge of running any experiment.
 
 It takes care of saving the data in a standardized format as well as live plotting of the data during the experiment.

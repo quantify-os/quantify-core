@@ -176,7 +176,7 @@ a_obj.display_figs_mpl()
 ## Adaptive Sampling
 
 Quantify is designed to be modular and the adaptive functions support is no different. To this end, the `meas_ctrl` has first-class support for the `adaptive` package.
-Let's see what the same experiment looks like with this module. Note the fields of the `af_pars` dictionary have changed to be compatible with the different adaptive function that we are using.
+Let's see what the same experiment looks like with this module. Note the fields of the `af_pars` dictionary have changed to be compatible with the different adaptive functions that we are using.
 
 As a practical example, let's revisit a Resonator Spectroscopy experiment. This time we only know our device has a resonance in 6-7 GHz range.
 We really don't want to sweep through a million points, so instead let's use an adaptive sampler to quickly locate our peak.

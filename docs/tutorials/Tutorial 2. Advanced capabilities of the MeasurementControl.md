@@ -18,7 +18,7 @@ The complete source code of this tutorial can be found in
 
 Following this Tutorial requires familiarity with the **core concepts** of Quantify, we **highly recommended** to consult the (short) {ref}`User guide` before proceeding (see Quantify documentation). If you have some difficulties following the tutorial it might be worth reviewing the {ref}`User guide`!
 
-We **highly recommended** to begin with {ref}`Tutorial 1. Controlling a basic experiment using MeasurementControl` before proceeding.
+We **highly recommended** beginning with {ref}`Tutorial 1. Controlling a basic experiment using MeasurementControl` before proceeding.
 
 In this tutorial, we will explore the more advanced features of Quantify. By the end of this tutorial, we will have covered:
 
@@ -60,8 +60,7 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend always setting the directory at the start of the python kernel and stick
-to a single common data directory for all notebooks/experiments within your
+We recommend always setting the directory at the start of the Python kernel and sticking to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
 The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or
@@ -90,7 +89,7 @@ insmon = InstrumentMonitor("InstrumentMonitor")
 
 ### Defining a simple model
 
-In this example, we want to find the resonance of some devices. We expect to find it's resonance somewhere in the low 6 GHz range, but manufacturing imperfections makes it impossible to know exactly without inspection.
+In this example, we want to find the resonance of some devices. We expect to find its resonance somewhere in the low 6 GHz range, but manufacturing imperfections make it impossible to know exactly without inspection.
 
 We first create `freq`: a {class}`.Settable` with a {class}`~qcodes.parameters.Parameter` to represent the frequency of the signal probing the resonator, followed by a custom {class}`.Gettable` to mock (i.e. emulate) the resonator.
 The {class}`!Resonator` will return a Lorentzian shape centered on the resonant frequency. Our {class}`.Gettable` will read the setpoints from `freq`, in this case a 1D array.
@@ -287,8 +286,7 @@ fit_res.values
 ```
 
 ## Interrupting
-
-Sometimes experiments unfortunately do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration).
+Sometimes experiments, unfortunately, do not go as planned and it is desirable to interrupt and restart them with new parameters. In the following example, we have a long-running experiment where our Gettable is taking a long time to return data (maybe due to misconfiguration).
 Rather than waiting for this experiment to complete, instead we can interrupt any {class}`.MeasurementControl` loop using the standard interrupt signal.
 In a terminal environment this is usually achieved with a `ctrl` + `c` press on the keyboard or equivalent, whilst in a Jupyter environment interrupting the kernel (stop button) will cause the same result.
 

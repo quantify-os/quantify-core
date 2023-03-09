@@ -1,6 +1,6 @@
-# Quantify-core
+# quantify-core
 
-[![Slack](https://img.shields.io/badge/slack-chat-green.svg)](https://join.slack.com/t/quantify-hq/shared_invite/zt-1nd78r4e9-rbWdna53cW4DO_YbtMhVuA)
+[![Slack](https://img.shields.io/badge/slack-chat-green.svg)](https://quantify-os.org/slack.html#sec-slack)
 [![Pipelines](https://gitlab.com/quantify-os/quantify-core/badges/main/pipeline.svg)](https://gitlab.com/quantify-os/quantify-core/pipelines/)
 [![PyPi](https://img.shields.io/pypi/v/quantify-core.svg)](https://pypi.org/pypi/quantify-core)
 [![Code Quality](https://app.codacy.com/project/badge/Grade/32265e1e7d3f491fa028528aaf8bfa69)](https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Grade)
@@ -12,14 +12,12 @@
 
 ![Quantify logo](https://orangeqs.com/logos/QUANTIFY_LANDSCAPE.svg)
 
-Quantify is a python based data acquisition platform focused on Quantum Computing and
-solid-state physics experiments. It is built on top of [QCoDeS](https://qcodes.github.io/Qcodes/)
+Quantify is a Python-based data acquisition framework focused on Quantum Computing and
+solid-state physics experiments.
+The framework consists of [quantify-core](https://pypi.org/project/quantify-core/) ([git repo](https://gitlab.com/quantify-os/quantify-core/))
+and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/) ([git repo](https://gitlab.com/quantify-os/quantify-scheduler/)).
+It is built on top of [QCoDeS](https://qcodes.github.io/Qcodes/)
 and is a spiritual successor of [PycQED](https://github.com/DiCarloLab-Delft/PycQED_py3).
-Quantify currently consists of [quantify-core](https://pypi.org/project/quantify-core/)
-and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/).
-
-Take a look at the [latest documentation for quantify-core](https://quantify-quantify-core.readthedocs-hosted.com/)
-or use the switch at the bottom of the left panel to read the documentation for older releases.
 
 Quantify-core is the core module that contains all basic functionality to control experiments. This includes:
 
@@ -28,15 +26,14 @@ Quantify-core is the core module that contains all basic functionality to contro
 - Data storage and analysis.
 - Parameter monitoring and live visualization of experiments.
 
+Take a look at the [latest documentation for quantify-core](https://quantify-quantify-core.readthedocs-hosted.com/)
+or use the switch at the bottom of the left panel to read the documentation for older releases.
+Also see the [latest documentation for quantify-scheduler](https://quantify-quantify-scheduler.readthedocs-hosted.com/).
 
-## Overview
+## Overview and Community
 
-Quantify evolves rapidly, nevertheless, the following [presentation](https://www.youtube.com/embed/koWIp12hD8Q?start=150&end=1126)
-by Adriaan Rol gives a good general overview of Quantify.
-
-## About
-
-Quantify-core is maintained by The Quantify consortium consisting of Qblox and Orange Quantum Systems.
+For a general overview of Quantify and connecting to its open-source community, see [quantify-os.org](https://quantify-os.org/).
+Quantify is maintained by the Quantify Consortium consisting of Qblox and Orange Quantum Systems.
 
 [<img src="https://cdn.sanity.io/images/ostxzp7d/production/f9ab429fc72aea1b31c4b2c7fab5e378b67d75c3-132x31.svg" alt="Qblox logo" width=200px/>](https://qblox.com)
 &nbsp;
@@ -47,4 +44,4 @@ Quantify-core is maintained by The Quantify consortium consisting of Qblox and O
 
 &nbsp;
 
-The software is free to use under the conditions specified in the license.
+The software is free to use under the conditions specified in the [license](https://gitlab.com/quantify-os/quantify-core/-/raw/main/LICENSE).
