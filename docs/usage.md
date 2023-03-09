@@ -650,6 +650,59 @@ Below we give several examples of experiments that use Settables and Gettables i
 
 - Each settable accepts a single float value.
 - Gettables return a single float value.
+
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 1D example
+---
+time = ManualParameter(
+    name="time", label="Time", unit="s", vals=validators.Numbers(), initial_value=1
+)
+signal = Parameter(
+    name="sig_a", label="Signal", unit="V", get_cmd=lambda: np.cos(time())
+)
+
+meas_ctrl.settables(time)
+meas_ctrl.gettables(signal)
+meas_ctrl.setpoints(np.linspace(0, 7, 20))
+dset = meas_ctrl.run("my experiment")
+dset_grid = dh.to_gridded_dataset(dset)
+
+dset_grid.y0.plot(marker="o")
+dset_grid
+```
+
+```{code-cell} ipython3
+---
+tags: [hide-cell]
+mystnb:
+  code_prompt_show: 2D example
+---
+time_a = ManualParameter(
+name="time_a", label="Time A", unit="s", vals=validators.Numbers(), initial_value=1
+)
+time_b = ManualParameter(
+name="time_b", label="Time B", unit="s", vals=validators.Numbers(), initial_value=1
+)
+signal = Parameter(
+name="sig_a",
+label="Signal A",
+unit="V",
+get_cmd=lambda: np.exp(time_a()) + 0.5 * np.exp(time_b()),
+)
+
+meas_ctrl.settables([time_a, time_b])
+meas_ctrl.gettables(signal)
+meas_ctrl.setpoints_grid([np.linspace(0, 5, 10), np.linspace(5, 0, 12)])
+dset = meas_ctrl.run("my experiment")
+dset_grid = dh.to_gridded_dataset(dset)
+
+dset_grid.y0.plot(cmap="viridis")
+dset_grid
+```
+
 For more dimensions, you only need to pass more settables and the corresponding setpoints.
 
 ```{code-cell} ipython3
