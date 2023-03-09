@@ -60,7 +60,7 @@ directory in which the experiments are saved using the
 
 ⚠️ **Warning!**
 
-We recommend always setting the directory at the start of the python kernel and sticking to a single common data directory for all notebooks/experiments within your
+We recommend always setting the directory at the start of the Python kernel and sticking to a single common data directory for all notebooks/experiments within your
 measurement setup/PC.
 
 The cell below sets a default data directory (`~/quantify-data` on Linux/macOS or

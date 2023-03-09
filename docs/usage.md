@@ -65,13 +65,13 @@ meas_ctrl = MeasurementControl("meas_ctrl")
 
 A parameter represents a state variable of the system. Parameters:
 
-- can be `get`- and/or `settable`;
+- can be gettable and/or settable;
 - contain metadata such as units and labels;
 - are commonly implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class.
 
 A parameter implemented using the QCoDeS {class}`~qcodes.parameters.Parameter` class
 is a valid {class}`.Settable` and {class}`.Gettable` and as such can be used directly in
-an experiment loop in the [Measurement Control]. (see subsequent sections)
+an experiment loop in the {class}`.MeasurementControl` (see subsequent sections).
 
 ### Instrument
 
