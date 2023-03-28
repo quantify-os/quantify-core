@@ -6,18 +6,22 @@
 ## Stable release
 
 This is the preferred method to install Quantify, as it will always install the most recent stable release.
-If you want to contribute to Quantify, see [Setting up for local development].
+If you want to contribute to Quantify, see {ref}`Setting up for local development`.
 
 ### On Windows and macOS (Anaconda)
 
 {mod}`quantify-core` has third party dependencies that can have environment-specific problems.
 We recommend using the [Anaconda](https://www.anaconda.com/products/individual#Downloads) Python distribution which works out of the box on most systems.
 
-If you are familiar with software development (package manager, git, terminal, Python, etc.) the following should get you running in no time. Otherwise, follow the [Detailed instructions] and learn a few productivity tips on your way.
+If you are familiar with software development (package manager, git, terminal, Python, etc.) the following should get you running in no time. Otherwise, follow the {ref}`Detailed instructions` and learn a few productivity tips on your way.
 
 1. Install [Anaconda](https://www.anaconda.com/products/individual#Downloads).
 
 2. Install Quantify (and JupyterLab) in a new conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
+
+   > ```{admonition} Supported Python versions
+   > Check the supported Python versions on PyPi: [quantify-core](https://pypi.org/project/quantify-core/) | [quantify-scheduler](https://pypi.org/project/quantify-scheduler/)
+   > ```
 
    > N.B. If you are interested to contribute to {mod}`quantify-core` and/or {mod}`quantify-scheduler` you should {ref}`set them up for local development instead <Setting up for local development>`.
    >
@@ -54,7 +58,7 @@ If you are familiar with software development (package manager, git, terminal, P
    >
    > ```{figure} /images/install/conda_install.gif
    > :name: conda_install
-   > :width: 800
+   > :width: 500
    > ```
    > ``````
 
@@ -65,7 +69,7 @@ If you are familiar with software development (package manager, git, terminal, P
    > ```
    >
    > ```{note}
-   > Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any python code using [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/) (installation steps below).
+   > Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any Python code using [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/) (installation steps below).
    > ```
 
 3. (Windows only) Add {code}`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc` (or in the `.bash_profile`) to expose the anaconda in bash terminal (see instruction below if you need help).
@@ -84,7 +88,7 @@ If you are familiar with software development (package manager, git, terminal, P
    >
    > ```{figure} /images/install/conda_source_installed_all_users.gif
    > :name: conda_source
-   > :width: 800
+   > :width: 500
    > ```
    > ``````
    >
@@ -108,7 +112,7 @@ If you are familiar with software development (package manager, git, terminal, P
    >
    > ```{figure} /images/install/conda_activate.gif
    > :name: conda_activate
-   > :width: 800
+   > :width: 500
    > ```
    > ``````
 
@@ -143,16 +147,16 @@ If you are familiar with software development (package manager, git, terminal, P
    > $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
    > ```
 
-### Other systems
+### Other operating systems
 
-
-Confirm that you have a compatible working python interpreter by running the following in your terminal of choice:
-
+Confirm that you have a compatible working Python interpreter by running the following in your terminal of choice:
 ```
 $ python --version
 Python 3.8.10
 ```
-Exact version may be different, check the list of supported versions in the `setup.py` file.
+```{admonition} Supported Python versions
+Check the supported Python versions on PyPi: [quantify-core](https://pypi.org/project/quantify-core/) | [quantify-scheduler](https://pypi.org/project/quantify-scheduler/)
+```
 
 Install Quantify:
 
@@ -168,14 +172,14 @@ you through the process.
 To update Quantify to the latest version:
 
 ```
-$ pip install --upgrade quantify-core
+$ pip install quantify-core
 ```
 
 ## Setting up for local development
 
 Ready to contribute? Here's how to set up Quantify for local development.
 
-00. Follow the [Installation] steps for your system skipping the last step ({code}`pip install ...`).
+00. Follow the {ref}`Installation` steps for your system skipping the last step ({code}`pip install ...`).
 
 01. Fork the `quantify-core` repo on GitLab.
 
@@ -286,7 +290,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
 
 ## Troubleshooting
 
-If for some reason you are not able to install or use Quantify using the prescribed ways indicated above, make sure you have a working python environment (e.g. you can run an `IPython` terminal). Follow the next steps that aim at installing Quantify from source and running its tests.
+If for some reason you are not able to install or use Quantify using the prescribed ways indicated above, make sure you have a working Python environment (e.g. you can run an `IPython` terminal). Follow the next steps that aim at installing Quantify from source and running its tests.
 
 0. Uninstall {mod}`quantify-core`:
 
