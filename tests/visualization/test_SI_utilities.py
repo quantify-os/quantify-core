@@ -61,7 +61,7 @@ def test_si_scale_factors() -> None:
     unit = None
     scale_factor, post_unit = SI_prefix_and_scale_factor(val=5000.4, unit=unit)
     assert scale_factor == 1
-    assert "" == post_unit
+    assert not post_unit
 
 
 def test_label_scaling() -> None:

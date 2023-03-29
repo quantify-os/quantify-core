@@ -408,6 +408,6 @@ def round_trip_dataset(dataset: xr.Dataset) -> xr.Dataset:
     """Writes a dataset to disk and loads it back returning it."""
 
     tuid = dataset.tuid
-    assert tuid != ""
+    assert tuid
     dh.write_dataset(Path(dh.create_exp_folder(tuid)) / dh.DATASET_NAME, dataset)
     return dh.load_dataset(tuid)

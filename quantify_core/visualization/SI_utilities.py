@@ -4,6 +4,8 @@
 """
 Utilities for managing SI units with plotting systems.
 """
+from __future__ import annotations
+
 import re
 import string
 from typing import Optional, Tuple, Union
@@ -21,7 +23,9 @@ double_col_figsize = (6.9, golden_mean * 6.9)
 thesis_col_figsize = (12.2 / 2.54, golden_mean * 12.2 / 2.54)
 
 
-def set_xlabel(label, unit=None, axis=None, **kw):
+def set_xlabel(
+    label: str | plt.Axes, unit: str | None = None, axis: plt.Axes | None = None, **kw
+):
     """
     Add a unit aware x-label to an axis object.
 
@@ -48,7 +52,7 @@ def set_xlabel(label, unit=None, axis=None, **kw):
     if axis is None:
         axis = plt.gca()
 
-    if unit is not None and unit != "":
+    if unit:
         xticks = axis.get_xticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
         formatter = matplotlib.ticker.FuncFormatter(
@@ -62,7 +66,9 @@ def set_xlabel(label, unit=None, axis=None, **kw):
     return axis
 
 
-def set_ylabel(label, unit=None, axis=None, **kw):
+def set_ylabel(
+    label: str | plt.Axes, unit: str | None = None, axis: plt.Axes | None = None, **kw
+):
     """
     Add a unit aware y-label to an axis object.
 
@@ -89,7 +95,7 @@ def set_ylabel(label, unit=None, axis=None, **kw):
     if axis is None:
         axis = plt.gca()
 
-    if unit is not None and unit != "":
+    if unit:
         yticks = axis.get_yticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(yticks)), unit=unit)
         formatter = matplotlib.ticker.FuncFormatter(
@@ -104,7 +110,9 @@ def set_ylabel(label, unit=None, axis=None, **kw):
     return axis
 
 
-def set_cbarlabel(cbar, label, unit=None, **kw):
+def set_cbarlabel(
+    cbar: matplotlib.colorbar.Colorbar, label: str, unit: str | None = None, **kw
+):
     """
     Add a unit aware z-label to a colorbar object
 
@@ -119,7 +127,7 @@ def set_cbarlabel(cbar, label, unit=None, **kw):
     **kw
         keyword argument to be passed to cbar.set_label
     """
-    if unit is not None and unit != "":
+    if unit:
         zticks = cbar.get_ticks()
         scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(zticks)), unit=unit)
         formatter = matplotlib.ticker.FuncFormatter(
