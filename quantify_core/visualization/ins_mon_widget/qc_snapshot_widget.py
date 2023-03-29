@@ -158,7 +158,7 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
         :
             new value and new unit
         """
-        if unit is None or unit == "":
+        if not unit:
             if isinstance(value, Enum):
                 # For Enum, don't show class name
                 return value.name, ""
