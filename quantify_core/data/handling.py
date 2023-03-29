@@ -438,7 +438,9 @@ def load_snapshot(
         return json.load(snap, cls=dh.DecodeToNumpy, list_to_ndarray=list_to_ndarray)
 
 
-def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None) -> str:
+def create_exp_folder(
+    tuid: TUID, name: str | None = None, datadir: str | None = None
+) -> str:
     """
     Creates an empty folder to store an experiment container.
 
@@ -465,7 +467,7 @@ def create_exp_folder(tuid: TUID, name: str = "", datadir: str = None) -> str:
     if datadir is None:
         datadir = get_datadir()
     exp_folder = os.path.join(datadir, tuid[:8], tuid)
-    if name != "":
+    if name is not None:
         exp_folder += "-" + name
 
     os.makedirs(exp_folder, exist_ok=True)
