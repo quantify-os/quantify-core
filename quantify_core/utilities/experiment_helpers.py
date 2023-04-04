@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
+from __future__ import annotations
 import warnings
 from typing import Any, Optional, Union, Dict, List, Literal
 
@@ -16,7 +17,7 @@ from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 # pylint: disable=broad-except
 def load_settings_onto_instrument(
     instrument: Union[Instrument, InstrumentChannel, Parameter],
-    tuid: TUID = None,
+    tuid: TUID | None = None,
     datadir: str = None,
     exception_handling: Literal["raise", "warn"] = "raise",
 ) -> None:
