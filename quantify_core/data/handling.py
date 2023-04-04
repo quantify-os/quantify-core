@@ -467,7 +467,7 @@ def create_exp_folder(
     if datadir is None:
         datadir = get_datadir()
     exp_folder = os.path.join(datadir, tuid[:8], tuid)
-    if name is not None:
+    if name:
         exp_folder += "-" + name
 
     os.makedirs(exp_folder, exist_ok=True)

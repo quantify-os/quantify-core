@@ -6,6 +6,8 @@
 
 ### Merged branches and closed issues
 
+- Linting - minor changes to satisfy pyright (!445)
+
 ## 0.7.1 (2023-03-09)
 
 ### Breaking changes
