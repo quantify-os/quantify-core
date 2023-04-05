@@ -7,6 +7,7 @@
 ### Merged branches and closed issues
 
 - Linting - minor changes to satisfy pyright (!445)
+- Git - Change back to default merge strategy for CHANGELOG.md (!449)
 
 ## 0.7.1 (2023-03-09)
 
