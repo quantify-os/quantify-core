@@ -58,6 +58,7 @@ def load_settings_onto_instrument(
         instr_mod: Union[Instrument, InstrumentChannel],
         parname: str,
         value: Any,
+        value_np: Any,
     ):
         """Tries to set a parameter and emits a warning if not successful."""
         # do not try to set parameters that are not settable
@@ -80,7 +81,10 @@ def load_settings_onto_instrument(
 
         # Make sure the parameter is actually a settable
         try:
-            instr_mod.set(parname, value)
+            if isinstance(get_val, np.ndarray):
+                instr_mod.set(parname, value_np)
+            else:
+                instr_mod.set(parname, value)
         except (RuntimeError, KeyError, ValueError, TypeError) as exc:
             warnings.warn(
                 f'Parameter "{parname}" of "{instr_mod.name}" '
@@ -117,9 +121,8 @@ def load_settings_onto_instrument(
                     f'Parameter "{address}" not found in snapshot {datadir}:{tuid}'
                 )
             value = instr_mod_snap["parameters"][parent.name]["value"]
-            if isinstance(parent(), np.ndarray):
-                value = instr_mod_snap_numpy_array["parameters"][parent.name]["value"]
-            _try_to_set_par_safe(parents[-2], parent.name, value)
+            value_np = instr_mod_snap_numpy_array["parameters"][parent.name]["value"]
+            _try_to_set_par_safe(parents[-2], parent.name, value, value_np)
             return
 
     def _set_params_instr_mod(
@@ -135,21 +138,8 @@ def load_settings_onto_instrument(
             # Check that the parameter exists in this instrument
             if parname in instr_mod.parameters:
                 value = par["value"]
-                # If we get a runtime error when getting the parameter, don't try to
-                # set the parameter
-                try:
-                    get_val = instr_mod.parameters[parname]()
-                except Exception as exc:
-                    if exception_handling == "raise":
-                        raise exc
-                    warnings.warn(
-                        f"Could not get value of {parname} parameter due to '{exc}'. "
-                        "We will not try to set this parameter."
-                    )
-                    continue
-                if isinstance(get_val, np.ndarray):
-                    value = instr_mod_snap_np["parameters"][parname]["value"]
-                _try_to_set_par_safe(instr_mod, parname, value)
+                value_np = instr_mod_snap_np["parameters"][parname]["value"]
+                _try_to_set_par_safe(instr_mod, parname, value, value_np)
             else:
                 warnings.warn(
                     f"Could not set parameter {parname} in {instr_mod.name}. "

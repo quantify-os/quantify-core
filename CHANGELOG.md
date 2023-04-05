@@ -6,6 +6,7 @@
 
 ### Merged branches and closed issues
 
+- Utilities - Fix bug and clean up code in `load_settings_onto_instrument` by only trying to get and set parameters in `_try_to_set_par_safe` (!447, #360)
 - Linting - minor changes to satisfy pyright (!445)
 - Git - Change back to default merge strategy for CHANGELOG.md (!449)
 
