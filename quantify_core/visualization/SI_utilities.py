@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 import string
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 import warnings
 
 import lmfit
@@ -21,6 +21,18 @@ golden_mean = (np.sqrt(5) - 1.0) / 2.0  # Aesthetic ratio
 single_col_figsize = (3.39, golden_mean * 3.39)
 double_col_figsize = (6.9, golden_mean * 6.9)
 thesis_col_figsize = (12.2 / 2.54, golden_mean * 12.2 / 2.54)
+
+
+def _get_scale_factor_and_offset_and_prefix(
+    ticks: List[float], unit: str | None = None, precision: int = 3
+) -> Tuple[float, float, str]:
+    max_v, min_v = max(ticks), min(ticks)
+    resolution = (max_v - min_v) / len(ticks)
+    scale_factor, unit = SI_prefix_and_scale_factor(val=resolution, unit=unit)
+    signed_max = max_v if abs(max_v) > abs(min_v) else min_v
+    factor = pow(10, precision)
+    offset = int(signed_max * scale_factor / factor) * factor
+    return scale_factor, offset, unit
 
 
 def set_xlabel(
@@ -54,18 +66,17 @@ def set_xlabel(
 
     if unit:
         xticks = axis.get_xticks()
-        max_x, min_x = max(xticks), min(xticks)
-        resolution = (max_x - min_x) / len(xticks)
-        scale_factor, unit = SI_prefix_and_scale_factor(val=resolution, unit=unit)
-        signed_max = max_x if abs(max_x) > abs(min_x) else min_x
-        offset = int(signed_max * scale_factor / 1000) * 1000
+        scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
+            xticks, unit
+        )
 
         formatter = matplotlib.ticker.FuncFormatter(
             lambda x, pos: f"{x * scale_factor - offset:.4g}"
         )
 
         if offset != 0:
-            formatter.set_offset_string(f"{offset:+g}")
+            print_precision = int(np.log10(offset)) - 3
+            formatter.set_offset_string(f"{offset:+.{print_precision}e}")
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" [{unit}]", **kw)
@@ -105,10 +116,17 @@ def set_ylabel(
 
     if unit:
         yticks = axis.get_yticks()
-        scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(yticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: f"{x * scale_factor:.6g}"
+        scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
+            yticks, unit, precision=5
         )
+
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: f"{x * scale_factor - offset:.6g}"  # TODO make var from precision
+        )
+
+        if offset != 0:
+            print_precision = int(np.log10(offset)) - 5
+            formatter.set_offset_string(f"{offset:+.{print_precision}e}")
 
         axis.yaxis.set_major_formatter(formatter)
 
