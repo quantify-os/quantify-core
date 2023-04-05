@@ -54,10 +54,18 @@ def set_xlabel(
 
     if unit:
         xticks = axis.get_xticks()
-        scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(xticks)), unit=unit)
+        max_x, min_x = max(xticks), min(xticks)
+        resolution = (max_x - min_x) / len(xticks)
+        scale_factor, unit = SI_prefix_and_scale_factor(val=resolution, unit=unit)
+        signed_max = max_x if abs(max_x) > abs(min_x) else min_x
+        offset = int(signed_max * scale_factor / 1000) * 1000
+
         formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: f"{x * scale_factor:.4g}"
+            lambda x, pos: f"{x * scale_factor - offset:.4g}"
         )
+
+        if offset != 0:
+            formatter.set_offset_string(f"{offset:+g}")
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" [{unit}]", **kw)
