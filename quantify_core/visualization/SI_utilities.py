@@ -24,13 +24,13 @@ thesis_col_figsize = (12.2 / 2.54, golden_mean * 12.2 / 2.54)
 
 
 def _get_scale_factor_and_offset_and_prefix(
-    ticks: List[float], unit: str | None = None, precision: int = 3
+    ticks: List[float], unit: str | None = None, precision: int = 4
 ) -> Tuple[float, float, str]:
     max_v, min_v = max(ticks), min(ticks)
     resolution = (max_v - min_v) / len(ticks)
     scale_factor, unit = SI_prefix_and_scale_factor(val=resolution * 10, unit=unit)
     signed_max = max_v if abs(max_v) > abs(min_v) else min_v
-    factor = pow(10, precision)
+    factor = pow(10, precision - 1)
     offset = int(signed_max * scale_factor / factor) * factor
     return scale_factor, offset, unit
 
@@ -67,17 +67,18 @@ def set_xlabel(
 
     if unit:
         xticks = axis.get_xticks()
+        precision = 4
         scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
-            xticks, unit
+            xticks, unit, precision
         )
 
         formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: f"{round(x * scale_factor - offset, 4):.4g}"
+            lambda x, pos: f"{x * scale_factor - offset:.{precision}g}"
         )
 
         if offset != 0:
-            print_precision = int(np.log10(offset)) - 3
-            formatter.set_offset_string(f"{offset:+.{print_precision}e}")
+            offset_precision = int(np.log10(offset)) - precision + 1
+            formatter.set_offset_string(f"{offset:+.{offset_precision}e}")
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" [{unit}]", **kw)
@@ -117,17 +118,18 @@ def set_ylabel(
 
     if unit:
         yticks = axis.get_yticks()
+        precision = 6
         scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
-            yticks, unit, precision=5
+            yticks, unit, precision=precision
         )
 
         formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: f"{x * scale_factor - offset:.6g}"  # TODO make var from precision
+            lambda x, pos: f"{x * scale_factor - offset:.{precision}g}"
         )
 
         if offset != 0:
-            print_precision = int(np.log10(offset)) - 5
-            formatter.set_offset_string(f"{offset:+.{print_precision}e}")
+            offset_precision = int(np.log10(offset)) - precision + 1
+            formatter.set_offset_string(f"{offset:+.{offset_precision}e}")
 
         axis.yaxis.set_major_formatter(formatter)
 
@@ -156,10 +158,19 @@ def set_cbarlabel(
     """
     if unit:
         zticks = cbar.get_ticks()
-        scale_factor, unit = SI_prefix_and_scale_factor(val=max(abs(zticks)), unit=unit)
-        formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: f"{x * scale_factor:.6g}"
+        precision = 6
+        scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
+            zticks, unit, precision=precision
         )
+
+        formatter = matplotlib.ticker.FuncFormatter(
+            lambda x, pos: f"{x * scale_factor - offset:.{precision}g}"
+        )
+
+        if offset != 0:
+            offset_precision = int(np.log10(offset)) - precision + 1
+            formatter.set_offset_string(f"{offset:+.{offset_precision}e}")
+
         cbar.ax.yaxis.set_major_formatter(formatter)
         cbar.set_label(label + f" [{unit}]")
 
