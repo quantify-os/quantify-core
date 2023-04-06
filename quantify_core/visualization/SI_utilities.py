@@ -28,7 +28,7 @@ def _get_scale_factor_and_offset_and_prefix(
 ) -> Tuple[float, float, str]:
     max_v, min_v = max(ticks), min(ticks)
     resolution = (max_v - min_v) / len(ticks)
-    scale_factor, unit = SI_prefix_and_scale_factor(val=resolution, unit=unit)
+    scale_factor, unit = SI_prefix_and_scale_factor(val=resolution * 10, unit=unit)
     signed_max = max_v if abs(max_v) > abs(min_v) else min_v
     factor = pow(10, precision)
     offset = int(signed_max * scale_factor / factor) * factor
@@ -54,8 +54,9 @@ def set_xlabel(
     """
     if isinstance(label, plt.Axes):
         warnings.warn(
-            "Passing axis as a first argument is deprecated and will be removed in quantify-core >= 0.10.0."
-            " Please use the new syntax set_xlabel(label, unit = None, axis = None)",
+            "Passing axis as a first argument is deprecated and will be removed "
+            "in quantify-core >= 0.10.0. Please use the new syntax "
+            "set_xlabel(label, unit = None, axis = None)",
             FutureWarning,
             stacklevel=2,
         )
@@ -71,7 +72,7 @@ def set_xlabel(
         )
 
         formatter = matplotlib.ticker.FuncFormatter(
-            lambda x, pos: f"{x * scale_factor - offset:.4g}"
+            lambda x, pos: f"{round(x * scale_factor - offset, 4):.4g}"
         )
 
         if offset != 0:
