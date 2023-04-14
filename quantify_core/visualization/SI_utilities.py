@@ -77,8 +77,9 @@ def set_xlabel(
         )
 
         if offset != 0:
-            offset_precision = int(np.log10(offset)) - precision + 1
-            formatter.set_offset_string(f"{offset:+.{offset_precision}e}")
+            offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
+            disp_offset = offset * offset_scale
+            formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" [{unit}]", **kw)
@@ -128,8 +129,9 @@ def set_ylabel(
         )
 
         if offset != 0:
-            offset_precision = int(np.log10(offset)) - precision + 1
-            formatter.set_offset_string(f"{offset:+.{offset_precision}e}")
+            offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
+            disp_offset = offset * offset_scale
+            formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
 
         axis.yaxis.set_major_formatter(formatter)
 
@@ -168,8 +170,9 @@ def set_cbarlabel(
         )
 
         if offset != 0:
-            offset_precision = int(np.log10(offset)) - precision + 1
-            formatter.set_offset_string(f"{offset:+.{offset_precision}e}")
+            offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
+            disp_offset = offset * offset_scale
+            formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
 
         cbar.ax.yaxis.set_major_formatter(formatter)
         cbar.set_label(label + f" [{unit}]")
