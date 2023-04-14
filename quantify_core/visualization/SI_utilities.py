@@ -26,6 +26,50 @@ thesis_col_figsize = (12.2 / 2.54, golden_mean * 12.2 / 2.54)
 def _get_scale_factor_and_offset_and_prefix(
     ticks: List[float], unit: str | None = None, precision: int = 4
 ) -> Tuple[float, float, str]:
+    """Return a convenient scale factor, offset and SI prefix based on the tick values.
+
+    This function uses the :func:`~.SI_prefix_and_scale_factor` function to determine a
+    scale factor such that the distance between ticks is in the range [0.1, 100.0), plus
+    the corresponding scaled SI unit (e.g. 'mT', 'kV'), deduced from the input unit, to
+    represent the tick values in those scaled units. In addition, an offset is
+    calculated such that the maximum absolute tick value is less than 10^precision.
+
+    .. admonition:: Example
+
+        .. jupyter-execute::
+            :hide-code:
+
+            from quantify_core.visualization.SI_utilities import (
+                _get_scale_factor_and_offset_and_prefix
+            )
+
+        .. jupyter-execute::
+
+            _get_scale_factor_and_offset_and_prefix(
+                ticks=[2100000, 2100100, 2100200],
+                unit="Hz",
+                precision=4
+            )
+            # (0.001, 21000, 'kHz')
+
+    Parameters
+    ----------
+    ticks : List[float]
+        A list of axis tick values.
+    unit : str or None, optional
+        The unit of the tick values.
+    precision : int, optional
+        The maximum amount of digits to display as tick labels.
+
+    Returns
+    -------
+    scale_factor : float
+        The scale factor to multiply the tick values with.
+    offset : float
+        The offset to subtract from the tick values.
+    unit : str
+        The unit including the SI prefix.
+    """
     max_v, min_v = max(ticks), min(ticks)
     resolution = (max_v - min_v) / len(ticks)
     scale_factor, unit = SI_prefix_and_scale_factor(val=resolution * 10, unit=unit)
@@ -33,6 +77,29 @@ def _get_scale_factor_and_offset_and_prefix(
     factor = pow(10, precision - 1)
     offset = int(signed_max * scale_factor / factor) * factor
     return scale_factor, offset, unit
+
+
+def _set_offset_string(
+    formatter: matplotlib.ticker.Formatter, offset: float, unit: str
+) -> None:
+    """Set the offset string of the Formatter to a conveniently scaled offset.
+
+    This function scales the given offset and unit using
+    :func:`~.SI_prefix_and_scale_factor`, and sets the offset string of the Formatter to
+    the scaled offset value.
+
+    Parameters
+    ----------
+    formatter : matplotlib.ticker.Formatter
+        The matplotlib Formatter.
+    offset : float
+        The value to scale and display.
+    unit : str
+        The unit of the value.
+    """
+    offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
+    disp_offset = offset * offset_scale
+    formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
 
 
 def set_xlabel(
@@ -77,9 +144,7 @@ def set_xlabel(
         )
 
         if offset != 0:
-            offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
-            disp_offset = offset * offset_scale
-            formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
+            _set_offset_string(formatter, offset, unit)
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" [{unit}]", **kw)
@@ -129,9 +194,7 @@ def set_ylabel(
         )
 
         if offset != 0:
-            offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
-            disp_offset = offset * offset_scale
-            formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
+            _set_offset_string(formatter, offset, unit)
 
         axis.yaxis.set_major_formatter(formatter)
 
@@ -170,9 +233,7 @@ def set_cbarlabel(
         )
 
         if offset != 0:
-            offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
-            disp_offset = offset * offset_scale
-            formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
+            _set_offset_string(formatter, offset, unit)
 
         cbar.ax.yaxis.set_major_formatter(formatter)
         cbar.set_label(label + f" [{unit}]")
