@@ -99,7 +99,7 @@ def _set_offset_string(
     """
     offset_scale, offset_unit = SI_prefix_and_scale_factor(offset, unit)
     disp_offset = offset * offset_scale
-    formatter.set_offset_string(f"+{disp_offset:g} {offset_unit}")
+    formatter.set_offset_string(f"{disp_offset:+g} {offset_unit}")
 
 
 def set_xlabel(
