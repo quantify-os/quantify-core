@@ -9,6 +9,7 @@
 - Utilities - Fix bug and clean up code in `load_settings_onto_instrument` by only trying to get and set parameters in `_try_to_set_par_safe` (!447, #360)
 - Linting - minor changes to satisfy pyright (!445)
 - Git - Change back to default merge strategy for CHANGELOG.md (!449)
+- Visualization - `set_xlabel`, `set_ylabel` and `set_cbarlabel` now add an offset to the values displayed on the tick labels, if that is needed to properly display small ranges with a large offset (!450, #165)
 
 ## 0.7.1 (2023-03-09)
 
