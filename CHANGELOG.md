@@ -1,16 +1,14 @@
 # Changelog
 
-## Unreleased
-
-### Breaking changes
+## 0.7.2 (2023-05-02)
 
 ### Merged branches and closed issues
 
-- Add qcodes-loop as dependency to ensure `InstrumentMonitor` runs correctly (!452)
 - Analysis - Allow adding additional arguments to `create_figures()` method of classes that inherit from `BaseAnalysis` (#364, !454)
-- Utilities - Fix bug and clean up code in `load_settings_onto_instrument` by only trying to get and set parameters in `_try_to_set_par_safe` (!447, #360)
-- Linting - minor changes to satisfy pyright (!445)
 - Git - Change back to default merge strategy for CHANGELOG.md (!449)
+- Linting - minor changes to satisfy pyright (!445)
+- QCoDeS - Add qcodes-loop as dependency to ensure `InstrumentMonitor` runs correctly (!452)
+- Utilities - Fix bug and clean up code in `load_settings_onto_instrument` by only trying to get and set parameters in `_try_to_set_par_safe` (!447, #360)
 
 ## 0.7.1 (2023-03-09)
 
