@@ -16,6 +16,7 @@
 - Linting - minor changes to satisfy pyright (!445)
 - QCoDeS - Add qcodes-loop as dependency to ensure `InstrumentMonitor` runs correctly (!452)
 - Utilities - Fix bug and clean up code in `load_settings_onto_instrument` by only trying to get and set parameters in `_try_to_set_par_safe` (!447, #360)
+- Visualization - `set_xlabel`, `set_ylabel` and `set_cbarlabel` now add an offset to the values displayed on the tick labels, if that is needed to properly display small ranges with a large offset (!450, #165)
 
 ## 0.7.1 (2023-03-09)
 

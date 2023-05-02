@@ -70,7 +70,7 @@ def test_label_scaling() -> None:
     rescaled correctly
     """
     _, ax = plt.subplots()
-    x = np.linspace(-6, 6, 101)
+    x = np.linspace(-6, 6, 101) + 60000
     y = np.cos(x)
     ax.plot(x * 1000, y / 1e5)
 
@@ -79,8 +79,24 @@ def test_label_scaling() -> None:
 
     xlab = ax.get_xlabel()
     ylab = ax.get_ylabel()
+    xticklabs = [lab.get_text() for lab in ax.get_xticklabels()]
+    yticklabs = [lab.get_text() for lab in ax.get_yticklabels()]
     assert xlab == "Distance [km]"
     assert ylab == "Amplitude [μV]"
+    assert xticklabs == ["-8", "-6", "-4", "-2", "0", "2", "4", "6", "8"]
+    assert yticklabs == [
+        "-12.5",
+        "-10",
+        "-7.5",
+        "-5",
+        "-2.5",
+        "0",
+        "2.5",
+        "5",
+        "7.5",
+        "10",
+        "12.5",
+    ]
 
 
 def test_adjust_adjust_axeslabels_SI() -> None:
