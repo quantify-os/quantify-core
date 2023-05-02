@@ -136,10 +136,10 @@ class AnalysisMeta(ABCMeta):
             create_figures_orig = namespace.pop("create_figures")
 
             @wraps(create_figures_orig)
-            def create_figures_patched(self):
+            def create_figures_patched(self, *args, **kwargs):
                 self._analyses_figures_cache().initialized = True
                 self._creating_figures = True
-                create_figures_orig(self)
+                create_figures_orig(self, *args, **kwargs)
                 self._creating_figures = False
 
             def _figs_axs_mpl(self):
