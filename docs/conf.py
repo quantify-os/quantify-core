@@ -310,6 +310,12 @@ set_type_checking_flag = True  # this will run `typing.TYPE_CHECKING = True`
 # The following fails the build when one of the notebooks has an execution error.
 nb_execution_raise_on_error = True
 
+# Ignore broken anchors using regexp rules
+linkcheck_anchors_ignore = [
+    # Link checker mistakes anchor in https://microsoft.github.io/pyright/#/type-concepts-advanced
+    "^/type-concepts-advanced$"
+]
+
 # Enable nitpicky mode - warns about all references where the target cannot be found
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-nitpicky
 

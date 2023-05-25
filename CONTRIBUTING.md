@@ -73,7 +73,7 @@ by wrapping the desired section with `# fmt: off` and `# fmt: on`.
 
 We use `pyright` to ensure typing consistency along the code.
 It is generally suggested to write strictly typed code and use `isinstance()` checks if needed
-to utilize [`pyright`'s type narrowing](https://github.com/microsoft/pyright/blob/main/docs/type-concepts-advanced.md#type-narrowing),
+to utilize [`pyright`'s type narrowing](https://microsoft.github.io/pyright/#/type-concepts-advanced),
 but if you really need to suppress type checks locally, use `# pyright: ignore` magic comments.
 
 ### [Pylint](https://pylint.org/) and [Codacy](https://www.codacy.com/)
