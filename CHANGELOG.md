@@ -6,6 +6,7 @@
 
 ### Merged branches and closed issues
 
+- Linting - Minor changes to data/handing.py to make it ruff compliant (!457)
 
 ## 0.7.2 (2023-05-02)
 

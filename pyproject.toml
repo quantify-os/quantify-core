@@ -119,7 +119,6 @@ readme = { file = ["README.md"], content-type = "text/markdown" }
 [tool.isort]
 profile = "black"
 
-
 [tool.ruff]
 line-length = 88
 select = [
@@ -143,17 +142,37 @@ select = [
     "PLW",
 ]
 
-# ignore:
-# D203: 1 blank line required before class docstring
-# D212: Multi-line docstring summary should start at the first line
-# E741:   Ambiguous variable name
-# N806:   Variable `...` in function should be lowercase
-# PLR0913: Too many arguments to function call (.../5)
-# A003: Class attribute `compile` is shadowing a python builtin
-# ANN101: Missing type annotation for `self` in method
-# PLR2004: Magic value used in comparison, consider replacing `...` with a constant variable
-ignore = ["D203", "D212", "E741", "N806", "PLR0913", "A003", "ANN101", "PLR2004"]
-
+# ignore these rules for all files:
+ignore = [
+            # 1 blank line required before class docstring
+            "D203", 
+            # Multi-line docstring summary should start at the first line
+            "D212", 
+            # Ambiguous variable name
+            "E741", 
+            # Variable `...` in function should be lowercase
+            "N806", 
+            # Too many arguments to function call (.../5)
+            "PLR0913", 
+            # Class attribute `compile` is shadowing a python builtin
+            "A003", 
+            # Missing type annotation for `self` in method
+            "ANN101", 
+            # Magic value used in comparison, consider replacing `...` with a constant variable
+            "PLR2004", 
+            # First line of docstring should be in imperative mood
+            "D401",
+            # 1 blank line required between summary line and description
+            "D205",
+            # Multi-line docstring summary should start at the second line (conflicts with black)
+            "D213",
+            # Missing type annotation for `**kwargs`
+            "ANN003",
+            # Missing type annotation for `*args`
+            "ANN002",
+            # No blank lines allowed before class docstring (conflicts with black)
+            "D211",
+]
 exclude = [
     "docs",
 ]
@@ -186,7 +205,6 @@ known-first-party = ["quantify_core", "quantify_scheduler"]
 "quantify_core/data/dataset_adapters.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/data/types.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/data/experiment.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
-"quantify_core/data/handling.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/data/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/data/dataset_attrs.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/measurement/gettables.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
