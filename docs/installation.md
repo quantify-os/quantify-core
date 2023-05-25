@@ -10,12 +10,12 @@ If you want to contribute to Quantify, see {ref}`Setting up for local developmen
 
 ### On Windows and macOS (Anaconda)
 
-{mod}`quantify-core` has third party dependencies that can have environment-specific problems.
-We recommend using the [Anaconda](https://www.anaconda.com/products/individual#Downloads) Python distribution which works out of the box on most systems.
+{mod}`quantify-core` has third-party dependencies that can have environment-specific problems.
+We recommend using the [Anaconda](https://www.anaconda.com/download) Python distribution which works out of the box on most systems.
 
 If you are familiar with software development (package manager, git, terminal, Python, etc.) the following should get you running in no time. Otherwise, follow the {ref}`Detailed instructions` and learn a few productivity tips on your way.
 
-1. Install [Anaconda](https://www.anaconda.com/products/individual#Downloads).
+1. Install [Anaconda](https://www.anaconda.com/download).
 
 2. Install Quantify (and JupyterLab) in a new conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
 
@@ -46,7 +46,7 @@ If you are familiar with software development (package manager, git, terminal, P
 
 #### Detailed instructions
 
-1. Install [Anaconda](https://www.anaconda.com/products/individual#Downloads).
+1. Install [Anaconda](https://www.anaconda.com/download).
 
    > On Windows, during the installation, we recommend to select the options:
    >

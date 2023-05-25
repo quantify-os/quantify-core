@@ -1,7 +1,7 @@
 # quantify-core
 
 [![Slack](https://img.shields.io/badge/slack-chat-green.svg)](https://quantify-os.org/slack.html#sec-slack)
-[![Pipelines](https://gitlab.com/quantify-os/quantify-core/badges/main/pipeline.svg)](https://gitlab.com/quantify-os/quantify-core/pipelines/)
+[![Pipelines](https://gitlab.com/quantify-os/quantify-core/badges/main/pipeline.svg)](https://gitlab.com/quantify-os/quantify-core/-/pipelines/)
 [![PyPi](https://img.shields.io/pypi/v/quantify-core.svg)](https://pypi.org/pypi/quantify-core)
 [![Code Quality](https://app.codacy.com/project/badge/Grade/32265e1e7d3f491fa028528aaf8bfa69)](https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Grade)
 [![Coverage](https://app.codacy.com/project/badge/Coverage/32265e1e7d3f491fa028528aaf8bfa69)](https://www.codacy.com/gl/quantify-os/quantify-core/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=quantify-os/quantify-core&amp;utm_campaign=Badge_Coverage)
