@@ -8,22 +8,26 @@ import datetime
 import json
 import os
 import sys
-from collections.abc import Iterable
-from pathlib import Path
-from typing import Union, List, Optional, Dict, Any
-from uuid import uuid4
 from copy import deepcopy
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, List
+from uuid import uuid4
 
 import numpy as np
-import h5netcdf
 import xarray as xr
 from dateutil.parser import parse
 from qcodes.instrument import Instrument
 
 import quantify_core.data.dataset_adapters as da
-import quantify_core.data.handling as dh
 from quantify_core.data.types import TUID
 from quantify_core.utilities.general import delete_keys_from_dict, get_subclasses
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from xarray import Dataset
+
+    from quantify_core.measurement.types import Gettable, Settable
 
 # this is a pointer to the module object instance itself.
 this = sys.modules[__name__]
@@ -38,9 +42,12 @@ QUANTITIES_OF_INTEREST_NAME = "quantities_of_interest.json"
 PROCESSED_DATASET_NAME = "dataset_processed.hdf5"
 
 
+# pylint: disable=keyword-arg-before-vararg
 class DecodeToNumpy(json.JSONDecoder):
-    def __init__(self, list_to_ndarray: bool = False, *args, **kwargs):
-        """Decodes a JSON object to Python/Numpy's objects.
+    """Decodes a JSON object to Python/Numpy objects."""
+
+    def __init__(self, list_to_ndarray: bool = False, *args, **kwargs) -> None:
+        """Decodes a JSON object to Python/Numpy objects.
 
         Example
         -------
@@ -48,18 +55,23 @@ class DecodeToNumpy(json.JSONDecoder):
 
         Parameters
         ----------
-        list_to_numpy
+        list_to_ndarray
             If True, will try to convert python lists to a numpy array.
+        args
+            Additional args to be passed to :class:`json.JsonDecoder`.
+        kwargs
+            Additional kwargs to be passed to :class:`json.JsonDecoder`.
 
         """
         self.list_to_ndarray = list_to_ndarray
-        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+        json.JSONDecoder.__init__(self, object_hook=self._object_hook, *args, **kwargs)
 
-    def object_hook(self, obj):
+    def _object_hook(self, obj: dict) -> dict:
+        """Custom deserialization hook that converts lists to np.arrays."""
         for key, val in obj.items():
-            if self.list_to_ndarray:
-                if isinstance(val, list):
-                    obj[key] = np.array(val)
+            if self.list_to_ndarray and isinstance(val, list):
+                obj[key] = np.array(val)
+
         return obj
 
 
@@ -86,8 +98,7 @@ def default_datadir(verbose: bool = True) -> Path:
 
 
 def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
-    """
-    Generates a :class:`~quantify_core.data.types.TUID` based on current time.
+    """Generates a :class:`~quantify_core.data.types.TUID` based on current time.
 
     Parameters
     ----------
@@ -101,7 +112,7 @@ def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
     """
     if time_stamp is None:
         time_stamp = datetime.datetime.now()
-    # time_stamp gives microsecs by default
+    # time_stamp gives microseconds by default
     (date_time, micro) = time_stamp.strftime("%Y%m%d-%H%M%S-.%f").split(".")
     # this ensures the string is formatted correctly as some systems return 0 for micro
     date_time = f"{date_time}{int(int(micro) / 1000):03d}-"
@@ -112,8 +123,8 @@ def gen_tuid(time_stamp: datetime.datetime = None) -> TUID:
 
 
 def get_datadir() -> str:
-    """
-    Returns the current data directory.
+    """Returns the current data directory.
+
     The data directory can be changed using
     :func:`~quantify_core.data.handling.set_datadir`.
 
@@ -132,15 +143,14 @@ def get_datadir() -> str:
             "E.g. '~/quantify-data' (unix), or 'D:\\Data\\quantify-data' (Windows).\n"
             "The datadir can be changed as follows:\n\n"
             f"    {set_datadir_import}\n"
-            "    set_datadir('path_to_datadir')"
+            "    set_datadir('path_to_datadir')",
         )
 
     return this._datadir
 
 
-def set_datadir(datadir: Optional[str] = None) -> None:
-    """
-    Sets the data directory.
+def set_datadir(datadir: str | None = None) -> None:
+    """Sets the data directory.
 
     Parameters
     ----------
@@ -158,8 +168,7 @@ def set_datadir(datadir: Optional[str] = None) -> None:
 
 
 def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
-    """
-    Returns the path to the experiment container of the specified tuid.
+    """Returns the path to the experiment container of the specified tuid.
 
     Parameters
     ----------
@@ -169,6 +178,8 @@ def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
     datadir
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
+
+
     Returns
     -------
     :
@@ -195,17 +206,20 @@ def locate_experiment_container(tuid: TUID, datadir: str = None) -> str:
 
 
 def _locate_experiment_file(
-    tuid: TUID, datadir: str = None, name: str = DATASET_NAME
+    tuid: TUID,
+    datadir: str = None,
+    name: str = DATASET_NAME,
 ) -> str:
     exp_container = locate_experiment_container(tuid=tuid, datadir=datadir)
     return os.path.join(exp_container, name)
 
 
 def load_dataset(
-    tuid: TUID, datadir: str = None, name: str = DATASET_NAME
-) -> xr.Dataset:
-    """
-    Loads a dataset specified by a tuid.
+    tuid: TUID,
+    datadir: str = None,
+    name: str = DATASET_NAME,
+) -> Dataset:
+    """Loads a dataset specified by a tuid.
 
     .. tip::
 
@@ -220,16 +234,20 @@ def load_dataset(
 
     Parameters
     ----------
-    tuid
+    tuid : TUID
         A :class:`~quantify_core.data.types.TUID` string. It is also possible to specify
         only the first part of a tuid.
-    datadir
+    datadir : str, optional
         Path of the data directory. If ``None``, uses :meth:`~get_datadir` to determine
         the data directory.
+    name : str
+        Name of the dataset.
+
     Returns
     -------
     :
         The dataset.
+
     Raises
     ------
     FileNotFoundError
@@ -238,9 +256,8 @@ def load_dataset(
     return load_dataset_from_path(_locate_experiment_file(tuid, datadir, name))
 
 
-def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
-    """
-    Loads a :class:`~xarray.Dataset` with a specific engine preference.
+def load_dataset_from_path(path: Path | str) -> xr.Dataset:
+    """Loads a :class:`~xarray.Dataset` with a specific engine preference.
 
     Before returning the dataset :meth:`AdapterH5NetCDF.recover()
     <quantify_core.data.dataset_adapters.AdapterH5NetCDF.recover>` is applied.
@@ -279,15 +296,14 @@ def load_dataset_from_path(path: Union[Path, str]) -> xr.Dataset:
     for exception, engine in zip(exceptions, engines[: engines.index(engine)]):
         print(
             f"Failed loading dataset with '{engine}' engine. "
-            f"Raised '{exception.__class__.__name__}':\n    {exception}"
+            f"Raised '{exception.__class__.__name__}':\n    {exception}",
         )
     # raise the last exception
     raise exception
 
 
 def load_quantities_of_interest(tuid: TUID, analysis_name: str) -> dict:
-    """
-    Given an experiment TUID and the name of an analysis previously run on it,
+    """Given an experiment TUID and the name of an analysis previously run on it,
     retrieves the corresponding "quantities of interest" data.
 
     Parameters
@@ -302,7 +318,6 @@ def load_quantities_of_interest(tuid: TUID, analysis_name: str) -> dict:
     :
         A dictionary containing the loaded quantities of interest.
     """
-
     # Get Analysis directory from TUID
     exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
     analysis_dir = exp_folder / f"analysis_{analysis_name}"
@@ -311,15 +326,17 @@ def load_quantities_of_interest(tuid: TUID, analysis_name: str) -> dict:
         raise FileNotFoundError("Analysis not found in current experiment.")
 
     # Load JSON file and return
-    with open(os.path.join(analysis_dir, QUANTITIES_OF_INTEREST_NAME), "r") as file:
+    with open(
+        os.path.join(analysis_dir, QUANTITIES_OF_INTEREST_NAME),
+        encoding="utf-8",
+    ) as file:
         quantities_of_interest = json.load(file)
 
     return quantities_of_interest
 
 
 def load_processed_dataset(tuid: TUID, analysis_name: str) -> xr.Dataset:
-    """
-    Given an experiment TUID and the name of an analysis previously run on it,
+    """Given an experiment TUID and the name of an analysis previously run on it,
     retrieves the processed dataset resulting from that analysis.
 
     Parameters
@@ -334,7 +351,6 @@ def load_processed_dataset(tuid: TUID, analysis_name: str) -> xr.Dataset:
     :
         A dataset containing the results of the analysis.
     """
-
     # Get Analysis directory from TUID
     exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
     analysis_dir = exp_folder / f"analysis_{analysis_name}"
@@ -347,8 +363,7 @@ def load_processed_dataset(tuid: TUID, analysis_name: str) -> xr.Dataset:
 
 
 def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
-    """
-    Converts any attribute of :obj:`~numpy.bool_` type to a :obj:`~bool`.
+    """Converts any attribute of :obj:`~numpy.bool_` type to a :obj:`~bool`.
 
     This is a patch to a bug in xarray 0.17.0.
 
@@ -379,12 +394,11 @@ def _xarray_numpy_bool_patch(dataset: xr.Dataset) -> None:
     bool_cast_attributes(dataset.attrs)
 
 
-def write_dataset(path: Union[Path, str], dataset: xr.Dataset) -> None:
-    """
-    Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
+def write_dataset(path: Path | str, dataset: xr.Dataset) -> None:
+    """Writes a :class:`~xarray.Dataset` to a file with the `h5netcdf` engine.
 
     Before writing the
-    :meth:`AdapterH5NetCDF.adapt() <quantify_core.data.dataset_adapters.AdapterH5NetCDF.adapt>`
+    :meth:`~quantify_core.data.dataset_adapters.AdapterH5NetCDF.adapt`
     is applied.
 
     To accommodate for complex-type numbers and arrays ``invalid_netcdf=True`` is used.
@@ -409,8 +423,7 @@ def load_snapshot(
     list_to_ndarray: bool = False,
     file: str = "snapshot.json",
 ) -> dict:
-    """
-    Loads a snapshot specified by a tuid.
+    """Loads a snapshot specified by a tuid.
 
     Parameters
     ----------
@@ -425,24 +438,29 @@ def load_snapshot(
         convert a list to numpy array during deserialization of the snapshot.
     file
         Filename to load.
+
+
     Returns
     -------
     :
         The snapshot.
+
+
     Raises
     ------
     FileNotFoundError
         No data found for specified date.
     """
     with open(_locate_experiment_file(tuid, datadir, file)) as snap:
-        return json.load(snap, cls=dh.DecodeToNumpy, list_to_ndarray=list_to_ndarray)
+        return json.load(snap, cls=DecodeToNumpy, list_to_ndarray=list_to_ndarray)
 
 
 def create_exp_folder(
-    tuid: TUID, name: str | None = None, datadir: str | None = None
+    tuid: TUID,
+    name: str | None = None,
+    datadir: str | None = None,
 ) -> str:
-    """
-    Creates an empty folder to store an experiment container.
+    """Creates an empty folder to store an experiment container.
 
     If the folder already exists, simply returns the experiment folder corresponding to
     the :class:`~quantify_core.data.types.TUID`.
@@ -456,6 +474,7 @@ def create_exp_folder(
     datadir
         path of the data directory.
         If ``None``, uses :meth:`~get_datadir` to determine the data directory.
+
     Returns
     -------
     :
@@ -476,10 +495,11 @@ def create_exp_folder(
 
 # pylint: disable=too-many-locals
 def initialize_dataset(
-    settable_pars: Iterable, setpoints: np.ndarray, gettable_pars: Iterable
-):
-    """
-    Initialize an empty dataset based on settable_pars, setpoints and gettable_pars
+    settable_pars: Iterable,
+    setpoints: np.ndarray,
+    gettable_pars: Iterable,
+) -> Dataset:
+    """Initialize an empty dataset based on settable_pars, setpoints and gettable_pars.
 
     Parameters
     ----------
@@ -489,12 +509,13 @@ def initialize_dataset(
         An (N*M) array.
     gettable_pars
         A list of gettables.
+
+
     Returns
     -------
     :
         The dataset.
     """
-
     darrs = []
     coords = []
     for i, setpar in enumerate(settable_pars):
@@ -505,7 +526,7 @@ def initialize_dataset(
             "batched": _is_batched(setpar),
         }
         if attrs["batched"] and hasattr(setpar, "batch_size"):
-            attrs["batch_size"] = getattr(setpar, "batch_size")
+            attrs["batch_size"] = setpar.batch_size
         coords.append(f"x{i}")
         darrs.append(xr.DataArray(data=setpoints[:, i], name=coords[-1], attrs=attrs))
 
@@ -529,7 +550,7 @@ def initialize_dataset(
                 "batched": _is_batched(getpar),
             }
             if attrs["batched"] and hasattr(getpar, "batch_size"):
-                attrs["batch_size"] = getattr(getpar, "batch_size")
+                attrs["batch_size"] = getpar.batch_size
             empty_arr = np.empty(numpoints)
             empty_arr[:] = np.nan
             darrs.append(
@@ -537,7 +558,7 @@ def initialize_dataset(
                     data=empty_arr,
                     name=f"y{j + idx}",
                     attrs=attrs,
-                )
+                ),
             )
             count += 1
         j += count
@@ -551,13 +572,14 @@ def initialize_dataset(
 
 
 def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
-    """
-    Resizes the dataset by doubling the current length of all arrays.
+    """Resizes the dataset by doubling the current length of all arrays.
 
     Parameters
     ----------
     dataset
         The dataset to resize.
+
+
     Returns
     -------
     :
@@ -566,14 +588,14 @@ def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
     darrs = []
 
     # coords will also be grown
-    for vname in dataset.variables.keys():
+    for vname in dataset.variables:
         data = dataset[vname].values
         darrs.append(
             xr.DataArray(
                 name=dataset[vname].name,
                 data=np.pad(data, (0, len(data)), "constant", constant_values=np.nan),
                 attrs=dataset[vname].attrs,
-            )
+            ),
         )
     coords = tuple(dataset.coords.keys())
     dataset = dataset.drop_dims(["dim_0"])
@@ -585,14 +607,14 @@ def grow_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
 
 def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
-    """
-    Trim NaNs from a dataset, useful in the case of a dynamically
+    """Trim NaNs from a dataset, useful in the case of a dynamically
     resized dataset (e.g. adaptive loops).
 
     Parameters
     ----------
     dataset
         The dataset to trim.
+
     Returns
     -------
     :
@@ -604,12 +626,14 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
             finish_idx = len(dataset["y0"].values) - i
             darrs = []
             # coords will also be trimmed
-            for vname in dataset.variables.keys():
+            for vname in dataset.variables:
                 data = dataset[vname].values[:finish_idx]
                 darrs.append(
                     xr.DataArray(
-                        name=dataset[vname].name, data=data, attrs=dataset[vname].attrs
-                    )
+                        name=dataset[vname].name,
+                        data=data,
+                        attrs=dataset[vname].attrs,
+                    ),
                 )
             dataset = dataset.drop_dims(["dim_0"])
             merged_data_arrays = xr.merge(darrs)
@@ -622,10 +646,12 @@ def trim_dataset(dataset: xr.Dataset) -> xr.Dataset:
 
 
 def concat_dataset(
-    tuids: List[TUID], dim: str = "dim_0", name: str = None, analysis_name: str = None
+    tuids: list[TUID],
+    dim: str = "dim_0",
+    name: str = None,
+    analysis_name: str = None,
 ) -> xr.Dataset:
-    """
-    This function takes in a list of TUIDs and concatenates the corresponding
+    """Takes in a list of TUIDs and concatenates the corresponding
     datasets. It adds the TUIDs as a coordinate in the new dataset.
 
     By default, we will extract the unprocessed dataset from each directory, but if
@@ -679,13 +705,13 @@ def concat_dataset(
         "ref_tuids": (
             dim,
             extended_tuids,
-            dict(
-                is_main_coord=True,
-                long_name="reference_tuids",
-                is_dataset_ref=True,
-                uniformly_spaced=False,
-            ),
-        )
+            {
+                "is_main_coord": True,
+                "long_name": "reference_tuids",
+                "is_dataset_ref": True,
+                "uniformly_spaced": False,
+            },
+        ),
     }
     new_dataset = new_dataset.assign_coords(new_coord)
     new_dataset.attrs["tuid"] = gen_tuid()
@@ -693,11 +719,10 @@ def concat_dataset(
 
 
 def get_varying_parameter_values(
-    tuids: List[TUID],
+    tuids: list[TUID],
     parameter: str,
 ) -> np.ndarray:
-    """
-    A function that gets a parameter which varies over multiple experiments and puts
+    """A function that gets a parameter which varies over multiple experiments and puts
     it in a ndarray.
 
     Parameters
@@ -708,6 +733,7 @@ def get_varying_parameter_values(
         The name and address of the QCoDeS parameter from which to get the
         value, including the instrument name and all submodules. For example
         :code:`"current_source.module0.dac0.current"`.
+
     Returns
     -------
     :
@@ -728,7 +754,7 @@ def get_varying_parameter_values(
             raise ValueError(vl_error) from vl_error
         except KeyError as key_error:
             raise KeyError(
-                f"Check the varying parameter you put in.\n {key_error}"
+                f"Check the varying parameter you put in.\n {key_error}",
             ) from key_error
     values = np.array(value)
 
@@ -737,15 +763,15 @@ def get_varying_parameter_values(
 
 # pylint: disable=redefined-outer-name
 def extract_parameter_from_snapshot(
-    snapshot: Dict[str, Any], parameter: str
-) -> Dict[str, Any]:
-    """
-    A function which takes a parameter and extracts it from a snapshot,
+    snapshot: dict[str, Any],
+    parameter: str,
+) -> dict[str, Any]:
+    """A function which takes a parameter and extracts it from a snapshot,
     including in the case where the parameter is part of a nested submodule
-    within a QCoDeS instrument
+    within a QCoDeS instrument.
 
     Parameters
-    -----------
+    ----------
     snapshot:
         The snapshot
     parameter:
@@ -754,7 +780,7 @@ def extract_parameter_from_snapshot(
         number of nested submodules is a allowed).
 
     Returns
-    -----------
+    -------
     :
         The dict specifying the parameter properties which was extracted from the
         snapshot
@@ -762,7 +788,7 @@ def extract_parameter_from_snapshot(
     parameter_address = parameter.split(".")
     if len(parameter_address) < 2:
         raise ValueError(
-            "parameter must be a string of the form 'instrument.submodule.parameter'"
+            "parameter must be a string of the form 'instrument.submodule.parameter'",
         )
 
     sub_snapshot = deepcopy(snapshot)
@@ -775,7 +801,7 @@ def extract_parameter_from_snapshot(
         parameter_dict = sub_snapshot["parameters"][parameter_address[-1]]
     except KeyError as key_error:
         raise KeyError(
-            f"Parameter {parameter} not found in snapshot. {key_error} not found."
+            f"Parameter {parameter} not found in snapshot. {key_error} not found.",
         ) from key_error
 
     return parameter_dict
@@ -786,14 +812,13 @@ def multi_experiment_data_extractor(
     experiment: str,
     parameter: str,
     *,
-    new_name: Optional[str] = None,
-    t_start: Optional[str] = None,
-    t_stop: Optional[str] = None,
-    analysis_name: Optional[str] = None,
-    dimension: Optional[str] = "dim_0",
+    new_name: str | None = None,
+    t_start: str | None = None,
+    t_stop: str | None = None,
+    analysis_name: str | None = None,
+    dimension: str | None = "dim_0",
 ) -> xr.Dataset:
-    """
-    A data extraction function which loops through multiple quantify data directories
+    """A data extraction function which loops through multiple quantify data directories
     and extracts the selected varying parameter value and corresponding datasets, then
     compiles this data into a single dataset for further analysis.
 
@@ -802,7 +827,7 @@ def multi_experiment_data_extractor(
     analysis.
 
     Parameters
-    -----------
+    ----------
     experiment:
         The experiment to be included in the new dataset. For example "Pulsed
         spectroscopy"
@@ -828,14 +853,14 @@ def multi_experiment_data_extractor(
         The name of the dataset dimension to concatenate over
 
     Returns
-    -----------
+    -------
     :
         The compiled quantify dataset.
     """
     # Get the tuids of the relevant experiments
     if not isinstance(experiment, str):
         raise TypeError(
-            f"experiment variable should be a string. {experiment} is not a string"
+            f"experiment variable should be a string. {experiment} is not a string",
         )
     tuids = get_tuids_containing(experiment, t_start=t_start, t_stop=t_stop)
     if new_name is None:
@@ -855,7 +880,8 @@ def multi_experiment_data_extractor(
     _, counts = np.unique(new_dataset.ref_tuids.values, return_counts=True)
     # Extend the varying parameter such that the dimensions line up with the new dataset
     varying_parameter_values_extended = np.repeat(
-        varying_parameter_values, repeats=counts
+        varying_parameter_values,
+        repeats=counts,
     )
     _snapshot = load_snapshot(tuids[0])
     _parameter_dict = extract_parameter_from_snapshot(_snapshot, parameter)
@@ -865,12 +891,14 @@ def multi_experiment_data_extractor(
         f"x{nr_existing_coords - 1}": (
             "dim_0",
             varying_parameter_values_extended,
-            dict(
-                is_main_coord=True,
-                long_name=_parameter_dict["label"],
-                units=_parameter_dict["unit"],
-                uniformly_spaced=_is_uniformly_spaced_array(varying_parameter_values),
-            ),
+            {
+                "is_main_coord": True,
+                "long_name": _parameter_dict["label"],
+                "units": _parameter_dict["unit"],
+                "uniformly_spaced": _is_uniformly_spaced_array(
+                    varying_parameter_values,
+                ),
+            },
         ),
     }
     new_dataset = new_dataset.assign_coords(coords)
@@ -892,8 +920,7 @@ def to_gridded_dataset(
     dimension: str = "dim_0",
     coords_names: Iterable = None,
 ) -> xr.Dataset:
-    """
-    Converts a flattened (a.k.a. "stacked") dataset as the one generated by the
+    """Converts a flattened (a.k.a. "stacked") dataset as the one generated by the
     :func:`~initialize_dataset` to a dataset in which the measured values are mapped
     onto a grid in the `xarray` format.
 
@@ -992,7 +1019,7 @@ def to_gridded_dataset(
     if coords_names is None:
         # for compatibility with older datasets we use `variables` instead of `coords`
         coords_names = sorted(
-            v for v in quantify_dataset.variables.keys() if v.startswith("x")
+            v for v in quantify_dataset.variables if v.startswith("x")
         )
     else:
         for coord in coords_names:
@@ -1011,10 +1038,10 @@ def to_gridded_dataset(
 
     if len(coords_names) == 1:
         # No unstacking needed just swap the dimension
-        for var in quantify_dataset.data_vars.keys():
+        for var in quantify_dataset.data_vars:
             if dimension in dataset[var].dims:
                 dataset = dataset.update(
-                    {var: dataset[var].swap_dims({dimension: coords_names[0]})}
+                    {var: dataset[var].swap_dims({dimension: coords_names[0]})},
                 )
     else:
         # Make the Dimension `dimension` a MultiIndex(x0, x1, ...)
@@ -1033,8 +1060,7 @@ def to_gridded_dataset(
 
 
 def get_latest_tuid(contains: str = "") -> TUID:
-    """
-    Returns the most recent tuid.
+    """Returns the most recent tuid.
 
     .. tip::
 
@@ -1046,10 +1072,12 @@ def get_latest_tuid(contains: str = "") -> TUID:
     ----------
     contains
         An optional string contained in the experiment name.
+
     Returns
     -------
     :
         The latest TUID.
+
     Raises
     ------
     FileNotFoundError
@@ -1062,13 +1090,12 @@ def get_latest_tuid(contains: str = "") -> TUID:
 # pylint: disable=too-many-locals
 def get_tuids_containing(
     contains: str = "",
-    t_start: Optional[Union[datetime.datetime, str]] = None,
-    t_stop: Optional[Union[datetime.datetime, str]] = None,
+    t_start: datetime.datetime | str | None = None,
+    t_stop: datetime.datetime | str | None = None,
     max_results: int = sys.maxsize,
     reverse: bool = False,
 ) -> list[TUID]:
-    """
-    Returns a list of tuids containing a specific label.
+    """Returns a list of tuids containing a specific label.
 
     .. tip::
 
@@ -1092,10 +1119,12 @@ def get_tuids_containing(
         Maximum number of results to return. Defaults to unlimited.
     reverse
         If False, sorts tuids chronologically, if True sorts by most recent.
+
     Returns
     -------
     list
         A list of :class:`~quantify_core.data.types.TUID`: objects.
+
     Raises
     ------
     FileNotFoundError
@@ -1115,11 +1144,11 @@ def get_tuids_containing(
     d_start = t_start.strftime("%Y%m%d")
     d_stop = t_stop.strftime("%Y%m%d")
 
-    def lower_bound(dir_name):
-        return dir_name >= d_start if d_start else True  # noqa: E731
+    def lower_bound(dir_name: str) -> bool:
+        return dir_name >= d_start if d_start else True
 
-    def upper_bound(dir_name):
-        return dir_name <= d_stop if d_stop else True  # noqa: E731
+    def upper_bound(dir_name: str) -> bool:
+        return dir_name <= d_stop if d_stop else True
 
     daydirs = list(
         filter(
@@ -1127,7 +1156,7 @@ def get_tuids_containing(
                 x.isdigit() and len(x) == 8 and lower_bound(x) and upper_bound(x)
             ),
             os.listdir(datadir),
-        )
+        ),
     )
     daydirs.sort(reverse=reverse)
     if len(daydirs) == 0:
@@ -1147,7 +1176,7 @@ def get_tuids_containing(
                     and (t_start <= TUID.datetime_seconds(x) < t_stop)
                 ),
                 os.listdir(os.path.join(datadir, daydir)),
-            )
+            ),
         )
         expdirs.sort(reverse=reverse)
         for expname in expdirs:
@@ -1155,7 +1184,7 @@ def get_tuids_containing(
             if daydir != expname[:8]:
                 raise FileNotFoundError(
                     f"Experiment container '{expname}' is in wrong day directory "
-                    f"'{daydir}'"
+                    f"'{daydir}'",
                 )
             tuids.append(TUID(expname[:26]))
             if len(tuids) == max_results:
@@ -1166,17 +1195,17 @@ def get_tuids_containing(
 
 
 def snapshot(update: bool = False, clean: bool = True) -> dict:
-    """
-    State of all instruments setup as a JSON-compatible dictionary (everything that the
-    custom JSON encoder class :class:`~qcodes.utils.NumpyJSONEncoder` supports).
+    """State of all instruments setup as a JSON-compatible dictionary (everything
+    that the custom JSON encoder class :class:`~qcodes.utils.NumpyJSONEncoder`
+    supports).
 
     Parameters
     ----------
     update
         If True, first gets all values before filling the snapshot.
     clean
-        If True, removes certain keys from the snapshot to create a more readable and
-        compact snapshot.
+        If True, removes certain keys from the snapshot to create a more
+        readable and compact snapshot.
     """
     snap = {"instruments": {}, "parameters": {}}
 
@@ -1213,8 +1242,7 @@ def snapshot(update: bool = False, clean: bool = True) -> dict:
 
 
 def _xi_and_yi_match(dsets: Iterable) -> bool:
-    """
-    Checks if all xi and yi data variables in `dsets` match:
+    """Checks if all xi and yi data variables in `dsets` match.
 
     Returns `True` only when all these conditions are met:
 
@@ -1230,12 +1258,10 @@ def _xi_and_yi_match(dsets: Iterable) -> bool:
     return _vars_match(dsets, var_type="x") and _vars_match(dsets, var_type="y")
 
 
-def _vars_match(dsets: Iterable, var_type="x") -> bool:
-    """
-    Checks if all the datasets have matching xi or yi.
-    """
+def _vars_match(dsets: Iterable, var_type: str = "x") -> bool:
+    """Checks if all the datasets have matching xi or yi."""
 
-    def get_xi_attrs(dset):
+    def get_xi_attrs(dset: Dataset) -> tuple[str, ...]:
         # Hash is used in order to ensure everything matches:
         # name, long_name, unit, number of xi
         return tuple(dset[xi].attrs for xi in _get_parnames(dset, var_type))
@@ -1244,24 +1270,23 @@ def _vars_match(dsets: Iterable, var_type="x") -> bool:
     # We can compare to the first one always
     tup0 = next(iterator, None)
 
-    for tup in iterator:
-        if tup != tup0:
-            return False
-
-    # Also returns true if the dsets is empty
-    return True
+    return all(tup == tup0 for tup in iterator)
 
 
-def _get_parnames(dset, par_type):
+def _get_parnames(dset: Dataset, par_type: str) -> Iterable:
     attr = "coords" if par_type == "x" else "data_vars"
-    return sorted(key for key in getattr(dset, attr).keys() if key.startswith(par_type))
+    return sorted(key for key in getattr(dset, attr) if key.startswith(par_type))
 
 
-def _is_batched(obj) -> bool:
-    """
-    N.B. This function cannot be imported from quantify_core.measurement.type due to
+def _is_batched(obj: Settable | Gettable) -> bool:
+    """N.B. This function cannot be imported from quantify_core.measurement.type due to
     some circular dependencies that it would create in the
-    quantify_core.measurement.__init__
+    quantify_core.measurement.__init__.
+
+    Parameters
+    ----------
+    obj : Settable or Gettable
+        settable or gettable to be checked.
 
     Returns
     -------
@@ -1271,9 +1296,11 @@ def _is_batched(obj) -> bool:
     return getattr(obj, "batched", False)
 
 
-def _is_uniformly_spaced_array(points: np.ndarray, rel_tolerance: float = 0.001):
-    """
-    Determines if the points in the array are spaced uniformly.
+def _is_uniformly_spaced_array(
+    points: np.ndarray,
+    rel_tolerance: float = 0.001,
+) -> bool:
+    """Determines if the points in the array are spaced uniformly.
     Intended mainly for `plotmon` to detect if it needs to interpolate the data first,
     otherwise `pyqtgraph` cannot handle the non-uniform case.
 
