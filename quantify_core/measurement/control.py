@@ -22,6 +22,7 @@ from qcodes import validators as vals
 from qcodes.instrument import Instrument, InstrumentChannel
 from qcodes.parameters import InstrumentRefParameter, ManualParameter
 
+from quantify_core import __version__ as _quantify_version
 from quantify_core.data.experiment import QuantifyExperiment
 from quantify_core.data.handling import (
     DATASET_NAME,
@@ -201,6 +202,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         shells.
         """
         return self.__repr__full__()
+
+    def get_idn(self) -> dict[str, str | None]:
+        return {
+            "vendor": "Quantify",
+            "model": f"{self.__module__}.{self.__class__.__name__}",
+            "serial": self.name,
+            "firmware": _quantify_version,
+        }
 
     def show(self):
         """Print short representation of the object to stdout."""

@@ -8,6 +8,7 @@
 
 - Documentation - Update broken urls in documentation (!458)
 - Linting - Minor changes to data/handing.py to make it ruff compliant (!457)
+- MeasurementControl - Add `get_idn()` method, without it will generate warnings in using recent versions of QCoDeS (!459)
 
 ## 0.7.2 (2023-05-02)
 

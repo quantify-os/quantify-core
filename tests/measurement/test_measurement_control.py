@@ -24,6 +24,7 @@ from qcodes.utils import validators as vals
 from scipy import optimize
 
 import quantify_core.data.handling as dh
+from quantify_core import __version__ as _quantify_version
 from quantify_core.data.types import TUID
 from quantify_core.measurement.control import MeasurementControl, grid_setpoints
 from quantify_core.utilities.experiment_helpers import load_settings_onto_instrument
@@ -1615,3 +1616,12 @@ def test_print_progress_no_setpoints(meas_ctrl_empty, mocker):
         ValueError, match="No setpoints available, progress cannot be defined"
     ):
         meas_ctrl_empty.print_progress()
+
+
+def test_get_idn(meas_ctrl):
+    assert meas_ctrl.get("IDN") == {
+        "vendor": "Quantify",
+        "model": f"{meas_ctrl.__module__}.{meas_ctrl.__class__.__name__}",
+        "serial": meas_ctrl.name,
+        "firmware": _quantify_version,
+    }
