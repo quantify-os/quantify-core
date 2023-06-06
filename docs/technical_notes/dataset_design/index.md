@@ -8,6 +8,7 @@ In this part of the documentation, you will find the dataset specification, star
 
 Xarray introduction
 Quantify dataset - specification
+attributes
 Quantify dataset - examples
 Quantify dataset - advanced examples
 ```

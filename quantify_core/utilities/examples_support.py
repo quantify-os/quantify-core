@@ -96,46 +96,13 @@ def mk_iq_shots(
     seed: Union[int, None] = 112233,
 ) -> NDArray:
     """
-    Generates clusters of (I + 1j*Q) points with a Gaussian distribution with the
-    specified sigmas and centers according to the probabilities of each cluster
+    Generate clusters of (I + 1j*Q) points with a Gaussian distribution.
 
-    .. admonition:: Examples
-        :class: dropdown
+    Utility to mock the data coming from qubit readout experiments.
+    Clusters are centered around ``centers`` and data points are distributed between
+    them according to ``probabilities``.
 
-        .. jupyter-execute::
-
-            import matplotlib.pyplot as plt
-
-            from quantify_core.utilities.examples_support import mk_iq_shots
-
-            center_0, center_1, center_2 = 0.6 + 1.2j, -0.2 + 0.5j, 0 + 1.5j
-
-            data = mk_iq_shots(
-                100,
-                sigmas=[0.1] * 2,
-                centers=(center_0, center_1),
-                probabilities=(0.3, 1 - 0.3),
-            )
-
-            fig, ax = plt.subplots()
-            ax.plot(data.real, data.imag, "o", label="Shots")
-            ax.plot(center_0.real, center_0.imag, "^", label="|0>", markersize=10)
-            ax.plot(center_1.real, center_1.imag, "d", label="|1>", markersize=10)
-            _ = ax.legend()
-
-            data = mk_iq_shots(
-                200,
-                sigmas=[0.1] * 3,
-                centers=(center_0, center_1, center_2),
-                probabilities=[0.35, 0.35, 1 - 0.35 - 0.35],
-            )
-
-            fig, ax = plt.subplots()
-            ax.plot(data.real, data.imag, "o", label="Shots")
-            ax.plot(center_0.real, center_0.imag, "^", label="|0>", markersize=10)
-            ax.plot(center_1.real, center_1.imag, "d", label="|1>", markersize=10)
-            ax.plot(center_2.real, center_2.imag, "*", label="|2>", markersize=10)
-            _ = ax.legend()
+    .. seealso:: :ref:`howto-utilities-examples-ssro`
 
     Parameters
     ----------
@@ -210,26 +177,7 @@ def mk_trace_for_iq_shot(
     Generates mock "traces" that a physical instrument would digitize for the readout of
     a transmon qubit when using a down-converting IQ mixer.
 
-    .. admonition:: Examples
-        :class: dropdown
-
-        .. jupyter-execute::
-
-            import matplotlib.pyplot as plt
-
-            from quantify_core.utilities.examples_support import mk_trace_for_iq_shot, mk_trace_time
-
-            SHOT = 0.6 + 1.2j
-
-            time = mk_trace_time()
-            trace = mk_trace_for_iq_shot(SHOT)
-
-            fig, ax = plt.subplots(1, 1, figsize=(12, 12 / 1.61 / 2))
-            _ = ax.plot(time * 1e6, trace.imag, ".-", label="I-quadrature")
-            _ = ax.plot(time * 1e6, trace.real, ".-", label="Q-quadrature")
-            _ = ax.set_xlabel("Time [µs]")
-            _ = ax.set_ylabel("Amplitude [V]")
-            _ = ax.legend()
+    .. seealso:: :ref:`howto-utilities-examples-trace`
 
     Parameters
     ----------

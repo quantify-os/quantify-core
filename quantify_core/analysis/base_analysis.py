@@ -1,8 +1,8 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
+# pylint: disable=all
 """Module containing the analysis abstract base class and several basic analyses."""
 from __future__ import annotations
-from dataclasses import dataclass
 
 import json
 import logging
@@ -10,11 +10,11 @@ import os
 import warnings
 from abc import ABCMeta
 from copy import deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
 from pathlib import Path
 from textwrap import wrap
-from typing import List, Union, Dict
 
 import lmfit
 import matplotlib
@@ -51,8 +51,8 @@ FIGURES_LRU_CACHE_SIZE = 8
 @dataclass
 class _FiguresMplCache:
     __slots__ = ["figs", "axes", "initialized"]
-    figs: Dict[str, matplotlib.figure.Figure]
-    axes: Dict[str, matplotlib.axes.Axes]
+    figs: dict[str, matplotlib.figure.Figure]
+    axes: dict[str, matplotlib.axes.Axes]
     initialized: bool
 
 
@@ -72,12 +72,10 @@ For convenience the analysis framework provides a set of global settings.
 For available settings see :class:`~BaseAnalysis`.
 These can be overwritten for each instance of an analysis.
 
-.. admonition:: Example
-
-    .. jupyter-execute::
-
-        from quantify_core.analysis import base_analysis as ba
-        ba.settings["mpl_dpi"] = 300  # set resolution of matplotlib figures
+Examples
+--------
+>>> from quantify_core.analysis import base_analysis as ba
+... ba.settings["mpl_dpi"] = 300  # set resolution of matplotlib figures
 """
 
 
@@ -86,20 +84,22 @@ class AnalysisSteps(Enum):
     An enumerate of the steps executed by the :class:`~BaseAnalysis` (and the default
     for subclasses).
 
-    The involved steps are specified below.
+    The involved steps are:
 
-    .. jupyter-execute::
-        :hide-code:
+    - ``AnalysisSteps.STEP_1_PROCESS_DATA`` (:meth:`BaseAnalysis.process_data`)
+    - ``AnalysisSteps.STEP_2_RUN_FITTING``  (:meth:`BaseAnalysis.run_fitting`)
+    - ``AnalysisSteps.STEP_3_ANALYZE_FIT_RESULTS`` (:meth:`BaseAnalysis.analyze_fit_results`)
+    - ``AnalysisSteps.STEP_4_CREATE_FIGURES`` (:meth:`BaseAnalysis.create_figures`)
+    - ``AnalysisSteps.STEP_5_ADJUST_FIGURES``  (:meth:`BaseAnalysis.adjust_figures`)
+    - ``AnalysisSteps.STEP_6_SAVE_FIGURES``  (:meth:`BaseAnalysis.save_figures`)
+    - ``AnalysisSteps.STEP_7_SAVE_QUANTITIES_OF_INTEREST`` (:meth:`BaseAnalysis.save_quantities_of_interest`)
+    - ``AnalysisSteps.STEP_8_SAVE_PROCESSED_DATASET``  (:meth:`BaseAnalysis.save_processed_dataset`)
+    - ``AnalysisSteps.STEP_9_SAVE_FIT_RESULTS`` (:meth:`BaseAnalysis.save_fit_results`)
 
-        from quantify_core.analysis import base_analysis as ba
-        print(ba.analysis_steps_to_str(ba.AnalysisSteps))
-
-    .. tip::
-
-        A custom analysis flow (e.g. inserting new steps) can be created by implementing
-        an object similar to this one and overriding the
-        :obj:`~BaseAnalysis.analysis_steps`.
-    """
+    A custom analysis flow (e.g. inserting new steps) can be created by implementing
+    an object similar to this one and overriding the
+    :obj:`~BaseAnalysis.analysis_steps`.
+    """  # noqa: E501
 
     # Variables must start with a letter but we want them to have sorted names
     # for auto-complete to indicate the execution order
@@ -130,8 +130,8 @@ class AnalysisMeta(ABCMeta):
     and preserve reverse compatibility with present code.
     """
 
-    def __new__(cls, name, bases, namespace, /, **kwargs) -> AnalysisMeta:
-        if "create_figures" in namespace.keys():
+    def __new__(cls, name, bases, namespace, /, **kwargs) -> AnalysisMeta:  # noqa: D102
+        if "create_figures" in namespace:
             namespace = dict(namespace)
             create_figures_orig = namespace.pop("create_figures")
 
@@ -166,13 +166,10 @@ class AnalysisMeta(ABCMeta):
 class BaseAnalysis(metaclass=AnalysisMeta):
     """A template for analysis classes."""
 
-    # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-many-public-methods
-
     def __init__(
         self,
         dataset: xr.Dataset = None,
-        tuid: Union[TUID, str] = None,
+        tuid: TUID | str = None,
         label: str = "",
         settings_overwrite: dict = None,
         plot_figures: bool = True,
@@ -254,14 +251,14 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         must be defined in the subclass for that analysis.
 
         Parameters
-        ------------
+        ----------
         tuid:
             The TUID reference of the saved analysis.
         fit_name:
             The name of the fit result to be loaded.
 
         Returns
-        ------------
+        -------
         :
             The lmfit model result object.
         """
@@ -300,7 +297,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         Generate an analysis dir based on a given tuid and analysis class name.
 
         Parameters
-        ------------
+        ----------
         tuid:
             TUID of the analysis dir.
         name:
@@ -311,9 +308,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         """
         exp_folder = Path(locate_experiment_container(tuid, get_datadir()))
         analysis_dir = os.path.join(exp_folder, f"analysis_{name}")
-        if create_missing:
-            if not os.path.isdir(analysis_dir):
-                os.makedirs(analysis_dir)
+        if create_missing and not os.path.isdir(analysis_dir):
+            os.makedirs(analysis_dir)
 
         return analysis_dir
 
@@ -334,7 +330,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         Generate an results dir based on a given analysis dir path.
 
         Parameters
-        ------------
+        ----------
         analysis_dir:
             The path of the analysis directory.
         create_missing:
@@ -342,9 +338,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         """
         results_dir = os.path.join(analysis_dir, "fit_results")
-        if create_missing:
-            if not os.path.isdir(results_dir):
-                os.makedirs(results_dir)
+        if create_missing and not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
 
         return results_dir
 
@@ -362,9 +357,11 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
     def run(self) -> BaseAnalysis:
         """
+        Execute analysis.
+
         This function is at the core of all analysis. It calls
         :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.execute_analysis_steps`
-        which executes all the methods defined in the
+        which executes all the methods defined in the.
 
         First step of any analysis is always extracting data, that is not configurable.
         Errors in `extract_data()` are considered fatal for analysis.
@@ -406,7 +403,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             returns an analysis object.
             You can initialize, run and assign it to a variable on a
             single line:, e.g. :code:`a_obj = MyAnalysis().run()`.
-        """  # pylint: disable=line-too-long
+        """
         # The following two lines must be included when when implementing a custom
         # analysis that requires passing in some (optional) arguments.
         self.execute_analysis_steps()
@@ -429,14 +426,13 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             self.logger.info(f"executing step {i}: {method}")
             try:
                 method()
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 self.logger.exception(
                     f"Exception was raised while executing analysis step {i} "
                     f'("{method}"). Terminating analysis and returning partial result.'
                 )
                 return
 
-    # pylint: disable=no-member
     def get_flow(self) -> tuple:
         """
         Returns a tuple with the ordered methods to be called by run analysis.
@@ -460,7 +456,6 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         datafile.
         """
         if self.dataset is not None:
-            # pylint: disable=fixme
             # FIXME: to be replaced by a validate_dateset see #187
             if "tuid" not in self.dataset.attrs.keys():
                 raise AttributeError('Invalid dataset, missing the "tuid" attribute')
@@ -579,9 +574,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
     def save_fit_results(self):
         """
         Saves the :code:`lmfit.model.model_result` objects for each fit in a
-        sub-directory within the analysis directory
+        sub-directory within the analysis directory.
         """
-
         for fr_name, fit_result in self.fit_results.items():
             path = os.path.join(self.results_dir, f"{fr_name}.txt")
             lmfit.model.save_modelresult(fit_result, path)
@@ -619,9 +613,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
                     plt.close(fig)
 
     def display_figs_mpl(self):
-        """
-        Displays figures in :code:`.figs_mpl` in all frontends.
-        """
+        """Displays figures in :code:`.figs_mpl` in all frontends."""
         for fig in self.figs_mpl.values():
             display(fig)
 
@@ -629,7 +621,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         self,
         ymin: float = None,
         ymax: float = None,
-        ax_ids: List[str] = None,
+        ax_ids: list[str] = None,
     ) -> None:
         """
         Adjust the ylim of matplotlib figures generated by analysis object.
@@ -657,7 +649,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         self,
         xmin: float = None,
         xmax: float = None,
-        ax_ids: List[str] = None,
+        ax_ids: list[str] = None,
     ) -> None:
         """
         Adjust the xlim of matplotlib figures generated by analysis object.
@@ -685,7 +677,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         self,
         vmin: float,
         vmax: float,
-        ax_ids: List[str] = None,
+        ax_ids: list[str] = None,
     ) -> None:
         """
         Adjust the clim of matplotlib figures generated by analysis object.
@@ -726,7 +718,6 @@ class BasicAnalysis(BaseAnalysis):
         Creates a line plot x vs y for every data variable yi and coordinate xi in the
         dataset.
         """
-
         # NB we do not use `to_gridded_dataset` because that can potentially drop
         # repeated measurement of the same x0_i setpoint (e.g., AllXY experiment)
         dataset = self.dataset
@@ -760,7 +751,7 @@ class Basic1DAnalysis(BasicAnalysis):
     for backwards compatibility.
     """
 
-    def run(self) -> BaseAnalysis:
+    def run(self) -> BaseAnalysis:  # noqa: D102
         warnings.warn("Use `BasicAnalysis`", category=FutureWarning)
         return super().run()
 
@@ -771,7 +762,7 @@ class Basic2DAnalysis(BaseAnalysis):
     and plots and stores the data in the experiment container.
     """
 
-    def create_figures(self):
+    def create_figures(self):  # noqa: D102
         gridded_dataset = to_gridded_dataset(self.dataset)
 
         # plot heatmaps of the data
@@ -873,7 +864,6 @@ def lmfit_par_to_ufloat(param: lmfit.parameter.Parameter):
     :class:`!uncertainties.UFloat` :
         An object representing the value and the uncertainty of the parameter.
     """
-
     value = param.value
     stderr = np.nan if param.stderr is None else param.stderr
 
@@ -918,21 +908,25 @@ def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
     """
     A text wrapping (braking over multiple lines) utility.
 
-    Intended to be used with :func:`~quantify_core.visualization.mpl_plotting.plot_textbox`
-    in order to avoid too wide figure when, e.g.,
-    :func:`~quantify_core.analysis.base_analysis.check_lmfit` fails and a warning message is
-    generated.
+    Intended to be used with
+    :func:`~quantify_core.visualization.mpl_plotting.plot_textbox` in order to avoid
+    too wide figure when, e.g.,
+    :func:`~quantify_core.analysis.base_analysis.check_lmfit` fails and
+    a warning message is generated.
 
     For usage see, for example, source code of
     :meth:`~quantify_core.analysis.single_qubit_timedomain.T1Analysis.create_figures`.
 
     Parameters
     ----------
-    text:
+    text
         The text string to be wrapped over several lines.
-    width:
+    width
         Maximum line width in characters.
-    kwargs:
+    replace_whitespace
+        Passed to :func:`textwrap.wrap` and documented
+        `here <https://docs.python.org/3/library/textwrap.html#textwrap.TextWrapper.replace_whitespace>`_.
+    kwargs
         Any other keyword arguments to be passed to :func:`textwrap.wrap`.
 
     Returns
@@ -957,7 +951,7 @@ def analysis_steps_to_str(
     analysis_steps: Enum, class_name: str = BaseAnalysis.__name__
 ) -> str:
     """
-    A utility for generating the docstring for the analysis steps
+    A utility for generating the docstring for the analysis steps.
 
     Parameters
     ----------

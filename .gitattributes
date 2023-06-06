@@ -2,3 +2,7 @@
 * text=auto eol=lf
 quantify_core/_static_version.py export-subst
 AUTHORS.md merge=union
+
+*.ipynb filter=nbstripout
+*.zpln filter=nbstripout
+*.ipynb diff=ipynb

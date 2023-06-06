@@ -19,26 +19,21 @@ from quantify_core.visualization.ins_mon_widget import qc_snapshot_widget
 
 class InstrumentMonitor(Instrument):
     """
-    Creates a pyqtgraph widget that displays the instrument monitor window.
+    Creates a `pyqtgraph` widget that displays the instrument monitor window.
 
-    .. admonition:: Example
+    .. seealso:: :ref:`howto-measurement-control-insmon`
 
-        .. jupyter-execute::
-            :hide-code:
-
-            from qcodes import Instrument
-            Instrument.close_all()
-
-        .. jupyter-execute::
-
-            from quantify_core.measurement import MeasurementControl
-            from quantify_core.visualization import InstrumentMonitor
-
-            meas_ctrl = MeasurementControl("meas_ctrl")
-            instrument_monitor = InstrumentMonitor("instrument_monitor")
-            # Set True if you want to query the instruments about each parameter
-            # before updating the window. Can be slow due to communication overhead.
-            instrument_monitor.update_snapshot(False)
+    Parameters
+    ----------
+    name
+        name of the :class:`.InstrumentMonitor` object.
+    window_size
+        The size of the :class:`.InstrumentMonitor`
+        window in px.
+    remote
+        Switch to use a remote instance of the pyqtgraph class.
+    update_interval
+        Interval in seconds between two updates
     """
 
     proc = None
@@ -51,21 +46,6 @@ class InstrumentMonitor(Instrument):
         remote: bool = True,
         update_interval: int = 5,
     ):
-        """
-        Initializes the pyqtgraph window.
-
-        Parameters
-        ----------
-        name
-            name of the :class:`.InstrumentMonitor` object.
-        window_size
-            The size of the :class:`.InstrumentMonitor`
-            window in px.
-        remote
-            Switch to use a remote instance of the pyqtgraph class.
-        update_interval
-            Interval in seconds between two updates
-        """
         super().__init__(name=name)
 
         self._update_lock = Lock()

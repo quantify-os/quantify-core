@@ -72,17 +72,15 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     - Batched loops, experiments in which setpoints are processed in batches.
     - Adaptive loops, setpoints are determined based on measured values.
 
+    .. seealso:: :ref:`Measurement Control How-To <howto-measurement-control>`
+
+    Parameters
+    ----------
+    name
+        name of this instrument.
     """
 
     def __init__(self, name: str):
-        """
-        Creates an instance of the Measurement Control.
-
-        Parameters
-        ----------
-        name
-            name of this instrument.
-        """
         super().__init__(name=name)
 
         # Parameters are attributes included in logging and which the user can change.
@@ -873,135 +871,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         The gridding is such that the inner most loop corresponds to the batched
         settable with the smallest `.batch_size`.
 
+        .. seealso:: :ref:`Measurement Control How-To <howto-measurement-control>`
+
         Parameters
         ----------
         setpoints
             The values to loop over in the experiment. The grid is reshaped in the same
             order.
-
-
-        .. admonition:: Examples
-            :class: dropdown, tip
-
-            We first prepare some utilities necessarily for the examples.
-
-            .. jupyter-execute::
-                :hide-code:
-                :hide-output:
-
-                from qcodes import Instrument
-                Instrument.close_all()
-
-            .. jupyter-execute::
-
-                from pathlib import Path
-
-                import matplotlib.pyplot as plt
-                import numpy as np
-                import xarray as xr
-                from qcodes import ManualParameter, Parameter
-
-                import quantify_core.data.handling as dh
-                from quantify_core.measurement import MeasurementControl
-
-                dh.set_datadir(Path.home() / "quantify-data")
-                meas_ctrl = MeasurementControl("meas_ctrl")
-
-                par0 = ManualParameter(name="x0", label="X0", unit="s")
-                par1 = ManualParameter(name="x1", label="X1", unit="s")
-                par2 = ManualParameter(name="x2", label="X2", unit="s")
-                par3 = ManualParameter(name="x3", label="X3", unit="s")
-                sig = Parameter(name="sig", label="Signal", unit="V", get_cmd=lambda: np.exp(par0()))
-
-            .. admonition:: Iterative-only settables
-                :class: dropdown, tip
-
-                .. jupyter-execute::
-
-                    par0.batched = False
-                    par1.batched = False
-                    par2.batched = False
-
-                    sig.batched = False
-
-                    meas_ctrl.settables([par0, par1, par2])
-                    meas_ctrl.setpoints_grid(
-                        [
-                            np.linspace(0, 1, 4),
-                            np.linspace(1, 2, 5),
-                            np.linspace(2, 3, 6),
-                        ]
-                    )
-                    meas_ctrl.gettables(sig)
-                    dset = meas_ctrl.run("demo")
-                    list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
-                    plt.gca().legend()
-
-            .. admonition:: Batched-only settables
-                :class: dropdown, tip
-
-                Note that the settable with lowest `.batch_size`  will be correspond to the
-                innermost loop.
-
-                .. jupyter-execute::
-
-                    par0.batched = True
-                    par1.batch_size = 8
-                    par1.batched = True
-                    par1.batch_size = 8
-                    par2.batched = True
-                    par2.batch_size = 4
-
-                    sig = Parameter(name="sig", label="Signal", unit="V", get_cmd=lambda: np.exp(par2()))
-                    sig.batched = True
-                    sig.batch_size = 32
-
-                    meas_ctrl.settables([par0, par1, par2])
-                    meas_ctrl.setpoints_grid(
-                        [
-                            np.linspace(0, 1, 3),
-                            np.linspace(1, 2, 5),
-                            np.linspace(2, 3, 4),
-                        ]
-                    )
-                    meas_ctrl.gettables(sig)
-                    dset = meas_ctrl.run("demo")
-                    list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
-                    plt.gca().legend()
-
-            .. admonition:: Batched and iterative settables
-                :class: dropdown, tip
-
-                Note that the settable with lowest `.batch_size`  will be correspond to the
-                innermost loop. Furthermore, the iterative settables will be the outermost loops.
-
-                .. jupyter-execute::
-
-                    par0.batched = False
-                    par1.batched = True
-                    par1.batch_size = 8
-                    par2.batched = False
-                    par3.batched = True
-                    par3.batch_size = 4
-
-                    sig = Parameter(name="sig", label="Signal", unit="V", get_cmd=lambda: np.exp(par3()))
-                    sig.batched = True
-                    sig.batch_size = 32
-
-                    meas_ctrl.settables([par0, par1, par2, par3])
-                    meas_ctrl.setpoints_grid(
-                        [
-                            np.linspace(0, 1, 3),
-                            np.linspace(1, 2, 5),
-                            np.linspace(2, 3, 4),
-                            np.linspace(3, 4, 6),
-                        ]
-                    )
-                    meas_ctrl.gettables(sig)
-                    dset = meas_ctrl.run("demo")
-                    list(xr.plot.line(xi, label=name) for name, xi in dset.coords.items())
-                    plt.gca().legend()
-        """  # pylint: disable=line-too-long
+        """
         self._setpoints = None  # assigned later in the `._init()`
         self._setpoints_input = setpoints
 

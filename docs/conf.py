@@ -33,13 +33,12 @@ sys.path.insert(0, package_path)
 
 # -- Env workaround ----------------------------------------------------
 
-# See #124 regarding RTD build for merge requests
-# Could be removed after this PR gets merged and deployed on RTD
-# https://github.com/readthedocs/readthedocs.org/pull/7891
-if os.environ.get("READTHEDOCS", "False") == "True":
-    # Commented out to not pollute the RTD output
-    # os.environ["QT_DEBUG_PLUGINS"] = "1"
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+# Disable rendering of Qt widgets.
+# Comment it out if you really want to see the output of insmon and plotmon.
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
+# Enable verbose output on Qt plugins (uncomment if needed).
+# os.environ["QT_DEBUG_PLUGINS"] = "1"
 
 # -- General configuration ---------------------------------------------
 
@@ -70,7 +69,6 @@ extensions = [
     # documents parameters that are defined in the __init__ of `Instrument`s as
     # instance attributes
     "qcodes.sphinx_extensions.parse_parameter_attr",
-    "jupyter_sphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

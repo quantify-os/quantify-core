@@ -24,27 +24,7 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
     or several variables that are necessary to interpret correctly the data of another
     variable.
 
-    .. admonition:: Examples
-
-        This is how the attributes of a dataset containing a ``q0`` main variable and
-        ``q0_cal`` secondary variables would look like.
-        The ``q0_cal`` corresponds to calibrations datapoints.
-        See :ref:`sec-dataset-examples` for examples with more context.
-
-        .. jupyter-execute::
-
-            from quantify_core.data.dataset_attrs import QDatasetIntraRelationship
-            from quantify_core.utilities import examples_support
-
-            attrs = examples_support.mk_dataset_attrs(
-                relationships=[
-                    QDatasetIntraRelationship(
-                        item_name="q0",
-                        relation_type="calibration",
-                        related_names=["q0_cal"],
-                    ).to_dict()
-                ]
-            )
+    .. seealso:: :ref:`dataset-spec-attributes-primary-secondary-rel`
     """
 
     item_name: str | None = None
@@ -75,33 +55,25 @@ class QDatasetIntraRelationship(DataClassJsonMixin):
 @dataclass
 class QCoordAttrs(DataClassJsonMixin):
     """
-    A dataclass representing the :attr:`~xarray.DataArray.attrs` attribute of
+    A dataclass representing the required :attr:`~xarray.DataArray.attrs` attribute of
     main and secondary coordinates.
 
-    All attributes are mandatory to be present but can be ``None``.
-
-    .. admonition:: Examples
-
-        .. jupyter-execute::
-
-            from quantify_core.utilities import examples_support
-            examples_support.mk_main_coord_attrs()
-
-        .. jupyter-execute::
-
-            examples_support.mk_secondary_coord_attrs()
-
+    .. seealso:: :ref:`dataset-spec-coord-attrs-required`
     """
 
     unit: str = ""
     """The units of the values."""
+
     long_name: str = ""
     """A long name for this coordinate."""
-    is_main_coord: bool = None
+
+    is_main_coord: bool | None = None
     """When set to ``True``, flags the xarray coordinate to correspond to a main
     coordinate, otherwise (``False``) it corresponds to a secondary coordinate."""
-    uniformly_spaced: Union[bool, None] = None
+
+    uniformly_spaced: bool | None = None
     """Indicates if the values are uniformly spaced."""
+
     is_dataset_ref: bool = False
     """Flags if it is an array of :class:`quantify_core.data.types.TUID` s of other
     dataset."""
@@ -115,21 +87,10 @@ class QCoordAttrs(DataClassJsonMixin):
 @dataclass
 class QVarAttrs(DataClassJsonMixin):
     """
-    A dataclass representing the :attr:`~xarray.DataArray.attrs` attribute of
+    A dataclass representing the required :attr:`~xarray.DataArray.attrs` attribute of
     main and secondary variables.
 
-    All attributes are mandatory to be present but can be ``None``.
-
-    .. admonition:: Examples
-
-        .. jupyter-execute::
-
-            from quantify_core.utilities import examples_support
-            examples_support.mk_main_var_attrs(coords=["time"])
-
-        .. jupyter-execute::
-
-            examples_support.mk_secondary_var_attrs(coords=["cal"])
+    .. seealso:: :ref:`dataset-spec-vars-attrs-required`
     """
 
     unit: str = ""
@@ -186,21 +147,7 @@ class QDatasetAttrs(DataClassJsonMixin):
     A dataclass representing the :attr:`~xarray.Dataset.attrs` attribute of the
     Quantify dataset.
 
-    All attributes are mandatory to be present but can be ``None``.
-
-    .. admonition:: Example
-
-        .. jupyter-execute::
-
-            import pendulum
-            from quantify_core.utilities import examples_support
-
-            examples_support.mk_dataset_attrs(
-                dataset_name="Bias scan",
-                timestamp_start=pendulum.now().to_iso8601_string(),
-                timestamp_end=pendulum.now().add(minutes=2).to_iso8601_string(),
-                dataset_state="done",
-            )
+    .. seealso:: :ref:`dataset-spec-attrs-required`
     """
 
     tuid: Union[str, None] = None
@@ -239,24 +186,7 @@ class QDatasetAttrs(DataClassJsonMixin):
     software_versions: Dict[str, str] = field(default_factory=dict)
     """A mapping of other relevant software packages that are relevant to log for this
     dataset. Another example is the git tag or hash of a commit of a lab repository.
-
-    .. admonition:: Example
-
-        .. jupyter-execute::
-
-            import pendulum
-            from quantify_core.utilities import examples_support
-
-            examples_support.mk_dataset_attrs(
-                dataset_name="My experiment",
-                timestamp_start=pendulum.now().to_iso8601_string(),
-                timestamp_end=pendulum.now().add(minutes=2).to_iso8601_string(),
-                software_versions={
-                    "lab_fridge_magnet_driver": "v1.4.2",  # software version/tag
-                    "my_lab_repo": "9d8acf63f48c469c1b9fa9f2c3cf230845f67b18",  # git commit hash
-                },
-            )
-    """  # pylint: disable=line-too-long
+    """
 
     relationships: List[QDatasetIntraRelationship] = field(default_factory=list)
     """A list of relationships within the dataset specified as list of dictionaries

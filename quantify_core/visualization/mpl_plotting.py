@@ -5,8 +5,10 @@
 Naming convention: plotting functions that require Xarray object(s) as inputs are named
 ``plot_xr_...``.
 """
+from __future__ import annotations
+
 # pylint: disable=too-many-arguments, too-many-locals
-from typing import List, Literal, Tuple, Union
+from typing import TYPE_CHECKING, Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,16 +28,19 @@ from quantify_core.visualization.SI_utilities import (
     set_ylabel,
 )
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
 
 def plot_complex_points(
-    points: Union[list, np.ndarray],
-    colors: list = None,
-    labels: list = None,
-    markers: list = None,
+    points: list | NDArray,
+    colors: list | None = None,
+    labels: list | None = None,
+    markers: list | None = None,
     legend: bool = True,
-    ax: Axes = None,
+    ax: Axes | None = None,
     **kwargs,
-) -> Tuple[Figure, Axes]:
+) -> tuple[Figure, Axes]:
     """Plots complex points with (by default) different colors and markers on
     the imaginary plane using :meth:`matplotlib.axes.Axes.plot`.
 
@@ -139,13 +144,13 @@ def plot_xr_complex(
     label_real: str = "Real",
     label_imag: str = "Imag",
     cmap: str = "viridis",
-    c: np.ndarray = None,
-    kwargs_line: dict = None,
-    kwargs_scatter: dict = None,
+    c: np.ndarray | None = None,
+    kwargs_line: dict | None = None,
+    kwargs_scatter: dict | None = None,
     title: str = "{} [{}]; shape = {}",
     legend: bool = True,
     ax: object = None,
-) -> Tuple[Figure, Axes]:
+) -> tuple[Figure, Axes]:
     """Plots the real and imaginary parts of complex data. Points are colored by default
     according to their order in the array.
 
@@ -218,13 +223,13 @@ def plot_xr_complex_on_plane(
     marker: str = "o",
     label: str = "Data on imaginary plane",
     cmap: str = "viridis",
-    c: np.ndarray = None,
+    c: np.ndarray | None = None,
     xlabel: str = "Real{}{}{}",
     ylabel: str = "Imag{}{}{}",
     legend: bool = True,
     ax: object = None,
     **kwargs,
-) -> Tuple[Figure, Axes]:
+) -> tuple[Figure, Axes]:
     """Plots complex data on the imaginary plane. Points are colored by default
     according to their order in the array.
 
@@ -294,51 +299,15 @@ def set_suptitle_from_dataset(
 
 
 def set_cyclic_colormap(
-    image_or_collection: Union[AxesImage, QuadMesh, Collection],
+    image_or_collection: AxesImage | QuadMesh | Collection,
     shifted: bool = False,
     unit: Literal["deg", "rad"] = "deg",
-    clim: tuple = None,
+    clim: tuple | None = None,
 ) -> None:
     """
     Sets a cyclic colormap on a matplolib 2D color plot if cyclic units are detected.
 
-    .. admonition:: Example
-        :class: dropdown, tip
-
-        .. jupyter-execute::
-
-            import matplotlib.pyplot as plt
-            import numpy as np
-            import xarray as xr
-
-            from quantify_core.visualization.mpl_plotting import set_cyclic_colormap
-
-            zvals = xr.DataArray(np.random.rand(6, 10) * 360)
-            zvals.attrs["units"] = "deg"
-            zvals.plot()
-
-            fig, ax = plt.subplots(1, 1)
-            color_plot = zvals.plot(ax=ax)
-            set_cyclic_colormap(color_plot)
-
-            zvals_shifted = zvals - 180
-
-            fig, ax = plt.subplots(1, 1)
-            color_plot = zvals_shifted.plot(ax=ax)
-            ax.set_title("Shifted cyclic colormap")
-            set_cyclic_colormap(color_plot, shifted=zvals_shifted.min() < 0)
-
-            fig, ax = plt.subplots(1, 1)
-            color_plot = (zvals / 2).plot(ax=ax)
-            ax.set_title("Overwrite clim")
-            set_cyclic_colormap(color_plot, clim=(0, 180), unit="deg")
-
-            fig, ax = plt.subplots(1, 1)
-            zvals_rad = zvals / 180 * np.pi
-            zvals_rad.attrs["units"] = "rad"
-            color_plot = zvals_rad.plot(ax=ax)
-            ax.set_title("Radians")
-            set_cyclic_colormap(color_plot, unit=zvals_rad.units)
+    .. seealso:: :ref:`howto-visualization-cyclic-colormaps`
 
     Parameters
     ----------
@@ -403,9 +372,9 @@ def plot_fit(
     plot_init: bool = True,
     plot_numpoints: int = 1000,
     range_casting: Literal["abs", "angle", "real", "imag"] = "real",
-    fit_kwargs: dict = None,
-    init_kwargs: dict = None,
-) -> List[plt.Line2D]:
+    fit_kwargs: dict | None = None,
+    init_kwargs: dict | None = None,
+) -> list[plt.Line2D]:
     """
     Plot a fit of an lmfit model with a real domain.
 
@@ -509,11 +478,11 @@ def flex_colormesh_plot_vs_xy(
     xvals: np.ndarray,
     yvals: np.ndarray,
     zvals: np.ndarray,
-    ax: Axes = None,
+    ax: Axes | None = None,
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
-    vlim: list = (None, None),
+    vlim: tuple = (None, None),
     transpose: bool = False,
 ) -> QuadMesh:
     """
@@ -629,15 +598,15 @@ def plot_2d_grid(
     zlabel: str,
     zunit: str,
     ax: Axes,
-    cax: Axes = None,
+    cax: Axes | None = None,
     add_cbar: bool = True,
-    title: str = None,
+    title: str | None = None,
     normalize: bool = False,
     log: bool = False,
     cmap: str = "viridis",
-    vlim: list = (None, None),
+    vlim: tuple = (None, None),
     transpose: bool = False,
-) -> Tuple[QuadMesh, Colorbar]:
+) -> tuple[QuadMesh, Colorbar | None]:
     """
     Creates a heatmap of x,y,z data that was acquired on a grid expects three "columns"
     of data of equal length.
@@ -717,6 +686,7 @@ def plot_2d_grid(
     set_xlabel(xlabel, xunit, ax)
     set_ylabel(ylabel, yunit, ax)
 
+    cbar = None
     if add_cbar:
         if cax is None:
             ax_divider = make_axes_locatable(ax)

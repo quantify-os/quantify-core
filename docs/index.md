@@ -11,6 +11,7 @@
 installation
 usage
 tutorials/index
+howto/index
 contributing
 authors
 changelog

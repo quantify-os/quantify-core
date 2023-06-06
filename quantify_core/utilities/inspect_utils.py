@@ -41,14 +41,7 @@ def get_classes(*modules: ModuleType) -> Dict[str, Type[Any]]:
     Returns a dictionary of class types by class names found in the modules provided
     in the 'modules' parameter.
 
-    .. jupyter-execute::
-
-        from quantify_core.utilities import inspect_utils
-        import quantify_core.analysis.base_analysis as ba
-
-        class_dict: Dict[str, type] = inspect_utils.get_classes(ba)
-        print(class_dict)
-
+    .. seealso:: :ref:`howto-utilities-inspect`
 
     Parameters
     ----------
@@ -72,12 +65,7 @@ def get_functions(*modules: ModuleType) -> Dict[str, Callable]:
     Returns a dictionary of functions by function names found in the modules provided
     in the 'modules' parameter.
 
-    .. jupyter-execute::
-
-        from quantify_core.utilities import inspect_utils
-
-        function_dict: Dict[str, type] = inspect_utils.get_functions(inspect_utils)
-        print(function_dict)
+    .. seealso:: :ref:`howto-utilities-inspect`
 
     Parameters
     ----------

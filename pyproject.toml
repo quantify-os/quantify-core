@@ -69,7 +69,6 @@ docs = [
     "sphinx >=4.5.0, <6",
     "sphinx-rtd-theme >=1.0",
     "myst-nb",
-    "jupyter-sphinx >=0.3.2",
     "rich[jupyter]",
     "scanpydoc",
     "sphinx-autobuild",
@@ -84,6 +83,8 @@ dev = [
     "pytest-cov",
     # Run tests in parallel
     "pytest-xdist",
+    # Used for a Git filter for commiting Jupyter notebooks
+    "nbstripout",
     # Scikit-optimize is used in one optional test
     "scikit-optimize",
     # Linting, code style, static analysis
@@ -145,21 +146,21 @@ select = [
 # ignore these rules for all files:
 ignore = [
             # 1 blank line required before class docstring
-            "D203", 
+            "D203",
             # Multi-line docstring summary should start at the first line
-            "D212", 
+            "D212",
             # Ambiguous variable name
-            "E741", 
+            "E741",
             # Variable `...` in function should be lowercase
-            "N806", 
+            "N806",
             # Too many arguments to function call (.../5)
-            "PLR0913", 
+            "PLR0913",
             # Class attribute `compile` is shadowing a python builtin
-            "A003", 
+            "A003",
             # Missing type annotation for `self` in method
-            "ANN101", 
+            "ANN101",
             # Magic value used in comparison, consider replacing `...` with a constant variable
-            "PLR2004", 
+            "PLR2004",
             # First line of docstring should be in imperative mood
             "D401",
             # 1 blank line required between summary line and description
@@ -199,7 +200,7 @@ known-first-party = ["quantify_core", "quantify_scheduler"]
 "quantify_core/analysis/calibration.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/analysis/spectroscopy_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/analysis/__init__.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
-"quantify_core/analysis/base_analysis.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
+"quantify_core/analysis/base_analysis.py" = ["ANN"]
 "quantify_core/analysis/single_qubit_timedomain.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/analysis/fitting_models.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]
 "quantify_core/data/dataset_adapters.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]

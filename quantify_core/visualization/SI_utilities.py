@@ -34,24 +34,6 @@ def _get_scale_factor_and_offset_and_prefix(
     represent the tick values in those scaled units. In addition, an offset is
     calculated such that the maximum absolute tick value is less than 10^precision.
 
-    .. admonition:: Example
-
-        .. jupyter-execute::
-            :hide-code:
-
-            from quantify_core.visualization.SI_utilities import (
-                _get_scale_factor_and_offset_and_prefix
-            )
-
-        .. jupyter-execute::
-
-            _get_scale_factor_and_offset_and_prefix(
-                ticks=[2100000, 2100100, 2100200],
-                unit="Hz",
-                precision=4
-            )
-            # (0.001, 21000, 'kHz')
-
     Parameters
     ----------
     ticks : List[float]
@@ -69,6 +51,15 @@ def _get_scale_factor_and_offset_and_prefix(
         The offset to subtract from the tick values.
     unit : str
         The unit including the SI prefix.
+
+    Examples
+    --------
+    >>> _get_scale_factor_and_offset_and_prefix(
+    ...     ticks=[2100000, 2100100, 2100200],
+    ...     unit="Hz",
+    ...     precision=4,
+    ... )
+    (1.0, 2100000, 'Hz')
     """
     max_v, min_v = max(ticks), min(ticks)
     resolution = (max_v - min_v) / len(ticks)
