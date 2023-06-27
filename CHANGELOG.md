@@ -6,6 +6,7 @@
 
 ### Merged branches and closed issues
 
+- Documentation - Add install instructions for macOS users (!464)
 - Documentation - Update broken urls in documentation (!458)
 - Documentation - Remove `jupyter-sphinx` extension and port snippets formerly served by it into a How-To section in the documentation. (!460)
 - Linting - Minor changes to data/handing.py to make it ruff compliant (!457)

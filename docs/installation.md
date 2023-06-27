@@ -8,43 +8,95 @@
 This is the preferred method to install Quantify, as it will always install the most recent stable release.
 If you want to contribute to Quantify, see {ref}`Setting up for local development`.
 
-### On Windows and macOS (Anaconda)
+### Quick Install Guide
 
-{mod}`quantify-core` has third-party dependencies that can have environment-specific problems.
-We recommend using the [Anaconda](https://www.anaconda.com/download) Python distribution which works out of the box on most systems.
+(This section assumes familiarity with basic software development concepts. For an extended explanation, follow the {ref}`Detailed instructions` and learn a few productivity tips on your way.)
 
-If you are familiar with software development (package manager, git, terminal, Python, etc.) the following should get you running in no time. Otherwise, follow the {ref}`Detailed instructions` and learn a few productivity tips on your way.
+We recommend installing `quantify-core` in a virtual environment such as
+[Anaconda](https://www.anaconda.com/download) to avoid environment-specific
+problems, together with JupyterLab for its user-friendly interface for
+notebooks. 
+
+
+::::{tab-set}
+
+:::{tab-item} Windows
 
 1. Install [Anaconda](https://www.anaconda.com/download).
 
-2. Install Quantify (and JupyterLab) in a new conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
+2. Open Anaconda Prompt and run the following
 
-   > ```{admonition} Supported Python versions
-   > Check the supported Python versions on PyPi: [quantify-core](https://pypi.org/project/quantify-core/) | [quantify-scheduler](https://pypi.org/project/quantify-scheduler/)
    > ```
-
-   > N.B. If you are interested to contribute to {mod}`quantify-core` and/or {mod}`quantify-scheduler` you should {ref}`set them up for local development instead <Setting up for local development>`.
-   >
-   > ```
-   > $ # run the following commands step by step!
-   >
-   > $ conda create --name quantify-env python=3.8
+   > $ conda create --name quantify-env python=3.9
    > $ conda activate quantify-env
    > $ conda install -c conda-forge jupyterlab
    > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
    > $ pip install quantify-core
    >
    > $ # (Optionally) install quantify-scheduler:
-   >
    > $ pip install quantify-scheduler
-   > $ jupyter labextension install jupyterlab-plotly --no-build
-   > $ # this might take a few minutes
-   > $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
    > ```
+
+:::
+
+:::{tab-item} Linux
+
+1. Install [Anaconda](https://www.anaconda.com/download).
+
+2. Open a terminal and run the following
+
+   > ```
+   > $ conda create --name quantify-env python=3.9
+   > $ conda activate quantify-env
+   > $ conda install -c conda-forge jupyterlab
+   > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
+   > $ pip install quantify-core
+   >
+   > $ # (Optionally) install quantify-scheduler:
+   > $ pip install quantify-scheduler
+   > ```
+
+:::
+
+:::{tab-item} macOS
+
+1. Install [Anaconda](https://www.anaconda.com/download).
+
+2. If you have a newer MacBook with either an M1 or M2 chip (Apple Silicon, ARM), you will have to run `quantify-core` in an x86 compatibility mode. This is achieved by creating a Conda environment that targets the "osx-64" subdirectory, which ensures that the installation and execution will occur within an x86 environment on your MacBook. 
+
+   > ```
+   > $ CONDA_SUBDIR=osx-64 conda create --name quantify-env python=3.9
+   > $ conda activate quantify-env
+   > $ conda config --env --set subdir osx-64
+   > $ conda install -c conda-forge jupyterlab
+   > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
+   > $ pip install quantify-core
+   >
+   > $ # (Optionally) install quantify-scheduler:
+   > $ pip install quantify-scheduler
+   > ```
+
+For older MacBooks, you can run 
+
+   > ```
+   > $ conda create --name quantify-env python=3.9
+   > $ conda activate quantify-env
+   > $ conda install -c conda-forge jupyterlab
+   > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
+   > $ pip install quantify-core
+   >
+   > $ # (Optionally) install quantify-scheduler:
+   > $ pip install quantify-scheduler
+   > ```
+
+:::
+
+:::: 
 
 3. You are good to go! Head over to the {ref}`User guide <user-guide>` to get started.
 
-#### Detailed instructions
+### Detailed instructions
+0. Currently, `quantify-core` is compatible with Python versions `3.8`, `3.9`, `3.10`, and `quantify-scheduler` with Python versions `3.8` and `3.9`. To install and run `quantify` you will need to have a correct version of Python together with the `pip` Python package manager installed. To fulfill these requirements, we recommend using a virtual environment that is managed by Anaconda. 
 
 1. Install [Anaconda](https://www.anaconda.com/download).
 
@@ -62,7 +114,7 @@ If you are familiar with software development (package manager, git, terminal, P
    > ```
    > ``````
 
-2. (Windows only) Install [Git BASH](https://gitforwindows.org/) to have a unix-like bash terminal (default options during installation should work well on most setups).
+2. (Windows only) Install [Git BASH](https://gitforwindows.org/) to have a Unix-like bash terminal (default options during installation should work well on most setups).
 
    > ```{tip}
    > Users can right click any folder in windows and open Git BASH in that location.
@@ -72,7 +124,7 @@ If you are familiar with software development (package manager, git, terminal, P
    > Be aware that a unix-like terminal on windows has some caveats. To avoid them, we recommend to run any Python code using [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/) (installation steps below).
    > ```
 
-3. (Windows only) Add {code}`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc` (or in the `.bash_profile`) to expose the anaconda in bash terminal (see instruction below if you need help).
+3. (Windows only) Add {code}`source /path/to/Anaconda3/etc/profile.d/conda.sh` in the `.bashrc` (or in the `.bash_profile`) to expose the anaconda in the bash terminal (see instruction below if you need help).
 
    > ```{tip}
    > If you followed the default anaconda installation the path to it will be similar to
@@ -96,7 +148,7 @@ If you are familiar with software development (package manager, git, terminal, P
    > To confirm you have a functional installation of anaconda, run {code}`conda` in the terminal. This will print the conda help message which is an indication of a working installation.
    > ```
 
-4. Create a conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
+4. Create a Conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
 
    > ```
    > $ conda create --name quantify-env python=3.8   # create the conda environment, you can replace `quantify-env` if you wish
@@ -142,30 +194,7 @@ If you are familiar with software development (package manager, git, terminal, P
    >
    > ```
    > $ pip install quantify-scheduler
-   > $ jupyter labextension install jupyterlab-plotly --no-build
-   > $ # this might take a few minutes
-   > $ jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget
    > ```
-
-### Other operating systems
-
-Confirm that you have a compatible working Python interpreter by running the following in your terminal of choice:
-```
-$ python --version
-Python 3.8.10
-```
-```{admonition} Supported Python versions
-Check the supported Python versions on PyPi: [quantify-core](https://pypi.org/project/quantify-core/) | [quantify-scheduler](https://pypi.org/project/quantify-scheduler/)
-```
-
-Install Quantify:
-
-```
-$ pip install quantify-core
-```
-
-If you don't have [pip] installed, this [Python installation guide] can guide
-you through the process.
 
 ## Update to the latest version
 
@@ -322,6 +351,10 @@ $ pip install --upgrade quantify-core==0.3.0
 On most systems, the standard installation process will correctly install Qt.
 The Anaconda installation should resolve issues with installation on Windows or macOS.
 You may need to consult a search engine if you have a more exotic system.
+
+#### macOS users
+
+Users with newer MacBooks that have the M1 or M2 chip will face problems when installing PyQt through pip. This can be solved by installing and running `quantify-core` inside an x86 compatibility environment. Please see the macOS section of {ref}`Quick Install Guide` for instructions.
 
 [pip]: https://pip.pypa.io
 [python installation guide]: http://docs.python-guide.org/en/latest/starting/installation/

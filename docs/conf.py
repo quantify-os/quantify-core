@@ -69,7 +69,11 @@ extensions = [
     # documents parameters that are defined in the __init__ of `Instrument`s as
     # instance attributes
     "qcodes.sphinx_extensions.parse_parameter_attr",
+    "sphinx_design",
 ]
+
+# required to use sphinx_design in combination with myst
+myst_enable_extensions = ["colon_fence"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

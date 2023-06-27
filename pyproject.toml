@@ -76,6 +76,7 @@ docs = [
     "sphinx-jsonschema >=1.15",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex",
+    "sphinx-design",
 ]
 dev = [
     "quantify-core[docs,test]",
