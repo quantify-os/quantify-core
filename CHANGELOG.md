@@ -11,6 +11,7 @@
 - Documentation - Remove `jupyter-sphinx` extension and port snippets formerly served by it into a How-To section in the documentation. (!460)
 - Linting - Minor changes to data/handing.py to make it ruff compliant (!457)
 - MeasurementControl - Add `get_idn()` method, without it will generate warnings in using recent versions of QCoDeS (!459)
+- Replace usage of the deprecated `qcodes.plots` with `qcodes_loop.plots` in the remote plot monitor (!465)
 
 ## 0.7.2 (2023-05-02)
 

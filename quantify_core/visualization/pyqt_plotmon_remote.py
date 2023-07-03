@@ -15,8 +15,8 @@ import numpy as np
 import xarray as xr
 from filelock import FileLock
 from pyqtgraph.Qt import QtCore
-from qcodes.plots.colors import color_cycle
-from qcodes.plots.pyqtgraph import QtPlot, TransformState
+from qcodes_loop.plots.colors import color_cycle
+from qcodes_loop.plots.pyqtgraph import QtPlot, TransformState
 
 from quantify_core.data.handling import (
     DATASET_NAME,
@@ -496,7 +496,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
             shape = (len(x), len(y))
             for yi in get_parnames:
                 # the background values of z_matrix are filled to be np.nan. Note that
-                # qcodes.plots.pyqtgraph.QtPlot._update_image converts np.nan to the
+                # qcodes_loop.plots.pyqtgraph.QtPlot._update_image converts np.nan to the
                 # minimum value though it should be possible to have NaNs in pyqtgraph
                 z_matrix = np.full(shape, np.nan)
                 np.fill_diagonal(z_matrix, dset[yi].values)
@@ -639,7 +639,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         ):
             for yidx, yi in enumerate(get_parnames):
                 # the background values of z_matrix are filled to be np.nan.
-                # Note that qcodes.plots.pyqtgraph.QtPlot._update_image converts
+                # Note that qcodes_loop.plots.pyqtgraph.QtPlot._update_image converts
                 # np.nan to the minimum value although it _should_ be possible to
                 # have NaNs in pyqtgraph.
                 shape = (len(dset["x0"].values), len(dset["x1"].values))
