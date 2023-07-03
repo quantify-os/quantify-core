@@ -9,7 +9,7 @@ from scipy import interpolate
 
 
 def areas(ip):
-    p = ip.tri.points[ip.tri.vertices]
+    p = ip.tri.points[ip.tri.simplices]
     q = p[:, :-1, :] - p[:, -1, None, :]
     areas = abs(q[:, 0, 0] * q[:, 1, 1] - q[:, 0, 1] * q[:, 1, 0]) / 2
     return areas
