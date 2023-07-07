@@ -39,7 +39,7 @@ def test_deprecated_message():
     with pytest.warns(
         FutureWarning,
         match=r"Function .*SomeClass.get_foo\(\) is deprecated and will be removed "
-        "in .*-1.1. Use SomeClass.foo directly.",
+        r"in .*-1.1. Use SomeClass.foo directly.",
     ):
         foo = new_class_instance.get_foo()
 
@@ -80,7 +80,7 @@ def test_deprecated_alias():
     with pytest.warns(
         FutureWarning,
         match=r"Function .*old_function\(\) is deprecated and will be removed "
-        "in .*-0.7. Use .*new_function\(\) instead.",
+        r"in .*-0.7. Use .*new_function\(\) instead.",
     ):
         old_result = old_function(37)
 
@@ -123,9 +123,10 @@ def test_deprecated_alias():
     with pytest.warns(
         FutureWarning,
         match=r"Function .*NewClass.get_val\(\) is deprecated and will be removed in "
-        ".*-0.7. Use .*NewClass.val\(\) instead.",
+        r".*-0.7. Use .*NewClass.val\(\) instead.",
     ):
         new_val = new_instance.get_val()
+        assert new_val == val
 
     # This will fail, and print NewClass.get_val() instead of OldClass.get_val().
     # I don't think it is a huge issue, because fixing this will take really a lot
@@ -140,7 +141,7 @@ def test_deprecated_alias():
     with pytest.warns(
         FutureWarning,
         match=r"Function .*NewClass.get_val\(\) is deprecated and will be removed in "
-        ".*-0.7. Use .*NewClass.val\(\) instead.",
+        r".*-0.7. Use .*NewClass.val\(\) instead.",
     ):
         old_val = old_instance.get_val()
 

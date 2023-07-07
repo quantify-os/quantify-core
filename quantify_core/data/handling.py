@@ -184,6 +184,7 @@ def locate_experiment_container(tuid: TUID, datadir: Path | str | None = None) -
     -------
     :
         The path to the experiment container
+
     Raises
     ------
     FileNotFoundError

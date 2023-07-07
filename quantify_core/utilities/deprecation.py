@@ -120,22 +120,11 @@ def deprecated(
         else:
             func = func_or_class
 
-        # pylint: disable=too-few-public-methods
-        class _FnDeprecator:
-            def __init__(self):
-                functools.update_wrapper(self, func)
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            warnings.warn(message, FutureWarning, stacklevel=_find_stack_level())
+            return func(*args, **kwargs)
 
-            def __set_name__(self, owner, name):
-                @functools.wraps(func)
-                def wrapper(*args, **kwargs):
-                    return self(*args, **kwargs)
-
-                setattr(owner, name, wrapper)
-
-            def __call__(self, *args, **kwargs):
-                warnings.warn(message, FutureWarning, stacklevel=_find_stack_level())
-                return func(*args, **kwargs)
-
-        return _FnDeprecator()
+        return wrapper
 
     return deprecator
