@@ -457,7 +457,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         """
         if self.dataset is not None:
             # FIXME: to be replaced by a validate_dateset see #187
-            if "tuid" not in self.dataset.attrs.keys():
+            if "tuid" not in self.dataset.attrs:
                 raise AttributeError('Invalid dataset, missing the "tuid" attribute')
 
             self.tuid = TUID(self.dataset.attrs["tuid"])
