@@ -164,7 +164,7 @@ dataset.attrs["tuid"], dataset.attrs["name"]
 
 ```
 
-The {ref}`dataset<Dataset>` is stored as an {class}`xarray.Dataset` (you can read more about xarray project at <http://xarray.pydata.org/>).
+The {ref}`dataset<Dataset>` is stored as an {class}`xarray.Dataset` (you can read more about xarray project at <https://docs.xarray.dev/>).
 
 As shown below, a **Data variable** is assigned to each dimension of the settables and the gettable(s), following a format in which the settable takes the form x0, x1, etc. and the gettable(s) the form y0, y1, y2, etc.. You can click on the icons on the right to see the attributes of each variable and the values.
 

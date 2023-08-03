@@ -78,10 +78,11 @@ myst_enable_extensions = ["colon_fence"]
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
+# See https://stackoverflow.com/a/42513684 for a common list and instructions to find new
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "qcodes": ("https://qcodes.github.io/Qcodes/", None),
-    "xarray": ("https://xarray.pydata.org/en/stable/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "lmfit": ("https://lmfit.github.io/lmfit-py/", None),
@@ -93,6 +94,7 @@ intersphinx_mapping = {
         None,
     ),
     "IPython": ("https://ipython.readthedocs.io/en/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
 }
 
 bibtex_bibfiles = ["refs.bib"]

@@ -15,7 +15,7 @@ If you want to contribute to Quantify, see {ref}`Setting up for local developmen
 We recommend installing `quantify-core` in a virtual environment such as
 [Anaconda](https://www.anaconda.com/download) to avoid environment-specific
 problems, together with JupyterLab for its user-friendly interface for
-notebooks. 
+notebooks.
 
 
 ::::{tab-set}
@@ -62,7 +62,7 @@ notebooks.
 
 1. Install [Anaconda](https://www.anaconda.com/download).
 
-2. If you have a newer MacBook with either an M1 or M2 chip (Apple Silicon, ARM), you will have to run `quantify-core` in an x86 compatibility mode. This is achieved by creating a Conda environment that targets the "osx-64" subdirectory, which ensures that the installation and execution will occur within an x86 environment on your MacBook. 
+2. If you have a newer MacBook with either an M1 or M2 chip (Apple Silicon, ARM), you will have to run `quantify-core` in an x86 compatibility mode. This is achieved by creating a Conda environment that targets the "osx-64" subdirectory, which ensures that the installation and execution will occur within an x86 environment on your MacBook.
 
    > ```
    > $ CONDA_SUBDIR=osx-64 conda create --name quantify-env python=3.9
@@ -76,7 +76,7 @@ notebooks.
    > $ pip install quantify-scheduler
    > ```
 
-For older MacBooks, you can run 
+For older MacBooks, you can run
 
    > ```
    > $ conda create --name quantify-env python=3.9
@@ -91,12 +91,12 @@ For older MacBooks, you can run
 
 :::
 
-:::: 
+::::
 
 3. You are good to go! Head over to the {ref}`User guide <user-guide>` to get started.
 
 ### Detailed instructions
-0. Currently, `quantify-core` is compatible with Python versions `3.8`, `3.9`, `3.10`, and `quantify-scheduler` with Python versions `3.8` and `3.9`. To install and run `quantify` you will need to have a correct version of Python together with the `pip` Python package manager installed. To fulfill these requirements, we recommend using a virtual environment that is managed by Anaconda. 
+0. Currently, `quantify-core` is compatible with Python versions `3.8`, `3.9`, `3.10`, and `quantify-scheduler` with Python versions `3.8` and `3.9`. To install and run `quantify` you will need to have a correct version of Python together with the `pip` Python package manager installed. To fulfill these requirements, we recommend using a virtual environment that is managed by Anaconda.
 
 1. Install [Anaconda](https://www.anaconda.com/download).
 
@@ -176,7 +176,7 @@ For older MacBooks, you can run
    $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
    ```
 
-6. Install {mod}`quantify-core` from pypi
+6. Install `quantify-core` from pypi
 
    > If you are interested to contribute to Quantify-core you should {ref}`set it up for local development instead <Setting up for local development>`.
    >
@@ -188,9 +188,9 @@ For older MacBooks, you can run
    > We currently do not have a conda recipe for installation, instead we refer to the default pip installation within a conda environment.
    > ```
 
-7. (Optionally) install {mod}`quantify-scheduler`
+7. (Optionally) install `quantify-scheduler`
 
-   > If you are interested to contribute to {mod}`quantify-scheduler` you should {ref}`set it up for local development instead <Setting up for local development>`. You only need to replace {mod}`quantify-core` with {mod}`quantify-scheduler` in the provided commands.
+   > If you are interested to contribute to `quantify-scheduler` you should {ref}`set it up for local development instead <Setting up for local development>`. You only need to replace `quantify-core` with `quantify-scheduler` in the provided commands.
    >
    > ```
    > $ pip install quantify-scheduler
@@ -218,7 +218,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
     $ git clone git@gitlab.com:your_name_here/quantify-core.git
     ```
 
-03. Install {mod}`quantify-core` locally:
+03. Install `quantify-core` locally:
 
     ```
     $ cd quantify-core/
@@ -321,7 +321,7 @@ Ready to contribute? Here's how to set up Quantify for local development.
 
 If for some reason you are not able to install or use Quantify using the prescribed ways indicated above, make sure you have a working Python environment (e.g. you can run an `IPython` terminal). Follow the next steps that aim at installing Quantify from source and running its tests.
 
-0. Uninstall {mod}`quantify-core`:
+0. Uninstall `quantify-core`:
 
    ```
    $ pip uninstall quantify-core
@@ -347,7 +347,7 @@ $ pip install --upgrade quantify-core==0.3.0
 
 ### Potential issues: PyQtGraph and PyQt5
 
-{mod}`quantify-core` has a dependency on the `PyQt5` package, which itself has a dependency on the `Qt5` runtime.
+`quantify-core` has a dependency on the `PyQt5` package, which itself has a dependency on the `Qt5` runtime.
 On most systems, the standard installation process will correctly install Qt.
 The Anaconda installation should resolve issues with installation on Windows or macOS.
 You may need to consult a search engine if you have a more exotic system.

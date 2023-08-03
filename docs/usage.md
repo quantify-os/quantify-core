@@ -13,7 +13,7 @@ jupytext:
 
 ## Introduction
 
-A {mod}`quantify_core` experiment typically consists of a data-acquisition loop in
+A `quantify-core` experiment typically consists of a data-acquisition loop in
 which one or more parameters are set and one or more parameters are measured.
 
 The core of Quantify can be understood by understanding the following concepts:
@@ -97,7 +97,7 @@ three steps:
 2. Measure (get) some parameter(s),
 3. Store the data.
 
-{mod}`quantify-core` provides two helper classes, {class}`.Settable` and {class}`.Gettable` to aid
+`quantify-core` provides two helper classes, {class}`.Settable` and {class}`.Gettable` to aid
 in these steps, which are explored further in later sections of this article.
 
 {class}`.MeasurementControl` provides the following functionality:
@@ -237,7 +237,7 @@ dset_grid.y0.plot()
 ## Settables and Gettables
 
 Experiments typically involve varying some parameters and reading others.
-In {mod}`quantify-core` we encapsulate these concepts as the {class}`.Settable`
+In `quantify-core` we encapsulate these concepts as the {class}`.Settable`
 and {class}`.Gettable` respectively.
 As their name implies, a Settable is a parameter you set values to,
 and a Gettable is a parameter you get values from.
@@ -375,11 +375,11 @@ The top-level directory in the file system where output is saved to.
 This directory can be controlled using the {meth}`~quantify_core.data.handling.get_datadir`
 and {meth}`~quantify_core.data.handling.set_datadir` functions.
 We recommend changing the default directory when starting the python kernel
-(after importing {mod}`quantify-core) and settling for a single common data directory
+(after importing {mod}`quantify_core`) and settling for a single common data directory
 for all notebooks/experiments within your measurement setup/PC
 (e.g., {code}`D:\\quantify-data`).
 
-{mod}`quantify-core` provides utilities to find/search and extract data,
+`quantify-core` provides utilities to find/search and extract data,
 which expects all your experiment containers to be located within the same directory
 (under the corresponding date subdirectory).
 
@@ -447,7 +447,7 @@ quantify-data/
 The Dataset is implemented with a **specific** convention using the
 {class}`xarray.Dataset` class.
 
-{mod}`quantify-core` arranges data along two types of axes: `X` and `Y`.
+`quantify-core` arranges data along two types of axes: `X` and `Y`.
 In each dataset there will be *n* `X`-type axes and *m* `Y`-type axes.
 For example, the dataset produced in an experiment where we sweep 2 parameters (settables)
 and measure 3 other parameters (all 3 returned by a Gettable),
