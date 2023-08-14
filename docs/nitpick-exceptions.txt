@@ -9,3 +9,33 @@ py:class dataclasses_json.api.DataClassJsonMixin
 py:class quantify_core.analysis.single_qubit_timedomain._DecayFigMixin
 py:class numpy.complex128
 py:class numpy.float64
+
+# Can't find external refs to Xarray when referenced through xr.Dataset in quantify_core/data/handling.py
+py:class xr.Dataset
+py:class xr.DataArray
+
+# Can't find external refs to pathlib.Path
+py:class Path
+
+# Can't find external refs to qcodes.instrument.* 
+py:class Instrument
+py:class InstrumentChannel
+
+# Can't find external refs to qcodes.parameter.* 
+py:class Parameter
+
+# NB: couldn't find typing reference in utilities/experiment_support:mk_cosine_instrument
+py:class typing.TypeVar`(``ScalarType`
+
+# Can't find external refs to numpy.typing 
+py:class NDArray
+py:class np.ndarray
+
+# Can't find external refs to matplotlib  
+py:class QuadMesh
+py:class Axes
+py:class Colorbar
+py:class Figure
+py:class plt.Line2D
+py:class AxesImage
+py:class plt.Axes
