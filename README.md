@@ -8,7 +8,7 @@
 [![Documentation Status](https://readthedocs.com/projects/quantify-quantify-core/badge/?version=latest)](https://quantify-quantify-core.readthedocs-hosted.com)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://gitlab.com/quantify-os/quantify-core/-/blob/main/LICENSE)
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat)](http://unitary.fund)
+[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat)](https://unitary.fund)
 
 ![Quantify logo](https://orangeqs.com/logos/QUANTIFY_LANDSCAPE.svg)
 
