@@ -438,8 +438,9 @@ def mk_t1_traces_dataset(
 
 def mk_surface7_cyles_dataset(num_cycles: int = 3, **kwargs) -> xr.Dataset:
     """
-    See also ``:func: mk_surface7_sched`` inlined in the documentation as an example in:
-        `docs/technical_notes/dataset_design/Quantify dataset - advanced examples.md`
+    See also :func:`mk_surface7_sched` inlined in the documentation as an example in:
+        :ref:`sec-dataset-advanced-examples`
+
 
 
     Parameters
