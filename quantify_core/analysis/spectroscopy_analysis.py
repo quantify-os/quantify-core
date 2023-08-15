@@ -9,6 +9,99 @@ from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import format_value_string
 
 
+# Custom analysis class for QubitSpectroscopy
+class QubitSpectroscopyAnalysis(ba.BaseAnalysis):
+    """
+    Analysis for a qubit spectroscopy experiment.
+
+    Fits a Lorentzian function to qubit spectroscopy
+    data and finds the 0-1 transistion frequency.
+    """
+
+    # pylint: disable=invalid-name
+    # pylint: disable=no-member
+
+    def process_data(self) -> None:
+        """Populate the :code:`.dataset_processed`."""
+        # y0 = amplitude, no check for the amplitude unit as the name/label is
+        # often different.
+
+        self.dataset_processed["Magnitude"] = self.dataset.y0
+        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset_processed.Magnitude.attrs["units"] = self.dataset.y0.units
+        self.dataset_processed.Magnitude.attrs["long_name"] = "Magnitude, $|S_{21}|$"
+
+        self.dataset_processed["x0"] = self.dataset.x0
+        self.dataset_processed = self.dataset_processed.set_coords("x0")
+        # replace the default dim_0 with x0
+        self.dataset_processed = self.dataset_processed.swap_dims({"dim_0": "x0"})
+
+    def run_fitting(self) -> None:
+        """Fit a Lorentzian function to the data."""
+        mod = fm.LorentzianModel()
+
+        magnitude = np.array(self.dataset_processed["Magnitude"])
+        frequency = np.array(self.dataset_processed.x0)
+        guess = mod.guess(magnitude, x=frequency)
+        fit_result = mod.fit(magnitude, params=guess, x=frequency)
+
+        self.fit_results.update({"Lorentzian_peak": fit_result})
+
+    def analyze_fit_results(self) -> None:
+        """Check fit success and populates :code:`.quantities_of_interest`."""
+        fit_result = self.fit_results["Lorentzian_peak"]
+        fit_warning = ba.wrap_text(ba.check_lmfit(fit_result))
+
+        # If there is a problem with the fit, display an error message in the text box.
+        # Otherwise, display the parameters as normal.
+        if fit_warning is None:
+            self.quantities_of_interest["fit_success"] = True
+
+            text_msg = "Summary\n"
+            text_msg += format_value_string(
+                "Frequency 0-1",
+                fit_result.params["x0"],
+                unit="Hz",
+                end_char="\n",
+            )
+            text_msg += format_value_string(
+                "Peak width",
+                fit_result.params["width"],
+                unit="Hz",
+                end_char="\n",
+            )
+        else:
+            text_msg = ba.wrap_text(fit_warning)
+            self.quantities_of_interest["fit_success"] = False
+
+        self.quantities_of_interest["frequency_01"] = ba.lmfit_par_to_ufloat(
+            fit_result.params["x0"]
+        )
+        self.quantities_of_interest["fit_msg"] = text_msg
+
+    def create_figures(self) -> None:
+        """Create qubit spectroscopy figure."""
+        fig_id = "QubitSpectroscopyAnalysis"
+        fig, ax = plt.subplots()
+        self.figs_mpl[fig_id] = fig  # type: ignore
+        self.axs_mpl[fig_id] = ax  # type: ignore
+
+        self.dataset_processed.Magnitude.plot(ax=ax, marker=".", linestyle="")
+
+        qpl.plot_fit(
+            ax=ax,
+            fit_res=self.fit_results["Lorentzian_peak"],
+            plot_init=not self.quantities_of_interest["fit_success"],
+            range_casting="real",
+        )
+
+        qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")  # type: ignore
+
+        fig.tight_layout()  # type: ignore
+        # Add a textbox with the fit_message
+        qpl.plot_textbox(ax, self.quantities_of_interest["fit_msg"])  # type: ignore
+
+
 class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
     """
     Analysis for a spectroscopy experiment of a hanger resonator.
