@@ -39,3 +39,6 @@ py:class Figure
 py:class plt.Line2D
 py:class AxesImage
 py:class plt.Axes
+
+# missing reference to function defined inside example notebooks
+py:func mk_surface7_sched
