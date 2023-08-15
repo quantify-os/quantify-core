@@ -3,6 +3,7 @@
 ## Contributors
 
 - [Adam Lawrence](mailto:adam@orangeqs.com)
+- [Adilet Tuleuov](mailto:adilnaut@gmail.com)
 - [Adriaan Rol](mailto:adriaan@orangeqs.com)
 - [Callum Attryde](mailto:cattryde@qblox.com)
 - [Damien Crielaard](mailto:dcrielaard@qblox.com)
