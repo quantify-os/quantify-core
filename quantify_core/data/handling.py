@@ -58,9 +58,9 @@ class DecodeToNumpy(json.JSONDecoder):
         list_to_ndarray
             If True, will try to convert python lists to a numpy array.
         args
-            Additional args to be passed to :class:`.json.JsonDecoder`.
+            Additional args to be passed to :class:`json.JSONDecoder`.
         kwargs
-            Additional kwargs to be passed to :class:`.json.JsonDecoder`.
+            Additional kwargs to be passed to :class:`json.JSONDecoder`.
 
         """
         self.list_to_ndarray = list_to_ndarray
@@ -219,7 +219,7 @@ def load_dataset(
     tuid: TUID,
     datadir: Path | str | None = None,
     name: str = DATASET_NAME,
-) -> Dataset:
+) -> xr.Dataset:
     """Loads a dataset specified by a tuid.
 
     .. tip::

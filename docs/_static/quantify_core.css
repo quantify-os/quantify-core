@@ -1,3 +1,15 @@
 .wy-nav-content {
     max-width: 81% !important;
 }
+
+dl.xr-attrs {
+    grid-template-columns: auto auto !important;
+}
+
+div.xr-var-name {
+    margin-top: 12px !important;
+}
+
+div.xr-index-name {
+    margin-top: 12px !important;
+}
