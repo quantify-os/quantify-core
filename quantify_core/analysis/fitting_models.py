@@ -7,6 +7,7 @@ from typing import Tuple
 
 import lmfit
 import numpy as np
+from numpy.typing import NDArray
 
 
 def get_model_common_doc() -> str:
@@ -209,6 +210,41 @@ def cos_func(
     return amplitude * np.cos(2 * np.pi * frequency * x + phase) + offset
 
 
+def lorentzian_func(
+    x: float,
+    x0: float,
+    width: float,
+    a: float,
+    c: float,
+) -> float:
+    r"""
+    A Lorentzian function.
+
+    .. math::
+
+        y = \frac{a*\mathrm{width}}{\pi(\mathrm{width}^2 + (x - x_0)^2)} + c
+
+    Parameters
+    ----------
+    x:
+        independent variable
+    x0:
+        horizontal offset
+    width:
+        Lorenztian linewidth
+    a:
+        amplitude
+    c:
+        vertical offset
+
+    Returns
+    -------
+    :
+        Lorentzian function
+    """
+    return a * width / (np.pi * ((x - x0) ** 2) + width**2) + c
+
+
 def exp_decay_func(
     t: float,
     tau: float,
@@ -285,6 +321,63 @@ def exp_damp_osc_func(
     exp_decay = np.exp(-((t / tau) ** n_factor))
     osc_decay = oscillation * exp_decay + offset
     return osc_decay
+
+
+class LorentzianModel(lmfit.model.Model):
+    """
+    Model for data which follows a Lorentzian function.
+
+    Uses the function :func:`~lorentzian_func` as the
+    defining equation.
+    """
+
+    # pylint: disable=empty-docstring
+    # pylint: disable=abstract-method
+    # pylint: disable=too-few-public-methods
+    def __init__(self, *args, **kwargs) -> None:
+        # pass in the defining equation so the user doesn't have to later.
+        super().__init__(lorentzian_func, *args, **kwargs)
+
+        self.set_param_hint("x0", vary=True)
+        self.set_param_hint("a", vary=True)
+        self.set_param_hint("c", vary=True)
+        self.set_param_hint("width", vary=True)
+
+    # pylint: disable=missing-function-docstring
+    def guess(self, data: NDArray, **kws) -> lmfit.parameter.Parameters:
+        """Guess some initial values for the model based on the data."""
+        x = kws.get("x", None)
+
+        if x is None:
+            return None  # type: ignore
+
+        # Guess that the resonance is where the function takes its maximal
+        # value
+        x0_guess = x[np.argmax(data)]
+        self.set_param_hint("x0", value=x0_guess)
+
+        # assume the user isn't trying to fit just a small part of a resonance curve.
+        xmin = x.min()
+        xmax = x.max()
+        width_max = xmax - xmin
+
+        delta_x = np.diff(x)  # assume f is sorted
+        min_delta_x = delta_x[delta_x > 0].min()
+        # assume data actually samples the resonance reasonably
+        width_min = min_delta_x
+        width_guess = np.sqrt(width_min * width_max)  # geometric mean, why not?
+        self.set_param_hint("width", value=width_guess)
+
+        # The guess for the vertical offset is the mean absolute value of the data
+        c_guess = np.mean(data)
+        self.set_param_hint("c", value=c_guess)
+
+        # Calculate A_guess from difference between the peak and the backround level
+        a_guess = np.pi * width_guess * (np.max(data) - c_guess)
+        self.set_param_hint("a", value=a_guess)
+
+        params = self.make_params()
+        return lmfit.models.update_param_vals(params, self.prefix, **kws)
 
 
 # This class is used a literal include in the docs so the pylint options are here

@@ -5,6 +5,7 @@
 - [Adam Lawrence](mailto:adam@orangeqs.com)
 - [Adilet Tuleuov](mailto:adilnaut@gmail.com)
 - [Adriaan Rol](mailto:adriaan@orangeqs.com)
+- [Axel Andersson](mailto:aandersson@qblox.com)
 - [Callum Attryde](mailto:cattryde@qblox.com)
 - [Damien Crielaard](mailto:dcrielaard@qblox.com)
 - [Daniel Jonathan Weigand](mailto:dweigand@qblox.com)
