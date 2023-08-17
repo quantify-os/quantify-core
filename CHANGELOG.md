@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 0.7.3 (2023-08-17)
 
 ### Merged branches and closed issues
