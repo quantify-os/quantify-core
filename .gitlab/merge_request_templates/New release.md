@@ -55,10 +55,8 @@
         - `Active`=True
         - `Hidden`=False
         - `Privacy Level`=Public
-   - [ ] Change both the `Default version` and `Default branch` of the docs to the tag that was released [over here](https://readthedocs.com/dashboard/quantify-quantify-core/advanced/). Hit Save!
    - [ ] Make sure the docs build and check on RTD.
-      - Manually rebuild `latest` by hitting `Build version:` [over here](https://readthedocs.com/projects/quantify-quantify-core/builds/).
-      - Check both the `latest` and the new version links on RTD work by clicking through to Changelog (hit Ctrl+F5).
+      - Check the new version on RTD via the Changelog.
 
 1. [ ] Create new release vX.Y.Z on [GitLab](https://gitlab.com/quantify-os/quantify-core/-/releases).
     - Copy/paste the changelog of the release
