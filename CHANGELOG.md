@@ -6,6 +6,7 @@
 
 ### Merged branches and closed issues
 
+- Deprecation - Avoid deprecated code in validator.iter_errors (!475)
 - Analysis - Added analysis class for qubit spectroscopy (!463)
 - Deprecation - The `@deprecated` decorator now returns a function when decorating a function, instead of a class with a `__call__` method (!462).
 - Documentation - Add install instructions for macOS users (!464)

@@ -23,7 +23,7 @@ class Settable:
     schema = load_json_schema(__file__, "Settable.json")
 
     def __new__(cls, obj: Any) -> Any:
-        return _validade_schema(cls, obj)
+        return _validate_schema(cls, obj)
 
 
 class Gettable:
@@ -40,13 +40,14 @@ class Gettable:
     schema = load_json_schema(__file__, "Gettable.json")
 
     def __new__(cls, obj: Any) -> Any:
-        return _validade_schema(cls, obj)
+        return _validate_schema(cls, obj)
 
 
-def _validade_schema(cls: Any, obj: Any) -> Any:
+def _validate_schema(cls: Any, obj: Any) -> Any:
     for attr_type in ("attrs", "methods"):
         attr_names = cls.schema[attr_type]["properties"].keys()
-        validator.validate(
+        new_validator = validator.evolve(schema=cls.schema[attr_type])
+        new_validator.validate(
             # Only the relevant keys are selected, this is to avoid evaluating other
             # attributes that have been potentially added with an @property decorator.
             # We use `dir()` to avoid undesired evaluations as well.
@@ -54,8 +55,7 @@ def _validade_schema(cls: Any, obj: Any) -> Any:
             # using the @property decorator and will not show up.
             # `callable()` cannot be used to find methods because it will evaluate
             # attributes that have been injected with @property decorator.
-            {attr: getattr(obj, attr) for attr in dir(obj) if attr in attr_names},
-            cls.schema[attr_type],
+            {attr: getattr(obj, attr) for attr in dir(obj) if attr in attr_names}
         )
     return obj
 
