@@ -4,7 +4,9 @@
 
 ### Merged branches and closed issues
 
+- Deprecation - Explicit handling of np.arrays to avoid deprecated functionality when converting a dimensional array into scalar. (!476)
 - Documentation - Improve documentation build time and enable `sphinx-autobuild` (!471)
+
 ## 0.7.3 (2023-08-17)
 
 ### Merged branches and closed issues

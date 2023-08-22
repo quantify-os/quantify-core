@@ -613,7 +613,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                     yi_dataarray_values = self._dataarray_cache[yi_name]
                 old_val = yi_dataarray_values[idx]
                 if self._soft_avg == 1 or np.isnan(old_val):
-                    yi_dataarray_values[idx] = val
+                    if isinstance(val, np.ndarray) and val.size == 1:
+                        # This branch avoids usage of deprecated code
+                        yi_dataarray_values[idx] = val.item()
+                    else:
+                        # This is deprecated if val is an np.ndarray with ndim > 0
+                        yi_dataarray_values[idx] = val
                 else:
                     averaged = (val + old_val * self._loop_count) / (
                         1 + self._loop_count
