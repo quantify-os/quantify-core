@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Merged branches and closed issues
+
+- Documentation - Improve documentation build time and enable `sphinx-autobuild` (!471)
 ## 0.7.3 (2023-08-17)
 
 ### Merged branches and closed issues

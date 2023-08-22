@@ -311,9 +311,6 @@ if os.environ.get("GITLAB_CI", "false") == "true":
 
 set_type_checking_flag = True  # this will run `typing.TYPE_CHECKING = True`
 
-# The following fails the build when one of the notebooks has an execution error.
-nb_execution_raise_on_error = True
-
 # Ignore broken anchors using regexp rules
 linkcheck_anchors_ignore = [
     # Link checker mistakes anchor in https://microsoft.github.io/pyright/#/type-concepts-advanced
@@ -345,5 +342,18 @@ import h5py
 # Automatically generate anchors for MyST headers
 myst_heading_anchors = 3
 
-# Cache myst_nb execution results by default
-nb_execution_mode = "cache"
+# By default execution mode is set to "cache": that allowes to store execution result
+# to local cache. However, for a purpose of faster editing we allow to override it
+# locally using MYSTNB_EXECUTION_MODE environment variable. That is useful if
+# documentation author uses `sphinx-autobuild`: setting it to "off" will disable
+# automated execution completely, and documentation author will be able to edit
+# documentation in JupyterLab or VSCode and see live changes in a browser with
+# minimal delay possible.
+nb_execution_mode = os.environ.get("MYSTNB_EXECUTION_MODE") or "cache"
+
+# The following fails the build when one of the notebooks has an execution error,
+# and this error is not allowed explicitly.
+nb_execution_raise_on_error = True
+
+# Default cell execution timeout.
+nb_execution_timeout = 120

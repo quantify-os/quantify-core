@@ -7,7 +7,7 @@
 SPHINXOPTS    = --keep-going -n -w build_errors.log
 SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = quantify_core
-SOURCEDIR     = .
+SOURCEDIR     = source
 BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".

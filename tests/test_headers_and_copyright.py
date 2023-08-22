@@ -45,7 +45,7 @@ def test_header() -> None:
 
 def test_docs_copyright() -> None:
     quantify_core_path = Path(__file__).resolve().parent.parent.resolve()
-    conf_file = quantify_core_path / "docs" / "conf.py"
+    conf_file = quantify_core_path / "docs" / "source" / "conf.py"
     copyright_found = False
     current_year = str(datetime.datetime.now().year)
     cr_match = 'copyright = "2020-20.*Qblox & Orange Quantum Systems'

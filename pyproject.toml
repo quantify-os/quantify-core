@@ -189,7 +189,7 @@ known-first-party = ["quantify_core", "quantify_scheduler"]
 
 # - E402: Module level import not at top of file
 # - F401: Multiple imports on one line
-"*/docs/conf.py" = ["E402", "F401"]
+"docs/source/conf.py" = ["E402", "F401"]
 "__init__.py" = ["F401"]
 
 "quantify_core/_static_version.py" = ["D", "I", "F", "E", "W", "TID", "SIM", "N", "UP", "TCH", "ANN", "ARG", "PLR"]

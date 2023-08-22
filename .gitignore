@@ -54,6 +54,8 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 docs/build_errors.log
+docs/jupyter_execute/
+docs/.jupyter_cache/
 
 # PyBuilder
 target/

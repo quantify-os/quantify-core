@@ -1,6 +1,6 @@
 # Welcome to Quantify's documentation!
 
-```{include} ../README.md
+```{include} ../../README.md
 ```
 
 ```{toctree}
