@@ -10,8 +10,8 @@ ENV MPLBACKEND=agg
 
 RUN apt-get update -q && \
     apt-get install -q -y --no-install-recommends --fix-missing \
-        xauth \
-        xvfb \
+    xauth \
+    xvfb \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,10 +19,13 @@ RUN apt-get update -q && \
 # $ python setup.py bdist_wheel
 COPY dist/quantify_core-*.whl /root/wheel/
 RUN pip install --upgrade --upgrade-strategy eager \
-        pip \
-        setuptools \
-        twine \
+    pip \
+    setuptools \
+    twine \
     && find /root/wheel -name quantify_core-*-py3-none-any.whl -exec pip install {}[dev] \; \
     # It must always be installed in before_script, because wheel package may be updated later
     && pip uninstall -y quantify-core \
     && pip freeze --all > /frozen-requirements.txt
+
+RUN if [ ! -d ~/.ipython/profile_default ]; then mkdir -p ~/.ipython/profile_default; fi && \
+    echo "c.InteractiveShellApp.matplotlib = 'inline'" >> ~/.ipython/profile_default/ipython_config.py
