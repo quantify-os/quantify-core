@@ -4,9 +4,9 @@
 
 ### Merged branches and closed issues
 
-- Documentation - Fix gitlab pipeline is missing images with matplotlib inline in ipython profile configs
 - Deprecation - Explicit handling of np.arrays to avoid deprecated functionality when converting a dimensional array into scalar. (!476)
 - Documentation - Improve documentation build time and enable `sphinx-autobuild` (!471)
+- Documentation - Fix missing images in Jupyter cell outputs in documentation deployed using Gitlab Pages. (!480)
 
 ## 0.7.3 (2023-08-17)
 
