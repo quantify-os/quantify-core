@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import itertools
+import math
 import signal
 import tempfile
 import threading
@@ -13,6 +14,7 @@ from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
 from typing import Any, Dict, Optional
+from tqdm.auto import tqdm
 
 import adaptive
 import numpy as np
@@ -290,6 +292,11 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         }
         # Reset to default interrupt handler
         signal.signal(signal.SIGINT, signal.default_int_handler)
+
+        # Make sure tqdm progress bar attribute is closed and removed if mc is interrupted and shot down gracefully
+        if self.verbose() and hasattr(self, "pbar"):
+            self.pbar.close()
+            del self.pbar
 
     def _init(self, name):
         """
@@ -765,34 +772,44 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
     def print_progress(self, progress_message: str = None):
         """
-        Prints the provided `progress_messages` or a default one; and calls the
+        Prints the provided `progress_messages` or displays tqdm progress bar; and calls the
         callback specified by `on_progress_callback`.
-        Printing can be suppressed with `.verbose(False)`.
+
+        NB: if called with no progress message (progress bar is used),
+            `self.pbar` attribute should be closed and removed.
+
+        Printing and progress bar display can be suppressed with `.verbose(False)`.
         """
 
         # There are no points initialized, progress does not make sense
         if self._get_max_setpoints() == 0:
             raise ValueError("No setpoints available, progress cannot be defined")
 
-        progress_percent = self._get_fracdone() * 100
-        elapsed_time = time.time() - self._begintime
-        if self.verbose() and progress_message is None:
-            t_left = (
-                round((100.0 - progress_percent) / progress_percent * elapsed_time, 1)
-                if progress_percent != 0
-                else None
-            )
-            progress_message = (
-                f"\r{int(progress_percent):#3d}% completed | elapsed time: "
-                f"{int(round(elapsed_time, 1)):#6d}s"
-            )
-            if t_left is not None:
-                progress_message += f" | time left: {int(round(t_left, 1)):#6d}s"
-            if self._batch_size_last is not None:
-                progress_message += f"  last batch size: {self._batch_size_last:#6d}"
-            progress_message += "  "
+        # by checking if `progress_message` is None we make sure we change print behavior for adaptive run
+        if self.verbose() and not hasattr(self, "pbar") and progress_message is None:
+            # when you use `unit` instead of `postfix` it removes unintended comma
+            # see https://github.com/tqdm/tqdm/issues/712
+            custom_bar_format = "{l_bar}{bar} [ elapsed time: {elapsed} | time left: {remaining} ] {unit}"
+            self.pbar = tqdm(total=100, desc="Completed", bar_format=custom_bar_format)
 
-            print(progress_message, end="" if progress_percent < 100 else "\n")
+        progress_percent = self._get_fracdone() * 100
+
+        if self.verbose() and progress_message is None:
+            progress_diff = math.floor(progress_percent) - self.pbar.n
+            if self._batch_size_last is not None:
+                self.pbar.unit = " last batch size: %s" % self._batch_size_last
+            else:
+                # if no unit attribute provided `custom_bar_format` breaks with extra `it` output
+                self.pbar.unit = ""
+            self.pbar.update(progress_diff)
+
+        if (
+            self.verbose()
+            and hasattr(self, "pbar")
+            and math.floor(progress_percent) >= 100
+        ):
+            self.pbar.close()
+            del self.pbar
 
         if self.on_progress_callback() is not None:
             self.on_progress_callback()(progress_percent)

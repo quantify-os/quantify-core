@@ -12,6 +12,7 @@ py:class numpy.float64
 
 # Can't find external refs to Xarray when referenced through xr.Dataset in quantify_core/data/handling.py
 py:class xr.Dataset
+py:class Dataset
 py:class xr.DataArray
 
 # Can't find external refs to pathlib.Path
@@ -42,3 +43,6 @@ py:class plt.Axes
 
 # missing reference to function defined inside example notebooks
 py:func mk_surface7_sched
+
+# missing external reference to scipy
+py:func scipy.sparse.coo_matrix

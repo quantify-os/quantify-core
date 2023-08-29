@@ -1564,49 +1564,6 @@ def test_grid_setpoints():
     assert all(e in sp[:, 2] for e in z)
 
 
-@pytest.mark.parametrize(
-    "verbose, number_setpoints, fracdone, expected_progress_message",
-    [
-        (False, 10, 0, ""),
-        (
-            True,
-            10,
-            0,
-            "\r  0% completed | elapsed time:      0s  "
-            "\r  0% completed | elapsed time:      0s  ",
-        ),
-        (
-            True,
-            10,
-            0.1,
-            "\r 10% completed | elapsed time:      0s | time left:      0s  "
-            "\r 10% completed | elapsed time:      0s | time left:      0s  ",
-        ),
-    ],
-)
-def test_print_progress(
-    meas_ctrl_empty,
-    capsys,
-    mocker,
-    verbose,
-    number_setpoints,
-    fracdone,
-    expected_progress_message,
-):  # pylint: disable=too-many-arguments
-    meas_ctrl_empty.verbose(verbose)
-
-    xvals = np.linspace(0, 1, number_setpoints)
-    meas_ctrl_empty.setpoints(xvals)
-
-    mocker.patch(
-        "quantify_core.measurement.control.MeasurementControl._get_fracdone",
-        side_effect=[fracdone],
-    )
-    meas_ctrl_empty.print_progress()
-    out, _ = capsys.readouterr()
-    assert out == expected_progress_message
-
-
 def test_print_progress_no_setpoints(meas_ctrl_empty, mocker):
     mocker.patch(
         "quantify_core.measurement.control.MeasurementControl._get_fracdone",
