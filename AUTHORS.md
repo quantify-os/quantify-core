@@ -1,6 +1,4 @@
-# Credits
-
-## Contributors
+# Contributors
 
 - [Adam Lawrence](mailto:adam@orangeqs.com)
 - [Adilet Tuleuov](mailto:adilnaut@gmail.com)

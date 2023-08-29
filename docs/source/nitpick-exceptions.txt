@@ -27,6 +27,7 @@ py:class Parameter
 
 # NB: couldn't find typing reference in utilities/experiment_support:mk_cosine_instrument
 py:class typing.TypeVar`(``ScalarType`
+py:class typing.TypeVar`(``_ScalarType_co`
 
 # Can't find external refs to numpy.typing 
 py:class NDArray

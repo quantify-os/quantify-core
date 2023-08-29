@@ -8,6 +8,7 @@
 - Deprecation - Explicit handling of np.arrays to avoid deprecated functionality when converting a dimensional array into scalar. (!476)
 - Documentation - Improve documentation build time and enable `sphinx-autobuild` (!471)
 - Documentation - Fix missing images in Jupyter cell outputs in documentation deployed using Gitlab Pages. (!480)
+- Documentation - Switch to pydata sphinx theme on readthedocs (!479)
 
 ## 0.7.3 (2023-08-17)
 

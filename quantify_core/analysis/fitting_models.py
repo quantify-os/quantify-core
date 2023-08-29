@@ -20,7 +20,7 @@ def get_model_common_doc() -> str:
 
         See the usage example at the end of the :class:`~ResonatorModel` source-code:
 
-        .. literalinclude:: ../../quantify_core/analysis/fitting_models.py
+        .. literalinclude:: ../../../quantify_core/analysis/fitting_models.py
             :pyobject: ResonatorModel
     """
     return (
@@ -46,7 +46,7 @@ def get_guess_common_doc() -> str:
 
         See the usage example at the end of the :class:`~ResonatorModel` source-code:
 
-        .. literalinclude:: ../../quantify_core/analysis/fitting_models.py
+        .. literalinclude:: ../../../quantify_core/analysis/fitting_models.py
             :pyobject: ResonatorModel
     """
     return (
@@ -75,7 +75,7 @@ def mk_seealso(
 
         See the usage example at the end of the :class:`~ResonatorModel` source-code:
 
-        .. literalinclude:: ../../quantify_core/analysis/fitting_models.py
+        .. literalinclude:: ../../../quantify_core/analysis/fitting_models.py
             :pyobject: ResonatorModel
 
     Parameters

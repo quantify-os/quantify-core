@@ -58,7 +58,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
     "sphinx-jsonschema",
-    "sphinx_rtd_theme",
     "sphinx.ext.mathjax",
     "sphinx_togglebutton",
     # fancy type hints in docs and
@@ -144,7 +143,7 @@ napoleon_include_init_with_doc = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
 
 
 # The name of an image file (relative to this directory) to place at the top
@@ -152,8 +151,7 @@ html_theme = "sphinx_rtd_theme"
 
 # the white text fits better with the current sphinx theme
 # both files are in the repository
-# html_logo = "images/QUANTIFY-LOGO.svg"
-html_logo = "images/QUANTIFY-LOGO-WHITE-TEXT.svg"
+html_logo = "images/QUANTIFY_LANDSCAPE.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -172,7 +170,7 @@ html_favicon = "images/QUANTIFY-FAVICON_16.png"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = [
-    "quantify_core.css",
+    "css/custom.css",
 ]
 
 # Output file base name for HTML help builder.
