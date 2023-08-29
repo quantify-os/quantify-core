@@ -10,7 +10,7 @@
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat)](https://unitary.fund)
 
-![Quantify logo](https://orangeqs.com/logos/QUANTIFY_LANDSCAPE.svg)
+![Quantify logo](https://gitlab.com/quantify-os/quantify-core/-/raw/main/docs/source/images/QUANTIFY_LANDSCAPE.svg)
 
 Quantify is a Python-based data acquisition framework focused on Quantum Computing and
 solid-state physics experiments.
@@ -40,7 +40,7 @@ Quantify is maintained by the Quantify Consortium consisting of Qblox and Orange
 &nbsp;
 &nbsp;
 &nbsp;
-[<img src="https://orangeqs.com/OQS_logo_with_text.svg" alt="Orange Quantum Systems logo" width=200px/>](https://orangeqs.com)
+[<img src="https://gitlab.com/quantify-os/quantify-core/-/raw/main/docs/source/images/OQS_logo_with_text.svg" alt="Orange Quantum Systems logo" width=200px/>](https://orangeqs.com)
 
 &nbsp;
 
