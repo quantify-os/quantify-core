@@ -7,6 +7,12 @@ workflow:
 
 variables:
   COV_MODULE: quantify_core
+  WEBSITE_DEPLOY_CLONE_PATH: ".website-target"
+  WEBSITE_DEPLOY_TARGET_REPO: "git@gitlab.com:quantify-os/quantify-os.gitlab.io.git"
+  WEBSITE_DEPLOY_TARGET_BRANCH: "test-deploy"  # FIXME: change to main when tested
+  WEBSITE_DEPLOY_PATH: "docs/quantify-core"
+  CI_DEFAULT_BRANCH_TEST: website_deploy_with_git  # FIXME: remove when tested and use CI_DEFAULT_BRANCH instead
+# FIXME: CI_DEFAULT_BRANCH_TEST is protected in Gitlab, when not needed it must be unprotected
 
 include:
   - project: "quantify-os/ci"
@@ -21,3 +27,38 @@ include:
   - project: "quantify-os/ci"
     ref: main
     file: "/python-packaging-pypi.yml"
+
+"Deploy: Docs":
+  image: "$CI_REGISTRY_IMAGE/test/python${default_python_version}:${CI_COMMIT_REF_SLUG}"
+  stage: Deploy
+  needs:
+    - job: Docs (py3.9, Linux)
+      artifacts: true
+  before_script:
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -t rsa "$CI_SERVER_SHELL_SSH_HOST" >> ~/.ssh/known_hosts
+    - touch ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+    - echo "${WEBSITE_DEPLOY_SSH_PRIVATE_KEY_BASE64}" | base64 -d > ~/.ssh/id_ed25519
+  script:
+    # Determine which version gets deployed.
+    # FIXME: only latest is currently supported
+    - export WEBSITE_DEPLOY_VERSION="latest"
+    # Clone the documentation repository
+    - git clone --filter=tree:0 --single-branch --branch="${WEBSITE_DEPLOY_TARGET_BRANCH}" "${WEBSITE_DEPLOY_TARGET_REPO}" "${WEBSITE_DEPLOY_CLONE_PATH}"
+    # Introduce ourselves to Git
+    # Compute where we are going to put the documentation
+    - export WEBSITE_DESINATION="${WEBSITE_DEPLOY_CLONE_PATH}/${WEBSITE_DEPLOY_PATH}/${WEBSITE_DEPLOY_VERSION}"
+    # Create the folder if it does not exist
+    - '[[ -d "${WEBSITE_DESINATION}" ]] || mkdir -p "${WEBSITE_DESINATION}"'
+    # Sync files in the deploy folder
+    - rsync -av --delete docs/_build/html/ "${WEBSITE_DESINATION}"
+    # Commit and push
+    - cd "$WEBSITE_DESINATION" && git add -A . && git -c user.name="Quantify-core Bot" -c user.email="maintainers@quantify-os.org" commit --allow-empty -m "deploy $WEBSITE_DEPLOY_PATH (version $WEBSITE_DEPLOY_VERSION)" -m "Automatically deployed from pipeline with ID ${CI_PIPELINE_ID}." && git push origin "$WEBSITE_DEPLOY_TARGET_BRANCH"
+  after_script:
+    - rm -f ~/.ssh/id_ed25519
+    - rm -rf "${WEBSITE_DEPLOY_CLONE_PATH}"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH_TEST
+      when: on_success
+    - when: never
+
