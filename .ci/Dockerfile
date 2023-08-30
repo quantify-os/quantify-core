@@ -10,8 +10,9 @@ ENV MPLBACKEND=agg
 
 RUN apt-get update -q && \
     apt-get install -q -y --no-install-recommends --fix-missing \
-    xauth \
-    xvfb \
+        rsync \
+        xauth \
+        xvfb \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
