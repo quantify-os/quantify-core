@@ -108,8 +108,7 @@ source_suffix = [".rst", ".md"]
 master_doc = "index"
 
 # General information about the project.
-# Use &nbsp; to make quantify logo same size as on quantify-scheduler docs:
-project = "quantify-core&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+project = "quantify-core"
 copyright = "2020-2023, Qblox & Orange Quantum Systems"
 author = "Quantify Consortium"
 
