@@ -28,12 +28,35 @@ include:
     ref: main
     file: "/python-packaging-pypi.yml"
 
-"Deploy: Docs":
+"Docs (release)":
+  stage: Build
+  image: python:${default_python_version}
+  variables:
+    XDG_RUNTIME_DIR: /tmp/runtime-root  # solves an issue with PyQt5
+    QT_QPA_PLATFOM: offscreen
+  before_script:
+    - apt-get update
+    # required by UML example notebook
+    - apt-get install -y -q --no-install-recommends --fix-missing graphviz
+    - pip install ".[docs]"
+    # save the version of the packages installed for CI debugging
+    - pip freeze --all > frozen-requirements.txt; cat frozen-requirements.txt
+  script:
+    - cd docs && make html
+  artifacts:
+    paths:
+      - docs/_build/html
+      - docs/build_errors.log
+      - frozen-requirements.txt
+    when: always
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
+      when: on_success
+    - when: never
+
+.docs-deploy-git:
   image: "$CI_REGISTRY_IMAGE/test/python${default_python_version}:${CI_COMMIT_REF_SLUG}"
   stage: Deploy
-  needs:
-    - job: Docs (py3.9, Linux)
-      artifacts: true
   before_script:
     - mkdir -p ~/.ssh
     - ssh-keyscan -t rsa "$CI_SERVER_SHELL_SSH_HOST" >> ~/.ssh/known_hosts
@@ -41,8 +64,16 @@ include:
     - echo "${WEBSITE_DEPLOY_SSH_PRIVATE_KEY_BASE64}" | base64 -d > ~/.ssh/id_ed25519
   script:
     # Determine which version gets deployed.
-    # FIXME: only latest is currently supported
-    - export WEBSITE_DEPLOY_VERSION="latest"
+    - |
+        if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?$ ]]; then
+            export WEBSITE_DEPLOY_VERSION="$CI_COMMIT_TAG"
+        elif [[ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH_TEST" ]]; then
+            export WEBSITE_DEPLOY_VERSION="latest"
+        else
+            echo "ERROR: could not determine deploy version."
+            exit 1
+        fi
+    - echo "Deploying version ${WEBSITE_DEPLOY_VERSION}"
     # Clone the documentation repository
     - git clone --filter=tree:0 --single-branch --branch="${WEBSITE_DEPLOY_TARGET_BRANCH}" "${WEBSITE_DEPLOY_TARGET_REPO}" "${WEBSITE_DEPLOY_CLONE_PATH}"
     # Introduce ourselves to Git
@@ -58,7 +89,32 @@ include:
     - rm -f ~/.ssh/id_ed25519
     - rm -rf "${WEBSITE_DEPLOY_CLONE_PATH}"
   rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
+      when: on_success
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH_TEST
       when: on_success
     - when: never
 
+"Deploy: Docs":
+  extends:
+    - .docs-deploy-git
+  needs:
+    - job: Docs (py3.9, Linux)
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH_TEST
+      when: on_success
+    - when: never
+
+"Deploy: Docs (release)":
+  extends:
+    - .docs-deploy-git
+  needs:
+    - job: Docs (release)
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
+      when: on_success
+    - when: never
