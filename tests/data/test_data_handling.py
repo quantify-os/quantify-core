@@ -760,7 +760,7 @@ def mock_instr_nested(request):
     instr.add_submodule("mod_a", mod_a)
 
     mod_b = InstrumentChannel(instr, "mod_b")
-    mod_c = InstrumentChannel(instr, "mod_b")
+    mod_c = InstrumentChannel(instr, "mod_c")
     mod_b.add_submodule("mod_c", mod_c)
     mod_c.add_parameter("c", parameter_class=ManualParameter)
 
@@ -906,3 +906,67 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
         assert new_dataset.name == f"{experiment} vs {parameter}"
     else:
         assert new_dataset.name == new_name
+
+
+def test_instrument_submodule_settable(mock_instr_nested):
+    a = mock_instr_nested.a
+    lst = dh._instrument_submodules_settable(a)
+    assert len(lst) == 2
+    assert mock_instr_nested in lst
+    assert a in lst
+
+    b = mock_instr_nested.mod_a.b
+    lst = dh._instrument_submodules_settable(b)
+    assert len(lst) == 3
+    assert mock_instr_nested in lst
+    assert mock_instr_nested.mod_a in lst
+    assert b in lst
+
+    c = mock_instr_nested.mod_b.mod_c.c
+    lst = dh._instrument_submodules_settable(c)
+    assert len(lst) == 4
+    assert mock_instr_nested in lst
+    assert mock_instr_nested.mod_b in lst
+    assert mock_instr_nested.mod_b.mod_c in lst
+    assert c in lst
+
+    p = ManualParameter("test_parameter", label="Test parameter", unit="Hz")
+    lst = dh._instrument_submodules_settable(p)
+    assert len(lst) == 1
+    assert p in lst
+
+
+def test_generate_long_name(mock_instr_nested):
+    a = mock_instr_nested.a
+    name = dh._generate_long_name(a)
+    assert name == "DummyInstrument a"
+
+    b = mock_instr_nested.mod_a.b
+    name = dh._generate_long_name(b)
+    assert name == "DummyInstrument mod_a b"
+
+    c = mock_instr_nested.mod_b.mod_c.c
+    name = dh._generate_long_name(c)
+    assert name == "DummyInstrument mod_b mod_c c"
+
+    p = ManualParameter("test_parameter", label="Test parameter", unit="Hz")
+    name = dh._generate_long_name(p)
+    assert name == "Test parameter"
+
+
+def test_generate_name(mock_instr_nested):
+    a = mock_instr_nested.a
+    name = dh._generate_name(a)
+    assert name == "DummyInstrument.a"
+
+    b = mock_instr_nested.mod_a.b
+    name = dh._generate_name(b)
+    assert name == "DummyInstrument.mod_a.b"
+
+    c = mock_instr_nested.mod_b.mod_c.c
+    name = dh._generate_name(c)
+    assert name == "DummyInstrument.mod_b.mod_c.c"
+
+    p = ManualParameter("test_parameter", label="Test parameter", unit="Hz")
+    name = dh._generate_name(p)
+    assert name == "test_parameter"

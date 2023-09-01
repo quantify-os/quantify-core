@@ -16,7 +16,12 @@ from uuid import uuid4
 import numpy as np
 import xarray as xr
 from dateutil.parser import parse
-from qcodes.instrument import Instrument
+from qcodes.instrument import (
+    ChannelTuple,
+    Instrument,
+    InstrumentBase,
+    InstrumentModule,
+)
 
 import quantify_core.data.dataset_adapters as da
 from quantify_core.data.types import TUID
@@ -24,6 +29,8 @@ from quantify_core.utilities.general import delete_keys_from_dict, get_subclasse
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
+    from qcodes.parameters import ParameterBase
 
     from quantify_core.measurement.types import Gettable, Settable
 
@@ -519,8 +526,8 @@ def initialize_dataset(
     coords = []
     for i, setpar in enumerate(settable_pars):
         attrs = {
-            "name": setpar.name,
-            "long_name": setpar.label,
+            "name": _generate_name(setpar),
+            "long_name": _generate_long_name(setpar),
             "units": setpar.unit,
             "batched": _is_batched(setpar),
         }
@@ -1306,3 +1313,99 @@ def _is_uniformly_spaced_array(
         return False
 
     return True
+
+
+def _instrument_submodules_settable(
+    settable: Settable,
+) -> list[ParameterBase | InstrumentBase]:
+    """
+    Returns a list containing the root instrument, submodules and settable (typically a
+    :class:`Parameter`).
+
+    For example, when passing :code:`current_source.module1.output3`, this function will
+    return :code:`[current_source, module1, output3]`.
+
+    Parameters
+    ----------
+    settable
+        The settable for which to get the instrument and ancestors.
+
+    Returns
+    -------
+    :
+        A list with the root instrument, all submodules and the settable.
+    """
+
+    def _recursive_add_submodules(
+        modules: list,
+        root: InstrumentBase | InstrumentModule | ChannelTuple,
+        parameter: ParameterBase,
+    ) -> bool:
+        # Special case for ChannelTuples
+        if isinstance(root, ChannelTuple):
+            if parameter.name in root.submodules.name:
+                modules.append(root)
+            return parameter.name in root.submodules.name
+
+        # InstrumentBase and InstrumentModule behave similarly
+        if parameter.name in root.parameters:
+            modules.append(root)
+            return True
+        if len(root.submodules) == 0:
+            return False
+        for submodule in root.submodules.values():
+            in_submodule = _recursive_add_submodules(
+                modules=modules, root=submodule, parameter=parameter
+            )
+            if in_submodule:
+                modules.append(root)
+                return True
+        return False
+
+    try:
+        root = settable.root_instrument
+    except AttributeError:
+        root = None
+
+    if root is None:
+        return [settable]
+
+    modules_list = []
+    _recursive_add_submodules(modules_list, root, settable)
+    # Since the recursive function adds the last submodule first to the list, we insert
+    # the settable at place zero and return the reversed list.
+    modules_list.insert(0, settable)
+    return modules_list[::-1]
+
+
+def _generate_long_name(settable: Settable) -> str:
+    """
+    Generate the :code:`long_name` entry for a dataset coordinate for a settable.
+
+    The long name is based on the label of root instrument and all relevant submodules
+    leading to the settable, including the settable. If no label is specified, the
+    :code:`name` attribute is used.
+    """
+    sublabels = [
+        (x.label if hasattr(x, "label") else x.name)
+        for x in _instrument_submodules_settable(settable)
+    ]
+    return " ".join(sublabels)
+
+
+def _generate_name(settable: Settable) -> str:
+    """
+    Generate the :code:`name` entry for a dataset coordinate for a settable.
+
+    The long name is based on the :code:`name` of root instrument and all relevant
+    submodules leading to the settable, including the settable.
+    """
+    subnames = [x.name for x in _instrument_submodules_settable(settable)]
+
+    # Remove the parent name in the case where the parent name is also present in
+    # the child names
+    for i, _ in enumerate(subnames):
+        for j in range(i):
+            subnames[i] = subnames[i].replace(subnames[j] + "_", "")
+
+    return ".".join(subnames)
