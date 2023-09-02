@@ -9,7 +9,7 @@ variables:
   COV_MODULE: quantify_core
   WEBSITE_DEPLOY_CLONE_PATH: ".website-target"
   WEBSITE_DEPLOY_TARGET_REPO: "git@gitlab.com:quantify-os/quantify-os.gitlab.io.git"
-  WEBSITE_DEPLOY_TARGET_BRANCH: "test-deploy"  # FIXME: change to main when tested
+  WEBSITE_DEPLOY_TARGET_BRANCH: "main"
   WEBSITE_DEPLOY_PATH: "docs/quantify-core"
   CI_DEFAULT_BRANCH_TEST: website_deploy_with_git  # FIXME: remove when tested and use CI_DEFAULT_BRANCH instead
 # FIXME: CI_DEFAULT_BRANCH_TEST is protected in Gitlab, when not needed it must be unprotected
