@@ -19,7 +19,10 @@
 # absolute, like shown here.
 #
 import os
+import re
 import sys
+
+from typing import Any, Dict
 
 # qcodes imports scipy under the hood but since scipy=1.7.0 it needs to be imported
 # here with typing.TYPE_CHECKING = True otherwise we run into quantify-core#
@@ -161,8 +164,8 @@ html_favicon = "images/QUANTIFY-FAVICON_16.png"
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.  For a list of options available for each theme, see the
 # documentation.
-#
-# html_theme_options = {}
+
+html_theme_options: Dict[str, Any] = {"navbar_align": "left"}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -354,3 +357,26 @@ nb_execution_raise_on_error = True
 
 # Default cell execution timeout.
 nb_execution_timeout = 120
+
+
+# Configure pydata-sphinx-theme version switcher based on detected CI environment
+# variables.
+if (git_tag := os.environ.get("CI_COMMIT_TAG")) is not None and re.match(
+    r"^v([0-9]+)\.([0-9]+)\.([0-9]+)((rc|a|b)([0-9]+))?$", git_tag
+):
+    switcher_version = git_tag
+elif (
+    (branch := os.environ.get("CI_COMMIT_BRANCH"))
+    and (default_branch := os.environ.get("CI_DEFAULT_BRANCH_TEST"))  # FIXME
+    and branch == default_branch
+):
+    switcher_version = "latest"
+else:
+    switcher_version = None
+
+if switcher_version is not None:
+    html_theme_options["switcher"] = {
+        "json_url": "https://quantify-os.org/docs/quantify-core/switcher.json",
+        "version_match": switcher_version,
+    }
+    html_theme_options["navbar_center"] = ["version-switcher", "navbar-nav"]
