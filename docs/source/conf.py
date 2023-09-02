@@ -367,7 +367,7 @@ if (git_tag := os.environ.get("CI_COMMIT_TAG")) is not None and re.match(
     switcher_version = git_tag
 elif (
     (branch := os.environ.get("CI_COMMIT_BRANCH"))
-    and (default_branch := os.environ.get("CI_DEFAULT_BRANCH_TEST"))  # FIXME
+    and (default_branch := os.environ.get("CI_DEFAULT_BRANCH"))
     and branch == default_branch
 ):
     switcher_version = "latest"

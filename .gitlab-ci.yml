@@ -7,12 +7,10 @@ workflow:
 
 variables:
   COV_MODULE: quantify_core
-  WEBSITE_DEPLOY_CLONE_PATH: ".website-target"
   WEBSITE_DEPLOY_TARGET_REPO: "git@gitlab.com:quantify-os/quantify-os.gitlab.io.git"
   WEBSITE_DEPLOY_TARGET_BRANCH: "main"
   WEBSITE_DEPLOY_PATH: "docs/quantify-core"
-  CI_DEFAULT_BRANCH_TEST: website_deploy_with_git  # FIXME: remove when tested and use CI_DEFAULT_BRANCH instead
-# FIXME: CI_DEFAULT_BRANCH_TEST is protected in Gitlab, when not needed it must be unprotected
+  WEBSITE_DEPLOY_CLONE_PATH: ".website-target"
 
 include:
   - project: "quantify-os/ci"
@@ -76,7 +74,7 @@ include:
     - |
         if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?$ ]]; then
             export WEBSITE_DEPLOY_VERSION="$CI_COMMIT_TAG"
-        elif [[ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH_TEST" ]]; then
+        elif [[ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]]; then
             export WEBSITE_DEPLOY_VERSION="latest"
         else
             echo "ERROR: could not determine deploy version."
@@ -100,7 +98,7 @@ include:
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
       when: on_success
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH_TEST
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
 
@@ -119,7 +117,7 @@ include:
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
       when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH_TEST
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
 
