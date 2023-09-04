@@ -95,12 +95,6 @@ include:
   after_script:
     - rm -f ~/.ssh/id_ed25519
     - rm -rf "${WEBSITE_DEPLOY_CLONE_PATH}"
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
-      when: on_success
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: on_success
-    - when: never
 
 "Deploy: Docs":
   extends:
