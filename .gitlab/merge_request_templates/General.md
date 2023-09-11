@@ -17,6 +17,7 @@ See also [merge request guidelines](https://quantify-quantify-core.readthedocs-h
 - [ ] New code is documented and docstrings use [numpydoc format](https://numpydoc.readthedocs.io/en/latest/format.html) (or N/A).
 - [ ] New functionality: considered making private instead of extending public API (or N/A).
 - [ ] Public API changed: added `@deprecated` (or N/A).
+- [ ] Pipeline fix or dependency update: post in `#software-for-developers` channel to merge `main` back in or [update local packages](https://quantify-quantify-core.readthedocs-hosted.com/en/latest/user/installation.html#setting-up-for-local-development) (or N/A).
 - [ ] Tested on hardware (or N/A).
 - [ ] `CHANGELOG.md` and `AUTHORS.md` have been updated (or N/A).
 - [ ] Windows tests in CI pipeline pass (manually triggered by maintainers before merging).
