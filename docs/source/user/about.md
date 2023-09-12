@@ -4,8 +4,8 @@
 
 Quantify is a Python-based data acquisition framework focused on Quantum Computing and
 solid-state physics experiments.
-The framework consists of [quantify-core](https://pypi.org/project/quantify-core/) ([git repo](https://gitlab.com/quantify-os/quantify-core/))
-and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/) ([git repo](https://gitlab.com/quantify-os/quantify-scheduler/)).
+The framework consists of [quantify-core](https://pypi.org/project/quantify-core/) ([git](https://gitlab.com/quantify-os/quantify-core/) | [docs](https://quantify-quantify-core.readthedocs-hosted.com/))
+and [quantify-scheduler](https://pypi.org/project/quantify-scheduler/) ([git](https://gitlab.com/quantify-os/quantify-scheduler/) | [docs](https://quantify-quantify-scheduler.readthedocs-hosted.com/)).
 It is built on top of [QCoDeS](https://qcodes.github.io/Qcodes/)
 and is a spiritual successor of [PycQED](https://github.com/DiCarloLab-Delft/PycQED_py3).
 
@@ -21,7 +21,7 @@ and is a spiritual successor of [PycQED](https://github.com/DiCarloLab-Delft/Pyc
 For a general overview of Quantify and connecting to its open-source community, see [quantify-os.org](https://quantify-os.org/).
 Quantify is maintained by the Quantify Consortium consisting of Qblox and Orange Quantum Systems.
 
-[<img src="https://cdn.sanity.io/images/ostxzp7d/production/f9ab429fc72aea1b31c4b2c7fab5e378b67d75c3-132x31.svg" alt="Qblox logo" width=200px/>](https://qblox.com)
+[<img src="https://gitlab.com/quantify-os/quantify-core/-/raw/main/docs/source/images/Qblox_logo.svg" alt="Qblox logo" width=200px/>](https://qblox.com)
 &nbsp;
 &nbsp;
 &nbsp;

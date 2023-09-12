@@ -1,4 +1,4 @@
-# Examples and How-to Guides
+# Examples and how-to guides
 
 This section contains examples and code snippets,
 that demonstrate usage of Quantify-core tooling and utilities.

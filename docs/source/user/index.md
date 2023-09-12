@@ -1,3 +1,4 @@
+(user-guide)=
 # User guide
 
 ```{toctree}
@@ -9,7 +10,7 @@ installation
 ```
 
 ```{toctree}
-:caption: Fundamentals
+:caption: Basic concepts
 :maxdepth: 1
 
 concepts

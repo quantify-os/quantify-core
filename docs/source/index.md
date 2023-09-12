@@ -7,7 +7,7 @@
 :img-top: images/index_getting_started.svg
 :img-alt: getting started image
 
-**Getting started and User guide**
+**Getting started and user guide**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 First steps to hit the ground running, quick installation instructions
@@ -105,8 +105,8 @@ code conventions, and get some idea about our future plans and proposed features
 user/index
 tutorials/index
 howto/index
-api/index
 dev/index
+api/index
 ```
 # Indices and tables
 
