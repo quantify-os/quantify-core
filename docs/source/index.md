@@ -32,7 +32,7 @@ and explanation of Quantify-core basics.
 **Tutorials**
 ^^^^^^^^^^^^^
 
-Interactive lessons to make you able to recieve, store,
+Interactive lessons to make you able to receive, store,
 process, and visualize data using Quantify-core.
 
 +++

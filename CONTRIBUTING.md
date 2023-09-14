@@ -4,15 +4,22 @@ Contributions are welcome and greatly appreciated! Every little bit helps, and c
 
 In order to contribute to the documentation and/or code please follow the {ref}`Setting up for local development` instructions.
 
-You can also find us in our public [Slack workspace through this link](https://quantify-hq.slack.com/archives/C01ETDK6P97/p1630597303007700). There you can join the [software-for-users](https://quantify-hq.slack.com/archives/C01ETDK6P97) and the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channels.
+You can join our public [Slack workspace through this link](https://join.slack.com/t/quantify-hq/shared_invite/zt-1nd78r4e9-rbWdna53cW4DO_YbtMhVuA)!
+Here you'll find the [software-for-users](https://quantify-hq.slack.com/archives/C01ETDK6P97) and the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channels.
 
-You are also welcome to the public weekly maintainers meeting for which you can find the link in the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channel.
+You are also welcome to join our public weekly developer's meeting for which the meeting link is posted in the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channel.
 
-## Types of Contributions
+## GitLab issues and merge requests
+
+- [GitLab issues](https://gitlab.com/quantify-os/quantify-core/-/issues)
+- [GitLab merge requests](https://gitlab.com/quantify-os/quantify-core/-/merge_requests)
+- [Gitlab issue board](https://gitlab.com/groups/quantify-os/-/boards)
+
+## Types of contributions
 
 You can contribute in many ways:
 
-### Reporting of Bugs and Defects
+### Reporting of bugs and defects
 
 A defect is any variance between actual and expected result, this can include bugs in the code or defects in the documentation or visualization.
 
@@ -98,13 +105,13 @@ For example, if you are using Visual Studio Code, we recommend to set `python.an
 `python.formatting.provider` to `black`, `editor.formatOnSave` to `true` and to enable
 [official Ruff extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff).
 
-## Working on Issues
+## Working on issues
 
-After an issue is created, the progress of the issues is tracked on the [GitLab issue board](https://gitlab.com/quantify-os/quantify-core/-/boards).
-The maintainers will update the state using [labels](https://gitlab.com/quantify-os/quantify-core/-/labels) .
+After an issue is created, the progress of the issues is tracked on the [GitLab issue board](https://gitlab.com/groups/quantify-os/-/boards).
+The maintainers will update the state using [labels](https://gitlab.com/groups/quantify-os/-/labels) .
 Once an issue is ready for review a Merge Request can be opened.
 
-### Issues Workflow
+### Issues workflow
 
 The workflow of the issues is managed using the `State | <state>` labels that specifies the current state of the issue. These are intended to be used for issues only, and in *exceptional* cases for Merge Requests that have no associated issue.
 
@@ -132,7 +139,7 @@ Hovering the mouse over each label in GitLab will show these descriptions.
   : - *Progress captain*: assignee.
     - The current assignee is actively working on fixing the issue according to the agreed-upon solution and creating a Merge Request.
 
-## Merge Request Guidelines
+## Merge request guidelines
 
 Please make merge requests into the *main* branch. Each request should be self-contained and address a single issue on the tracker.
 
@@ -176,7 +183,7 @@ $ git push git@gitlab.com:thedude/awesome-project.git thedude-awesome-project-up
 N.B. You might need to adapt the `fetch` and `push` commands if you are using `https` instead of `ssh`.
 ``````
 
-### Merge Requests Workflow
+### Merge requests workflow
 
 The workflow of the Merge Requests (MRs) is managed using the `MR State | <state>` labels that specifies the current state of the MR as described below, and the *progress captain* denotes the same as in the [Issues workflow].
 
@@ -202,7 +209,7 @@ Hovering the mouse over each label in GitLab will show these descriptions.
 
 When moving the MRs between states, the next *progress captain* should be tagged in the comments. This is the only reliable way for them to get notified.
 
-### Versioning, Backward Compatibility and Deprecation Policy
+### Versioning, backward compatibility and deprecation policy
 
 ```{note}
 This policy is valid from the `1.0` release of `quantify-core` and any project that adopts it.
