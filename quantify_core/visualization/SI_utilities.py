@@ -4,6 +4,7 @@
 """Utilities for managing SI units with plotting systems."""
 from __future__ import annotations
 
+import math
 import re
 import string
 import warnings
@@ -495,7 +496,7 @@ def value_precision(val: float, stderr=None) -> tuple[str, str]:
     err_format_specifier
         python format specifier which set the precision of the error
     """
-    if stderr is None or stderr == 0:
+    if stderr is None or stderr == 0 or math.isnan(stderr):
         return "{:.5g}", "{:.1f}"
 
     # if statement to catch edge case of log10(0) being undefined.

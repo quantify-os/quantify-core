@@ -278,6 +278,9 @@ def test_value_precision() -> None:
     format_specifier = value_precision(930, stderr=31)
     assert format_specifier == ("{:.0f}", "{:.0f}")
 
+    format_specifier = value_precision(930, stderr=float("nan"))
+    assert format_specifier == ("{:.5g}", "{:.1f}")
+
 
 def test_value_precision_raises_no_warnings():
     # There was a warning that was raised due to a log10(0) line
