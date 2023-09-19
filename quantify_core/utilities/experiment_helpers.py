@@ -6,6 +6,7 @@ import warnings
 from typing import Any, Optional, Union, Dict, List, Literal
 
 import numpy as np
+from deepdiff import DeepDiff
 from qcodes.instrument import Instrument, InstrumentChannel
 from qcodes.parameters import Parameter
 
@@ -161,6 +162,38 @@ def load_settings_onto_instrument(
         instr_mod_snap=instr_mod_snap,
         instr_mod_snap_np=instr_mod_snap_numpy_array,
         instr_mod=instrument,
+    )
+
+
+def compare_snapshots(old_snapshot: dict, new_snapshot: dict) -> dict:
+    """
+    Generate a diff between two quantify snapshots, showing which qcodes parameters
+    have changed.
+
+    This function only considers changes in numerical values of quantities and
+    ignores type changes, such as :code:`numpy.float64` to :code:`float`, for
+    example.
+
+    We also only consider the values of qcodes parameters, and not metadata like
+    timestamps, which always change from snapshot to snapshot.
+
+    Parameters
+    ----------
+    old_snapshot:
+        The original snapshot to be compared
+    new_snapshot:
+        The new snapshot to be compared
+
+    Return
+    ------
+    :
+        A dictionary summarising the differences between the two snapshots
+    """
+    return DeepDiff(
+        old_snapshot,
+        new_snapshot,
+        exclude_regex_paths=["\['ts'\]", "\['raw_value'\]", "\['IDN'\]"],
+        ignore_numeric_type_changes=True,
     )
 
 

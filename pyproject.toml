@@ -53,6 +53,7 @@ dependencies = [
     "dataclasses_json", # used in dataset_attrs
     "dill",  # Tests fail without dill installed, likely for a good reason
     "methodtools",  # used in base_analysis for self-bound lru_cache
+    "deepdiff", # Used in experiment_helpers.compare_snapshots
 ]
 
 [project.optional-dependencies]

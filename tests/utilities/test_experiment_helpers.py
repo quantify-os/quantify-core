@@ -1,12 +1,14 @@
 import numpy as np
 import pytest
+from deepdiff import DeepDiff
 from qcodes.instrument import Instrument, ManualParameter, InstrumentChannel
 from qcodes.utils import validators
-from quantify_core.data.handling import set_datadir
+from quantify_core.data.handling import set_datadir, load_snapshot, snapshot
 from quantify_core.utilities.experiment_helpers import (
     create_plotmon_from_historical,
     load_settings_onto_instrument,
     get_all_parents,
+    compare_snapshots,
 )
 
 
@@ -69,6 +71,106 @@ def mock_instr(request):
     request.addfinalizer(cleanup_instruments)
 
     return instr
+
+
+# pylint: disable=redefined-outer-name
+# pylint: disable=line-too-long
+def test_compare_snapshots(tmp_test_data_dir, mock_instr):
+    """
+    Test the function to compare two different snaphsots
+    """
+    set_datadir(tmp_test_data_dir)
+
+    instr = mock_instr
+
+    tuid = "20210319-094728-327-69b211"
+
+    # Load a snapshot of an instrument from file
+    old_snapshot = load_snapshot(tuid=tuid)
+
+    # Load the settings from this snapshot onto a new instrument
+    load_settings_onto_instrument(instr, tuid, exception_handling="warn")
+    new_snapshot = snapshot(update=True)
+
+    # Some of the parameters of the loaded snapshot will differ from the snapshot
+    # of the new instrument, because of the various edge cases that we cover in
+    # these tests.
+    initial_diff = {
+        "type_changes": {
+            "root['instruments']['DummyInstrument']['parameters']['none_param_warning']['value']": {
+                "old_type": type(None),
+                "new_type": int,  # Parameter is initialised to 1 and cannot be set to None
+                "old_value": None,
+                "new_value": 1,
+            },
+            "root['instruments']['DummyInstrument']['parameters']['numpy_array_param']['value']": {
+                "old_type": list,
+                "new_type": np.int32,  # We cannot compare numpy arrays with lists
+                "old_value": [0, 1, 2, 3],
+                "new_value": np.array([0, 1, 2, 3]),
+            },
+            "root['instruments']['DummyInstrument']['parameters']['error_param']['value']": {
+                "old_type": int,
+                "new_type": type(
+                    None
+                ),  # Parameter throws an error when we try to set it
+                "old_value": 1,
+                "new_value": None,
+            },
+        },
+        "dictionary_item_removed": [
+            "root['instruments']['DummyInstrument']['parameters']['obsolete_param']"
+        ],
+    }
+    # Obsolete param not in snapshot, not defined in new instrument.
+
+    # Snapshots should be the same
+    comparison = compare_snapshots(old_snapshot, new_snapshot)
+    assert (
+        DeepDiff(
+            comparison["type_changes"],
+            initial_diff["type_changes"],
+            ignore_numeric_type_changes=True,
+        )
+        == {}
+    )
+    assert (
+        comparison["dictionary_item_removed"] == initial_diff["dictionary_item_removed"]
+    )
+
+    # Change a parameter and it should appear in the diff
+    instr.settable_param(10)
+    initial_diff.update(
+        {
+            "values_changed": {
+                "root['instruments']['DummyInstrument']['parameters']['settable_param']['value']": {
+                    "new_value": 10,
+                    "old_value": 5,
+                }
+            }
+        }
+    )
+    new_snapshot = snapshot()
+    comparison = compare_snapshots(old_snapshot, new_snapshot)
+    assert (
+        DeepDiff(
+            comparison["type_changes"],
+            initial_diff["type_changes"],
+            ignore_numeric_type_changes=True,
+        )
+        == {}
+    )
+    assert (
+        DeepDiff(
+            comparison["values_changed"],
+            initial_diff["values_changed"],
+            ignore_numeric_type_changes=True,
+        )
+        == {}
+    )
+    assert (
+        comparison["dictionary_item_removed"] == initial_diff["dictionary_item_removed"]
+    )
 
 
 # pylint: disable=redefined-outer-name

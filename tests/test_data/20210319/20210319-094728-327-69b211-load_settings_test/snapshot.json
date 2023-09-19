@@ -1,6 +1,7 @@
 {
     "instruments": {
         "DummyInstrument": {
+            "submodules": {},
             "parameters": {
                 "IDN": {
                     "value": {
@@ -45,8 +46,8 @@
                 "none_param_warning": {
                     "value": null,
                     "ts": "2021-03-21 14:47:52",
-                    "name": "none_param",
-                    "label": "none_param",
+                    "name": "none_param_warning",
+                    "label": "none_param_warning",
                     "unit": ""
                 },
                 "obsolete_param": {
@@ -71,6 +72,7 @@
                     "unit": ""
                 }
             },
+            "label": "DummyInstrument",
             "name": "DummyInstrument"
         }
     },
