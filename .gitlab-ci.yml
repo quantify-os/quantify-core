@@ -7,6 +7,7 @@ workflow:
 
 variables:
   COV_MODULE: quantify_core
+  WEBSITE_DEPLOY_PATH: "docs/quantify-core"
 
 include:
   - project: "quantify-os/ci"
@@ -21,3 +22,7 @@ include:
   - project: "quantify-os/ci"
     ref: main
     file: "/python-packaging-pypi.yml"
+  - project: "quantify-os/ci"
+    ref: main
+    file: "/python-docs-pages-vanilla.yml"
+
