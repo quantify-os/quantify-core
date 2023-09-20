@@ -7,10 +7,7 @@ workflow:
 
 variables:
   COV_MODULE: quantify_core
-  WEBSITE_DEPLOY_TARGET_REPO: "git@gitlab.com:quantify-os/quantify-os.gitlab.io.git"
-  WEBSITE_DEPLOY_TARGET_BRANCH: "main"
   WEBSITE_DEPLOY_PATH: "docs/quantify-core"
-  WEBSITE_DEPLOY_CLONE_PATH: ".website-target"
 
 include:
   - project: "quantify-os/ci"
@@ -25,107 +22,7 @@ include:
   - project: "quantify-os/ci"
     ref: main
     file: "/python-packaging-pypi.yml"
+  - project: "quantify-os/ci"
+    ref: main
+    file: "/python-docs-pages-vanilla.yml"
 
-"Docs (release)":
-  stage: Build
-  image: python:${default_python_version}
-  variables:
-    XDG_RUNTIME_DIR: /tmp/runtime-root  # solves an issue with PyQt5
-    QT_QPA_PLATFOM: offscreen
-  before_script:
-    - apt-get update
-    # required by UML example notebook
-    - >
-        apt-get install -y -q --no-install-recommends --fix-missing
-        graphviz
-        libgl1
-    - pip install ".[docs]"
-    # save the version of the packages installed for CI debugging
-    - pip freeze --all > frozen-requirements-docs.txt
-  script:
-    - cd docs && make html
-  artifacts:
-    paths:
-      - docs/_build/html
-      - docs/build_errors.log
-      - frozen-requirements-docs.txt
-    when: always
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
-      when: on_success
-    - when: never
-
-.docs-deploy-git:
-  image: debian:latest
-  stage: Deploy
-  before_script:
-    - apt-get update
-    - >
-        apt-get install -y -q --no-install-recommends --fix-missing
-        openssh-client
-        git
-        rsync
-    - mkdir -p ~/.ssh
-    - ssh-keyscan -t rsa "$CI_SERVER_SHELL_SSH_HOST" >> ~/.ssh/known_hosts
-    - touch ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
-    - echo "${WEBSITE_DEPLOY_SSH_PRIVATE_KEY_BASE64}" | base64 -d > ~/.ssh/id_ed25519
-  script:
-    # Determine which version gets deployed.
-    - |
-        if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?$ ]]; then
-            export WEBSITE_DEPLOY_VERSION="$CI_COMMIT_TAG"
-        elif [[ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]]; then
-            export WEBSITE_DEPLOY_VERSION="latest"
-        else
-            echo "ERROR: could not determine deploy version."
-            exit 1
-        fi
-    - echo "Deploying version ${WEBSITE_DEPLOY_VERSION}"
-    # Clone the documentation repository
-    - git clone --filter=tree:0 --single-branch --branch="${WEBSITE_DEPLOY_TARGET_BRANCH}" "${WEBSITE_DEPLOY_TARGET_REPO}" "${WEBSITE_DEPLOY_CLONE_PATH}"
-    # Introduce ourselves to Git
-    # Compute where we are going to put the documentation
-    - export WEBSITE_DESINATION="${WEBSITE_DEPLOY_CLONE_PATH}/${WEBSITE_DEPLOY_PATH}/${WEBSITE_DEPLOY_VERSION}"
-    # Create the folder if it does not exist
-    - '[[ -d "${WEBSITE_DESINATION}" ]] || mkdir -p "${WEBSITE_DESINATION}"'
-    # Sync files in the deploy folder
-    - rsync -av --delete docs/_build/html/ "${WEBSITE_DESINATION}"
-    # Commit and push
-    - cd "$WEBSITE_DESINATION" && git add -A . && git -c user.name="Quantify-core Bot" -c user.email="maintainers@quantify-os.org" commit --allow-empty -m "deploy $WEBSITE_DEPLOY_PATH (version $WEBSITE_DEPLOY_VERSION)" -m "Automatically deployed from pipeline with ID ${CI_PIPELINE_ID}." && git push origin "$WEBSITE_DEPLOY_TARGET_BRANCH"
-  after_script:
-    - rm -f ~/.ssh/id_ed25519
-    - rm -rf "${WEBSITE_DEPLOY_CLONE_PATH}"
-
-"Deploy: Docs":
-  extends:
-    - .docs-deploy-git
-  needs:
-    - job: Docs (py3.8, Linux)
-      artifacts: false
-    - job: Docs (py3.9, Linux)
-      artifacts: true
-    - job: Test (py3.8, Linux)
-      artifacts: false
-    - job: Test (py3.9, Linux)
-      artifacts: false
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: on_success
-    - when: never
-
-"Deploy: Docs (release)":
-  extends:
-    - .docs-deploy-git
-  needs:
-    - job: Docs (release)
-      artifacts: true
-    - job: Test (py3.8, Linux, test.pypi.org)
-      artifacts: false
-    - job: Test (py3.9, Linux, test.pypi.org)
-      artifacts: false
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+.[0-9]+.[0-9]+(rc[0-9]+)?$/
-      when: on_success
-    - when: never
