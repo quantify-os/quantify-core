@@ -9,6 +9,7 @@ import json
 import os
 import sys
 from copy import deepcopy
+from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List
 from uuid import uuid4
@@ -1343,12 +1344,17 @@ def _instrument_submodules_settable(
     ) -> bool:
         # Special case for ChannelTuples
         if isinstance(root, ChannelTuple):
-            if parameter.name in root.submodules.name:
+            parameters = list(
+                chain.from_iterable(
+                    ch.parameters.values() for ch in root.submodules._channels
+                )
+            )
+            if parameter in parameters:
                 modules.append(root)
             return parameter.name in root.submodules.name
 
         # InstrumentBase and InstrumentModule behave similarly
-        if parameter.name in root.parameters:
+        if parameter in root.parameters.values():
             modules.append(root)
             return True
         if len(root.submodules) == 0:

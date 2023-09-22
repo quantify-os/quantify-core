@@ -9,7 +9,7 @@
 - Documentation - Improve documentation build time and enable `sphinx-autobuild` (!471)
 - Documentation - Fix missing images in Jupyter cell outputs in documentation deployed using Gitlab Pages. (!480)
 - Documentation - Switch to pydata sphinx theme on readthedocs (!479)
-- Data - The `long_name` and `name` attributes of dataset coordinates now contain information about the root instrument and submodules in addition to the settable (!478)
+- Data - The `long_name` and `name` attributes of dataset coordinates now contain information about the root instrument and submodules in addition to the settable (!478, !486)
 - SI utilities - Handle nan in value_precision input (!487)
 - Utilities - Create utility function to compare snapshots (!485)
 

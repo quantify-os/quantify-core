@@ -909,6 +909,10 @@ def test_multi_experiment_data_extractor(tmp_test_data_dir, new_name):
 
 
 def test_instrument_submodule_settable(mock_instr_nested):
+    # Add parameter to test for edge case where parameters with same name but different
+    # submodules are found correctly
+    mock_instr_nested.add_parameter("c", parameter_class=ManualParameter)
+
     a = mock_instr_nested.a
     lst = dh._instrument_submodules_settable(a)
     assert len(lst) == 2
@@ -929,11 +933,21 @@ def test_instrument_submodule_settable(mock_instr_nested):
     assert mock_instr_nested.mod_b in lst
     assert mock_instr_nested.mod_b.mod_c in lst
     assert c in lst
+    assert mock_instr_nested.c not in lst
 
     p = ManualParameter("test_parameter", label="Test parameter", unit="Hz")
     lst = dh._instrument_submodules_settable(p)
     assert len(lst) == 1
     assert p in lst
+
+    c = mock_instr_nested.c
+    lst = dh._instrument_submodules_settable(c)
+    assert len(lst) == 2
+    assert mock_instr_nested in lst
+    assert c in lst
+    assert mock_instr_nested.mod_b not in lst
+    assert mock_instr_nested.mod_b.mod_c not in lst
+    assert mock_instr_nested.mod_b.mod_c.c not in lst
 
 
 def test_generate_long_name(mock_instr_nested):
