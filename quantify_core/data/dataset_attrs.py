@@ -167,15 +167,13 @@ class QDatasetAttrs(DataClassJsonMixin):
 
     timestamp_start: Union[str, None] = None
     """Human-readable timestamp (ISO8601) as returned by
-    :code:`pendulum.now().to_iso8601_string()`
-    (`docs <https://pendulum.eustace.io/docs/>`_).
+    :code:`datetime.datetime.now().astimezone().isoformat()`.
     Specifies when the experiment/data acquisition started.
     """
 
     timestamp_end: Union[str, None] = None
     """Human-readable timestamp (ISO8601) as returned by
-    :code:`pendulum.now().to_iso8601_string()`
-    (`docs <https://pendulum.eustace.io/docs/>`_).
+    :code:`datetime.datetime.now().astimezone().isoformat()`.
     Specifies when the experiment/data acquisition ended.
     """
 

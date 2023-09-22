@@ -49,7 +49,6 @@ dependencies = [
     "filelock",
     "appnope",
     "uncertainties",
-    "pendulum",  # used for timestamps formatting in the dataset attributes
     "dataclasses_json", # used in dataset_attrs
     "dill",  # Tests fail without dill installed, likely for a good reason
     "methodtools",  # used in base_analysis for self-bound lru_cache
