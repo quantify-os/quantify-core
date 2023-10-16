@@ -147,14 +147,6 @@ napoleon_include_init_with_doc = True
 #
 html_theme = "pydata_sphinx_theme"
 
-
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-
-# the white text fits better with the current sphinx theme
-# both files are in the repository
-html_logo = "images/QUANTIFY_LANDSCAPE.svg"
-
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
@@ -165,8 +157,14 @@ html_favicon = "images/QUANTIFY-FAVICON_16.png"
 # theme further.  For a list of options available for each theme, see the
 # documentation.
 
-html_theme_options: Dict[str, Any] = {"navbar_align": "left"}
-
+html_theme_options: Dict[str, Any] = {
+    "header_links_before_dropdown": 6,
+    "navbar_align": "left",
+    "logo": {
+        "image_light": "QUANTIFY_CORE_FLAT.svg",
+        "image_dark": "QUANTIFY_CORE_FLAT_DM.svg",
+    },
+}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".

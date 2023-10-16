@@ -111,6 +111,8 @@ tmp_disasm.q1asm
 *.svg
 *.json
 *.hdf5
+!docs/source/**/*.svg
+!docs/source/**/*.png
 
 # Always include json schemas
 !**/schemas/*.json

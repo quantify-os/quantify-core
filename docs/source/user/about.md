@@ -1,6 +1,11 @@
 # About Quantify-core
 
-![Quantify logo](/images/QUANTIFY_LANDSCAPE.svg)
+```{image} /images/QUANTIFY_LANDSCAPE.svg
+:class: only-light
+```
+```{image} /images/QUANTIFY_LANDSCAPE_DM.svg
+:class: only-dark
+```
 
 Quantify is a Python-based data acquisition framework focused on Quantum Computing and
 solid-state physics experiments.
