@@ -19,6 +19,7 @@
 - Matteo Pompili ([GitLab](https://gitlab.com/matpompili))
 - Michiel Dubbelman ([GitLab](https://gitlab.com/MichielDubbelman))
 - Michiel Haye ([GitLab](https://gitlab.com/hayemj))
+- Nicolas Piot ([GitLab](https://gitlab.com/npiot))
 - Pieter Eendebak ([GitLab](https://gitlab.com/peendebak))
 - Robert Sokolewicz ([GitLab](https://gitlab.com/rsokolewicz))
 - Sander de Snoo ([GitLab](https://gitlab.com/sldesnoo-Delft))

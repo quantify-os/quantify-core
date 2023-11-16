@@ -12,6 +12,7 @@
 - Data - The `long_name` and `name` attributes of dataset coordinates now contain information about the root instrument and submodules in addition to the settable (!478, !486)
 - SI utilities - Handle nan in value_precision input (!487)
 - Utilities - Create utility function to compare snapshots (!485)
+- Analysis - Added analysis class for time of flight measurement (!494)
 
 ## 0.7.3 (2023-08-17)
 
