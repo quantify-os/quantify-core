@@ -368,7 +368,7 @@ elif (
     and (default_branch := os.environ.get("CI_DEFAULT_BRANCH"))
     and branch == default_branch
 ):
-    switcher_version = "latest"
+    switcher_version = "dev"
 else:
     switcher_version = None
 
