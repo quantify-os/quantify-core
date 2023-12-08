@@ -662,9 +662,12 @@ def plot_2d_grid(
         _, ax = plt.subplots()
 
     # Reshape the length N columns of data into unique xvals (n), yvals (m) and an (m*n)
-    # grid of zvals.
-    xi = np.unique(x)
-    yi = np.unique(y)
+    # grid of zvals. Ensure that these unique values are sorted in the same order that
+    # the values first appear in the original arrays.
+    _, indices_x = np.unique(x, return_index=True)
+    xi = x[sorted(indices_x)]
+    _, indices_y = np.unique(y, return_index=True)
+    yi = y[sorted(indices_y)]
     zarr = np.array(z)  # to make this work natively with an xarray
     # to account for matlab style column ordering of pcolormesh
     zi = np.reshape(zarr, newshape=(len(yi), len(xi)))
