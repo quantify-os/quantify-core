@@ -14,6 +14,7 @@
 - Utilities - Create utility function to compare snapshots (!485)
 - Analysis - Added analysis class for time of flight measurement (!494)
 - Visualisation - Ensure that `plot_2d_grid` plots x and y axes in the correct order for both ascending and descending arrays (!500, #369)
+- Documentation - Add colored terminal output when building documentation (!502)
 
 ## 0.7.3 (2023-08-17)
 
