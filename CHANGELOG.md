@@ -1,20 +1,31 @@
 # Changelog
 
-## Unreleased
+## 0.7.4 (2023-12-15)
 
 ### Merged branches and closed issues
 
-- Measurement Control - Improve progress bar for iterative and batch run with tqdm. (!477, #346)
-- Deprecation - Explicit handling of np.arrays to avoid deprecated functionality when converting a dimensional array into scalar. (!476)
-- Documentation - Improve documentation build time and enable `sphinx-autobuild` (!471)
-- Documentation - Fix missing images in Jupyter cell outputs in documentation deployed using Gitlab Pages. (!480)
-- Documentation - Switch to pydata sphinx theme on readthedocs (!479)
-- Data - The `long_name` and `name` attributes of dataset coordinates now contain information about the root instrument and submodules in addition to the settable (!478, !486)
-- SI utilities - Handle nan in value_precision input (!487)
-- Utilities - Create utility function to compare snapshots (!485)
-- Analysis - Added analysis class for time of flight measurement (!494)
-- Visualisation - Ensure that `plot_2d_grid` plots x and y axes in the correct order for both ascending and descending arrays (!500, #369)
-- Documentation - Add colored terminal output when building documentation (!502)
+- Documentation
+  - Improve documentation build time and enable `sphinx-autobuild`. (!471)
+  - Fix missing images in Jupyter cell outputs in documentation deployed using Gitlab Pages. (!480)
+  - Switch to `pydata` sphinx theme on www.readthedocs.org. (!479)
+  - Add colored terminal output when building documentation. (!502)
+
+- Data 
+  - The `long_name` and `name` attributes of dataset coordinates now contain information about the root instrument and submodules in addition to the settable. (!478, !486)
+
+- Utilities 
+  - Add `compare_snapshots` utility function for comparing snapshots. (!485)
+
+- Analysis 
+  - Add `TimeOfFlightAnalysis` analysis class for a time of flight measurement. (!494)
+
+- Visualization
+  - Fix `plot_2d_grid` plots so that the x and y axes are used in the correct order for both ascending and descending arrays. (!500, #369)
+  - Handle `nan` values in `SI_utilities.value_precision` input, to improve plot monitor stability. (!487)
+
+- MeasurementControl
+  - Improve progress bar for iterative and batch run with `tqdm`. (!477, #346)
+  - Prevent `numpy` deprecation warning, by explicit handling of `numpy.arrays` when converting a dimensional array into scalar. (!476)
 
 ## 0.7.3 (2023-08-17)
 

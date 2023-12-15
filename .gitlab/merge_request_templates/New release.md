@@ -47,16 +47,7 @@
     <!-- Note: if we are following semver, this should be rather vX.(Y+1).0.dev, and bugfixes need to go into a separate bugfix branch for each minor release a-la `stable/vX.Y`.
     Since we are not so strict with that and releasing minor and bugfix from the same branch, to avoid situation of having previous commit having version v0.7.0.dev19+abcdef and
     next commit version v0.6.5 (which is less than v0.7.0.devN, which should not be the case) we must bump a bugfix version (the most minor version we bump in main)
-    and later we may decide that we are releasing a minor instad of a bugfix.-->
-
-1. Read-the-Docs setup:
-   - [ ] Enable docs build for the new tag [over here](https://readthedocs.com/projects/quantify-quantify-core/versions/).
-      - Configuration:
-        - `Active`=True
-        - `Hidden`=False
-        - `Privacy Level`=Public
-   - [ ] Make sure the docs build and check on RTD.
-      - Check the new version on RTD via the Changelog.
+    and later we may decide that we are releasing a minor instead of a bugfix.-->
 
 1. [ ] Create new release vX.Y.Z on [GitLab](https://gitlab.com/quantify-os/quantify-core/-/releases).
     - Copy/paste the changelog of the release
