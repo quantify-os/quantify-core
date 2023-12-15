@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+### Merged branches and closed issues
+
+
 ## 0.7.4 (2023-12-15)
 
 ### Merged branches and closed issues
