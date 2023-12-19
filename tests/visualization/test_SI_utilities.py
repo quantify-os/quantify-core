@@ -63,6 +63,16 @@ def test_si_scale_factors() -> None:
     assert scale_factor == 1
     assert not post_unit
 
+    unit = "s"
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=150, unit=unit)
+    assert scale_factor == 1 / 60
+    assert post_unit == "min"
+
+    unit = "s"
+    scale_factor, post_unit = SI_prefix_and_scale_factor(val=10000, unit=unit)
+    assert scale_factor == 1 / 3600
+    assert post_unit == "hrs"
+
 
 def test_label_scaling() -> None:
     """

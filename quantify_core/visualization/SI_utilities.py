@@ -324,6 +324,11 @@ def SI_prefix_and_scale_factor(
                     prefix = r"$\mu$"
             if unit == "SI_PREFIX_ONLY":
                 scale_factor, scaled_unit = 10**-prefix_power, prefix
+            elif unit == "s" and val > 2 * 60:
+                if val > 2 * 3600:  # Convert to hours if larger than 2 hours
+                    scale_factor, scaled_unit = 1 / 3600, "hrs"
+                else:  # Convert to minutes if between 2 minutes and 2 hours
+                    scale_factor, scaled_unit = 1 / 60, "min"
             else:
                 scale_factor, scaled_unit = 10**-prefix_power, prefix + unit
         # this exception can be triggered in the pyqtgraph multi processing
