@@ -7,6 +7,8 @@
 ### Merged branches and closed issues
 
 - SI utilities - Cast large values for seconds to minutes or hours (!501)
+- Documentation
+  - Update copyright notice to 2024. (!506)
 
 ## 0.7.4 (2023-12-15)
 
