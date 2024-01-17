@@ -52,6 +52,8 @@
 1. [ ] Create new release vX.Y.Z on [GitLab](https://gitlab.com/quantify-os/quantify-core/-/releases).
     - Copy/paste the changelog of the release
 
+1. [ ] Manually edit the redirects from `/docs/quantify-core` to `/docs/quantify-core/vX.Y.Z/` and similar over at https://gitlab.com/quantify-os/quantify-os.gitlab.io/-/blob/main/source/extra/_redirects.
+
 1. When `Release to test.pypi.org` job of the tag pipeline succeeds:
     - [ ] Install package in (test) env and validate (e.g., run a quick notebook).
        ```bash

@@ -9,6 +9,10 @@
 - SI utilities - Cast large values for seconds to minutes or hours (!501)
 - Documentation
   - Update copyright notice to 2024. (!506)
+- GitLab
+  - Make general Merge Request template the default. (!507)
+  - Add documentation redirect instructions to Release merge request template. (!507)
+  
 
 ## 0.7.4 (2023-12-15)
 
