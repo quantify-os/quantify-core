@@ -1,12 +1,223 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
+import lmfit
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 
+import quantify_core.data.handling as dh
 from quantify_core.analysis import base_analysis as ba
 from quantify_core.analysis import fitting_models as fm
 from quantify_core.visualization import mpl_plotting as qpl
 from quantify_core.visualization.SI_utilities import format_value_string
+
+
+class QubitFluxSpectroscopyAnalysis(ba.BaseAnalysis):
+    # pylint: disable=line-too-long
+    """
+    Analysis class for qubit flux spectroscopy.
+
+    .. admonition:: Example
+
+        .. jupyter-execute::
+
+            from quantify_core.analysis.spectroscopy_analysis import QubitFluxSpectroscopyAnalysis
+            import quantify_core.data.handling as dh
+
+            # load example data
+            test_data_dir = "../tests/test_data"
+            dh.set_datadir(test_data_dir)
+
+            # run analysis and plot results
+            analysis = (
+                QubitFluxSpectroscopyAnalysis(tuid="20230309-235354-353-9c94c5")
+                .run()
+                .display_figs_mpl()
+            )
+
+    """
+
+    # pylint: disable=invalid-name
+    # pylint: disable=no-member
+    # pylint: arguments-differ
+
+    def process_data(self) -> None:
+        """Process the data so that the analysis can make assumptions on the format."""
+        ds = dh.to_gridded_dataset(self.dataset)
+        self.dataset_processed = xr.Dataset(
+            {
+                "Magnitude": (("Frequency", "Offset"), ds.y0.data),
+                "Phase": (("Frequency", "Offset"), np.mod(ds.y1.data, 360.0)),
+            },
+            coords={
+                "Frequency": ds.x0.data,
+                "Offset": ds.x1.data,
+            },
+        )
+
+        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset_processed.Magnitude.attrs["units"] = ds.y0.units
+        self.dataset_processed.Magnitude.attrs["long_name"] = "Magnitude, $|S_{21}|$"
+
+        self.dataset_processed.Phase.attrs["name"] = "Phase"
+        self.dataset_processed.Phase.attrs["units"] = ds.y1.units
+        self.dataset_processed.Phase.attrs["long_name"] = (
+            r"Phase, $\angle S_{21}$ mod 360°"
+        )
+
+        self.dataset_processed.Frequency.attrs["name"] = "Frequency"
+        self.dataset_processed.Frequency.attrs["units"] = ds.x0.units
+        self.dataset_processed.Frequency.attrs["long_name"] = (
+            "Frequency of excitation pulse"
+        )
+
+        self.dataset_processed.Offset.attrs["name"] = "Offset"
+        self.dataset_processed.Offset.attrs["units"] = ds.x1.units
+        self.dataset_processed.Offset.attrs["long_name"] = "External flux offset"
+
+    def run_fitting(self) -> None:
+        """Fits a QuadraticModel model to the frequency response vs. flux offset."""
+
+        # Calculate the mean and standard deviation along each column
+        # Calculate the absolute difference from the mean for each element
+        # Create a boolean mask where elements are more than 3*sigma away from the mean
+
+        s21 = self.dataset_processed.Magnitude.data * np.exp(
+            1j * np.deg2rad(self.dataset_processed.Phase.data)
+        )
+
+        column_means = np.mean(s21, axis=0)
+        column_stddevs = np.std(s21, axis=0)
+
+        abs_diff = np.abs(s21 - column_means)
+        mask = abs_diff > 3 * column_stddevs
+
+        # Find the middle index for each column where the condition is met
+        # You can use np.where to find the indices where the condition is True
+        row_indices, col_indices = np.where(mask)
+
+        # Split the data into x and y arrays
+        x_values = self.dataset_processed.Offset[col_indices].data
+        y_values = self.dataset_processed.Frequency[row_indices].data
+
+        # Calculate the unique x values and their corresponding mean y values
+        unique_x = np.unique(x_values)
+        mean_y = np.array([np.mean(y_values[x_values == x]) for x in unique_x])
+
+        # Fit a model to data
+        quad_model = lmfit.models.QuadraticModel()
+        guess = quad_model.guess(mean_y, x=unique_x)
+        result = quad_model.fit(mean_y, x=unique_x, params=guess)
+
+        self.fit_results.update({"poly2": result})
+
+    def analyze_fit_results(self) -> None:
+        """Check the fit success and populate :code:`.quantities_of_interest`."""
+        self.quantities_of_interest = {}
+
+        # If there is a problem with the fit, display an error message in the text box.
+        # Otherwise, display the parameters as normal.
+        fit_warning = ba.wrap_text(ba.check_lmfit(self.fit_results["poly2"]))
+        if fit_warning is not None:
+            self.quantities_of_interest["fit_success"] = False
+            self.quantities_of_interest["fit_msg"] = ba.wrap_text(fit_warning)
+            return
+
+        # Set fitted parameters as quantities of interest
+        for parameter, value in self.fit_results["poly2"].params.items():
+            self.quantities_of_interest[parameter] = ba.lmfit_par_to_ufloat(value)
+
+        a = self.quantities_of_interest["a"]
+        b = self.quantities_of_interest["b"]
+        c = self.quantities_of_interest["c"]
+
+        off_0_unc = -b / (2.0 * a)
+        frq_0_unc = a * (off_0_unc**2) + b * off_0_unc + c
+
+        self.quantities_of_interest["sweetspot"] = off_0_unc
+        self.quantities_of_interest["sweetspot_freq"] = frq_0_unc
+
+        text_msg = "Summary:\n"
+        text_msg += format_value_string(
+            "Sweetspot",
+            off_0_unc,
+            unit=self.dataset_processed.Offset.units,
+            end_char="\n",
+        )
+        text_msg += format_value_string(
+            "Freq.",
+            frq_0_unc,
+            unit="Hz",
+            end_char="\n",
+        )
+        self.quantities_of_interest["fit_success"] = True
+        self.quantities_of_interest["fit_msg"] = text_msg
+
+    def create_figures(self) -> None:
+        """Generate plot of magnitude and phase images, with superposed model fit."""
+        fig, ax = plt.subplots(1, 1, figsize=(9, 6))
+
+        # Plot using xarrays plotting function
+        self.dataset_processed.Magnitude.plot(ax=ax)  # type: ignore
+
+        if self.quantities_of_interest["fit_success"]:
+            # Interpolate with the model for nice curve
+            interp_offsets = np.arange(
+                start=self.dataset_processed.Offset.data.min(),
+                stop=self.dataset_processed.Offset.data.max(),
+                step=np.diff(self.dataset_processed.Offset)[0] / 2.0,
+            )
+
+            a = self.quantities_of_interest["a"]
+            b = self.quantities_of_interest["b"]
+            c = self.quantities_of_interest["c"]
+
+            # Plot model interpolation
+            ax.plot(
+                interp_offsets,
+                a.nominal_value * (interp_offsets**2)
+                + b.nominal_value * interp_offsets
+                + c.nominal_value,
+                color="red",
+                ls="-",
+            )
+
+            # Plot also the zero which we found
+            ax.axvline(
+                self.quantities_of_interest["sweetspot"].nominal_value
+                - self.quantities_of_interest["sweetspot"].std_dev,
+                color="red",
+                ls="--",
+                alpha=0.5,
+            )
+            ax.axvline(
+                self.quantities_of_interest["sweetspot"].nominal_value,
+                color="red",
+                ls="-",
+            )
+            ax.axvline(
+                self.quantities_of_interest["sweetspot"].nominal_value
+                + self.quantities_of_interest["sweetspot"].std_dev,
+                color="red",
+                ls="--",
+                alpha=0.5,
+            )
+
+        # Put a text box summarizing the QOI
+        qpl.plot_textbox(
+            ax=ax,
+            transform=ax.transAxes,
+            text=self.quantities_of_interest["fit_msg"],
+            x=1.3,
+        )
+
+        qpl.set_suptitle_from_dataset(fig, self.dataset)  # type: ignore
+        ax.set_title(self.dataset_processed.Magnitude.attrs["name"])
+
+        fig.tight_layout()  # type: ignore
+
+        self.figs_mpl["qfs"] = fig  # type: ignore
+        self.axs_mpl["qfs"] = (ax,)  # type: ignore
 
 
 # Custom analysis class for QubitSpectroscopy

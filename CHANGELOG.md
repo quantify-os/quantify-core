@@ -9,7 +9,9 @@
 - SI utilities - Cast large values for seconds to minutes or hours (!501)
 - Documentation
   - Update copyright notice to 2024. (!506)
-- Analysis - Added analysis class for readout calibration (!474)
+- Analysis 
+  - Add analysis class for qubit flux spectroscopy. (!473)
+  - Add analysis class for readout calibration. (!474)
 - GitLab
   - Make general Merge Request template the default. (!507)
   - Add documentation redirect instructions to Release merge request template. (!507)
