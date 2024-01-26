@@ -637,9 +637,9 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         self.dataset_processed["S21_rot"] = rot_data
         self.dataset_processed.S21_rot.attrs["name"] = "S21_rot"
         self.dataset_processed.S21_rot.attrs["units"] = self.dataset.y0.units
-        self.dataset_processed.S21_rot.attrs[
-            "long_name"
-        ] = "Rotated transmission $S_{21}^R$"
+        self.dataset_processed.S21_rot.attrs["long_name"] = (
+            "Rotated transmission $S_{21}^R$"
+        )
 
     def _choose_data_for_fit(self):
         if self.calibration_points:

@@ -71,6 +71,7 @@ docs = [
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex",
     "sphinx-design",
+    "jupyter_sphinx>=0.4.0",
 ]
 dev = [
     "quantify-core[docs,test]",

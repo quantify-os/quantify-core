@@ -547,12 +547,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                     yi_name = f"y{y_off}"
                     slice_len = setpoint_idx + len(row)  # the slice we will be updating
                     old_vals = self._dataset[yi_name].values[setpoint_idx:slice_len]
-                    old_vals[
-                        np.isnan(old_vals)
-                    ] = 0  # will be full of NaNs on the first iteration, change to 0
-                    self._dataset[yi_name].values[
-                        setpoint_idx:slice_len
-                    ] = self._build_data(row, old_vals)
+                    old_vals[np.isnan(old_vals)] = (
+                        0  # will be full of NaNs on the first iteration, change to 0
+                    )
+                    self._dataset[yi_name].values[setpoint_idx:slice_len] = (
+                        self._build_data(row, old_vals)
+                    )
                     y_off += 1
 
             self._nr_acquired_values += np.shape(new_data)[1]

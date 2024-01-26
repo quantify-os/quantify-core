@@ -1,4 +1,5 @@
 """Unit tests for inspect_utils module."""
+
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
 from quantify_core.utilities import inspect_utils

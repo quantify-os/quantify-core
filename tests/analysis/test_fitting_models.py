@@ -1,4 +1,5 @@
 """Tests for analysis fitting models"""
+
 import numpy as np
 import pytest
 

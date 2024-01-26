@@ -63,9 +63,9 @@ class OptimizationAnalysis(ba.BaseAnalysis):
                 ].values
             )
 
-            self.quantities_of_interest[
-                self.dataset[x_variable].attrs["name"]
-            ] = optimum
+            self.quantities_of_interest[self.dataset[x_variable].attrs["name"]] = (
+                optimum
+            )
 
             text_msg += format_value_string(
                 self.dataset[x_variable].attrs["long_name"],

@@ -63,6 +63,7 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx.ext.mathjax",
     "sphinx_togglebutton",
+    "jupyter_sphinx",
     # fancy type hints in docs and
     # solves the same issue as "sphinx_automodapi.smart_resolver"
     # however the smart_resolver seems to fail for external packages like `zhinst`
