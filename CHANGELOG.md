@@ -15,7 +15,8 @@
 - GitLab
   - Make general Merge Request template the default. (!507)
   - Add documentation redirect instructions to Release merge request template. (!507)
-  
+- Tests
+  - Small refactor of tests to get rid of `PytestRemovedIn8Warning`s. (!508)
 
 ## 0.7.4 (2023-12-15)
 

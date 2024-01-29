@@ -49,7 +49,7 @@ class TestInstrumentMonitor:
 
 
 class TestRepeatTimer:
-    def setup(self):
+    def setup_method(self):
         self.mock_function = Mock()
         self.repeat_timer = RepeatTimer(
             0.1, self.mock_function, args=(1, 2), kwargs={"a": 3}
