@@ -173,6 +173,8 @@ ignore = [
     "ANN002",
     # No blank lines allowed before class docstring (conflicts with black)
     "D211",
+    #  Missing blank line after last section
+    "D413",
 ]
 exclude = [
     "docs",
