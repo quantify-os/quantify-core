@@ -680,7 +680,7 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
             text_msg += format_value_string(
                 "Pi-pulse amplitude",
                 fit_result.params["amp180"],
-                unit="V",
+                unit="a.u.",
                 end_char="\n",
             )
             text_msg += format_value_string(
