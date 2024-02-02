@@ -12,6 +12,8 @@
 - Analysis 
   - Add analysis class for qubit flux spectroscopy. (!473)
   - Add analysis class for readout calibration. (!474)
+  - Remove an `xarray` `FutureWarning` in `to_gridded_dataset` when retrieving the dataset dimension names. (!510)
+  - Remove a `matplotlib` `MatplotlibDeprecationWarning` in `Basic2DAnalysis` when plotting a heatmp. (!510)
 - GitLab
   - Make general Merge Request template the default. (!507)
   - Add documentation redirect instructions to Release merge request template. (!507)

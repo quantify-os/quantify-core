@@ -75,7 +75,7 @@ def test_raw_data_not_in_processed_dataset(analysis_and_ref, tmp_test_data_dir):
     )
     dataset_processed = dh.load_dataset_from_path(file_path)
 
-    assert "x0" in dataset_processed.dims.keys()
+    assert "x0" in dataset_processed.dims
     assert "x0" in dataset_processed.coords.keys()
     assert "y0" not in dataset_processed.data_vars.keys()
     assert "y1" not in dataset_processed.data_vars.keys()

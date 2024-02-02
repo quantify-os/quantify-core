@@ -794,7 +794,7 @@ class Basic2DAnalysis(BaseAnalysis):
             # respect to xarray default.
             for line, z_value in zip(lines, np.array(gridded_dataset["x1"])):
                 # use the default colormap specified
-                cmap = matplotlib.cm.get_cmap()
+                cmap = matplotlib.cm._get_cmap()
                 norm = matplotlib.colors.Normalize(
                     vmin=np.min(gridded_dataset["x1"]),
                     vmax=np.max(gridded_dataset["x1"]),

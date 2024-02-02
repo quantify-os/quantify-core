@@ -967,8 +967,7 @@ def to_gridded_dataset(
     :
         The new dataset.
     """
-    if dimension not in quantify_dataset.dims:
-        dims = tuple(quantify_dataset.dims.keys())
+    if dimension not in (dims := tuple(quantify_dataset.dims)):
         raise ValueError(f"Dimension {dimension} not in dims {dims}.")
 
     if coords_names is None:

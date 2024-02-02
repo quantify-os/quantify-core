@@ -61,7 +61,7 @@ def test_initialize_dataset():
     assert y0.attrs["long_name"] == "Signal amplitude"
 
     assert set(dataset.coords.keys()) == {"x0"}
-    assert set(dataset.dims.keys()) == {"dim_0"}
+    assert set(dataset.dims) == {"dim_0"}
 
 
 def test_initialize_dataset_2d():
@@ -531,9 +531,9 @@ def test_to_gridded_dataset(tmp_test_data_dir):
     dset_gridded = dh.to_gridded_dataset(dset_orig)
 
     assert dset_gridded.attrs["tuid"] == tuid
-    assert tuple(dset_gridded.dims.keys()) == ("x0", "x1")
+    assert tuple(dset_gridded.dims) == ("x0", "x1")
     assert tuple(dset_gridded.coords.keys()) == ("x0", "x1")
-    assert tuple(dset_gridded.dims.values()) == (50, 11)
+    assert tuple(dset_gridded.sizes.values()) == (50, 11)
     assert dset_gridded["y0"].dims == ("x0", "x1")
     assert len(dset_gridded["x0"].values) == len(np.unique(dset_orig["x0"]))
 
