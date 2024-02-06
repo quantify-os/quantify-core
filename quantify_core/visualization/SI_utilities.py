@@ -92,7 +92,11 @@ def _set_offset_string(
 
 
 def set_xlabel(
-    label: str | plt.Axes, unit: str | None = None, axis: plt.Axes | None = None, **kw
+    label: str | plt.Axes,
+    unit: str | None = None,
+    axis: plt.Axes | None = None,
+    auto_scale: bool = True,
+    **kw,
 ) -> plt.Axes:
     """
     Add a unit aware x-label to an axis object.
@@ -103,6 +107,8 @@ def set_xlabel(
         the desired label
     unit
         the unit
+    auto_scale
+        If True, then automatically scale the units
     axis
         matplotlib axis object to set label on
     **kw
@@ -121,7 +127,7 @@ def set_xlabel(
     if axis is None:
         axis = plt.gca()
 
-    if unit:
+    if unit and auto_scale:
         xticks = axis.get_xticks()
         precision = 4
         scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
@@ -137,13 +143,19 @@ def set_xlabel(
 
         axis.xaxis.set_major_formatter(formatter)
         axis.set_xlabel(label + f" [{unit}]", **kw)
+    elif unit:
+        axis.set_xlabel(label + f" [{unit}]", **kw)
     else:
         axis.set_xlabel(label, **kw)
     return axis
 
 
 def set_ylabel(
-    label: str | plt.Axes, unit: str | None = None, axis: plt.Axes | None = None, **kw
+    label: str | plt.Axes,
+    unit: str | None = None,
+    axis: plt.Axes | None = None,
+    auto_scale: bool = True,
+    **kw,
 ) -> plt.Axes | None:
     """
     Add a unit aware y-label to an axis object.
@@ -156,6 +168,8 @@ def set_ylabel(
         the unit
     axis
         matplotlib axis object to set label on
+    auto_scale
+        If True, then automatically scale the units
     **kw
         keyword argument to be passed to matplotlib.set_ylabel
     """
@@ -172,7 +186,7 @@ def set_ylabel(
     if axis is None:
         axis = plt.gca()
 
-    if unit:
+    if unit and auto_scale:
         yticks = axis.get_yticks()
         precision = 6
         scale_factor, offset, unit = _get_scale_factor_and_offset_and_prefix(
@@ -188,6 +202,8 @@ def set_ylabel(
 
         axis.yaxis.set_major_formatter(formatter)
 
+        axis.set_ylabel(label + f" [{unit}]", **kw)
+    elif unit:
         axis.set_ylabel(label + f" [{unit}]", **kw)
     else:
         axis.set_ylabel(label, **kw)

@@ -7,6 +7,7 @@
 ### Merged branches and closed issues
 
 - SI utilities - Cast large values for seconds to minutes or hours (!501)
+- SI utilities - Add option `auto_scale` to `set_xlabel` and `set_ylabel` (!512)
 - Documentation
   - Update copyright notice to 2024. (!506)
 - Analysis 

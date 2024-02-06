@@ -109,6 +109,26 @@ def test_label_scaling() -> None:
     ]
 
 
+def test_set_xlabel_auto_scale() -> None:
+    """
+    This test creates a dummy plot and checks if the tick labels are
+    rescaled correctly
+    """
+    _, ax = plt.subplots()
+    x = np.linspace(-6, 6, 101)
+    y = np.cos(x)
+    ax.plot(x * 10_000, y / 1e3)
+    set_xlabel("Distance", unit="m", auto_scale=False)
+    assert ax.get_xlabel() == "Distance [m]"
+    set_xlabel("Distance", unit="m")
+    assert ax.get_xlabel() == "Distance [km]"
+
+    set_ylabel("Amplitude", unit="V", auto_scale=False)
+    assert ax.get_ylabel() == "Amplitude [V]"
+    set_ylabel("Amplitude", unit="V")
+    assert ax.get_ylabel() == "Amplitude [mV]"
+
+
 def test_adjust_adjust_axeslabels_SI() -> None:
     """
     This test creates a dummy plot and checks if the tick labels are
