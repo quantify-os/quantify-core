@@ -623,13 +623,13 @@ class RabiAnalysis(SingleQubitTimedomainAnalysis):
         """
 
         # index closest to rabi-pulse amplitude = 0
-        min_idx = abs(self.dataset_processed.x0.values).argmin()
+        min_idx = np.argmin(abs(self.dataset_processed.x0.values))
         # transmission measured for Rabi-pulse amplitude closest to 0
-        min_val = self.dataset_processed.S21[min_idx]
+        min_val = self.dataset_processed.S21.values[min_idx]
 
         # find index with max absolute difference (distance in IQ space) to the S21_0
-        max_idx = abs(self.dataset_processed.S21 - min_val).argmax()
-        max_val = self.dataset_processed.S21[max_idx]
+        max_idx = np.argmax(abs(self.dataset_processed.S21.values - min_val))
+        max_val = self.dataset_processed.S21.values[max_idx]
 
         rotation_angle = np.angle(max_val - min_val)
         rot_data = self.dataset_processed.S21 * np.exp(-1j * rotation_angle)
