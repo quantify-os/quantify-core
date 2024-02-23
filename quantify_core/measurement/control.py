@@ -465,7 +465,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         self._reset()
         self.setpoints(
-            np.empty((64, len(self._settable_pars)))
+            np.zeros((64, len(self._settable_pars)))
         )  # block out some space in the dataset
         self._init(name)
 

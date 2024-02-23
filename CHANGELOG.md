@@ -22,6 +22,8 @@
   - Add documentation redirect instructions to Release merge request template. (!507)
 - Tests
   - Small refactor of tests to get rid of `PytestRemovedIn8Warning`s. (!508)
+- MeasurementControl
+  - Fix overflow warning when running `MeasurementControl.run_adaptive`. (!515)
 
 ## 0.7.4 (2023-12-15)
 
