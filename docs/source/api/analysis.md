@@ -78,3 +78,11 @@
     :members:
     :show-inheritance:
 ```
+
+## `conditional_oscillation_analysis`
+
+```{eval-rst}
+.. automodule:: quantify_core.analysis.conditional_oscillation_analysis
+    :members:
+    :show-inheritance:
+```

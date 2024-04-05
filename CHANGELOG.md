@@ -14,6 +14,7 @@
   - Added analysis class for resonator flux spectroscopy. (!493)
   - Add analysis class for qubit flux spectroscopy. (!473)
   - Add analysis class for readout calibration. (!474)
+  - Add analysis class for the CZ conditional oscillation experiment. (!472)
   - Fix units of Rabi analysis amplitudes. (!511)
   - Remove an `xarray` `FutureWarning` in `to_gridded_dataset` when retrieving the dataset dimension names. (!510)
   - Remove an `xarray` `DeprecationWarning` about `argmin` and `argmax` in the `RabiAnalysis`. (!513)
