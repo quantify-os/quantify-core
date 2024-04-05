@@ -475,7 +475,7 @@ def test_dynamic_dataset():
     z = ManualParameter("z", unit="V", label="Signal amplitude")
     settables = [x, y]
     gettables = [z]
-    dset = dh.initialize_dataset(settables, np.empty((8, len(settables))), gettables)
+    dset = dh.initialize_dataset(settables, np.empty((len(settables), 8)), gettables)
 
     x0_vals = np.random.random(8)
     x1_vals = np.random.random(8)

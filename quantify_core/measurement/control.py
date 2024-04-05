@@ -11,18 +11,18 @@ import threading
 import time
 import types
 from collections.abc import Iterable
+from functools import reduce
 from itertools import chain
 from pathlib import Path
-from typing import Any, Dict, Optional
-from tqdm.auto import tqdm
+from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol, Sequence, TypeVar
 
 import adaptive
 import numpy as np
-import xarray as xr
 from filelock import FileLock
 from qcodes import validators as vals
 from qcodes.instrument import Instrument, InstrumentChannel
 from qcodes.parameters import InstrumentRefParameter, ManualParameter
+from tqdm.auto import tqdm
 
 from quantify_core import __version__ as _quantify_version
 from quantify_core.data.experiment import QuantifyExperiment
@@ -37,6 +37,9 @@ from quantify_core.data.handling import (
 )
 from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
+
+if TYPE_CHECKING:
+    import xarray as xr
 
 # Intended for plotting monitors that run in separate processes
 _DATASET_LOCKS_DIR = Path(tempfile.gettempdir())
@@ -139,10 +142,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._soft_avg_validator = vals.Ints(1, int(1e8)).validate
 
         # variables that are set before the start of any experiment.
-        self._settable_pars = []
-        self._setpoints = []
-        self._setpoints_input = []
-        self._gettable_pars = []
+        self._settable_pars: list[Settable] = []
+        """Parameter(s) to be set during the acquisition loop."""
+        self._setpoints: list[np.ndarray] = []
+        """An (M, N) matrix of N setpoints for M settables."""
+        self._setpoints_input: Iterable[np.ndarray] = []
+        """The values to loop over in the experiment."""
+        self._gettable_pars: list[Gettable] = []
+        """Parameter(s) to be get during the acquisition loop."""
 
         # variables used for book keeping during acquisition loop.
         self._soft_avg = 1
@@ -189,7 +196,9 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             str_out += f"    setpoints_grid input shapes: {input_shapes}\n"
 
         if hasattr(self, "_setpoints") and self._setpoints is not None:
-            str_out += f"    setpoints shape: {np.asarray(self._setpoints).shape}\n"
+            str_out += (
+                f"    setpoints shape: {np.asarray(self._setpoints).shape[::-1]}\n"
+            )
 
         return str_out
 
@@ -488,8 +497,12 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self._prepare_gettables()
 
             self._dataarray_cache = {}
-            for row in self._setpoints:
-                self._iterative_set_and_get(row, self._curr_setpoint_idx(), lazy_set)
+            for idx in range(len(self._setpoints[0])):
+                self._iterative_set_and_get(
+                    [spt[idx] for spt in self._setpoints],
+                    self._curr_setpoint_idx(),
+                    lazy_set,
+                )
                 self._nr_acquired_values += 1
                 self._update()
                 self._check_interrupt()
@@ -520,7 +533,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 # within each batch
                 val, iterator = next(
                     itertools.groupby(
-                        self._setpoints[setpoint_idx:slice_len, where_iterative[i]]
+                        self._setpoints[where_iterative[i]][setpoint_idx:slice_len]
                     )
                 )
                 spar.set(val)
@@ -529,7 +542,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
             slice_len = setpoint_idx + self._batch_size_last
             for i, spar in enumerate(batched_settables):
-                pnts = self._setpoints[setpoint_idx:slice_len, where_batched[i]]
+                pnts = self._setpoints[where_batched[i]][setpoint_idx:slice_len]
                 spar.set(pnts)
             # Update for `print_progress`
             self._batch_size_last = min(self._batch_size_last, len(pnts))
@@ -724,7 +737,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             getattr(par, "batch_size", np.inf)
             for par in chain.from_iterable((self._settable_pars, self._gettable_pars))
         )
-        return min(min_with_inf, len(self._setpoints))
+        return min(min_with_inf, len(self._setpoints[0]))
 
     def _get_is_batched(self) -> bool:
         if any(
@@ -748,7 +761,10 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         """
         The total number of setpoints to examine
         """
-        return len(self._setpoints) * self._soft_avg
+        try:
+            return len(self._setpoints[0]) * self._soft_avg
+        except IndexError:
+            return 0
 
     def _curr_setpoint_idx(self) -> int:
         """
@@ -760,8 +776,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             setpoint_idx
         """
         acquired = self._nr_acquired_values
-        setpoint_idx = acquired % len(self._setpoints)
-        self._loop_count = acquired // len(self._setpoints)
+        setpoint_idx = acquired % len(self._setpoints[0])
+        self._loop_count = acquired // len(self._setpoints[0])
         return setpoint_idx
 
     def _get_fracdone(self) -> float:
@@ -880,7 +896,8 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             )
             self._plot_info["1d_2_settables_uniformly_spaced"] = is_uniform
 
-        self._setpoints = setpoints
+        # UI is to provide an (N, M) array, but internally we store an (M, N) array
+        self._setpoints = setpoints.T
         # `.setpoints()` and `.setpoints_grid()` cannot be used at the same time
         self._setpoints_input = None
 
@@ -956,16 +973,15 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         return experiment_description
 
 
-def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarray:
+def grid_setpoints(
+    setpoints: Sequence[Sequence],
+    settables: Iterable | None = None,
+) -> list[np.ndarray]:
     """
-    Makes gridded setpoints. If `settables` is provided, the gridding is such that the
-    inner most loop corresponds to the batched settable with the smallest `.batch_size`.
+    Make gridded setpoints.
 
-    .. warning ::
-
-        Using this method typecasts all values into the same type.
-        This may lead to validator errors when setting
-        e.g., a `float` instead of an `int`.
+    If ``settables`` is provided, the gridding is such that the inner most loop
+    corresponds to the batched settable with the smallest ``.batch_size``.
 
     Parameters
     ----------
@@ -978,48 +994,62 @@ def grid_setpoints(setpoints: Iterable, settables: Iterable = None) -> np.ndarra
 
     Returns
     -------
-    :class:`~numpy.ndarray`
-        An array where the first numpy axis correspond to individual setpoints.
+    list[np.ndarray]
+        A 2D array where the first axis corresponds to the settables, and the second
+        axis to individual setpoints.
     """
 
     if settables is None:
         settables = [None] * len(setpoints)
 
-    coordinates_names = [f"x{i}" for i, pnts in enumerate(setpoints)]
-    dataset_coordinates = xr.Dataset(coords=dict(zip(coordinates_names, setpoints)))
-    coordinates_batched = [
-        name for name, spar in zip(coordinates_names, settables) if is_batched(spar)
-    ]
-    coordinates_iterative = sorted(
-        (
-            name
-            for name, spar in zip(coordinates_names, settables)
-            if not is_batched(spar)
-        ),
-        reverse=True,
-    )
+    coordinates_batched = [i for i, spar in enumerate(settables) if is_batched(spar)]
+    coordinates_iterative = [
+        i for i, spar in enumerate(settables) if not is_batched(spar)
+    ][::-1]
 
+    stack_order = coordinates_iterative
     if len(coordinates_batched):
         batch_sizes = [
             getattr(spar, "batch_size", np.inf)
             for spar in settables
             if is_batched(spar)
         ]
-        coordinates_batched_set = set(coordinates_batched)
-        inner_coord_name = coordinates_batched[np.argmin(batch_sizes)]
-        coordinates_batched_set.remove(inner_coord_name)
+        inner_coord = coordinates_batched[np.argmin(batch_sizes)]
+        coordinates_batched.remove(inner_coord)
         # The inner most coordinate must correspond to the batched settable with
         # min `.batch_size`
-        stack_order = (
-            coordinates_iterative
-            + sorted(coordinates_batched_set, reverse=True)
-            + [inner_coord_name]
-        )
-    else:
-        stack_order = coordinates_iterative + sorted(coordinates_batched, reverse=True)
+        stack_order += coordinates_batched[::-1] + [inner_coord]
 
-    # Internally the xarray's stack mechanism is used to achieve the desired grid
-    stacked_dset = dataset_coordinates.stack(dim_0=stack_order)
+    order_of_order = np.argsort(stack_order)
 
-    # Return numpy array in the original order
-    return np.column_stack([stacked_dset[name].values for name in coordinates_names])
+    stacked_dset = _cartesian_product_transposed(*(setpoints[i] for i in stack_order))
+    stacked_dset = [stacked_dset[i] for i in order_of_order]
+    return stacked_dset
+
+
+class _SupportsMul(Protocol):
+    """A type that supports multiplication (*)."""
+
+    def __mul__(self, other): ...
+
+    def __rmul__(self, other): ...
+
+
+T = TypeVar("T", bound=_SupportsMul)
+
+
+def _prod(iter_: Iterable[T]) -> T:
+    return reduce(lambda x, y: x * y, iter_)
+
+
+def _cartesian_product_transposed(*setpoints: Sequence) -> list[np.ndarray]:
+    lengths = [len(arr) for arr in setpoints]
+    out = []
+    for i, arr in enumerate(setpoints):
+        row = np.array(arr)
+        if i < len(setpoints) - 1:
+            row = np.repeat(row, _prod(lengths[i + 1 :]))
+        if i > 0:
+            row = np.tile(row, _prod(lengths[:i]))
+        out.append(row)
+    return out

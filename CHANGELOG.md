@@ -24,6 +24,7 @@
   - Small refactor of tests to get rid of `PytestRemovedIn8Warning`s. (!508)
 - MeasurementControl
   - Fix overflow warning when running `MeasurementControl.run_adaptive`. (!515)
+ - MeasurementControl - `grid_setpoints` now returns a list of M ndarrays, where M is the number of settables. Note that this is the transpose of the previous return type. The data type of the input setpoints is now preserved. (!505) 
 - Linting
   - replaced deprecated numpy definitions with numpy2.0 compatible alternatives. (!517)
 

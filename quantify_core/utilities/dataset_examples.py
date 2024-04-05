@@ -40,7 +40,7 @@ def mk_2d_dataset_v1(num_amps: int = 10, num_times: int = 100):
         Number of y points.
     """
     amps, times = np.linspace(-1, 1, num_amps), np.linspace(0, 10, num_times)
-    amps, times = grid_setpoints([amps, times]).T
+    amps, times = grid_setpoints([amps, times])
     sig = amps * np.cos(times)
 
     attrs = dict(
@@ -93,7 +93,7 @@ def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Optional[int] = 112233):
     amp_values = np.linspace(0.45, 0.55, 30)
     time_values = np.linspace(0, 100e-9, 40)
 
-    amp_values, time_values = mc.grid_setpoints([amp_values, time_values]).T
+    amp_values, time_values = mc.grid_setpoints([amp_values, time_values])
     amp_values_norm = np.abs(
         (amp_values - amp_values.mean()) / (amp_values - amp_values.mean()).max()
     )

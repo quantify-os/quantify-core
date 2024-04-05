@@ -503,7 +503,7 @@ def create_exp_folder(
 # pylint: disable=too-many-locals
 def initialize_dataset(
     settable_pars: Iterable,
-    setpoints: np.ndarray,
+    setpoints: list[np.ndarray],
     gettable_pars: Iterable,
 ) -> xr.Dataset:
     """Initialize an empty dataset based on settable_pars, setpoints and gettable_pars.
@@ -513,7 +513,7 @@ def initialize_dataset(
     settable_pars
         A list of M settables.
     setpoints
-        An (N*M) array.
+        An (M*N) array.
     gettable_pars
         A list of gettables.
 
@@ -535,9 +535,9 @@ def initialize_dataset(
         if attrs["batched"] and hasattr(setpar, "batch_size"):
             attrs["batch_size"] = setpar.batch_size
         coords.append(f"x{i}")
-        darrs.append(xr.DataArray(data=setpoints[:, i], name=coords[-1], attrs=attrs))
+        darrs.append(xr.DataArray(data=setpoints[i], name=coords[-1], attrs=attrs))
 
-    numpoints = len(setpoints[:, 0])
+    numpoints = len(setpoints[0])
     j = 0
     for getpar in gettable_pars:
         # it's possible for one Gettable to return multiple axes. to handle this, zip

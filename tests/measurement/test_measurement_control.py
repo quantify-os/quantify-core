@@ -290,15 +290,15 @@ def test_repr(meas_ctrl, parameters):
 def test_setpoints(meas_ctrl):
     x = np.linspace(0, 10, 11)
     meas_ctrl.setpoints(x)
-    assert np.array_equal(meas_ctrl._setpoints[:, 0], x)
+    assert np.array_equal(meas_ctrl._setpoints[0], x)
 
     x = np.random.rand(15, 2)
     meas_ctrl.setpoints(x)
-    assert np.array_equal(meas_ctrl._setpoints, x)
+    assert np.array_equal(meas_ctrl._setpoints, x.T)
 
     x = np.random.rand(15, 4)
     meas_ctrl.setpoints(x)
-    assert np.array_equal(meas_ctrl._setpoints, x)
+    assert np.array_equal(meas_ctrl._setpoints, x.T)
 
 
 def test_iterative_1d(meas_ctrl, parameters):
@@ -487,11 +487,11 @@ def test_iterative_2d_grid(meas_ctrl, parameters):
     assert TUID.is_valid(dset.attrs["tuid"])
 
     expected_vals = cosine_function(
-        t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0
+        t=exp_sp[0], amplitude=exp_sp[1], frequency=1, phase=0
     )
 
-    assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
-    assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
+    assert np.array_equal(dset["x0"].values, exp_sp[0])
+    assert np.array_equal(dset["x1"].values, exp_sp[1])
     assert np.array_equal(dset["y0"].values, expected_vals)
 
     # Test properties of the dataset
@@ -565,11 +565,11 @@ def test_iterative_2d_grid_with_lazy_set(
     assert TUID.is_valid(dset.attrs["tuid"])
 
     expected_vals = cosine_function(
-        t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=1, phase=0
+        t=exp_sp[0], amplitude=exp_sp[1], frequency=1, phase=0
     )
 
-    assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
-    assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
+    assert np.array_equal(dset["x0"].values, exp_sp[0])
+    assert np.array_equal(dset["x1"].values, exp_sp[1])
     assert np.array_equal(dset["y0"].values, expected_vals)
 
     # Test properties of the dataset
@@ -664,8 +664,8 @@ def test_batched_2d_grid(meas_ctrl):
 
     exp_sp = grid_setpoints([times, amps])
     assert np.array_equal(exp_sp, meas_ctrl._setpoints)
-    assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
-    assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
+    assert np.array_equal(dset["x0"].values, exp_sp[0])
+    assert np.array_equal(dset["x1"].values, exp_sp[1])
 
     expected_vals = batched_mock_values(dset["x0"].values)
     assert np.array_equal(dset["y0"].values, expected_vals)
@@ -715,9 +715,10 @@ def test_iterative_outer_loop_with_inner_batched_2d(meas_ctrl, parameters):
 
     dset = meas_ctrl.run("iterative-outer-loop-with-inner-batched-2D")
 
+    np_array_setpoints = meas_ctrl._setpoints
     expected_vals = cosine_function(
-        t=meas_ctrl._setpoints[:, 0],
-        frequency=meas_ctrl._setpoints[:, 1],
+        t=np_array_setpoints[0],
+        frequency=np_array_setpoints[1],
         amplitude=1,
         phase=0,
     )
@@ -739,8 +740,8 @@ def test_batched_2d_grid_multi_return(meas_ctrl):
 
     exp_sp = grid_setpoints([times, amps])
     assert np.array_equal(exp_sp, meas_ctrl._setpoints)
-    assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
-    assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
+    assert np.array_equal(dset["x0"].values, exp_sp[0])
+    assert np.array_equal(dset["x1"].values, exp_sp[1])
 
     expected_vals = batched_mock_values(
         np.stack((dset["x0"].values, dset["x1"].values))
@@ -883,12 +884,12 @@ def test_iterative_3d_grid(meas_ctrl, parameters):
     assert TUID.is_valid(dset.attrs["tuid"])
 
     expected_vals = cosine_function(
-        t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0
+        t=exp_sp[0], amplitude=exp_sp[1], frequency=exp_sp[2], phase=0
     )
 
-    assert np.array_equal(dset["x0"].values, exp_sp[:, 0])
-    assert np.array_equal(dset["x1"].values, exp_sp[:, 1])
-    assert np.array_equal(dset["x2"].values, exp_sp[:, 2])
+    assert np.array_equal(dset["x0"].values, exp_sp[0])
+    assert np.array_equal(dset["x1"].values, exp_sp[1])
+    assert np.array_equal(dset["x2"].values, exp_sp[2])
     assert np.array_equal(dset["y0"].values, expected_vals)
 
     # Test properties of the dataset
@@ -930,10 +931,10 @@ def test_iterative_3d_multi_return(meas_ctrl, parameters):
 
     exp_sp = grid_setpoints([times, amps, freqs])
     exp_y0 = exp_y3 = sine_function(
-        t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0
+        t=exp_sp[0], amplitude=exp_sp[1], frequency=exp_sp[2], phase=0
     )
     exp_y1 = exp_y2 = exp_y4 = cosine_function(
-        t=exp_sp[:, 0], amplitude=exp_sp[:, 1], frequency=exp_sp[:, 2], phase=0
+        t=exp_sp[0], amplitude=exp_sp[1], frequency=exp_sp[2], phase=0
     )
 
     np.testing.assert_array_equal(dset["y0"], exp_y0)
@@ -967,12 +968,12 @@ def test_batched_3d_multi_return_soft_averaging(meas_ctrl):
     dset = meas_ctrl.run(soft_avg=1000)
 
     exp_sp = grid_setpoints([times, amps, freqs])
-    np.testing.assert_array_almost_equal(dset.y0, exp_sp[:, 0], decimal=2)
+    np.testing.assert_array_almost_equal(dset.y0, exp_sp[0], decimal=2)
     np.testing.assert_array_almost_equal(
-        dset.y1, batched_mock_values(exp_sp[:, 1]), decimal=4
+        dset.y1, batched_mock_values(exp_sp[1]), decimal=4
     )
     np.testing.assert_array_almost_equal(
-        dset.y2, batched_mock_values(exp_sp[:, 2]), decimal=4
+        dset.y2, batched_mock_values(exp_sp[2]), decimal=4
     )
 
 
@@ -1029,7 +1030,6 @@ def test_batched_grid_mixed(meas_ctrl, parameters):
     exp_sp = grid_setpoints(setpoints, settables=settables)
     assert np.array_equal(meas_ctrl._setpoints, exp_sp)
 
-    exp_sp = exp_sp.T
     _, _, _, _ = (
         parameters.freq(exp_sp[0]),
         parameters.t(exp_sp[1]),
@@ -1152,10 +1152,13 @@ def test_adaptive_sampling_with_lazy_set(
     num_y = 20
 
     def _adaptive_function(meas_func, **_):
-        """A dimple adaptive function that executes a 2D sweep and conforms with
+        """A simple adaptive function that executes a 2D sweep and conforms with
         the accepted interface for an adaptive function."""
-        points = grid_setpoints(
-            [np.linspace(-50, 50, num_x), np.linspace(-20, 30, num_y)]
+        points = np.column_stack(
+            [
+                np.tile(np.linspace(-50, 50, num_x), num_y),
+                np.repeat(np.linspace(-20, 30, num_y), num_x),
+            ],
         )
 
         for setpoint in points:
@@ -1477,7 +1480,7 @@ def test_grid_setpoints_mixed_simple_reversed(setpoints_iterative, setpoints_bat
             np.tile(setpoints_batched[0], len(setpoints_iterative[0])),
             np.repeat(setpoints_iterative[0], len(setpoints_batched[0])),
         ]
-    )
+    ).T
     np.testing.assert_array_equal(gridded, expected)
 
 
@@ -1504,7 +1507,7 @@ def test_grid_setpoints_mixed_two_batched(setpoints_iterative, setpoints_batched
                 len(setpoints_iterative[0]),
             ),
         ]
-    )
+    ).T
     np.testing.assert_array_equal(gridded, expected)
 
 
@@ -1545,7 +1548,7 @@ def test_grid_setpoints_mixed_two_batched_two_iterative(
                 * len(setpoints_batched[0]),
             ),
         ]
-    )
+    ).T
     np.testing.assert_array_equal(gridded, expected)
 
 
@@ -1554,14 +1557,71 @@ def test_grid_setpoints():
     y = np.linspace(-1, 1, 3)
 
     sp = grid_setpoints([x, y])
-    assert sp[:, 0].all() == np.tile(np.arange(5), 3).all()
-    assert sp[:, 1].all() == np.repeat(y, 5).all()
+    assert sp[0].all() == np.tile(np.arange(5), 3).all()
+    assert sp[1].all() == np.repeat(y, 5).all()
 
     z = np.linspace(100, 200, 2)
     sp = grid_setpoints([x, y, z])
-    assert all(e in sp[:, 0] for e in x)
-    assert all(e in sp[:, 1] for e in y)
-    assert all(e in sp[:, 2] for e in z)
+    assert all(e in sp[0] for e in x)
+    assert all(e in sp[1] for e in y)
+    assert all(e in sp[2] for e in z)
+
+
+def test_typed_settables(meas_ctrl, parameters):
+    times = np.linspace(0, 5, 20)
+    atts = list(range(0, 60, 10))
+    att_settable = ManualParameter(
+        "out0_att",
+        label="Output 0 attenuation",
+        unit="dB",
+        vals=vals.Multiples(2, min_value=0, max_value=60),
+        set_parser=int,
+        get_parser=int,
+    )
+
+    meas_ctrl.settables([parameters.t, att_settable])
+    meas_ctrl.setpoints_grid([times, atts])
+
+    meas_ctrl.gettables(parameters.sig)
+    # Should not raise TypeError
+    _ = meas_ctrl.run()
+
+
+def test_typed_settables_batched(meas_ctrl):
+    times = list(range(20))
+    freqs = list(range(1, 11))
+    setpoints = [times, freqs]
+    meas_ctrl.setpoints_grid(setpoints)
+
+    strict_t = ManualParameter(
+        "time",
+        unit="s",
+        vals=vals.Arrays(valid_types=[int]),
+    )
+    strict_freq = ManualParameter(
+        "frequency",
+        unit="Hz",
+        vals=vals.Ints(),
+    )
+    meas_ctrl.settables([strict_t, strict_freq])
+
+    # Using the same gettable for test purposes
+    def cosine_model():
+        return cosine_function(
+            strict_t(), amplitude=1, frequency=strict_freq(), phase=0
+        )
+
+    sig = Parameter(name="sig", label="Signal level", unit="V", get_cmd=cosine_model)
+    meas_ctrl.gettables([sig, sig])
+
+    strict_t.batched = True
+    strict_freq.batched = False
+
+    sig.batch_size = len(times)
+    sig.batched = True
+
+    # Should not raise TypeError
+    _ = meas_ctrl.run("iterative-outer-loop-with-inner-batched-2D")
 
 
 def test_print_progress_no_setpoints(meas_ctrl_empty, mocker):
