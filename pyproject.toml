@@ -139,6 +139,8 @@ select = [
     "PLE",
     "PLR",
     "PLW",
+    #numpy 2.0 migration
+    "NPY201"
 ]
 
 # ignore these rules for all files:

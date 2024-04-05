@@ -90,9 +90,9 @@ def mk_cosine_instrument() -> Instrument:
 
 def mk_iq_shots(
     num_shots: int = 128,
-    sigmas: Union[Tuple[float], NDArray[np.float_]] = (0.1, 0.1),
-    centers: Union[Tuple[complex], NDArray[np.complex_]] = (-0.2 + 0.65j, 0.7 + 4j),
-    probabilities: Union[Tuple[float], NDArray[np.float_]] = (0.4, 0.6),
+    sigmas: Union[Tuple[float], NDArray[np.float64]] = (0.1, 0.1),
+    centers: Union[Tuple[complex], NDArray[np.complex128]] = (-0.2 + 0.65j, 0.7 + 4j),
+    probabilities: Union[Tuple[float], NDArray[np.float64]] = (0.4, 0.6),
     seed: Union[int, None] = 112233,
 ) -> NDArray:
     """

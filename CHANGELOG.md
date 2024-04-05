@@ -24,6 +24,8 @@
   - Small refactor of tests to get rid of `PytestRemovedIn8Warning`s. (!508)
 - MeasurementControl
   - Fix overflow warning when running `MeasurementControl.run_adaptive`. (!515)
+- Linting
+  - replaced deprecated numpy definitions with numpy2.0 compatible alternatives. (!517)
 
 ## 0.7.4 (2023-12-15)
 

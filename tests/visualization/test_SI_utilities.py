@@ -329,6 +329,6 @@ def test_format_value_ufloat() -> None:
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 2.00$\pm$0.10 "
 
-    tau = uncertainties.ufloat(0.0, np.NaN)
+    tau = uncertainties.ufloat(0.0, np.nan)
     formatted_string = format_value_string("tau", tau)
     assert formatted_string == r"tau: 0 "
