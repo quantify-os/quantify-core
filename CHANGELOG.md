@@ -11,6 +11,7 @@
 - Documentation
   - Update copyright notice to 2024. (!506)
 - Analysis 
+  - Added analysis class for resonator flux spectroscopy. (!493)
   - Add analysis class for qubit flux spectroscopy. (!473)
   - Add analysis class for readout calibration. (!474)
   - Fix units of Rabi analysis amplitudes. (!511)

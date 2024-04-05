@@ -498,3 +498,252 @@ class ResonatorSpectroscopyAnalysis(ba.BaseAnalysis):
         qpl.set_ylabel(r"Im$(S_{21})$", self.dataset_processed.S21.units, ax)
 
         qpl.set_suptitle_from_dataset(fig, self.dataset, "S21")
+
+
+class ResonatorFluxSpectroscopyAnalysis(ba.BaseAnalysis):
+    """
+    Analysis class for resonator flux spectroscopy.
+
+    .. admonition:: Example
+
+        .. jupyter-execute::
+
+            from quantify_core.analysis.spectroscopy_analysis import (
+                ResonatorFluxSpectroscopyAnalysis
+            )
+            import quantify_core.data.handling as dh
+
+            # load example data
+            test_data_dir = "../tests/test_data"
+            dh.set_datadir(test_data_dir)
+
+            # run analysis and plot results
+            analysis = (
+                ResonatorFluxSpectroscopyAnalysis(tuid="20230308-235659-059-cf471e")
+                .run()
+                .display_figs_mpl()
+            )
+
+    """
+
+    # pylint: disable=no-member
+    # pylint: disable=broad-exception-caught
+    # pylint: disable=attribute-defined-outside-init
+
+    def process_data(self) -> None:
+        """Process the data so that the analysis can make assumptions on the format."""
+        ds = dh.to_gridded_dataset(self.dataset)
+        self.dataset_processed = xr.Dataset(
+            {
+                "Magnitude": (("Frequency", "Offset"), ds.y0.data),
+                "Phase": (("Frequency", "Offset"), np.mod(ds.y1.data, 360.0)),
+            },
+            coords={
+                "Frequency": ds.x0.data,
+                "Offset": ds.x1.data,
+            },
+        )
+
+        self.dataset_processed.Magnitude.attrs["name"] = "Magnitude"
+        self.dataset_processed.Magnitude.attrs["units"] = ds.y0.units
+        self.dataset_processed.Magnitude.attrs["long_name"] = "Magnitude, $|S_{21}|$"
+
+        self.dataset_processed.Phase.attrs["name"] = "Phase"
+        self.dataset_processed.Phase.attrs["units"] = ds.y1.units
+        self.dataset_processed.Phase.attrs["long_name"] = (
+            r"Phase, $\angle S_{21}$ mod 360°"
+        )
+
+        self.dataset_processed.Frequency.attrs["name"] = "Frequency"
+        self.dataset_processed.Frequency.attrs["units"] = ds.x0.units
+        self.dataset_processed.Frequency.attrs["long_name"] = (
+            "Frequency of readout pulse"
+        )
+
+        self.dataset_processed.Offset.attrs["name"] = "Offset"
+        self.dataset_processed.Offset.attrs["units"] = ds.x1.units
+        self.dataset_processed.Offset.attrs["long_name"] = "External flux offset"
+
+    def run_fitting(self) -> None:
+        """Fits a sinusoidal model to the frequency response vs. flux offset."""
+
+        # Calculate the mean and standard deviation along each column
+        # Calculate the absolute difference from the mean for each element
+        # Create a boolean mask where elements are more than 3*sigma away from the mean
+
+        try:
+            column_means = np.mean(self.dataset_processed.Magnitude.data, axis=0)
+            abs_diff = np.abs(self.dataset_processed.Magnitude.data - column_means)
+            mask = abs_diff > 3 * np.std(self.dataset_processed.Magnitude.data, axis=0)
+
+            # Find the middle index for each column where the condition is met
+            # You can use np.where to find the indices where the condition is True
+            row_indices, col_indices = np.where(mask)
+
+            # Split the data into x and y arrays
+            x_values = self.dataset_processed.Offset[col_indices].data
+            y_values = self.dataset_processed.Frequency[row_indices].data
+
+            # Calculate the unique x values and their corresponding mean y values
+            unique_x = np.unique(x_values)
+            mean_y = np.array([np.mean(y_values[x_values == x]) for x in unique_x])
+
+            # Fit a sinusoidal model to centered data
+            center = mean_y.mean()
+            sine_model = lmfit.models.SineModel()
+            guess = sine_model.guess(mean_y - center, x=unique_x)
+            result = sine_model.fit(mean_y - center, x=unique_x, params=guess)
+
+            # Also add the offset with estimate standard error
+            result.params.add("center", value=center, vary=False)
+            result.params["center"].stderr = mean_y.std() / np.sqrt(len(mean_y))
+
+            self.fit_results.update({"sin": result})
+            self._fit_success = bool(result.success)
+
+        except Exception as fit_error:
+            # we use these private members to avoid errors during fit failure
+            self._fit_error = "Error during fit:\n" + str(fit_error)
+            self._fit_success = False
+
+    def analyze_fit_results(self) -> None:
+        """Check the fit success and populate :code:`.quantities_of_interest`."""
+        self.quantities_of_interest = {"fit_success": self._fit_success}
+
+        if not self._fit_success:
+            self.quantities_of_interest["fit_msg"] = self._fit_error
+            return
+
+        # Set fitted sinus parameters as quantities of interest
+        for parameter, value in self.fit_results["sin"].params.items():
+            self.quantities_of_interest[parameter] = ba.lmfit_par_to_ufloat(value)
+
+        # Scale frequency of the sinusoid
+        self.quantities_of_interest["frequency"] /= 2.0 * np.pi
+
+        text_msg = "Summary:\n"
+        for parameter, value in self.fit_results["sin"].params.items():
+            # Build text box
+            text_msg += format_value_string(
+                parameter,
+                self.quantities_of_interest[parameter],
+                unit=dict(
+                    amplitude=None,
+                    frequency=self.dataset_processed.Offset.units,
+                    shift=self.dataset_processed.Offset.units,
+                    center=self.dataset_processed.Frequency.units,
+                )[parameter],
+                end_char="\n",
+            )
+
+        # Find some zeros of the derivative of the fitted sinusoidal model
+        root_indices = np.arange(-20, 20, 1)
+        roots = (
+            -2.0 * self.quantities_of_interest["shift"]
+            - 2 * np.pi * root_indices
+            + np.pi
+        ) / (4.0 * np.pi * self.quantities_of_interest["frequency"])
+
+        # Don't extrapolate sweetspots
+        roots = np.asarray(
+            sorted(
+                filter(
+                    lambda root: (
+                        (root.nominal_value <= self.dataset_processed.Offset.max())
+                        and (root.nominal_value >= self.dataset_processed.Offset.min())
+                    ),
+                    roots,
+                )
+            )
+        )
+
+        # Save all visible sweetspots, since we have computed them
+        text_msg += "\nSweetspots:\n"
+        for root_index, root in enumerate(roots):
+            # Save sweetspot
+            self.quantities_of_interest[f"sweetspot_{root_index}"] = root
+
+            # Build text box at the same time
+            text_msg += format_value_string(
+                f"sweetspot {root_index}",
+                root,
+                unit=self.dataset_processed.Offset.units,
+                end_char="\n",
+            )
+
+        self.quantities_of_interest["fit_msg"] = text_msg[:-1]
+
+    def create_figures(self) -> None:
+        """Generate plot of magnitude and phase images, with superposed model fit."""
+
+        if not self.quantities_of_interest["fit_success"]:
+            print(self.quantities_of_interest["fit_msg"])
+            return
+
+        fig, ax = plt.subplots(1, 2, figsize=(13, 6), sharey=True)
+
+        # Plot using xarrays plotting function
+        self.dataset_processed.Magnitude.plot(ax=ax[0])  # type: ignore
+        self.dataset_processed.Phase.plot(ax=ax[1], cmap="jet")
+
+        if self.quantities_of_interest["fit_success"]:
+            # Interpolate with the model for nice curve
+            interp_offsets = np.arange(
+                start=self.dataset_processed.Offset.data.min(),
+                stop=self.dataset_processed.Offset.data.max(),
+                step=np.diff(self.dataset_processed.Offset)[0] / 2.0,
+            )
+
+            # Plot model interpolation
+            ax[0].plot(
+                interp_offsets,
+                fm.cos_func(
+                    x=interp_offsets,
+                    frequency=self.quantities_of_interest["frequency"].nominal_value,
+                    amplitude=self.quantities_of_interest["amplitude"].nominal_value,
+                    offset=self.quantities_of_interest["center"].nominal_value,
+                    phase=self.quantities_of_interest["shift"].nominal_value
+                    - np.pi / 2,
+                ),
+                color="red",
+            )
+
+            # Plot also the zeros which we found that are visible
+            for _, root_ufloat in filter(
+                lambda item: (item[0].startswith("sweetspot_")),
+                self.quantities_of_interest.items(),
+            ):
+                ax[0].axvline(
+                    root_ufloat.nominal_value - root_ufloat.std_dev,
+                    color="red",
+                    ls="--",
+                    alpha=0.5,
+                )
+                ax[0].axvline(
+                    root_ufloat.nominal_value,
+                    color="red",
+                    ls="-",
+                )
+                ax[0].axvline(
+                    root_ufloat.nominal_value + root_ufloat.std_dev,
+                    color="red",
+                    ls="--",
+                    alpha=0.5,
+                )
+
+        # Put a text box summarizing the QOI
+        qpl.plot_textbox(
+            ax=ax[1],
+            transform=ax[1].transAxes,
+            text=self.quantities_of_interest["fit_msg"],
+            x=1.4,
+        )
+
+        qpl.set_suptitle_from_dataset(fig, self.dataset)  # type: ignore
+        ax[0].set_title(self.dataset_processed.Magnitude.attrs["name"])
+        ax[1].set_title(self.dataset_processed.Phase.attrs["name"])
+
+        fig.tight_layout()  # type: ignore
+
+        self.figs_mpl["rfs"] = fig  # type: ignore
+        self.axs_mpl["rfs"] = (ax,)  # type: ignore

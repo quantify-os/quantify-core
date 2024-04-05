@@ -84,7 +84,7 @@ templates_path = ["_templates"]
 # See https://stackoverflow.com/a/42513684 for a common list and instructions to find new
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "qcodes": ("https://qcodes.github.io/Qcodes/", None),
+    "qcodes": ("https://microsoft.github.io/Qcodes/", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
