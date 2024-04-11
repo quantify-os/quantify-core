@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Breaking Changes
+
+### Merged branches and closed issues
+
 ## 0.7.5 (2024-04-11)
 
 ### Merged branches and closed issues
