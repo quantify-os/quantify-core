@@ -1,15 +1,16 @@
 # Changelog
 
-## Unreleased
-
-### Breaking Changes
+## 0.7.5 (2024-04-11)
 
 ### Merged branches and closed issues
 
-- SI utilities - Cast large values for seconds to minutes or hours (!501)
-- SI utilities - Add option `auto_scale` to `set_xlabel` and `set_ylabel` (!512)
+- SI utilities 
+  - Cast large values for seconds to minutes or hours (!501)
+  - Add option `auto_scale` to `set_xlabel` and `set_ylabel` (!512)
+
 - Documentation
   - Update copyright notice to 2024. (!506)
+
 - Analysis 
   - Added analysis class for resonator flux spectroscopy. (!493)
   - Add analysis class for qubit flux spectroscopy. (!473)
@@ -19,14 +20,18 @@
   - Remove an `xarray` `FutureWarning` in `to_gridded_dataset` when retrieving the dataset dimension names. (!510)
   - Remove an `xarray` `DeprecationWarning` about `argmin` and `argmax` in the `RabiAnalysis`. (!513)
   - Remove a `matplotlib` `MatplotlibDeprecationWarning` in `Basic2DAnalysis` when plotting a heatmap. (!510)
+
 - GitLab
   - Make general Merge Request template the default. (!507)
   - Add documentation redirect instructions to Release merge request template. (!507)
+
 - Tests
   - Small refactor of tests to get rid of `PytestRemovedIn8Warning`s. (!508)
+
 - MeasurementControl
   - Fix overflow warning when running `MeasurementControl.run_adaptive`. (!515)
- - MeasurementControl - `grid_setpoints` now returns a list of M ndarrays, where M is the number of settables. Note that this is the transpose of the previous return type. The data type of the input setpoints is now preserved. (!505) 
+  - `grid_setpoints` now returns a list of M ndarrays, where M is the number of settables. Note that this is the transpose of the previous return type. The data type of the input setpoints is now preserved. (!505) 
+  
 - Linting
   - replaced deprecated numpy definitions with numpy2.0 compatible alternatives. (!517)
 
