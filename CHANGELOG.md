@@ -6,6 +6,9 @@
 
 ### Merged branches and closed issues
 
+- Requirements
+  - Adding scikit-learn as a dependency (!519)
+
 ## 0.7.5 (2024-04-11)
 
 ### Merged branches and closed issues

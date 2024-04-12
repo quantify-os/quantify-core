@@ -11,7 +11,8 @@ description="""\
 maintainers = [
     {name = "Edgar Reehuis", email = "ereehuis@qblox.com"},
     {name = "Robert Sokolewicz", email = "rsokolewicz@qblox.com"},
-    {name = "Tobias Bonsen", email = "tobias@orangeqs.com"},
+    {name = "Gábor Oszkár Dénes", email = "gdenes@qblox.com"},
+    {name = "Amirtha Varshiny Arumugam", email = "amirthavarshiny@orangeqs.com"},
     {name = "Viacheslav Ostroukh", email = "viacheslav@orangeqs.com"},
 ]
 classifiers = [
@@ -53,6 +54,8 @@ dependencies = [
     "dill",  # Tests fail without dill installed, likely for a good reason
     "methodtools",  # used in base_analysis for self-bound lru_cache
     "deepdiff", # Used in experiment_helpers.compare_snapshots
+    # Scikit-learn is used in AnalysisClass 
+    "scikit-learn",
 ]
 
 [project.optional-dependencies]
