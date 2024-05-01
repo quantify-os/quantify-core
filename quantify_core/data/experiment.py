@@ -52,7 +52,7 @@ class QuantifyExperiment:
 
     def __repr__(self) -> str:
         classname = ".".join([self.__module__, self.__class__.__qualname__])
-        idx = "%x" % id(self)
+        idx = f"{id(self)}x"
         return f"<{classname} at %x{idx}>: TUID {self.tuid}"
 
     @property

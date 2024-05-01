@@ -195,10 +195,16 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             ]
             str_out += f"    setpoints_grid input shapes: {input_shapes}\n"
 
+        # Report the transposed shape to keep consistency with the UI (self.setpoints).
         if hasattr(self, "_setpoints") and self._setpoints is not None:
-            str_out += (
-                f"    setpoints shape: {np.asarray(self._setpoints).shape[::-1]}\n"
-            )
+            try:
+                setpoints_shape = (
+                    len(self._setpoints[0]),
+                    len(self._setpoints),
+                )
+            except IndexError:
+                setpoints_shape = (0, 0)
+            str_out += f"    setpoints shape: {setpoints_shape}\n"
 
         return str_out
 
@@ -813,7 +819,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if self.verbose() and progress_message is None:
             progress_diff = math.floor(progress_percent) - self.pbar.n
             if self._batch_size_last is not None:
-                self.pbar.unit = " last batch size: %s" % self._batch_size_last
+                self.pbar.unit = f" last batch size: {self._batch_size_last}"
             else:
                 # if no unit attribute provided `custom_bar_format` breaks with extra `it` output
                 self.pbar.unit = ""
@@ -966,7 +972,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             "settables": [str(s) for s in self._settable_pars],
         }
         experiment_description["gettables"] = [str(s) for s in self._gettable_pars]
-        experiment_description["setpoints_shape"] = self._setpoints.shape
+        # Report the transposed shape to keep consistency with the UI (self.setpoints).
+        try:
+            experiment_description["setpoints_shape"] = (
+                len(self._setpoints[0]),
+                len(self._setpoints),
+            )
+        except IndexError:
+            experiment_description["setpoints_shape"] = (0, 0)
         experiment_description["soft_avg"] = self._soft_avg
         experiment_description["acquired_dataset"] = {"tuid": self._dataset.tuid}
 

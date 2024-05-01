@@ -28,6 +28,7 @@ from quantify_core import __version__ as _quantify_version
 from quantify_core.data.types import TUID
 from quantify_core.measurement.control import MeasurementControl, grid_setpoints
 from quantify_core.utilities.experiment_helpers import load_settings_onto_instrument
+from quantify_core.utilities.general import without
 from quantify_core.visualization.instrument_monitor import InstrumentMonitor
 from quantify_core.visualization.pyqt_plotmon import PlotMonitor_pyqt
 
@@ -416,18 +417,38 @@ def test_batched_batch_size_1d(meas_ctrl):
     assert np.array_equal(dset["y0"].values, expected_vals)
 
 
-def test_measurement_description(meas_ctrl):
-    p_param = ManualParameter("p_param")
-    amplitude = ManualParameter("amplitude", initial_value=0.1)
+def test_measurement_description(meas_ctrl, parameters):
+    number_points = 5
+    xvals = np.linspace(0, 2, number_points)
+    yvals = np.linspace(0, 1, number_points * 2)
 
-    meas_ctrl.settables(p_param)
-    meas_ctrl.setpoints(np.linspace(-50, 0, 13))
-    meas_ctrl.gettables(amplitude)
-    _ = meas_ctrl.run("1D test", save_data=False)
+    meas_ctrl.settables(parameters.t)
+    meas_ctrl.setpoints(xvals)
+    meas_ctrl.gettables(parameters.sig)
+    _ = meas_ctrl.run()
+    descr = meas_ctrl.measurement_description()
+    expected = {
+        "name": "",
+        "settables": ["t"],
+        "gettables": ["sig"],
+        "setpoints_shape": (number_points, 1),
+        "soft_avg": 1,
+    }
+    assert without(descr, ["acquired_dataset"]) == expected
 
-    measurement_description = meas_ctrl.measurement_description()
-    assert isinstance(measurement_description, dict)
-    assert measurement_description["name"] == "1D test"
+    meas_ctrl.setpoints_grid([xvals, yvals])
+
+    meas_ctrl.settables([parameters.t, parameters.amp])
+    _ = meas_ctrl.run()
+    descr = meas_ctrl.measurement_description()
+    expected = {
+        "name": "",
+        "settables": ["t", "amp"],
+        "gettables": ["sig"],
+        "setpoints_shape": (len(xvals) * len(yvals), 2),
+        "soft_avg": 1,
+    }
+    assert without(descr, ["acquired_dataset"]) == expected
 
 
 def test_soft_averages_batched_1d(meas_ctrl):

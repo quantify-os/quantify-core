@@ -8,6 +8,7 @@
 
 - Requirements
   - Adding scikit-learn as a dependency (!519)
+- MeasurementControl - In `measurement_description`, use `np.asarray` to convert the `_setpoints` to a numpy array before getting the shape. (!520)
 
 ## 0.7.5 (2024-04-11)
 
