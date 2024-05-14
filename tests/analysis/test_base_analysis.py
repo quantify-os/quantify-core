@@ -219,6 +219,28 @@ def test_basic2d_cyclic_cmap_detection(tmp_test_data_dir):
     assert qm.get_cmap().name == "twilight_shifted"
 
 
+def test_basic2d_adjust_cmap(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    tuid = TUID_2D_CYCLIC
+    # here we see if figures are created
+    ba.settings["mpl_fig_formats"] = [
+        "svg",
+    ]  # no png as this is very slow
+    a_obj = ba.Basic2DAnalysis(tuid=tuid).run()
+    ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
+
+    # no changes are made
+    fig = a_obj.figs_mpl["Heatmap x0x1-y0"]
+    qm = fig.axes[0].collections[0]
+    # assert colormap is default
+    assert qm.get_cmap().name == "viridis"
+
+    # Change cmap
+    a_obj.adjust_cmap("Accent")
+    assert qm.get_cmap().name == "Accent"
+
+
 def test_display_figs(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     a_obj = ba.BasicAnalysis(tuid=TUID_1D_2PLOTS).run()
