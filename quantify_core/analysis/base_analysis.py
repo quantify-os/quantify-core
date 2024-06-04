@@ -15,7 +15,7 @@ from enum import Enum
 from functools import wraps
 from pathlib import Path
 from textwrap import wrap
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import lmfit
 import matplotlib
@@ -933,7 +933,17 @@ def check_lmfit(fit_res: lmfit.model.ModelResult) -> str:
     return None
 
 
-def wrap_text(text, width=35, replace_whitespace=True, **kwargs):
+@overload
+def wrap_text(
+    text: str, width: int = 35, replace_whitespace: bool = True, **kwargs
+) -> str: ...
+@overload
+def wrap_text(
+    text: None, width: int = 35, replace_whitespace: bool = True, **kwargs
+) -> None: ...
+def wrap_text(
+    text: str | None, width: int = 35, replace_whitespace: bool = True, **kwargs
+) -> str | None:
     """
     A text wrapping (braking over multiple lines) utility.
 
