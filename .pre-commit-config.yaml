@@ -35,8 +35,8 @@ repos:
       # pip install ruff
       - id: ruff
         name: Linter [ruff]
-        description: "Run 'ruff' for extremely fast Python linting"
-        entry: ruff --force-exclude
+        description: "Run 'ruff check' for extremely fast Python linting"
+        entry: ruff check --force-exclude
         language: python
         'types_or': [python, pyi]
         args: []

@@ -35,7 +35,7 @@ license = { text = "BSD-3-Clause" }
 dynamic = ["version", "readme"]
 requires-python = ">=3.8"
 dependencies = [
-    "numpy !=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
+    "numpy <2.0.0, !=1.19.4",  # 1.19.4 not allowed because of a bug on windows https://github.com/numpy/numpy/issues/17726
     "qcodes >=0.37.0", # 0.37.0 replaces deprecated pyqtgraph functionality
     "qcodes-loop",
     "scipy >=1.5.0, !=1.6.0",

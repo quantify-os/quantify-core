@@ -748,7 +748,9 @@ def get_varying_parameter_values(
     """
     value = []
     if not isinstance(tuids, List):
-        TypeError(f"type(tuids)={type(tuids)} should be a list of TUIDs")
+        TypeError(  # noqa :PLW0133
+            f"type(tuids)={type(tuids)} should be a list of TUIDs"
+        )
 
     for tuid in tuids:
         try:
@@ -1309,7 +1311,7 @@ def _is_uniformly_spaced_array(
 
     linspace = np.linspace(points[0], points[-1], len(points))
     diff_square = np.square(linspace[1:-1] - points[1:-1])
-    if np.any(diff_square > np.square(abs_tolerance)):
+    if np.any(diff_square > np.square(abs_tolerance)):  # noqa: SIM103
         return False
 
     return True
