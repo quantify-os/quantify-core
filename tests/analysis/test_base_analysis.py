@@ -161,6 +161,43 @@ def test_basic1d_analysis(tmp_test_data_dir):
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
 
+def test_base_analysis_html_repr(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    tuid = TUID_1D_1PLOT
+
+    a_obj = ba.BasicAnalysis()
+    html_repr = a_obj._repr_html_()
+    assert (
+        html_repr
+        == '<h1>BasicAnalysis</h1><p style="font-family: monospace">TUID: None</p>'
+    )
+
+    a_obj = ba.BasicAnalysis(tuid=tuid)
+    html_repr = a_obj._repr_html_()
+    assert (
+        f'<h1>BasicAnalysis</h1><p style="font-family: monospace">TUID: {tuid}</p>'
+        in html_repr
+    )
+
+    # creating figures needs to be enabled for this to show a figure
+    ba.settings["mpl_fig_formats"] = [
+        "svg",
+    ]
+
+    a_obj = ba.BasicAnalysis(tuid=tuid).run()
+    ba.settings["mpl_fig_formats"] = []  # disabled again after running analysis
+
+    html_repr = a_obj._repr_html_()
+    assert (
+        f'<h1>BasicAnalysis</h1><p style="font-family: monospace">TUID: {tuid}</p>'
+        in html_repr
+    )
+
+    # Test that "a" figure has been identified and found.
+    assert "<svg" in html_repr
+
+
 def test_basic_analysis_plot_repeated_pnts(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
     a_obj = ba.BasicAnalysis(tuid=TUID_1D_ALLXY).run()
