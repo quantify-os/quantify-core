@@ -14,7 +14,18 @@ from collections.abc import Iterable
 from functools import reduce
 from itertools import chain
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol, Sequence, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Literal,
+    Optional,
+    Protocol,
+    Sequence,
+    TypeVar,
+    cast,
+)
 
 import adaptive
 import numpy as np
@@ -23,6 +34,7 @@ from qcodes import validators as vals
 from qcodes.instrument import Instrument, InstrumentChannel
 from qcodes.parameters import InstrumentRefParameter, ManualParameter
 from tqdm.auto import tqdm
+from typing_extensions import Self
 
 from quantify_core import __version__ as _quantify_version
 from quantify_core.data.experiment import QuantifyExperiment
@@ -173,9 +185,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         }
 
         # properly handling KeyboardInterrupts
-        self._thread_data = threading.local()
-        # counter for KeyboardInterrupts to allow forced interrupt
-        self._thread_data.events_num = 0
+        self._interrupt_manager = _KeyboardInterruptManager()
 
     def __repr__full__(self):
         str_out = super().__repr__() + "\n"
@@ -289,10 +299,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._loop_count = 0
         self._begintime = time.time()
         self._batch_size_last = None
-        # Reset KeyboardInterrupt counter
-        self._thread_data.events_num = 0
-        # Assign handler to interrupt signal
-        signal.signal(signal.SIGINT, self._interrupt_handler)
         self._save_data = save_data
         self._dataarray_cache = None
 
@@ -305,8 +311,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             "grid_2d_uniformly_spaced": False,
             "1d_2_settables_uniformly_spaced": False,
         }
-        # Reset to default interrupt handler
-        signal.signal(signal.SIGINT, signal.default_int_handler)
 
         # Make sure tqdm progress bar attribute is closed and removed if mc is interrupted and shot down gracefully
         if self.verbose() and hasattr(self, "pbar"):
@@ -375,32 +379,31 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         save_data
             If ``True`` that the measurement data is stored.
         """
-        lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
-        self._soft_avg_validator(soft_avg)  # validate first
-        self._soft_avg = soft_avg
-        self._reset(save_data=save_data)
-        self._init(name)
+        with self._interrupt_manager:
+            lazy_set = lazy_set if lazy_set is not None else self.lazy_set()
+            self._soft_avg_validator(soft_avg)  # validate first
+            self._soft_avg = soft_avg
+            self._reset(save_data=save_data)
+            self._init(name)
 
-        self._prepare_settables()
+            self._prepare_settables()
 
-        try:
-            if self._get_is_batched():
-                if self.verbose():
-                    print("Starting batched measurement...")
-                self._run_batched()
-            else:
-                if self.verbose():
-                    print("Starting iterative measurement...")
-                self._run_iterative(lazy_set)
-        except KeyboardInterrupt:
-            print("\nInterrupt signaled, exiting gracefully...")
+            try:
+                if self._get_is_batched():
+                    if self.verbose():
+                        print("Starting batched measurement...")
+                    self._run_batched()
+                else:
+                    if self.verbose():
+                        print("Starting iterative measurement...")
+                    self._run_iterative(lazy_set)
+            except KeyboardInterrupt:
+                print("\nInterrupt signaled, exiting gracefully...")
 
-        if self._save_data:
-            self._safe_write_dataset()  # Wrap up experiment and store data
-        self._finish()
-        self._reset_post()
-
-        self._check_interrupt()  # Propagate interruption
+            if self._save_data:
+                self._safe_write_dataset()  # Wrap up experiment and store data
+            self._finish()
+            self._reset_post()
 
         return self._dataset
 
@@ -450,7 +453,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             ret = self._dataset["y0"].values[self._nr_acquired_values]
             self._nr_acquired_values += 1
             self._update(".")
-            self._check_interrupt()
+            self._interrupt_manager.raise_if_interrupted()
             return ret
 
         def subroutine():
@@ -478,23 +481,22 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                     af_pars_copy.pop(unused_par, None)
                 adaptive_function(measure, **af_pars_copy)
 
-        self._reset()
-        self.setpoints(
-            np.zeros((64, len(self._settable_pars)))
-        )  # block out some space in the dataset
-        self._init(name)
+        with self._interrupt_manager:
+            self._reset()
+            self.setpoints(
+                np.zeros((64, len(self._settable_pars)))
+            )  # block out some space in the dataset
+            self._init(name)
 
-        try:
-            print("Running adaptively...")
-            subroutine()
-        except KeyboardInterrupt:
-            print("\nInterrupt signaled, exiting gracefully...")
+            try:
+                print("Running adaptively...")
+                subroutine()
+            except KeyboardInterrupt:
+                print("\nInterrupt signaled, exiting gracefully...")
 
-        self._finish()
-        self._dataset = trim_dataset(self._dataset)
-        self._safe_write_dataset()  # Wrap up experiment and store data
-
-        self._check_interrupt()  # Propagate interruption
+            self._finish()
+            self._dataset = trim_dataset(self._dataset)
+            self._safe_write_dataset()  # Wrap up experiment and store data
 
         return self._dataset
 
@@ -511,7 +513,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 )
                 self._nr_acquired_values += 1
                 self._update()
-                self._check_interrupt()
+                self._interrupt_manager.raise_if_interrupted()
             self._dataarray_cache = None
             self._loop_count += 1
 
@@ -576,7 +578,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
             self._nr_acquired_values += np.shape(new_data)[1]
             self._update()
-            self._check_interrupt()
+            self._interrupt_manager.raise_if_interrupted()
 
     def _build_data(self, new_data, old_data):
         if self._soft_avg == 1:
@@ -655,34 +657,6 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
     ############################################
     # Methods used to control the measurements #
     ############################################
-
-    def _interrupt_handler(self, signal, frame):
-        """
-        A proper handler for signal.SIGINT (a.k.a. KeyboardInterrupt).
-
-        Used to avoid affecting any other code, e.g. instruments drivers, and be able
-        safely stop the MC after an iteration finishes.
-        """
-        self._thread_data.events_num += 1
-        if self._thread_data.events_num >= 5:
-            raise KeyboardInterrupt
-        print(
-            f"\n\n[!!!] {self._thread_data.events_num} interruption(s) signaled. "
-            "Stopping after this iteration/batch.\n"
-            f"[Send {5 -  self._thread_data.events_num} more interruptions to force"
-            f"stop (not safe!)].\n"
-        )
-
-    def _check_interrupt(self):
-        """
-        Verifies if the user has signaled the interruption of the experiment.
-
-        Intended to be used after each iteration or after each batch of data.
-        """
-        if self._thread_data.events_num >= 1:
-            # It is safe to raise the KeyboardInterrupt here because we are guaranteed
-            # To be running MC code. The exception can be handled in a try-except
-            raise KeyboardInterrupt("Measurement interrupted")
 
     def _update(self, print_message: str = None):
         """
@@ -1066,3 +1040,60 @@ def _cartesian_product_transposed(*setpoints: Sequence) -> list[np.ndarray]:
             row = np.tile(row, _prod(lengths[:i]))
         out.append(row)
     return out
+
+
+Handler = Callable[[int, Optional[types.FrameType]], Any]
+
+
+class _KeyboardInterruptManager:
+    """Support class for handling keyboard interrupts in a controlled way."""
+
+    def __init__(self, n_forced: int = 5) -> None:
+        self._n_forced = n_forced
+        self.n_interrupts = 0
+        self._previous_handler: Optional[Handler] = None
+
+    def __enter__(self) -> Self:
+        self.n_interrupts = 0
+        if threading.current_thread() is threading.main_thread():
+            # Signal handlers can only be installed in main thread,
+            # do nothing in other thread.
+            self._previous_handler = cast(
+                Handler, signal.signal(signal.SIGINT, self._handle_interrupt)
+            )
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[types.TracebackType],
+    ) -> Literal[False]:
+        if self._previous_handler is not None:
+            signal.signal(signal.SIGINT, self._previous_handler)
+            if self.n_interrupts > 0:  # call outside handler on exit
+                self._previous_handler(signal.SIGINT, None)
+            self.n_interrupts = 0
+            self._previous_handler = None
+        return False
+
+    def _handle_interrupt(self, sig: int, frame: Optional[types.FrameType]) -> None:
+        del sig, frame  # unused arguments
+        self.n_interrupts += 1
+        if self.n_interrupts >= self._n_forced:
+            raise KeyboardInterrupt("Measurement interruption forced")
+        print(
+            f"\n\n[!!!] {self.n_interrupts} interruption(s) signaled. "
+            "Stopping after this iteration/batch.\n"
+            f"[Send {self._n_forced - self.n_interrupts} more interruptions to force"
+            f"stop (not safe!)].\n"
+        )
+
+    def raise_if_interrupted(self) -> None:
+        """
+        Verifies if the user has signaled the interruption of the experiment.
+
+        Intended to be used after each iteration or after each batch of data.
+        """
+        if self.n_interrupts > 0:
+            raise KeyboardInterrupt("Measurement interrupted")

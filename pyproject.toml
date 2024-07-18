@@ -54,8 +54,9 @@ dependencies = [
     "dill",  # Tests fail without dill installed, likely for a good reason
     "methodtools",  # used in base_analysis for self-bound lru_cache
     "deepdiff", # Used in experiment_helpers.compare_snapshots
-    # Scikit-learn is used in AnalysisClass 
+    # Scikit-learn is used in AnalysisClass
     "scikit-learn",
+    "typing-extensions",  # Independency from python version for "new" typing features
 ]
 
 [project.optional-dependencies]

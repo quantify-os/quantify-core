@@ -4,12 +4,11 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
-import os
 import random
 import signal
-import sys
 import time
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 from typing import Sequence
 from unittest.mock import Mock
@@ -209,22 +208,24 @@ class DummyBatchedGettable:  # pylint: disable=too-many-instance-attributes
 
 @pytest.fixture(scope="module")
 def meas_ctrl(tmp_path_factory):
+    prev_datadir = dh._datadir  # type: ignore
     tmpdir = tmp_path_factory.mktemp("mc_datadir")
     dh.set_datadir(str(tmpdir))
     meas_ctrl = MeasurementControl(name="meas_ctrl")
     yield meas_ctrl
     meas_ctrl.close()
-    dh._datadir = None  # type: ignore
+    dh._datadir = prev_datadir  # type: ignore
 
 
 @pytest.fixture(scope="function")
 def meas_ctrl_empty(tmp_path_factory):
+    prev_datadir = dh._datadir  # type: ignore
     tmpdir = tmp_path_factory.mktemp("mc_datadir_empty")
     dh.set_datadir(str(tmpdir))
     meas_ctrl = MeasurementControl(name="meas_ctrl_empty")
     yield meas_ctrl
     meas_ctrl.close()
-    dh._datadir = None  # type: ignore
+    dh._datadir = prev_datadir  # type: ignore
 
 
 def test_name(meas_ctrl):
@@ -1335,10 +1336,6 @@ def test_exception_not_silenced_set_get(meas_ctrl, parameters):
         meas_ctrl.run("This raises exception as expected")
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="Emulating this test on windows is too complicated",
-)
 def test_keyboard_interrupt(meas_ctrl):
     class GettableUserInterrupt:  # pylint: disable=too-few-public-methods
         def __init__(self):
@@ -1352,8 +1349,7 @@ def test_keyboard_interrupt(meas_ctrl):
                 for _ in range(self._num_interrupts):
                     # This same signal is sent when pressing `ctrl` + `c` or the
                     # "Stop kernel" button is pressed in a Jupyter(Lab) notebook
-                    # send a stop signal directly through the os interface
-                    os.kill(os.getpid(), signal.SIGINT)
+                    signal.raise_signal(signal.SIGINT)
             return time_par()
 
     time_par = ManualParameter(name="time", unit="s", label="Measurement Time")
@@ -1663,3 +1659,30 @@ def test_get_idn(meas_ctrl):
         "serial": meas_ctrl.name,
         "firmware": _quantify_version,
     }
+
+
+def test_run_in_thread(meas_ctrl, parameters):
+    # Run measurement control in separate thread and check
+    # if no exception raised.
+    meas_ctrl.settables(parameters.t)
+    meas_ctrl.setpoints(np.array([0, 1, 2, 3]))
+    meas_ctrl.gettables(parameters.sig)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(meas_ctrl.run)
+        future.result()  # This re-raises the exception
+
+
+@pytest.fixture()
+def myhandler(mocker):
+    h = mocker.Mock()
+    prev = signal.signal(signal.SIGINT, h)
+    yield h
+    signal.signal(signal.SIGINT, prev)
+
+
+def test_clean_deinstall_of_interrupt_handler(meas_ctrl, parameters, myhandler):
+    meas_ctrl.settables(parameters.t)
+    meas_ctrl.setpoints(np.array([0, 1, 2, 3]))
+    meas_ctrl.gettables(parameters.sig)
+    meas_ctrl.run()
+    assert signal.getsignal(signal.SIGINT) == myhandler
