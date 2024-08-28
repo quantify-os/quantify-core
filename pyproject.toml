@@ -63,6 +63,7 @@ dependencies = [
 test = [
     "pytest",
     "pytest-mock",
+    "pytest-mpl",
 ]
 docs = [
     "sphinx",
