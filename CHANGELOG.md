@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- numpy
+  - Unpin "numpy>=2"
 - Data
   - Fix AttributeError in name/long_name generation when using a parameter nested in a ChannelTuple. (!516)
   - Use short_name attribute in name/long_name generation instead of manually removing parent module names. (!516)
