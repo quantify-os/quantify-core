@@ -55,6 +55,21 @@ def test_quantify_experiment_load_and_save_text(tmp_test_data_dir):
 
     assert experiment.load_text(rel_path) == text
 
+def test_quantify_experiment_no_name(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    tuid = dh.gen_tuid()
+    dh.create_exp_folder(tuid)
+    experiment = QuantifyExperiment(tuid)
+
+    assert experiment.experiment_name == ''
+    
+def test_quantify_experiment_name(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+    tuid = dh.gen_tuid()
+    dh.create_exp_folder(tuid, name='myname')
+    experiment = QuantifyExperiment(tuid)
+
+    assert experiment.experiment_name == 'myname'
 
 def test_quantify_experiment_load_and_save_metadata(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
