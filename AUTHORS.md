@@ -10,6 +10,7 @@
 - Daniel Jonathan Weigand ([GitLab](https://gitlab.com/djweigand))
 - Diogo Valada ([GitLab](https://gitlab.com/Astlan))
 - Edgar Reehuis ([GitLab](https://gitlab.com/ereehuis))
+- Eugene Huang ([GitLab](https://gitlab.com/eugenhu))
 - Gabor Oszkar Denes ([GitLab](https://gitlab.com/gdenes))
 - Harold Meerwaldt ([GitLab](https://gitlab.com/haroldmeerwaldt))
 - Hiresh Jadoenathmissier ([GitLab](https://gitlab.com/HireshJ1))
