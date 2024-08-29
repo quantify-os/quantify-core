@@ -18,7 +18,8 @@ import numpy as np
 import pytest
 import xarray as xr
 from qcodes import ManualParameter, Parameter
-from qcodes.instrument import Instrument
+from qcodes.instrument import ChannelTuple, Instrument
+from qcodes.instrument_drivers.mock_instruments import DummyChannel, DummyInstrument
 from qcodes.utils import validators as vals
 from scipy import optimize
 
@@ -1659,6 +1660,34 @@ def test_get_idn(meas_ctrl):
         "serial": meas_ctrl.name,
         "firmware": _quantify_version,
     }
+
+
+@pytest.fixture
+def setup_instrument_and_channels():
+    dummy_instrument = DummyInstrument()
+    channel_list = [
+        DummyChannel(dummy_instrument, "channel0", "channel0"),
+        DummyChannel(dummy_instrument, "channel1", "channel1"),
+    ]
+    ct = ChannelTuple(
+        dummy_instrument,
+        "dummy_channels",
+        chan_type=DummyChannel,
+        chan_list=channel_list,
+    )
+    dummy_instrument.add_submodule("gizmos", ct)
+    measurement_control = MeasurementControl("measurement_control")
+    return channel_list, dummy_instrument, measurement_control
+
+
+def test_channel_tuple_integration_with_measurement_control(
+    setup_instrument_and_channels,
+):
+    channel_list, dummy_instrument, measurement_control = setup_instrument_and_channels
+    measurement_control.settables(channel_list[0].temperature)
+    measurement_control.gettables(dummy_instrument.dac1)
+    measurement_control.setpoints(np.linspace(20.0, 24.0, 5))
+    measurement_control.run(save_data=False)
 
 
 def test_run_in_thread(meas_ctrl, parameters):

@@ -9,7 +9,6 @@ import json
 import os
 import sys
 from copy import deepcopy
-from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List
 from uuid import uuid4
@@ -1345,14 +1344,14 @@ def _instrument_submodules_settable(
     ) -> bool:
         # Special case for ChannelTuples
         if isinstance(root, ChannelTuple):
-            parameters = list(
-                chain.from_iterable(
-                    ch.parameters.values() for ch in root.submodules._channels
+            for channel in root:
+                in_channel = _recursive_add_submodules(
+                    modules=modules, root=channel, parameter=parameter
                 )
-            )
-            if parameter in parameters:
-                modules.append(root)
-            return parameter.name in root.submodules.name
+                if in_channel:
+                    modules.append(root)
+                    return True
+            return False
 
         # InstrumentBase and InstrumentModule behave similarly
         if parameter in root.parameters.values():
@@ -1393,10 +1392,15 @@ def _generate_long_name(settable: Settable) -> str:
     leading to the settable, including the settable. If no label is specified, the
     :code:`name` attribute is used.
     """
-    sublabels = [
-        (x.label if hasattr(x, "label") else x.name)
-        for x in _instrument_submodules_settable(settable)
-    ]
+    path = _instrument_submodules_settable(settable)
+    sublabels = []
+    for x in path:
+        if hasattr(x, "label"):
+            sublabels.append(x.label)
+        elif hasattr(x, "short_name"):
+            sublabels.append(x.short_name)
+        else:
+            sublabels.append(x.name)
     return " ".join(sublabels)
 
 
@@ -1407,12 +1411,15 @@ def _generate_name(settable: Settable) -> str:
     The long name is based on the :code:`name` of root instrument and all relevant
     submodules leading to the settable, including the settable.
     """
-    subnames = [x.name for x in _instrument_submodules_settable(settable)]
-
-    # Remove the parent name in the case where the parent name is also present in
-    # the child names
-    for i, _ in enumerate(subnames):
-        for j in range(i):
-            subnames[i] = subnames[i].replace(subnames[j] + "_", "")
+    path = _instrument_submodules_settable(settable)
+    subnames = []
+    for x in path:
+        if hasattr(x, "short_name"):
+            subnames.append(x.short_name)
+        else:
+            x_name = x.name
+            for preceding_name in subnames:
+                x_name = x_name.replace(preceding_name + "_", "")
+            subnames.append(x_name)
 
     return ".".join(subnames)
