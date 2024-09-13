@@ -4,6 +4,6 @@ variables:
 
 include:
   - project: "quantify-os/ci"
-    ref: add_sphinx_error_log_to_artifacts
+    ref: main
     file: "/python-quantify.yml"
 
