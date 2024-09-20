@@ -64,6 +64,7 @@ test = [
     "pytest",
     "pytest-mock",
     "pytest-mpl",
+    "diff-cover",
 ]
 docs = [
     "sphinx",
