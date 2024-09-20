@@ -20,9 +20,9 @@ See also [merge request guidelines](https://quantify-os.org/docs/quantify-core/d
 - [ ] Newly added/adjusted documentation and docstrings render properly (or N/A).
 - [ ] Pipeline fix or dependency update: post in `#software-for-developers` channel to merge `main` back in or [update local packages](https://quantify-os.org/docs/quantify-core/dev/user/installation.html#setting-up-for-local-development) (or N/A).
 - [ ] Tested on hardware (or N/A).
-- [ ] `CHANGELOG.md` and `AUTHORS.md` have been updated (or N/A).
+- [ ] `CHANGELOG.md` for breaking changes and `AUTHORS.md` have been updated (or N/A).
 - [ ] Windows tests in CI pipeline pass (manually triggered by maintainers before merging).
    - _Maintainers do not hit Auto-merge, we need to actively check as manual tests do not block pipeline_
 ---
 
-For reference, the issues workflow is described in the [contribution guidelines](https://quantify-os.org/docs/quantify-core/dev/dev/guide.html#merge-requests-workflow).
+For reference, the issues workflow is described in the [contribution guidelines](https://quantify-os.org/docs/quantify-core/dev/dev/guide.html#contributing).
