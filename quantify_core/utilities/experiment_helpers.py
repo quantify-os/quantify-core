@@ -192,7 +192,7 @@ def compare_snapshots(old_snapshot: dict, new_snapshot: dict) -> dict:
     return DeepDiff(
         old_snapshot,
         new_snapshot,
-        exclude_regex_paths=["\['ts'\]", "\['raw_value'\]", "\['IDN'\]"],
+        exclude_regex_paths=[r"\['ts'\]", r"\['raw_value'\]", r"\['IDN'\]"],
         ignore_numeric_type_changes=True,
     )
 
