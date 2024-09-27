@@ -23,4 +23,5 @@ concepts
 bibliography
 authors
 changelog
+release_notes
 ```
