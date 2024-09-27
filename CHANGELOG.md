@@ -1,6 +1,6 @@
 # Changelog
 
-## Release v0.7.7 (2024-09-26)
+## Release v0.7.7 (2024-09-27)
 
 ### 🐛 Bug Fixes and Closed Issues
 - Fix xarray dimension mismatch in tutorial ([!533](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/533) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
