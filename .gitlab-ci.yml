@@ -4,6 +4,6 @@ variables:
 
 include:
   - project: "quantify-os/ci"
-    ref: main
+    ref: auto_changelog
     file: "/python-quantify.yml"
 

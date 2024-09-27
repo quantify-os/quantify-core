@@ -17,9 +17,16 @@ import adaptive
 import numpy as np
 import pytest
 import xarray as xr
-from qcodes import ManualParameter, Parameter
 from qcodes.instrument import ChannelTuple, Instrument
-from qcodes.instrument_drivers.mock_instruments import DummyChannel, DummyInstrument
+from qcodes.parameters import ManualParameter, Parameter
+
+try:
+    from qcodes.instrument_drivers.mock_instruments import DummyChannel, DummyInstrument
+except ImportError:
+    from qcodes.tests.instrument_mocks import (
+        DummyChannel,
+        DummyInstrument,
+    )  # support for python 3.8 and 3.9
 from qcodes.utils import validators as vals
 from scipy import optimize
 

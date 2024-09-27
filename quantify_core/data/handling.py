@@ -1126,8 +1126,8 @@ def get_tuids_containing(
             filter(
                 lambda x: (
                     len(x) > 25
-                    and TUID.is_valid(x[:26])  # tuid is valid
                     and (contains in x)  # label is part of exp_name
+                    and TUID.is_valid(x[:26])  # tuid is valid
                     and (t_start <= TUID.datetime_seconds(x) < t_stop)
                 ),
                 os.listdir(os.path.join(datadir, daydir)),

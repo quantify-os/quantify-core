@@ -73,7 +73,7 @@ class QuantifyExperiment:
     def experiment_name(self) -> str:
         """The name of the experiment."""
         location = locate_experiment_container(tuid=self.tuid)
-        name = location[location.find(self.tuid) + len(self.tuid) + 1:]
+        name = location[location.find(self.tuid) + len(self.tuid) + 1 :]
         return name
 
     def _get_or_create_experiment_directory(self, name: str = "") -> Path:

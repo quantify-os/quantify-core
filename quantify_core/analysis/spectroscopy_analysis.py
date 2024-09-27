@@ -251,8 +251,8 @@ class QubitSpectroscopyAnalysis(ba.BaseAnalysis):
         """Fit a Lorentzian function to the data."""
         mod = fm.LorentzianModel()
 
-        magnitude = np.array(self.dataset_processed["Magnitude"])
-        frequency = np.array(self.dataset_processed.x0)
+        magnitude = self.dataset_processed["Magnitude"].values
+        frequency = self.dataset_processed.x0.values
         guess = mod.guess(magnitude, x=frequency)
         fit_result = mod.fit(magnitude, params=guess, x=frequency)
 

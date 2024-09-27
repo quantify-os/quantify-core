@@ -1,17 +1,25 @@
 # Changelog
 
-## Unreleased
+## Release v0.7.7 (2024-09-26)
 
-- numpy
-  - Unpin "numpy>=2"
-- Data
-  - Fix AttributeError in name/long_name generation when using a parameter nested in a ChannelTuple. (!516)
-  - Use short_name attribute in name/long_name generation instead of manually removing parent module names. (!516)
+### 🐛 Bug Fixes and Closed Issues
+- Fix xarray dimension mismatch in tutorial ([!533](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/533) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
+- Fix name generation for parameter in ChannelTuple ([!516](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/516) by [@Eugene Huang](https://gitlab.com/eugenhu))
+- Refactor keyboard interrupt handling ([!529](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/529) by [@Michiel Haye](https://gitlab.com/hayemj))
+- Undesirable side effects of keyboard interrupt handling implementation ([#375](https://gitlab.com/quantify-os/quantify-core/-/issues/375) by [@Michiel Haye](https://gitlab.com/hayemj))
 
-### Breaking Changes
+### 🚀 Enhancements
+- Improve performance of get_tuids_containing ([!536](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/536) by [@Pieter Eendebak](https://gitlab.com/peendebak))
+- Add experiment_name property to the QuantifyExperiment ([!530](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/530) by [@Pieter Eendebak](https://gitlab.com/peendebak))
+- Refactor keyboard interrupt handling ([!529](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/529) by [@Michiel Haye](https://gitlab.com/hayemj))
 
-### Merged branches and closed issues
+### 📦 Dependencies
+- Add diff-cover to test dependecies ([!534](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/534) by [@Leon Wubben](https://gitlab.com/LeonQblox))
+- Add pytest-mpl dependency ([!531](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/531) by [@Thomas Middelburg](https://gitlab.com/ThomasMiddelburg))
 
+### 🔧 Other
+- Fix DeprecationWarning from re ([!535](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/535) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
+- Update MR template with changelog breaking change and link changes ([!537](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/537) by [@Gábor Oszkár Dénes](https://gitlab.com/gdenes))
 
 ## 0.7.6 (2024-07-04)
 
