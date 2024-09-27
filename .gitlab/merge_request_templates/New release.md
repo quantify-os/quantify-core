@@ -1,29 +1,13 @@
 ## Checklist for a new release
 
-1. [ ] Review `CHANGELOG.md` and `AUTHORS.md` have been updated.
-1. [ ] Update `Unreleased` chapter title in `CHANGELOG.md` to `X.Y.Z (YYYY-MM-DD)`. Commit it.
+1. [ ] Review `AUTHORS.md`.
 1. [ ] Review `@deprecated` and `FutureWarnings` that can be cleaned up now.
 
 1. CI pipeline:
+    - [ ] Add "Release" label to trigger the changelog update pipeline job. 
     - [ ] Automated pipeline passes.
     - [ ] All `Test (py3.x, Windows, manual)` pass (trigger manually!).
 
-1. [ ] Commit pip frozen requirements for future reference:
-    - Go to the `Test (py3.9, Linux)` pipeline job and download the `artifacts` (right side "Job artifacts" `-->` "Download").
-    - Unzip, get the `frozen-requirements.txt`.
-    - Paste it in `frozen-requirements` directory.
-    - Rename it, commit & push:
-
-      ```bash
-      NEW_VERSION=X.Y.Z  # Can also be X.Y.Z.rcT for release candidate
-      echo $NEW_VERSION
-
-      mv frozen-requirements.txt frozen-requirements-$NEW_VERSION.txt
-
-      git add ./frozen_requirements/frozen-requirements-$NEW_VERSION.txt
-      git commit -m "Add pip frozen requirements for $NEW_VERSION"
-      git push
-      ```
 
 1. [ ] Create tag for bumped version:
     - Merge this MR into `main`.
