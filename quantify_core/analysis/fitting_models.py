@@ -346,7 +346,7 @@ class LorentzianModel(lmfit.model.Model):
     # pylint: disable=missing-function-docstring
     def guess(self, data: NDArray, **kws) -> lmfit.parameter.Parameters:
         """Guess some initial values for the model based on the data."""
-        x = kws.get("x", None)
+        x = kws.get("x")
 
         if x is None:
             return None  # type: ignore
@@ -462,7 +462,7 @@ class ResonatorModel(lmfit.model.Model):
     # pylint: disable=too-many-locals
     # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-        f = kws.get("f", None)
+        f = kws.get("f")
         if f is None:
             return None
 
@@ -523,7 +523,7 @@ class ExpDecayModel(lmfit.model.Model):
 
     # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-        delay = kws.get("delay", None)
+        delay = kws.get("delay")
 
         if delay is None:
             return None
@@ -572,7 +572,7 @@ class RabiModel(lmfit.model.Model):
 
     # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-        drive_amp = kws.get("drive_amp", None)
+        drive_amp = kws.get("drive_amp")
         if drive_amp is None:
             return None
 
@@ -619,7 +619,7 @@ class DecayOscillationModel(lmfit.model.Model):
 
     # pylint: disable=missing-function-docstring
     def guess(self, data, **kws) -> lmfit.parameter.Parameters:
-        t = kws.get("t", None)
+        t = kws.get("t")
         if t is None:
             raise ValueError(
                 'Time variable "t" must be specified in order to guess parameters'

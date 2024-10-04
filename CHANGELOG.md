@@ -12,6 +12,7 @@
 - Improve performance of get_tuids_containing ([!536](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/536) by [@Pieter Eendebak](https://gitlab.com/peendebak))
 - Add experiment_name property to the QuantifyExperiment ([!530](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/530) by [@Pieter Eendebak](https://gitlab.com/peendebak))
 - Refactor keyboard interrupt handling ([!529](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/529) by [@Michiel Haye](https://gitlab.com/hayemj))
+- Allow arbitrary callables as adaptive functions in the `run_adaptive` subroutines ([!539](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/539) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude))
 
 ### 📦 Dependencies
 - Add diff-cover to test dependecies ([!534](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/534) by [@Leon Wubben](https://gitlab.com/LeonQblox))
