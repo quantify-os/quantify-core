@@ -474,12 +474,17 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 learner = adaptive_function(measure, **af_pars_copy)
                 adaptive.runner.simple(learner, goal)
 
-            # any adaptive function with the right signature
-            elif isinstance(adaptive_function, types.FunctionType):
+            # any object that is callable
+            elif callable(adaptive_function):
                 unused_pars = ["adaptive_function"]
                 for unused_par in unused_pars:
                     af_pars_copy.pop(unused_par, None)
                 adaptive_function(measure, **af_pars_copy)
+            else:
+                raise TypeError(
+                    "The adaptive_function must either be a BaseLearner subclass,"
+                    + " or be callable."
+                )
 
         with self._interrupt_manager:
             self._reset()

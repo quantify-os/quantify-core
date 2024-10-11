@@ -93,7 +93,7 @@ intersphinx_mapping = {
     # uncertainties has limited docs, but we can still use something like
     # :doc:`uncertainties <uncertainties:index>`
     "uncertainties": (
-        "https://uncertainties-python-package.readthedocs.io/en/latest/",
+        "https://uncertainties.readthedocs.io/en/latest/",
         None,
     ),
     "IPython": ("https://ipython.readthedocs.io/en/stable/", None),
