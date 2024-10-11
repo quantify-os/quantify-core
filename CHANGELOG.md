@@ -1,8 +1,9 @@
 # Changelog
 
-## Release v0.7.7 (2024-09-27)
+## Release v0.7.7 (2024-10-08)
 
 ### 🐛 Bug Fixes and Closed Issues
+- Allow any callable for adaptive functions and raise TypeError if not valid ([!539](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/539) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude))
 - Fix xarray dimension mismatch in tutorial ([!533](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/533) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
 - Fix name generation for parameter in ChannelTuple ([!516](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/516) by [@Eugene Huang](https://gitlab.com/eugenhu))
 - Refactor keyboard interrupt handling ([!529](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/529) by [@Michiel Haye](https://gitlab.com/hayemj))
@@ -12,13 +13,14 @@
 - Improve performance of get_tuids_containing ([!536](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/536) by [@Pieter Eendebak](https://gitlab.com/peendebak))
 - Add experiment_name property to the QuantifyExperiment ([!530](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/530) by [@Pieter Eendebak](https://gitlab.com/peendebak))
 - Refactor keyboard interrupt handling ([!529](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/529) by [@Michiel Haye](https://gitlab.com/hayemj))
-- Allow arbitrary callables as adaptive functions in the `run_adaptive` subroutines ([!539](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/539) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude))
 
 ### 📦 Dependencies
 - Add diff-cover to test dependecies ([!534](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/534) by [@Leon Wubben](https://gitlab.com/LeonQblox))
 - Add pytest-mpl dependency ([!531](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/531) by [@Thomas Middelburg](https://gitlab.com/ThomasMiddelburg))
 
 ### 🔧 Other
+- Allow any callable for adaptive functions and raise TypeError if not valid ([!539](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/539) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude))
+- Allow any callable for adaptive functions and raise TypeError if not valid ([!539](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/539) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude))
 - Fix DeprecationWarning from re ([!535](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/535) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
 - Update MR template with changelog breaking change and link changes ([!537](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/537) by [@Gábor Oszkár Dénes](https://gitlab.com/gdenes))
 
