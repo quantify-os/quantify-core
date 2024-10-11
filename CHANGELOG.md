@@ -8,7 +8,7 @@
 - Fix name generation for parameter in ChannelTuple ([!516](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/516) by [@Eugene Huang](https://gitlab.com/eugenhu))
 - Refactor keyboard interrupt handling ([!529](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/529) by [@Michiel Haye](https://gitlab.com/hayemj))
 - Undesirable side effects of keyboard interrupt handling implementation ([#375](https://gitlab.com/quantify-os/quantify-core/-/issues/375) by [@Michiel Haye](https://gitlab.com/hayemj))
-
+- Remove distutils dependency ([!541](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/541) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
 ### 🚀 Enhancements
 - Improve performance of get_tuids_containing ([!536](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/536) by [@Pieter Eendebak](https://gitlab.com/peendebak))
 - Add experiment_name property to the QuantifyExperiment ([!530](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/530) by [@Pieter Eendebak](https://gitlab.com/peendebak))
