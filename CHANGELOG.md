@@ -1,5 +1,13 @@
 # Changelog
 
+
+## Release v0.7.8 (2024-10-14)
+
+### 🐛 Bug Fixes and Closed Issues
+
+- Fix remove distutils dependency ([!542](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/542) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
+
+
 ## Release v0.7.7 (2024-10-08)
 
 ### 🐛 Bug Fixes and Closed Issues
