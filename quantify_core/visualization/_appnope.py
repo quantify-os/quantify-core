@@ -3,13 +3,12 @@
 """Wrapper of appnope to avoid App Nap (macOS) of Quantify process."""
 import platform
 import sys
-from distutils.version import LooseVersion as V
 
-# Necessary issues with the power-saving features on macOS
 # See also:
 # https://github.com/pyqtgraph/pyqtgraph/pull/1092
 # https://forum.libcinder.org/topic/os-x-how-to-keep-rendering-in-background
 import appnope
+from packaging.version import Version
 
 
 def requires_appnope() -> bool:
@@ -17,7 +16,9 @@ def requires_appnope() -> bool:
     Used to check if `appnope` is necessary
     """
     # extracted from `appnope` source
-    return (sys.platform == "darwin") and V(platform.mac_ver()[0]) > V("10.9")
+    return (sys.platform == "darwin") and Version(platform.mac_ver()[0]) > Version(
+        "10.9"
+    )
 
 
 def refresh_nope() -> None:

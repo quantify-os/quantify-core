@@ -4,8 +4,8 @@
 # pylint: disable=redefined-outer-name  # in order to keep the fixture in the same file
 import sys
 import tempfile
-from distutils.dir_util import copy_tree
 from pathlib import Path
+from shutil import copytree
 
 import numpy as np
 import pytest
@@ -204,7 +204,7 @@ def test_changed_datadir_main_process(plotmon_instance):
     dh.set_datadir(tmp_dir.name)
     daydir = Path(tmp_dir.name) / dir_to_copy.name
     Path.mkdir(daydir)
-    copy_tree(dir_to_copy, str(daydir))
+    copytree(dir_to_copy, str(daydir), dirs_exist_ok=True)
 
     # .update()
     plotmon_instance.update(tuid)
