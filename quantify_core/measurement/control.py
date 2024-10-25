@@ -18,6 +18,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Hashable,
     Dict,
     Literal,
     Optional,
@@ -49,9 +50,18 @@ from quantify_core.data.handling import (
 )
 from quantify_core.measurement.types import Gettable, Settable, is_batched
 from quantify_core.utilities.general import call_if_has_method
+import xarray as xr
+
+import logging
+
 
 if TYPE_CHECKING:
-    import xarray as xr
+
+    from numpy.typing import NDArray
+    from xarray import Dataset
+
+logger = logging.getLogger(__name__)
+
 
 # Intended for plotting monitors that run in separate processes
 _DATASET_LOCKS_DIR = Path(tempfile.gettempdir())
@@ -286,6 +296,138 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         Remove all experiment_data parameters from the experiment_data submodule
         """
         self.experiment_data.parameters = {}
+
+    @staticmethod
+    def _reshape_data(
+        acq_protocol: str, vals: NDArray, real_imag: bool
+    ) -> list[NDArray]:
+        """Convert an array of complex numbers into two arrays of real numbers."""
+        if acq_protocol == "TriggerCount":
+            return [vals.real.astype(np.uint64)]
+        if acq_protocol == "Timetag":
+            return [vals.real.astype(np.float64)]
+        if acq_protocol == "ThresholdedAcquisition":
+            return [vals.real.astype(np.uint32)]
+        if acq_protocol in (
+            "Trace",
+            "SSBIntegrationComplex",
+            "ThresholdedAcquisition",
+            "WeightedIntegratedSeparated",
+            "NumericalSeparatedWeightedIntegration",
+            "NumericalWeightedIntegration",
+        ):
+            ret_val = []
+            if real_imag:
+                ret_val.append(vals.real)
+                ret_val.append(vals.imag)
+                return ret_val
+            else:
+                ret_val.append(np.abs(vals))
+                ret_val.append(np.angle(vals, deg=True))
+                return ret_val
+
+        raise NotImplementedError(
+            f"Acquisition protocol {acq_protocol} is not supported."
+        )
+
+    @classmethod
+    def _process_acquired_data(  # noqa: PLR0912
+        cls,  # noqa: ANN102
+        acquired_data: Dataset,
+        batched: bool,
+        real_imag: bool,
+    ) -> tuple[NDArray[np.float64], ...]:
+        """
+        Reshapes the data as returned from the gettable into the form
+        accepted by the measurement control.
+
+        Parameters
+        ----------
+        acquired_data
+            Data that is returned by gettable.
+
+        batched
+            Parameter to distinct iterative and batched experiment.
+
+        real_imag:
+            If true, the gettable returns I, Q values. Otherwise, magnitude and phase
+        (degrees) are returned.
+
+        Returns
+        -------
+        :
+            A tuple of data, casted to a historical conventions on data format.
+        """
+        # retrieve the acquisition results
+
+        return_data = []
+        # We sort acquisition channels so that the user
+        # has control over the order of the return data.
+        # https://gitlab.com/quantify-os/quantify-scheduler/-/issues/466
+        sorted_acq_channels: list[Hashable] = sorted(acquired_data.data_vars)
+        for idx, acq_channel in enumerate(sorted_acq_channels):
+            acq_channel_data = acquired_data[acq_channel]
+            acq_protocol = acq_channel_data.attrs["acq_protocol"]
+
+            num_dims = len(acq_channel_data.dims)
+            if acq_protocol == "Trace" and (
+                num_dims != 2 or not np.iscomplexobj(acq_channel_data)
+            ):
+                raise ValueError(
+                    f"Data returned by a gettable for "
+                    f"{acq_protocol} acquisition protocol is expected to be an "
+                    f"array of complex numbers with with two dimensions: "
+                    f"acquisition index and trace index. This is not the case for "
+                    f"acquisition channel {acq_channel}, that has data "
+                    f"type {acq_channel_data.dtype} and {num_dims} dimensions: "
+                    f"{', '.join(str(dim) for dim in acq_channel_data.dims)}."
+                )
+            if acq_protocol in (
+                "SSBIntegrationComplex",
+                "WeightedIntegratedSeparated",
+                "NumericalSeparatedWeightedIntegration",
+                "NumericalWeightedIntegration",
+                "ThresholdedAcquisition",
+            ) and num_dims not in (1, 2):
+                raise ValueError(
+                    f"Data returned by an gettable for "
+                    f"{acq_protocol} acquisition protocol is expected to be an "
+                    f"array of complex numbers with with one or two dimensions: "
+                    f"acquisition index and optionally repetition index. This is not the case for "
+                    f"acquisition channel {acq_channel}, that has data "
+                    f"type {acq_channel_data.dtype} and {num_dims} dimensions: "
+                    f"{', '.join(str(dim) for dim in acq_channel_data.dims)}."
+                )
+            if acq_protocol == "Trace" and acq_channel_data.shape[0] != 1:
+                raise ValueError(
+                    "Trace acquisition protocol with several acquisitions on the "
+                    "same acquisition channel is not supported by "
+                    "a ScheduleGettable"
+                )
+            if acq_protocol not in (
+                "TriggerCount",
+                "Timetag",
+                "Trace",
+                "SSBIntegrationComplex",
+                "WeightedIntegratedSeparated",
+                "NumericalSeparatedWeightedIntegration",
+                "NumericalWeightedIntegration",
+                "ThresholdedAcquisition",
+            ):
+                raise ValueError(f"ScheduleGettable does not support {acq_protocol}.")
+
+            vals = acq_channel_data.to_numpy().reshape((-1,))
+
+            if not batched and len(vals) != 1:
+                raise ValueError(
+                    f"For iterative mode, only one value is expected for each "
+                    f"acquisition channel. Got {len(vals)} values for acquisition "
+                    f"channel '{acq_channel}' instead."
+                )
+            return_data.extend(cls._reshape_data(acq_protocol, vals, real_imag))
+
+        logger.debug(f"Returning {len(return_data)} values.")
+        return tuple(return_data)
 
     ############################################
     # Methods used to control the measurements #
@@ -564,7 +706,17 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
             y_off = 0
             for gpar in self._gettable_pars:
-                new_data = gpar.get()  # can return (N, M)
+                new_data_raw = gpar.get()  # return xarray dataset
+                if isinstance(new_data_raw, xr.Dataset):
+                    batched = gpar.batched
+                    real_imag = gpar.real_imag
+
+                    new_data = self._process_acquired_data(
+                        new_data_raw, batched, real_imag
+                    )  # can return (N, M)
+                else:
+                    new_data = new_data_raw
+
                 # if we get a simple array, shape it to (1, M)
                 if len(np.shape(new_data)) == 1:
                     new_data = new_data.reshape(1, (len(new_data)))
@@ -630,7 +782,17 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         # get all data points
         y_offset = 0
         for gpar in self._gettable_pars:
-            new_data = gpar.get()
+            new_data_raw = gpar.get()  # return xarray dataset
+            if isinstance(new_data_raw, xr.Dataset):
+                batched = gpar.batched
+                real_imag = gpar.real_imag
+
+                new_data = self._process_acquired_data(
+                    new_data_raw, batched, real_imag
+                )  # can return (N, M)
+            else:
+                new_data = new_data_raw
+
             # if the gettable returned a float, cast to list
             if np.isscalar(new_data):
                 new_data = [new_data]

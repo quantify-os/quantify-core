@@ -29,6 +29,7 @@ except ImportError:
     )  # support for python 3.8 and 3.9
 from qcodes.utils import validators as vals
 from scipy import optimize
+from xarray import Dataset
 
 import quantify_core.data.handling as dh
 from quantify_core import __version__ as _quantify_version
@@ -1722,3 +1723,38 @@ def test_clean_deinstall_of_interrupt_handler(meas_ctrl, parameters, myhandler):
     meas_ctrl.gettables(parameters.sig)
     meas_ctrl.run()
     assert signal.getsignal(signal.SIGINT) == myhandler
+
+
+@pytest.mark.parametrize("num_channels, real_imag", [(1, True), (2, False), (10, True)])
+def test_process_acquired_data(meas_ctrl, num_channels: int, real_imag: bool):
+    # arrange
+    mock_number = 4815 + 162342j
+    mock_results = np.array([mock_number], dtype=np.complex64)
+    mock_dataset = Dataset(
+        {
+            i: (
+                [f"acq_index_{i}"],
+                mock_results * i,
+                {"acq_protocol": "SSBIntegrationComplex"},
+            )
+            for i in range(num_channels)
+        }
+    )
+
+    # act
+    processed_data = meas_ctrl._process_acquired_data(mock_dataset, False, real_imag)
+
+    def transform_complex(c: complex) -> tuple:
+        if real_imag:
+            return (c.real, c.imag)
+        else:
+            return (abs(c), np.angle(c, deg=True))
+
+    expected_data: tuple = tuple(
+        np.array([transform_complex(mock_number * i)[elem]], dtype=np.float32)
+        for i in range(num_channels)
+        for elem in [0, 1]
+    )
+
+    # assert
+    np.testing.assert_array_almost_equal(processed_data, expected_data, decimal=5)
