@@ -370,9 +370,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             acq_protocol = acq_channel_data.attrs["acq_protocol"]
 
             num_dims = len(acq_channel_data.dims)
-            if acq_protocol == "Trace" and (
-                num_dims != 2 or not np.iscomplexobj(acq_channel_data)
-            ):
+            if acq_protocol == "Trace" and num_dims != 2:
                 raise ValueError(
                     f"Data returned by a gettable for "
                     f"{acq_protocol} acquisition protocol is expected to be an "
