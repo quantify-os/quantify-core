@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import pytest
 from deepdiff import DeepDiff
@@ -76,9 +75,7 @@ def mock_instr(request):
 
 # pylint: disable=redefined-outer-name
 # pylint: disable=line-too-long
-@pytest.mark.xfail(
-    sys.platform.startswith("win"), reason="Fails on Windows due to unknown issue"
-)
+@pytest.mark.xfail
 def test_compare_snapshots(tmp_test_data_dir, mock_instr):
     """
     Test the function to compare two different snaphsots
