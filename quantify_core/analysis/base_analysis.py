@@ -459,12 +459,12 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         passing analysis configuration arguments to
         :meth:`~quantify_core.analysis.base_analysis.BaseAnalysis.run`.
         """
-        self.logger.info(f"Executing `.analysis_steps` of {self.name}")
-        self.logger.info(f"extracting data: {self.extract_data}")
+        self.logger.debug(f"Executing `.analysis_steps` of {self.name}")
+        self.logger.debug(f"extracting data: {self.extract_data}")
         self.extract_data()
 
         for i, method in enumerate(self.get_flow(), start=1):
-            self.logger.info(f"executing step {i}: {method}")
+            self.logger.debug(f"executing step {i}: {method}")
             try:
                 method()
             except Exception:
