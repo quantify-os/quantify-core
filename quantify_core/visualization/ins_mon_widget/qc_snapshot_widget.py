@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph based plotting monitor."""
+
 import json
 from enum import Enum
 import pprint
@@ -43,7 +44,9 @@ class QcSnapshotWidget(QtWidgets.QTreeWidget):
 
     def setData(self, data):
         """
-        data should be a snapshot dict: See :class: `~quantify_core.data.handling.snapshot`
+        Set snapshot data to display on the widget.
+
+        Data should be a snapshot dict: see :class: `~quantify_core.data.handling.snapshot`
         """
         self.buildTreeSnapshot(snapshot=data)
         self.resizeColumnToContents(0)

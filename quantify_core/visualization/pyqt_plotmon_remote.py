@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the pyqtgraph-based remote plotting monitor manager."""
+
 from __future__ import annotations
 
 import itertools
@@ -188,9 +189,7 @@ class RemotePlotmon:  # pylint: disable=too-many-instance-attributes
         return self._tuids_max_num
 
     def _set_tuids_max_num(self, val):
-        """
-        used only to update relevant variables
-        """
+        # used only to update relevant variables
         init = len(self._tuids) > val
         self._pop_old_dsets(val)
         if init:

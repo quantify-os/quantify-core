@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Helpers for performing experiments."""
+
 from __future__ import annotations
 import warnings
 from typing import Any, Optional, Union, Dict, List, Literal
@@ -132,7 +133,7 @@ def load_settings_onto_instrument(
         instr_mod: Union[Instrument, InstrumentChannel],
     ):
         """
-        private function to set parameters and recursively set parameters of submodules.
+        Private function to set parameters and recursively set parameters of submodules.
         """
         # iterate over top-level parameters
         for parname, par in instr_mod_snap["parameters"].items():

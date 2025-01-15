@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Models and fit functions to be used with the lmfit fitting framework."""
+
 from __future__ import annotations
 
 from typing import Tuple
@@ -409,7 +410,7 @@ class CosineModel(lmfit.model.Model):
     # pylint: disable=missing-function-docstring
     def guess(self, data, x, **kws) -> lmfit.parameter.Parameters:
         """
-        guess parameters based on the data
+        Guess parameters based on the data
 
         Parameters
         ----------
