@@ -2,6 +2,7 @@
 # Licensed according to the LICENCE file on the main branch
 # pylint: disable=too-many-lines
 """Utilities for handling data."""
+
 from __future__ import annotations
 
 import datetime
@@ -25,7 +26,11 @@ from qcodes.instrument import (
 
 import quantify_core.data.dataset_adapters as da
 from quantify_core.data.types import TUID
-from quantify_core.utilities.general import delete_keys_from_dict, get_subclasses
+from quantify_core.utilities.general import (
+    delete_keys_from_dict,
+    get_subclasses,
+    load_json,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -428,8 +433,8 @@ def load_snapshot(
     datadir: Path | str | None = None,
     list_to_ndarray: bool = False,
     file: str = "snapshot.json",
-) -> dict:
-    """Loads a snapshot specified by a tuid.
+) -> dict[str, Any]:
+    """Loads a snapshot by tuid, supporting both compressed and uncompressed files.
 
     Parameters
     ----------
@@ -443,22 +448,41 @@ def load_snapshot(
         Uses an internal DecodeToNumpy decoder which allows a user to automatically
         convert a list to numpy array during deserialization of the snapshot.
     file
-        Filename to load.
-
+        Base filename to load (default: "snapshot.json")
 
     Returns
     -------
-    :
-        The snapshot.
-
+    dict[str, Any]
+        The loaded snapshot data.
 
     Raises
     ------
     FileNotFoundError
-        No data found for specified date.
+        If no snapshot file (compressed or uncompressed) can be found.
     """
-    with open(_locate_experiment_file(tuid, datadir, file)) as snap:
-        return json.load(snap, cls=DecodeToNumpy, list_to_ndarray=list_to_ndarray)
+    exp_container = locate_experiment_container(tuid=tuid, datadir=datadir)
+    path = Path(exp_container) / file
+
+    if path.exists():
+        try:
+            with open(path, encoding="utf-8") as snap:
+                return json.load(
+                    snap, cls=DecodeToNumpy, list_to_ndarray=list_to_ndarray
+                )
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON file at {path}.") from e
+
+    for ext in [".bz2", ".gz", ".xz"]:
+        compressed_path = path.parent / f"{path.name}{ext}"
+        if compressed_path.exists():
+            data = load_json(compressed_path)
+            if list_to_ndarray:
+                return json.loads(
+                    json.dumps(data), cls=DecodeToNumpy, list_to_ndarray=True
+                )
+            return data
+
+    raise FileNotFoundError(f"No snapshot file found at {path} or compressed variants")
 
 
 def create_exp_folder(

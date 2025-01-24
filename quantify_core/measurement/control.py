@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the MeasurementControl."""
+
 from __future__ import annotations
 
 import itertools
@@ -56,7 +57,6 @@ import logging
 
 
 if TYPE_CHECKING:
-
     from numpy.typing import NDArray
     from xarray import Dataset
 
@@ -146,6 +146,14 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         )
         """Instrument responsible for live plotting. Can be set to ``None`` to disable
         live plotting."""
+
+        self.metadata_compression = ManualParameter(
+            vals=vals.Enum(None, "bz2", "gzip", "lzma"),
+            initial_value=None,
+            instrument=self,
+            name="metadata_compression",
+        )
+        """Compression algorithm used for saving metadata/snapshot files."""
 
         self.update_interval = ManualParameter(
             initial_value=0.5,
@@ -482,7 +490,9 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             self._safe_write_dataset()  # Write the empty dataset
 
             snap = snapshot(update=False, clean=True)  # Save a snapshot of all
-            self._experiment.save_snapshot(snap)
+            self._experiment.save_snapshot(
+                snap, compression=self.metadata_compression()
+            )
         else:
             self._exp_folder = None
 

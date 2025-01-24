@@ -134,14 +134,14 @@ class QuantifyExperiment:
         path = self._get_or_create_experiment_directory(name=name) / DATASET_NAME
         write_dataset(path, dataset)
 
-    def load_snapshot(self) -> Dict[str, Any]:
+    def load_snapshot(self) -> dict[str, Any]:
         """
         Loads the snapshot from the directory specified by
         `~.experiment_directory`.
 
         Returns
         -------
-        :
+        dict[str, Any]
             The loaded snapshot from disk
 
         Raises
@@ -152,7 +152,11 @@ class QuantifyExperiment:
         """
         return load_json(full_path=self.experiment_directory / SNAPSHOT_FILENAME)
 
-    def save_snapshot(self, snapshot: Optional[Dict[str, Any]] = None):
+    def save_snapshot(
+        self,
+        snapshot: Optional[Dict[str, Any]] = None,
+        compression: Optional[str] = None,
+    ) -> None:
         """
         Writes the snapshot to disk as specified by
         `~.experiment_directory`.
@@ -161,6 +165,9 @@ class QuantifyExperiment:
         ----------
         snapshot
             The snapshot to be written to the directory
+        compression
+            The compression type to use. Can be one of 'gzip', 'bz2', 'lzma'.
+            Defaults to None, which means no compression.
 
         """
         if snapshot is None:
@@ -169,6 +176,7 @@ class QuantifyExperiment:
             directory=self._get_or_create_experiment_directory(),
             filename=SNAPSHOT_FILENAME,
             data=snapshot,
+            compression=compression,
         )
 
     def load_metadata(self) -> Dict[str, Any]:

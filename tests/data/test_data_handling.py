@@ -4,14 +4,18 @@
 import gc
 import json
 import os
+import bz2
+import gzip
+import lzma
+from pathlib import Path
+import pytest
+from quantify_core.data.handling import load_snapshot
 import shutil
 import tempfile
 from datetime import datetime
-from pathlib import Path
 
 import dateutil
 import numpy as np
-import pytest
 import uncertainties
 import xarray as xr
 from qcodes import Instrument, ManualParameter, InstrumentChannel
@@ -984,3 +988,68 @@ def test_generate_name(mock_instr_nested):
     p = ManualParameter("test_parameter", label="Test parameter", unit="Hz")
     name = dh._generate_name(p)
     assert name == "test_parameter"
+
+
+def test_load_snapshot_compressed_files(tmp_path):
+    test_data = {"test": "data", "list": [1, 2, 3]}
+    tuid = "20200430-170837-001-315f36"
+
+    exp_path = tmp_path / "20200430" / f"{tuid}-TestExperiment"
+    exp_path.mkdir(parents=True)
+
+    for ext, opener in [(".bz2", bz2.open), (".gz", gzip.open), (".xz", lzma.open)]:
+        snapshot_path = exp_path / f"snapshot.json{ext}"
+        with opener(snapshot_path, "wt", encoding="utf-8") as f:
+            json.dump(test_data, f)
+
+        result = load_snapshot(tuid, datadir=tmp_path)
+        assert result == test_data
+        # snapshot_path.unlink()
+
+
+def test_load_snapshot_compressed_with_array_conversion(tmp_path):
+    test_data = {"array_data": [1, 2, 3, 4, 5]}
+    tuid = "20200430-170837-001-315f36"
+    exp_path = tmp_path / "20200430" / f"{tuid}-TestExperiment"
+    exp_path.mkdir(parents=True)
+    snapshot_path = exp_path / "snapshot.json.gz"
+
+    with gzip.open(snapshot_path, "wt", encoding="utf-8") as f:
+        json.dump(test_data, f)
+
+    result = load_snapshot(tuid, datadir=tmp_path, list_to_ndarray=True)
+    assert isinstance(result["array_data"], np.ndarray)
+    np.testing.assert_array_equal(result["array_data"], np.array([1, 2, 3, 4, 5]))
+
+
+def test_load_snapshot_invalid_json(tmp_path):
+    tuid = "20200430-170837-001-315f36"
+
+    exp_path = tmp_path / "20200430" / f"{tuid}-TestExperiment"
+    exp_path.mkdir(parents=True)
+    snapshot_path = exp_path / "snapshot.json"
+
+    with open(snapshot_path, "w", encoding="utf-8") as f:
+        f.write("invalid json content")
+
+    with pytest.raises(ValueError, match="Invalid JSON file"):
+        load_snapshot(tuid, datadir=tmp_path)
+
+
+def test_load_snapshot_not_found(tmp_path):
+    tuid = "20200430-170837-001-315f36"
+
+    exp_path = tmp_path / "20200430" / f"{tuid}-TestExperiment"
+    exp_path.mkdir(parents=True)
+
+    with pytest.raises(FileNotFoundError, match="No snapshot file found"):
+        load_snapshot(tuid, datadir=tmp_path)
+
+
+def test_load_snapshot_container_not_found(tmp_path):
+    tuid = "20200430-170837-001-315f36"
+    with pytest.raises(
+        FileNotFoundError,
+        match=r"(No such file or directory|The system cannot find the path specified)",
+    ):
+        load_snapshot(tuid, datadir=tmp_path)

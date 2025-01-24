@@ -18,6 +18,7 @@
 - Kelvin Loh ([GitLab](https://gitlab.com/kel85uk))
 - Konstantin Lehmann ([GitLab](https://gitlab.com/konstantin-orangeqs))
 - Luis Miguens Fernandez ([GitLab](https://gitlab.com/luis.miguens))
+- Mahmut Çetin ([GitLab](https://gitlab.com/cetin-oqs))
 - Matteo Pompili ([GitLab](https://gitlab.com/matpompili))
 - Michiel Dubbelman ([GitLab](https://gitlab.com/MichielDubbelman))
 - Michiel Haye ([GitLab](https://gitlab.com/hayemj))
