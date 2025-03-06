@@ -209,10 +209,10 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
     def __init__(
         self,
-        dataset: xr.Dataset = None,
-        tuid: TUID | str = None,
+        dataset: xr.Dataset | None = None,
+        tuid: TUID | str | None = None,
         label: str = "",
-        settings_overwrite: dict = None,
+        settings_overwrite: dict | None = None,
         plot_figures: bool = True,
     ):
         """

@@ -47,6 +47,10 @@ class TimeOfFlightAnalysis(ba.BaseAnalysis):
 
     def process_data(self) -> None:
         """Populate the :code:`.dataset_processed`."""
+        # Assert that this step is run only after `extract_data` was run. Not having
+        # this statement will lead to type issues when accessing the data variables.
+        assert self.dataset is not None, "No dataset is loaded for this analysis"
+
         self.dataset_processed = xr.Dataset(
             {
                 "Magnitude": (("Time",), self.dataset.y0.data),
