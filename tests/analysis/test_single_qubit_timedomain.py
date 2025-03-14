@@ -382,8 +382,7 @@ def test_allxy_analysis_invalid_data(caplog, tmp_test_data_dir):
     assert (
         'Exception was raised while executing analysis step 1 ("<bound method '
         "AllXYAnalysis.process_data of "
-        "<quantify_core.analysis.single_qubit_timedomain.AllXYAnalysis object at"
-        in record.msg
+        f"{repr(analysis)}" in record.msg
     )
     exception = record.exc_info[1]
     assert isinstance(exception, ValueError)

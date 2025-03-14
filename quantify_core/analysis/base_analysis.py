@@ -277,6 +277,18 @@ class BaseAnalysis(metaclass=AnalysisMeta):
 
         self.plot_figures = plot_figures
 
+    def __repr__(self):
+        """
+        Return an unambiguous string representation of the BaseAnalysis object.
+
+        Includes the analysis name and, if available, the TUID and label for
+        debugging and reconstruction purposes.
+        """
+        if self.tuid is None:
+            return f"{self.name}()"
+        else:
+            return f'{self.name}(tuid="{self.tuid}", label="{self.label}")'  # pyright: ignore
+
     analysis_steps = AnalysisSteps
     """
     Defines the steps of the analysis specified as an :class:`~enum.Enum`.

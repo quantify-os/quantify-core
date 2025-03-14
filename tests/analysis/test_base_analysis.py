@@ -161,6 +161,15 @@ def test_basic1d_analysis(tmp_test_data_dir):
     assert set(a_obj.figs_mpl.keys()) == {"Line plot x0-y0"}
 
 
+def test_base_analysis_repr(tmp_test_data_dir):
+    dh.set_datadir(tmp_test_data_dir)
+
+    tuid = TUID_1D_1PLOT
+    a_obj = ba.BasicAnalysis(tuid=tuid)
+    repr = a_obj.__repr__()
+    assert repr == f'{a_obj.name}(tuid="{tuid}", label="{a_obj.label}")'
+
+
 def test_base_analysis_html_repr(tmp_test_data_dir):
     dh.set_datadir(tmp_test_data_dir)
 
