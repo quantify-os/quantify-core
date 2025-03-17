@@ -2,6 +2,7 @@
 # Licensed according to the LICENCE file on the main branch
 # pylint: disable=all
 """Utilities for managing SI units with plotting systems."""
+
 from __future__ import annotations
 
 import math
@@ -278,10 +279,34 @@ SI_PREFIXES = dict(zip(range(-24, 25, 3), "yzafpnμm kMGTPEZY"))
 SI_PREFIXES[0] = ""
 
 # N.B. not all of these are SI units, however, all of these support SI prefixes
-SI_UNITS = (
-    "SI_PREFIX_ONLY,m,s,g,W,J,V,A,F,T,Hz,Ohm,S,N,C,px,b,B,K,Bar,"
-    r"Vpeak,Vpp,Vp,Vrms,A/s,$\Phi_0$".split(",")
-)  # noqa: W605
+SI_UNITS = [
+    "SI_PREFIX_ONLY",
+    "m",
+    "s",
+    "g",
+    "W",
+    "J",
+    "V",
+    "A",
+    "F",
+    "T",
+    "Hz",
+    "Ohm",
+    "S",
+    "N",
+    "C",
+    "px",
+    "b",
+    "B",
+    "K",
+    "Bar",
+    r"Vpeak",
+    r"Vpp",
+    r"Vp",
+    r"Vrms",
+    r"A/s",
+    r"$\Phi_0$",
+]  # noqa: W605
 
 _SI_PREFIX_TO_FACTOR_MAPPING = {v: 10**key for key, v in SI_PREFIXES.items()}
 _SI_PREFIX_TO_FACTOR_MAPPING["u"] = 10**-6

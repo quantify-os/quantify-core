@@ -1,6 +1,7 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing the core data concepts of quantify."""
+
 from __future__ import annotations
 
 import datetime
@@ -25,7 +26,7 @@ class TUID(str):
         # NB instead of creating an instance of this class we just return the object
         # This avoids nasty type conversion issues when saving a dataset using the
         # `h5netcdf` engine (which we need to support complex numbers)
-        return cast(TUID, value)
+        return cast("TUID", value)
 
     @classmethod
     def datetime(cls, tuid: str) -> datetime.datetime:

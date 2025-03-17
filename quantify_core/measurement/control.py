@@ -1170,7 +1170,7 @@ def grid_setpoints(
     ][::-1]
 
     stack_order = coordinates_iterative
-    if len(coordinates_batched):
+    if coordinates_batched:
         batch_sizes = [
             getattr(spar, "batch_size", np.inf)
             for spar in settables
@@ -1234,7 +1234,7 @@ class _KeyboardInterruptManager:
             # Signal handlers can only be installed in main thread,
             # do nothing in other thread.
             self._previous_handler = cast(
-                Handler, signal.signal(signal.SIGINT, self._handle_interrupt)
+                "Handler", signal.signal(signal.SIGINT, self._handle_interrupt)
             )
         return self
 

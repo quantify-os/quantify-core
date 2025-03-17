@@ -28,7 +28,7 @@ repos:
         language_version: python3
         entry: black
         args: ["--fast"]
-        stages: [commit]
+        stages: [pre-commit]
         language: python
         types: [python]
 
