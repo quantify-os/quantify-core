@@ -1,5 +1,29 @@
 # Changelog
+## Unreleased
 
+## Release v0.8.0
+
+### 🐛 Bug Fixes and Closed Issues
+
+- Change logging level in BaseAnalysis from 'info' to 'debug' (https://gitlab.com/quantify-os/quantify-core/-/merge_requests/548) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude)
+- Fix typo in measurement control documentation (https://gitlab.com/quantify-os/quantify-core/-/merge_requests/551) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz)
+- 
+
+### 🚀 Enhancements
+
+- Add **repr** method in BaseAnalysis (https://gitlab.com/quantify-os/quantify-core/-/merge_requests/554 by [@Sibasish Mishra](https://gitlab.com/sibasish-orangeqs)
+- Support compression for QCoDeS instruments snapshots in measurement control (https://gitlab.com/quantify-os/quantify-core/-/merge_requests/549) by [@Mahmut Cetin](https://gitlab.com/cetin-oqs)
+
+### 🔧  Other
+
+- Improve type hinting of optionals in base analysis (https://gitlab.com/quantify-os/quantify-core/-/merge_requests/553) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude)
+
+
+## Release v0.7.8 (2024-10-14)
+
+### 🐛 Bug Fixes and Closed Issues
+
+- Fix remove distutils dependency ([!542](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/542) by [@Robert Sokolewicz](https://gitlab.com/rsokolewicz))
 
 ## Release v0.7.8 (2024-10-14)
 
