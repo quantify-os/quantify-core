@@ -323,6 +323,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
             "WeightedIntegratedSeparated",
             "NumericalSeparatedWeightedIntegration",
             "NumericalWeightedIntegration",
+            "WeightedThresholdedAcquisition",
         ):
             ret_val = []
             if real_imag:
@@ -394,6 +395,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 "NumericalSeparatedWeightedIntegration",
                 "NumericalWeightedIntegration",
                 "ThresholdedAcquisition",
+                "WeightedThresholdedAcquisition",
             ) and num_dims not in (1, 2):
                 raise ValueError(
                     f"Data returned by an gettable for "
@@ -419,6 +421,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
                 "NumericalSeparatedWeightedIntegration",
                 "NumericalWeightedIntegration",
                 "ThresholdedAcquisition",
+                "WeightedThresholdedAcquisition",
             ):
                 raise ValueError(f"ScheduleGettable does not support {acq_protocol}.")
 
