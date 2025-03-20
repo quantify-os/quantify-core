@@ -1,6 +1,11 @@
 # Changelog
 ## Unreleased
 
+## Release v0.8.1 (2025-03-20)
+
+### 🚀 Enhancements
+- Add ``WeightedThresholdedAcquisition`` protocol compatibility to ``MeasurementControl`` ([!556](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/556) by [@Adithyan](https://gitlab.com/adithyan2))
+
 ## Release v0.8.0
 
 ### 🐛 Bug Fixes and Closed Issues
