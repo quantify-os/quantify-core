@@ -51,7 +51,7 @@ dependencies = [
     "adaptive",
     "filelock",
     "appnope",
-    "uncertainties",
+    "uncertainties<v3.2.3",
     "dataclasses_json", # used in dataset_attrs
     "dill",  # Tests fail without dill installed, likely for a good reason
     "methodtools",  # used in base_analysis for self-bound lru_cache
@@ -59,6 +59,7 @@ dependencies = [
     # Scikit-learn is used in AnalysisClass
     "scikit-learn",
     "typing-extensions",  # Independency from python version for "new" typing features
+    
 ]
 
 [project.optional-dependencies]

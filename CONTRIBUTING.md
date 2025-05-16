@@ -5,9 +5,10 @@ Contributions are welcome and greatly appreciated! Every little bit helps, and c
 In order to contribute to the documentation and/or code please follow the {ref}`Setting up for local development` instructions.
 
 You can join our public [Slack workspace through this link](https://join.slack.com/t/quantify-hq/shared_invite/zt-1nd78r4e9-rbWdna53cW4DO_YbtMhVuA)!
-Here you'll find the [software-for-users](https://quantify-hq.slack.com/archives/C01ETDK6P97) and the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channels.
+Here you'll find the [software-for-users](https://quantify-hq.slack.com/?redir=%2Farchives%2FC01ETDK6P97) and the [software-for-developers](https://quantify-hq.slack.com/?redir=%2Farchives%2FC02DE4ZENNQ) channels.
 
-You are also welcome to join our public weekly developer's meeting for which the meeting link is posted in the [software-for-developers](https://quantify-hq.slack.com/archives/C02DE4ZENNQ) channel.
+You are also welcome to join our public weekly developer's meeting, for which the meeting link is posted in the [software-for-developers](https://quantify-hq.slack.com/?redir=%2Farchives%2FC02DE4ZENNQ) channel.
+
 
 ## GitLab issues and merge requests
 

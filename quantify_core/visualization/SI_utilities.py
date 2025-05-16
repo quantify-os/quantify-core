@@ -419,7 +419,7 @@ class SafeFormatter(string.Formatter):
 
     Notes
     -----
-    Based on https://stackoverflow.com/questions/20248355/how-to-get-python-to-gracefully-format-none-and-non-existing-fields
+    Based on StackOverflow discussion: ``https://stackoverflow.com/questions/20248355/how-to-get-python-to-gracefully-format-none-and-non-existing-fields``
     """
 
     def __init__(self, missing: str = "~~", bad_fmt: str = "!!"):
