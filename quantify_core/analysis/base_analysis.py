@@ -26,6 +26,7 @@ from IPython.display import display
 from matplotlib.collections import QuadMesh
 from methodtools import lru_cache
 from qcodes.utils import NumpyJSONEncoder
+from typing_extensions import Self
 from uncertainties import ufloat
 
 from quantify_core.data.handling import (
@@ -408,7 +409,7 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         """
         return self._get_results_dir(analysis_dir=self.analysis_dir)
 
-    def run(self) -> BaseAnalysis:
+    def run(self) -> Self:
         """
         Execute analysis.
 
@@ -435,9 +436,10 @@ class BaseAnalysis(metaclass=AnalysisMeta):
             .. code-block:: python
 
                 from quantify_core.analysis.base_analysis import BaseAnalysis
+                from typing_extensions import Self
 
                 class MyAnalysis(BaseAnalysis):
-                    def run(self, optional_argument_one: float = 3.5e9):
+                    def run(self, optional_argument_one: float = 3.5e9) -> Self:
                         # Save the value to be used in some step of the analysis
                         self.optional_argument_one = optional_argument_one
 
