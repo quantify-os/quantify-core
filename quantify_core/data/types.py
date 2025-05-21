@@ -5,7 +5,10 @@
 from __future__ import annotations
 
 import datetime
+import sys
 from typing import Type, cast
+
+py_311_plus = sys.version_info >= (3, 11)
 
 
 class TUID(str):
@@ -36,7 +39,11 @@ class TUID(str):
         :class:`~python:datetime.datetime`
             object corresponding to the TUID
         """
-        return datetime.datetime.strptime(tuid[:18], "%Y%m%d-%H%M%S-%f")
+        if py_311_plus:
+            return datetime.datetime.fromisoformat(tuid[:15]) + datetime.timedelta(
+                milliseconds=int(tuid[16:19])
+            )
+        return datetime.datetime.strptime(tuid[:19], "%Y%m%d-%H%M%S-%f")
 
     @classmethod
     def datetime_seconds(cls, tuid: str) -> datetime.datetime:
@@ -46,6 +53,8 @@ class TUID(str):
         :class:`~python:datetime.datetime`
             object corresponding to the TUID with microseconds discarded
         """
+        if py_311_plus:
+            return datetime.datetime.fromisoformat(tuid[:15])
         return datetime.datetime.strptime(tuid[:15], "%Y%m%d-%H%M%S")
 
     @classmethod
