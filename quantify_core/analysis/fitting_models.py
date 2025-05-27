@@ -353,8 +353,9 @@ class LorentzianModel(lmfit.model.Model):
             return None  # type: ignore
 
         # Guess that the resonance is where the function takes its maximal
-        # value
-        x0_guess = x[np.argmax(data)]
+        # absolute value
+        mean = np.mean(data)
+        x0_guess = x[np.argmax(np.abs(data - mean))]
         self.set_param_hint("x0", value=x0_guess)
 
         # assume the user isn't trying to fit just a small part of a resonance curve.
@@ -370,11 +371,11 @@ class LorentzianModel(lmfit.model.Model):
         self.set_param_hint("width", value=width_guess)
 
         # The guess for the vertical offset is the mean absolute value of the data
-        c_guess = np.mean(data)
-        self.set_param_hint("c", value=c_guess)
+        self.set_param_hint("c", value=np.mean(data))
 
         # Calculate A_guess from difference between the peak and the backround level
-        a_guess = np.pi * width_guess * (np.max(data) - c_guess)
+        height_guess = data[np.argmax(np.abs(data - mean))] - mean
+        a_guess = np.pi * width_guess * height_guess
         self.set_param_hint("a", value=a_guess)
 
         params = self.make_params()
