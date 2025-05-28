@@ -1,9 +1,8 @@
 # Repository: https://gitlab.com/quantify-os/quantify-core
 # Licensed according to the LICENCE file on the main branch
 """Module containing an analysis class for two-state readout calibration."""
-from __future__ import annotations
 
-import math
+from __future__ import annotations
 
 import lmfit
 import matplotlib.pyplot as plt
@@ -65,29 +64,30 @@ class ReadoutCalibrationAnalysis(ba.BaseAnalysis):
             self._lda = LinearDiscriminantAnalysis(solver="svd", store_covariance=True)
             self._lda.fit(points, self.dataset_processed.x0.data)
 
-            intercept = -self._lda.intercept_[0] / self._lda.coef_[0][1]
-            slope = -self._lda.coef_[0][0] / self._lda.coef_[0][1]
+            # find threshold and rotation correctly based on definition of line from LDA
+            A = self._lda.coef_[0][0]
+            B = self._lda.coef_[0][1]
+            C = self._lda.intercept_[0]
 
-            result.params.add("intercept", value=intercept, vary=False)
-            result.params.add("slope", value=slope, vary=False)
+            threshold = -C / (A**2 + B**2) ** 0.5
+            rotation = 3 * np.pi / 2 + np.arctan2(A, B)
+
             result.params.add(
                 "acq_threshold",
                 # compute distance from origin to line
-                value=abs(intercept) / math.sqrt(slope**2 + 1),
+                value=threshold,
                 vary=False,
             )
             result.params.add(
                 "acq_rotation_rad",
                 # compute CW angle from y-axis
-                value=-math.pi / 2 - math.atan(slope),
+                value=rotation,
                 vary=False,
             )
 
             result.success = True
 
             result.errorbars = {  # type: ignore
-                "intercept": False,
-                "slope": False,
                 "acq_threshold": False,
                 "acq_rotation_rad": False,
             }
@@ -201,7 +201,7 @@ class ReadoutCalibrationAnalysis(ba.BaseAnalysis):
             print(self.quantities_of_interest["fit_msg"])
             return
 
-        fig, ax = plt.subplots(1, 1, figsize=(11, 6))
+        fig, ax = plt.subplots(1, 1, figsize=(11, 11 / 1.618))
 
         # plot grid for visual help
         ax.grid(alpha=1 / 30, color="black")
@@ -231,18 +231,34 @@ class ReadoutCalibrationAnalysis(ba.BaseAnalysis):
             x1_fp[:, 0], x1_fp[:, 1], marker="x", s=20, color="#000099"
         )  # dark blue
 
-        xdef = np.linspace(
-            self.dataset_processed.y0.data.min(),
-            self.dataset_processed.y0.data.max(),
-            200,
-        )
+        # aspect equal to see the shape of the blobs
+        ax.set_aspect("equal", adjustable="box")
+        xlim = np.array(ax.get_xlim())
+        ylim = ax.get_ylim()
 
+        y_at_xlim = (
+            -self._lda.coef_[0][0] * xlim - self._lda.intercept_[0]
+        ) / self._lda.coef_[0][1]
+
+        # draw the discriminating line across the visible region.
         ax.plot(
-            xdef,
-            self.quantities_of_interest["slope"].nominal_value * xdef
-            + self.quantities_of_interest["intercept"].nominal_value,
+            xlim,
+            y_at_xlim,
             color="black",
         )
+
+        # Create patches of color to indicate which side is which
+        bottom_y = min(y_at_xlim[0], ylim[0])
+        top_y = max(y_at_xlim[1], ylim[1])
+
+        # if the rotation angle is > pi/2 or <-pi/2, flip top and bottom
+        if (
+            abs(self.quantities_of_interest["acq_rotation_rad"] % (2 * np.pi) - np.pi)
+            < np.pi / 2
+        ):
+            bottom_y, top_y = top_y, bottom_y
+        ax.fill_between(xlim, y_at_xlim, [bottom_y, bottom_y], color="b", alpha=0.3)
+        ax.fill_between(xlim, y_at_xlim, [top_y, top_y], color="r", alpha=0.3)
 
         # means
         ax.plot(
@@ -272,6 +288,8 @@ class ReadoutCalibrationAnalysis(ba.BaseAnalysis):
                 1.05 * self.dataset_processed.y1.max(),
             ]
         )
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
         qpl.set_suptitle_from_dataset(fig, self.dataset)  # type: ignore
 
         fig.tight_layout()

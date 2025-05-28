@@ -18,18 +18,26 @@ from quantify_core.analysis.readout_calibration_analysis import (
         (
             "20230509-135911-755-9471f2",
             0.0090165,
-            -0.020234,
+            -0.020234 + np.pi,
         ),
         (
             "20230509-135927-693-0977e0",
             0.0081609,
-            -0.13452,
+            -0.13452 + np.pi,
         ),
         (
             "20230509-152441-841-faef49",
             0.0079211,
-            -0.11857,
+            -0.11857 + np.pi,
         ),
+        # dataset with blobs phase np.pi/3
+        ("20250522-124805-670-268fee", -0.0006539222727661782, 7.412065607082965),
+        # dataset with flipped blobs phase np.pi/3
+        ("20250522-124811-167-62ba0c", 0.0006895225374590243, 4.057147283249042),
+        # dataset with blobs phase 2*np.pi/3
+        ("20250522-125147-088-126753", -0.000683036945318069, 6.288826679632406),
+        # dataset with flipped blobs phase 2*np.pi/3
+        ("20250522-125152-962-78e4bc", 0.0006960853616184543, 3.1061587727080457),
     ],
 )
 def analysis_and_ref(tmp_test_data_dir, request):
@@ -75,7 +83,7 @@ def test_quantities_of_interest(analysis_and_ref):
     assert abs(threshold - fitted_threshold.nominal_value) < 1e-4
 
     # 1e-4 radian allowance
-    assert abs(angle - fitted_angle.nominal_value) < 1e-4
+    assert abs(angle % (2 * np.pi) - fitted_angle.nominal_value % (2 * np.pi)) < 1e-4
 
 
 def test_print_error_without_crash(analysis_and_ref, tmp_test_data_dir, capsys):
