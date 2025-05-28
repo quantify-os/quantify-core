@@ -5,6 +5,7 @@
 - Adriaan Rol ([GitLab](https://gitlab.com/AdriaanRol))
 - Amirtha Varshiny Arumugam ([GitLab](https://gitlab.com/avarshiny))
 - Axel Andersson ([GitLab](https://gitlab.com/axean))
+- Basak Ozcan ([GitLab](https://gitlab.com/bozcan))
 - Callum Attryde ([GitLab](https://gitlab.com/CallumAttryde))
 - Damien Crielaard ([GitLab](https://gitlab.com/dcrielaard))
 - Daniel Jonathan Weigand ([GitLab](https://gitlab.com/djweigand))

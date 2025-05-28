@@ -1,5 +1,22 @@
 # Changelog
-## Unreleased
+
+## Release v0.8.2 (2025-05-28)
+
+### 🐛 Bug Fixes and Closed Issues
+- Resolve "Broken pipelines for python 3.11 and 3.12" ([!563](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/563) by [@Olga Lebiga](https://gitlab.com/olebiga))
+- Broken pipelines for python 3.11 and 3.12 ([#382](https://gitlab.com/quantify-os/quantify-core/-/issues/382) by [@Olga Lebiga](https://gitlab.com/olebiga))
+- Correct qubit assignment with `ReadoutCalibrationAnalysis`. ([!561](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/561) by [@Rohit Navarathna](https://gitlab.com/rnavarathna))
+
+### ✨ New Features
+- Allow Lorentzian Model to also fit descending peaks ([!562](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/562) by [@Basak Ozcan](https://gitlab.com/bozcan))
+- TUID timestamps are now processed 8 times faster ([!559](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/559) by [@Pieter Eendebak](https://gitlab.com/peendebak))
+
+
+### 🔧 Other
+
+- Change return typehint of `BaseAnalysis.run` to 'Self' ([!560](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/560) by [@Timo van Abswoude](https://gitlab.com/Timo_van_Abswoude))
+
+
 
 ## Release v0.8.1 (2025-03-20)
 
