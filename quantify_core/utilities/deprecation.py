@@ -18,7 +18,7 @@ def _find_stack_level() -> int:
     """
     # pylint: disable=import-outside-toplevel,invalid-name
 
-    import quantify_core
+    import quantify_core  # noqa: PLC0415
 
     pkg_dir = os.path.dirname(quantify_core.__file__)
     test_dir = os.path.join(pkg_dir, "tests")

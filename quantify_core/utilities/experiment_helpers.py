@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 import warnings
-from typing import Any, Optional, Union, Dict, List, Literal
+from typing import Any, Union, Dict, List, Literal
 
 import numpy as np
 from deepdiff import DeepDiff
@@ -226,7 +226,7 @@ def get_all_parents(instr_mod: Union[Instrument, InstrumentChannel, Parameter]) 
 
 
 def create_plotmon_from_historical(
-    tuid: Optional[TUID] = None, label: str = ""
+    tuid: TUID | None = None, label: str = ""
 ) -> PlotMonitor_pyqt:
     """
     Creates a plotmon using the dataset of the provided experiment denoted by the tuid

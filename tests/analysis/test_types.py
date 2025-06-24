@@ -16,6 +16,7 @@ def test_analysis_settings_valid() -> None:
             "mpl_exclude_fig_titles": False,
             "mpl_transparent_background": False,
             "bla": 123,
+            "save_fit_results": True,
         }
     )
 
@@ -27,6 +28,7 @@ def test_analysis_settings_invalid() -> None:
                 "mpl_fig_formats": ["svg"],
                 "mpl_exclude_fig_titles": False,
                 "mpl_transparent_background": False,
+                "save_fit_results": True,
             }
         )
 
@@ -37,6 +39,7 @@ def test_analysis_settings_invalid() -> None:
                 "mpl_fig_formats": ["svg"],
                 "mpl_exclude_fig_titles": False,
                 "mpl_transparent_background": False,
+                "save_fit_results": True,
             }
         )
 
@@ -47,5 +50,6 @@ def test_analysis_settings_invalid() -> None:
                 "mpl_fig_formats": "svg",
                 "mpl_exclude_fig_titles": False,
                 "mpl_transparent_background": False,
+                "save_fit_results": True,
             }
         )

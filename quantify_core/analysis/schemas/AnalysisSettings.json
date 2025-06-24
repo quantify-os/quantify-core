@@ -6,7 +6,8 @@
             "mpl_dpi",
             "mpl_fig_formats",
             "mpl_exclude_fig_titles",
-            "mpl_transparent_background"
+            "mpl_transparent_background",
+            "save_fit_results"
         ],
         "properties": {
             "mpl_dpi": {
@@ -27,6 +28,10 @@
                 "items": {
                     "type": "string"
                 }
+            },
+            "save_fit_results": {
+                "type": "boolean",
+                "description": "If True, save the results of fits in the Analysis sub-folder"
             }
         }
     }

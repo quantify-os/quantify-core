@@ -14,6 +14,10 @@ from jsonschema import ValidationError
 
 import quantify_core.data.handling as dh
 from quantify_core.analysis import base_analysis as ba
+from quantify_core.analysis.single_qubit_timedomain import (
+    T1Analysis,
+)
+from quantify_core.data.handling import set_datadir
 
 TUID_1D_1PLOT = "20200430-170837-001-315f36"
 TUID_1D_2PLOTS = "20210118-202044-211-58ddb0"
@@ -370,3 +374,21 @@ def test_lmfit_par_to_ufloat():
 
     assert ufloat_obj.nominal_value == 4
     assert np.isnan(ufloat_obj.std_dev)
+
+
+@pytest.mark.parametrize("save_fits", [False, True])
+def test_save_fit_results(tmp_test_data_dir, save_fits):
+    ba.settings["save_fit_results"] = save_fits
+
+    tuid = "20210322-205253-758-6689"
+    set_datadir(tmp_test_data_dir)
+    analysis = T1Analysis(tuid=tuid).run()
+
+    exp_dir = dh.locate_experiment_container(analysis.tuid, dh.get_datadir())
+
+    if not save_fits:
+        analysis_dir = os.listdir(Path(exp_dir) / "analysis_T1Analysis")
+        assert "fit_results" not in analysis_dir
+    else:
+        results_dir = os.listdir(Path(exp_dir) / "analysis_T1Analysis" / "fit_results")
+        assert "exp_decay_func.txt" in results_dir

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from time import sleep
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -170,7 +170,7 @@ def mk_trace_time(sampling_rate: float = 1e9, duration: float = 0.3e-6) -> NDArr
 
 def mk_trace_for_iq_shot(
     iq_point: complex,
-    time_values: Optional[NDArray] = None,
+    time_values: NDArray | None = None,
     intermediate_freq: float = 50e6,
 ) -> NDArray:
     """

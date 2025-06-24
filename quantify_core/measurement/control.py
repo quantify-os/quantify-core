@@ -188,7 +188,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self._begintime = time.time()
         self._last_upd = time.time()
         self._batch_size_last = None
-        self._dataarray_cache: Optional[Dict[str, Any]] = None
+        self._dataarray_cache: Dict[str, Any] | None = None
 
         # variables used for persistence, plotting and data handling
         self._dataset = None
@@ -507,7 +507,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         self,
         name: str = "",
         soft_avg: int = 1,
-        lazy_set: Optional[bool] = None,
+        lazy_set: bool | None = None,
         save_data: bool = True,
     ) -> xr.Dataset:
         """
@@ -560,7 +560,7 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
 
         return self._dataset
 
-    def run_adaptive(self, name, params, lazy_set: Optional[bool] = None) -> xr.Dataset:
+    def run_adaptive(self, name, params, lazy_set: bool | None = None) -> xr.Dataset:
         """
         Starts a data acquisition loop using an adaptive function.
 
@@ -1220,7 +1220,7 @@ def _cartesian_product_transposed(*setpoints: Sequence) -> list[np.ndarray]:
     return out
 
 
-Handler = Callable[[int, Optional[types.FrameType]], Any]
+Handler = Callable[[int, Optional[types.FrameType]], Any]  # noqa: UP045
 
 
 class _KeyboardInterruptManager:
@@ -1229,7 +1229,7 @@ class _KeyboardInterruptManager:
     def __init__(self, n_forced: int = 5) -> None:
         self._n_forced = n_forced
         self.n_interrupts = 0
-        self._previous_handler: Optional[Handler] = None
+        self._previous_handler: Handler | None = None
 
     def __enter__(self) -> Self:
         self.n_interrupts = 0
@@ -1243,9 +1243,9 @@ class _KeyboardInterruptManager:
 
     def __exit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[types.TracebackType],
+        exc_type: Optional[type[BaseException]],  # noqa: UP045
+        exc_val: Optional[BaseException],  # noqa: UP045
+        exc_tb: Optional[types.TracebackType],  # noqa: UP045
     ) -> Literal[False]:
         if self._previous_handler is not None:
             signal.signal(signal.SIGINT, self._previous_handler)
@@ -1255,7 +1255,9 @@ class _KeyboardInterruptManager:
             self._previous_handler = None
         return False
 
-    def _handle_interrupt(self, sig: int, frame: Optional[types.FrameType]) -> None:
+    def _handle_interrupt(
+        self, sig: int, frame: Optional[types.FrameType]  # noqa: UP045
+    ) -> None:
         del sig, frame  # unused arguments
         self.n_interrupts += 1
         if self.n_interrupts >= self._n_forced:

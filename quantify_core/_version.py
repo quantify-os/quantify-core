@@ -59,7 +59,7 @@ def pep440_format(version_info):
 
 
 def get_version_from_git():
-    import subprocess
+    import subprocess  # noqa: PLC0415
 
     # git describe --first-parent does not take into account tags from branches
     # that were merged-in. The '--long' flag gets us the 'dev' version and
@@ -163,8 +163,8 @@ def _write_version(fname):
 
 
 def get_cmdclass(pkg_source_path):
-    from setuptools.command.build_py import build_py as build_py_orig
-    from setuptools.command.sdist import sdist as sdist_orig
+    from setuptools.command.build_py import build_py as build_py_orig  # noqa: PLC0415
+    from setuptools.command.sdist import sdist as sdist_orig  # noqa: PLC0415
 
     class _build_py(build_py_orig):
         def run(self):

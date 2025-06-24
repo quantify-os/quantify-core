@@ -30,7 +30,7 @@ def test_rotate_to_calibrated_axis():
     )
 
     np.testing.assert_array_almost_equal(
-        x=corrected_data, y=np.array([0.0, 1.0]), decimal=15
+        corrected_data, np.array([0.0, 1.0]), decimal=15
     )
 
 

@@ -69,6 +69,7 @@ settings = AnalysisSettings(
         "mpl_fig_formats": ["png", "svg"],
         "mpl_exclude_fig_titles": False,
         "mpl_transparent_background": True,
+        "save_fit_results": True,
     }
 )
 """
@@ -631,6 +632,8 @@ class BaseAnalysis(metaclass=AnalysisMeta):
         Saves the :code:`lmfit.model.model_result` objects for each fit in a
         sub-directory within the analysis directory.
         """
+        if not self.settings_overwrite["save_fit_results"]:
+            return
         for fr_name, fit_result in self.fit_results.items():
             path = os.path.join(self.results_dir, f"{fr_name}.txt")
             lmfit.model.save_modelresult(fit_result, path)

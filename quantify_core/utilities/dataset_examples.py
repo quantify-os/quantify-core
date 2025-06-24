@@ -6,7 +6,7 @@ Factories of exemplary and mock datasets to be used for testing and documentatio
 
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 import xarray as xr
@@ -65,7 +65,7 @@ def mk_2d_dataset_v1(num_amps: int = 10, num_times: int = 100):
     return dataset
 
 
-def mk_two_qubit_chevron_data(rep_num: int = 5, seed: Optional[int] = 112233):
+def mk_two_qubit_chevron_data(rep_num: int = 5, seed: int | None = 112233):
     """
     Generates data that look similar to a two-qubit Chevron experiment.
 
@@ -187,8 +187,8 @@ def mk_two_qubit_chevron_dataset(**kwargs) -> xr.Dataset:
 
 
 def mk_t1_av_dataset(
-    t1_times: Optional[np.ndarray] = None,
-    probabilities: Optional[np.ndarray] = None,
+    t1_times: np.ndarray | None = None,
+    probabilities: np.ndarray | None = None,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -230,8 +230,8 @@ def mk_t1_av_dataset(
 
 
 def mk_t1_av_with_cal_dataset(
-    t1_times: Optional[np.ndarray] = None,
-    probabilities: Optional[np.ndarray] = None,
+    t1_times: np.ndarray | None = None,
+    probabilities: np.ndarray | None = None,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -285,8 +285,8 @@ def mk_t1_av_with_cal_dataset(
 
 
 def mk_t1_shots_dataset(
-    t1_times: Optional[np.ndarray] = None,
-    probabilities: Optional[np.ndarray] = None,
+    t1_times: np.ndarray | None = None,
+    probabilities: np.ndarray | None = None,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -365,8 +365,8 @@ def mk_t1_shots_dataset(
 
 
 def mk_t1_traces_dataset(
-    t1_times: Optional[np.ndarray] = None,
-    probabilities: Optional[np.ndarray] = None,
+    t1_times: np.ndarray | None = None,
+    probabilities: np.ndarray | None = None,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -506,7 +506,7 @@ def mk_nested_mc_dataset(
     resonator_freqs_min_max: tuple = (7e9, 7.3e9),
     qubit_freqs_min_max: tuple = (4.5e9, 5.0e9),
     t1_values_min_max: tuple = (20e-6, 50e-6),
-    seed: Optional[int] = 112233,
+    seed: int | None = 112233,
 ) -> xr.Dataset:
     """
     Generates a dataset with dataset references and several coordinates that serve to

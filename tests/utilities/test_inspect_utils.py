@@ -7,7 +7,9 @@ from quantify_core.utilities import inspect_utils
 
 def test_get_classes() -> None:
     # Arrange
-    from quantify_core.data import types  # pylint: disable=import-outside-toplevel
+    from quantify_core.data import (  # noqa: PLC0415
+        types,
+    )  # pylint: disable=import-outside-toplevel
 
     # Act
     classes = inspect_utils.get_classes(types)
