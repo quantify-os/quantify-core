@@ -27,7 +27,7 @@ notebooks.
 2. Open Anaconda Prompt and run the following
 
    > ```
-   > $ conda create --name quantify-env python=3.9
+   > $ conda create --name quantify-env python=3.12
    > $ conda activate quantify-env
    > $ conda install -c conda-forge jupyterlab
    > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
@@ -46,7 +46,7 @@ notebooks.
 2. Open a terminal and run the following
 
    > ```
-   > $ conda create --name quantify-env python=3.9
+   > $ conda create --name quantify-env python=3.12
    > $ conda activate quantify-env
    > $ conda install -c conda-forge jupyterlab
    > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
@@ -65,7 +65,7 @@ notebooks.
 2. If you have a newer MacBook with either an M1 or M2 chip (Apple Silicon, ARM), you will have to run `quantify-core` in an x86 compatibility mode. This is achieved by creating a Conda environment that targets the "osx-64" subdirectory, which ensures that the installation and execution will occur within an x86 environment on your MacBook.
 
    > ```
-   > $ CONDA_SUBDIR=osx-64 conda create --name quantify-env python=3.9
+   > $ CONDA_SUBDIR=osx-64 conda create --name quantify-env python=3.12
    > $ conda activate quantify-env
    > $ conda config --env --set subdir osx-64
    > $ conda install -c conda-forge jupyterlab
@@ -79,7 +79,7 @@ notebooks.
 For older MacBooks, you can run
 
    > ```
-   > $ conda create --name quantify-env python=3.9
+   > $ conda create --name quantify-env python=3.12
    > $ conda activate quantify-env
    > $ conda install -c conda-forge jupyterlab
    > $ python -m ipykernel install --user --name=quantify-env  --display-name="Python 3 Quantify Env"
@@ -96,7 +96,7 @@ For older MacBooks, you can run
 3. You are good to go! Head over to the {ref}`User guide <user-guide>` to get started.
 
 ### Detailed instructions
-0. Currently, `quantify-core` is compatible with Python versions `3.8`, `3.9`, `3.10`, and `quantify-scheduler` with Python versions `3.8` and `3.9`. To install and run `quantify` you will need to have a correct version of Python together with the `pip` Python package manager installed. To fulfill these requirements, we recommend using a virtual environment that is managed by Anaconda.
+0. Currently, `quantify-core` is compatible with Python versions `3.9`, `3.10`, `3.11`, `3.12` and `quantify-scheduler` with Python versions `3.9`, `3.10`, `3.11` and `3.12`. To install and run `quantify` you will need to have a correct version of Python together with the `pip` Python package manager installed. To fulfill these requirements, we recommend using a virtual environment that is managed by Anaconda.
 
 1. Install [Anaconda](https://www.anaconda.com/download).
 
@@ -151,7 +151,7 @@ For older MacBooks, you can run
 4. Create a Conda environment, see also the [Conda cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html).
 
    > ```
-   > $ conda create --name quantify-env python=3.8   # create the conda environment, you can replace `quantify-env` if you wish
+   > $ conda create --name quantify-env python=3.12   # create the conda environment, you can replace `quantify-env` if you wish
    > $ conda activate quantify-env                   # activates the conda environment
    > ```
    >
