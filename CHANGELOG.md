@@ -1,5 +1,17 @@
 # Changelog
 
+## Release v0.8.3 (2025-07-23)
+
+### 🐛 Bug Fixes and Closed Issues
+
+- Fixed a bug where `ThresholdedAcquisitions` with `binMode.AVERAGE` would return 0 instead of the average results. ([!566](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/566) by [@Thomas Middelburg](https://gitlab.com/ThomasMiddelburg))
+
+### New Features
+
+- Option to not save fit results in Analysis classes ([!565](https://gitlab.com/quantify-os/quantify-core/-/merge_requests/565) by [@Adam Lawrence](https://gitlab.com/adamorangeQS))
+
+
+
 ## Release v0.8.2 (2025-05-28)
 
 ### 🐛 Bug Fixes and Closed Issues
