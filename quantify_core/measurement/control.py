@@ -315,7 +315,9 @@ class MeasurementControl(Instrument):  # pylint: disable=too-many-instance-attri
         if acq_protocol == "Timetag":
             return [vals.real.astype(np.float64)]
         if acq_protocol == "ThresholdedAcquisition":
-            return [vals.real.astype(np.uint32)]
+            return [
+                vals.real
+            ]  # Not type-casted. The type will be determined by quantify-scheduler as it depends on the bin mode.
         if acq_protocol in (
             "Trace",
             "SSBIntegrationComplex",

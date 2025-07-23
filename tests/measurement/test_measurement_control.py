@@ -1758,3 +1758,23 @@ def test_process_acquired_data(meas_ctrl, num_channels: int, real_imag: bool):
 
     # assert
     np.testing.assert_array_almost_equal(processed_data, expected_data, decimal=5)
+
+
+def test_process_acquired_data_thresholded_acq(meas_ctrl):
+    mock_number = 0.66
+    mock_results = np.array([mock_number], dtype=np.float64)
+    mock_dataset = Dataset(
+        {
+            1: (
+                ["acq_index_1"],
+                mock_results,
+                {"acq_protocol": "ThresholdedAcquisition"},
+            )
+        }
+    )
+
+    processed_data = meas_ctrl._process_acquired_data(mock_dataset, False, False)
+
+    expected_data = [np.array([mock_number], dtype=np.float64)]
+
+    np.testing.assert_array_almost_equal(processed_data, expected_data, decimal=5)
