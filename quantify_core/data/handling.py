@@ -1165,7 +1165,7 @@ def get_tuids_containing(
                     f"Experiment container '{expname}' is in wrong day directory "
                     f"'{daydir}'",
                 )
-            tuids.append(TUID(expname[:26]))
+            tuids.append(expname[:26])
             if len(tuids) == max_results:
                 return tuids
     if len(tuids) == 0:
