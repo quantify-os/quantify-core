@@ -12,6 +12,14 @@
 
 ![Quantify logo](https://gitlab.com/quantify-os/quantify-core/-/raw/main/docs/source/images/QUANTIFY_LANDSCAPE.svg)
 
+❗❗❗
+
+We have reached the end of life for this project. All quantify_core functionalities have been ported to [Quantify](https://gitlab.com/quantify-os/quantify).
+Please refer to the Quantify repository for further developments on these concepts. Quantify-core will henceforth be archived.
+Thank you for your support!
+
+❗❗❗
+
 Quantify is a Python-based data acquisition framework focused on Quantum Computing and
 solid-state physics experiments.
 The framework consists of [quantify-core](https://pypi.org/project/quantify-core/) ([git](https://gitlab.com/quantify-os/quantify-core/) | [docs](https://quantify-os.org/docs/quantify-core))
