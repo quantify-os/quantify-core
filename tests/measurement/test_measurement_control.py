@@ -26,7 +26,7 @@ except ImportError:
     from qcodes.tests.instrument_mocks import (
         DummyChannel,
         DummyInstrument,
-    )  # support for python 3.8 and 3.9
+    )
 from qcodes.utils import validators as vals
 from scipy import optimize
 from xarray import Dataset

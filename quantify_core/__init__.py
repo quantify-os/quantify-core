@@ -1,8 +1,8 @@
 # pylint: disable=django-not-configured
+import warnings
+
 from . import utilities
 from ._version import __version__
-
-import warnings
 
 warnings.warn(
     "This package has reached its end of life. "
