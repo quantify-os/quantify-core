@@ -1,5 +1,15 @@
 # Changelog
 
+## Release v0.9.0 (2025-08-18)
+
+❗❗❗
+
+  Final release. All quantify_core functionalities have been ported to [Quantify](https://gitlab.com/quantify-os/quantify). 
+  Please refer to the Quantify repository for further developments. Quantify-core will henceforth be archived. 
+  Thank you for your support! 
+
+❗❗❗
+
 ## Release v0.8.3 (2025-07-23)
 
 ### 🐛 Bug Fixes and Closed Issues
