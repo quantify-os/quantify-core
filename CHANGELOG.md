@@ -1,6 +1,6 @@
 # Changelog
 
-## Release v0.9.0 (2025-08-18)
+## Release v0.9.1 (2025-08-18)
 
 ❗❗❗
 
